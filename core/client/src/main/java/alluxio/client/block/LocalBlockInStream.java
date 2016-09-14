@@ -11,7 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
@@ -128,9 +127,14 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * Class that contains metrics about LocalBlockInStream.
    */
   @ThreadSafe
-  static final class Metrics {
+  private static final class Metrics {
     private static final Counter BLOCKS_READ_LOCAL = MetricsSystem.clientCounter("BlocksReadLocal");
     private static final Counter BYTES_READ_LOCAL = MetricsSystem.clientCounter("BytesReadLocal");
     private static final Counter SEEKS_LOCAL = MetricsSystem.clientCounter("SeeksLocal");
+
+    /**
+     * No instantiation.
+     */
+    private Metrics() {}
   }
 }

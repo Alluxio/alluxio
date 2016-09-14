@@ -26,22 +26,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockMetricsReporter extends AbstractBlockStoreEventListener {
   private final StorageTierAssoc mStorageTierAssoc;
 
-  public static final String BLOCKS_ACCESSED = "BLOCKS_ACCESSED";
-  public static final String BLOCKS_PROMOTED = "BLOCKS_PROMOTED";
-  public static final String BLOCKS_DELETED = "BLOCKS_DELETED";
-  public static final String BLOCKS_EVICTED = "BLOCKS_EVICTED";
-  public static final String BLOCKS_CANCELLED = "BLOCKS_CANCELLED";
+  public static final String BLOCKS_ACCESSED_NAME = "BlocksAccessed";
 
-  private static final Counter BLOCKS_ACCESSED_COUNTER =
-      MetricsSystem.workerCounter(BLOCKS_ACCESSED);
-  private static final Counter BLOCKS_PROMOTED_COUNTER =
-      MetricsSystem.workerCounter(BLOCKS_PROMOTED);
-  private static final Counter BLOCKS_DELETED_COUNTER =
-      MetricsSystem.workerCounter(BLOCKS_DELETED);
-  private static final Counter BLOCKS_EVICTED_COUNTER =
-      MetricsSystem.workerCounter(BLOCKS_EVICTED);
-  private static final Counter BLOCKS_CANCELLED_COUNTER =
-      MetricsSystem.workerCounter(BLOCKS_CANCELLED);
+  private static final Counter BLOCKS_ACCESSED = MetricsSystem.workerCounter(BLOCKS_ACCESSED_NAME);
+  private static final Counter BLOCKS_PROMOTED = MetricsSystem.workerCounter("BlocksPromoted");
+  private static final Counter BLOCKS_DELETED = MetricsSystem.workerCounter("BlocksDeleted");
+  private static final Counter BLOCKS_EVICTED = MetricsSystem.workerCounter("BlocksEvicted");
+  private static final Counter BLOCKS_CANCELLED = MetricsSystem.workerCounter("BlocksCancelled");
 
   /**
    * Creates a new instance of {@link BlockMetricsReporter}.
@@ -52,7 +43,7 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
 
   @Override
   public void onAccessBlock(long sessionId, long blockId) {
-    BLOCKS_ACCESSED_COUNTER.inc();
+    BLOCKS_ACCESSED.inc();
   }
 
   @Override
@@ -61,13 +52,13 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
     int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
     int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
     if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
-      BLOCKS_PROMOTED_COUNTER.inc();
+      BLOCKS_PROMOTED.inc();
     }
   }
 
   @Override
   public void onRemoveBlockByClient(long sessionId, long blockId) {
-    BLOCKS_DELETED_COUNTER.inc();
+    BLOCKS_DELETED.inc();
   }
 
   @Override
@@ -76,17 +67,17 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
     int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
     int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
     if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
-      BLOCKS_PROMOTED_COUNTER.inc();
+      BLOCKS_PROMOTED.inc();
     }
   }
 
   @Override
   public void onRemoveBlockByWorker(long sessionId, long blockId) {
-    BLOCKS_EVICTED_COUNTER.inc();
+    BLOCKS_EVICTED.inc();
   }
 
   @Override
   public void onAbortBlock(long sessionId, long blockId) {
-    BLOCKS_CANCELLED_COUNTER.inc();
+    BLOCKS_CANCELLED.inc();
   }
 }

@@ -129,8 +129,16 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
    * Class that contains metrics about RemoteBlockOutStream.
    */
   @ThreadSafe
-  static final class Metrics {
-    private static final Counter BLOCKS_WRITTEN_REMOTE = MetricsSystem.clientCounter("BlocksWrittenRemote");
-    private static final Counter BYTES_WRITTEN_REMOTE = MetricsSystem.clientCounter("BytesWrittenRemote");
+  private static final class Metrics {
+    private static final Counter BLOCKS_WRITTEN_REMOTE =
+        MetricsSystem.clientCounter("BlocksWrittenRemote");
+    private static final Counter BYTES_WRITTEN_REMOTE =
+        MetricsSystem.clientCounter("BytesWrittenRemote");
+
+    /**
+     * No instantiation.
+     */
+    private Metrics() {
+    }
   }
 }

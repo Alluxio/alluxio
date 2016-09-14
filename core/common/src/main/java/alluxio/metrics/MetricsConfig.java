@@ -13,7 +13,6 @@ package alluxio.metrics;
 
 import alluxio.Constants;
 
-import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,17 +85,6 @@ public final class MetricsConfig {
         }
       }
     }
-  }
-
-  /**
-   * Sets the default properties. The MetricsServlet is enabled and the path is /metrics/json
-   * by default on servers.
-   */
-  public void setServletProperties() {
-    mProperties.setProperty("master.sink.servlet.class", "alluxio.metrics.sink.MetricsServlet");
-    mProperties.setProperty("worker.sink.servlet.class", "alluxio.metrics.sink.MetricsServlet");
-    mProperties.setProperty("master.sink.servlet.path", "/metrics/json");
-    mProperties.setProperty("worker.sink.servlet.path", "/metrics/json");
   }
 
   /**

@@ -14,7 +14,6 @@ package alluxio.client.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
@@ -159,8 +158,13 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
    * Class that contains metrics about LocalBlockOutStream.
    */
   @ThreadSafe
-  static final class Metrics {
+  private static final class Metrics {
     private static final Counter BLOCKS_WRITTEN_LOCAL = MetricsSystem.clientCounter("BlocksWrittenLocal");
     private static final Counter BYTES_WRITTEN_LOCAL = MetricsSystem.clientCounter("BytesWrittenLocal");
+
+    /**
+     * No instantiation.
+     */
+    private Metrics() {}
   }
 }

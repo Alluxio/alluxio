@@ -14,13 +14,11 @@ package alluxio.metrics;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.metrics.sink.Sink;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
@@ -30,15 +28,12 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -49,7 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * [instance].[sink|source].[name].[options]=[value]
  */
 @ThreadSafe
-public class MetricsSystem {
+public final class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Supported special instance names.
@@ -59,18 +54,11 @@ public class MetricsSystem {
 
   public static final MetricRegistry METRIC_REGISTRY = initMetricRegistry();
 
-  private static final ReentrantLock mSinksLock = new ReentrantLock();
-  @GuardedBy("mSinksLock")
-  private static List<Sink> mSinks;
+  private static List<Sink> sSinks;
 
   public static final String SINK_REGEX = "^sink\\.(.+)\\.(.+)";
   private static final TimeUnit MINIMAL_POLL_UNIT = TimeUnit.SECONDS;
   private static final int MINIMAL_POLL_PERIOD = 1;
-
-  /**
-   * All the gauges registered.
-   */
-  private static HashSet<String> mGauges = new HashSet<>();
 
   /**
    * Start sinks specified in the configuration. This is an no-op if the sinks have already been
@@ -92,14 +80,12 @@ public class MetricsSystem {
    *
    * @param config the metrics config
    */
-  public static void startSinksFromConfig(MetricsConfig config) {
-    mSinksLock.lock();
-    if (mSinks != null) {
+  public static synchronized void startSinksFromConfig(MetricsConfig config) {
+    if (sSinks != null) {
       LOG.warn("Sinks have already been started.");
-      mSinksLock.unlock();
       return;
     }
-
+    sSinks = new ArrayList<>();
     Map<String, Properties> sinkConfigs =
         MetricsConfig.subProperties(config.getProperties(), SINK_REGEX);
     for (Map.Entry<String, Properties> entry : sinkConfigs.entrySet()) {
@@ -109,40 +95,34 @@ public class MetricsSystem {
           Sink sink =
               (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
                   .newInstance(entry.getValue(), METRIC_REGISTRY);
-          mSinks.add(sink);
+          sSinks.add(sink);
         } catch (Exception e) {
           LOG.error("Sink class {} cannot be instantiated", classPath, e);
         }
       }
     }
-
-    mSinksLock.unlock();
   }
 
   /**
    * Stop all the sinks.
    */
-  public static void stopSinks() {
-    mSinksLock.lock();
-    if (mSinks != null) {
-      for (Sink sink : mSinks) {
+  public static synchronized void stopSinks() {
+    if (sSinks != null) {
+      for (Sink sink : sSinks) {
         sink.stop();
       }
     }
-    mSinks = null;
-    mSinksLock.unlock();
+    sSinks = null;
   }
 
   /**
    * @return the number of sinks started
    */
-  public static int getNumSinks() {
+  public static synchronized int getNumSinks() {
     int sz = 0;
-    mSinksLock.lock();
-    if (mSinks != null) {
-      sz = mSinks.size();
+    if (sSinks != null) {
+      sz = sSinks.size();
     }
-    mSinksLock.unlock();
     return sz;
   }
 
@@ -289,9 +269,8 @@ public class MetricsSystem {
    * @param metric the gauge
    * @param <T> the type
    */
-  public synchronized static <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
+  public static synchronized <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
     if (!METRIC_REGISTRY.getGauges().containsKey(name)) {
-      mGauges.add(name);
       METRIC_REGISTRY.register(name, metric);
     }
   }

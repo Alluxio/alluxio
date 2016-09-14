@@ -162,10 +162,15 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * Class that contains metrics about RemoteBlockInStream.
    */
   @ThreadSafe
-  static final class Metrics {
+  private static final class Metrics {
     private static final Counter BLOCKS_READ_REMOTE =
         MetricsSystem.clientCounter("BlocksReadRemote");
     private static final Counter BYTES_READ_REMOTE = MetricsSystem.clientCounter("BytesReadRemote");
     private static final Counter SEEKS_REMOTE = MetricsSystem.clientCounter("SeeksRemote");
+
+    /**
+     * No instantiation.
+     */
+    private Metrics() {}
   }
 }

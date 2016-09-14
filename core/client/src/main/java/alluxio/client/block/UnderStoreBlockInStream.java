@@ -223,7 +223,12 @@ public final class UnderStoreBlockInStream extends BlockInStream {
    * Class that contains metrics about {@link UnderStoreBlockInStream}.
    */
   @ThreadSafe
-  static final class Metrics {
+  private static final class Metrics {
     private static final Counter BYTES_READ_UFS = MetricsSystem.clientCounter("BytesReadUfs");
+
+    /**
+     * No instantiation.
+     */
+    private Metrics() {}
   }
 }
