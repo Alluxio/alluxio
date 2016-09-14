@@ -39,9 +39,7 @@ if [[ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]]; then
 fi
 
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
-echo $JAVA_HOME
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
-echo $JAVA
 
 # Make sure alluxio-env.sh exists
 if [[ ! -e ${ALLUXIO_CONF_DIR}/alluxio-env.sh ]]; then
@@ -76,7 +74,8 @@ if [[ -z "${ALLUXIO_RAM_FOLDER}" ]]; then
         ALLUXIO_RAM_FOLDER="/mnt/ramdisk"
     fi
 fi
-ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.path=${ALLUXIO_RAM_FOLDER}"
+ALLUXIO_LEVEL0_DIR_PATH="${ALLUXIO_LEVEL0_DIR_PATH:-${ALLUXIO_RAM_FOLDER}}"
+ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.path=${ALLUXIO_LEVEL0_DIR_PATH}"
 
 if [[ -n "${ALLUXIO_MASTER_HOSTNAME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}"
