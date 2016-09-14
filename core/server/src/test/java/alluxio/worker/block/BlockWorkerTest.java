@@ -27,7 +27,6 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
-import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.WorkerSource;
 import alluxio.worker.WorkerTestUtils;
 import alluxio.worker.block.meta.BlockMeta;
@@ -55,6 +54,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Unit tests for {@link DefaultBlockWorker}.
@@ -63,7 +63,7 @@ import java.util.Set;
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, Configuration.class,
-    UnderFileSystem.class, BlockWorker.class, WorkerIdRegistry.class, Sessions.class})
+    UnderFileSystem.class, BlockWorker.class, Sessions.class})
 public class BlockWorkerTest {
 
   /** Rule to create a new temporary folder during each test. */
@@ -93,8 +93,8 @@ public class BlockWorkerTest {
         mFolder.newFolder().getAbsolutePath());
     Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
 
-    mBlockWorker =
-        new DefaultBlockWorker(mBlockMasterClient, mFileSystemMasterClient, mSessions, mBlockStore);
+    mBlockWorker = new DefaultBlockWorker(mBlockMasterClient, mFileSystemMasterClient, mSessions,
+        mBlockStore, new AtomicReference<>(10L));
   }
 
   /**

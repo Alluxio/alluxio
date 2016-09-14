@@ -187,10 +187,10 @@ public final class Configuration {
    * @param key the key to set
    * @param value the value for the key
    */
-  public static void set(PropertyKey key, String value) {
+  public static void set(PropertyKey key, Object value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    PROPERTIES.put(key.toString(), value);
+    PROPERTIES.put(key.toString(), value.toString());
     checkUserFileBufferBytes();
   }
 

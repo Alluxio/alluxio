@@ -24,6 +24,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.UIWebServer;
 import alluxio.web.WorkerUIWebServer;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.file.DefaultFileSystemWorker;
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -96,13 +98,20 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   private long mStartTimeMs;
 
   /**
+   * The worker ID for this worker. This is set when the block worker is initialized and may be
+   * updated by the block sync thread if the master requests re-registration.
+   */
+  private AtomicReference<Long> mWorkerId;
+
+  /**
    * Constructs a {@link DefaultAlluxioWorker}.
    */
   public DefaultAlluxioWorker() {
+    mWorkerId = new AtomicReference<>();
     try {
       mStartTimeMs = System.currentTimeMillis();
-      mBlockWorker = new DefaultBlockWorker();
-      mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker);
+      mBlockWorker = new DefaultBlockWorker(mWorkerId);
+      mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker, mWorkerId);
 
       mAdditionalWorkers = new ArrayList<>();
       List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
@@ -124,11 +133,9 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       mWorkerMetricsSystem.registerSource(workerSource);
 
       // Setup web server
-      mWebServer = new WorkerUIWebServer(ServiceType.WORKER_WEB,
-          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this, mBlockWorker,
-          NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC), mStartTimeMs);
-      // Reset worker web port based on assigned port number
-      Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
+      mWebServer = new WorkerUIWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB),
+          this, mBlockWorker, NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC),
+          mStartTimeMs);
 
       // Setup Thrift server
       mTransportProvider = TransportProvider.Factory.create();
@@ -137,16 +144,12 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       String rpcBindHost = NetworkAddressUtils.getThriftSocket(mThriftServerSocket)
           .getInetAddress().getHostAddress();
       mRpcAddress = new InetSocketAddress(rpcBindHost, rpcPort);
-      // Reset worker RPC port based on assigned port number
-      Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(rpcPort));
       mThriftServer = createThriftServer();
 
       // Setup Data server
       mDataServer =
           DataServer.Factory.create(
               NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
-      // Reset data server port
-      Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
     } catch (Exception e) {
       LOG.error("Failed to initialize {}", this.getClass().getName(), e);
       System.exit(-1);
@@ -220,7 +223,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
     // Consequence: worker id is granted
     startWorkers();
-    LOG.info("Started Alluxio worker with id {}", WorkerIdRegistry.getWorkerId());
+    LOG.info("Started Alluxio worker with id {}", mWorkerId.get());
 
     mIsServingRPC = true;
 
@@ -243,6 +246,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   }
 
   private void startWorkers() throws Exception {
+    mBlockWorker.init(getAddress());
     mBlockWorker.start();
     mFileSystemWorker.start();
     // start additional workers
@@ -338,11 +342,20 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   public void waitForReady() {
     while (true) {
       if (mThriftServer.isServing()
-          && WorkerIdRegistry.getWorkerId() != WorkerIdRegistry.INVALID_WORKER_ID
+          && mWorkerId.get() != null
           && mWebServer.getServer().isRunning()) {
         return;
       }
       CommonUtils.sleepMs(10);
     }
+  }
+
+  @Override
+  public WorkerNetAddress getAddress() {
+    return new WorkerNetAddress()
+        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
+        .setRpcPort(mRpcAddress.getPort())
+        .setDataPort(mDataServer.getPort())
+        .setWebPort(mWebServer.getLocalPort());
   }
 }
