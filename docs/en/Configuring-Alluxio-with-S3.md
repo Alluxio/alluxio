@@ -204,6 +204,8 @@ To stop Alluxio, you can run:
 
 # S3 Access Control
 
+If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object storage.
+
 The S3 credentials specified in Alluxio config represents a S3 user. S3 service backend checks the user permission to the bucket and the object for access control.
 If the given S3 user does not have the right access permission to the specified bucket, a permission denied error will be thrown.
 When Alluxio security is enabled, Alluxio loads the bucket ACL to Alluxio permission on the first time when the metadata is loaded to Alluxio namespace.
