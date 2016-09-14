@@ -165,8 +165,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
   }
 
   @Override
-  public void sessionHeartbeat(long sessionId, List<Long> metrics) {
-    // Metrics currently ignored
+  public void sessionHeartbeat(long sessionId) {
     mSessions.sessionHeartbeat(sessionId);
   }
 

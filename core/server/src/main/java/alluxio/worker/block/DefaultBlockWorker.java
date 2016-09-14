@@ -51,13 +51,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker.
@@ -407,7 +407,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void sessionHeartbeat(long sessionId, List<Long> metrics) {
+  public void sessionHeartbeat(long sessionId) {
     mSessions.sessionHeartbeat(sessionId);
   }
 
@@ -440,9 +440,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     FileUtils.changeLocalFileToFullPermission(blockPath);
     LOG.debug("Created new file block, block path: {}", blockPath);
   }
-    /**
+
+  /**
    * This class contains some metrics related to the block worker.
    */
+  @ThreadSafe
   public static final class Metrics {
     public static String CAPACITY_TOTAL = "CapacityTotal";
     public static String CAPACITY_USED = "CapacityUsed";
@@ -455,34 +457,38 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
      * @param blockWorker the block worker handle
      */
     public static void registerGauges(final BlockWorker blockWorker) {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_TOTAL), new Gauge<Long>() {
-        @Override
-        public Long getValue() {
-          return blockWorker.getStoreMeta().getCapacityBytes();
-        }
-      });
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_TOTAL),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return blockWorker.getStoreMeta().getCapacityBytes();
+            }
+          });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_USED), new Gauge<Long>() {
-        @Override
-        public Long getValue() {
-          return blockWorker.getStoreMeta().getUsedBytes();
-        }
-      });
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_USED),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return blockWorker.getStoreMeta().getUsedBytes();
+            }
+          });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_FREE), new Gauge<Long>() {
-        @Override
-        public Long getValue() {
-          return blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
-              .getUsedBytes();
-        }
-      });
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_FREE),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
+                  .getUsedBytes();
+            }
+          });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(BLOCKS_CACHED), new Gauge<Integer>() {
-        @Override
-        public Integer getValue() {
-          return blockWorker.getStoreMetaFull().getNumberOfBlocks();
-        }
-      });
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(BLOCKS_CACHED),
+          new Gauge<Integer>() {
+            @Override
+            public Integer getValue() {
+              return blockWorker.getStoreMetaFull().getNumberOfBlocks();
+            }
+          });
     }
   }
 }

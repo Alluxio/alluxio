@@ -326,9 +326,8 @@ public interface BlockWorker extends Worker {
    * Handles the heartbeat from a client.
    *
    * @param sessionId the id of the client
-   * @param metrics the set of metrics the client has gathered since the last heartbeat
    */
-  void sessionHeartbeat(long sessionId, List<Long> metrics);
+  void sessionHeartbeat(long sessionId);
 
   /**
    * Sets the pinlist for the underlying block store. Typically called by {@link PinListSync}.
