@@ -45,35 +45,10 @@
               <th><%= request.getAttribute("BlocksPromoted") %></th>
             </tr>
             <tr>
-              <th>Blocks Read Locally</th>
-              <th><%= request.getAttribute("BlocksReadLocal") %></th>
-              <th>Blocks Read Remotely</th>
-              <th><%= request.getAttribute("BlocksReadRemote") %></th>
-            </tr>
-            <tr>
-              <th>Blocks Written Locally</th>
-              <th><%= request.getAttribute("BlocksWrittenLocal") %></th>
-              <th>Bytes Read Locally</th>
-              <th><%= request.getAttribute("BytesReadLocal") %></th>
-            </tr>
-            <tr>
               <th>Bytes Read Remotely</th>
               <th><%= request.getAttribute("BytesReadRemote") %></th>
-              <th>Underfs Bytes read</th>
-              <th><%= request.getAttribute("BytesReadUfs") %></th>
-            </tr>
-            <tr>
-              <th>Bytes Written Locally</th>
-              <th><%= request.getAttribute("BytesWrittenLocal") %></th>
-              <th>Underfs Bytes Written</th>
-              <th><%= request.getAttribute("BytesWrittenUfs") %></th>
-            </tr>
-            <tr>
-              <th>Seek Remotely</th>
-              <th><%= request.getAttribute("SeeksRemote") %></th>
-              <th>Seek Locally</th>
-              <th><%= request.getAttribute("SeeksLocal") %></th>
-              </tr>
+              <th>Bytes Written Remotely</th>
+              <th><%= request.getAttribute("BytesWrittenRemote") %></th>
             </tr>
           </tbody>
         </table>

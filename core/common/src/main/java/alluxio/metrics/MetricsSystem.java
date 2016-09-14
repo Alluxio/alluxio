@@ -23,7 +23,9 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -272,6 +274,16 @@ public final class MetricsSystem {
   public static synchronized <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
     if (!METRIC_REGISTRY.getGauges().containsKey(name)) {
       METRIC_REGISTRY.register(name, metric);
+    }
+  }
+
+  /**
+   * Reset all the counters to 0 for testing.
+   */
+  @VisibleForTesting
+  public static void resetAllCounters() {
+    for (Map.Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
+      entry.getValue().dec(entry.getValue().getCount());
     }
   }
 
