@@ -38,6 +38,7 @@ public final class WorkerUIWebServer extends UIWebServer {
    * Creates a new instance of {@link WorkerUIWebServer}.
    *
    * @param webAddress the service address
+   * @param alluxioWorker the alluxio worker
    * @param blockWorker block worker to manage blocks
    * @param connectHost the connect host for the web server
    * @param startTimeMs start time milliseconds
