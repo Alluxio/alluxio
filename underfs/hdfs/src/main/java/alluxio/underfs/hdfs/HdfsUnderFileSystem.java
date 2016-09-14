@@ -115,11 +115,10 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       hadoopConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
 
-    // To disable the instance cache for hdfs client, otherwise it causes the
-    // FileSystem closed exception. Being configurable for unit/integration
-    // test only, and not expose to the end-user currently.
+    // Disable hdfs client caching so that input configuration is respected. Configurable from
+    // system property
     hadoopConf.set("fs.hdfs.impl.disable.cache",
-        System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+        System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
     HdfsUnderFileSystemUtils.addKey(hadoopConf, PropertyKey.UNDERFS_HDFS_CONFIGURATION);
   }
@@ -213,7 +212,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       FileStatus fStatus = mFileSystem.getFileStatus(new Path(path));
       BlockLocation[] bLocations = mFileSystem.getFileBlockLocations(fStatus, offset, 1);
       if (bLocations.length > 0) {
-        String[] names = bLocations[0].getNames();
+        String[] names = bLocations[0].getHosts();
         Collections.addAll(ret, names);
       }
     } catch (IOException e) {

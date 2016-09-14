@@ -24,7 +24,8 @@ public enum ChannelType {
   /**
    * Use Linux's epoll for channel API. This type of channel only works on Linux.
    */
-  EPOLL;
+  EPOLL,
+  ;
 
   /**
    * Determines the default type to use based off the system.

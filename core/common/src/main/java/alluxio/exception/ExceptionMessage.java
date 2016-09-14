@@ -145,7 +145,6 @@ public enum ExceptionMessage {
 
   // configuration
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
-  INVALID_CONFIGURATION_KEY("Invalid configuration key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
   KEY_NOT_BOOLEAN("Configuration cannot evaluate key {0} as boolean"),
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
@@ -153,6 +152,7 @@ public enum ExceptionMessage {
   KEY_NOT_FLOAT("Configuration cannot evaluate key {0} as float"),
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
   KEY_NOT_LONG("Configuration cannot evaluate key {0} as long"),
+  UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
@@ -166,6 +166,8 @@ public enum ExceptionMessage {
   YARN_NOT_ENOUGH_HOSTS(
       "Not enough usable hosts in the cluster to launch {0} {1} containers. Only {2} hosts "
           + "available"),
+  YARN_NOT_ENOUGH_RESOURCES(
+      "{0} {1} specified above max threshold of cluster, specified={2}, max={3}"),
 
   // mounting
   MOUNT_POINT_ALREADY_EXISTS("Mount point {0} already exists"),

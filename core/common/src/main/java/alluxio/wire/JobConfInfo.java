@@ -16,6 +16,8 @@ import alluxio.annotation.PublicApi;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -24,7 +26,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 // TODO(jiri): Consolidate with alluxio.job.JobConf
-public final class JobConfInfo {
+public final class JobConfInfo implements Serializable {
+  private static final long serialVersionUID = -7905777467753059106L;
+
   private String mOutputFile = "";
 
   /**

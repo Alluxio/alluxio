@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.util.CommonUtils;
@@ -95,8 +96,9 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
     Map<String, Long> metrics = new ObjectMapper().readValue(result,
         new TypeReference<Map<String, Long>>() {});
 
-    String blocksAccessedMetricName =
-        WorkerContext.getWorkerSource().getName() + "." + WorkerSource.BLOCKS_ACCESSED;
+    String blocksAccessedMetricName = MetricsSystem
+        .buildSourceRegistryName(MetricsSystem.WORKER_INSTANCE, WorkerContext.getWorkerSource())
+        + "." + WorkerSource.BLOCKS_ACCESSED;
     Assert.assertTrue(metrics.get(blocksAccessedMetricName) >= 0);
   }
 

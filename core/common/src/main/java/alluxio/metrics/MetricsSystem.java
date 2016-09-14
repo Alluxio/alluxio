@@ -14,12 +14,13 @@ package alluxio.metrics;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.Sink;
 import alluxio.metrics.source.Source;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.MetricRegistry;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  // Supported special instance names.
+  public static final String MASTER_INSTANCE = "master";
+  public static final String WORKER_INSTANCE = "worker";
+
   public static final String SINK_REGEX = "^sink\\.(.+)\\.(.+)";
   public static final String SOURCE_REGEX = "^source\\.(.+)\\.(.+)";
   private static final TimeUnit MINIMAL_POLL_UNIT = TimeUnit.SECONDS;
@@ -53,7 +58,6 @@ public class MetricsSystem {
   private MetricRegistry mMetricRegistry = new MetricRegistry();
   private MetricsConfig mMetricsConfig;
   private boolean mRunning = false;
-  private MetricsServlet mMetricsServlet;
 
   /**
    * Gets the sinks.
@@ -111,17 +115,22 @@ public class MetricsSystem {
     mMetricsConfig = metricsConfig;
   }
 
-  /***
-   * Gets the {@link ServletContextHandler} of the metrics servlet.
+  /**
+   * Build unique metric registry names. The pattern is [master|worker|client].hostname.sourceName.
+   * The hostname is skipped for master.
    *
-   * @return the ServletContextHandler if the metrics system is running and the metrics servlet
-   *         exists, otherwise null
+   * @param instance the instance name
+   * @param source the metrics source (e.g. JvmSource, MasterSource)
+   * @return the registry name
    */
-  public ServletContextHandler getServletHandler() {
-    if (mRunning && mMetricsServlet != null) {
-      return mMetricsServlet.getHandler();
+  public static String buildSourceRegistryName(String instance, Source source) {
+    // Do not add hostname to the master metrics.
+    if (instance.equals(MASTER_INSTANCE)) {
+      return Joiner.on(".").join(instance, source.getName());
+    } else {
+      return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'),
+          source.getName());
     }
-    return null;
   }
 
   /**
@@ -132,7 +141,8 @@ public class MetricsSystem {
   public void registerSource(Source source) {
     mSources.add(source);
     try {
-      mMetricRegistry.register(source.getName(), source.getMetricRegistry());
+      mMetricRegistry
+          .register(buildSourceRegistryName(mInstance, source), source.getMetricRegistry());
     } catch (IllegalArgumentException e) {
       LOG.warn("Metrics already registered. Exception: {}", e.getMessage());
     }
@@ -170,11 +180,7 @@ public class MetricsSystem {
           Sink sink =
               (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
                   .newInstance(entry.getValue(), mMetricRegistry);
-          if (entry.getKey().equals("servlet")) {
-            mMetricsServlet = (MetricsServlet) sink;
-          } else {
-            mSinks.add(sink);
-          }
+          mSinks.add(sink);
         } catch (Exception e) {
           LOG.error("Sink class {} cannot be instantiated", classPath, e);
         }
@@ -236,5 +242,22 @@ public class MetricsSystem {
    */
   public MetricRegistry getMetricRegistry() {
     return mMetricRegistry;
+  }
+
+  /**
+   * Util function to remove get the metrics name without instance and host.
+   * @param metricsName the long metrics name with instance and host name
+   * @return the metrics name without instance and host name
+   */
+  public static String stripInstanceAndHost(String metricsName) {
+    String[] pieces = metricsName.split("\\.");
+    Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: " + metricsName);
+
+    // Master metrics doesn't have hostname included.
+    if (!pieces[0].equals(MASTER_INSTANCE)) {
+      pieces[1] = null;
+    }
+    pieces[0] = null;
+    return Joiner.on(".").skipNulls().join(pieces);
   }
 }

@@ -115,17 +115,6 @@ public final class RetryHandlingBlockWorkerClient extends AbstractClient
   }
 
   @Override
-  public synchronized boolean asyncCheckpoint(final long fileId) throws IOException,
-      AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
-      @Override
-      public Boolean call() throws AlluxioTException, TException {
-        return mClient.asyncCheckpoint(fileId);
-      }
-    });
-  }
-
-  @Override
   public synchronized void cacheBlock(final long blockId) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override

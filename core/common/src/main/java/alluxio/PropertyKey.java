@@ -19,6 +19,7 @@ import java.util.Map;
  * you change or add Alluxio configuration properties.
  */
 public enum PropertyKey {
+  CONF_DIR(Name.CONF_DIR, "${alluxio.home}/conf"),
   DEBUG(Name.DEBUG, false),
   HOME(Name.HOME, "/mnt/alluxio_default_home"),
   INTEGRATION_MASTER_RESOURCE_CPU(Name.INTEGRATION_MASTER_RESOURCE_CPU, 1),
@@ -36,15 +37,15 @@ public enum PropertyKey {
   INTEGRATION_MESOS_PRINCIPAL(Name.INTEGRATION_MESOS_PRINCIPAL, "alluxio"),
   INTEGRATION_MESOS_ROLE(Name.INTEGRATION_MESOS_ROLE, "*"),
   INTEGRATION_MESOS_SECRET(Name.INTEGRATION_MESOS_SECRET, null),
-  INTEGRATION_MESOS_USER(Name.INTEGRATION_MESOS_USER, "root"),
+  INTEGRATION_MESOS_USER(Name.INTEGRATION_MESOS_USER, ""),
   INTEGRATION_WORKER_RESOURCE_CPU(Name.INTEGRATION_WORKER_RESOURCE_CPU, 1),
   INTEGRATION_WORKER_RESOURCE_MEM(Name.INTEGRATION_WORKER_RESOURCE_MEM, "1024MB"),
   INTEGRATION_YARN_WORKERS_PER_HOST_MAX(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX, 1),
   KEY_VALUE_ENABLED(Name.KEY_VALUE_ENABLED, false),
   KEY_VALUE_PARTITION_SIZE_BYTES_MAX(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, "512MB"),
   LOGGER_TYPE(Name.LOGGER_TYPE, "Console"),
-  LOGS_DIR(Name.LOGS_DIR, "${alluxio.home}/logs"),
-  METRICS_CONF_FILE(Name.METRICS_CONF_FILE, "${alluxio.home}/conf/metrics.properties"),
+  LOGS_DIR(Name.LOGS_DIR, "${alluxio.work.dir}/logs"),
+  METRICS_CONF_FILE(Name.METRICS_CONF_FILE, "${alluxio.conf.dir}/metrics.properties"),
   NETWORK_HOST_RESOLUTION_TIMEOUT_MS(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 5000),
   NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB"),
   SITE_CONF_DIR(Name.SITE_CONF_DIR, "${user.home}/.alluxio/,/etc/alluxio/"),
@@ -52,6 +53,7 @@ public enum PropertyKey {
   VERSION(Name.VERSION, ProjectConstants.VERSION),
   WEB_RESOURCES(Name.WEB_RESOURCES, "${alluxio.home}/core/server/src/main/webapp"),
   WEB_THREADS(Name.WEB_THREADS, 1),
+  WORK_DIR(Name.WORK_DIR, "${alluxio.home}"),
   ZOOKEEPER_ADDRESS(Name.ZOOKEEPER_ADDRESS, null),
   ZOOKEEPER_ELECTION_PATH(Name.ZOOKEEPER_ELECTION_PATH, "/election"),
   ZOOKEEPER_ENABLED(Name.ZOOKEEPER_ENABLED, false),
@@ -61,14 +63,15 @@ public enum PropertyKey {
   //
   // UFS related properties
   //
-  UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, "${alluxio.home}/underFSStorage"),
+  UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, "${alluxio.work.dir}/underFSStorage"),
   UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ""),
   UNDERFS_GLUSTERFS_IMPL(Name.UNDERFS_GLUSTERFS_IMPL,
       "org.apache.hadoop.fs.glusterfs.GlusterFileSystem"),
   UNDERFS_GLUSTERFS_MOUNTS(Name.UNDERFS_GLUSTERFS_MOUNTS, null),
   UNDERFS_GLUSTERFS_MR_DIR(Name.UNDERFS_GLUSTERFS_MR_DIR, "glusterfs:///mapred/system"),
   UNDERFS_GLUSTERFS_VOLUMES(Name.UNDERFS_GLUSTERFS_VOLUMES, null),
-  UNDERFS_HDFS_CONFIGURATION(Name.UNDERFS_HDFS_CONFIGURATION, "${alluxio.home}/conf/core-site.xml"),
+  UNDERFS_HDFS_CONFIGURATION(Name.UNDERFS_HDFS_CONFIGURATION,
+      "${alluxio.conf.dir}/core-site.xml"),
   UNDERFS_HDFS_IMPL(Name.UNDERFS_HDFS_IMPL, "org.apache.hadoop.hdfs.DistributedFileSystem"),
   UNDERFS_HDFS_PREFIXES(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///"),
   UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY,
@@ -108,13 +111,13 @@ public enum PropertyKey {
   S3N_SECRET_KEY(Name.S3N_SECRET_KEY, null),
   SWIFT_API_KEY(Name.SWIFT_API_KEY, null),
   SWIFT_AUTH_METHOD_KEY(Name.SWIFT_AUTH_METHOD_KEY, null),
-  SWIFT_AUTH_PORT_KEY(Name.SWIFT_AUTH_PORT_KEY, null),
   SWIFT_AUTH_URL_KEY(Name.SWIFT_AUTH_URL_KEY, null),
   SWIFT_PASSWORD_KEY(Name.SWIFT_PASSWORD_KEY, null),
   SWIFT_SIMULATION(Name.SWIFT_SIMULATION, null),
   SWIFT_TENANT_KEY(Name.SWIFT_TENANT_KEY, null),
   SWIFT_USE_PUBLIC_URI_KEY(Name.SWIFT_USE_PUBLIC_URI_KEY, null),
   SWIFT_USER_KEY(Name.SWIFT_USER_KEY, null),
+  SWIFT_REGION_KEY(Name.SWIFT_REGION_KEY, null),
 
   //
   // Master related properties
@@ -127,7 +130,7 @@ public enum PropertyKey {
   MASTER_HEARTBEAT_INTERVAL_MS(Name.MASTER_HEARTBEAT_INTERVAL_MS, 1000),
   MASTER_HOSTNAME(Name.MASTER_HOSTNAME, null),
   MASTER_JOURNAL_FLUSH_BATCH_TIME_MS(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5),
-  MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, "${alluxio.home}/journal/"),
+  MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, "${alluxio.work.dir}/journal"),
   MASTER_JOURNAL_FORMATTER_CLASS(Name.MASTER_JOURNAL_FORMATTER_CLASS,
       "alluxio.master.journal.ProtoBufJournalFormatter"),
   MASTER_JOURNAL_LOG_SIZE_BYTES_MAX(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10MB"),
@@ -140,7 +143,7 @@ public enum PropertyKey {
   MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, 300000),
   MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, 300000),
   MASTER_LINEAGE_RECOMPUTE_LOG_PATH(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH,
-      "${alluxio.home}/logs/recompute.log"),
+      "${alluxio.logs.dir}/recompute.log"),
   MASTER_PRINCIPAL(Name.MASTER_PRINCIPAL, null),
   MASTER_RETRY(Name.MASTER_RETRY, 29),
   MASTER_RPC_PORT(Name.MASTER_RPC_PORT, 19998),
@@ -294,6 +297,7 @@ public enum PropertyKey {
    * Used for setting configuration in integration tests.
    */
   public static final class Name {
+    public static final String CONF_DIR = "alluxio.conf.dir";
     public static final String DEBUG = "alluxio.debug";
     public static final String HOME = "alluxio.home";
     public static final String INTEGRATION_MASTER_RESOURCE_CPU =
@@ -335,6 +339,7 @@ public enum PropertyKey {
     public static final String VERSION = "alluxio.version";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";
+    public static final String WORK_DIR = "alluxio.work.dir";
     public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
     public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
     public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
@@ -401,13 +406,13 @@ public enum PropertyKey {
     public static final String S3N_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
     public static final String SWIFT_API_KEY = "fs.swift.apikey";
     public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
-    public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
     public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
     public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
     public static final String SWIFT_SIMULATION = "fs.swift.simulation";
     public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
     public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
+    public static final String SWIFT_REGION_KEY = "fs.swift.region";
 
     //
     // Master related properties

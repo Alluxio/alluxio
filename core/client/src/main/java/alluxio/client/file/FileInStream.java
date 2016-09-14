@@ -19,7 +19,6 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
 import alluxio.client.Seekable;
 import alluxio.client.block.BlockInStream;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
@@ -466,7 +465,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
     // If this block is read from a remote worker but we don't have a local worker, don't cache
     if (mCurrentBlockInStream instanceof RemoteBlockInStream
-        && !BlockStoreContext.INSTANCE.hasLocalWorker()) {
+        && !mContext.getBlockStoreContext().hasLocalWorker()) {
       return;
     }
 
@@ -561,7 +560,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private void seekInternalWithCachingPartiallyReadBlock(long pos) throws IOException {
     // Precompute this because mPos will be updated several times in this function.
-    boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
+    final boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
 
     // Make sure that mCurrentBlockInStream and mCurrentCacheStream is updated.
     // mPos is not updated here.

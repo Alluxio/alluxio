@@ -14,13 +14,17 @@ package alluxio.wire;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The lock block operation result.
  */
 @NotThreadSafe
-public final class LockBlockResult {
+public final class LockBlockResult implements Serializable {
+  private static final long serialVersionUID = -2217323649674837526L;
+
   private long mLockId;
   private String mBlockPath = "";
 

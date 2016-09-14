@@ -28,6 +28,7 @@ import alluxio.Constants;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
@@ -133,7 +134,7 @@ public class FileOutStreamTest {
             Long blockId = invocation.getArgumentAt(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
               TestBufferedBlockOutStream newStream =
-                  new TestBufferedBlockOutStream(blockId, BLOCK_LENGTH);
+                  new TestBufferedBlockOutStream(blockId, BLOCK_LENGTH, BlockStoreContext.get());
               outStreamMap.put(blockId, newStream);
             }
             return outStreamMap.get(blockId);

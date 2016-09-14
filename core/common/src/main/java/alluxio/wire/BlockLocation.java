@@ -16,6 +16,8 @@ import alluxio.annotation.PublicApi;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -23,7 +25,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public final class BlockLocation {
+public final class BlockLocation implements Serializable {
+  private static final long serialVersionUID = 9017017197104411532L;
+
   private long mWorkerId;
   private WorkerNetAddress mWorkerAddress = new WorkerNetAddress();
   private String mTierAlias = "";

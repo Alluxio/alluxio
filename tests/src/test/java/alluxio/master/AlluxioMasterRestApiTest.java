@@ -85,7 +85,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getMetrics() throws Exception {
-    Assert.assertEquals(Long.valueOf(0), getInfo().getMetrics().get("master.CompleteFileOps"));
+    Assert
+        .assertEquals(Long.valueOf(0), getInfo().getMetrics().get("master.master.CompleteFileOps"));
   }
 
   @Test

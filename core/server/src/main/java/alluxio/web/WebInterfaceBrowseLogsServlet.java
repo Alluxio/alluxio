@@ -67,9 +67,8 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    */
   private void displayLocalFile(File file, HttpServletRequest request, long offset)
       throws IOException {
-    String fileData = null;
-    InputStream is = new FileInputStream(file);
-    try {
+    String fileData;
+    try (InputStream is = new FileInputStream(file)) {
       long fileSize = file.length();
       int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
       byte[] data = new byte[len];
@@ -90,8 +89,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
           fileData = WebUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
         }
       }
-    } finally {
-      is.close();
     }
     request.setAttribute("fileData", fileData);
   }

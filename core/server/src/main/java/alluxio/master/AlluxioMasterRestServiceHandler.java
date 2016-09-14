@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
+import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.web.MasterUIWebServer;
@@ -119,8 +120,9 @@ public final class AlluxioMasterRestServiceHandler {
 
     // Only the gauge for pinned files is retrieved here, other gauges are statistics of free/used
     // spaces, those statistics can be gotten via other REST apis.
-    String filesPinnedProperty = CommonUtils.argsToString(".",
-        mMaster.getMasterContext().getMasterSource().getName(), MasterSource.FILES_PINNED);
+    String filesPinnedProperty = CommonUtils.argsToString(".", MetricsSystem
+        .buildSourceRegistryName(MetricsSystem.MASTER_INSTANCE,
+            mMaster.getMasterContext().getMasterSource()), MasterSource.FILES_PINNED);
     @SuppressWarnings("unchecked")
     Gauge<Integer> filesPinned =
         (Gauge<Integer>) metricRegistry.getGauges().get(filesPinnedProperty);

@@ -26,7 +26,11 @@ public final class SetAndRestoreSystemProperty implements AutoCloseable {
   public SetAndRestoreSystemProperty(String propertyName, String value) {
     mPropertyName = propertyName;
     mPreviousValue = System.getProperty(propertyName);
-    System.setProperty(mPropertyName, value);
+    if (value == null) {
+      System.clearProperty(mPropertyName);
+    } else {
+      System.setProperty(mPropertyName, value);
+    }
   }
 
   @Override

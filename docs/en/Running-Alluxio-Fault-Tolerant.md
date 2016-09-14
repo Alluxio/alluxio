@@ -100,13 +100,13 @@ details about setting configuration parameters can be found in
 
 ### Master Configuration
 
-In addition to the above configuration settings, Alluxio masters need additional configuration. The
-following variable must be set appropriately in `conf/alluxio-site.properties`:
+In addition to the above configuration settings, Alluxio masters need additional configuration. For
+each master, the following variable must be set appropriately in `conf/alluxio-env.sh`:
 
-    alluxio.master.hostname=[externally visible address of this machine]
+    ALLUXIO_MASTER_HOSTNAME=[externally visible address of this machine]
 
-Also, specify the correct journal folder by setting `alluxio.master.journal.folder` appropriately. 
-For example, if you are using HDFS for the journal, you can add:
+Also, specify the correct journal folder by setting `alluxio.master.journal.folder` appropriately in
+`conf/alluxio-site.properties`. For example, if you are using HDFS for the journal, you can add:
 
     alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
 
@@ -119,6 +119,13 @@ until the current master dies.
 As long as the config parameters above are correctly set, the worker will be able to consult with
 ZooKeeper, and find the current leader master to connect to. Therefore, `ALLUXIO_MASTER_HOSTNAME`
 does not have to be set for the workers.
+
+> Note: When running Alluxio in fault tolerant mode, it is possible that the default worker
+> heartbeat timeout value is too short. It is recommended to increase that value to a higher value,
+> in order to handle the situations when a master failover occurs. In order to increase the
+> heartbeat timeout value on the workers, modify the configuration parameter
+> `alluxio.worker.block.heartbeat.timeout.ms` in `conf/alluxio-site.properties` to a larger value
+> (at least a few minutes).
 
 ### Client Configuration
 

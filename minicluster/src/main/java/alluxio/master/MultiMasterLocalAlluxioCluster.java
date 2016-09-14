@@ -168,7 +168,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     Configuration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/leader");
 
     for (int k = 0; k < mNumOfMasters; k++) {
-      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mHome);
+      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory);
       master.start();
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
           master.getAddress());

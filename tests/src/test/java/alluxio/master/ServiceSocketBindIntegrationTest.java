@@ -61,7 +61,7 @@ public class ServiceSocketBindIntegrationTest {
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
-    mBlockWorkerClient = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
+    mBlockWorkerClient = BlockStoreContext.get().acquireLocalWorkerClient();
     mBlockWorkerClient.connect();
 
     // connect Worker data service
@@ -157,7 +157,7 @@ public class ServiceSocketBindIntegrationTest {
     // Connect to Worker RPC service on loopback, while Worker is listening on local hostname.
     try {
       mBlockWorkerClient =
-          BlockStoreContext.INSTANCE.acquireWorkerClient(mLocalAlluxioCluster.getWorkerAddress());
+          BlockStoreContext.get().acquireWorkerClient(mLocalAlluxioCluster.getWorkerAddress());
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
     } catch (Exception e) {

@@ -59,7 +59,7 @@ public class MetricsServlet implements Sink {
       @Override
       protected void doGet(HttpServletRequest request, HttpServletResponse response)
           throws ServletException, IOException {
-        response.setContentType(String.format("text/json;charset=utf-8"));
+        response.setContentType("text/json;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         String result = mObjectMapper.writeValueAsString(mMetricsRegistry);

@@ -117,25 +117,6 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary asynchronously persist a file
-   * @param fileId the file id
-   * @return the response object
-   */
-  @POST
-  @Path(ASYNC_CHECKPOINT)
-  @Produces(MediaType.APPLICATION_JSON)
-  @ReturnType("java.lang.Boolean")
-  public Response asyncCheckpoint(@QueryParam("fileId") Long fileId) {
-    try {
-      Preconditions.checkNotNull(fileId, "required 'fileId' parameter is missing");
-      return RestUtils.createResponse(false);
-    } catch (NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
-  }
-
-  /**
    * @summary cache a block
    * @param sessionId the session id
    * @param blockId the block id

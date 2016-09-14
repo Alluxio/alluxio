@@ -22,6 +22,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -379,8 +380,9 @@ public final class JournalCrashTest {
    * Starts Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
-    String startMasterCommand = Configuration.get(PropertyKey.HOME)
-        + "/bin/alluxio-start.sh master";
+    String alluxioStartPath = PathUtils.concatPath(Configuration.get(PropertyKey.HOME),
+        "bin", "alluxio-start.sh");
+    String startMasterCommand = String.format("%s master", alluxioStartPath);
     try {
       Runtime.getRuntime().exec(startMasterCommand).waitFor();
       CommonUtils.sleepMs(LOG, 1000);
@@ -394,8 +396,9 @@ public final class JournalCrashTest {
    * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
-    String stopClusterCommand = Configuration.get(PropertyKey.HOME)
-        + "/bin/alluxio-stop.sh all";
+    String alluxioStopPath =
+        PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "bin", "alluxio-stop.sh");
+    String stopClusterCommand = String.format("%s all", alluxioStopPath);
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();
       CommonUtils.sleepMs(LOG, 1000);

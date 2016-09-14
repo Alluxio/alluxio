@@ -76,6 +76,12 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   }
 
   @Override
+  public void seek(long pos) throws IOException {
+    super.seek(pos);
+    mMetrics.incSeeksRemote(1);
+  }
+
+  @Override
   public void close() throws IOException {
     if (mClosed) {
       return;

@@ -38,9 +38,10 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
    *
    * @param blockId the id of the block
    * @param blockSize the size of the block in bytes
+   * @param context the block store context
    */
-  public TestBufferedBlockOutStream(long blockId, long blockSize) {
-    super(blockId, blockSize);
+  public TestBufferedBlockOutStream(long blockId, long blockSize, BlockStoreContext context) {
+    super(blockId, blockSize, context);
     mDataWritten = ByteBuffer.allocate(MAX_DATA);
     mCanceled = false;
   }

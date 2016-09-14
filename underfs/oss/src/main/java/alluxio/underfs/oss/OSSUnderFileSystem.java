@@ -62,23 +62,20 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** Aliyun OSS client. */
   private final OSSClient mClient;
 
-  /** The accessId to connect OSS. */
-  private final String mAccessId;
-
-  /** The accessKey to connect OSS. */
-  private final String mAccessKey;
-
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
   /** Prefix of the bucket, for example oss://bucket-name/ . */
   private final String mBucketPrefix;
 
-  /** The OSS endpoint. */
-  private final String mEndPoint;
-
-  protected OSSUnderFileSystem(AlluxioURI uri) throws Exception {
-    super(uri);
+  /**
+   * Constructs a new instance of {@link OSSUnderFileSystem}.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @return the created {@link OSSUnderFileSystem} instance
+   * @throws Exception when a connection to GCS could not be created
+   */
+  public static OSSUnderFileSystem createInstance(AlluxioURI uri) throws Exception {
     String bucketName = uri.getHost();
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY),
         "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
@@ -86,14 +83,33 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
         "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ENDPOINT_KEY),
         "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    mAccessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY);
-    mAccessKey = Configuration.get(PropertyKey.OSS_SECRET_KEY);
-    mBucketName = bucketName;
-    mBucketPrefix = Constants.HEADER_OSS + mBucketName + PATH_SEPARATOR;
-    mEndPoint = Configuration.get(PropertyKey.OSS_ENDPOINT_KEY);
+    String accessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY);
+    String accessKey = Configuration.get(PropertyKey.OSS_SECRET_KEY);
+    String bucketPrefix = Constants.HEADER_OSS + bucketName + PATH_SEPARATOR;
+    String endPoint = Configuration.get(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
-    mClient = new OSSClient(mEndPoint, mAccessId, mAccessKey, ossClientConf);
+    OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
+
+    return new OSSUnderFileSystem(uri, ossClient, bucketName, bucketPrefix);
+  }
+
+  /**
+   * Constructor for {@link OSSUnderFileSystem}.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param ossClient Aliyun OSS client
+   * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param bucketPrefix prefix of the bucket
+   */
+  protected OSSUnderFileSystem(AlluxioURI uri,
+      OSSClient ossClient,
+      String bucketName,
+      String bucketPrefix) {
+    super(uri);
+    mClient = ossClient;
+    mBucketName = bucketName;
+    mBucketPrefix = bucketPrefix;
   }
 
   @Override
@@ -132,15 +148,24 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     if (!recursive) {
-      if (isFolder(path) && listInternal(path, false).length != 0) {
-        LOG.error("Unable to delete " + path + " because it is a non empty directory. Specify "
-            + "recursive as true in order to delete non empty directories.");
+      String[] children = listInternal(path, false);
+      if (children == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
+        return false;
+      }
+      if (isFolder(path) && children.length != 0) {
+        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
+                + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
       return deleteInternal(path);
     }
     // Get all relevant files
     String[] pathsToDelete = listInternal(path, true);
+    if (pathsToDelete == null) {
+      LOG.error("Unable to delete {} because listInternal returns null", path);
+      return false;
+    }
     for (String pathToDelete : pathsToDelete) {
       // If we fail to deleteInternal one file, stop
       if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
@@ -300,8 +325,13 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       }
       // Rename each child in the src folder to destination/child
       String [] children = list(src);
-      for (String child: children) {
+      if (children == null) {
+        LOG.error("Failed to list path {}, aborting rename.", src);
+        return false;
+      }
+      for (String child : children) {
         if (!rename(PathUtils.concatPath(src, child), PathUtils.concatPath(dst, child))) {
+          LOG.error("Failed to rename path {}, aborting rename.", child);
           return false;
         }
       }
@@ -437,7 +467,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    *
    * @return the OSS {@link ClientConfiguration}
    */
-  private ClientConfiguration initializeOSSClientConfig() {
+  private static ClientConfiguration initializeOSSClientConfig() {
     ClientConfiguration ossClientConf = new ClientConfiguration();
     ossClientConf.setConnectionTimeout(
         Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
@@ -550,10 +580,13 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       for (String commonPrefix : listing.getCommonPrefixes()) {
         // Remove parent portion of the key
         String child = getChildName(commonPrefix, path);
-        // Remove any portion after the last path delimiter
-        int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
-        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-        children.add(child);
+
+        if (child != null) {
+          // Remove any portion after the last path delimiter
+          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+          children.add(child);
+        }
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {
