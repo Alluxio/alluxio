@@ -69,11 +69,6 @@ public interface AlluxioWorkerService extends Server {
   InetSocketAddress getRpcAddress();
 
   /**
-   * @return the worker metric system reference
-   */
-  MetricsSystem getWorkerMetricsSystem();
-
-  /**
    * Waits until the worker is ready to server requests.
    */
   void waitForReady();

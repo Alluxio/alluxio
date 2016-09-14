@@ -116,7 +116,6 @@ public class AlluxioMaster implements Server {
   /** The address for the rpc server. */
   private final InetSocketAddress mMasterAddress;
 
-  /** The master metrics system. */
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   /** The master managing all block metadata. */

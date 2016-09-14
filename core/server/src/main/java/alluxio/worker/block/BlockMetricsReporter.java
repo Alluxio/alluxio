@@ -14,33 +14,51 @@ package alluxio.worker.block;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.metrics.MetricsSystem;
 import alluxio.worker.WorkerSource;
+
+import com.codahale.metrics.Counter;
+import org.omg.CORBA.PRIVATE_MEMBER;
 
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class listens on block events and increases the metrics counters.
  */
-@NotThreadSafe
+@ThreadSafe
 public final class BlockMetricsReporter extends AbstractBlockStoreEventListener {
-  private final WorkerSource mWorkerSource;
   private final StorageTierAssoc mStorageTierAssoc;
+
+  public static final String BLOCKS_ACCESSED = "BLOCKS_ACCESSED";
+  public static final String BLOCKS_PROMOTED = "BLOCKS_PROMOTED";
+  public static final String BLOCKS_DELETED = "BLOCKS_DELETED";
+  public static final String BLOCKS_EVICTED = "BLOCKS_EVICTED";
+  public static final String BLOCKS_CANCELLED = "BLOCKS_CANCELLED";
+
+  private static final Counter BLOCKS_ACCESSED_COUNTER =
+      MetricsSystem.workerCounter(BLOCKS_ACCESSED);
+  private static final Counter BLOCKS_PROMOTED_COUNTER =
+      MetricsSystem.workerCounter(BLOCKS_PROMOTED);
+  private static final Counter BLOCKS_DELETED_COUNTER =
+      MetricsSystem.workerCounter(BLOCKS_DELETED);
+  private static final Counter BLOCKS_EVICTED_COUNTER =
+      MetricsSystem.workerCounter(BLOCKS_EVICTED);
+  private static final Counter BLOCKS_CANCELLED_COUNTER =
+      MetricsSystem.workerCounter(BLOCKS_CANCELLED);
 
   /**
    * Creates a new instance of {@link BlockMetricsReporter}.
-   *
-   * @param workerSource a worker source handle
    */
-  public BlockMetricsReporter(WorkerSource workerSource) {
-    mWorkerSource = workerSource;
+  public BlockMetricsReporter() {
     mStorageTierAssoc = new WorkerStorageTierAssoc();
   }
 
   @Override
   public void onAccessBlock(long sessionId, long blockId) {
-    mWorkerSource.incBlocksAccessed(1);
+    BLOCKS_ACCESSED_COUNTER.inc();
   }
 
   @Override
@@ -49,13 +67,13 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
     int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
     int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
     if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
-      mWorkerSource.incBlocksPromoted(1);
+      BLOCKS_PROMOTED_COUNTER.inc();
     }
   }
 
   @Override
   public void onRemoveBlockByClient(long sessionId, long blockId) {
-    mWorkerSource.incBlocksDeleted(1);
+    BLOCKS_DELETED_COUNTER.inc();
   }
 
   @Override
@@ -64,40 +82,17 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
     int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
     int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
     if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
-      mWorkerSource.incBlocksPromoted(1);
+      BLOCKS_PROMOTED_COUNTER.inc();
     }
   }
 
   @Override
   public void onRemoveBlockByWorker(long sessionId, long blockId) {
-    mWorkerSource.incBlocksEvicted(1);
+    BLOCKS_EVICTED_COUNTER.inc();
   }
 
   @Override
   public void onAbortBlock(long sessionId, long blockId) {
-    mWorkerSource.incBlocksCanceled(1);
-  }
-
-  /**
-   * Updates session metrics from the heartbeat from a client.
-   *
-   * @param metrics the set of metrics the client has gathered since the last heartbeat
-   */
-  public void updateClientMetrics(List<Long> metrics) {
-    if (metrics != null && !metrics.isEmpty() && metrics.get(Constants.CLIENT_METRICS_VERSION_INDEX)
-        == Constants.CLIENT_METRICS_VERSION) {
-      mWorkerSource.incBlocksReadLocal(metrics.get(Constants.BLOCKS_READ_LOCAL_INDEX));
-      mWorkerSource.incBlocksReadRemote(metrics.get(Constants.BLOCKS_READ_REMOTE_INDEX));
-      mWorkerSource.incBlocksWrittenLocal(metrics.get(Constants.BLOCKS_WRITTEN_LOCAL_INDEX));
-      mWorkerSource.incBlocksWrittenRemote(metrics.get(Constants.BLOCKS_WRITTEN_REMOTE_INDEX));
-      mWorkerSource.incBytesReadLocal(metrics.get(Constants.BYTES_READ_LOCAL_INDEX));
-      mWorkerSource.incBytesReadRemote(metrics.get(Constants.BYTES_READ_REMOTE_INDEX));
-      mWorkerSource.incBytesReadUfs(metrics.get(Constants.BYTES_READ_UFS_INDEX));
-      mWorkerSource.incBytesWrittenLocal(metrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX));
-      mWorkerSource.incBytesWrittenRemote(metrics.get(Constants.BYTES_WRITTEN_REMOTE_INDEX));
-      mWorkerSource.incBytesWrittenUfs(metrics.get(Constants.BYTES_WRITTEN_UFS_INDEX));
-      mWorkerSource.incSeeksLocal(metrics.get(Constants.SEEKS_LOCAL_INDEX));
-      mWorkerSource.incSeeksRemote(metrics.get(Constants.SEEKS_REMOTE_INDEX));
-    }
+    BLOCKS_CANCELLED_COUNTER.inc();
   }
 }

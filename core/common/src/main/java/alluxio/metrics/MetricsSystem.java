@@ -143,13 +143,33 @@ public class MetricsSystem {
   }
 
   /**
-   * Build metric registry names without unique ID. The pattern is instance.metricName.
+   * Build metric registry names for master instance. The pattern is instance.metricName.
    *
    * @param name the metric name
    * @return the metric registry name
    */
   public static String getMasterMetricName(String name) {
     return Joiner.on(".").join(MASTER_INSTANCE, name);
+  }
+
+  /**
+   * Build metric registry name for worker instance. The pattern is instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getWorkerMetricName(String name) {
+    return getMetricNameWithUniqueId(WORKER_INSTANCE, name);
+  }
+
+  /**
+   * Build metric registry name for client instance. The pattern is instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getClientMetricName(String name) {
+    return getMetricNameWithUniqueId(CLIENT_INSTANCE, name);
   }
 
   /**
@@ -160,7 +180,7 @@ public class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  public static String getMetricName(String instance, String name) {
+  public static String getMetricNameWithUniqueId(String instance, String name) {
     return Joiner.on(".")
         .join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'), name);
   }
@@ -220,14 +240,14 @@ public class MetricsSystem {
    * @return the timer
    */
   public static Timer workerTimer(String name) {
-    return METRIC_REGISTRY.timer(getMetricName(WORKER_INSTANCE, name));
+    return METRIC_REGISTRY.timer(getWorkerMetricName(name));
   }
   /**
    * @param name the metric name
    * @return the counter
    */
   public static Counter workerCounter(String name) {
-    return METRIC_REGISTRY.counter((getMetricName(WORKER_INSTANCE, name)));
+    return METRIC_REGISTRY.counter((getWorkerMetricName(name)));
   }
 
   /**
@@ -235,14 +255,14 @@ public class MetricsSystem {
    * @return the timer
    */
   public static Timer clientTimer(String name) {
-    return METRIC_REGISTRY.timer(getMetricName(CLIENT_INSTANCE, name));
+    return METRIC_REGISTRY.timer(getClientMetricName(name));
   }
   /**
    * @param name the metric name
    * @return the counter
    */
   public static Counter clientCounter(String name) {
-    return METRIC_REGISTRY.counter(getMetricName(CLIENT_INSTANCE, name));
+    return METRIC_REGISTRY.counter(getClientMetricName(name));
   }
 
   /**

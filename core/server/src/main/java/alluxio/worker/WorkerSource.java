@@ -28,11 +28,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class WorkerSource implements Source {
   private static final String WORKER_SOURCE_NAME = "worker";
 
-  public static final String BLOCKS_ACCESSED = "BlocksAccessed";
-  public static final String BLOCKS_CANCELED = "BlocksCanceled";
-  public static final String BLOCKS_DELETED = "BlocksDeleted";
-  public static final String BLOCKS_EVICTED = "BlocksEvicted";
-  public static final String BLOCKS_PROMOTED = "BlocksPromoted";
   public static final String BLOCKS_READ_LOCAL = "BlocksReadLocal";
   public static final String BLOCKS_READ_REMOTE = "BlocksReadRemote";
   public static final String BLOCKS_WRITTEN_LOCAL = "BlocksWrittenLocal";
@@ -50,17 +45,7 @@ public class WorkerSource implements Source {
   public static final String SEEKS_LOCAL = "SeeksLocal";
   public static final String SEEKS_REMOTE = "SeeksRemote";
 
-  private boolean mGaugesRegistered = false;
   private final MetricRegistry mMetricRegistry = new MetricRegistry();
-  private static final Counter mBlocksAccessed = MetricsSystem.workerCounter(BLOCKS_ACCESSED);
-  private final Counter mBlocksCanceled =
-      mMetricRegistry.counter(MetricRegistry.name(BLOCKS_CANCELED));
-  private final Counter mBlocksDeleted =
-      mMetricRegistry.counter(MetricRegistry.name(BLOCKS_DELETED));
-  private final Counter mBlocksEvicted =
-      mMetricRegistry.counter(MetricRegistry.name(BLOCKS_EVICTED));
-  private final Counter mBlocksPromoted =
-      mMetricRegistry.counter(MetricRegistry.name(BLOCKS_PROMOTED));
 
   // metrics from client
   private final Counter mBlocksReadLocal = mMetricRegistry.counter(MetricRegistry
@@ -99,51 +84,6 @@ public class WorkerSource implements Source {
   @Override
   public MetricRegistry getMetricRegistry() {
     return mMetricRegistry;
-  }
-
-  /**
-   * Increments the counter of accessed blocks.
-   *
-   * @param n the increment
-   */
-  public void incBlocksAccessed(long n) {
-    mBlocksAccessed.inc(n);
-  }
-
-  /**
-   * Increments the counter of canceled blocks.
-   *
-   * @param n the increment
-   */
-  public void incBlocksCanceled(long n) {
-    mBlocksCanceled.inc(n);
-  }
-
-  /**
-   * Increments the counter of deleted blocks.
-   *
-   * @param n the increment
-   */
-  public void incBlocksDeleted(long n) {
-    mBlocksDeleted.inc(n);
-  }
-
-  /**
-   * Increments the counter of evicted blocks.
-   *
-   * @param n the increment
-   */
-  public void incBlocksEvicted(long n) {
-    mBlocksEvicted.inc(n);
-  }
-
-  /**
-   * Increments the counter of promoted blocks.
-   *
-   * @param n the increment
-   */
-  public void incBlocksPromoted(long n) {
-    mBlocksPromoted.inc(n);
   }
 
   /**
@@ -252,44 +192,5 @@ public class WorkerSource implements Source {
    */
   public synchronized void incSeeksRemote(long n) {
     mSeeksRemote.inc(n);
-  }
-  /**
-   * Registers metric gauges.
-   *
-    * @param blockWorker the block worker handle
-   */
-  public void registerGauges(final BlockWorker blockWorker) {
-    if (mGaugesRegistered) {
-      return;
-    }
-    mMetricRegistry.register(MetricRegistry.name(CAPACITY_TOTAL), new Gauge<Long>() {
-      @Override
-      public Long getValue() {
-        return blockWorker.getStoreMeta().getCapacityBytes();
-      }
-    });
-
-    mMetricRegistry.register(MetricRegistry.name(CAPACITY_USED), new Gauge<Long>() {
-      @Override
-      public Long getValue() {
-        return blockWorker.getStoreMeta().getUsedBytes();
-      }
-    });
-
-    mMetricRegistry.register(MetricRegistry.name(CAPACITY_FREE), new Gauge<Long>() {
-      @Override
-      public Long getValue() {
-        return blockWorker.getStoreMeta().getCapacityBytes()
-                - blockWorker.getStoreMeta().getUsedBytes();
-      }
-    });
-
-    mMetricRegistry.register(MetricRegistry.name(BLOCKS_CACHED), new Gauge<Integer>() {
-      @Override
-      public Integer getValue() {
-        return blockWorker.getStoreMetaFull().getNumberOfBlocks();
-      }
-    });
-    mGaugesRegistered = true;
   }
 }
