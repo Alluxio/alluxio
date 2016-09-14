@@ -73,11 +73,11 @@ service BlockWorkerClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
-   * metrics to the worker.
+   * Local session send heartbeat to local worker to keep its temporary folder.
    */
   void sessionHeartbeat( /** the id of the current session */ 1: i64 sessionId,
-      /** the client metrics */ 2: list<i64> metrics) throws (1: exception.AlluxioTException e)
+      /** deprecated since 1.3.0 and will be removed in 2.0 */ 2: list<i64> metrics)
+       throws (1: exception.AlluxioTException e)
 
   /**
    * Used to unlock a block after the block is accessed, if the block is to be removed, delete the

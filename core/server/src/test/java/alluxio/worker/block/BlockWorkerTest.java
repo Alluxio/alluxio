@@ -25,15 +25,11 @@ import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.WorkerSource;
-import alluxio.worker.WorkerTestUtils;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
-import com.codahale.metrics.Counter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,7 +44,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -79,7 +74,6 @@ public class BlockWorkerTest {
    */
   @Before
   public void before() throws IOException {
-    WorkerTestUtils.resetWorkerSource();
     mRandom = new Random();
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mBlockStore = PowerMockito.mock(BlockStore.class);
@@ -433,18 +427,15 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#sessionHeartbeat(long, List)}  method.
+   * Tests the {@link BlockWorker#sessionHeartbeat(long)}  method.
    */
   @Test
   public void sessionHeartbeat() {
     long sessionId = mRandom.nextLong();
     long metricIncrease = 3;
 
-    mBlockWorker.sessionHeartbeat(sessionId, null);
+    mBlockWorker.sessionHeartbeat(sessionId);
     verify(mSessions).sessionHeartbeat(sessionId);
-    Counter counter = WorkerContext.getWorkerSource().getMetricRegistry().getCounters()
-        .get(WorkerSource.BLOCKS_READ_LOCAL);
-    assertEquals(metricIncrease, counter.getCount());
   }
 
   /**

@@ -132,7 +132,6 @@ public interface FileSystemWorker extends Worker {
    * piggyback metrics on this call. Currently there are no metrics collected from this call.
    *
    * @param sessionId the session id to renew
-   * @param metrics a list of metrics to update from the client
    */
-  void sessionHeartbeat(long sessionId, List<Long> metrics);
+  void sessionHeartbeat(long sessionId);
 }

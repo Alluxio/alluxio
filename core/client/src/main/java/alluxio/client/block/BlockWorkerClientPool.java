@@ -12,15 +12,11 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.resource.ResourcePool;
 import alluxio.util.IdUtils;
 import alluxio.wire.WorkerNetAddress;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -62,7 +58,6 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
   protected BlockWorkerClient createNewResource() {
     long clientId = IdUtils.getRandomNonNegativeLong();
     return new RetryHandlingBlockWorkerClient(mWorkerNetAddress,
-        ClientContext.getBlockClientExecutorService(), clientId, true,
-        ClientContext.getClientMetrics());
+        ClientContext.getBlockClientExecutorService(), clientId, true);
   }
 }

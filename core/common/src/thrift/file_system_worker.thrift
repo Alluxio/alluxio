@@ -69,8 +69,7 @@ service FileSystemWorkerClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Local session send heartbeat to local worker to keep its state. It also can be used to send
-   * client metrics to the worker.
+   * Local session send heartbeat to local worker to keep its state.
    */
   void sessionHeartbeat( /** the id of the current session */ 1: i64 sessionId,
       /** the client metrics. deprecated since 1.3.0 and will be removed in 2.0 */ 2: list<i64> metrics)

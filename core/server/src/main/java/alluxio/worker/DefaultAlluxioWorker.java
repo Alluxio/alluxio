@@ -125,9 +125,17 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       }
 
       // Setup web server
+<<<<<<< 16cf4f7ac2e8f40b33360b362b754da0cba89fc7
       mWebServer = new WorkerUIWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB),
           this, mBlockWorker, NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC),
           mStartTimeMs);
+=======
+      mWebServer = new WorkerUIWebServer(ServiceType.WORKER_WEB,
+          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), mBlockWorker,
+          NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC), mStartTimeMs);
+      // Reset worker web port based on assigned port number
+      Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
+>>>>>>> Fix build, tests
 
       // Setup Thrift server
       mTransportProvider = TransportProvider.Factory.create();

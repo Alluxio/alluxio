@@ -11,18 +11,12 @@
 
 package alluxio.worker.block;
 
-import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricsSystem;
-import alluxio.worker.WorkerSource;
 
 import com.codahale.metrics.Counter;
-import org.omg.CORBA.PRIVATE_MEMBER;
 
-import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
