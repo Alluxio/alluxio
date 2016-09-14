@@ -32,7 +32,7 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
   private static final Counter BLOCKS_PROMOTED = MetricsSystem.workerCounter("BlocksPromoted");
   private static final Counter BLOCKS_DELETED = MetricsSystem.workerCounter("BlocksDeleted");
   private static final Counter BLOCKS_EVICTED = MetricsSystem.workerCounter("BlocksEvicted");
-  private static final Counter BLOCKS_CANCELLED = MetricsSystem.workerCounter("BlocksCancelled");
+  private static final Counter BLOCKS_CANCELLED = MetricsSystem.workerCounter("BlocksCanceled");
 
   /**
    * Creates a new instance of {@link BlockMetricsReporter}.
