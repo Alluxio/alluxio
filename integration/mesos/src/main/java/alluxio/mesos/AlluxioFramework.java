@@ -404,13 +404,13 @@ public class AlluxioFramework {
 
   private static boolean installJavaFromUrl() {
     return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_JRE_URL) && !Configuration
-        .get(PropertyKey.INTEGRATION_MESOS_JRE_URL).equalsIgnoreCase("PREINSTALLED");
+        .get(PropertyKey.INTEGRATION_MESOS_JRE_URL).equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }
 
   private static boolean installAlluxioFromUrl() {
     return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
         && !Configuration.get(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
-            .equalsIgnoreCase("PREINSTALLED");
+            .equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }
 
   private static Protos.Credential createCredential() {

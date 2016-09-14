@@ -143,6 +143,8 @@ public final class Constants {
   public static final String SWIFT_AUTH_KEYSTONE = "keystone";
   public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
 
+  public static final String MESOS_LOCAL_INSTALL = "LOCAL";
+
   /**
    * Maximum number of seconds to wait for thrift servers to stop on shutdown. Tests use a value of
    * 0 instead of this value so that they can run faster.
