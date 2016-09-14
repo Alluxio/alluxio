@@ -31,7 +31,6 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.ClientMetrics;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
@@ -61,8 +60,6 @@ public class FileSystemWorkerClient extends AbstractClient {
   private final ExecutorService mExecutorService;
   /** Heartbeat executor for the session heartbeat thread. */
   private final HeartbeatExecutor mHeartbeatExecutor;
-  /** Metrics object. */
-  private final ClientMetrics mClientMetrics;
   /** Address of the data server on the worker. */
   private final InetSocketAddress mWorkerDataServerAddress;
 
@@ -79,15 +76,13 @@ public class FileSystemWorkerClient extends AbstractClient {
    * @param workerNetAddress the worker address to connect to
    * @param executorService the executor service to run this client's heartbeat thread
    * @param sessionId the session id to use, this should be unique
-   * @param metrics the metrics object to send any metrics through
    */
   public FileSystemWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
-      long sessionId, ClientMetrics metrics) {
+      long sessionId) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "FileSystemWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
-    mClientMetrics = Preconditions.checkNotNull(metrics);
     mHeartbeatExecutor = new FileSystemWorkerClientHeartbeatExecutor(this);
   }
 
@@ -271,7 +266,7 @@ public class FileSystemWorkerClient extends AbstractClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
+        mClient.sessionHeartbeat(mSessionId, null);
         return null;
       }
     });

@@ -17,10 +17,12 @@ import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
+import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Provides a streaming API to write to an Alluxio block. This output stream will directly write the
@@ -105,7 +108,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       } finally {
         releaseAndClose();
       }
-      ClientContext.getClientMetrics().incBlocksWrittenLocal(1);
+      Metrics.BLOCKS_WRITTEN_LOCAL.inc();
     } else {
       releaseAndClose();
     }
@@ -125,7 +128,8 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     mBuffer.clear();
     mReservedBytes -= bytesToWrite;
     mFlushedBytes += bytesToWrite;
-    ClientContext.getClientMetrics().incBytesWrittenLocal(bytesToWrite);
+
+    Metrics.BYTES_WRITTEN_LOCAL.inc(bytesToWrite);
   }
 
   @Override
@@ -139,7 +143,8 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     mWriter.append(ByteBuffer.wrap(b, off, len));
     mReservedBytes -= len;
     mFlushedBytes += len;
-    ClientContext.getClientMetrics().incBytesWrittenLocal(len);
+
+    Metrics.BYTES_WRITTEN_LOCAL.inc(len);
   }
 
   /**
@@ -148,5 +153,14 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
   private void releaseAndClose() {
     mContext.releaseWorkerClient(mBlockWorkerClient);
     mClosed = true;
+  }
+
+  /**
+   * Class that contains metrics about LocalBlockOutStream.
+   */
+  @ThreadSafe
+  static final class Metrics {
+    private static final Counter BLOCKS_WRITTEN_LOCAL = MetricsSystem.clientCounter("BlocksWrittenLocal");
+    private static final Counter BYTES_WRITTEN_LOCAL = MetricsSystem.clientCounter("BytesWrittenLocal");
   }
 }

@@ -14,17 +14,20 @@ package alluxio.client.block;
 import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
+import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class provides a streaming API to read a block in Alluxio. The data will be directly read
@@ -73,7 +76,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
   @Override
   public void seek(long pos) throws IOException {
     super.seek(pos);
-    ClientContext.getClientMetrics().incSeeksLocal(1);
+    Metrics.SEEKS_LOCAL.inc();
   }
 
   @Override
@@ -84,7 +87,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     try {
       if (mBlockIsRead) {
         mBlockWorkerClient.accessBlock(mBlockId);
-        ClientContext.getClientMetrics().incBlocksReadLocal(1);
+        Metrics.BLOCKS_READ_LOCAL.inc();
       }
       mBlockWorkerClient.unlockBlock(mBlockId);
     } catch (AlluxioException e) {
@@ -118,6 +121,16 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
 
   @Override
   protected void incrementBytesReadMetric(int bytes) {
-    ClientContext.getClientMetrics().incBytesReadLocal(bytes);
+    Metrics.BYTES_READ_LOCAL.inc(bytes);
+  }
+
+  /**
+   * Class that contains metrics about LocalBlockInStream.
+   */
+  @ThreadSafe
+  static final class Metrics {
+    private static final Counter BLOCKS_READ_LOCAL = MetricsSystem.clientCounter("BlocksReadLocal");
+    private static final Counter BYTES_READ_LOCAL = MetricsSystem.clientCounter("BytesReadLocal");
+    private static final Counter SEEKS_LOCAL = MetricsSystem.clientCounter("SeeksLocal");
   }
 }

@@ -16,7 +16,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.ClientMetrics;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -156,10 +155,4 @@ public interface BlockWorkerClient extends Client {
    * failures.
    */
   void periodicHeartbeat();
-
-  /**
-   * Gets the client metrics of the worker.
-   * @return the metrics of the worker
-   */
-  ClientMetrics getClientMetrics();
 }
