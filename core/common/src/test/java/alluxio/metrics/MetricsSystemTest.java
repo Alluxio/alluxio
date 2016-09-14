@@ -23,7 +23,7 @@ import java.util.Properties;
  */
 public class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
-  private static Counter mCounter =
+  private static Counter sCounter =
       MetricsSystem.METRIC_REGISTRY.counter(MetricsSystem.getMasterMetricName("counter"));
 
   /**
@@ -50,6 +50,6 @@ public class MetricsSystemTest {
     Assert.assertEquals(2, MetricsSystem.getNumSinks());
 
     // Make sure it doesn't crash.
-    mCounter.inc();
+    sCounter.inc();
   }
 }

@@ -400,7 +400,12 @@ public class FileOutStream extends AbstractOutStream {
    * Class that contains metrics about FileOutStream.
    */
   @ThreadSafe
-  static final class Metrics {
+  private static final class Metrics {
     private static final Counter BYTES_WRITTEN_UFS = MetricsSystem.clientCounter("BytesWrittenUfs");
+
+    /**
+     * No instantiation.
+     */
+    private Metrics() {}
   }
 }
