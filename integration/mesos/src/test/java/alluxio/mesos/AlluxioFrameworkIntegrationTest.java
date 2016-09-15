@@ -55,6 +55,9 @@ public class AlluxioFrameworkIntegrationTest {
       description = "URL of an Alluxio tarball to test. Otherwise only test local Alluxio")
   private String mAlluxioUrl;
 
+  @Parameter(names = {"-h", "--help"}, help = true)
+  private boolean help = false;
+
   public AlluxioFrameworkIntegrationTest() {}
 
   private void run() throws Exception {
@@ -164,7 +167,11 @@ public class AlluxioFrameworkIntegrationTest {
 
   public static void main(String[] args) throws Exception {
     AlluxioFrameworkIntegrationTest test = new AlluxioFrameworkIntegrationTest();
-    new JCommander(test, args);
-    test.run();
+    JCommander jc = new JCommander(test, args);
+    if (test.help) {
+      jc.usage();
+    } else {
+      test.run();
+    }
   }
 }
