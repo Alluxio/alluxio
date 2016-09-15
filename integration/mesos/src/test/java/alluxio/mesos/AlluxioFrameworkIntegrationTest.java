@@ -115,7 +115,7 @@ public class AlluxioFrameworkIntegrationTest {
               throw Throwables.propagate(e);
             }
           }
-        }, 900 * Constants.SECOND_MS);
+        }, 15 * Constants.MINUTE_MS);
       }
       System.out.println("Worker registered");
       basicAlluxioTests();
