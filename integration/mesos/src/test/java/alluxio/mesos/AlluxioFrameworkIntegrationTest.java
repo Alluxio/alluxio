@@ -58,7 +58,7 @@ public class AlluxioFrameworkIntegrationTest {
   private String mAlluxioUrl;
 
   @Parameter(names = {"-h", "--help"}, help = true)
-  private boolean help = false;
+  private boolean mHelp = false;
 
   public AlluxioFrameworkIntegrationTest() {}
 
@@ -103,19 +103,19 @@ public class AlluxioFrameworkIntegrationTest {
         CommonTestUtils.waitFor("Alluxio worker to register with master",
             new Function<Void, Boolean>() {
               @Override
-          public Boolean apply(Void input) {
-            try {
-              try {
-                return !client.getWorkerInfoList().isEmpty();
-              } catch (ConnectionFailedException e) {
-                // block master isn't up yet, keep waiting
-                return false;
+              public Boolean apply(Void input) {
+                try {
+                  try {
+                    return !client.getWorkerInfoList().isEmpty();
+                  } catch (ConnectionFailedException e) {
+                    // block master isn't up yet, keep waiting
+                    return false;
+                  }
+                } catch (Exception e) {
+                  throw Throwables.propagate(e);
+                }
               }
-            } catch (Exception e) {
-              throw Throwables.propagate(e);
-            }
-          }
-        }, 15 * Constants.MINUTE_MS);
+            }, 15 * Constants.MINUTE_MS);
       }
       System.out.println("Worker registered");
       basicAlluxioTests();
@@ -193,7 +193,7 @@ public class AlluxioFrameworkIntegrationTest {
     AlluxioFrameworkIntegrationTest test = new AlluxioFrameworkIntegrationTest();
     JCommander jc = new JCommander(test, args);
     jc.setProgramName(AlluxioFrameworkIntegrationTest.class.getName());
-    if (test.help) {
+    if (test.mHelp) {
       jc.usage();
     } else {
       test.run();
