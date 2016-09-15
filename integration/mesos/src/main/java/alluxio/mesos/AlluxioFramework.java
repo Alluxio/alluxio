@@ -90,15 +90,13 @@ public class AlluxioFramework {
       System.exit(1);
     }
 
-    // Start Mesos master. Setting the user to an empty string will prompt Mesos to set it to the
-    // current user.
     Protos.FrameworkInfo.Builder frameworkInfo = Protos.FrameworkInfo.newBuilder()
         .setName("alluxio").setCheckpoint(true);
 
     if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ROLE)) {
       frameworkInfo.setRole(Configuration.get(PropertyKey.INTEGRATION_MESOS_ROLE));
     }
-
+    // Setting the user to an empty string will prompt Mesos to set it to the current user.
     if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_USER)) {
       frameworkInfo.setUser(Configuration.get(PropertyKey.INTEGRATION_MESOS_USER));
     }
