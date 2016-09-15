@@ -70,17 +70,17 @@ public class AlluxioFrameworkIntegrationTest {
   private void runTests() throws Exception {
     System.out.println("Testing deployment with preinstalled alluxio and jdk");
     testMesosDeploy(ImmutableMap.of(
-        PropertyKey.INTEGRATION_MESOS_JRE_URL, Constants.MESOS_LOCAL_INSTALL,
+        PropertyKey.INTEGRATION_MESOS_JDK_URL, Constants.MESOS_LOCAL_INSTALL,
         PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, Constants.MESOS_LOCAL_INSTALL));
     System.out.println("Testing deployment with downloaded jdk");
     testMesosDeploy(ImmutableMap.of(
-        PropertyKey.INTEGRATION_MESOS_JRE_URL, JDK_URL,
+        PropertyKey.INTEGRATION_MESOS_JDK_URL, JDK_URL,
         PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, Constants.MESOS_LOCAL_INSTALL,
-        PropertyKey.INTEGRATION_MESOS_JRE_PATH, JDK_PATH));
+        PropertyKey.INTEGRATION_MESOS_JDK_PATH, JDK_PATH));
     if (mAlluxioUrl != null) {
       System.out.println("Testing deployment with download Alluxio");
       testMesosDeploy(ImmutableMap.of(
-          PropertyKey.INTEGRATION_MESOS_JRE_URL, Constants.MESOS_LOCAL_INSTALL,
+          PropertyKey.INTEGRATION_MESOS_JDK_URL, Constants.MESOS_LOCAL_INSTALL,
           PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, mAlluxioUrl));
     }
   }
@@ -168,6 +168,7 @@ public class AlluxioFrameworkIntegrationTest {
   public static void main(String[] args) throws Exception {
     AlluxioFrameworkIntegrationTest test = new AlluxioFrameworkIntegrationTest();
     JCommander jc = new JCommander(test, args);
+    jc.setProgramName(AlluxioFrameworkIntegrationTest.class.getName());
     if (test.help) {
       jc.usage();
     } else {

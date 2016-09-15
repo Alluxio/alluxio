@@ -274,7 +274,7 @@ public class AlluxioFramework {
       commands.add(String.format("echo 'Starting Alluxio with %s'", command));
       if (installJavaFromUrl()) {
         commands
-            .add("export JAVA_HOME=" + Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_PATH));
+            .add("export JAVA_HOME=" + Configuration.get(PropertyKey.INTEGRATION_MESOS_JDK_PATH));
         commands.add("export PATH=$PATH:$JAVA_HOME/bin");
       }
 
@@ -410,7 +410,7 @@ public class AlluxioFramework {
     List<URI> dependencies = new ArrayList<>();
     if (installJavaFromUrl()) {
       dependencies.add(CommandInfo.URI.newBuilder()
-          .setValue(Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_URL)).setExtract(true)
+          .setValue(Configuration.get(PropertyKey.INTEGRATION_MESOS_JDK_URL)).setExtract(true)
           .build());
     }
     if (installAlluxioFromUrl()) {
@@ -422,8 +422,8 @@ public class AlluxioFramework {
   }
 
   private static boolean installJavaFromUrl() {
-    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_JRE_URL) && !Configuration
-        .get(PropertyKey.INTEGRATION_MESOS_JRE_URL).equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
+    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_JDK_URL) && !Configuration
+        .get(PropertyKey.INTEGRATION_MESOS_JDK_URL).equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }
 
   private static boolean installAlluxioFromUrl() {
