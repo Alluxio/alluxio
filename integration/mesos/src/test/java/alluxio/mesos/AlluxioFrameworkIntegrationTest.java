@@ -88,8 +88,7 @@ public class AlluxioFrameworkIntegrationTest {
     }
   }
 
-  private void testMesosDeploy(Map<PropertyKey, String> properties)
-      throws Exception {
+  private void testMesosDeploy(Map<PropertyKey, String> properties) throws Exception {
     StringBuilder alluxioJavaOpts = new StringBuilder(System.getProperty("ALLUXIO_JAVA_OPTS", ""));
     for (Entry<PropertyKey, String> entry : properties.entrySet()) {
       alluxioJavaOpts
