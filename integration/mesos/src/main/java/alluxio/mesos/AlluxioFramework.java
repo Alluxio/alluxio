@@ -288,7 +288,8 @@ public class AlluxioFramework {
         commands.add("mv alluxio-* alluxio");
       }
       String home = installAlluxioFromUrl() ? "alluxio" : Configuration.get(PropertyKey.HOME);
-      commands.add(String.format("cp %s conf", PathUtils.concatPath(home, "conf", "log4j.properties")));
+      commands
+          .add(String.format("cp %s conf", PathUtils.concatPath(home, "conf", "log4j.properties")));
       commands.add(PathUtils.concatPath(home, "integration", "bin", command));
       return Joiner.on(" && ").join(commands);
     }
