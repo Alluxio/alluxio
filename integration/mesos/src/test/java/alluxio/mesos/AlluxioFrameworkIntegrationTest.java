@@ -35,6 +35,8 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -61,6 +63,7 @@ public class AlluxioFrameworkIntegrationTest {
   public AlluxioFrameworkIntegrationTest() {}
 
   private void run() throws Exception {
+    checkMesosRunning();
     stopAlluxio();
     stopAlluxioFramework();
     runTests();
@@ -147,6 +150,28 @@ public class AlluxioFrameworkIntegrationTest {
     FileInStream inStream = fs.openFile(new AlluxioURI("/test"));
     assertEquals("abc", IOUtils.toString(inStream));
     System.out.println("Tests passed");
+  }
+
+  private static void checkMesosRunning() throws Exception {
+    for (String processName : new String[]{"mesos-master", "mesos-slave"}) {
+      if (!processExists(processName)) {
+        throw new IllegalStateException(String.format(
+            "Couldn't find local '%s' process. Mesos must be running locally to use this test",
+            processName));
+      }
+    }
+  }
+
+  private static boolean processExists(String processName) throws Exception {
+    Process ps = Runtime.getRuntime().exec(new String[] {"ps", "ax"});
+    InputStream psOutput = ps.getInputStream();
+
+    Process grep = Runtime.getRuntime().exec(new String[] {"grep", processName});
+    OutputStream grepInput = grep.getOutputStream();
+    IOUtils.copy(psOutput, grepInput);
+    grepInput.close();
+    // The grep process also includes the process name.
+    return IOUtils.readLines(grep.getInputStream()).size() >= 2;
   }
 
   private static void stopAlluxioFramework() throws Exception {
