@@ -353,6 +353,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
+    LOG.debug("Check if {} is a file", path);
     String pathAsFile = stripFolderSuffixIfPresent(path);
     return getObject(pathAsFile).exists();
   }
