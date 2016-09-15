@@ -81,7 +81,7 @@ public class AlluxioFrameworkIntegrationTest {
         PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, Constants.MESOS_LOCAL_INSTALL,
         PropertyKey.INTEGRATION_MESOS_JDK_PATH, JDK_PATH));
     if (mAlluxioUrl != null) {
-      System.out.println("Testing deployment with download Alluxio");
+      System.out.println("Testing deployment with downloaded Alluxio");
       testMesosDeploy(ImmutableMap.of(
           PropertyKey.INTEGRATION_MESOS_JDK_URL, Constants.MESOS_LOCAL_INSTALL,
           PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, mAlluxioUrl));
