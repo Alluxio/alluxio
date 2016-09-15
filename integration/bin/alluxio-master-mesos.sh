@@ -12,6 +12,17 @@
 
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
+
+if [[ -z "${ALLUXIO_RAM_FOLDER}" ]]; then
+    if [[ $(uname -s) == Darwin ]]; then
+        # Assuming Mac OS X
+        ALLUXIO_RAM_FOLDER="/Volumes/ramdisk"
+    else
+        # Assuming Linux
+        ALLUXIO_RAM_FOLDER="/mnt/ramdisk"
+    fi
+fi
+
 source "${SCRIPT_DIR}/common.sh"
 MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 

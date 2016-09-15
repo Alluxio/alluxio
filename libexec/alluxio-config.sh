@@ -65,17 +65,9 @@ if [[ -n "${ALLUXIO_LOGS_DIR}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
 fi
 
-if [[ -z "${ALLUXIO_RAM_FOLDER}" ]]; then
-    if [[ $(uname -s) == Darwin ]]; then
-        # Assuming Mac OS X
-        ALLUXIO_RAM_FOLDER="/Volumes/ramdisk"
-    else
-        # Assuming Linux
-        ALLUXIO_RAM_FOLDER="/mnt/ramdisk"
-    fi
+if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.path=${ALLUXIO_RAM_FOLDER}"
 fi
-ALLUXIO_LEVEL0_DIR_PATH="${ALLUXIO_LEVEL0_DIR_PATH:-${ALLUXIO_RAM_FOLDER}}"
-ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.path=${ALLUXIO_LEVEL0_DIR_PATH}"
 
 if [[ -n "${ALLUXIO_MASTER_HOSTNAME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}"
