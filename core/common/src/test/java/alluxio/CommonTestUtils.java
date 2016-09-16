@@ -11,9 +11,6 @@
 
 package alluxio;
 
-import alluxio.util.CommonUtils;
-
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
@@ -79,23 +76,6 @@ public final class CommonTestUtils {
     @SuppressWarnings("unchecked")
     T finalObject = (T) current;
     return finalObject;
-  }
-
-  /**
-   * Waits for a condition to be satisfied until a timeout occurs.
-   *
-   * @param description a description of what causes condition to evaluation to true
-   * @param condition the condition to wait on
-   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
-   */
-  public static void waitFor(String description, Function<Void, Boolean> condition, int timeoutMs) {
-    long start = System.currentTimeMillis();
-    while (!condition.apply(null)) {
-      if (System.currentTimeMillis() - start > timeoutMs) {
-        throw new RuntimeException("Timed out waiting for " + description);
-      }
-      CommonUtils.sleepMs(20);
-    }
   }
 
   /**

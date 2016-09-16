@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
 
@@ -55,7 +56,7 @@ public final class IntegrationTestUtils {
 
     try (FileSystemMasterClient client = new FileSystemMasterClient(
         localAlluxioClusterResource.get().getMaster().getAddress())) {
-      CommonTestUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
+      CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           try {
@@ -97,7 +98,7 @@ public final class IntegrationTestUtils {
 
       // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
       // removed from master in the next heartbeat.
-      CommonTestUtils.waitFor("blocks to be removed", new Function<Void, Boolean>() {
+      CommonUtils.waitFor("blocks to be removed", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           BlockHeartbeatReporter reporter = Whitebox.getInternalState(bw, "mHeartbeatReporter");
