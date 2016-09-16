@@ -185,7 +185,7 @@ public final class MetricsSystem {
   public static void checkMinimalPollingPeriod(TimeUnit pollUnit, int pollPeriod)
       throws IllegalArgumentException {
     int period = (int) MINIMAL_POLL_UNIT.convert(pollPeriod, pollUnit);
-    Preconditions.checkArgument(period < MINIMAL_POLL_PERIOD,
+    Preconditions.checkArgument(period >= MINIMAL_POLL_PERIOD,
         "Polling period %d %d is below than minimal polling period", pollPeriod, pollUnit);
   }
 
