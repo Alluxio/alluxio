@@ -179,10 +179,8 @@ public final class MetricsSystem {
   public static void checkMinimalPollingPeriod(TimeUnit pollUnit, int pollPeriod)
       throws IllegalArgumentException {
     int period = (int) MINIMAL_POLL_UNIT.convert(pollPeriod, pollUnit);
-    if (period < MINIMAL_POLL_PERIOD) {
-      throw new IllegalArgumentException("Polling period " + pollPeriod + " " + pollUnit
-          + " is below than minimal polling period");
-    }
+    Preconditions.checkArgument(period < MINIMAL_POLL_PERIOD,
+        "Polling period %d %d is below than minimal polling period", pollPeriod, pollUnit);
   }
 
   /**
@@ -192,7 +190,7 @@ public final class MetricsSystem {
    */
   public static String stripInstanceAndHost(String metricsName) {
     String[] pieces = metricsName.split("\\.");
-    Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: " + metricsName);
+    Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", metricsName);
 
     // Master metrics doesn't have hostname included.
     if (!pieces[0].equals(MASTER_INSTANCE)) {
