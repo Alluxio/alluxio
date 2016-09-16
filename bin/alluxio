@@ -25,6 +25,8 @@ function printUsage {
   echo -e "  runTests      \t Run all end-to-end tests on an Alluxio cluster."
   echo -e "  runJournalCrashTest\t Test the Master Journal System in a crash scenario. Try 'alluxio runJournalCrashTest -help' for more help."
   echo -e "                \t NOTE: This command will stop the existing server and creates a new one!"
+  echo -e "  runMesosTest  \t Test the Alluxio integration with Mesos. Try 'alluxio mesosTest -help' for more help."
+  echo -e "                \t NOTE: This command requires Mesos to be running and will will stop the existing Alluxio server"
   echo -e "  readJournal   \t Read an Alluxio journal file from stdin and write a human-readable version of it to stdout."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
@@ -190,21 +192,16 @@ function copyDir {
 }
 
 function runJavaClass {
-  while getopts ":D:" opt; do
-    case ${opt} in
-    D)
-      ALLUXIO_SHELL_JAVA_OPTS+=" -D${OPTARG}"
-      ;;
-    \?)
-      echo "Invalid option: -${OPTARG}" >&2
-      printUsage
-      exit 1
-      ;;
-    esac
+  CLASS_ARGS=""
+  for arg in "$@"; do
+      shift
+      case "${arg}" in
+          -D*) ALLUXIO_SHELL_JAVA_OPTS+=" ${arg}" ;;
+          *) CLASS_ARGS+=" ${arg}"
+      esac
   done
-  shift $((${OPTIND} - 1))
-
-  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} $@
+  echo "  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} ${CLASS_ARGS}"
+  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} ${CLASS_ARGS}
 }
 
 function main {
@@ -312,6 +309,11 @@ function main {
   ;;
   "runJournalCrashTest")
     CLASS="alluxio.cli.JournalCrashTest"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "runMesosTest")
+    CLASS="alluxio.cli.AlluxioFrameworkIntegrationTest"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
