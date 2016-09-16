@@ -133,8 +133,8 @@ public final class LineageMasterClientRestServiceHandler {
   @POST
   @Path(DELETE_LINEAGE)
   @ReturnType("java.lang.Boolean")
-  public Response deleteLineage(final @QueryParam("lineageId") Long lineageId,
-      final @QueryParam("cascade") boolean cascade) {
+  public Response deleteLineage(@QueryParam("lineageId") final Long lineageId,
+      @QueryParam("cascade") final boolean cascade) {
     return RestUtils.call(new RestUtils.RestCallable() {
       @Override
       public Object call() throws Exception {

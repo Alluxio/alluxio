@@ -323,8 +323,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public Object call() throws Exception {
         SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
-        for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable().entrySet
-            ()) {
+        for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable()
+            .entrySet()) {
           MountInfo mountInfo = mountPoint.getValue();
           MountPointInfo info = new MountPointInfo();
           info.setUfsInfo(mountInfo.getUfsUri().toString());
@@ -412,7 +412,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   @Path(SET_ATTRIBUTE)
   @ReturnType("java.lang.Void")
   public Response setAttribute(@QueryParam("path") final String path,
-      @QueryParam("pinned") final Boolean pinned, final @QueryParam("ttl") Long ttl,
+      @QueryParam("pinned") final Boolean pinned, @QueryParam("ttl") final Long ttl,
       @QueryParam("persisted") final Boolean persisted, @QueryParam("owner") final String owner,
       @QueryParam("group") final String group, @QueryParam("permission") final Short permission,
       @QueryParam("recursive") final Boolean recursive) {
