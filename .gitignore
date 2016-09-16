@@ -38,3 +38,5 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+/dev/scripts/tarballs
+/dev/scripts/workdir
