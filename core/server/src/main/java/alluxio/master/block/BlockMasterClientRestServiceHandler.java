@@ -14,6 +14,7 @@ package alluxio.master.block;
 import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.master.AlluxioMaster;
+import alluxio.wire.BlockInfo;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -53,9 +54,9 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
-      public Object call() throws Exception {
+      public String call() throws Exception {
         return Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME;
       }
     });
@@ -69,9 +70,9 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
-      public Object call() throws Exception {
+      public Long call() throws Exception {
         return Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION;
       }
     });
@@ -86,9 +87,9 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(GET_BLOCK_INFO)
   @ReturnType("alluxio.wire.BlockInfo")
   public Response getBlockInfo(@QueryParam("blockId") final Long blockId) {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<BlockInfo>() {
       @Override
-      public Object call() throws Exception {
+      public BlockInfo call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         return mBlockMaster.getBlockInfo(blockId);
       }

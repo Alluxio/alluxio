@@ -74,9 +74,9 @@ public final class BlockWorkerClientRestServiceHandler {
   @Produces(MediaType.APPLICATION_JSON)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
-      public Object call() throws Exception {
+      public String call() throws Exception {
         return Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME;
       }
     });
@@ -91,9 +91,9 @@ public final class BlockWorkerClientRestServiceHandler {
   @Produces(MediaType.APPLICATION_JSON)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
-      public Object call() throws Exception {
+      public Long call() throws Exception {
         return Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
       }
     });
@@ -109,11 +109,12 @@ public final class BlockWorkerClientRestServiceHandler {
   @Produces(MediaType.APPLICATION_JSON)
   @ReturnType("java.lang.Void")
   public Response accessBlock(@QueryParam("blockId") final Long blockId) {
-    return RestUtils.call(new RestUtils.RestCallableVoid() {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
-      public void call() throws Exception {
+      public Void call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         mBlockWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
+        return null;
       }
     });
   }
@@ -128,9 +129,9 @@ public final class BlockWorkerClientRestServiceHandler {
   @Produces(MediaType.APPLICATION_JSON)
   @ReturnType("java.lang.Boolean")
   public Response asyncCheckpoint(@QueryParam("fileId") final Long fileId) {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
       @Override
-      public Object call() throws Exception {
+      public Boolean call() throws Exception {
         Preconditions.checkNotNull(fileId, "required 'fileId' parameter is missing");
         return false;
       }
@@ -149,12 +150,13 @@ public final class BlockWorkerClientRestServiceHandler {
   @ReturnType("java.lang.Void")
   public Response cacheBlock(@QueryParam("sessionId") final Long sessionId,
       @QueryParam("blockId") final Long blockId) {
-    return RestUtils.call(new RestUtils.RestCallableVoid() {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
-      public void call() throws Exception {
+      public Void call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
         mBlockWorker.commitBlock(sessionId, blockId);
+        return null;
       }
     });
   }
@@ -171,12 +173,13 @@ public final class BlockWorkerClientRestServiceHandler {
   @ReturnType("java.lang.Void")
   public Response cancelBlock(@QueryParam("sessionId") final Long sessionId,
       @QueryParam("blockId") final Long blockId) {
-    return RestUtils.call(new RestUtils.RestCallableVoid() {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
-      public void call() throws Exception {
+      public Void call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
         mBlockWorker.abortBlock(sessionId, blockId);
+        return null;
       }
     });
   }
@@ -193,9 +196,9 @@ public final class BlockWorkerClientRestServiceHandler {
   @ReturnType("alluxio.wire.LockBlockResult")
   public Response lockBlock(@QueryParam("sessionId") final Long sessionId,
       @QueryParam("blockId") final Long blockId) {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<LockBlockResult>() {
       @Override
-      public Object call() throws Exception {
+      public LockBlockResult call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
         long lockId = mBlockWorker.lockBlock(sessionId, blockId);
@@ -215,12 +218,13 @@ public final class BlockWorkerClientRestServiceHandler {
   @Produces(MediaType.APPLICATION_JSON)
   @ReturnType("java.lang.Void")
   public Response promoteBlock(@QueryParam("blockId") final Long blockId) {
-    return RestUtils.call(new RestUtils.RestCallableVoid() {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
-      public void call() throws Exception {
+      public Void call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         mBlockWorker
             .moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
+        return null;
       }
     });
   }
@@ -241,7 +245,7 @@ public final class BlockWorkerClientRestServiceHandler {
   public Response readBlock(@QueryParam("sessionId") final Long sessionId,
       @QueryParam("blockId") final Long blockId, @QueryParam("lockId") final Long lockId,
       @QueryParam("offset") final Long offset, @QueryParam("length") final Long length) {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Object>() {
       @Override
       public Object call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
@@ -288,9 +292,9 @@ public final class BlockWorkerClientRestServiceHandler {
   public Response requestBlockLocation(@QueryParam("sessionId") final Long sessionId,
       @QueryParam("blockId") final Long blockId,
       @QueryParam("initialBytes") final Long initialBytes) {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
-      public Object call() throws Exception {
+      public String call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
         Preconditions.checkNotNull(initialBytes, "required 'initialBytes' parameter is missing");
@@ -314,13 +318,14 @@ public final class BlockWorkerClientRestServiceHandler {
   public Response requestSpace(@QueryParam("sessionId") final Long sessionId,
       @QueryParam("blockId") final Long blockId,
       @QueryParam("requestBytes") final Long requestBytes) {
-    return RestUtils.call(new RestUtils.RestCallableVoid() {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
-      public void call() throws Exception {
+      public Void call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
         Preconditions.checkNotNull(requestBytes, "required 'requestBytes' parameter is missing");
         mBlockWorker.requestSpace(sessionId, blockId, requestBytes);
+        return null;
       }
     });
   }
@@ -337,12 +342,13 @@ public final class BlockWorkerClientRestServiceHandler {
   @ReturnType("java.lang.Void")
   public Response unlockBlock(@QueryParam("sessionId") final Long sessionId,
       @QueryParam("blockId") final Long blockId) {
-    return RestUtils.call(new RestUtils.RestCallableVoid() {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
-      public void call() throws Exception {
+      public Void call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
         mBlockWorker.unlockBlock(sessionId, blockId);
+        return null;
       }
     });
   }
@@ -364,9 +370,9 @@ public final class BlockWorkerClientRestServiceHandler {
   public Response writeBlock(@QueryParam("sessionId") final Long sessionId,
       @QueryParam("blockId") final Long blockId, @QueryParam("offset") final Long offset,
       @QueryParam("length") final Long length, final byte[] data) {
-    return RestUtils.call(new RestUtils.RestCallableVoid() {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
-      public void call() throws Exception {
+      public Void call() throws Exception {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
         Preconditions.checkNotNull(offset, "required 'offset' parameter is missing");
@@ -387,6 +393,7 @@ public final class BlockWorkerClientRestServiceHandler {
         try (BlockWriter writer = mBlockWorker.getTempBlockWriterRemote(sessionId, blockId)) {
           writer.append(buffer);
         }
+        return null;
       }
     });
   }

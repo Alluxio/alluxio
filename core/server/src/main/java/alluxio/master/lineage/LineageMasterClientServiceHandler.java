@@ -62,6 +62,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
     return RpcUtils.call(new RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
+        // deserialization
         List<AlluxioURI> inputFilesUri = new ArrayList<>();
         for (String inputFile : inputFiles) {
           inputFilesUri.add(new AlluxioURI(inputFile));
