@@ -142,27 +142,27 @@ public final class CommonTestUtilsTest {
   }
 
   @Test
-  public void basic() throws Exception {
+  public void testEqualsBasic() throws Exception {
     CommonTestUtils.testEquals(Basic.class);
   }
 
   @Test
-  public void manyFields() {
+  public void testEqualsManyFields() {
     CommonTestUtils.testEquals(ManyFields.class);
   }
 
   @Test
-  public void badHashCodeCheck() {
+  public void testEqualsBadHashCodeCheck() {
     testFail(BadHashCode.class);
   }
 
   @Test
-  public void missingFieldCheck() {
+  public void testEqualsMissingFieldCheck() {
     testFail(MissingField.class);
   }
 
   @Test
-  public void missingInstanceCheck() {
+  public void testEqualsMissingInstanceCheck() {
     testFail(EqualsMissingInstanceCheck.class);
   }
 
