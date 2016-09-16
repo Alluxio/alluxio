@@ -43,7 +43,7 @@ import java.util.Map.Entry;
  * Integration tests for {@link AlluxioFramework}. These tests assume that a Mesos cluster is
  * running locally.
  */
-public class AlluxioFrameworkIntegrationTest {
+public final class AlluxioFrameworkIntegrationTest {
   private static final String JDK_URL =
       "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-macosx-x64.tar.gz";
   private static final String JDK_PATH = "jdk1.7.0_79.jdk/Contents/Home";
@@ -60,7 +60,7 @@ public class AlluxioFrameworkIntegrationTest {
   @Parameter(names = {"-h", "--help"}, help = true)
   private boolean mHelp = false;
 
-  public AlluxioFrameworkIntegrationTest() {}
+  private AlluxioFrameworkIntegrationTest() {}
 
   private void run() throws Exception {
     checkMesosRunning();
@@ -202,6 +202,10 @@ public class AlluxioFrameworkIntegrationTest {
     pb.start().waitFor();
   }
 
+  /**
+   * @param args arguments
+   * @throws Exception if an exception occurs
+   */
   public static void main(String[] args) throws Exception {
     AlluxioFrameworkIntegrationTest test = new AlluxioFrameworkIntegrationTest();
     JCommander jc = new JCommander(test);
