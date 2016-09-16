@@ -214,7 +214,6 @@ public final class CommonUtils {
     return groups;
   }
 
-
   /**
    * Waits for a condition to be satisfied until a timeout occurs.
    *
