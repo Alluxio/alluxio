@@ -9,12 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.mesos;
-
-import static org.junit.Assert.assertEquals;
+package alluxio.cli;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -100,7 +97,7 @@ public class AlluxioFrameworkIntegrationTest {
       System.out.println("Launched Alluxio cluster, waiting for worker to register with master");
       try (final BlockMasterClient client =
           new RetryHandlingBlockMasterClient(ClientContext.getMasterAddress())) {
-        CommonTestUtils.waitFor("Alluxio worker to register with master",
+        CommonUtils.waitFor("Alluxio worker to register with master",
             new Function<Void, Boolean>() {
               @Override
               public Boolean apply(Void input) {
@@ -142,12 +139,18 @@ public class AlluxioFrameworkIntegrationTest {
   private static void basicAlluxioTests() throws Exception {
     System.out.println("Running tests");
     FileSystem fs = FileSystem.Factory.get();
-    assertEquals(1, fs.listStatus(new AlluxioURI("/")).size());
+    int listSize = fs.listStatus(new AlluxioURI("/")).size();
+    if (listSize != 1) {
+      throw new RuntimeException("Expected 1 path to exist at the root, but found " + listSize);
+    }
     FileOutStream outStream = fs.createFile(new AlluxioURI("/test"));
     outStream.write("abc".getBytes());
     outStream.close();
     FileInStream inStream = fs.openFile(new AlluxioURI("/test"));
-    assertEquals("abc", IOUtils.toString(inStream));
+    String result = IOUtils.toString(inStream);
+    if (!result.equals("abc")) {
+      throw new RuntimeException("Expected abc but got " + result);
+    }
     System.out.println("Tests passed");
   }
 
