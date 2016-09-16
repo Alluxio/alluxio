@@ -53,6 +53,7 @@ public final class MetricsSystem {
   public static final String CLIENT_INSTANCE = "client";
 
   public static final MetricRegistry METRIC_REGISTRY;
+
   static {
     METRIC_REGISTRY = new MetricRegistry();
     METRIC_REGISTRY.registerAll(new GarbageCollectorMetricSet());
