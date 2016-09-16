@@ -29,6 +29,6 @@ public final class Version {
    * @param args the arguments
    */
   public static void main(String[] args) {
-    System.out.println("Alluxio version: " + RuntimeConstants.VERSION);
+    System.out.println(RuntimeConstants.VERSION);
   }
 }
