@@ -164,9 +164,6 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     private static final Counter BYTES_WRITTEN_LOCAL =
         MetricsSystem.clientCounter("BytesWrittenLocal");
 
-    /**
-     * No instantiation.
-     */
-    private Metrics() {}
+    private Metrics() {} // prevent instantiation.
   }
 }

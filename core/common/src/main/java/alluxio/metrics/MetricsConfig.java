@@ -63,31 +63,6 @@ public final class MetricsConfig {
   }
 
   /**
-   * Loads the metrics configuration file.
-   *
-   * @param configFile the metrics config file
-   */
-  private void loadConfigFile(String configFile) {
-    InputStream is = null;
-    try {
-      is = new FileInputStream(configFile);
-      if (is != null) {
-        mProperties.load(is);
-      }
-    } catch (Exception e) {
-      LOG.error("Error loading metrics configuration file.");
-    } finally {
-      if (is != null) {
-        try {
-          is.close();
-        } catch (Exception e) {
-          LOG.error(e.getMessage(), e);
-        }
-      }
-    }
-  }
-
-  /**
    * Uses regex to parse every original property key to a prefix and a suffix. Creates sub
    * properties that are grouped by the prefix.
    *
@@ -111,6 +86,31 @@ public final class MetricsConfig {
       }
     }
     return subProperties;
+  }
+
+  /**
+   * Loads the metrics configuration file.
+   *
+   * @param configFile the metrics config file
+   */
+  private void loadConfigFile(String configFile) {
+    InputStream is = null;
+    try {
+      is = new FileInputStream(configFile);
+      if (is != null) {
+        mProperties.load(is);
+      }
+    } catch (Exception e) {
+      LOG.error("Error loading metrics configuration file.");
+    } finally {
+      if (is != null) {
+        try {
+          is.close();
+        } catch (Exception e) {
+          LOG.error(e.getMessage(), e);
+        }
+      }
+    }
   }
 
   /**

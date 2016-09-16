@@ -279,7 +279,6 @@ public final class MetricsSystem {
   /**
    * Reset all the counters to 0 for testing.
    */
-  @VisibleForTesting
   public static void resetAllCounters() {
     for (Map.Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
       entry.getValue().dec(entry.getValue().getCount());

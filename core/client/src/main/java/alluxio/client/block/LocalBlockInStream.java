@@ -132,9 +132,6 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     private static final Counter BYTES_READ_LOCAL = MetricsSystem.clientCounter("BytesReadLocal");
     private static final Counter SEEKS_LOCAL = MetricsSystem.clientCounter("SeeksLocal");
 
-    /**
-     * No instantiation.
-     */
-    private Metrics() {}
+    private Metrics() {}  // prevent instantiation.
   }
 }

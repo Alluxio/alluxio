@@ -51,5 +51,6 @@ public class MetricsSystemTest {
 
     // Make sure it doesn't crash.
     sCounter.inc();
+    MetricsSystem.stopSinks();
   }
 }
