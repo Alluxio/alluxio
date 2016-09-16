@@ -52,7 +52,12 @@ public final class MetricsSystem {
   public static final String WORKER_INSTANCE = "worker";
   public static final String CLIENT_INSTANCE = "client";
 
-  public static final MetricRegistry METRIC_REGISTRY = initMetricRegistry();
+  public static final MetricRegistry METRIC_REGISTRY;
+  static {
+    METRIC_REGISTRY = new MetricRegistry();
+    METRIC_REGISTRY.registerAll(new GarbageCollectorMetricSet());
+    METRIC_REGISTRY.registerAll(new MemoryUsageGaugeSet());
+  }
 
   private static List<Sink> sSinks;
 
@@ -248,20 +253,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Initialize the metric registry.
-   *
-   * @return the metric registry
-   */
-  private static MetricRegistry initMetricRegistry() {
-    MetricRegistry metricRegistry = new MetricRegistry();
-    metricRegistry.registerAll(new GarbageCollectorMetricSet());
-    metricRegistry.registerAll(new MemoryUsageGaugeSet());
-    return metricRegistry;
-  }
-
-  /**
-   * Register a gauge if it has not been registered. Register all the gauges with this
-   * function to avoid register the same one multiple times.
+   * Register a gauge if it has not been registered.
    *
    * @param name the gauge name
    * @param metric the gauge
