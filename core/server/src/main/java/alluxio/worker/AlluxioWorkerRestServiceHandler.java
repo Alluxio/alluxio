@@ -282,12 +282,11 @@ public final class AlluxioWorkerRestServiceHandler {
         // Get all counters.
         Map<String, Counter> counters = metricRegistry.getCounters();
 
-        // Only the gauge for cached blocks is retrieved here, other gauges are statistics of free/used
-
-
-        // spaces, those statistics can be gotten via other REST apis.
+        // Only the gauge for cached blocks is retrieved here, other gauges are statistics of
+        // free/used spaces, those statistics can be gotten via other REST apis.
         String blocksCachedProperty = CommonUtils
-            .argsToString(".", WorkerContext.getWorkerSource().getName(), WorkerSource.BLOCKS_CACHED);
+            .argsToString(".", WorkerContext.getWorkerSource().getName(),
+                WorkerSource.BLOCKS_CACHED);
         @SuppressWarnings("unchecked") Gauge<Integer> blocksCached =
             (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 

@@ -80,7 +80,6 @@ public final class RestUtils {
     void call() throws Exception;
   }
 
-
   /**
    * Creates the default response.
    *
