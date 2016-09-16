@@ -75,9 +75,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_CONFIGURATION)
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   public Response getConfiguration() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Map<String, String>>() {
       @Override
-      public Object call() throws Exception {
+      public Map<String, String> call() throws Exception {
         Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
         SortedMap<String, String> configuration = new TreeMap<>();
         for (Map.Entry<String, String> entry : properties) {
@@ -99,9 +99,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_RPC_ADDRESS)
   @ReturnType("java.lang.String")
   public Response getRpcAddress() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
-      public Object call() throws Exception {
+      public String call() throws Exception {
         return mWorker.getWorkerAddress().toString();
       }
     });
@@ -115,9 +115,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_CAPACITY_BYTES)
   @ReturnType("java.lang.Long")
   public Response getCapacityBytes() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
-      public Object call() throws Exception {
+      public Long call() throws Exception {
         return mStoreMeta.getCapacityBytes();
       }
     });
@@ -131,9 +131,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_USED_BYTES)
   @ReturnType("java.lang.Long")
   public Response getUsedBytes() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
-      public Object call() throws Exception {
+      public Long call() throws Exception {
         return mStoreMeta.getUsedBytes();
       }
     });
@@ -167,9 +167,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_CAPACITY_BYTES_ON_TIERS)
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getCapacityBytesOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
       @Override
-      public Object call() throws Exception {
+      public Map<String, Long> call() throws Exception {
         SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
         for (Map.Entry<String, Long> tierBytes : mStoreMeta.getCapacityBytesOnTiers().entrySet()) {
           capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
@@ -188,9 +188,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_USED_BYTES_ON_TIERS)
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getUsedBytesOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
       @Override
-      public Object call() throws Exception {
+      public Map<String, Long> call() throws Exception {
         SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
         for (Map.Entry<String, Long> tierBytes : mStoreMeta.getUsedBytesOnTiers().entrySet()) {
           usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
@@ -208,9 +208,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_DIRECTORY_PATHS_ON_TIERS)
   @ReturnType("java.util.SortedMap<java.lang.String, java.util.List<java.lang.String>>")
   public Response getDirectoryPathsOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Map<String, List<String>>>() {
       @Override
-      public Object call() throws Exception {
+      public Map<String, List<String>> call() throws Exception {
         SortedMap<String, List<String>> tierToDirPaths = new TreeMap<>(getTierAliasComparator());
         tierToDirPaths.putAll(mStoreMeta.getDirectoryPathsOnTiers());
         return tierToDirPaths;
@@ -226,9 +226,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_VERSION)
   @ReturnType("java.lang.String")
   public Response getVersion() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
-      public Object call() throws Exception {
+      public String call() throws Exception {
         return RuntimeConstants.VERSION;
       }
     });
@@ -242,9 +242,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_START_TIME_MS)
   @ReturnType("java.lang.Long")
   public Response getStartTimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
-      public Object call() throws Exception {
+      public Long call() throws Exception {
         return mWorker.getStartTimeMs();
       }
     });
@@ -258,9 +258,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_UPTIME_MS)
   @ReturnType("java.lang.Long")
   public Response getUptimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
-      public Object call() throws Exception {
+      public Long call() throws Exception {
         return mWorker.getUptimeMs();
       }
     });
@@ -274,9 +274,9 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_METRICS)
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getMetrics() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
       @Override
-      public Object call() throws Exception {
+      public Map<String, Long> call() throws Exception {
         MetricRegistry metricRegistry = mWorker.getWorkerMetricsSystem().getMetricRegistry();
 
         // Get all counters.

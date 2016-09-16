@@ -27,10 +27,11 @@ public final class RestUtils {
   /**
    * Calls the given {@link RestUtils.RestCallable} and handles any exceptions thrown.
    *
+   * @param <T> the return type of the callable
    * @param callable the callable to call
    * @return the response object
    */
-  public static Response call(RestUtils.RestCallable callable) {
+  public static <T> Response call(RestUtils.RestCallable<T> callable) {
     try {
       return createResponse(callable.call());
     } catch (Exception e) {
@@ -40,53 +41,18 @@ public final class RestUtils {
   }
 
   /**
-   * Calls the given {@link RestUtils.RestCallableVoid} and handles any exceptions thrown.
-   *
-   * @param callable the callable to call
-   * @return the response object
-   */
-  public static Response call(RestUtils.RestCallableVoid callable) {
-    try {
-      callable.call();
-      return createResponse();
-    } catch (Exception e) {
-      LOG.error("Unexpected error invoking rest endpoint", e);
-      return createErrorResponse(e.getMessage());
-    }
-  }
-
-  /**
    * An interface representing a callable.
+   *
+   * @param <T> the return type of the callable
    */
-  public interface RestCallable {
+  public interface RestCallable<T> {
     /**
      * The REST endpoint implementation.
      *
      * @return the return value from the callable
      * @throws Exception if an exception occurs
      */
-    Object call() throws Exception;
-  }
-
-  /**
-   * An interface representing a callable.
-   */
-  public interface RestCallableVoid {
-    /**
-     * The REST endpoint implementation.
-     *
-     * @throws Exception if an exception occurs
-     */
-    void call() throws Exception;
-  }
-
-  /**
-   * Creates the default response.
-   *
-   * @return the response
-   */
-  private static Response createResponse() {
-    return Response.ok().build();
+    T call() throws Exception;
   }
 
   /**
@@ -96,6 +62,9 @@ public final class RestUtils {
    * @return the response
    */
   private static Response createResponse(Object object) {
+    if (object instanceof Void) {
+      return Response.ok().build();
+    }
     if (object instanceof String) {
       // Need to explicitly encode the string as JSON because Jackson will not do it automatically.
       ObjectMapper mapper = new ObjectMapper();

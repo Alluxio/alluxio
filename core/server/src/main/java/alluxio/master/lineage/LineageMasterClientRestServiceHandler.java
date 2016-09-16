@@ -17,6 +17,7 @@ import alluxio.RestUtils;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.AlluxioMaster;
+import alluxio.wire.LineageInfo;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -64,9 +65,9 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
-      public Object call() throws Exception {
+      public String call() throws Exception {
         return Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME;
       }
     });
@@ -80,9 +81,9 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
-      public Object call() throws Exception {
+      public Long call() throws Exception {
         return Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION;
       }
     });
@@ -103,9 +104,9 @@ public final class LineageMasterClientRestServiceHandler {
       @QueryParam("outputFiles") final String outputFiles,
       @QueryParam("command") final String command,
       @QueryParam("commandOutputFile") final String outputFile) {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
-      public Object call() throws Exception {
+      public Long call() throws Exception {
         Preconditions.checkNotNull(inputFiles, "required 'inputFiles' parameter is missing");
         Preconditions.checkNotNull(outputFiles, "required 'outputFiles' parameter is missing");
         Preconditions.checkNotNull(command, "required 'command' parameter is missing");
@@ -135,9 +136,9 @@ public final class LineageMasterClientRestServiceHandler {
   @ReturnType("java.lang.Boolean")
   public Response deleteLineage(@QueryParam("lineageId") final Long lineageId,
       @QueryParam("cascade") final boolean cascade) {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
       @Override
-      public Object call() throws Exception {
+      public Boolean call() throws Exception {
         Preconditions.checkNotNull(lineageId, "required 'lineageId' parameter is missing");
         return mLineageMaster.deleteLineage(lineageId, cascade);
       }
@@ -152,9 +153,9 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(GET_LINEAGE_INFO_LIST)
   @ReturnType("java.util.List<alluxio.wire.LineageInfo>")
   public Response getLineageInfoList() {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<List<LineageInfo>>() {
       @Override
-      public Object call() throws Exception {
+      public List<LineageInfo> call() throws Exception {
         return mLineageMaster.getLineageInfoList();
       }
     });
@@ -172,9 +173,9 @@ public final class LineageMasterClientRestServiceHandler {
   @ReturnType("java.lang.Long")
   public Response reinitializeFile(@QueryParam("path") final String path,
       @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl) {
-    return RestUtils.call(new RestUtils.RestCallable() {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
-      public Object call() throws Exception {
+      public Long call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         Preconditions
             .checkNotNull(blockSizeBytes, "required 'blockSizeBytes' parameter is missing");
@@ -193,11 +194,12 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(REPORT_LOST_FILE)
   @ReturnType("java.lang.Void")
   public Response reportLostFile(@QueryParam("path") final String path) {
-    return RestUtils.call(new RestUtils.RestCallableVoid() {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
-      public void call() throws Exception {
+      public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         mLineageMaster.reportLostFile(path);
+        return null;
       }
     });
   }
