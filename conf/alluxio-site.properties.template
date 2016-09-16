@@ -26,8 +26,8 @@
 # alluxio.integration.worker.resource.mem=1024MB
 
 # Security properties
-# alluxio.security.authentication.type=NOSASL
-# alluxio.security.authorization.permission.enabled=false
+# alluxio.security.authentication.type=SIMPLE
+# alluxio.security.authorization.permission.enabled=true
 # alluxio.security.authorization.permission.supergroup=supergroup
 # alluxio.security.group.mapping.class=alluxio.security.group.provider.ShellBasedUnixGroupsMapping
 
