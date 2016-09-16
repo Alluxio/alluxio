@@ -402,9 +402,6 @@ public class FileOutStream extends AbstractOutStream {
   private static final class Metrics {
     private static final Counter BYTES_WRITTEN_UFS = MetricsSystem.clientCounter("BytesWrittenUfs");
 
-    /**
-     * No instantiation.
-     */
-    private Metrics() {}
+    private Metrics() {} // prevent instantiation
   }
 }

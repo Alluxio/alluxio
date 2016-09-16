@@ -2747,9 +2747,6 @@ public final class FileSystemMaster extends AbstractMaster {
           });
     }
 
-    /**
-     * No instantiation.
-     */
-    private Metrics() {}
+    private Metrics() {} // prevent instantiation
   }
 }

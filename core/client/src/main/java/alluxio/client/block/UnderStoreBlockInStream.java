@@ -226,9 +226,6 @@ public final class UnderStoreBlockInStream extends BlockInStream {
   private static final class Metrics {
     private static final Counter BYTES_READ_UFS = MetricsSystem.clientCounter("BytesReadUfs");
 
-    /**
-     * No instantiation.
-     */
-    private Metrics() {}
+    private Metrics() {} // prevent instantiation
   }
 }

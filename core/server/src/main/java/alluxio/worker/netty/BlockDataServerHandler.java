@@ -230,9 +230,6 @@ final class BlockDataServerHandler {
     private static final Counter BYTES_WRITTEN_REMOTE =
         MetricsSystem.workerCounter("BytesWrittenRemote");
 
-    /**
-     * No instantiation.
-     */
-    private Metrics() {}
+    private Metrics() {} // prevent instantiation
   }
 }

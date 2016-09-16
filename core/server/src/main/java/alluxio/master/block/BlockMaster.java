@@ -889,9 +889,6 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
           });
     }
 
-    /**
-     * No instantiation.
-     */
-    private Metrics() {}
+    private Metrics() {} // prevent instantiation
   }
 }

@@ -491,9 +491,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
           });
     }
 
-    /**
-     * No instantiation.
-     */
-    private Metrics() {}
+    private Metrics() {} // prevent instantiation
   }
 }

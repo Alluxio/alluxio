@@ -168,9 +168,6 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     private static final Counter BYTES_READ_REMOTE = MetricsSystem.clientCounter("BytesReadRemote");
     private static final Counter SEEKS_REMOTE = MetricsSystem.clientCounter("SeeksRemote");
 
-    /**
-     * No instantiation.
-     */
-    private Metrics() {}
+    private Metrics() {} // prevent instantiation
   }
 }
