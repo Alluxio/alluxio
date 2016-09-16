@@ -13,6 +13,8 @@ package alluxio;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
 
@@ -20,13 +22,71 @@ import javax.ws.rs.core.Response;
  * Utilities for handling REST calls.
  */
 public final class RestUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  /**
+   * Calls the given {@link RestUtils.RestCallable} and handles any exceptions thrown.
+   *
+   * @param callable the callable to call
+   * @return the response object
+   */
+  public static Response call(RestUtils.RestCallable callable) {
+    try {
+      return createResponse(callable.call());
+    } catch (Exception e) {
+      LOG.error("Unexpected error invoking rest endpoint", e);
+      return createErrorResponse(e.getMessage());
+    }
+  }
+
+  /**
+   * Calls the given {@link RestUtils.RestCallableVoid} and handles any exceptions thrown.
+   *
+   * @param callable the callable to call
+   * @return the response object
+   */
+  public static Response call(RestUtils.RestCallableVoid callable) {
+    try {
+      callable.call();
+      return createResponse();
+    } catch (Exception e) {
+      LOG.error("Unexpected error invoking rest endpoint", e);
+      return createErrorResponse(e.getMessage());
+    }
+  }
+
+  /**
+   * An interface representing a callable.
+   */
+  public interface RestCallable {
+    /**
+     * The REST endpoint implementation.
+     *
+     * @return the return value from the callable
+     * @throws Exception if an exception occurs
+     */
+    Object call() throws Exception;
+  }
+
+  /**
+   * An interface representing a callable.
+   */
+  public interface RestCallableVoid {
+    /**
+     * The REST endpoint implementation.
+     *
+     * @throws Exception if an exception occurs
+     */
+    void call() throws Exception;
+  }
+
 
   /**
    * Creates the default response.
    *
    * @return the response
    */
-  public static Response createResponse() {
+  private static Response createResponse() {
     return Response.ok().build();
   }
 
@@ -36,7 +96,7 @@ public final class RestUtils {
    * @param object the object to respond with
    * @return the response
    */
-  public static Response createResponse(Object object) {
+  private static Response createResponse(Object object) {
     if (object instanceof String) {
       // Need to explicitly encode the string as JSON because Jackson will not do it automatically.
       ObjectMapper mapper = new ObjectMapper();
@@ -55,7 +115,7 @@ public final class RestUtils {
    * @param message the message to respond with
    * @return the response
    */
-  public static Response createErrorResponse(String message) {
+  private static Response createErrorResponse(String message) {
     return Response.serverError().entity(message).build();
   }
 
