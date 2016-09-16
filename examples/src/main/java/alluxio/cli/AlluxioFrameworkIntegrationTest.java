@@ -31,6 +31,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,6 +47,7 @@ public class AlluxioFrameworkIntegrationTest {
   private static final String JDK_URL =
       "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-macosx-x64.tar.gz";
   private static final String JDK_PATH = "jdk1.7.0_79.jdk/Contents/Home";
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Parameter(names = {"-m", "--mesos"}, required = true,
       description = "Address for locally-running Mesos, e.g. localhost:5050")
@@ -64,21 +67,21 @@ public class AlluxioFrameworkIntegrationTest {
     stopAlluxio();
     stopAlluxioFramework();
     runTests();
-    System.out.println("All tests passed!");
+    LOG.info("All tests passed!");
   }
 
   private void runTests() throws Exception {
-    System.out.println("Testing deployment with preinstalled alluxio and jdk");
+    LOG.info("Testing deployment with preinstalled alluxio and jdk");
     testMesosDeploy(ImmutableMap.of(
         PropertyKey.INTEGRATION_MESOS_JDK_URL, Constants.MESOS_LOCAL_INSTALL,
         PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, Constants.MESOS_LOCAL_INSTALL));
-    System.out.println("Testing deployment with downloaded jdk");
+    LOG.info("Testing deployment with downloaded jdk");
     testMesosDeploy(ImmutableMap.of(
         PropertyKey.INTEGRATION_MESOS_JDK_URL, JDK_URL,
         PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, Constants.MESOS_LOCAL_INSTALL,
         PropertyKey.INTEGRATION_MESOS_JDK_PATH, JDK_PATH));
     if (mAlluxioUrl != null) {
-      System.out.println("Testing deployment with downloaded Alluxio");
+      LOG.info("Testing deployment with downloaded Alluxio");
       testMesosDeploy(ImmutableMap.of(
           PropertyKey.INTEGRATION_MESOS_JDK_URL, Constants.MESOS_LOCAL_INSTALL,
           PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, mAlluxioUrl));
@@ -94,7 +97,7 @@ public class AlluxioFrameworkIntegrationTest {
     Map<String, String> env = ImmutableMap.of("ALLUXIO_JAVA_OPTS", alluxioJavaOpts.toString());
     try {
       startAlluxioFramework(env);
-      System.out.println("Launched Alluxio cluster, waiting for worker to register with master");
+      LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
       try (final BlockMasterClient client =
           new RetryHandlingBlockMasterClient(ClientContext.getMasterAddress())) {
         CommonUtils.waitFor("Alluxio worker to register with master",
@@ -114,7 +117,7 @@ public class AlluxioFrameworkIntegrationTest {
               }
             }, 15 * Constants.MINUTE_MS);
       }
-      System.out.println("Worker registered");
+      LOG.info("Worker registered");
       basicAlluxioTests();
     } finally {
       stopAlluxioFramework();
@@ -130,14 +133,14 @@ public class AlluxioFrameworkIntegrationTest {
     try {
       pb.start().waitFor();
     } catch (Exception e) {
-      System.out.println("Failed to launch Alluxio on Mesos. Note that this test requires that "
+      LOG.info("Failed to launch Alluxio on Mesos. Note that this test requires that "
           + "Mesos is currently running.");
       throw Throwables.propagate(e);
     }
   }
 
   private static void basicAlluxioTests() throws Exception {
-    System.out.println("Running tests");
+    LOG.info("Running tests");
     FileSystem fs = FileSystem.Factory.get();
     int listSize = fs.listStatus(new AlluxioURI("/")).size();
     if (listSize != 1) {
@@ -151,7 +154,7 @@ public class AlluxioFrameworkIntegrationTest {
     if (!result.equals("abc")) {
       throw new RuntimeException("Expected abc but got " + result);
     }
-    System.out.println("Tests passed");
+    LOG.info("Tests passed");
   }
 
   private static void checkMesosRunning() throws Exception {
@@ -168,12 +171,19 @@ public class AlluxioFrameworkIntegrationTest {
     Process ps = Runtime.getRuntime().exec(new String[] {"ps", "ax"});
     InputStream psOutput = ps.getInputStream();
 
-    Process grep = Runtime.getRuntime().exec(new String[] {"grep", processName});
-    OutputStream grepInput = grep.getOutputStream();
-    IOUtils.copy(psOutput, grepInput);
-    grepInput.close();
-    // The grep process also includes the process name.
-    return IOUtils.readLines(grep.getInputStream()).size() >= 2;
+    Process processGrep = Runtime.getRuntime().exec(new String[] {"grep", processName});
+    OutputStream processGrepInput = processGrep.getOutputStream();
+    IOUtils.copy(psOutput, processGrepInput);
+    InputStream processGrepOutput = processGrep.getInputStream();
+    processGrepInput.close();
+
+    // Filter out the grep process itself.
+    Process filterGrep = Runtime.getRuntime().exec(new String[] {"grep", "-v", "grep"});
+    OutputStream filterGrepInput = filterGrep.getOutputStream();
+    IOUtils.copy(processGrepOutput, filterGrepInput);
+    filterGrepInput.close();
+
+    return IOUtils.readLines(filterGrep.getInputStream()).size() >= 1;
   }
 
   private static void stopAlluxioFramework() throws Exception {
@@ -194,8 +204,15 @@ public class AlluxioFrameworkIntegrationTest {
 
   public static void main(String[] args) throws Exception {
     AlluxioFrameworkIntegrationTest test = new AlluxioFrameworkIntegrationTest();
-    JCommander jc = new JCommander(test, args);
+    JCommander jc = new JCommander(test);
     jc.setProgramName(AlluxioFrameworkIntegrationTest.class.getName());
+    try {
+      jc.parse(args);
+    } catch (Exception e) {
+      LOG.error(e.getMessage());
+      jc.usage();
+      System.exit(1);
+    }
     if (test.mHelp) {
       jc.usage();
     } else {
