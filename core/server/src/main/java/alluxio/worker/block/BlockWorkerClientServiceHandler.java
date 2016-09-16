@@ -83,7 +83,12 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   // TODO(calvin): Make this supported again.
   @Override
   public boolean asyncCheckpoint(long fileId) throws AlluxioTException {
-    return false;
+    return RpcUtils.call(new RpcCallable<Boolean>() {
+      @Override
+      public Boolean call() throws AlluxioException {
+        return false;
+      }
+    });
   }
 
   /**
@@ -265,7 +270,14 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *        last. Each value in the list represents a specific metric based on the index.
    */
   @Override
-  public void sessionHeartbeat(long sessionId, List<Long> metrics) {
-    mWorker.sessionHeartbeat(sessionId, metrics);
+  public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
+      throws AlluxioTException {
+    RpcUtils.call(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mWorker.sessionHeartbeat(sessionId, metrics);
+        return null;
+      }
+    });
   }
 }
