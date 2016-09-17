@@ -47,7 +47,7 @@ service LineageMasterClientService extends common.AlluxioService {
   /**
    * Returns a list of existing lineages.
    */
-  list<LineageInfo> getLineageInfoList()
+  list<LineageInfo> getLineageInfoList() throws (1: exception.AlluxioTException e)
 
   /**
    * Reinitializes a file. Returns the id of the reinitialized file when the

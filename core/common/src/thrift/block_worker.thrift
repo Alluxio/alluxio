@@ -14,6 +14,7 @@ service BlockWorkerClientService extends common.AlluxioService {
    * Accesses a block given the block id.
    */
   void accessBlock( /** the id of the block being accessed */ 1: i64 blockId)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Asynchronously checkpoints a file: returns whether the checkpoint operation succeeded.
@@ -82,7 +83,7 @@ service BlockWorkerClientService extends common.AlluxioService {
    * metrics to the worker.
    */
   void sessionHeartbeat( /** the id of the current session */ 1: i64 sessionId,
-      /** the client metrics */ 2: list<i64> metrics)
+      /** the client metrics */ 2: list<i64> metrics) throws (1: exception.AlluxioTException e)
 
   /**
    * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
@@ -91,4 +92,5 @@ service BlockWorkerClientService extends common.AlluxioService {
    */
   bool unlockBlock( /** the id of the block being accessed */ 1: i64 blockId,
       /** the id of the current session */ 2: i64 sessionId)
+    throws (1: exception.AlluxioTException e)
 }
