@@ -56,7 +56,166 @@ public interface BlockWorkerClient extends Client {
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
+<<<<<<< ours
   void cancelBlock(final long blockId) throws IOException, AlluxioException;
+||||||| base
+  public synchronized void cancelBlock(final long blockId) throws IOException, AlluxioException {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+      @Override
+      public Void call() throws AlluxioTException, TException {
+        mClient.cancelBlock(mSessionId, blockId);
+        return null;
+      }
+    });
+  }
+
+  @Override
+  protected synchronized void beforeDisconnect() {
+    // Heartbeat to send the client metrics.
+    if (mHeartbeatExecutor != null) {
+      mHeartbeatExecutor.heartbeat();
+    }
+  }
+
+  @Override
+  protected synchronized void afterDisconnect() {
+    if (mHeartbeat != null) {
+      mHeartbeat.cancel(true);
+    }
+  }
+
+  @Override
+  protected synchronized AlluxioService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
+  protected String getServiceName() {
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME;
+  }
+
+  @Override
+  protected long getServiceVersion() {
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
+  }
+
+  /**
+   * Opens the connection to the worker. And start the heartbeat thread.
+   *
+   * @throws IOException if a non-Alluxio exception occurs
+   */
+  private synchronized void connectOperation() throws IOException {
+    if (!mConnected) {
+      LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
+
+      TProtocol binaryProtocol =
+          new TBinaryProtocol(mTransportProvider.getClientTransport(mAddress));
+      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
+      mClient = new BlockWorkerClientService.Client(mProtocol);
+
+      try {
+        mProtocol.getTransport().open();
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage(), e);
+        return;
+      }
+      mConnected = true;
+
+      // only start the heartbeat thread if the connection is successful and if there is not
+      // another heartbeat thread running
+      if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
+        final int interval = Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+        mHeartbeat =
+            mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
+                mHeartbeatExecutor, interval));
+      }
+    }
+  }
+=======
+  public synchronized void cancelBlock(final long blockId) throws IOException, AlluxioException {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+      @Override
+      public Void call() throws AlluxioTException, TException {
+        mClient.cancelBlock(mSessionId, blockId);
+        return null;
+      }
+    });
+  }
+
+  @Override
+  protected synchronized void beforeDisconnect() {
+    // Heartbeat to send the client metrics.
+    if (mHeartbeatExecutor != null) {
+      mHeartbeatExecutor.heartbeat();
+    }
+  }
+
+  @Override
+  protected synchronized void afterDisconnect() {
+    if (mHeartbeat != null) {
+      mHeartbeat.cancel(true);
+    }
+  }
+
+  @Override
+  protected synchronized AlluxioService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
+  protected String getServiceName() {
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME;
+  }
+
+  @Override
+  protected long getServiceVersion() {
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
+  }
+
+  /**
+   * Opens the connection to the worker. And start the heartbeat thread.
+   *
+   * @throws IOException if a non-Alluxio exception occurs
+   */
+  private synchronized void connectOperation() throws IOException {
+    if (!mConnected) {
+      LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
+
+      TProtocol binaryProtocol =
+          new TBinaryProtocol(mTransportProvider.getClientTransport(mAddress));
+      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
+      mClient = new BlockWorkerClientService.Client(mProtocol);
+
+      try {
+        mProtocol.getTransport().open();
+      } catch (TTransportException e) {
+        LOG.error("Failed to open a connection to the worker.", e);
+        return;
+      }
+
+      // Send a heartbeat to the worker to register the new session id.
+      try {
+        mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
+      } catch (Exception e) {
+        LOG.error("Failed to send initial heartbeat to register a session with the worker.", e);
+        // Directly close the transport instead of calling disconnect() because we do not consider
+        // ourselves connected yet.
+        mProtocol.getTransport().close();
+        return;
+      }
+      mConnected = true;
+
+      // Only start the heartbeat thread if the connection is successful and if there is not
+      // another heartbeat thread running.
+      if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
+        final int interval = Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+        mHeartbeat =
+            mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
+                mHeartbeatExecutor, interval));
+      }
+    }
+  }
+>>>>>>> theirs
 
   /**
    * Updates the session id of the client, starting a new session. The previous session's held
