@@ -201,3 +201,28 @@ and directories created by Alluxio exist. For this test, you should see files na
 To stop Alluxio, you can run:
 
 {% include Common-Commands/stop-alluxio.md %}
+
+# S3 Access Control
+
+If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object storage.
+
+The S3 credentials specified in Alluxio config represents a S3 user. S3 service backend checks the user permission to the bucket and the object for access control.
+If the given S3 user does not have the right access permission to the specified bucket, a permission denied error will be thrown.
+When Alluxio security is enabled, Alluxio loads the bucket ACL to Alluxio permission on the first time when the metadata is loaded to Alluxio namespace.
+
+### Mapping from S3 user to Alluxio file owner
+By default, Alluxio tries to extract the S3 user display name from the S3 credential. Optionally, `alluxio.underfs.s3.owner.id.to.username.mapping` can be used to
+specify a preset S3 canonical id to Alluxio username static mapping, in the format "id1=user1;id2=user2". 
+The AWS S3 canonical ID can be found at the console [address](https://console.aws.amazon.com/iam/home?#security_credential).
+Please expand the "Account Identifiers" tab and refer to "Canonical User ID".
+
+### Mapping from S3 ACL to Alluxio permission
+Alluxio checks the S3 bucket READ/WRITE ACL to determine the owner's permission mode to a Alluxio file. For example, if the S3 user has read-only access to the
+underlying bucket, the mounted directory and files would have 0500 mode. If the S3 user has full access to the underlying bucket, the mounted directory
+and files would have 0700 mode.
+
+### Mount point sharing
+If you want to share the S3 mount point with other users in Alluxio namespace, you can enable `alluxio.underfs.object.store.mount.shared.publicly`.
+
+### Permission change
+In addition, chown/chgrp/chmod to Alluxio directories and files do NOT propagate to the underlying S3 buckets nor objects.

@@ -101,10 +101,7 @@ public class CommandLineJob extends Job {
 
       p.waitFor();
       LOG.info("Exec {} output to {} done.", mCommand, outputPath);
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-      return false;
-    } catch (InterruptedException e) {
+    } catch (IOException | InterruptedException e) {
       LOG.error(e.getMessage());
       return false;
     }
