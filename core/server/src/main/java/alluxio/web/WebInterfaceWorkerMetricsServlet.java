@@ -11,11 +11,8 @@
 
 package alluxio.web;
 
-import static alluxio.worker.block.DefaultBlockWorker.Metrics.BLOCKS_CACHED;
-import static alluxio.worker.block.DefaultBlockWorker.Metrics.CAPACITY_TOTAL;
-import static alluxio.worker.block.DefaultBlockWorker.Metrics.CAPACITY_USED;
-
 import alluxio.metrics.MetricsSystem;
+import alluxio.worker.block.DefaultBlockWorker;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
@@ -75,9 +72,11 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
 
     Long workerCapacityTotal = (Long) mr.getGauges()
-        .get(MetricsSystem.getWorkerMetricName(CAPACITY_TOTAL)).getValue();
+        .get(MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.CAPACITY_TOTAL))
+        .getValue();
     Long workerCapacityUsed = (Long) mr.getGauges()
-        .get(MetricsSystem.getWorkerMetricName(CAPACITY_USED)).getValue();
+        .get(MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.CAPACITY_USED))
+        .getValue();
 
     int workerCapacityUsedPercentage =
         (workerCapacityTotal > 0) ? (int) (100L * workerCapacityUsed / workerCapacityTotal) : 0;
@@ -102,7 +101,8 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     for (Map.Entry<String, Counter> entry: counters.entrySet()) {
       operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
     }
-    String blockCachedProperty = MetricsSystem.getWorkerMetricName(BLOCKS_CACHED);
+    String blockCachedProperty =
+        MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
     operations.put(MetricsSystem.stripInstanceAndHost(blockCachedProperty),
         mr.getGauges().get(blockCachedProperty));
 

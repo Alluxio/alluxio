@@ -17,7 +17,7 @@
 #
 #  A "sink" specifies where metrics are delivered to. One or more sinks can be assigned.
 #
-#  The [name] field specifies the name of sink.
+#  The [name] field specifies the name of a sink.
 #
 #  The [options] field is the specific property of this source or sink. The
 #  source or sink is responsible for parsing this property.
@@ -65,7 +65,7 @@
 # Enable JmxSink by class name
 # sink.jmx.class=alluxio.metrics.sink.JmxSink
 
-# Enable ConsoleSink for all instances by class name
+# Enable ConsoleSink by class name
 # sink.console.class=alluxio.metrics.sink.ConsoleSink
 
 # Polling period for ConsoleSink
