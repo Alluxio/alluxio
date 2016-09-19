@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
@@ -36,6 +35,7 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -484,7 +484,7 @@ public class JournalIntegrationTest {
     final FileSystemMaster fsMaster = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
 
     try {
-      CommonTestUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
+      CommonUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           try {

@@ -12,7 +12,6 @@
 package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.IntegrationTestUtils;
@@ -31,6 +30,7 @@ import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.util.CommonUtils;
 import alluxio.wire.LineageInfo;
 
 import com.google.common.base.Function;
@@ -154,7 +154,7 @@ public class LineageMasterIntegrationTest {
     }
 
     // Wait for the log file to be created by the recompute job
-    CommonTestUtils.waitFor("the log file to be written", new Function<Void, Boolean>() {
+    CommonUtils.waitFor("the log file to be written", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         if (!logFile.exists()) {
