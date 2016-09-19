@@ -26,9 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockMetricsReporter extends AbstractBlockStoreEventListener {
   private final StorageTierAssoc mStorageTierAssoc;
 
-  public static final String BLOCKS_ACCESSED_NAME = "BlocksAccessed";
-
-  private static final Counter BLOCKS_ACCESSED = MetricsSystem.workerCounter(BLOCKS_ACCESSED_NAME);
+  private static final Counter BLOCKS_ACCESSED = MetricsSystem.workerCounter("BlocksAccessed");
   private static final Counter BLOCKS_PROMOTED = MetricsSystem.workerCounter("BlocksPromoted");
   private static final Counter BLOCKS_DELETED = MetricsSystem.workerCounter("BlocksDeleted");
   private static final Counter BLOCKS_EVICTED = MetricsSystem.workerCounter("BlocksEvicted");

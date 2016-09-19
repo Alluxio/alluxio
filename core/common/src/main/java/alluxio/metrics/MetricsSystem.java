@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -41,7 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * periodically and pass the data to the sinks.
  *
  * The syntax of the metrics configuration file is:
- * [instance].[sink|source].[name].[options]=[value]
+ * sink.[name].[options]=[value]
  */
 @ThreadSafe
 public final class MetricsSystem {
@@ -60,6 +61,7 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new MemoryUsageGaugeSet());
   }
 
+  @GuardedBy("MetricsSystem")
   private static List<Sink> sSinks;
 
   public static final String SINK_REGEX = "^sink\\.(.+)\\.(.+)";
@@ -67,7 +69,7 @@ public final class MetricsSystem {
   private static final int MINIMAL_POLL_PERIOD = 1;
 
   /**
-   * Start sinks specified in the configuration. This is an no-op if the sinks have already been
+   * Starts sinks specified in the configuration. This is an no-op if the sinks have already been
    * started.
    * Note: This has to be called after Alluxio configuration is initialized.
    */
@@ -82,7 +84,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Start sinks from a given metrics configuration. This is made public for unit test.
+   * Starts sinks from a given metrics configuration. This is made public for unit test.
    *
    * @param config the metrics config
    */
@@ -110,7 +112,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Stop all the sinks.
+   * Stops all the sinks.
    */
   public static synchronized void stopSinks() {
     if (sSinks != null) {
@@ -133,7 +135,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Build metric registry names for master instance. The pattern is instance.metricName.
+   * Builds metric registry names for master instance. The pattern is instance.metricName.
    *
    * @param name the metric name
    * @return the metric registry name
@@ -143,7 +145,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Build metric registry name for worker instance. The pattern is instance.uniqueId.metricName.
+   * Builds metric registry name for worker instance. The pattern is instance.uniqueId.metricName.
    *
    * @param name the metric name
    * @return the metric registry name
@@ -153,7 +155,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Build metric registry name for client instance. The pattern is instance.uniqueId.metricName.
+   * Builds metric registry name for client instance. The pattern is instance.uniqueId.metricName.
    *
    * @param name the metric name
    * @return the metric registry name
@@ -163,7 +165,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Build unique metric registry names with unique ID (set to host name). The pattern is
+   * Builds unique metric registry names with unique ID (set to host name). The pattern is
    * instance.hostname.metricName.
    *
    * @param instance the instance name
@@ -254,7 +256,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Register a gauge if it has not been registered.
+   * Registers a gauge if it has not been registered.
    *
    * @param name the gauge name
    * @param metric the gauge
@@ -267,7 +269,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Reset all the counters to 0 for testing.
+   * Resets all the counters to 0 for testing.
    */
   public static void resetAllCounters() {
     for (Map.Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
@@ -276,7 +278,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Disallow any explicit initialization.
+   * Disallows any explicit initialization.
    */
   private MetricsSystem() {
   }
