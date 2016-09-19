@@ -166,7 +166,7 @@ public abstract class AbstractClient implements Client {
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
     while (!mClosed) {
       mAddress = getAddress();
-      LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
+      LOG.debug("Alluxio client (version {}) is trying to connect with {} {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mMode, mAddress);
 
       TProtocol binaryProtocol =
@@ -174,7 +174,7 @@ public abstract class AbstractClient implements Client {
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
         mProtocol.getTransport().open();
-        LOG.info("Client registered with {} {} @ {}", getServiceName(), mMode, mAddress);
+        LOG.debug("Client registered with {} {} @ {}", getServiceName(), mMode, mAddress);
         mConnected = true;
         afterConnect();
         checkVersion(getClient(), getServiceVersion());
