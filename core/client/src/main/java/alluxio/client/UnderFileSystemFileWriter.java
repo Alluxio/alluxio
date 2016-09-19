@@ -61,6 +61,6 @@ public interface UnderFileSystemFileWriter extends Closeable {
    * @throws IOException if an error occurs during the write
    */
   void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] bytes,
-             int offset, int length) throws IOException;
+      int offset, int length) throws IOException;
 }
 
