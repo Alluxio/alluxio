@@ -168,7 +168,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
    *
    * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
-  string getUfsAddress()
+  string getUfsAddress() throws (1: exception.AlluxioTException e)
 
   /**
    * If the path points to a file, the method returns a singleton with its file information.
@@ -248,7 +248,7 @@ service FileSystemMasterWorkerService extends common.AlluxioService {
   /**
    * Returns the set of pinned files.
    */
-  set<i64> getPinIdList()
+  set<i64> getPinIdList() throws (1: exception.AlluxioTException e)
 
   /**
    * Periodic file system worker heartbeat. Returns the command for persisting

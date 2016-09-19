@@ -12,10 +12,8 @@
 package alluxio.master.file;
 
 import alluxio.Constants;
-import alluxio.exception.AccessControlException;
+import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemCommand;
@@ -23,7 +21,6 @@ import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
-import org.apache.thrift.TException;
 
 import java.util.List;
 import java.util.Set;
@@ -54,26 +51,33 @@ public final class FileSystemMasterWorkerServiceHandler
   }
 
   @Override
-  public FileInfo getFileInfo(long fileId) throws AlluxioTException {
-    try {
-      return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
-    } catch (AlluxioException e) {
-      throw e.toThrift();
-    }
+  public FileInfo getFileInfo(final long fileId) throws AlluxioTException {
+    return RpcUtils.call(new RpcUtils.RpcCallable<FileInfo>() {
+      @Override
+      public FileInfo call() throws AlluxioException {
+        return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
+      }
+    });
   }
 
   @Override
-  public Set<Long> getPinIdList() {
-    return mFileSystemMaster.getPinIdList();
+  public Set<Long> getPinIdList() throws AlluxioTException {
+    return RpcUtils.call(new RpcUtils.RpcCallable<Set<Long>>() {
+      @Override
+      public Set<Long> call() throws AlluxioException {
+        return mFileSystemMaster.getPinIdList();
+      }
+    });
   }
 
   @Override
-  public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles)
-      throws AlluxioTException, TException {
-    try {
-      return mFileSystemMaster.workerHeartbeat(workerId, persistedFiles);
-    } catch (FileDoesNotExistException | InvalidPathException | AccessControlException e) {
-      throw e.toThrift();
-    }
+  public FileSystemCommand heartbeat(final long workerId, final List<Long> persistedFiles)
+      throws AlluxioTException {
+    return RpcUtils.call(new RpcUtils.RpcCallable<FileSystemCommand>() {
+      @Override
+      public FileSystemCommand call() throws AlluxioException {
+        return mFileSystemMaster.workerHeartbeat(workerId, persistedFiles);
+      }
+    });
   }
 }

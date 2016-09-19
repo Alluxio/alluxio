@@ -53,6 +53,8 @@ public final class SleepingTimerTest {
   public void sleepForSpecifiedInterval() throws Exception {
     final SleepingTimer timer =
         new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
+    timer.tick(); // first tick won't sleep
+    Mockito.verify(mMockSleeper, Mockito.times(0)).sleep(Mockito.anyLong());
     timer.tick();
     Mockito.verify(mMockSleeper).sleep(INTERVAL_MS);
   }

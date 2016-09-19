@@ -73,5 +73,5 @@ service FileSystemWorkerClientService extends common.AlluxioService {
    * client metrics to the worker.
    */
   void sessionHeartbeat( /** the id of the current session */ 1: i64 sessionId,
-      /** the client metrics */ 2: list<i64> metrics)
+      /** the client metrics */ 2: list<i64> metrics) throws (1: exception.AlluxioTException e)
 }
