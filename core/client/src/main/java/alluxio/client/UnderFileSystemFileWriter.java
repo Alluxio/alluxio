@@ -54,10 +54,11 @@ public interface UnderFileSystemFileWriter extends Closeable {
    *
    * @param address worker address to write the data to
    * @param ufsFileId worker file id referencing the file
-   * @param fileOffset where in the file to start writing, only sequential writes are supported
+   * @param fileOffset the offset in bytes where in the file to start writing, only sequential
+   *                   writes are supported
    * @param bytes data to write
-   * @param offset start offset of the data
-   * @param length length to write
+   * @param offset start offset in bytes of the data to write
+   * @param length length to write in bytes
    * @throws IOException if an error occurs during the write
    */
   void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] bytes,

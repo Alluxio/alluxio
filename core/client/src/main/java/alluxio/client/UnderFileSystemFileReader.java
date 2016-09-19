@@ -55,8 +55,8 @@ public interface UnderFileSystemFileReader extends Closeable {
    *
    * @param address the worker address to read from
    * @param ufsFileId the worker specific file id referencing the file to read
-   * @param offset the offset in the file to read from
-   * @param length the length to read
+   * @param offset the offset in bytes in the file to read from
+   * @param length the length in bytes to read
    * @return a byte buffer with the requested data, null if EOF is reached
    * @throws IOException if an error occurs communicating with the worker
    */
