@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Joiner;
 import com.google.protobuf.ByteString;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;
@@ -171,6 +172,14 @@ public class AlluxioFramework {
                                       .setName("ALLUXIO_UNDERFS_ADDRESS")
                                       .setValue(Configuration.get(PropertyKey.UNDERFS_ADDRESS))
                                       .build())
+                              .addVariables(
+                                  Protos.Environment.Variable.newBuilder()
+                                      .setName("ALLUXIO_CONF_DIR").setValue("conf")
+                                      .build())
+                              .addVariables(
+                                  Protos.Environment.Variable.newBuilder()
+                                      .setName("ALLUXIO_LOGS_DIR").setValue("logs")
+                                      .build())
                               .build()));
           // pre-build resource list here, then use it to build Protos.Task later.
           resources = getMasterRequiredResources(masterCpu, masterMem);
@@ -178,7 +187,6 @@ public class AlluxioFramework {
           mTaskName = Configuration.get(PropertyKey.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME);
           mMasterCount++;
           mMasterTaskId = mLaunchedTasks;
-
         } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
             && offerCpu >= workerCpu && offerMem >= workerMem
             && OfferUtils.hasAvailableWorkerPorts(offer)) {
@@ -200,6 +208,14 @@ public class AlluxioFramework {
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
                                       .setName("ALLUXIO_MASTER_HOSTNAME").setValue(mMasterHostname)
+                                      .build())
+                              .addVariables(
+                                  Protos.Environment.Variable.newBuilder()
+                                      .setName("ALLUXIO_CONF_DIR").setValue("conf")
+                                      .build())
+                              .addVariables(
+                                  Protos.Environment.Variable.newBuilder()
+                                      .setName("ALLUXIO_LOGS_DIR").setValue("logs")
                                       .build())
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
@@ -253,25 +269,29 @@ public class AlluxioFramework {
       }
     }
 
-    private String createStartAlluxioCommand(String command) {
-      StringBuilder cmd = new StringBuilder();
-      cmd.append(String.format("echo 'Starting Alluxio with %s'", command));
+    private static String createStartAlluxioCommand(String command) {
+      List<String> commands = new ArrayList<>();
+      commands.add(String.format("echo 'Starting Alluxio with %s'", command));
       if (installJavaFromUrl()) {
-        cmd.append(
-            " && export JAVA_HOME=" + Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_PATH));
-        cmd.append(" && export PATH=$PATH:$JAVA_HOME/bin");
+        commands
+            .add("export JAVA_HOME=" + Configuration.get(PropertyKey.INTEGRATION_MESOS_JDK_PATH));
+        commands.add("export PATH=$PATH:$JAVA_HOME/bin");
       }
+
+      commands.add("mkdir conf");
+      commands.add("touch conf/alluxio-env.sh");
 
       // If a jar is supplied, start Alluxio from the jar. Otherwise assume that Alluxio is already
       // installed at PropertyKey.HOME.
       if (installAlluxioFromUrl()) {
-        cmd.append(" && mv alluxio-* alluxio");
-        cmd.append(" && " + PathUtils.concatPath("alluxio", "integration", "bin", command));
-      } else {
-        cmd.append(" && " + PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "integration",
-            "bin", command));
+        commands.add("rm *.tar.gz");
+        commands.add("mv alluxio-* alluxio");
       }
-      return cmd.toString();
+      String home = installAlluxioFromUrl() ? "alluxio" : Configuration.get(PropertyKey.HOME);
+      commands
+          .add(String.format("cp %s conf", PathUtils.concatPath(home, "conf", "log4j.properties")));
+      commands.add(PathUtils.concatPath(home, "integration", "bin", command));
+      return Joiner.on(" && ").join(commands);
     }
 
     @Override
@@ -391,7 +411,7 @@ public class AlluxioFramework {
     List<URI> dependencies = new ArrayList<>();
     if (installJavaFromUrl()) {
       dependencies.add(CommandInfo.URI.newBuilder()
-          .setValue(Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_URL)).setExtract(true)
+          .setValue(Configuration.get(PropertyKey.INTEGRATION_MESOS_JDK_URL)).setExtract(true)
           .build());
     }
     if (installAlluxioFromUrl()) {
@@ -403,8 +423,8 @@ public class AlluxioFramework {
   }
 
   private static boolean installJavaFromUrl() {
-    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_JRE_URL) && !Configuration
-        .get(PropertyKey.INTEGRATION_MESOS_JRE_URL).equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
+    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_JDK_URL) && !Configuration
+        .get(PropertyKey.INTEGRATION_MESOS_JDK_URL).equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }
 
   private static boolean installAlluxioFromUrl() {
