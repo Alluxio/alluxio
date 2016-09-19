@@ -70,8 +70,8 @@ public enum ExceptionMessage {
   NO_RPC_HANDLER("No handler implementation for rpc message type: {0}"),
   UNEXPECTED_RPC_RESPONSE("Unexpected response message type: {0} (expected: {1})"),
   WRITER_ALREADY_OPEN(
-      "This writer is already open for address: {0}, blockId: {1,number,#}, sessionId: {2,number,"
-          + "#}"),
+      "This writer is already open for address: {0}, blockId: {1,number,#}, "
+          + "sessionId: {2,number,#}"),
   UNDER_FILE_WRITE_ERROR(
       "Error writing to under file system fileId: {0,number,#}, addr: {1}, msg: {2}"),
 
