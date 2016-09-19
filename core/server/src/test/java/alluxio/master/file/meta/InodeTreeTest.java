@@ -394,7 +394,7 @@ public final class InodeTreeTest {
   @Test
   public void getInodeByInvalidId() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
-    mThrown.expectMessage("Inode id 1 does not exist");
+    mThrown.expectMessage(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(1));
 
     Assert.assertFalse(mTree.inodeIdExists(1));
     try (LockedInodePath inodePath = mTree.lockFullInodePath(1, InodeTree.LockMode.READ)) {
