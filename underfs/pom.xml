@@ -31,6 +31,7 @@
     <module>s3</module>
     <module>s3a</module>
     <module>gcs</module>
+    <module>stocator</module>
   </modules>
 
 
