@@ -236,6 +236,10 @@ public enum PropertyKey {
       "8MB"),
   USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES,
       "2MB"),
+  USER_UFS_FILE_READER_CLASS(Name.USER_UFS_FILE_READER_CLASS,
+      "alluxio.client.netty.NettyUnderFileSystemFileReader"),
+  USER_UFS_FILE_WRITER_CLASS(Name.USER_UFS_FILE_WRITER_CLASS,
+      "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
 
   //
   // FUSE integration related properties
@@ -611,6 +615,10 @@ public enum PropertyKey {
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
     public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.write.buffer.size.bytes";
+    public static final String USER_UFS_FILE_READER_CLASS =
+        "alluxio.user.ufs.file.reader.class";
+    public static final String USER_UFS_FILE_WRITER_CLASS =
+        "alluxio.user.ufs.file.writer.class";
 
     //
     // FUSE integration related properties

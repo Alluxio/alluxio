@@ -12,6 +12,7 @@
 package alluxio.client.netty;
 
 import alluxio.Constants;
+import alluxio.client.UnderFileSystemFileWriter;
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCFileWriteRequest;
@@ -38,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * concurrently. This class does not keep lingering resources and does not need to be closed.
  */
 @NotThreadSafe
-public final class NettyUnderFileSystemFileWriter {
+public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Netty bootstrap for the connection. */
@@ -54,17 +55,7 @@ public final class NettyUnderFileSystemFileWriter {
     mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
   }
 
-  /**
-   * Writes data to the file in the under file system.
-   *
-   * @param address worker address to write the data to
-   * @param ufsFileId worker file id referencing the file
-   * @param fileOffset where in the file to start writing, only sequential writes are supported
-   * @param bytes data to write
-   * @param offset start offset of the data
-   * @param length length to write
-   * @throws IOException if an error occurs during the write
-   */
+  @Override
   public void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] bytes,
       int offset, int length) throws IOException {
     SingleResponseListener listener = null;
@@ -107,4 +98,7 @@ public final class NettyUnderFileSystemFileWriter {
       }
     }
   }
+
+  @Override
+  public void close() {}
 }
