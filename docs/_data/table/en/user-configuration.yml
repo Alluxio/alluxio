@@ -65,3 +65,11 @@ alluxio.user.ufs.delegation.write.buffer.size.bytes:
   Size of the write buffer when writing to the ufs through the Alluxio worker. Each write request
   will write at least this many bytes, unless the write is at the end of the file. This property
   has no effect if the delegation flag is turned off.
+alluxio.user.ufs.file.reader.class:
+  Selects networking stack to run the client with for reading from under file system through a
+  worker's data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileReader`
+  (remote read using netty) is valid.
+alluxio.user.ufs.file.writer.class:
+  Selects networking stack to run the client with for writing to under file system through a
+  worker's data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileWriter`
+  (remote write using netty) is valid.
