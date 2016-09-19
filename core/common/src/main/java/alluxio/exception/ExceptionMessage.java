@@ -32,15 +32,15 @@ public enum ExceptionMessage {
   PATH_INVALID("Path {0} is invalid"),
 
   // general block
-  BLOCK_NOT_LOCALLY_AVAILABLE("Block {0,number,#} is not available on local machine"),
-  BLOCK_UNAVAILABLE("Block {0,number,#} is not available in Alluxio"),
-  CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store block {1,number,#}."),
+  BLOCK_NOT_LOCALLY_AVAILABLE("blockId {0,number,#} is not available on local machine"),
+  BLOCK_UNAVAILABLE("blockId {0,number,#} is not available in Alluxio"),
+  CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
   NO_LOCAL_WORKER("Local {0} requested but there is no local worker"),
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
   // block lock manager
-  LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0,number,#} is for block {1,number,#}, not {2,number,#}"),
+  LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0,number,#} is for blockId {1,number,#}, not {2,number,#}"),
   LOCK_ID_FOR_DIFFERENT_SESSION(
       "lockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
   LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION(
@@ -83,16 +83,16 @@ public enum ExceptionMessage {
 
   // tieredBlockStore
   BLOCK_ID_FOR_DIFFERENT_SESSION(
-      "BlockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
-  BLOCK_NOT_FOUND_AT_LOCATION("Block {0,number,#} not found at location: {1}"),
-  MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted block {0,number,#}"),
-  NO_BLOCK_ID_FOUND("BlockId {0,number,#} not found"),
+      "blockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
+  BLOCK_NOT_FOUND_AT_LOCATION("blockId {0,number,#} not found at location: {1}"),
+  MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
+  NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
   NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
   NO_SPACE_FOR_BLOCK_ALLOCATION(
       "Failed to allocate {0,number,#} bytes after {1} retries for blockId {2,number,#}"),
   NO_SPACE_FOR_BLOCK_MOVE(
       "Failed to find space in {0} to move blockId {1,number,#} after {2} retries"),
-  REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted block {0,number,#}"),
+  REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted blockId {0,number,#}"),
   TEMP_BLOCK_ID_COMMITTED(
       "Temp blockId {0,number,#} is not available, because it is already committed"),
   TEMP_BLOCK_ID_EXISTS("Temp blockId {0,number,#} is not available, because it already exists"),
@@ -114,8 +114,8 @@ public enum ExceptionMessage {
   HDFS_FILE_NOT_FOUND("File {0} with URI {1} is not found"),
 
   // file system master
-  INODE_DOES_NOT_EXIST("Inode id {0,number,#} does not exist"),
-  INODE_DOES_NOT_EXIST_RETRIES("Inode id {0,number,#} does not exist; too many retries"),
+  INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
+  INODE_DOES_NOT_EXIST_RETRIES("inodeId {0,number,#} does not exist; too many retries"),
   NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
   PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
   PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
@@ -127,7 +127,7 @@ public enum ExceptionMessage {
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
 
   // block master
-  NO_WORKER_FOUND("No worker with ID {0,number,#} is found"),
+  NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
 
   // file system master ufs
   FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
@@ -135,7 +135,7 @@ public enum ExceptionMessage {
 
   // file system worker
   BAD_WORKER_FILE_ID(
-      "Worker file id {0,number,#} is invalid. The worker may have crashed or cleaned up "
+      "Worker fileId {0,number,#} is invalid. The worker may have crashed or cleaned up "
           + "the client state due to a timeout."),
 
   // shell
@@ -194,7 +194,7 @@ public enum ExceptionMessage {
   KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
 
   // block worker
-  FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block {0,number,#} to master."),
+  FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master."),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
