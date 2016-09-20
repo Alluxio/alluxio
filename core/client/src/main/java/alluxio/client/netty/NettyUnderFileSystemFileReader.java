@@ -12,6 +12,7 @@
 package alluxio.client.netty;
 
 import alluxio.Constants;
+import alluxio.client.UnderFileSystemFileReader;
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCFileReadRequest;
@@ -25,7 +26,6 @@ import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -40,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * reader in order to clean up any lingering data from the last read.
  */
 @NotThreadSafe
-public final class NettyUnderFileSystemFileReader implements Closeable {
+public final class NettyUnderFileSystemFileReader implements UnderFileSystemFileReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Netty bootstrap for the connection. */
@@ -58,16 +58,7 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
     mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
   }
 
-  /**
-   * Reads data from the specified worker for a file in the under file system.
-   *
-   * @param address the worker address to read from
-   * @param ufsFileId the worker specific file id referencing the file to read
-   * @param offset the offset in the file to read from
-   * @param length the length to read
-   * @return a byte buffer with the requested data, null if EOF is reached
-   * @throws IOException if an error occurs communicating with the worker
-   */
+  @Override
   public ByteBuffer read(InetSocketAddress address, long ufsFileId, long offset, long length)
       throws IOException {
     // For a zero length read, directly return without trying the Netty call.
