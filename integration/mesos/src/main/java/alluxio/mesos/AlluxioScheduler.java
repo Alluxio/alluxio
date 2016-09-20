@@ -132,8 +132,8 @@ public class AlluxioScheduler implements Scheduler {
         }
       }
 
-      LOG.info("Received offer {} with cpus {} and mem {} MB and hasMasterPorts {}",
-          offer.getId().getValue(), offerCpu, offerMem,
+      LOG.info("Received offer {} on host {} with cpus {} and mem {} MB and hasMasterPorts {}",
+          offer.getId().getValue(), offer.getHostname(), offerCpu, offerMem,
           OfferUtils.hasAvailableMasterPorts(offer));
 
       Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
