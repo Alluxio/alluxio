@@ -17,7 +17,6 @@ import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.RetryHandlingBlockWorkerClient;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
-import alluxio.worker.ClientMetrics;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -92,7 +91,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
 
     try (BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
         mLocalAlluxioClusterResource.get().getWorkerAddress(), mExecutorService,
-        1 /* fake session id */, true, new ClientMetrics())) {
+        1 /* fake session id */, true)) {
       Assert.assertFalse(blockWorkerClient.isConnected());
       // Using no-alluxio as loginUser to connect to Worker, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser("no-alluxio");
@@ -108,7 +107,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   private void authenticationOperationTest() throws Exception {
     RetryHandlingBlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
         mLocalAlluxioClusterResource.get().getWorkerAddress(),
-        mExecutorService, 1 /* fake session id */, true, new ClientMetrics());
+        mExecutorService, 1 /* fake session id */, true);
 
     Assert.assertFalse(blockWorkerClient.isConnected());
     blockWorkerClient.connect();

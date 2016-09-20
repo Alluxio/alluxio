@@ -94,9 +94,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
     Map<String, Long> metrics = new ObjectMapper().readValue(result,
         new TypeReference<Map<String, Long>>() {});
 
-    String blocksAccessedMetricName = MetricsSystem
-        .buildSourceRegistryName(MetricsSystem.WORKER_INSTANCE, WorkerContext.getWorkerSource())
-        + "." + WorkerSource.BLOCKS_ACCESSED;
+    String blocksAccessedMetricName = MetricsSystem.getWorkerMetricName("BlocksAccessed");
     Assert.assertTrue(metrics.get(blocksAccessedMetricName) >= 0);
   }
 

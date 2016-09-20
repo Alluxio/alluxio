@@ -18,15 +18,14 @@ import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.CommonUtils;
 import alluxio.web.MasterUIWebServer;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
 import com.qmino.miredot.annotations.ReturnType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,19 +140,16 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
       @Override
       public Map<String, Long> call() throws Exception {
-        MetricRegistry metricRegistry = mMaster.getMasterMetricsSystem().getMetricRegistry();
-
         // Get all counters.
-        Map<String, Counter> counters = metricRegistry.getCounters();
+        Map<String, Counter> counters = MetricsSystem.METRIC_REGISTRY.getCounters();
 
         // Only the gauge for pinned files is retrieved here, other gauges are statistics of
         // free/used
         // spaces, those statistics can be gotten via other REST apis.
-        String filesPinnedProperty = CommonUtils.argsToString(".", MetricsSystem
-            .buildSourceRegistryName(MetricsSystem.MASTER_INSTANCE,
-                mMaster.getMasterContext().getMasterSource()), MasterSource.FILES_PINNED);
+        String filesPinnedProperty =
+            MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
         @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
-            (Gauge<Integer>) metricRegistry.getGauges().get(filesPinnedProperty);
+            (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 
         // Get values of the counters and gauges and put them into a metrics map.
         SortedMap<String, Long> metrics = new TreeMap<>();

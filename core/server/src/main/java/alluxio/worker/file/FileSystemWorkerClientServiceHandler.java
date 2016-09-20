@@ -184,7 +184,7 @@ public final class FileSystemWorkerClientServiceHandler
     RpcUtils.call(new RpcUtils.RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioException {
-        mWorker.sessionHeartbeat(sessionId, metrics);
+        mWorker.sessionHeartbeat(sessionId);
         return null;
       }
     });

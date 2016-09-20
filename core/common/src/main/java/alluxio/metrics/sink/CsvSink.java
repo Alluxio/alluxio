@@ -21,12 +21,12 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A sink which creates a CSV file of the metric values.
  */
-@NotThreadSafe
+@ThreadSafe
 public class CsvSink implements Sink {
   private static final int CSV_DEFAULT_PERIOD = 10;
   private static final String CSV_DEFAULT_UNIT = "SECONDS";
@@ -55,42 +55,6 @@ public class CsvSink implements Sink {
     MetricsSystem.checkMinimalPollingPeriod(getPollUnit(), getPollPeriod());
   }
 
-  /**
-   * Gets the directory where the CSV files are created.
-   *
-   * @return the polling directory set by properties. If it is not set, a default value /tmp/ is
-   *         returned.
-   */
-  public String getPollDir() {
-    String pollDir = mProperties.getProperty(CSV_KEY_DIR);
-    return pollDir != null ? pollDir : CSV_DEFAULT_DIR;
-  }
-
-  /**
-   * Gets the polling period.
-   *
-   * @return the polling period set by properties. If it is not set, a default value 10 is
-   *         returned.
-   */
-  public int getPollPeriod() {
-    String period = mProperties.getProperty(CSV_KEY_PERIOD);
-    return period != null ? Integer.parseInt(period) : CSV_DEFAULT_PERIOD;
-  }
-
-  /**
-   * Gets the polling time unit.
-   *
-   * @return the polling time unit set by properties, If it is not set, a default value SECONDS is
-   *         returned.
-   */
-  public TimeUnit getPollUnit() {
-    String unit = mProperties.getProperty(CSV_KEY_UNIT);
-    if (unit == null) {
-      unit = CSV_DEFAULT_UNIT;
-    }
-    return TimeUnit.valueOf(unit.toUpperCase());
-  }
-
   @Override
   public void start() {
     mReporter.start(getPollPeriod(), getPollUnit());
@@ -104,5 +68,41 @@ public class CsvSink implements Sink {
   @Override
   public void report() {
     mReporter.report();
+  }
+
+  /**
+   * Gets the directory where the CSV files are created.
+   *
+   * @return the polling directory set by properties. If it is not set, a default value /tmp/ is
+   *         returned.
+   */
+  private String getPollDir() {
+    String pollDir = mProperties.getProperty(CSV_KEY_DIR);
+    return pollDir != null ? pollDir : CSV_DEFAULT_DIR;
+  }
+
+  /**
+   * Gets the polling period.
+   *
+   * @return the polling period set by properties. If it is not set, a default value 10 is
+   *         returned.
+   */
+  private int getPollPeriod() {
+    String period = mProperties.getProperty(CSV_KEY_PERIOD);
+    return period != null ? Integer.parseInt(period) : CSV_DEFAULT_PERIOD;
+  }
+
+  /**
+   * Gets the polling time unit.
+   *
+   * @return the polling time unit set by properties, If it is not set, a default value SECONDS is
+   *         returned.
+   */
+  private TimeUnit getPollUnit() {
+    String unit = mProperties.getProperty(CSV_KEY_UNIT);
+    if (unit == null) {
+      unit = CSV_DEFAULT_UNIT;
+    }
+    return TimeUnit.valueOf(unit.toUpperCase());
   }
 }

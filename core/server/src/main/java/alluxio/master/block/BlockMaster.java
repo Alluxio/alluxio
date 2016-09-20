@@ -28,8 +28,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterContext;
-import alluxio.master.MasterSource;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
@@ -38,6 +36,7 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalProtoUtils;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -52,6 +51,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -175,29 +175,28 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   /**
-   * Creates a new instance of {@link BlockMaster} with the default {@link MasterSource}.
+   * Creates a new instance of {@link BlockMaster}.
    *
-   * @param masterContext context for the master
    * @param journal the journal to use for tracking master operations
    */
-  public BlockMaster(MasterContext masterContext, Journal journal) {
-    super(masterContext, journal, new SystemClock(), Executors.newFixedThreadPool(2,
+  public BlockMaster(Journal journal) {
+    super(journal, new SystemClock(), Executors.newFixedThreadPool(2,
         ThreadFactoryUtils.build("BlockMaster-%d", true)));
+    Metrics.registerGauges(this);
   }
 
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param masterContext the master context
    * @param journal the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
    * @param executorService the executor service to use for launching maintenance threads; the
    *        {@link BlockMaster} becomes the owner of the executorService and will shut it down when
    *        the master stops
    */
-  public BlockMaster(MasterContext masterContext, Journal journal, Clock clock,
-      ExecutorService executorService) {
-    super(masterContext, journal, clock, executorService);
+  public BlockMaster(Journal journal, Clock clock, ExecutorService executorService) {
+    super(journal, clock, executorService);
+    Metrics.registerGauges(this);
   }
 
   @Override
@@ -846,5 +845,50 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     public void close() {
       // Nothing to clean up
     }
+  }
+
+  /**
+   * Class that contains metrics related to BlockMaster.
+   */
+  public static final class Metrics {
+    public static final String CAPACITY_TOTAL = "CapacityTotal";
+    public static final String CAPACITY_USED = "CapacityUsed";
+    public static final String CAPACITY_FREE = "CapacityFree";
+
+    private static void registerGauges(final BlockMaster master) {
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_TOTAL),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return master.getCapacityBytes();
+            }
+          });
+
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_USED),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return master.getUsedBytes();
+            }
+          });
+
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_FREE),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return master.getCapacityBytes() - master.getUsedBytes();
+            }
+          });
+
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName("Workers"),
+          new Gauge<Integer>() {
+            @Override
+            public Integer getValue() {
+              return master.getWorkerCount();
+            }
+          });
+    }
+
+    private Metrics() {} // prevent instantiation
   }
 }
