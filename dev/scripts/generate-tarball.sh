@@ -9,12 +9,16 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
+#
 # This script generates a tarball of the current Alluxio commit. It does the following:
 # 1. Copy everything except logs/ and dev/ to a work directory
 # 2. Clean out unrevisioned files
-# 3. Compile
-# 4. Use bin/alluxio version to determine the right directory name, e.g. alluxio-1.2.0
+# 3. Compile, using the environment variable ${BUILD_OPTS} as options to the Maven build
+# 4. Use `bin/alluxio version` to determine the right directory name, e.g. alluxio-1.2.0
 # 5. Tar everything up and put it in dev/scripts/tarballs
+#
+# Example: BUILD_OPTS="-Dhadoop.version=2.7.2"; ./generate-tarball.sh
 #
 
 set -e
@@ -35,7 +39,7 @@ pushd ${REPO_COPY} > /dev/null
 git clean -fdx
 BUILD_LOG="${HOME}/logs/build.log"
 echo "Running build and logging to ${BUILD_LOG}"
-mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos ${BUILD_OPT} | tee ${BUILD_LOG} 2>&1
+mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos ${BUILD_OPTS} | tee ${BUILD_LOG} 2>&1
 VERSION=$(${HOME}/bin/alluxio version)
 PREFIX=alluxio-${VERSION}
 
