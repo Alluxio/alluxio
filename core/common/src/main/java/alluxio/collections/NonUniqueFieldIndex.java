@@ -140,7 +140,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
    */
   private class NonUniqueFieldIndexIterator implements Iterator<T> {
     /**
-     * Iterator of {@link NonUniqueFieldIndex#mIndexMap}. This Iterator keeps track of the
+     * Iterator of {@link NonUniqueFieldIndex#mIndexMap}. This iterator keeps track of the
      * inner set which is under iteration.
      */
     private final Iterator<ConcurrentHashSet<T>> mIndexIterator;
