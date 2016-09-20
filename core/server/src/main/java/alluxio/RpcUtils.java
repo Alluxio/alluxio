@@ -64,7 +64,7 @@ public final class RpcUtils {
       LOG.debug("Internal Alluxio error when running rpc", e);
       throw e.toThrift();
     } catch (IOException e) {
-      LOG.error("I/O error when running rpc", e);
+      LOG.warn("I/O error when running rpc", e);
       throw new ThriftIOException(e.getMessage());
     } catch (Exception e) {
       LOG.error("Unexpected error running rpc", e);
