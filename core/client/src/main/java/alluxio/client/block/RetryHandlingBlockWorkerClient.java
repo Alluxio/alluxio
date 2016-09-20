@@ -183,7 +183,7 @@ public final class RetryHandlingBlockWorkerClient extends AbstractClient
 
       // Send a heartbeat to the worker to register the new session id.
       try {
-        mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
+        mClient.sessionHeartbeat(mSessionId, null);
       } catch (Exception e) {
         LOG.error("Failed to send initial heartbeat to register a session with the worker.", e);
         // Directly close the transport instead of calling disconnect() because we do not consider
