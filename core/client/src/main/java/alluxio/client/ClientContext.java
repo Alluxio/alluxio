@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Preconditions;
@@ -64,6 +65,8 @@ public final class ClientContext {
         Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
+
+    MetricsSystem.startSinks();
   }
 
   /**

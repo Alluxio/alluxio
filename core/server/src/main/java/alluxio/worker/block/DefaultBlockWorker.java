@@ -443,6 +443,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /**
    * This class contains some metrics related to the block worker.
+   * This class is public because the metric names are referenced in
+   * {@link alluxio.web.WebInterfaceWorkerMetricsServlet}.
    */
   @ThreadSafe
   public static final class Metrics {

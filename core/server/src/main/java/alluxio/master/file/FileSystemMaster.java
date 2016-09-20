@@ -2646,6 +2646,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Class that contains metrics for FileSystemMaster.
+   * This class is public because the counter names are referenced in
+   * {@link alluxio.web.WebInterfaceMasterMetricsServlet}.
    */
   public static final class Metrics {
     private static final Counter DIRECTORIES_CREATED =

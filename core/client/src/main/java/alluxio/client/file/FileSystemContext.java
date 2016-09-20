@@ -17,7 +17,6 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -64,8 +63,6 @@ public enum FileSystemContext {
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(ClientContext.getMasterAddress());
     mBlockStoreContext = BlockStoreContext.get();
     mAlluxioBlockStore = new AlluxioBlockStore(mBlockStoreContext);
-
-    MetricsSystem.startSinks();
   }
 
   /**
