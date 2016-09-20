@@ -20,7 +20,6 @@ import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.ClientMetrics;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -226,7 +225,7 @@ public final class BlockStoreContext {
         PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
     long clientId = IdUtils.getRandomNonNegativeLong();
     return new RetryHandlingBlockWorkerClient(address,
-        ClientContext.getBlockClientExecutorService(), clientId, false, new ClientMetrics());
+        ClientContext.getBlockClientExecutorService(), clientId, false);
   }
 
   /**

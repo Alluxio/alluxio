@@ -17,9 +17,9 @@ import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.CommonUtils;
 import alluxio.web.WorkerUIWebServer;
 import alluxio.worker.block.BlockStoreMeta;
+import alluxio.worker.block.DefaultBlockWorker;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -284,16 +284,15 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
       @Override
       public Map<String, Long> call() throws Exception {
-        MetricRegistry metricRegistry = mWorker.getWorkerMetricsSystem().getMetricRegistry();
+        MetricRegistry metricRegistry = MetricsSystem.METRIC_REGISTRY;
 
         // Get all counters.
         Map<String, Counter> counters = metricRegistry.getCounters();
 
         // Only the gauge for cached blocks is retrieved here, other gauges are statistics of
         // free/used spaces, those statistics can be gotten via other REST apis.
-        String blocksCachedProperty = CommonUtils.argsToString(".",
-            MetricsSystem.buildSourceRegistryName(MetricsSystem.WORKER_INSTANCE,
-                WorkerContext.getWorkerSource()), WorkerSource.BLOCKS_CACHED);
+        String blocksCachedProperty =
+            MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
         @SuppressWarnings("unchecked")
         Gauge<Integer> blocksCached =
             (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);

@@ -255,8 +255,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * Local session send heartbeat to local worker to keep its temporary folder.
    *
    * @param sessionId the id of the client heartbeating
-   * @param metrics a list of the client metrics that were collected between this heartbeat and the
-   *        last. Each value in the list represents a specific metric based on the index.
+   * @param metrics deprecated
    */
   @Override
   public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
@@ -264,7 +263,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
     RpcUtils.call(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioException {
-        mWorker.sessionHeartbeat(sessionId, metrics);
+        mWorker.sessionHeartbeat(sessionId);
         return null;
       }
     });

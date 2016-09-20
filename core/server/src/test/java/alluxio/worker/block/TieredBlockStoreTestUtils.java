@@ -17,7 +17,6 @@ import alluxio.PropertyKeyFormat;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -52,8 +51,6 @@ public class TieredBlockStoreTestUtils {
    * Sets up a {@link Configuration} for a {@link TieredBlockStore} with several tiers configured by
    * the parameters. For simplicity, you can use {@link #setupDefaultConf(String)} which
    * calls this method with default values.
-   *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
    * @param baseDir the directory path as prefix for all the paths of directories in the tiered
    *        storage; when specified, the directory needs to exist before calling this method
@@ -113,7 +110,7 @@ public class TieredBlockStoreTestUtils {
    * @throws Exception when error happens during creating temporary folder
    */
   public static void setupConfWithSingleTier(String baseDir, int tierOrdinal, String tierAlias,
-      String[] tierPath, long[] tierCapacity, String workerDataFolder)          throws Exception {
+      String[] tierPath, long[] tierCapacity, String workerDataFolder) throws Exception {
     if (baseDir != null) {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
@@ -127,9 +124,6 @@ public class TieredBlockStoreTestUtils {
   /**
    * Sets up a specific tier's {@link Configuration} for a {@link TieredBlockStore}.
    *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
-   *
-   * @param ordinal ordinal value of the tier
    * @param tierAlias alias of the tier
    * @param tierPath absolute path of the tier
    * @param tierCapacity capacity of the tier
@@ -141,17 +135,15 @@ public class TieredBlockStoreTestUtils {
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
         "tierPath and tierCapacity should have the same length");
 
-    Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(ordinal), tierAlias);
+    Configuration
+        .set(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(ordinal), tierAlias);
 
     String tierPathString = StringUtils.join(tierPath, ",");
-    Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(ordinal),
+    Configuration.set(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(ordinal),
         tierPathString);
 
     String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
-    Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(ordinal),
+    Configuration.set(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(ordinal),
         tierCapacityString);
   }
 
@@ -198,8 +190,6 @@ public class TieredBlockStoreTestUtils {
   /**
    * Creates a BlockMetadataManager with {@link #setupDefaultConf(String)}.
    *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
-   *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
    * @return the created metadata manager
@@ -212,8 +202,6 @@ public class TieredBlockStoreTestUtils {
 
   /**
    * Creates a {@link BlockMetadataManagerView} with {@link #setupDefaultConf(String)}.
-   *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
@@ -231,8 +219,6 @@ public class TieredBlockStoreTestUtils {
    * Sets up a {@link Configuration} with default values of {@link #TIER_ORDINAL},
    * {@link #TIER_ALIAS}, {@link #TIER_PATH} with the baseDir as path prefix,
    * {@link #TIER_CAPACITY_BYTES}.
-   *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
@@ -264,8 +250,8 @@ public class TieredBlockStoreTestUtils {
 
     // update evictor
     if (evictor instanceof BlockStoreEventListener) {
-      ((BlockStoreEventListener) evictor).onCommitBlock(sessionId, blockId,
-          dir.toBlockStoreLocation());
+      ((BlockStoreEventListener) evictor)
+          .onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
     }
   }
 
