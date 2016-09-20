@@ -56,7 +56,7 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
   }
 
   @Override
-  public void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] bytes,
+  public void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] source,
       int offset, int length) throws IOException {
     SingleResponseListener listener = null;
     try {
@@ -67,7 +67,7 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
       listener = new SingleResponseListener();
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCFileWriteRequest(ufsFileId, fileOffset, length,
-          new DataByteArrayChannel(bytes, offset, length)));
+          new DataByteArrayChannel(source, offset, length)));
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
       channel.close().sync();
