@@ -31,10 +31,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.concurrent.GuardedBy;
+
 // A connection can be in 3 states: ACQUIRED, CLOSED, IDLE.
 public abstract class ConnectionPool<T> {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * A wrapper on the connection to include the last time at which it was used.
+   * @param <T> the connection type
+   */
   protected static class ConnectionInternal<T> {
     private T mConnection;
 
@@ -50,8 +56,14 @@ public abstract class ConnectionPool<T> {
     }
   }
 
+  private final ReentrantLock mAvailbleLock = new ReentrantLock();
+  private final Condition mNotEmpty = mAvailbleLock.newCondition();
+  private final int mMaxCapacity;
+  private final AtomicInteger mCurrentCapacity = new AtomicInteger();
+
   // Tracks the connections that are available ordered by lastAccessTime (the first one is
   // the most recently used connection).
+  @GuardedBy("mAvailableLock")
   private TreeSet<ConnectionInternal<T>> mConnectionAvailable = new TreeSet<>(
       new Comparator<ConnectionInternal<T>>() {
     @Override
@@ -70,11 +82,6 @@ public abstract class ConnectionPool<T> {
 
   private static final int INITIAL_DELAY = 10;
 
-  private final ReentrantLock mTakeLock = new ReentrantLock();
-  private final Condition mNotEmpty = mTakeLock.newCondition();
-  private final int mMaxCapacity;
-  private final AtomicInteger mCurrentCapacity = new AtomicInteger();
-
   public ConnectionPool(int maxConnections, final ExecutorService heartbeatExecutor,
       int heartbeatIntervalInSecs, int gcInternalInSecs) {
     mHeartbeatExecutor = heartbeatExecutor;
@@ -87,7 +94,8 @@ public abstract class ConnectionPool<T> {
       public void run() {
         List<T> connectionsToGc = new ArrayList<T>();
 
-        synchronized (mConnectionAvailable) {
+        try {
+          mAvailbleLock.lock();
           Iterator<ConnectionInternal<T>> iterator = mConnectionAvailable.iterator();
           while (iterator.hasNext()) {
             ConnectionInternal<T> next = iterator.next();
@@ -97,6 +105,8 @@ public abstract class ConnectionPool<T> {
               mConnections.remove(next.mConnection);
             }
           }
+        } finally {
+          mAvailbleLock.unlock();
         }
 
         for (T connection : connectionsToGc) {
@@ -125,6 +135,7 @@ public abstract class ConnectionPool<T> {
   public T acquire() {
     return acquire(null, null);
   }
+
   /**
    * Acquires an object of type {code T} from the pool.
    *
@@ -144,16 +155,20 @@ public abstract class ConnectionPool<T> {
     }
 
     // Try to take a resource without blocking
-    synchronized (mConnectionAvailable) {
+    try {
+      mAvailbleLock.lock();
       ConnectionInternal<T> connection = mConnectionAvailable.pollFirst();
       if (connection != null) {
         if (!isHealthy(connection.mConnection)) {
-
           mConnections.remove(connection.mConnection);
+          closeConnection(connection.mConnection);
+          return null;
         }
         connection.setLastAccessTimeInSecs(System.currentTimeMillis() / Constants.SECOND_MS);
         return connection.mConnection;
       }
+    } finally {
+      mAvailbleLock.unlock();
     }
 
     if (mCurrentCapacity.getAndIncrement() < mMaxCapacity) {
@@ -193,6 +208,25 @@ public abstract class ConnectionPool<T> {
       }
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private T pollFirst() {
+    ConnectionInternal<T> connection;
+    try {
+      mAvailbleLock.lock();
+      connection = mConnectionAvailable.pollFirst();
+      if (connection != null) {
+        if (!isHealthy(connection.mConnection)) {
+          mConnections.remove(connection.mConnection);
+          closeConnection(connection.mConnection);
+          return null;
+        }
+        connection.setLastAccessTimeInSecs(System.currentTimeMillis() / Constants.SECOND_MS);
+        return connection.mConnection;
+      }
+    } finally {
+      mAvailbleLock.unlock();
     }
   }
 
