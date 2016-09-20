@@ -21,7 +21,7 @@ set -e
 
 THIS=$(cd "$( dirname "$0" )"; pwd)
 cd ${THIS}
-TARBALL_DIR="tarballs"
+TARBALL_DIR="${THIS}/tarballs"
 WORK_DIR="workdir"
 
 mkdir -p ${TARBALL_DIR}
@@ -38,12 +38,13 @@ echo "Running build and logging to ${BUILD_LOG}"
 mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos ${BUILD_OPT} | tee ${BUILD_LOG} 2>&1
 VERSION=$(${HOME}/bin/alluxio version)
 PREFIX=alluxio-${VERSION}
+
 cd ..
 rm -rf ${PREFIX}
 mv alluxio ${PREFIX}
-popd > /dev/null
-
 TARGET=${TARBALL_DIR}/${PREFIX}.tar.gz
-gtar -czf ${TARGET} ${WORK_DIR}/${PREFIX} --exclude-vcs
+
+gtar -czf ${TARGET} ${PREFIX} --exclude-vcs
+popd > /dev/null
 
 echo "Generated tarball at ${THIS}/${TARGET}"
