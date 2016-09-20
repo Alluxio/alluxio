@@ -41,7 +41,9 @@ public class ConfigurationRule implements TestRule {
         for (Entry<PropertyKey, String> entry : mKeyValuePairs.entrySet()) {
           PropertyKey key = entry.getKey();
           String value = entry.getValue();
-          originalValues.put(key, Configuration.get(key));
+          if (Configuration.containsKey(key)) {
+            originalValues.put(key, Configuration.get(key));
+          }
           Configuration.set(key, value);
         }
         try {
