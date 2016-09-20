@@ -11,12 +11,8 @@
 
 package alluxio.web;
 
-import static alluxio.master.block.BlockMaster.Metrics.CAPACITY_TOTAL;
-import static alluxio.master.block.BlockMaster.Metrics.CAPACITY_USED;
-import static alluxio.master.file.FileSystemMaster.Metrics.FILES_PINNED;
-import static alluxio.master.file.FileSystemMaster.Metrics.UFS_CAPACITY_TOTAL;
-import static alluxio.master.file.FileSystemMaster.Metrics.UFS_CAPACITY_USED;
-
+import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
@@ -79,9 +75,9 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
 
     Long masterCapacityTotal = (Long) mr.getGauges()
-        .get(MetricsSystem.getMasterMetricName(CAPACITY_TOTAL)).getValue();
+        .get(MetricsSystem.getMasterMetricName(BlockMaster.Metrics.CAPACITY_TOTAL)).getValue();
     Long masterCapacityUsed = (Long) mr.getGauges()
-        .get(MetricsSystem.getMasterMetricName(CAPACITY_USED)).getValue();
+        .get(MetricsSystem.getMasterMetricName(BlockMaster.Metrics.CAPACITY_USED)).getValue();
 
     int masterCapacityUsedPercentage =
         (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;
@@ -89,9 +85,11 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterCapacityFreePercentage", 100 - masterCapacityUsedPercentage);
 
     Long masterUnderfsCapacityTotal = (Long) mr.getGauges()
-        .get(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL)).getValue();
+        .get(MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.UFS_CAPACITY_TOTAL))
+        .getValue();
     Long masterUnderfsCapacityUsed = (Long) mr.getGauges()
-        .get(MetricsSystem.getMasterMetricName(UFS_CAPACITY_USED)).getValue();
+        .get(MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.UFS_CAPACITY_USED))
+        .getValue();
 
     int masterUnderfsCapacityUsedPercentage = (masterUnderfsCapacityTotal > 0)
         ? (int) (100L * masterUnderfsCapacityUsed / masterUnderfsCapacityTotal) : 0;
@@ -120,7 +118,8 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
       operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
     }
     operations.putAll(counters);
-    String filesPinnedProperty = MetricsSystem.getMasterMetricName(FILES_PINNED);
+    String filesPinnedProperty =
+        MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
     operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
         mr.getGauges().get(filesPinnedProperty));
 
