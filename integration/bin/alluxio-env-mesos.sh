@@ -10,6 +10,9 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+export ALLUXIO_CONF_DIR="${MESOS_SANDBOX}/conf"
+export ALLUXIO_LOGS_DIR="${MESOS_SANDBOX}/logs"
+
 if [[ -z "${ALLUXIO_RAM_FOLDER}" ]]; then
     if [[ $(uname -s) == Darwin ]]; then
         # Assuming Mac OS X
