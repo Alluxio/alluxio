@@ -200,7 +200,7 @@ public final class Configuration {
    * @param key the key to unset
    */
   public static void unset(PropertyKey key) {
-    Preconditions.checkArgument(key != null, String.format("the key to unset cannot be null"));
+    Preconditions.checkNotNull(key);
     PROPERTIES.remove(key.toString());
   }
 
