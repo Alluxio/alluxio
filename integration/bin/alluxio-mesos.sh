@@ -22,7 +22,7 @@ MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 Usage="Usage: alluxio-mesos.sh [-hw] MESOS_MASTER_ADDRESS [ALLUXIO_MASTER_HOSTNAME]
 MESOS_MASTER_ADDRESS is of the form 'mesos.example.com:5050'
 
-ALLUXIO_MASTER_HOSTNAME can be used to specify which Mesos executor to launch the
+ALLUXIO_MASTER_HOSTNAME can be used to specify the hostname of the Mesos slave to launch the
 Alluxio master on
 
 -w  wait for process to finish before returning
