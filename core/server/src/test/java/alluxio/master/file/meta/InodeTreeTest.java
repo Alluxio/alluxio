@@ -21,8 +21,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
-import alluxio.master.MasterSource;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -80,7 +78,7 @@ public final class InodeTreeTest {
   public void before() throws Exception {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
-    BlockMaster blockMaster = new BlockMaster(new MasterContext(new MasterSource()), blockJournal);
+    BlockMaster blockMaster = new BlockMaster(blockJournal);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
@@ -394,7 +392,7 @@ public final class InodeTreeTest {
   @Test
   public void getInodeByInvalidId() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
-    mThrown.expectMessage("Inode id 1 does not exist");
+    mThrown.expectMessage(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(1));
 
     Assert.assertFalse(mTree.inodeIdExists(1));
     try (LockedInodePath inodePath = mTree.lockFullInodePath(1, InodeTree.LockMode.READ)) {

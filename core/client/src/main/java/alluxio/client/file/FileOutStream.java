@@ -18,7 +18,6 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
-import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.file.options.CancelUfsFileOptions;
@@ -30,6 +29,7 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -37,6 +37,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
@@ -275,7 +277,7 @@ public class FileOutStream extends AbstractOutStream {
 
     if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b);
-      ClientContext.getClientMetrics().incBytesWrittenUfs(1);
+      Metrics.BYTES_WRITTEN_UFS.inc();
     }
     mBytesWritten++;
   }
@@ -317,7 +319,7 @@ public class FileOutStream extends AbstractOutStream {
 
     if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b, off, len);
-      ClientContext.getClientMetrics().incBytesWrittenUfs(len);
+      Metrics.BYTES_WRITTEN_UFS.inc(len);
     }
     mBytesWritten += len;
   }
@@ -391,5 +393,15 @@ public class FileOutStream extends AbstractOutStream {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  /**
+   * Class that contains metrics about FileOutStream.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter BYTES_WRITTEN_UFS = MetricsSystem.clientCounter("BytesWrittenUfs");
+
+    private Metrics() {} // prevent instantiation
   }
 }

@@ -21,7 +21,7 @@ import java.util.Map;
 public enum PropertyKey {
   CONF_DIR(Name.CONF_DIR, "${alluxio.home}/conf"),
   DEBUG(Name.DEBUG, false),
-  HOME(Name.HOME, "/mnt/alluxio_default_home"),
+  HOME(Name.HOME, "/opt/alluxio"),
   KEY_VALUE_ENABLED(Name.KEY_VALUE_ENABLED, false),
   KEY_VALUE_PARTITION_SIZE_BYTES_MAX(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, "512MB"),
   LOGGER_TYPE(Name.LOGGER_TYPE, "Console"),
@@ -236,6 +236,10 @@ public enum PropertyKey {
       "8MB"),
   USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES,
       "2MB"),
+  USER_UFS_FILE_READER_CLASS(Name.USER_UFS_FILE_READER_CLASS,
+      "alluxio.client.netty.NettyUnderFileSystemFileReader"),
+  USER_UFS_FILE_WRITER_CLASS(Name.USER_UFS_FILE_WRITER_CLASS,
+      "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
 
   //
   // FUSE integration related properties
@@ -285,9 +289,9 @@ public enum PropertyKey {
   INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT, 1),
   INTEGRATION_MESOS_ALLUXIO_WORKER_NAME(Name.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME,
       "AlluxioWorker"),
-  INTEGRATION_MESOS_JRE_PATH(Name.INTEGRATION_MESOS_JRE_PATH, "jre1.7.0_79"),
-  INTEGRATION_MESOS_JRE_URL(Name.INTEGRATION_MESOS_JRE_URL,
-      "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jre-7u79-linux-x64.tar.gz"),
+  INTEGRATION_MESOS_JDK_PATH(Name.INTEGRATION_MESOS_JDK_PATH, "jdk1.7.0_79"),
+  INTEGRATION_MESOS_JDK_URL(Name.INTEGRATION_MESOS_JDK_URL,
+      "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-linux-x64.tar.gz"),
   INTEGRATION_MESOS_PRINCIPAL(Name.INTEGRATION_MESOS_PRINCIPAL, "alluxio"),
   INTEGRATION_MESOS_ROLE(Name.INTEGRATION_MESOS_ROLE, "*"),
   INTEGRATION_MESOS_SECRET(Name.INTEGRATION_MESOS_SECRET, null),
@@ -317,8 +321,8 @@ public enum PropertyKey {
         "alluxio.integration.mesos.worker.name";
     public static final String INTEGRATION_MESOS_ALLUXIO_JAR_URL =
         "alluxio.integration.mesos.alluxio.jar.url";
-    public static final String INTEGRATION_MESOS_JRE_PATH = "alluxio.integration.mesos.jre.path";
-    public static final String INTEGRATION_MESOS_JRE_URL = "alluxio.integration.mesos.jre.url";
+    public static final String INTEGRATION_MESOS_JDK_PATH = "alluxio.integration.mesos.jdk.path";
+    public static final String INTEGRATION_MESOS_JDK_URL = "alluxio.integration.mesos.jdk.url";
     public static final String INTEGRATION_MESOS_PRINCIPAL = "alluxio.integration.mesos.principal";
     public static final String INTEGRATION_MESOS_ROLE = "alluxio.integration.mesos.role";
     public static final String INTEGRATION_MESOS_SECRET = "alluxio.integration.mesos.secret";
@@ -611,6 +615,10 @@ public enum PropertyKey {
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
     public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.write.buffer.size.bytes";
+    public static final String USER_UFS_FILE_READER_CLASS =
+        "alluxio.user.ufs.file.reader.class";
+    public static final String USER_UFS_FILE_WRITER_CLASS =
+        "alluxio.user.ufs.file.writer.class";
 
     //
     // FUSE integration related properties

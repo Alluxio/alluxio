@@ -142,16 +142,31 @@ public final class CommonTestUtilsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void testEqualsBasic() throws Exception {
     CommonTestUtils.testEquals(Basic.class);
-    CommonTestUtils.testEquals(ManyFields.class);
+  }
 
+  @Test
+  public void testEqualsManyFields() {
+    CommonTestUtils.testEquals(ManyFields.class);
+  }
+
+  @Test
+  public void testEqualsBadHashCodeCheck() {
     testFail(BadHashCode.class);
+  }
+
+  @Test
+  public void testEqualsMissingFieldCheck() {
     testFail(MissingField.class);
+  }
+
+  @Test
+  public void testEqualsMissingInstanceCheck() {
     testFail(EqualsMissingInstanceCheck.class);
   }
 
-  private void testFail(Class<?> clazz) throws Exception {
+  private void testFail(Class<?> clazz) {
     try {
       CommonTestUtils.testEquals(clazz);
       Assert.fail("testEquals didn't throw an error for class " + clazz.getName());

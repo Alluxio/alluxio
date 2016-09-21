@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.thrift.WorkerInfo;
@@ -41,6 +42,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getWebLocalPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
+
+    MetricsSystem.resetAllCounters();
   }
 
   @Test
@@ -113,7 +116,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     Map<String, Long> metrics = new ObjectMapper().readValue(result,
         new TypeReference<Map<String, Long>>() {});
 
-    Assert.assertEquals(Long.valueOf(0), metrics.get("master.master.CompleteFileOps"));
+    Assert.assertEquals(Long.valueOf(0), metrics.get("master.CompleteFileOps"));
   }
 
   @Test

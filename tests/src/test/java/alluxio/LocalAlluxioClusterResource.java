@@ -13,6 +13,7 @@ package alluxio;
 
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.metrics.MetricsSystem;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -100,6 +101,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mStartCluster = startCluster;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
+    MetricsSystem.resetAllCounters();
   }
 
   /**

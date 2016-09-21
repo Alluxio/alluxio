@@ -19,8 +19,6 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.master.MasterContext;
-import alluxio.master.MasterSource;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -145,10 +143,9 @@ public final class PermissionCheckTest {
 
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    MasterContext masterContext = new MasterContext(new MasterSource());
-    BlockMaster blockMaster = new BlockMaster(masterContext, blockJournal);
+    BlockMaster blockMaster = new BlockMaster(blockJournal);
 
-    mFileSystemMaster = new FileSystemMaster(masterContext, blockMaster, fsJournal);
+    mFileSystemMaster = new FileSystemMaster(blockMaster, fsJournal);
 
     blockMaster.start(true);
     mFileSystemMaster.start(true);

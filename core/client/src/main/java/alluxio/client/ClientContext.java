@@ -13,8 +13,8 @@ package alluxio.client;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.worker.ClientMetrics;
 
 import com.google.common.base.Preconditions;
 
@@ -32,7 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ClientContext {
   private static ExecutorService sBlockClientExecutorService;
   private static ExecutorService sFileClientExecutorService;
-  private static ClientMetrics sClientMetrics;
   private static InetSocketAddress sMasterAddress;
 
   static {
@@ -61,19 +60,13 @@ public final class ClientContext {
     sFileClientExecutorService = Executors
         .newFixedThreadPool(Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_THREADS),
             ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
-    sClientMetrics = new ClientMetrics();
 
     String masterHostname =
         Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
-  }
 
-  /**
-   * @return the {@link ClientMetrics} for this client
-   */
-  public static ClientMetrics getClientMetrics() {
-    return sClientMetrics;
+    MetricsSystem.startSinks();
   }
 
   /**

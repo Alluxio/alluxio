@@ -91,7 +91,7 @@ public enum FileSystemContext {
     }
     long sessionId = IdUtils.getRandomNonNegativeLong();
     return new FileSystemWorkerClient(address, ClientContext.getFileClientExecutorService(),
-        sessionId, ClientContext.getClientMetrics());
+        sessionId);
   }
 
   /**
