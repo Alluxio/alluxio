@@ -195,6 +195,16 @@ public final class Configuration {
   }
 
   /**
+   * Unsets the value for the appropriate key in the {@link Properties}.
+   *
+   * @param key the key to unset
+   */
+  public static void unset(PropertyKey key) {
+    Preconditions.checkNotNull(key);
+    PROPERTIES.remove(key.toString());
+  }
+
+  /**
    * Gets the value for the given key in the {@link Properties}; if this key is not found, a
    * RuntimeException is thrown.
    *
