@@ -40,19 +40,51 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class AlluxioFramework {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static class Args {
-    @Parameter(names = {"-m", "--mesos"}, description = "Mesos master location, e.g. localhost:5050")
-    public String mesosMaster;
+  @Parameter(names = {"-m", "--mesos"}, description = "Mesos master location, e.g. localhost:5050")
+  private String mMesosMaster;
 
-    @Parameter(names = {"-a", "--alluxio-master"},
-        description = "Host to launch the Alluxio Master on")
-    public String alluxioMasterHostname;
-  }
+  @Parameter(names = {"-a", "--alluxio-master"},
+      description = "Host to launch the Alluxio Master on")
+  private String mAlluxioMasterHostname;
 
   /**
    * Creates a new {@link AlluxioFramework}.
    */
   public AlluxioFramework() {}
+
+  /**
+   * Runs the mesos framework.
+   */
+  public void run() {
+    Protos.FrameworkInfo.Builder frameworkInfo = Protos.FrameworkInfo.newBuilder()
+        .setName("alluxio").setCheckpoint(true);
+
+    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ROLE)) {
+      frameworkInfo.setRole(Configuration.get(PropertyKey.INTEGRATION_MESOS_ROLE));
+    }
+    // Setting the user to an empty string will prompt Mesos to set it to the current user.
+    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_USER)) {
+      frameworkInfo.setUser(Configuration.get(PropertyKey.INTEGRATION_MESOS_USER));
+    }
+
+    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)) {
+      frameworkInfo.setPrincipal(Configuration.get(PropertyKey.INTEGRATION_MESOS_PRINCIPAL));
+    }
+
+    Scheduler scheduler = new AlluxioScheduler(mAlluxioMasterHostname);
+
+    Protos.Credential cred = createCredential();
+    MesosSchedulerDriver driver;
+    if (cred == null) {
+      driver = new MesosSchedulerDriver(scheduler, frameworkInfo.build(), mMesosMaster);
+    } else {
+      driver = new MesosSchedulerDriver(scheduler, frameworkInfo.build(), mMesosMaster, cred);
+    }
+
+    int status = driver.run() == Protos.Status.DRIVER_STOPPED ? 0 : 1;
+
+    System.exit(status);
+  }
 
   private static Protos.Credential createCredential() {
     if (!(Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)
@@ -80,8 +112,8 @@ public class AlluxioFramework {
    * @throws Exception if the Alluxio framework encounters an unrecoverable error
    */
   public static void main(String[] args) throws Exception {
-    Args parsedArgs = new Args();
-    JCommander jc = new JCommander(parsedArgs);
+    AlluxioFramework framework = new AlluxioFramework();
+    JCommander jc = new JCommander(framework);
     try {
       jc.parse(args);
     } catch (Exception e) {
@@ -89,35 +121,6 @@ public class AlluxioFramework {
       jc.usage();
       System.exit(1);
     }
-
-    Protos.FrameworkInfo.Builder frameworkInfo = Protos.FrameworkInfo.newBuilder()
-        .setName("alluxio").setCheckpoint(true);
-
-    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ROLE)) {
-      frameworkInfo.setRole(Configuration.get(PropertyKey.INTEGRATION_MESOS_ROLE));
-    }
-    // Setting the user to an empty string will prompt Mesos to set it to the current user.
-    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_USER)) {
-      frameworkInfo.setUser(Configuration.get(PropertyKey.INTEGRATION_MESOS_USER));
-    }
-
-    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)) {
-      frameworkInfo.setPrincipal(Configuration.get(PropertyKey.INTEGRATION_MESOS_PRINCIPAL));
-    }
-
-    Scheduler scheduler = new AlluxioScheduler(parsedArgs.alluxioMasterHostname);
-
-    Protos.Credential cred = createCredential();
-    MesosSchedulerDriver driver;
-    if (cred == null) {
-      driver = new MesosSchedulerDriver(scheduler, frameworkInfo.build(), parsedArgs.mesosMaster);
-    } else {
-      driver =
-          new MesosSchedulerDriver(scheduler, frameworkInfo.build(), parsedArgs.mesosMaster, cred);
-    }
-
-    int status = driver.run() == Protos.Status.DRIVER_STOPPED ? 0 : 1;
-
-    System.exit(status);
+    framework.run();
   }
 }
