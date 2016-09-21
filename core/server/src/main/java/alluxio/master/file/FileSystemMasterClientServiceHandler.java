@@ -181,8 +181,13 @@ public final class FileSystemMasterClientServiceHandler implements
    */
   @Override
   @Deprecated
-  public String getUfsAddress() {
-    return mFileSystemMaster.getUfsAddress();
+  public String getUfsAddress() throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<String>() {
+      @Override
+      public String call() throws AlluxioException {
+        return mFileSystemMaster.getUfsAddress();
+      }
+    });
   }
 
   @Override

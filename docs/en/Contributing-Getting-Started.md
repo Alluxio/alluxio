@@ -220,7 +220,9 @@ should be **master**. The head fork will be your fork, and the compare branch sh
 you want to submit the pull request for.
 
 For the title of the pull request, the title should be prefixed by the JIRA ticket name. Therefore,
-the title will look something like **[ALLUXIO-1234] Awesome Feature**.
+the title will look something like **[ALLUXIO-1234] Awesome Feature** (In the title, please replace 
+"Awesome Feature" with something more informative regarding your request, e.g., "Fix format in error message"
+or "Improve java doc of method Foo").
 
 In the first line of the description box, please add a link back to the JIRA ticket. The link will
 look something like: `https://alluxio.atlassian.net/browse/ALLUXIO-####`

@@ -32,4 +32,18 @@ public final class ConfigurationRuleTest {
     new ConfigurationRule(ImmutableMap.of(PropertyKey.MASTER_ADDRESS, "testValue"))
         .apply(statement, null).evaluate();
   }
+
+  @Test
+  public void changeConfigurationForDefaultNullValue() throws Throwable {
+    Statement statement = new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        Assert.assertEquals("testValue", Configuration.get(PropertyKey.SECURITY_LOGIN_USERNAME));
+      }
+    };
+    Assert.assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    new ConfigurationRule(ImmutableMap.of(PropertyKey.SECURITY_LOGIN_USERNAME, "testValue"))
+        .apply(statement, null).evaluate();
+    Assert.assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+  }
 }

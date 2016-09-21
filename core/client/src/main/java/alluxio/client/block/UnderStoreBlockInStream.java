@@ -14,13 +14,16 @@ package alluxio.client.block;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.metrics.MetricsSystem;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class provides a streaming API to read a fixed chunk from a file in the under storage
@@ -111,6 +114,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
       // Read a valid byte, update the position.
       mPos++;
     }
+    Metrics.BYTES_READ_UFS.inc();
     return data;
   }
 
@@ -133,6 +137,9 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     } else {
       // Read valid data, update the position.
       mPos += bytesRead;
+    }
+    if (bytesRead > 0) {
+      Metrics.BYTES_READ_UFS.inc(bytesRead);
     }
     return bytesRead;
   }
@@ -210,5 +217,15 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     }
     // The length is unknown. Use the max block size until the computed length is known.
     return mFileBlockSize;
+  }
+
+  /**
+   * Class that contains metrics about {@link UnderStoreBlockInStream}.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter BYTES_READ_UFS = MetricsSystem.clientCounter("BytesReadUfs");
+
+    private Metrics() {} // prevent instantiation
   }
 }

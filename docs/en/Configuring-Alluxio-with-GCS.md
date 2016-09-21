@@ -6,7 +6,7 @@ group: Under Store
 priority: 0
 ---
 
-This guide describes how to configure Alluxio with [Google Cloud Storage](https://cloud.google.com/storage/) as the
+This guide describes how to configure Alluxio with [Google Cloud Storage (GCS)](https://cloud.google.com/storage/) as the
 under storage system.
 
 # Initial Setup

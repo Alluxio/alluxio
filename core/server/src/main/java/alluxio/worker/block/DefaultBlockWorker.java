@@ -24,6 +24,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
@@ -35,13 +36,13 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.SessionCleanupCallback;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.thrift.TProcessor;
@@ -50,13 +51,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker.
@@ -134,13 +135,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mBlockMasterClient = blockMasterClient;
     mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();
-    mMetricsReporter = new BlockMetricsReporter(WorkerContext.getWorkerSource());
+    mMetricsReporter = new BlockMetricsReporter();
     mSessions = sessions;
     mBlockStore = blockStore;
     mWorkerId = workerId;
 
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
+
+    Metrics.registerGauges(this);
   }
 
   @Override
@@ -404,9 +407,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void sessionHeartbeat(long sessionId, List<Long> metrics) {
+  public void sessionHeartbeat(long sessionId) {
     mSessions.sessionHeartbeat(sessionId);
-    mMetricsReporter.updateClientMetrics(metrics);
   }
 
   @Override
@@ -437,5 +439,60 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
     LOG.debug("Created new file block, block path: {}", blockPath);
+  }
+
+  /**
+   * This class contains some metrics related to the block worker.
+   * This class is public because the metric names are referenced in
+   * {@link alluxio.web.WebInterfaceWorkerMetricsServlet}.
+   */
+  @ThreadSafe
+  public static final class Metrics {
+    public static final String CAPACITY_TOTAL = "CapacityTotal";
+    public static final String CAPACITY_USED = "CapacityUsed";
+    public static final String CAPACITY_FREE = "CapacityFree";
+    public static final String BLOCKS_CACHED = "BlocksCached";
+
+    /**
+     * Registers metric gauges.
+     *
+     * @param blockWorker the block worker handle
+     */
+    public static void registerGauges(final BlockWorker blockWorker) {
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_TOTAL),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return blockWorker.getStoreMeta().getCapacityBytes();
+            }
+          });
+
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_USED),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return blockWorker.getStoreMeta().getUsedBytes();
+            }
+          });
+
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_FREE),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
+                  .getUsedBytes();
+            }
+          });
+
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(BLOCKS_CACHED),
+          new Gauge<Integer>() {
+            @Override
+            public Integer getValue() {
+              return blockWorker.getStoreMetaFull().getNumberOfBlocks();
+            }
+          });
+    }
+
+    private Metrics() {} // prevent instantiation
   }
 }

@@ -12,15 +12,11 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.resource.ResourcePool;
 import alluxio.util.IdUtils;
 import alluxio.wire.WorkerNetAddress;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,7 +27,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /**
    * The capacity for this pool must be large, since each block written will hold a client until
    * the block is committed at the end of the file completion.
@@ -55,12 +50,6 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
 
   @Override
   public void release(BlockWorkerClient blockWorkerClient) {
-    try {
-      // Heartbeat to send the client metrics.
-      blockWorkerClient.sessionHeartbeat();
-    } catch (Exception e) {
-      LOG.warn("Failed sending client metrics before releasing the worker client", e);
-    }
     blockWorkerClient.createNewSession(IdUtils.getRandomNonNegativeLong());
     super.release(blockWorkerClient);
   }
@@ -69,7 +58,6 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
   protected BlockWorkerClient createNewResource() {
     long clientId = IdUtils.getRandomNonNegativeLong();
     return new RetryHandlingBlockWorkerClient(mWorkerNetAddress,
-        ClientContext.getBlockClientExecutorService(), clientId, true,
-        ClientContext.getClientMetrics());
+        ClientContext.getBlockClientExecutorService(), clientId, true);
   }
 }
