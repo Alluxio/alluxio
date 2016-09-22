@@ -31,7 +31,7 @@ public final class DynamicResourcePoolTest {
   private static final class Resource {
     private Integer mInteger = 0;
     // Threshold for invalid resource.
-    private static int INVALID_RESOURCE = 10;
+    private static final int INVALID_RESOURCE = 10;
 
     public Resource(Integer i) {
       mInteger = i;
@@ -53,8 +53,8 @@ public final class DynamicResourcePoolTest {
 
     @Override
     protected boolean shouldGc(ResourceInternal<Resource> resourceInternal) {
-      return System.currentTimeMillis() - resourceInternal
-          .getLastAccessTimeMs() >= mGcThresholdInSecs * Constants.SECOND_MS;
+      return System.currentTimeMillis() - resourceInternal.getLastAccessTimeMs()
+          >= mGcThresholdInSecs * Constants.SECOND_MS;
     }
 
     @Override
@@ -68,7 +68,7 @@ public final class DynamicResourcePoolTest {
     }
 
     @Override
-    protected  void closeResourceSync(Resource resource) {
+    protected void closeResourceSync(Resource resource) {
       closeResource(resource);
     }
 
@@ -189,8 +189,8 @@ public final class DynamicResourcePoolTest {
    */
   @Test
   public void gc() throws Exception {
-    TestPool pool =
-        new TestPool(DynamicResourcePool.Options.defaultOptions().setGcIntervalMs(10).setInitialDelayMs(1));
+    TestPool pool = new TestPool(
+        DynamicResourcePool.Options.defaultOptions().setGcIntervalMs(10).setInitialDelayMs(1));
     pool.setGcThresholdInSecs(1);
 
     List<Resource> resourceList = new ArrayList<>();
