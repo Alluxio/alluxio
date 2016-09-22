@@ -115,8 +115,8 @@ public class AlluxioScheduler implements Scheduler {
         Configuration.getBytes(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
 
     LOG.info("Master launched {}, master count {}, "
-        + "requested master cpu {} and mem {} MB",
-        mMasterLaunched, mMasterCount, masterCpu, masterMem);
+        + "requested master cpu {} mem {} MB and required master hostname {}",
+        mMasterLaunched, mMasterCount, masterCpu, masterMem, mRequiredMasterHostname);
 
     for (Protos.Offer offer : offers) {
       Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
