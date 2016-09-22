@@ -31,6 +31,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A dynamic pool that manages the resources. It clears old resources.
@@ -40,6 +41,7 @@ import javax.annotation.concurrent.GuardedBy;
  *
  * @param <T> the type of the resource
  */
+@ThreadSafe
 public abstract class DynamicResourcePool<T> implements Pool<T> {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
