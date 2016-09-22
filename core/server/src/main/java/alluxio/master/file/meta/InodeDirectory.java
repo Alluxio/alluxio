@@ -69,8 +69,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    *
    * @param child the inode to add
    */
-  public void addChild(Inode<?> child) {
-    mChildren.add(child);
+  public boolean addChild(Inode<?> child) {
+    return mChildren.add(child);
   }
 
   /**
