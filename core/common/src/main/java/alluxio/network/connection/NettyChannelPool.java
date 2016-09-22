@@ -92,6 +92,6 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   @Override
   protected boolean shouldGc(ResourceInternal<Channel> channelResourceInternal) {
     return System.currentTimeMillis() - channelResourceInternal
-        .getLastAccessTimeMs() > mGcThresholdInSecs * Constants.SECOND_MS;
+        .getLastAccessTimeMs() > (long) mGcThresholdInSecs * (long) Constants.SECOND_MS;
   }
 }

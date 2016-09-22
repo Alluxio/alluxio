@@ -371,6 +371,16 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     }
   }
 
+  @Override
+  public int size() {
+    try {
+      mLock.lock();
+      return mResources.size();
+    } finally {
+      mLock.unlock();
+    }
+  }
+
   /**
    * @return true if the pool is full
    */
