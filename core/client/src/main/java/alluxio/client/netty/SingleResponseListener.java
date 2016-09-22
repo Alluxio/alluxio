@@ -39,6 +39,11 @@ public final class SingleResponseListener implements ClientHandler.ResponseListe
     mResponse.set(response);
   }
 
+  @Override
+  public void onExceptionCaught(Throwable cause) {
+    mResponse.setException(cause);
+  }
+
   /**
    * Waits to receive the response and returns the response message.
    *

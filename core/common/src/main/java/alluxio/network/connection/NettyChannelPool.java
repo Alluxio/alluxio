@@ -9,38 +9,89 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import alluxio.network.connection.ConnectionPool;
+package alluxio.network.connection;
 
+import alluxio.Constants;
+import alluxio.resource.DynamicResourcePool;
+
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.io.IOException;
 
-public final class NettyChannelPool extends ConnectionPool<Channel> {
-  // Every 5 mins.
-  private static final int GC_INTERVAL_IN_SECS = 300;
-  private static final int HEARTBEAT_EXECUTOR_SIZE = 2;
-  private static final int HEARTBEAT_INTERVAL_IN_SECS = 300;
+/**
+ * A pool to manage netty channels.
+ */
+public final class NettyChannelPool extends DynamicResourcePool<Channel> {
+  private Bootstrap mBootstrap;
+  private final int mGcThresholdInSecs;
 
-  public NettyChannelPool(int maxConnections) {
-    super(maxConnections, Executors.newFixedThreadPool(HEARTBEAT_EXECUTOR_SIZE),
-        HEARTBEAT_INTERVAL_IN_SECS, GC_INTERVAL_IN_SECS);
+  /**
+   * Creates a netty channel pool instance with a minimum capacity of 1.
+   *
+   * @param bootstrap the netty bootstrap used to create netty channel
+   * @param maxCapacity the maximum capacity of the pool
+   * @param gcThresholdInSecs when a channel is older than this threshold and the pool's capacity
+   *        is above the minimum capaicty (1), it is closed and removed from the pool.
+   */
+  public NettyChannelPool(Bootstrap bootstrap, int maxCapacity, int gcThresholdInSecs) {
+    super(maxCapacity, 1);
+    mBootstrap = bootstrap;
+    mGcThresholdInSecs = gcThresholdInSecs;
   }
 
   @Override
-  protected void closeConnection(Channel channel) {
+  protected void closeResource(Channel channel) {
+    LOG.info("Channel closed");
     channel.close();
   }
 
   @Override
-  protected void closeConnectionSync(Channel channel) {
+  protected void closeResourceSync(Channel channel) {
+    LOG.info("Channel closed synchronously.");
     channel.close().syncUninterruptibly();
   }
 
+  /**
+   * Creates a netty channel instance.
+   *
+   * @return the channel created
+   * @throws IOException if it fails to create a channel
+   */
   @Override
-  protected Channel createNewConnection() {
+  protected Channel createNewResource() throws IOException {
+    Bootstrap bs = mBootstrap.clone();
+    bs.clone();
+    try {
+      ChannelFuture channelFuture = bs.connect().sync();
+      if (channelFuture.isSuccess()) {
+        LOG.info("Created netty channel to with netty boostrap {}.", mBootstrap.toString());
+        return channelFuture.channel();
+      } else {
+        LOG.error("Failed to create netty channel with netty boostrap {} and error {}.",
+            mBootstrap.toString(), channelFuture.cause().getMessage());
+        throw new IOException(channelFuture.cause());
+      }
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
+  /**
+   * Checks whether a channel is healthy.
+   *
+   * @param channel the channel to check
+   * @return true if the channel is active (i.e. connected)
+   */
+  @Override
+  protected boolean isHealthy(Channel channel) {
+    return channel.isActive();
+  }
+
+  @Override
+  protected boolean shouldGc(ResourceInternal<Channel> channelResourceInternal) {
+    return System.currentTimeMillis() / Constants.SECOND_MS - channelResourceInternal
+        .getLastAccessTimeInSecs() > mGcThresholdInSecs;
   }
 }

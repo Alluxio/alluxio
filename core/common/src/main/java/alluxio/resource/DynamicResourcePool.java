@@ -1,0 +1,387 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.resource;
+
+import alluxio.Constants;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.annotation.concurrent.GuardedBy;
+
+/**
+ * A dynamic pool that manages the resources. It clears old resources.
+ * It accepts a min and max capacity.
+ *
+ * When acquiring resources, the most recently used
+ *
+ * @param <T> the type of the resource
+ */
+public abstract class DynamicResourcePool<T> implements Pool<T> {
+  protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  /**
+   * A wrapper on the resource to include the last time at which it was used.
+   *
+   * @param <T> the resource type
+   */
+  protected static class ResourceInternal<T> {
+    // A unique Id used to distinguish the objects.
+    private int mIdentity = System.identityHashCode(this);
+
+    private T mResource;
+
+    private long mLastAccessTimeInSecs;
+
+    /**
+     * Sets the lastAccessTimeInSecs.
+     *
+     * @param lastAccessTimeInSecs the last access time in seconds
+     */
+    public void setLastAccessTimeInSecs(long lastAccessTimeInSecs) {
+      mLastAccessTimeInSecs = lastAccessTimeInSecs;
+    }
+
+    /**
+     * Gets the lastAccessTimeInSecs.
+     *
+     * @return the last access time in seconds
+     */
+    public long getLastAccessTimeInSecs() {
+      return mLastAccessTimeInSecs;
+    }
+
+    /**
+     * Creates a {@link ResourceInternal} instance.
+     *
+     * @param resource the resource
+     */
+    public ResourceInternal(T resource) {
+      mResource = resource;
+      mLastAccessTimeInSecs = System.currentTimeMillis() / Constants.SECOND_MS;
+    }
+  }
+
+  private final ReentrantLock mLock = new ReentrantLock();
+  private final Condition mNotEmpty = mLock.newCondition();
+  private final int mMaxCapacity;
+  private final int mMinCapacity;
+
+  // Tracks the resources that are available ordered by lastAccessTime (the first one is
+  // the most recently used resource).
+  @GuardedBy("mLock")
+  private TreeSet<ResourceInternal<T>> mResourceAvailable =
+      new TreeSet<>(new Comparator<ResourceInternal<T>>() {
+        @Override
+        public int compare(ResourceInternal<T> c1, ResourceInternal<T> c2) {
+          if (c1 == c2) {
+            return 0;
+          }
+          if (c1.mLastAccessTimeInSecs == c2.mLastAccessTimeInSecs) {
+            return c1.mIdentity - c2.mIdentity;
+          }
+          return (int) (c2.mLastAccessTimeInSecs - c1.mLastAccessTimeInSecs);
+        }
+      });
+
+  // Tracks all the resources that are not closed.
+  @GuardedBy("mLock")
+  private HashMap<T, ResourceInternal<T>> mResources = new HashMap<>(32);
+
+  // Thread to scan mResourceAvailable to close those resources that are old.
+  private ScheduledExecutorService mExecutor;
+  // The initial delay in seconds to execute the GC task in mExecutor.
+  private static final int INITIAL_DELAY = 10;
+  // Try to GC resources periodically in a frequency specified by this interval.
+  private static final int GC_INTERVAL_IN_SECS = 300;
+
+  /**
+   * Creates a dynamic pool instance.
+   *
+   * @param maxCapacity the maximum capacity
+   * @param minCapacity the minimum capacity
+   */
+  public DynamicResourcePool(final int maxCapacity, final int minCapacity) {
+    mExecutor = new ScheduledThreadPoolExecutor(1);
+
+    mMaxCapacity = maxCapacity;
+    mMinCapacity = minCapacity;
+
+    mExecutor.scheduleAtFixedRate(new Runnable() {
+      @Override
+      public void run() {
+        List<T> resourcesToGc = new ArrayList<T>();
+
+        try {
+          mLock.lock();
+          if (mResources.size() <= mMinCapacity) {
+            return;
+          }
+          Iterator<ResourceInternal<T>> iterator = mResourceAvailable.iterator();
+          while (iterator.hasNext()) {
+            ResourceInternal<T> next = iterator.next();
+            if (shouldGc(next)) {
+              resourcesToGc.add(next.mResource);
+              iterator.remove();
+              mResources.remove(next.mResource);
+            }
+          }
+        } finally {
+          mLock.unlock();
+        }
+
+        for (T resource : resourcesToGc) {
+          LOG.info("Resource {} is garbage collected.", resource.toString());
+          closeResource(resource);
+        }
+      }
+    }, INITIAL_DELAY, GC_INTERVAL_IN_SECS, TimeUnit.SECONDS);
+  }
+
+  /**
+   * Acquire a resource of type {code T} from the pool.
+   *
+   * @return the acquired resource
+   * @throws IOException if it fails to acquire because of the failure to create a new resource
+   */
+  @Override
+  public T acquire() throws IOException {
+    try {
+      return acquire(100  /* no timeout */, TimeUnit.DAYS);
+    } catch (TimeoutException e) {
+      LOG.error("Never should timeout in acquire().");
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Acquires a resource of type {code T} from the pool.
+   *
+   * This method is like {@link #acquire()}, but it will time out if an object cannot be
+   * acquired before the specified amount of time.
+   *
+   * @param time an amount of time to wait, null to wait indefinitely
+   * @param unit the unit to use for time, null to wait indefinitely
+   * @return a resource taken from the pool
+   * @throws IOException if it fails to acquire because of the failure to create a new resource
+   * @throws TimeoutException if it fails to acquire because of time out
+   */
+  @Override
+  public T acquire(long time, TimeUnit unit) throws IOException, TimeoutException {
+    long endTimeMs = System.currentTimeMillis() + unit.toMillis(time);
+
+    // Try to take a resource without blocking
+    ResourceInternal<T> resource = poll();
+    if (resource != null) {
+      if (isHealthy(resource.mResource)) {
+        return resource.mResource;
+      } else {
+        LOG.info("Clearing unhealthy resource {}.", resource.mResource.toString());
+        closeResource(resource.mResource);
+        remove(resource.mResource);
+        return acquire(time, unit);
+      }
+    }
+
+    if (!isFull()) {
+      // If the resource pool is empty but capacity is not yet full, create a new resource.
+      T newResource = createNewResource();
+      ResourceInternal<T> resourceInternal = new ResourceInternal<>(newResource);
+      // It is possible that we have more resources than mMaxCapacity here, just insert it
+      // instead of waiting.
+      add(resourceInternal);
+      return newResource;
+    }
+
+    // Otherwise, try to take a resource from the pool, blocking if none are available.
+    try {
+      mLock.lockInterruptibly();
+      try {
+        while (true) {
+          resource = poll();
+          if (resource != null) {
+            break;
+          }
+          long currTimeMs = System.currentTimeMillis();
+          if (currTimeMs >= endTimeMs || !mNotEmpty
+              .await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {
+            throw new TimeoutException("Acquire resource times out.");
+          }
+        }
+      } finally {
+        mLock.unlock();
+      }
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    if (isHealthy(resource.mResource)) {
+      return resource.mResource;
+    } else {
+      closeResource(resource.mResource);
+      remove(resource.mResource);
+      // Acquire without waiting.
+      return acquire(0, unit);
+    }
+  }
+
+  /**
+   * Releases the resource to the pool. It expects the resource to be released was acquired from
+   * this pool.
+   *
+   * @param resource the resource to release
+   */
+  @Override
+  public void release(T resource) {
+    try {
+      mLock.lock();
+      if (!mResources.containsKey(resource)) {
+        throw new IllegalArgumentException(
+            "Resource " + resource.toString() + " was not acquired from this resource pool.");
+      }
+      ResourceInternal<T> resourceInternal = mResources.get(resource);
+      resourceInternal.setLastAccessTimeInSecs(System.currentTimeMillis() / Constants.SECOND_MS);
+      mResourceAvailable.add(resourceInternal);
+      mNotEmpty.signal();
+    } finally {
+      mLock.unlock();
+    }
+  }
+
+  /**
+   * Closes the pool and clears all the resources.
+   */
+  @Override
+  public void close() {
+    try {
+      mLock.lock();
+      if (mResourceAvailable.size() != mResources.size()) {
+        LOG.warn("Some resources are not released when closing the resource pool.");
+      }
+      for (ResourceInternal<T> resourceInternal : mResourceAvailable) {
+        closeResourceSync(resourceInternal.mResource);
+      }
+    } finally {
+      mLock.unlock();
+    }
+  }
+
+  /**
+   * @return true if the pool is full
+   */
+  private boolean isFull() {
+    boolean full = false;
+    try {
+      mLock.lock();
+      full = mResources.size() >= mMaxCapacity;
+    } finally {
+      mLock.unlock();
+    }
+    return full;
+  }
+
+  /**
+   * Adds a newly created resource to the pool. The resource is not available when it is added.
+   *
+   * @param resource
+   */
+  private void add(ResourceInternal<T> resource) {
+    try {
+      mLock.lock();
+      mResources.put(resource.mResource, resource);
+    } finally {
+      mLock.unlock();
+    }
+  }
+
+  /**
+   * Removes an existing resource from the pool.
+   *
+   * @param resource
+   */
+  private void remove(T resource) {
+    try {
+      mLock.lock();
+      mResources.remove(resource);
+    } finally {
+      mLock.unlock();
+    }
+  }
+
+  /**
+   * @return the most recently used resource
+   */
+  private ResourceInternal<T> poll() {
+    ResourceInternal<T> resource;
+    try {
+      mLock.lock();
+      resource = mResourceAvailable.pollFirst();
+    } finally {
+      mLock.unlock();
+    }
+    return resource;
+  }
+
+  // The following functions should be overridden by implementations.
+
+  /**
+   * @param resourceInternal the resource to check
+   * @return true if the resource should be garbage collected
+   */
+  protected abstract boolean shouldGc(ResourceInternal<T> resourceInternal);
+
+  /**
+   * Checks whether a resource is healthy or not.
+   *
+   * @param resource the resource to check
+   * @return true if the resource is healthy
+   */
+  protected abstract boolean isHealthy(T resource);
+
+  /**
+   * Closes the resource. After this, the resource should not be used. It is not guaranteed that
+   * the resource is closed after the function returns.
+   *
+   * @param resource the resource to close
+   */
+  protected abstract void closeResource(T resource);
+
+  /**
+   * Similar as above but this guarantees that the resource is closed after the function returns
+   * unless it fails to close.
+   *
+   * @param resource the resource to close
+   */
+  protected abstract void closeResourceSync(T resource);
+
+  /**
+   * Creates a new resource.
+   *
+   * @return the newly created resource
+   * @throws IOException if it fails to create the resource
+   */
+  protected abstract T createNewResource() throws IOException;
+}

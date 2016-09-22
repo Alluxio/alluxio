@@ -17,6 +17,8 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import com.sun.org.apache.regexp.internal.RE;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -47,6 +49,13 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
      * @param response the RPC response
      */
     void onResponseReceived(RPCResponse response);
+
+    /**
+     * This method will be called when an exception is caught on the client.
+     *
+     * @param cause the cause
+     */
+    void onExceptionCaught(Throwable cause);
   }
 
   private final Set<ResponseListener> mListeners;
@@ -90,11 +99,13 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
     LOG.warn("Exception thrown while processing request", cause);
+    for (ResponseListener listener : mListeners) {
+      listener.onExceptionCaught(cause);
+    }
     ctx.close();
   }
 
-  private void handleResponse(final RPCResponse resp)
-      throws IOException {
+  private void handleResponse(final RPCResponse resp) {
     for (ResponseListener listener : mListeners) {
       listener.onResponseReceived(resp);
     }
