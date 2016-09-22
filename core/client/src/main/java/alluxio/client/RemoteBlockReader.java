@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Throwables;

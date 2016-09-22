@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.network.connection.NettyChannelPool;
 import alluxio.resource.CloseableResource;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -23,6 +24,9 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +63,9 @@ public final class BlockStoreContext {
    */
   private final Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
       new ConcurrentHashMap<>();
+
+  private static final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
+      mNettyChannelPoolMap = new ConcurrentHashMapV8<>();
 
   /**
    * Only one context will be kept for each master address.
@@ -252,6 +259,35 @@ public final class BlockStoreContext {
       // Destroy remote worker client.
       blockWorkerClient.close();
     }
+  }
+
+  /**
+   * Acquire a netty channel.
+   *
+   * @param address
+   * @param bootstrap
+   * @return the acquired netty
+   */
+  public static Channel acquireNettyChannel(InetSocketAddress address, Bootstrap bootstrap) {
+    if (address == null) {
+      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+    }
+    if (!mNettyChannelPoolMap.containsKey(address)) {
+      Bootstrap bootstrapClone = bootstrap.clone();
+      bootstrapClone.remoteAddress(address);
+      // TODO(peis): Make this configurable.
+      mNettyChannelPoolMap.putIfAbsent(address, new NettyChannelPool(bootstrapClone, 10, 300));
+    }
+    try {
+      return mNettyChannelPoolMap.get(address).acquire();
+    } catch (IOException e) {
+      LOG.error("Failed to acquire netty channel with exception %s.", e.getMessage());
+      return null;
+    }
+  }
+
+  public static void releaseNettyChannel(InetSocketAddress address, Channel channel) {
+    mNettyChannelPoolMap.get(address).release(channel);
   }
 
   /**

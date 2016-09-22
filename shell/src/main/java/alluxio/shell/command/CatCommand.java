@@ -52,13 +52,20 @@ public final class CatCommand extends WithWildCardPathCommand {
     if (status.isFolder()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-    byte[] buf = new byte[512];
-    try (FileInStream is = mFileSystem.openFile(path, options)) {
-      int read = is.read(buf);
-      while (read != -1) {
-        System.out.write(buf, 0, read);
-        read = is.read(buf);
+    for (;;) {
+      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      byte[] buf = new byte[512];
+      try (FileInStream is = mFileSystem.openFile(path, options)) {
+        int read = is.read(buf);
+        while (read != -1) {
+          System.out.write(buf, 0, read);
+          read = is.read(buf);
+        }
+      }
+      try {
+        Thread.sleep(1000 * 36001);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
       }
     }
   }

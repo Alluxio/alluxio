@@ -141,6 +141,7 @@ public final class AlluxioBlockStore {
     // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
     // for hasLocalWorker is fixed.
     for (BlockLocation location : blockInfo.getLocations()) {
+      /*
       WorkerNetAddress workerNetAddress = location.getWorkerAddress();
       if (workerNetAddress.getHost().equals(mLocalHostName)) {
         // There is a local worker and the block is local.
@@ -152,6 +153,7 @@ public final class AlluxioBlockStore {
           break;
         }
       }
+      */
     }
     // No local worker/block, get the first location since it's nearest to memory tier.
     WorkerNetAddress workerNetAddress = blockInfo.getLocations().get(0).getWorkerAddress();
