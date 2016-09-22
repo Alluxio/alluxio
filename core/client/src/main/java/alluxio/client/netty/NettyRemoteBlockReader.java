@@ -59,9 +59,8 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
    * Constructor.
    *
    * @param clientBootstrap bootstrap class of the client channel
-   * @param clientHandler handler of the client channel
    */
-  public NettyRemoteBlockReader(Bootstrap clientBootstrap, ClientHandler clientHandler) {
+  public NettyRemoteBlockReader(Bootstrap clientBootstrap) {
     mClientBootstrap = clientBootstrap;
   }
 
@@ -75,16 +74,14 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       channel = BlockStoreContext.acquireNettyChannel(address, mClientBootstrap);
       listener = new SingleResponseListener();
       ((ClientHandler) channel.pipeline().last()).addListener(listener);
-      ChannelFuture channelFuture =
-          channel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId));
-      /*
+      ChannelFuture channelFuture = channel
+          .writeAndFlush(new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId));
       channelFuture = channelFuture.sync();
       if (channelFuture.isDone() && !channelFuture.isSuccess()) {
         LOG.error("Failed to write to %s for block %d with error %s.", address.toString(), blockId,
             channelFuture.cause());
         throw new IOException(channelFuture.cause());
       }
-      */
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
