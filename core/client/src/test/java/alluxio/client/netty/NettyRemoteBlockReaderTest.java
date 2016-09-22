@@ -21,6 +21,7 @@ import alluxio.network.protocol.databuffer.DataByteBuffer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPipeline;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +44,7 @@ public class NettyRemoteBlockReaderTest {
   private ClientHandler mClientHandler;
   private Channel mChannel;
   private ChannelFuture mChannelFuture;
+  private ChannelPipeline mChannelPipeline;
 
   private static final InetSocketAddress INET_SOCKET_ADDRESS = new InetSocketAddress(1234);
   private static final long BLOCK_ID = 4242L;
@@ -62,11 +64,20 @@ public class NettyRemoteBlockReaderTest {
 
     mChannel = Mockito.mock(Channel.class);
     mChannelFuture = Mockito.mock(ChannelFuture.class);
+    mChannelPipeline = Mockito.mock(ChannelPipeline.class);
 
     Mockito.when(mChannel.close()).thenReturn(mChannelFuture);
     Mockito.when(mChannelFuture.sync()).thenReturn(mChannelFuture);
     Mockito.when(mChannelFuture.channel()).thenReturn(mChannel);
+    Mockito.when(mChannelFuture.isDone()).thenReturn(true);
+    Mockito.when(mChannelFuture.isSuccess()).thenReturn(true);
     Mockito.when(mBootstrap.connect(Mockito.any(SocketAddress.class))).thenReturn(mChannelFuture);
+    Mockito.when(mBootstrap.connect()).thenReturn(mChannelFuture);
+    Mockito.when(mBootstrap.clone()).thenReturn(mBootstrap);
+    Mockito.when(mBootstrap.remoteAddress(Mockito.any(InetSocketAddress.class)))
+        .thenReturn(mBootstrap);
+    Mockito.when(mChannel.pipeline()).thenReturn(mChannelPipeline);
+    Mockito.when(mChannelPipeline.last()).thenReturn(mClientHandler);
   }
 
   /**
