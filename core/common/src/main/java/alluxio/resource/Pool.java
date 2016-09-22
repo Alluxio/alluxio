@@ -48,4 +48,9 @@ public interface Pool<T> {
    * Close the pool which clears all the resources.
    */
   void close();
+
+  /**
+   * @return the current pool size
+   */
+  int size();
 }

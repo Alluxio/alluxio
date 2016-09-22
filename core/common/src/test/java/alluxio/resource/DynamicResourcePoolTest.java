@@ -15,8 +15,6 @@ import alluxio.Constants;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,8 +24,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class DynamicResourcePoolTest {
-  protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private static final class Resource {
     private Integer mInteger = 0;
     // Threshold for invalid resource.
@@ -54,7 +50,7 @@ public final class DynamicResourcePoolTest {
     @Override
     protected boolean shouldGc(ResourceInternal<Resource> resourceInternal) {
       return System.currentTimeMillis() - resourceInternal.getLastAccessTimeMs()
-          >= mGcThresholdInSecs * Constants.SECOND_MS;
+          >= (long) mGcThresholdInSecs * (long) Constants.SECOND_MS;
     }
 
     @Override
