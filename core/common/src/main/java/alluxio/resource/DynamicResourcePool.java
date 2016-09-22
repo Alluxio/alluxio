@@ -54,24 +54,24 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
     private T mResource;
 
-    private long mLastAccessTimeInSecs;
+    private long mLastAccessTimeMs;
 
     /**
      * Sets the lastAccessTimeInSecs.
      *
-     * @param lastAccessTimeInSecs the last access time in seconds
+     * @param lastAccessTimeMs the last access time in ms
      */
-    public void setLastAccessTimeInSecs(long lastAccessTimeInSecs) {
-      mLastAccessTimeInSecs = lastAccessTimeInSecs;
+    public void setLastAccessTimeMs(long lastAccessTimeMs) {
+      mLastAccessTimeMs = lastAccessTimeMs;
     }
 
     /**
-     * Gets the lastAccessTimeInSecs.
+     * Gets the lastAccessTimeMs.
      *
-     * @return the last access time in seconds
+     * @return the last access time in ms
      */
-    public long getLastAccessTimeInSecs() {
-      return mLastAccessTimeInSecs;
+    public long getLastAccessTimeMs() {
+      return mLastAccessTimeMs;
     }
 
     /**
@@ -81,7 +81,94 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      */
     public ResourceInternal(T resource) {
       mResource = resource;
-      mLastAccessTimeInSecs = System.currentTimeMillis() / Constants.SECOND_MS;
+      mLastAccessTimeMs = System.currentTimeMillis();
+    }
+  }
+
+  /**
+   * Options to initialize a Dynaminic resource pool.
+   */
+  public static class Options {
+    private int mMaxCapacity = 1024;
+    private int mMinCapacity = 1;
+    private int mInitialDelayMs = 100;
+    private int mGcIntervalMs = 120 * Constants.SECOND_MS;
+
+    /**
+     * @return the max capacity
+     */
+    public int getMaxCapacity() {
+      return mMaxCapacity;
+    }
+
+    /**
+     * @return the min capacity
+     */
+    public int getMinCapacity() {
+      return mMinCapacity;
+    }
+
+    /**
+     * @return the initial delay
+     */
+    public int getInitialDelayMs() {
+      return mInitialDelayMs;
+    }
+
+    /**
+     * @return the gc interval
+     */
+    public int getGcIntervalMs() {
+      return mGcIntervalMs;
+    }
+
+    /**
+     * @param maxCapacity the max capacity
+     * @return the current object
+     */
+    public Options setMaxCapacity(int maxCapacity) {
+      mMaxCapacity = maxCapacity;
+      return this;
+    }
+
+    /**
+     * @param minCapacity the min capacity
+     * @return the current object
+     */
+    public Options setMinCapacity(int minCapacity) {
+      mMinCapacity = minCapacity;
+      return this;
+    }
+
+    /**
+     * @param initialDelayMs the initial delay
+     * @return the current object
+     */
+    public Options setInitialDelayMs(int initialDelayMs) {
+      mInitialDelayMs = initialDelayMs;
+      return this;
+    }
+
+    /**
+     * @param gcIntervalMs the gc interval
+     * @return the current object
+     */
+    public Options setGcIntervalMs(int gcIntervalMs) {
+      mGcIntervalMs = gcIntervalMs;
+      return this;
+    }
+
+    /**
+     * Creates an option instance.
+     */
+    public Options() {
+    }
+
+    /**
+     * @return the default option
+     */
+    public static Options defaultOptions() {
+      return new Options();
     }
   }
 
@@ -100,10 +187,10 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
           if (c1 == c2) {
             return 0;
           }
-          if (c1.mLastAccessTimeInSecs == c2.mLastAccessTimeInSecs) {
+          if (c1.mLastAccessTimeMs == c2.mLastAccessTimeMs) {
             return c1.mIdentity - c2.mIdentity;
           }
-          return (int) (c2.mLastAccessTimeInSecs - c1.mLastAccessTimeInSecs);
+          return (int) (c2.mLastAccessTimeMs - c1.mLastAccessTimeMs);
         }
       });
 
@@ -113,22 +200,17 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
   // Thread to scan mResourceAvailable to close those resources that are old.
   private ScheduledExecutorService mExecutor;
-  // The initial delay in seconds to execute the GC task in mExecutor.
-  private static final int INITIAL_DELAY = 10;
-  // Try to GC resources periodically in a frequency specified by this interval.
-  private static final int GC_INTERVAL_IN_SECS = 300;
 
   /**
    * Creates a dynamic pool instance.
    *
-   * @param maxCapacity the maximum capacity
-   * @param minCapacity the minimum capacity
+   * @param options the options
    */
-  public DynamicResourcePool(final int maxCapacity, final int minCapacity) {
+  public DynamicResourcePool(Options options) {
     mExecutor = new ScheduledThreadPoolExecutor(1);
 
-    mMaxCapacity = maxCapacity;
-    mMinCapacity = minCapacity;
+    mMaxCapacity = options.getMaxCapacity();
+    mMinCapacity = options.getMinCapacity();
 
     mExecutor.scheduleAtFixedRate(new Runnable() {
       @Override
@@ -158,7 +240,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
           closeResource(resource);
         }
       }
-    }, INITIAL_DELAY, GC_INTERVAL_IN_SECS, TimeUnit.SECONDS);
+    }, options.getInitialDelayMs(), options.getGcIntervalMs(), TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -263,7 +345,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
             "Resource " + resource.toString() + " was not acquired from this resource pool.");
       }
       ResourceInternal<T> resourceInternal = mResources.get(resource);
-      resourceInternal.setLastAccessTimeInSecs(System.currentTimeMillis() / Constants.SECOND_MS);
+      resourceInternal.setLastAccessTimeMs(System.currentTimeMillis());
       mResourceAvailable.add(resourceInternal);
       mNotEmpty.signal();
     } finally {

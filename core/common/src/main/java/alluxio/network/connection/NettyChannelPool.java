@@ -36,7 +36,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
    *        is above the minimum capaicty (1), it is closed and removed from the pool.
    */
   public NettyChannelPool(Bootstrap bootstrap, int maxCapacity, int gcThresholdInSecs) {
-    super(maxCapacity, 1);
+    super(Options.defaultOptions().setMaxCapacity(maxCapacity));
     mBootstrap = bootstrap;
     mGcThresholdInSecs = gcThresholdInSecs;
   }
@@ -91,7 +91,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
 
   @Override
   protected boolean shouldGc(ResourceInternal<Channel> channelResourceInternal) {
-    return System.currentTimeMillis() / Constants.SECOND_MS - channelResourceInternal
-        .getLastAccessTimeInSecs() > mGcThresholdInSecs;
+    return System.currentTimeMillis() - channelResourceInternal
+        .getLastAccessTimeMs() > mGcThresholdInSecs * Constants.SECOND_MS;
   }
 }
