@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.connection.NettyChannelPool;
 import alluxio.resource.CloseableResource;
 import alluxio.util.IdUtils;
@@ -24,6 +25,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
@@ -306,5 +308,26 @@ public final class BlockStoreContext {
     return !mLocalBlockWorkerClientPoolMap.isEmpty();
   }
 
+  /**
+   * Class that contains metrics about BlockStoreContext.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    static {
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClientMetricName("NettyConnectionsOpen"),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              long ret = 0;
+              for (NettyChannelPool pool : NETTY_CHANNEL_POOL_MAP.values()) {
+                ret += pool.size();
+              }
+              return ret;
+            }
+          });
+    }
 
+    private Metrics() {} // prevent instantiation
+  }
 }
+

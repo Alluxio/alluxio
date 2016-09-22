@@ -20,9 +20,12 @@ import io.netty.channel.ChannelFuture;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A pool to manage netty channels.
  */
+@ThreadSafe
 public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   private Bootstrap mBootstrap;
   private final int mGcThresholdInSecs;
