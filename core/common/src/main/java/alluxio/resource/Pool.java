@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @param <T> the type of resource this pool manages
  */
-public interface Pool <T> {
+public interface Pool<T> {
   /**
    * Acquire a resource from the pool.
    *

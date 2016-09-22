@@ -11,7 +11,9 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -65,7 +67,7 @@ public final class BlockStoreContext {
       new ConcurrentHashMap<>();
 
   private static final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
-      mNettyChannelPoolMap = new ConcurrentHashMapV8<>();
+      NETTY_CHANNEL_POOL_MAP = new ConcurrentHashMapV8<>();
 
   /**
    * Only one context will be kept for each master address.
@@ -262,32 +264,38 @@ public final class BlockStoreContext {
   }
 
   /**
-   * Acquire a netty channel.
+   * Acquire a netty channel from the channel pools.
    *
-   * @param address
-   * @param bootstrap
-   * @return the acquired netty
+   * @param address the network address of the channel
+   * @param bootstrap the bootstrap to create a new channel if there is no cached channel
+   * @return the acquired netty channel
    */
   public static Channel acquireNettyChannel(InetSocketAddress address, Bootstrap bootstrap) {
-    if (address == null) {
-      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-    }
-    if (!mNettyChannelPoolMap.containsKey(address)) {
+    if (!NETTY_CHANNEL_POOL_MAP.containsKey(address)) {
       Bootstrap bootstrapClone = bootstrap.clone();
       bootstrapClone.remoteAddress(address);
-      // TODO(peis): Make this configurable.
-      mNettyChannelPoolMap.putIfAbsent(address, new NettyChannelPool(bootstrapClone, 10, 300));
+      NETTY_CHANNEL_POOL_MAP.putIfAbsent(address, new NettyChannelPool(
+          bootstrapClone,
+          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
+          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_SECS)));
     }
     try {
-      return mNettyChannelPoolMap.get(address).acquire();
+      return NETTY_CHANNEL_POOL_MAP.get(address).acquire();
     } catch (IOException e) {
       LOG.error("Failed to acquire netty channel with exception %s.", e.getMessage());
       return null;
     }
   }
 
+  /**
+   * Release a netty channel to the channel pools.
+   *
+   * @param address the network address of the channel
+   * @param channel the channel to release
+   */
   public static void releaseNettyChannel(InetSocketAddress address, Channel channel) {
-    mNettyChannelPoolMap.get(address).release(channel);
+    Preconditions.checkArgument(NETTY_CHANNEL_POOL_MAP.containsKey(address));
+    NETTY_CHANNEL_POOL_MAP.get(address).release(channel);
   }
 
   /**

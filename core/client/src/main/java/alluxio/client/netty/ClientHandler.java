@@ -17,8 +17,6 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-import com.sun.org.apache.regexp.internal.RE;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
