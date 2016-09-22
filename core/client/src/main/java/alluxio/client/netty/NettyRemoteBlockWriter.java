@@ -109,7 +109,6 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
           LOG.debug("status: {} from remote machine {} received", status, mAddress);
 
           if (status != RPCResponse.Status.SUCCESS) {
-            Metrics.NETTY_BLOCK_WRITE_FAILURES.inc();
             throw new IOException(ExceptionMessage.BLOCK_WRITE_ERROR.getMessage(mBlockId,
                 mSessionId, mAddress, status.getMessage()));
           }
@@ -136,7 +135,7 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   }
 
   /**
-   * Class that contains metrics about RemoteBlockInStream.
+   * Class that contains metrics about {@link NettyRemoteBlockWriter}.
    */
   @ThreadSafe
   private static final class Metrics {

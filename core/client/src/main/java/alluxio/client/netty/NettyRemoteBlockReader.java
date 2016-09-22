@@ -100,7 +100,6 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
           throw new IOException(status.getMessage() + " response: " + blockResponse);
         case RPC_ERROR_RESPONSE:
           RPCErrorResponse error = (RPCErrorResponse) response;
-          Metrics.NETTY_BLOCK_READ_FAILURES.inc();
           throw new IOException(error.getStatus().getMessage());
         default:
           throw new IOException(ExceptionMessage.UNEXPECTED_RPC_RESPONSE
@@ -133,7 +132,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
   }
 
   /**
-   * Class that contains metrics about RemoteBlockInStream.
+   * Class that contains metrics about {@link NettyRemoteBlockReader}.
    */
   @ThreadSafe
   private static final class Metrics {

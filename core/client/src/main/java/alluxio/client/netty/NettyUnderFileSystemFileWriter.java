@@ -13,7 +13,9 @@ package alluxio.client.netty;
 
 import alluxio.Constants;
 import alluxio.client.UnderFileSystemFileWriter;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCFileWriteRequest;
 import alluxio.network.protocol.RPCFileWriteResponse;
@@ -21,6 +23,7 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataByteArrayChannel;
 
+import com.codahale.metrics.Counter;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -32,6 +35,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Writer for an under file system file through a worker data server via Netty. This class does not
@@ -44,33 +48,35 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
 
   /** Netty bootstrap for the connection. */
   private final Bootstrap mClientBootstrap;
-  /** Handler for Netty messages. */
-  private final ClientHandler mHandler;
 
   /**
    * Constructor for a Netty based writer to an under file system file on a worker.
    */
   public NettyUnderFileSystemFileWriter() {
-    mHandler = new ClientHandler();
-    mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
+    mClientBootstrap = NettyClient.createClientBootstrap(new ClientHandler());
   }
 
   @Override
   public void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] source,
       int offset, int length) throws IOException {
     SingleResponseListener listener = null;
+    Channel channel = null;
+    Metrics.NETTY_UFS_WRITE_OPS.inc();
     try {
-      ChannelFuture f = mClientBootstrap.connect(address).sync();
-
-      LOG.debug("Connected to remote machine {}", address);
-      Channel channel = f.channel();
+      channel = BlockStoreContext.acquireNettyChannel(address, mClientBootstrap) ;
       listener = new SingleResponseListener();
-      mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCFileWriteRequest(ufsFileId, fileOffset, length,
-          new DataByteArrayChannel(source, offset, length)));
+      ((ClientHandler) channel.pipeline().last()).addListener(listener);
+      ChannelFuture channelFuture = channel.writeAndFlush(
+          new RPCFileWriteRequest(ufsFileId, fileOffset, length,
+              new DataByteArrayChannel(source, offset, length))).sync();
+
+      if (channelFuture.isDone() && !channelFuture.isSuccess()) {
+        LOG.error("Failed to read ufs file from %s for ufsFilId %d with error %s.",
+            address.toString(), ufsFileId, channelFuture.cause());
+        throw new IOException(channelFuture.cause());
+      }
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      channel.close().sync();
 
       switch (response.getType()) {
         case RPC_FILE_WRITE_RESPONSE:
@@ -91,14 +97,31 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
               .getMessage(response.getType(), RPCMessage.Type.RPC_FILE_WRITE_RESPONSE));
       }
     } catch (Exception e) {
+      Metrics.NETTY_UFS_WRITE_FAILURES.inc();
       throw new IOException(e);
     } finally {
-      if (listener != null) {
-        mHandler.removeListener(listener);
+      if (channel != null && listener != null) {
+        ((ClientHandler) channel.pipeline().last()).removeListener(listener);
+      }
+      if (channel != null) {
+        BlockStoreContext.releaseNettyChannel(address, channel);
       }
     }
   }
 
   @Override
   public void close() {}
+
+  /**
+   * Class that contains metrics about {@link NettyUnderFileSystemFileWriter}.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter NETTY_UFS_WRITE_OPS =
+        MetricsSystem.clientCounter("NettyUfsWriteOps");
+    private static final Counter NETTY_UFS_WRITE_FAILURES =
+        MetricsSystem.clientCounter("NettyUfsWriteFailures");
+
+    private Metrics() {} // prevent instantiation
+  }
 }
