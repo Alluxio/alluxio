@@ -23,6 +23,7 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -44,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class NettyRemoteBlockReader implements RemoteBlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final Bootstrap mClientBootstrap;
+  private final Callable<Bootstrap> mClientBootstrap;
   /** A reference to read response so we can explicitly release the resource after reading. */
   private RPCBlockReadResponse mReadResponse = null;
 
@@ -52,16 +54,21 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
    * Creates a new {@link NettyRemoteBlockReader}.
    */
   public NettyRemoteBlockReader() {
-    mClientBootstrap = NettyClient.createClientBootstrap(new ClientHandler());
+    mClientBootstrap = NettyClient.bootstrapBuilder();
   }
 
   /**
-   * Constructor.
+   * Constructor for unittest only.
    *
    * @param clientBootstrap bootstrap class of the client channel
    */
-  public NettyRemoteBlockReader(Bootstrap clientBootstrap) {
-    mClientBootstrap = clientBootstrap;
+  public NettyRemoteBlockReader(final Bootstrap clientBootstrap) {
+    mClientBootstrap = new Callable<Bootstrap>() {
+      @Override
+      public Bootstrap call() {
+        return clientBootstrap;
+      }
+    };
   }
 
   @Override
@@ -107,6 +114,11 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       }
     } catch (Exception e) {
       Metrics.NETTY_BLOCK_READ_FAILURES.inc();
+      try {
+        channel.close().sync();
+      } catch (InterruptedException ee) {
+        throw Throwables.propagate(ee);
+      }
       throw new IOException(e);
     } finally {
       if (channel != null && listener != null) {

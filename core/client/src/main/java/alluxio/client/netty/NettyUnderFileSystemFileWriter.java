@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -47,13 +48,13 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Netty bootstrap for the connection. */
-  private final Bootstrap mClientBootstrap;
+  private final Callable<Bootstrap> mClientBootstrap;
 
   /**
    * Constructor for a Netty based writer to an under file system file on a worker.
    */
   public NettyUnderFileSystemFileWriter() {
-    mClientBootstrap = NettyClient.createClientBootstrap(new ClientHandler());
+    mClientBootstrap = NettyClient.bootstrapBuilder();
   }
 
   @Override

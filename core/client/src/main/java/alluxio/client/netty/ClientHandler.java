@@ -17,7 +17,6 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 
 import com.google.common.base.Preconditions;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
@@ -32,7 +31,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This handles all the messages received by the client channel.
  */
-@ChannelHandler.Sharable
 @NotThreadSafe
 public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
