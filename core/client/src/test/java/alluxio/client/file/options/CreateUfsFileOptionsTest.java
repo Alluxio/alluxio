@@ -42,15 +42,17 @@ import java.io.IOException;
 // Need to mock Permission to use CommonTestUtils#testEquals.
 @PrepareForTest(Permission.class)
 public final class CreateUfsFileOptionsTest {
+  private static final String TEST_USER = "test";
+
   @Rule
-  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("foo");
+  public AuthenticatedUserRule mRule = new AuthenticatedUserRule(TEST_USER);
 
   @Before
   public void before() {
     LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
     // Use IdentityOwnerGroupMapping to map owner "foo" to group "foo".
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
@@ -70,8 +72,8 @@ public final class CreateUfsFileOptionsTest {
 
     Permission expectedPs = Permission.defaults().applyFileUMask();
 
-    Assert.assertEquals("foo", options.getPermission().getOwner());
-    Assert.assertEquals("foo", options.getPermission().getGroup());
+    Assert.assertEquals(TEST_USER, options.getPermission().getOwner());
+    Assert.assertEquals(TEST_USER, options.getPermission().getGroup());
     Assert.assertEquals(expectedPs.getMode(), options.getPermission().getMode());
     ConfigurationTestUtils.resetConfiguration();
   }
