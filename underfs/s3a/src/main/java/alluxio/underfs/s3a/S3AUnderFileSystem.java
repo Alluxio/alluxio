@@ -438,8 +438,8 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   public boolean rename(String src, String dst) throws IOException {
     // If the user has enabled direct writes, skip the rename of Alluxio temporary files if the
     // temporary file does not exist and the destination exists.
-    if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_DIRECT_WRITES_ENABLED) &&
-        PathUtils.isTemporaryFileName(src) && !exists(src) && exists(dst)) {
+    if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_DIRECT_WRITES_ENABLED)
+        && PathUtils.isTemporaryFileName(src) && !exists(src) && exists(dst)) {
       return true;
     }
     if (!exists(src)) {
