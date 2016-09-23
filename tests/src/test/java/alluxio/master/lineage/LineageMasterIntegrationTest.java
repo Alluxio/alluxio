@@ -30,12 +30,14 @@ import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.wire.LineageInfo;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -73,13 +75,20 @@ public class LineageMasterIntegrationTest {
               Integer.toString(RECOMPUTE_INTERVAL_MS))
           .setProperty(PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS,
               Integer.toString(CHECKPOINT_INTERVAL_MS))
+          .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, "test")
           .build();
 
   private CommandLineJob mJob;
 
   @Before
   public void before() throws Exception {
+    AuthenticatedClientUser.set("test");
     mJob = new CommandLineJob("test", new JobConf("output"));
+  }
+
+  @After
+  public void after() throws Exception {
+    AuthenticatedClientUser.remove();
   }
 
   @Test

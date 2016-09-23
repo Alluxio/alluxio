@@ -85,6 +85,9 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    * Tests ls command when security is not enabled.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsNoAcl() throws IOException, AlluxioException {
     URIStatus[] files = createFiles();
     mFsShell.run("ls", "/testRoot");
@@ -130,6 +133,9 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    * Tests ls command with wildcard when security is not enabled.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsWildcardNoAcl() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
@@ -191,6 +197,9 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    * Tests lsr command with wildcard when security is not enabled.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsrNoAcl() throws IOException, AlluxioException {
     URIStatus[] files = createFiles();
     mFsShell.run("lsr", "/testRoot");
