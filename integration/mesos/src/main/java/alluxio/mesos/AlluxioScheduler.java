@@ -116,8 +116,8 @@ public class AlluxioScheduler implements Scheduler {
         Configuration.getBytes(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
 
     LOG.info("Master launched {}, master count {}, "
-        + "requested master cpu {} and mem {} MB",
-        mMasterLaunched, mMasterCount, masterCpu, masterMem);
+        + "requested master cpu {} mem {} MB and required master hostname {}",
+        mMasterLaunched, mMasterCount, masterCpu, masterMem, mRequiredMasterHostname);
 
     for (Protos.Offer offer : offers) {
       Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
@@ -168,11 +168,8 @@ public class AlluxioScheduler implements Scheduler {
                                     .build())
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
-                                    .setName("ALLUXIO_CONF_DIR").setValue("conf")
-                                    .build())
-                            .addVariables(
-                                Protos.Environment.Variable.newBuilder()
-                                    .setName("ALLUXIO_LOGS_DIR").setValue("logs")
+                                    .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
+                                    .setValue(createAlluxioSiteProperties())
                                     .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
@@ -204,14 +201,6 @@ public class AlluxioScheduler implements Scheduler {
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
                                     .setName("ALLUXIO_MASTER_HOSTNAME").setValue(mMasterHostname)
-                                    .build())
-                            .addVariables(
-                                Protos.Environment.Variable.newBuilder()
-                                    .setName("ALLUXIO_CONF_DIR").setValue("conf")
-                                    .build())
-                            .addVariables(
-                                Protos.Environment.Variable.newBuilder()
-                                    .setName("ALLUXIO_LOGS_DIR").setValue("logs")
                                     .build())
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
@@ -277,7 +266,7 @@ public class AlluxioScheduler implements Scheduler {
   private String createAlluxioSiteProperties() {
     StringBuilder siteProperties = new StringBuilder();
     for (Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      siteProperties.append(String.format("%s=%s", entry.getKey(), entry.getValue()));
+      siteProperties.append(String.format("%s=%s\n", entry.getKey(), entry.getValue()));
     }
     return siteProperties.toString();
   }
