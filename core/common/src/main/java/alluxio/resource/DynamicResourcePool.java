@@ -320,7 +320,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       closeResource(resource.mResource);
       remove(resource.mResource);
       // Acquire without waiting.
-      return acquire(0, unit);
+      return acquire(endTimeMs - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     }
   }
 
