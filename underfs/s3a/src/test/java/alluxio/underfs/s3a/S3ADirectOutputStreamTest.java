@@ -11,26 +11,18 @@
 
 package alluxio.underfs.s3a;
 
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.io.File;
 
 /**
  * Unit tests for the {@link S3ADirectOutputStream}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(S3ADirectOutputStream.class)
 public class S3ADirectOutputStreamTest {
   private static final String BUCKET_NAME = "testBucket";
   private static final String KEY = "testKey";
@@ -55,15 +47,9 @@ public class S3ADirectOutputStreamTest {
    */
   @Test
   public void close() throws Exception {
-    PutObjectRequest request = Mockito.mock(PutObjectRequest.class);
-
-    Mockito.when(request.withMetadata(Mockito.any(ObjectMetadata.class))).thenReturn(request);
-    PowerMockito.whenNew(PutObjectRequest.class)
-        .withParameterTypes(String.class, String.class, File.class)
-        .withArguments(Matchers.eq(BUCKET_NAME), Matchers.eq(KEY), Mockito.any(File.class))
-        .thenReturn(request);
-
+    ArgumentCaptor<PutObjectRequest> captor = ArgumentCaptor.forClass(PutObjectRequest.class);
     mStream.close();
-    Mockito.verify(mManager).upload(request);
+    Mockito.verify(mManager).upload(captor.capture());
+    Assert.assertEquals(KEY, captor.getValue().getKey());
   }
 }
