@@ -13,6 +13,7 @@ package alluxio.resource;
 
 import alluxio.Constants;
 
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A dynamic pool that manages the resources. It clears old resources.
  * It accepts a min and max capacity.
  *
- * When acquiring resources, the most recently used
+ * When acquiring resources, the most recently used resource is returned.
  *
  * @param <T> the type of the resource
  */
@@ -59,8 +60,6 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     private long mLastAccessTimeMs;
 
     /**
-     * Sets the lastAccessTimeInSecs.
-     *
      * @param lastAccessTimeMs the last access time in ms
      */
     public void setLastAccessTimeMs(long lastAccessTimeMs) {
@@ -68,8 +67,6 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     }
 
     /**
-     * Gets the lastAccessTimeMs.
-     *
      * @return the last access time in ms
      */
     public long getLastAccessTimeMs() {
@@ -88,7 +85,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   }
 
   /**
-   * Options to initialize a Dynaminic resource pool.
+   * Options to initialize a Dynamic resource pool.
    */
   public static class Options {
     private int mMaxCapacity = 1024;
@@ -126,7 +123,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
     /**
      * @param maxCapacity the max capacity
-     * @return the current object
+     * @return the updated object
      */
     public Options setMaxCapacity(int maxCapacity) {
       mMaxCapacity = maxCapacity;
@@ -135,7 +132,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
     /**
      * @param minCapacity the min capacity
-     * @return the current object
+     * @return the updated object
      */
     public Options setMinCapacity(int minCapacity) {
       mMinCapacity = minCapacity;
@@ -144,7 +141,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
     /**
      * @param initialDelayMs the initial delay
-     * @return the current object
+     * @return the updated object
      */
     public Options setInitialDelayMs(int initialDelayMs) {
       mInitialDelayMs = initialDelayMs;
@@ -153,18 +150,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
     /**
      * @param gcIntervalMs the gc interval
-     * @return the current object
+     * @return the updated object
      */
     public Options setGcIntervalMs(int gcIntervalMs) {
       mGcIntervalMs = gcIntervalMs;
       return this;
     }
 
-    /**
-     * Creates an option instance.
-     */
-    public Options() {
-    }
+    private Options() {}  // prevents instantiation
 
     /**
      * @return the default option
@@ -238,7 +231,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         }
 
         for (T resource : resourcesToGc) {
-          LOG.info("Resource {} is garbage collected.", resource.toString());
+          LOG.info("Resource {} is garbage collected.", resource);
           closeResource(resource);
         }
       }
@@ -256,8 +249,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     try {
       return acquire(100  /* no timeout */, TimeUnit.DAYS);
     } catch (TimeoutException e) {
-      LOG.error("Never should timeout in acquire().");
-      throw new RuntimeException(e);
+      // Never should timeout in acquire().
+      throw Throwables.propagate(e);
     }
   }
 
@@ -267,8 +260,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * This method is like {@link #acquire()}, but it will time out if an object cannot be
    * acquired before the specified amount of time.
    *
-   * @param time an amount of time to wait, null to wait indefinitely
-   * @param unit the unit to use for time, null to wait indefinitely
+   * @param time an amount of time to wait
+   * @param unit the unit to use for time
    * @return a resource taken from the pool
    * @throws IOException if it fails to acquire because of the failure to create a new resource
    * @throws TimeoutException if it fails to acquire because of time out
@@ -283,7 +276,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       if (isHealthy(resource.mResource)) {
         return resource.mResource;
       } else {
-        LOG.info("Clearing unhealthy resource {}.", resource.mResource.toString());
+        LOG.info("Clearing unhealthy resource {}.", resource.mResource);
         closeResource(resource.mResource);
         remove(resource.mResource);
         return acquire(time, unit);
@@ -294,32 +287,31 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       // If the resource pool is empty but capacity is not yet full, create a new resource.
       T newResource = createNewResource();
       ResourceInternal<T> resourceInternal = new ResourceInternal<>(newResource);
-      // It is possible that we have more resources than mMaxCapacity here, just insert it
-      // instead of waiting.
-      add(resourceInternal);
-      return newResource;
+      if (add(resourceInternal)) {
+        return newResource;
+      } else {
+        closeResource(newResource);
+      }
     }
 
     // Otherwise, try to take a resource from the pool, blocking if none are available.
     try {
-      mLock.lockInterruptibly();
-      try {
-        while (true) {
-          resource = poll();
-          if (resource != null) {
-            break;
-          }
-          long currTimeMs = System.currentTimeMillis();
-          if (currTimeMs >= endTimeMs || !mNotEmpty
-              .await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {
-            throw new TimeoutException("Acquire resource times out.");
-          }
+      mLock.lock();
+      while (true) {
+        resource = poll();
+        if (resource != null) {
+          break;
         }
-      } finally {
-        mLock.unlock();
+        long currTimeMs = System.currentTimeMillis();
+        if (currTimeMs >= endTimeMs || !mNotEmpty
+            .await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {
+          throw new TimeoutException("Acquire resource times out.");
+        }
       }
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      throw Throwables.propagate(e);
+    } finally {
+      mLock.unlock();
     }
 
     if (isHealthy(resource.mResource)) {
@@ -401,11 +393,17 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * Adds a newly created resource to the pool. The resource is not available when it is added.
    *
    * @param resource
+   * @return true if the resource is successfully added
    */
-  private void add(ResourceInternal<T> resource) {
+  private boolean add(ResourceInternal<T> resource) {
     try {
       mLock.lock();
-      mResources.put(resource.mResource, resource);
+      if (mResources.size() >= mMaxCapacity) {
+        return false;
+      } else {
+        mResources.put(resource.mResource, resource);
+        return true;
+      }
     } finally {
       mLock.unlock();
     }
