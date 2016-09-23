@@ -66,7 +66,7 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
     try {
       channel = BlockStoreContext.acquireNettyChannel(address, mClientBootstrap);
       listener = new SingleResponseListener();
-      ((ClientHandler) channel.pipeline().last()).addListener(listener);
+      channel.pipeline().get(ClientHandler.class).addListener(listener);
       ChannelFuture channelFuture = channel.writeAndFlush(
           new RPCFileWriteRequest(ufsFileId, fileOffset, length,
               new DataByteArrayChannel(source, offset, length))).sync();
@@ -102,7 +102,7 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
       throw new IOException(e);
     } finally {
       if (channel != null && listener != null) {
-        ((ClientHandler) channel.pipeline().last()).removeListener(listener);
+        channel.pipeline().get(ClientHandler.class).removeListener(listener);
       }
       if (channel != null) {
         BlockStoreContext.releaseNettyChannel(address, channel);

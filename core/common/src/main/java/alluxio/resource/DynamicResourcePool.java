@@ -157,7 +157,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       return this;
     }
 
-    private Options() {}  // prevents instantiation
+    private Options() {
+    }  // prevents instantiation
 
     /**
      * @return the default option
@@ -273,14 +274,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     // Try to take a resource without blocking
     ResourceInternal<T> resource = poll();
     if (resource != null) {
-      if (isHealthy(resource.mResource)) {
-        return resource.mResource;
-      } else {
-        LOG.info("Clearing unhealthy resource {}.", resource.mResource);
-        closeResource(resource.mResource);
-        remove(resource.mResource);
-        return acquire(time, unit);
-      }
+      checkHealthyAndRetry(resource.mResource, endTimeMs);
     }
 
     if (!isFull()) {
@@ -314,14 +308,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       mLock.unlock();
     }
 
-    if (isHealthy(resource.mResource)) {
-      return resource.mResource;
-    } else {
-      closeResource(resource.mResource);
-      remove(resource.mResource);
-      // Acquire without waiting.
-      return acquire(endTimeMs - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
-    }
+    return checkHealthyAndRetry(resource.mResource, endTimeMs);
   }
 
   /**
@@ -435,6 +422,26 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       mLock.unlock();
     }
     return resource;
+  }
+
+  /**
+   * Check whether the resource is healthy. If not retry.
+   *
+   * @param resource the resource to check
+   * @param endTimeMs the end time to wait till
+   * @return the resource
+   * @throws IOException if it fails to create a resource
+   * @throws TimeoutException if it times out to wait for a resource
+   */
+  private T checkHealthyAndRetry(T resource, long endTimeMs) throws IOException, TimeoutException {
+    if (isHealthy(resource)) {
+      return resource;
+    } else {
+      LOG.info("Clearing unhealthy resource {}.", resource);
+      closeResource(resource);
+      remove(resource);
+      return acquire(endTimeMs - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+    }
   }
 
   // The following functions should be overridden by implementations.

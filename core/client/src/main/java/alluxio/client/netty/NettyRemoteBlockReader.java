@@ -80,7 +80,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
     try {
       channel = BlockStoreContext.acquireNettyChannel(address, mClientBootstrap);
       listener = new SingleResponseListener();
-      ((ClientHandler) channel.pipeline().last()).addListener(listener);
+      channel.pipeline().get(ClientHandler.class).addListener(listener);
       ChannelFuture channelFuture = channel
           .writeAndFlush(new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId));
       channelFuture = channelFuture.sync();
@@ -122,7 +122,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       throw new IOException(e);
     } finally {
       if (channel != null && listener != null) {
-        ((ClientHandler) channel.pipeline().last()).removeListener(listener);
+        channel.pipeline().get(ClientHandler.class).removeListener(listener);
       }
       if (channel != null) {
         BlockStoreContext.releaseNettyChannel(address, channel);
