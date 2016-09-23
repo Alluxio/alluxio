@@ -33,14 +33,17 @@ mkdir -p ${WORK_DIR}
 HOME="${THIS}/../.."
 
 REPO_COPY=${WORK_DIR}/alluxio
+rm -rf ${REPO_COPY}
 rsync -aq --exclude='logs' --exclude='dev' ${HOME} ${REPO_COPY}
 
 pushd ${REPO_COPY} > /dev/null
 git clean -fdx
+git reset --hard HEAD
 BUILD_LOG="${HOME}/logs/build.log"
 echo "Running build and logging to ${BUILD_LOG}"
 mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos ${BUILD_OPTS} | tee ${BUILD_LOG} 2>&1
-VERSION=$(${HOME}/bin/alluxio version)
+touch conf/alluxio-env.sh
+VERSION=$(bin/alluxio version)
 PREFIX=alluxio-${VERSION}
 
 cd ..
