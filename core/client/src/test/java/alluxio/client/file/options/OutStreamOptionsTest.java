@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.util.Random;
 
 /**
@@ -43,11 +44,12 @@ public class OutStreamOptionsTest {
    * Tests that building an {@link OutStreamOptions} with the defaults works.
    */
   @Test
-  public void defaults() {
+  public void defaults() throws IOException {
     AlluxioStorageType alluxioType = AlluxioStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test");
 
     OutStreamOptions options = OutStreamOptions.defaults();
 
@@ -56,7 +58,8 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    Assert.assertEquals(Permission.defaults().applyFileUMask(), options.getPermission());
+    Assert.assertEquals(Permission.defaults().applyFileUMask().setOwnerFromLoginModule(),
+        options.getPermission());
     ConfigurationTestUtils.resetConfiguration();
   }
 
