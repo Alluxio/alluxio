@@ -115,8 +115,8 @@ public class AlluxioScheduler implements Scheduler {
         Configuration.getBytes(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
 
     LOG.info("Master launched {}, master count {}, "
-        + "requested master cpu {} and mem {} MB",
-        mMasterLaunched, mMasterCount, masterCpu, masterMem);
+        + "requested master cpu {} mem {} MB and required master hostname {}",
+        mMasterLaunched, mMasterCount, masterCpu, masterMem, mRequiredMasterHostname);
 
     for (Protos.Offer offer : offers) {
       Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
@@ -165,14 +165,6 @@ public class AlluxioScheduler implements Scheduler {
                                     .setName("ALLUXIO_UNDERFS_ADDRESS")
                                     .setValue(Configuration.get(PropertyKey.UNDERFS_ADDRESS))
                                     .build())
-                            .addVariables(
-                                Protos.Environment.Variable.newBuilder()
-                                    .setName("ALLUXIO_CONF_DIR").setValue("conf")
-                                    .build())
-                            .addVariables(
-                                Protos.Environment.Variable.newBuilder()
-                                    .setName("ALLUXIO_LOGS_DIR").setValue("logs")
-                                    .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
         resources = getMasterRequiredResources(masterCpu, masterMem);
@@ -203,14 +195,6 @@ public class AlluxioScheduler implements Scheduler {
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
                                     .setName("ALLUXIO_MASTER_HOSTNAME").setValue(mMasterHostname)
-                                    .build())
-                            .addVariables(
-                                Protos.Environment.Variable.newBuilder()
-                                    .setName("ALLUXIO_CONF_DIR").setValue("conf")
-                                    .build())
-                            .addVariables(
-                                Protos.Environment.Variable.newBuilder()
-                                    .setName("ALLUXIO_LOGS_DIR").setValue("logs")
                                     .build())
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
