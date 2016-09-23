@@ -87,7 +87,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   /**
    * Options to initialize a Dynamic resource pool.
    */
-  public final static class Options {
+  public static final class Options {
     private int mMaxCapacity = 1024;
     private int mMinCapacity = 1;
     private int mInitialDelayMs = 100;
