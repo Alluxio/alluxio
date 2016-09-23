@@ -21,7 +21,7 @@ Alluxio安全性目前有两个特性，该文档介绍它们的概念以及用�
 
 Alluxio通过Thrift RPC提供文件系统服务，客户端（代表一个用户）和服务端（例如master）应该通过认证建立连接以通信，若认证成功，则建立连接；若失败，则该连接不应当被建立，并且会向客户端抛出一个异常。
 
-目前支持三种认证模式：NOSASL（默认模式）、SIMPLE以及CUSTOM。
+目前支持三种认证模式：SIMPLE（默认模式）、CUSTOM以及NOSASL。
 
 ## 用户账户
 
@@ -85,8 +85,9 @@ Alluxio文件系统为目录和文件实现了一个访问权限模型，该模�
 
 ## 用户-组映射 {#user-group-mapping}
 
-当用户确定后，其组列表通过一个组映射服务确定，该服务通过`alluxio.security.group.mapping.class`配置，其默认实现是`alluxio.security.group
-.provider.ShellBasedUnixGroupsMapping`，该实现通过执行`groups` shell命令获取一个给定用户的组关系。
+当用户确定后，其组列表通过一个组映射服务确定，该服务通过`alluxio.security.group.mapping.class`配置，其默认实现是
+`alluxio.security.group.provider.ShellBasedUnixGroupsMapping`，该实现通过执行`groups` shell命令获取一个给定用户的组关系。
+用户-组映射默认使用了一种缓存机制，映射关系默认会缓存60秒，这个可以通过`alluxio.security.group.mapping.cache.timeout.ms`进行配置，如果这个值设置成为“0”，缓存就不会启用.
 
 `alluxio.security.authorization.permission.supergroup`属性定义了一个超级组，该组中的所有用户都是超级用户。
 
@@ -103,6 +104,10 @@ Alluxio文件系统为目录和文件实现了一个访问权限模型，该模�
 
 所属用户只能由超级用户修改。
 所属组和访问权限只能由超级用户和文件所有者修改。
+
+# 加密
+
+目前，服务层的加解密方案还没有完成，但是用户可以在应用层对敏感数据进行加密，或者是开启底层系统的加密功能，比如，HDFS的透明加解密，Linux的磁盘加密。
 
 # 部署
 
