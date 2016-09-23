@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -37,6 +38,8 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
+import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -102,6 +105,9 @@ public final class FileSystemMasterTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @Rule
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
+
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK,
@@ -125,6 +131,9 @@ public final class FileSystemMasterTest {
    */
   @Before
   public void before() throws Exception {
+    LoginUserTestUtils.resetLoginUser();
+    GroupMappingServiceTestUtils.resetCache();
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test");
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
@@ -697,6 +706,7 @@ public final class FileSystemMasterTest {
    * {@link CreateFileOptions} after the TTL check was done once.
    */
   @Test
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2237")
   public void createFileWithTtl() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
@@ -735,6 +745,7 @@ public final class FileSystemMasterTest {
    * deleted after the TTL has been set to 0.
    */
   @Test
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2237")
   public void setSmallerTtlForFileWithTtl() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true)
@@ -755,6 +766,7 @@ public final class FileSystemMasterTest {
    * Tests that a file has not been deleted after the TTL has been reset to a valid value.
    */
   @Test
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2237")
   public void setLargerTtlForFileWithTtl() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
