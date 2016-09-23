@@ -64,7 +64,7 @@ public final class CompleteUfsFileOptionsTest {
   }
 
   /**
-   * Tests that building an {@link CompleteUfsFileOptions} with the defaults works.
+   * Tests that building a {@link CompleteUfsFileOptions} with the defaults works.
    */
   @Test
   public void defaults() throws IOException {

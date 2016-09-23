@@ -64,7 +64,7 @@ public final class CreateUfsFileOptionsTest {
   }
 
   /**
-   * Tests that building an {@link CreateUfsFileOptions} with the defaults works.
+   * Tests that building a {@link CreateUfsFileOptions} with the defaults works.
    */
   @Test
   public void defaults() throws IOException {
