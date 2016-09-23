@@ -80,6 +80,10 @@ public final class BlockStoreContext {
 
   private boolean mLocalBlockWorkerClientPoolInitialized = false;
 
+  static {
+    Metrics.initializeGauges();
+  }
+
   /**
    * Creates a new block store context.
    */
@@ -321,7 +325,7 @@ public final class BlockStoreContext {
    */
   @ThreadSafe
   private static final class Metrics {
-    static {
+    private static void initializeGauges() {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClientMetricName("NettyConnectionsOpen"),
           new Gauge<Long>() {
             @Override
