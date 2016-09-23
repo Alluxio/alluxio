@@ -342,7 +342,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     try {
       mLock.lock();
       if (mResourceAvailable.size() != mResources.size()) {
-        LOG.warn("Some resources are not released when closing the resource pool.");
+        LOG.warn("{} resources are not released when closing the resource pool.",
+            mResources.size() - mResourceAvailable.size());
       }
       for (ResourceInternal<T> resourceInternal : mResourceAvailable) {
         closeResourceSync(resourceInternal.mResource);
@@ -425,7 +426,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   }
 
   /**
-   * Check whether the resource is healthy. If not retry.
+   * Check whether the resource is healthy. If not retry. When this called, the resource
+   * is not in mResourceAvailable.
    *
    * @param resource the resource to check
    * @param endTimeMs the end time to wait till
@@ -438,8 +440,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       return resource;
     } else {
       LOG.info("Clearing unhealthy resource {}.", resource);
-      closeResource(resource);
       remove(resource);
+      closeResource(resource);
       return acquire(endTimeMs - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     }
   }

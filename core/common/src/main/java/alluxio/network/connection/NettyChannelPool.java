@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * 2. We need to have control on how channel is created. For example, our channel handler might
  *    not be annotated with {@code Sharable}. So we need to deep copy handlers when creating new
  *    channels.
- * 3. Netty channel pool interface is async which is not necessary for our pooling logic.
+ * 3. Netty channel pool interface is async which is not necessary for our usecase.
  */
 @ThreadSafe
 public final class NettyChannelPool extends DynamicResourcePool<Channel> {
@@ -82,11 +82,11 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
     try {
       ChannelFuture channelFuture = bs.connect().sync();
       if (channelFuture.isSuccess()) {
-        LOG.info("Created netty channel to with netty boostrap {}.", mBootstrap.toString());
+        LOG.info("Created netty channel to with netty boostrap {}.", mBootstrap);
         return channelFuture.channel();
       } else {
         LOG.error("Failed to create netty channel with netty boostrap {} and error {}.",
-            mBootstrap.toString(), channelFuture.cause().getMessage());
+            mBootstrap, channelFuture.cause().getMessage());
         throw new IOException(channelFuture.cause());
       }
     } catch (InterruptedException e) {
