@@ -12,6 +12,8 @@
 package alluxio.resource;
 
 import alluxio.Constants;
+import alluxio.clock.Clock;
+import alluxio.clock.SystemClock;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -51,7 +53,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    *
    * @param <T> the resource type
    */
-  protected static class ResourceInternal<T> {
+  protected class ResourceInternal<T> {
     // A unique Id used to distinguish the objects.
     private int mIdentity = System.identityHashCode(this);
 
@@ -80,7 +82,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      */
     public ResourceInternal(T resource) {
       mResource = resource;
-      mLastAccessTimeMs = System.currentTimeMillis();
+      mLastAccessTimeMs = mClock.millis();
     }
   }
 
@@ -197,6 +199,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   // Thread to scan mResourceAvailable to close those resources that are old.
   private ScheduledExecutorService mExecutor;
 
+  protected Clock mClock = new SystemClock();
+
   /**
    * Creates a dynamic pool instance.
    *
@@ -218,6 +222,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
           if (mResources.size() <= mMinCapacity) {
             return;
           }
+          int currentSize = mResources.size();
           Iterator<ResourceInternal<T>> iterator = mResourceAvailable.iterator();
           while (iterator.hasNext()) {
             ResourceInternal<T> next = iterator.next();
@@ -225,6 +230,10 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
               resourcesToGc.add(next.mResource);
               iterator.remove();
               mResources.remove(next.mResource);
+              currentSize--;
+              if (currentSize <= mMinCapacity) {
+                break;
+              }
             }
           }
         } finally {
@@ -269,7 +278,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    */
   @Override
   public T acquire(long time, TimeUnit unit) throws IOException, TimeoutException {
-    long endTimeMs = System.currentTimeMillis() + unit.toMillis(time);
+    long endTimeMs = mClock.millis() + unit.toMillis(time);
 
     // Try to take a resource without blocking
     ResourceInternal<T> resource = poll();
@@ -296,7 +305,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         if (resource != null) {
           break;
         }
-        long currTimeMs = System.currentTimeMillis();
+        long currTimeMs = mClock.millis();
         if (currTimeMs >= endTimeMs || !mNotEmpty
             .await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {
           throw new TimeoutException("Acquire resource times out.");
@@ -326,7 +335,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
             "Resource " + resource.toString() + " was not acquired from this resource pool.");
       }
       ResourceInternal<T> resourceInternal = mResources.get(resource);
-      resourceInternal.setLastAccessTimeMs(System.currentTimeMillis());
+      resourceInternal.setLastAccessTimeMs(mClock.millis());
       mResourceAvailable.add(resourceInternal);
       mNotEmpty.signal();
     } finally {
@@ -442,7 +451,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       LOG.info("Clearing unhealthy resource {}.", resource);
       remove(resource);
       closeResource(resource);
-      return acquire(endTimeMs - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+      return acquire(endTimeMs - mClock.millis(), TimeUnit.MILLISECONDS);
     }
   }
 
