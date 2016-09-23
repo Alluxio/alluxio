@@ -40,7 +40,6 @@ import com.google.common.collect.ImmutableList;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -109,7 +108,6 @@ public class LineageMasterIntegrationTest {
     }
   }
 
-  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2238")
   @Test
   public void lineageCompleteAndAsyncPersist() throws Exception {
 

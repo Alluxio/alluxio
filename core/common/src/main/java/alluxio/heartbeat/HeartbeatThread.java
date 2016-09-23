@@ -12,11 +12,16 @@
 package alluxio.heartbeat;
 
 import alluxio.Constants;
+import alluxio.security.LoginUser;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
+import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -59,6 +64,14 @@ public final class HeartbeatThread implements Runnable {
 
   @Override
   public void run() {
+    try {
+      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
+        AuthenticatedClientUser.set(LoginUser.get().getName());
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to set AuthenticatedClientUser in TtlCheckerExecutor heartbeat.");
+    }
+
     // set the thread name
     Thread.currentThread().setName(mThreadName);
     try {
