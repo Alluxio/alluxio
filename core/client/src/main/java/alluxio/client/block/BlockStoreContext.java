@@ -31,6 +31,7 @@ import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
+import org.apache.hadoop.ipc.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -269,15 +271,22 @@ public final class BlockStoreContext {
    * Acquire a netty channel from the channel pools.
    *
    * @param address the network address of the channel
-   * @param bootstrap the bootstrap to create a new channel if there is no cached channel
+   * @param bootstrapBuilder the bootstrap builder that creates a new bootstrap upon called
    * @return the acquired netty channel
    */
-  public static Channel acquireNettyChannel(InetSocketAddress address, Bootstrap bootstrap) {
+  public static Channel acquireNettyChannel(InetSocketAddress address,
+      Callable<Bootstrap> bootstrapBuilder) {
     if (!NETTY_CHANNEL_POOL_MAP.containsKey(address)) {
-      Bootstrap bootstrapClone = bootstrap.clone();
-      bootstrapClone.remoteAddress(address);
+      Bootstrap bootstrap;
+      try {
+        bootstrap = bootstrapBuilder.call();
+      } catch (Exception e) {
+        // This should never happen.
+        throw Throwables.propagate(e);
+      }
+      bootstrap.remoteAddress(address);
       NETTY_CHANNEL_POOL_MAP.putIfAbsent(address, new NettyChannelPool(
-          bootstrapClone,
+          bootstrap,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_SECS)));
     }

@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -44,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final Bootstrap mClientBootstrap;
+  private final Callable<Bootstrap> mClientBootstrap;
 
   private boolean mOpen;
   private InetSocketAddress mAddress;
@@ -58,7 +59,7 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
    * Creates a new {@link NettyRemoteBlockWriter}.
    */
   public NettyRemoteBlockWriter() {
-    mClientBootstrap = NettyClient.createClientBootstrap(new ClientHandler());
+    mClientBootstrap = NettyClient.bootstrapBuilder();
     mOpen = false;
   }
 

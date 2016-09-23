@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -48,7 +49,7 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Netty bootstrap for the connection. */
-  private final Bootstrap mClientBootstrap;
+  private final Callable<Bootstrap> mClientBootstrap;
   /** A reference to read response so we can explicitly release the resource after reading. */
   private RPCFileReadResponse mReadResponse;
 
@@ -56,7 +57,7 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
    * Creates a new reader for a file in an under file system through a worker's data server.
    */
   public NettyUnderFileSystemFileReader() {
-    mClientBootstrap = NettyClient.createClientBootstrap(new ClientHandler());
+    mClientBootstrap = NettyClient.bootstrapBuilder();
   }
 
   @Override

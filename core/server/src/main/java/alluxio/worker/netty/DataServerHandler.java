@@ -23,6 +23,8 @@ import alluxio.network.protocol.RPCResponse;
 import alluxio.worker.AlluxioWorkerService;
 
 import com.google.common.base.Preconditions;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -79,12 +81,14 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
         mUnderFileSystemHandler.handleFileWriteRequest(ctx, (RPCFileWriteRequest) msg);
         break;
       case RPC_ERROR_RESPONSE:
+        // TODO(peis): Fix this, we should not assert here.
         assert msg instanceof RPCErrorResponse;
         LOG.error("Received an error response from the client: " + msg.toString());
         break;
       default:
         RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
         ctx.writeAndFlush(resp);
+        // TODO(peis): Fix this. We should not throw an exception here.
         throw new IllegalArgumentException(
             "No handler implementation for rpc msg type: " + msg.getType());
     }
@@ -93,6 +97,11 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
     LOG.warn("Exception thrown while processing request", cause);
-    ctx.close();
+    // TODO(peis): This doesn't have to be decode error, it can also be any network errors such as
+    // connection reset. Fix this ALLUXIO-2235.
+    RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.DECODE_ERROR);
+    ChannelFuture channelFuture = ctx.writeAndFlush(resp);
+    // Close the channel because it is likely a network error.
+    channelFuture.addListener(ChannelFutureListener.CLOSE);
   }
 }

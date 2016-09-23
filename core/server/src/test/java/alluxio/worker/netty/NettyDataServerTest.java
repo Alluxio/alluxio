@@ -247,7 +247,7 @@ public final class NettyDataServerTest {
     InetSocketAddress address =
         new InetSocketAddress(mNettyDataServer.getBindHost(), mNettyDataServer.getPort());
     ClientHandler handler = new ClientHandler();
-    Bootstrap clientBootstrap = NettyClient.createClientBootstrap(handler);
+    Bootstrap clientBootstrap = NettyClient.createClientBootstrap();
     ChannelFuture f = clientBootstrap.connect(address).sync();
     Channel channel = f.channel();
     try {
