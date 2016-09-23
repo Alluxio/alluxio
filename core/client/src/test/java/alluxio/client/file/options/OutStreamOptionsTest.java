@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.AuthenticatedUserRule;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -25,6 +26,7 @@ import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -40,6 +42,9 @@ import java.util.Random;
 // Need to mock Permission to use CommonTestUtils#testEquals.
 @PrepareForTest(Permission.class)
 public class OutStreamOptionsTest {
+  @Rule
+  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("test");
+
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.
    */
@@ -49,7 +54,6 @@ public class OutStreamOptionsTest {
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test");
 
     OutStreamOptions options = OutStreamOptions.defaults();
 

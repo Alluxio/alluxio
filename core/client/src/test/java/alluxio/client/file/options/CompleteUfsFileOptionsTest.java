@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.AuthenticatedUserRule;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -22,6 +23,7 @@ import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.thrift.CompleteUfsFileTOptions;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -36,6 +38,9 @@ import java.io.IOException;
 // Need to mock Permission to use CommonTestUtils#testEquals.
 @PrepareForTest(Permission.class)
 public final class CompleteUfsFileOptionsTest {
+  @Rule
+  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("test");
+
   /**
    * Tests that building an {@link CompleteUfsFileOptions} with the defaults works.
    */
