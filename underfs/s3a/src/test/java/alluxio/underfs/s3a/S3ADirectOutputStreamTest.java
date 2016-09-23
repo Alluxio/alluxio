@@ -17,18 +17,24 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 
 /**
  * Unit tests for the {@link S3ADirectOutputStream}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(S3ADirectOutputStream.class)
 public class S3ADirectOutputStreamTest {
   private static final String BUCKET_NAME = "testBucket";
   private static final String KEY = "testKey";
 
-  private File mFile;
   private TransferManager mManager;
   private S3ADirectOutputStream mStream;
 
@@ -37,7 +43,6 @@ public class S3ADirectOutputStreamTest {
    */
   @Before
   public void before() throws Exception {
-    mFile = Mockito.mock(File.class);
     mManager = Mockito.mock(TransferManager.class);
     Upload result = Mockito.mock(Upload.class);
 
@@ -50,9 +55,15 @@ public class S3ADirectOutputStreamTest {
    */
   @Test
   public void close() throws Exception {
+    PutObjectRequest request = Mockito.mock(PutObjectRequest.class);
+
+    Mockito.when(request.withMetadata(Mockito.any(ObjectMetadata.class))).thenReturn(request);
+    PowerMockito.whenNew(PutObjectRequest.class)
+        .withParameterTypes(String.class, String.class, File.class)
+        .withArguments(Matchers.eq(BUCKET_NAME), Matchers.eq(KEY), Mockito.any(File.class))
+        .thenReturn(request);
+
     mStream.close();
-    Mockito.verify(mManager).upload(
-        new PutObjectRequest(BUCKET_NAME, KEY, mFile).withMetadata(Mockito
-            .any(ObjectMetadata.class)));
+    Mockito.verify(mManager).upload(request);
   }
 }
