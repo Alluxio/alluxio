@@ -297,21 +297,21 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   // Not supported
   @Override
   public Object getConf() {
-    LOG.warn("getConf is not supported when using S3UnderFileSystem, returning null.");
+    LOG.debug("getConf is not supported when using S3AUnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    LOG.warn("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using S3AUnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path, long offset) throws IOException {
-    LOG.warn("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using S3AUnderFileSystem, returning null.");
     return null;
   }
 
