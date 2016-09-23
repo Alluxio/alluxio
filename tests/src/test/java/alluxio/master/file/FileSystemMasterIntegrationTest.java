@@ -554,7 +554,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   @Test
-  @Ignore("TODO(chaomin)")
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2237")
   public void ttlExpiredCreateFile() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
