@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.concurrent.Callable;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.callback.Callback;
 
 /**
  * A pool to manage netty channels.
