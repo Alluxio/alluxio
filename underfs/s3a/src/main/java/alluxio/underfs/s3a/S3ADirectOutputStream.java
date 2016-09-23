@@ -12,7 +12,9 @@
 package alluxio.underfs.s3a;
 
 import alluxio.util.io.PathUtils;
+
 import com.amazonaws.services.s3.transfer.TransferManager;
+
 import java.io.IOException;
 
 /**

@@ -163,7 +163,7 @@ public class S3AOutputStream extends OutputStream {
   }
 
   /**
-   * @return the path in S3 to upload the file to.
+   * @return the path in S3 to upload the file to
    */
   protected String getUploadPath() {
     return mKey;
