@@ -274,7 +274,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     // Try to take a resource without blocking
     ResourceInternal<T> resource = poll();
     if (resource != null) {
-      checkHealthyAndRetry(resource.mResource, endTimeMs);
+      return checkHealthyAndRetry(resource.mResource, endTimeMs);
     }
 
     if (!isFull()) {
