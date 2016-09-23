@@ -75,7 +75,8 @@ public class NettyRemoteBlockReaderTest {
     Mockito.when(sBootstrap.remoteAddress(Mockito.any(InetSocketAddress.class)))
         .thenReturn(sBootstrap);
     Mockito.when(mChannel.pipeline()).thenReturn(mChannelPipeline);
-    Mockito.when(mChannelPipeline.last()).thenReturn(sClientHandler);
+    Mockito.when(mChannelPipeline.get(Mockito.any(Class.class))).thenReturn(sClientHandler);
+
   }
 
   /**

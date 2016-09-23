@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  */
 public interface Pool<T> {
   /**
-   * Acquire a resource from the pool.
+   * Acquires a resource from the pool.
    *
    * @return the acquired resource which should not be null
    * @throws Exception if it fails
@@ -28,7 +28,7 @@ public interface Pool<T> {
   T acquire() throws Exception;
 
   /**
-   * Acquire a resource from the pool.
+   * Acquires a resource from the pool.
    *
    * @param time time it takes before timeout if no resource is available
    * @param unit the unit of the time
@@ -38,14 +38,14 @@ public interface Pool<T> {
   T acquire(long time, TimeUnit unit) throws Exception;
 
   /**
-   * Release the resource to the pool.
+   * Releases the resource to the pool.
    *
    * @param resource the resource to release
    */
   void release(T resource);
 
   /**
-   * Close the pool which clears all the resources.
+   * Closes the pool which clears all the resources.
    */
   void close();
 

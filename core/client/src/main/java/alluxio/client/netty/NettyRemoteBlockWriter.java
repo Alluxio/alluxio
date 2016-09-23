@@ -91,7 +91,7 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
     try {
       channel = BlockStoreContext.acquireNettyChannel(mAddress, mClientBootstrap);
       listener = new SingleResponseListener();
-      ((ClientHandler) channel.pipeline().last()).addListener(listener);
+      channel.pipeline().get(ClientHandler.class).addListener(listener);
       ChannelFuture channelFuture = channel.writeAndFlush(
           new RPCBlockWriteRequest(mSessionId, mBlockId, mWrittenBytes, length,
               new DataByteArrayChannel(bytes, offset, length))).sync();
@@ -127,7 +127,7 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
       throw new IOException(e);
     } finally {
       if (channel != null && listener != null) {
-        ((ClientHandler) channel.pipeline().last()).removeListener(listener);
+        channel.pipeline().get(ClientHandler.class).removeListener(listener);
       }
       if (channel != null) {
         BlockStoreContext.releaseNettyChannel(mAddress, channel);

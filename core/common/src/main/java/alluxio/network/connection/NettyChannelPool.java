@@ -25,7 +25,13 @@ import java.util.concurrent.Callable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A pool to manage netty channels.
+ * A pool to manage netty channels. Netty has it own implementation of channel pool but that
+ * doesn't fit our needs for several reasons:
+ * 1. We need a dynamic pool which can garbage collect idle channels.
+ * 2. We need to have control on how channel is created. For example, our channel handler might
+ *    not be annotated with {@code Sharable}. So we need to deep copy handlers when creating new
+ *    channels.
+ * 3. Netty channel pool interface is async which is not necessary for our pooling logic.
  */
 @ThreadSafe
 public final class NettyChannelPool extends DynamicResourcePool<Channel> {
