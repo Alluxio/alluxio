@@ -27,8 +27,8 @@ public abstract class RestApiTest {
   protected int mPort;
   protected String mServicePrefix;
 
-  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to re-evaluate
-  // whether REST API still works in SIMPLE mode.
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
   @Rule
   public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource.Builder()
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
