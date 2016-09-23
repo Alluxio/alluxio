@@ -74,6 +74,7 @@ public class FileSystemMasterIntegrationTest {
   // this specified time and always using System.currentTimeMillis()
   private static final long TEST_CURRENT_TIME = 300;
   private static final long TTL_CHECKER_INTERVAL_MS = 1000;
+  private static final String TEST_USER = "test";
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
@@ -91,7 +92,7 @@ public class FileSystemMasterIntegrationTest {
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
               String.valueOf(TTL_CHECKER_INTERVAL_MS))
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, 1000)
-          .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, "test")
+          .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER)
           .build();
 
   @Rule
@@ -104,7 +105,7 @@ public class FileSystemMasterIntegrationTest {
   public final void before() throws Exception {
     mFsMaster =
         mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
-    AuthenticatedClientUser.set("test");
+    AuthenticatedClientUser.set(TEST_USER);
     mInodeTree = (InodeTree) Whitebox.getInternalState(mFsMaster, "mInodeTree");
   }
 
@@ -652,7 +653,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
-      AuthenticatedClientUser.set("test");
+      AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -716,7 +717,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
-      AuthenticatedClientUser.set("test");
+      AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -774,7 +775,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
-      AuthenticatedClientUser.set("test");
+      AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -835,7 +836,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
-      AuthenticatedClientUser.set("test");
+      AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }

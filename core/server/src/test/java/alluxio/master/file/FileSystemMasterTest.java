@@ -88,6 +88,7 @@ public final class FileSystemMasterTest {
   private static final AlluxioURI ROOT_URI = new AlluxioURI("/");
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
+  private static final String TEST_USER = "test";
   private static CreateFileOptions sNestedFileOptions;
 
   private BlockMaster mBlockMaster;
@@ -105,7 +106,7 @@ public final class FileSystemMasterTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
@@ -132,7 +133,7 @@ public final class FileSystemMasterTest {
   public void before() throws Exception {
     LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test");
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
