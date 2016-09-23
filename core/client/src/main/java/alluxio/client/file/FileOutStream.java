@@ -119,6 +119,15 @@ public class FileOutStream extends AbstractOutStream {
     mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
     if (mUnderStorageType.isSyncPersist()) {
+      // Get the ufs path from the master.
+      FileSystemMasterClient client = mContext.acquireMasterClient();
+      try {
+        mUfsPath = client.getStatus(mUri).getUfsPath();
+      } catch (AlluxioException e) {
+        throw new IOException(e);
+      } finally {
+        mContext.releaseMasterClient(client);
+      }
       if (mUfsDelegation) {
         mFileSystemWorkerClient = mContext.createWorkerClient();
         try {
