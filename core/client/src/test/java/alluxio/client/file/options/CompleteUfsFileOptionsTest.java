@@ -17,12 +17,16 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Permission;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.thrift.CompleteUfsFileTOptions;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,19 +43,29 @@ import java.io.IOException;
 @PrepareForTest(Permission.class)
 public final class CompleteUfsFileOptionsTest {
   @Rule
-  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("test");
+  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("foo");
+
+  @Before
+  public void before() {
+    LoginUserTestUtils.resetLoginUser();
+    GroupMappingServiceTestUtils.resetCache();
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
+    // Use IdentityOwnerGroupMapping to map owner "foo" to group "foo".
+    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+        IdentityUserGroupsMapping.class.getName());
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
 
   /**
    * Tests that building an {@link CompleteUfsFileOptions} with the defaults works.
    */
   @Test
   public void defaults() throws IOException {
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
-    // Use IdentityOwnerGroupMapping to map owner "foo" to group "foo".
-    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-        IdentityUserGroupsMapping.class.getName());
-
     CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
 
     Permission expectedPs = Permission.defaults().applyFileUMask();
