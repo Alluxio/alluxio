@@ -12,6 +12,8 @@
 package alluxio.resource;
 
 import alluxio.Constants;
+import alluxio.clock.Clock;
+import alluxio.clock.ManualClock;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,6 +44,11 @@ public final class DynamicResourcePoolTest {
   private static final class TestPool extends DynamicResourcePool<Resource> {
     private int mGcThresholdInSecs = 120;
     private int mCounter = 0;
+
+    public TestPool(Options options, ManualClock clock) {
+      super(options);
+      mClock = clock;
+    }
 
     public TestPool(Options options) {
       super(options);
@@ -158,7 +165,8 @@ public final class DynamicResourcePoolTest {
    */
   @Test
   public void acquireRentlyUsed() throws Exception {
-    TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions());
+    ManualClock manualClock = new ManualClock();
+    TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions(), manualClock);
     List<Resource> resourceList = new ArrayList<>();
     resourceList.add(pool.acquire());
     resourceList.add(pool.acquire());
@@ -168,7 +176,7 @@ public final class DynamicResourcePoolTest {
     pool.release(resourceList.get(0));
 
     // Sleep 1.5 seconds.
-    Thread.sleep(1500);
+    manualClock.addTimeMs(1500);
     pool.release(resourceList.get(1));
 
     for (int i = 0; i < 10; i++) {
@@ -185,8 +193,10 @@ public final class DynamicResourcePoolTest {
    */
   @Test
   public void gc() throws Exception {
+    ManualClock manualClock = new ManualClock();
     TestPool pool = new TestPool(
-        DynamicResourcePool.Options.defaultOptions().setGcIntervalMs(10).setInitialDelayMs(1));
+        DynamicResourcePool.Options.defaultOptions().setGcIntervalMs(10).setInitialDelayMs(1),
+        manualClock);
     pool.setGcThresholdInSecs(1);
 
     List<Resource> resourceList = new ArrayList<>();
@@ -194,8 +204,10 @@ public final class DynamicResourcePoolTest {
     resourceList.add(pool.acquire());
 
     pool.release(resourceList.get(0));
+    manualClock.addTimeMs(1020);
 
-    Thread.sleep(1020);
+    // Sleep 1 second to make sure the GC has run.
+    Thread.sleep(1000);
 
     // Resource 0 is gc-ed.
     Assert.assertEquals(2, pool.acquire().mInteger.intValue());
@@ -224,6 +236,7 @@ public final class DynamicResourcePoolTest {
       @Override
       public void run() {
         try {
+          // Sleep sometime to test wait logic.
           Thread.sleep(1000);
         } catch (InterruptedException e) {
           return;
