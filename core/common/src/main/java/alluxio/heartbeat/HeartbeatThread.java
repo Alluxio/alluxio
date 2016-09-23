@@ -69,7 +69,7 @@ public final class HeartbeatThread implements Runnable {
         AuthenticatedClientUser.set(LoginUser.get().getName());
       }
     } catch (IOException e) {
-      LOG.error("Failed to set AuthenticatedClientUser in TtlCheckerExecutor heartbeat.");
+      LOG.error("Failed to set AuthenticatedClientUser in HeartbeatThread.");
     }
 
     // set the thread name
