@@ -18,8 +18,8 @@ encryption.
 POSIX permission model is used in Alluxio to assign permissions and
 control access rights.
 
-By default Alluxio runs in SIMPLE secure mode in which authentication and authorization are
-required.
+By default Alluxio runs in SIMPLE secure mode in which a simple authentication is required.
+SIMPLE indicates that server trusts whoever the client claims to be.
 See [Security specific configuration](Configuration-Settings.html#security-configuration) to
 enable and use security features.
 
