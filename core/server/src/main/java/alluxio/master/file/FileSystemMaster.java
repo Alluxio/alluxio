@@ -79,6 +79,8 @@ import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.LoginUser;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.CommandType;
@@ -92,6 +94,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.SecurityUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
@@ -2580,6 +2583,13 @@ public final class FileSystemMaster extends AbstractMaster {
 
     @Override
     public void heartbeat() {
+      try {
+        if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
+          AuthenticatedClientUser.set(LoginUser.get().getName());
+        }
+      } catch (IOException e) {
+        LOG.error("Failed to set AuthenticatedClientUser in TtlCheckerExecutor heartbeat.");
+      }
       Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
       for (TtlBucket bucket : expiredBuckets) {
         for (InodeFile file : bucket.getFiles()) {

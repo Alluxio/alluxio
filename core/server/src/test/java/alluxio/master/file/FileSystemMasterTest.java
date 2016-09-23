@@ -706,7 +706,6 @@ public final class FileSystemMasterTest {
    * {@link CreateFileOptions} after the TTL check was done once.
    */
   @Test
-  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2237")
   public void createFileWithTtl() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
@@ -745,7 +744,6 @@ public final class FileSystemMasterTest {
    * deleted after the TTL has been set to 0.
    */
   @Test
-  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2237")
   public void setSmallerTtlForFileWithTtl() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true)
@@ -766,7 +764,6 @@ public final class FileSystemMasterTest {
    * Tests that a file has not been deleted after the TTL has been reset to a valid value.
    */
   @Test
-  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2237")
   public void setLargerTtlForFileWithTtl() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
