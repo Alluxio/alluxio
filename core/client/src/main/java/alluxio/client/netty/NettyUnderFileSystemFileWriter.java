@@ -63,7 +63,7 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
     Channel channel = null;
     Metrics.NETTY_UFS_WRITE_OPS.inc();
     try {
-      channel = BlockStoreContext.acquireNettyChannel(address, mClientBootstrap) ;
+      channel = BlockStoreContext.acquireNettyChannel(address, mClientBootstrap);
       listener = new SingleResponseListener();
       ((ClientHandler) channel.pipeline().last()).addListener(listener);
       ChannelFuture channelFuture = channel.writeAndFlush(
