@@ -14,20 +14,23 @@ package alluxio.network.connection;
 import alluxio.Constants;
 import alluxio.resource.DynamicResourcePool;
 
+import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.callback.Callback;
 
 /**
  * A pool to manage netty channels.
  */
 @ThreadSafe
 public final class NettyChannelPool extends DynamicResourcePool<Channel> {
-  private Bootstrap mBootstrap;
+  private Callable<Bootstrap> mBootstrap;
   private final int mGcThresholdInSecs;
 
   /**
@@ -38,7 +41,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
    * @param gcThresholdInSecs when a channel is older than this threshold and the pool's capacity
    *        is above the minimum capaicty (1), it is closed and removed from the pool.
    */
-  public NettyChannelPool(Bootstrap bootstrap, int maxCapacity, int gcThresholdInSecs) {
+  public NettyChannelPool(Callable<Bootstrap> bootstrap, int maxCapacity, int gcThresholdInSecs) {
     super(Options.defaultOptions().setMaxCapacity(maxCapacity));
     mBootstrap = bootstrap;
     mGcThresholdInSecs = gcThresholdInSecs;
@@ -64,8 +67,13 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
    */
   @Override
   protected Channel createNewResource() throws IOException {
-    Bootstrap bs = mBootstrap.clone();
-    bs.clone();
+    Bootstrap bs;
+    try {
+      bs = mBootstrap.call();
+    } catch (Exception e) {
+      // No exception should happen here.
+      throw Throwables.propagate(e);
+    }
     try {
       ChannelFuture channelFuture = bs.connect().sync();
       if (channelFuture.isSuccess()) {
