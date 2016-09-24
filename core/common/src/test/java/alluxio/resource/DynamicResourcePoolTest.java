@@ -86,8 +86,6 @@ public final class DynamicResourcePoolTest {
 
   /**
    * Tests the logic to acquire a resource when the pool is not full.
-   *
-   * @throws Exception if anything fails
    */
   @Test
   public void acquireWithCapacity() throws Exception {
@@ -116,8 +114,6 @@ public final class DynamicResourcePoolTest {
 
   /**
    * Acquire without capacity.
-   *
-   * @throws Exception if anything fails
    */
   @Test
   public void acquireWithoutCapacity() throws Exception {
@@ -140,8 +136,6 @@ public final class DynamicResourcePoolTest {
 
   /**
    * Tests the logic that invalid resource won't be acquired.
-   *
-   * @throws Exception if anything fails
    */
   @Test
   public void UnHealhyResource() throws Exception {
@@ -159,8 +153,6 @@ public final class DynamicResourcePoolTest {
 
   /**
    * Tests the logic that the recently used resource is preferred.
-   *
-   * @throws Exception if anything fails
    */
   @Test
   public void acquireRentlyUsed() throws Exception {
@@ -174,7 +166,6 @@ public final class DynamicResourcePoolTest {
     pool.release(resourceList.get(2));
     pool.release(resourceList.get(0));
 
-    // Sleep 1.5 seconds.
     manualClock.addTimeMs(1500);
     pool.release(resourceList.get(1));
 
@@ -185,9 +176,6 @@ public final class DynamicResourcePoolTest {
     }
   }
 
-  /**
-   * @throws Exception if anything fails
-   */
   @Test
   public void gc() throws Exception {
     ManualClock manualClock = new ManualClock();
@@ -210,9 +198,6 @@ public final class DynamicResourcePoolTest {
     Assert.assertEquals(2, pool.acquire().mInteger.intValue());
   }
 
-  /**
-   * @throws Exception if anything fails
-   */
   @Test
   public void multiClients() throws Exception {
     TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions().setMaxCapacity(1));
