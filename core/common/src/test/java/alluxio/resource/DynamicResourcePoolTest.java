@@ -12,7 +12,6 @@
 package alluxio.resource;
 
 import alluxio.Constants;
-import alluxio.clock.Clock;
 import alluxio.clock.ManualClock;
 
 import org.junit.Assert;
@@ -187,8 +186,6 @@ public final class DynamicResourcePoolTest {
   }
 
   /**
-   * Tests the gc logic.
-   *
    * @throws Exception if anything fails
    */
   @Test
@@ -214,8 +211,6 @@ public final class DynamicResourcePoolTest {
   }
 
   /**
-   * Tests that the pool works with multiple threads.
-   *
    * @throws Exception if anything fails
    */
   @Test
