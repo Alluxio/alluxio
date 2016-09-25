@@ -215,6 +215,12 @@ public enum PropertyKey {
       "alluxio.client.netty.NettyRemoteBlockWriter"),
   USER_BLOCK_SIZE_BYTES_DEFAULT(Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "512MB"),
   USER_BLOCK_WORKER_CLIENT_THREADS(Name.USER_BLOCK_WORKER_CLIENT_THREADS, 128),
+  // Increase this default value if most of block worker RPCs are slow (e.g. average latency >
+  // 10ms).
+  USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX, 16),
+  USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_SECS(
+      Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_SECS, 300),
+
   USER_FAILED_SPACE_REQUEST_LIMITS(Name.USER_FAILED_SPACE_REQUEST_LIMITS, 3),
   USER_FILE_BUFFER_BYTES(Name.USER_FILE_BUFFER_BYTES, "1MB"),
   USER_FILE_CACHE_PARTIALLY_READ_BLOCK(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true),
@@ -590,6 +596,10 @@ public enum PropertyKey {
         "alluxio.user.block.size.bytes.default";
     public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
         "alluxio.user.block.worker.client.threads";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX =
+        "alluxio.user.block.worker.client.pool.size.max";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_SECS =
+        "alluxio.user.block.worker.client.pool.gc.threshold.secs";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
