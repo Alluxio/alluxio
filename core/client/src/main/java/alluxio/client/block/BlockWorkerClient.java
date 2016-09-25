@@ -67,11 +67,6 @@ public interface BlockWorkerClient {
   long getSessionId();
 
   /**
-   * @return true if the worker is local, false otherwise
-   */
-  boolean isLocal();
-
-  /**
    * Locks the block, therefore, the worker will not evict the block from the memory until it is
    * unlocked.
    *
