@@ -14,14 +14,14 @@ Alluxio安全性目前有两个特性，该文档介绍它们的概念以及用�
 1. [安全认证](#authentication)：在启用安全认证的情况下，Alluxio文件系统能够识别确认访问用户的身份，这是访问权限以及加密等其他安全特性的基础。
 2. [访问权限控制](#authorization)：在启用访问权限控制的情况下，Alluxio文件系统能够控制用户的访问，Alluxio使用POSIX标准的授权模型赋予用户相应访问权限。
 
-默认情况下，Alluxio在不需要安全认证以及访问权限控制的非安全模式下运行。
+默认情况下，Alluxio在需要简单安全认证的SIMPLE安全模式下运行。SIMPLE模式表明服务器信任客户端声称的的任何身份。
 参考[安全性配置项](Configuration-Settings.html#security-configuration)的信息以启用安全特性。
 
 # 安全认证 {#Authentication}
 
 Alluxio通过Thrift RPC提供文件系统服务，客户端（代表一个用户）和服务端（例如master）应该通过认证建立连接以通信，若认证成功，则建立连接；若失败，则该连接不应当被建立，并且会向客户端抛出一个异常。
 
-目前支持三种认证模式：NOSASL（默认模式）、SIMPLE以及CUSTOM。
+目前支持三种认证模式：NOSASL、SIMPLE（默认模式）以及CUSTOM。
 
 ## 用户账户
 
