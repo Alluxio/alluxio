@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -198,6 +199,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
   // Thread to scan mResourceAvailable to close those resources that are old.
   private ScheduledExecutorService mExecutor;
+  private ScheduledFuture<?> mGcFuture;
 
   protected Clock mClock = new SystemClock();
 
@@ -212,7 +214,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
 
-    mExecutor.scheduleAtFixedRate(new Runnable() {
+    mGcFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
         List<T> resourcesToGc = new ArrayList<T>();
@@ -344,7 +346,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   }
 
   /**
-   * Closes the pool and clears all the resources.
+   * Closes the pool and clears all the resources. The resource pool should not be used after this.
    */
   @Override
   public void close() {
@@ -360,6 +362,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     } finally {
       mLock.unlock();
     }
+    mGcFuture.cancel(true);
+    mExecutor.shutdown();
   }
 
   @Override

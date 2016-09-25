@@ -49,7 +49,6 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     mRemoteWriter = RemoteBlockWriter.Factory.create();
     mBlockWorkerClient = mContext.acquireWorkerClient(address);
     try {
-      mBlockWorkerClient.connect();
       mRemoteWriter.open(mBlockWorkerClient.getDataServerAddress(), mBlockId,
           mBlockWorkerClient.getSessionId());
     } catch (IOException e) {

@@ -23,7 +23,7 @@ import java.net.InetSocketAddress;
 /**
  * Interface for an Alluxio block worker client.
  */
-public interface BlockWorkerClient extends Client {
+public interface BlockWorkerClient {
 
   /**
    * @return the address of the worker
@@ -34,10 +34,9 @@ public interface BlockWorkerClient extends Client {
    * Updates the latest block access time on the worker.
    *
    * @param blockId The id of the block
-   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  void accessBlock(final long blockId) throws ConnectionFailedException, IOException;
+  void accessBlock(final long blockId) throws IOException;
 
   /**
    * Notifies the worker the block is cached.
@@ -56,15 +55,6 @@ public interface BlockWorkerClient extends Client {
    * @throws AlluxioException if an Alluxio error occurs
    */
   void cancelBlock(final long blockId) throws IOException, AlluxioException;
-
-  /**
-   * Updates the session id of the client, starting a new session. The previous session's held
-   * resources should have already been freed, and will be automatically freed after the timeout is
-   * exceeded.
-   *
-   * @param newSessionId the new id that represents the new session
-   */
-  void createNewSession(long newSessionId);
 
   /**
    * @return the address of the worker's data server
@@ -90,14 +80,6 @@ public interface BlockWorkerClient extends Client {
    * @throws IOException if a non-Alluxio exception occurs
    */
   LockBlockResult lockBlock(final long blockId) throws IOException;
-
-  /**
-   * Connects to the worker.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
-   */
-  // TODO(jiezhou): Consider merging the connect logic in this method into the super class.
-  void connect() throws IOException;
 
   /**
    * Promotes block back to the top StorageTier.
@@ -138,21 +120,25 @@ public interface BlockWorkerClient extends Client {
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  boolean unlockBlock(final long blockId) throws ConnectionFailedException, IOException;
+  boolean unlockBlock(final long blockId) throws IOException;
 
   /**
    * Sends a session heartbeat to the worker. This renews the client's lease on resources such as
-   * locks and temporary files and updates the worker's metrics.
+   * locks and temporary files.
    *
-   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  void sessionHeartbeat() throws ConnectionFailedException, IOException;
+  void sessionHeartbeat() throws IOException;
 
   /**
    * Called only by {@link BlockWorkerClientHeartbeatExecutor}, encapsulates
-   * {@link #sessionHeartbeat()} in order to cancel and cleanup the heartbeating thread in case of
-   * failures.
+   * {@link #sessionHeartbeat()} in order to handle the exceptions.
    */
   void periodicHeartbeat();
+
+
+  /**
+   * Closes the client.
+   */
+  void close();
 }
