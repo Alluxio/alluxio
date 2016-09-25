@@ -55,8 +55,6 @@ public final class RetryHandlingBlockWorkerClient extends AbstractThriftClient
     implements BlockWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final boolean mIsLocal;
-
   private final long mSessionId;
   // This is the address of the data server on the worker.
   private final InetSocketAddress mWorkerDataServerAddress;
@@ -72,17 +70,15 @@ public final class RetryHandlingBlockWorkerClient extends AbstractThriftClient
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
    * @param sessionId the id of the session
-   * @param isLocal true if it is a local client, false otherwise
    */
   public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress,
-      ExecutorService executorService, long sessionId, boolean isLocal) throws IOException {
+      ExecutorService executorService, long sessionId) throws IOException {
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
-    mIsLocal = isLocal;
     mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
     try {
       sessionHeartbeat();
@@ -159,11 +155,6 @@ public final class RetryHandlingBlockWorkerClient extends AbstractThriftClient
   @Override
   public long getSessionId() {
     return mSessionId;
-  }
-
-  @Override
-  public boolean isLocal() {
-    return mIsLocal;
   }
 
   @Override
