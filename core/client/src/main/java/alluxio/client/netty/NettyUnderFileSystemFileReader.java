@@ -13,13 +13,16 @@ package alluxio.client.netty;
 
 import alluxio.Constants;
 import alluxio.client.UnderFileSystemFileReader;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCFileReadRequest;
 import alluxio.network.protocol.RPCFileReadResponse;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 
+import com.codahale.metrics.Counter;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -29,9 +32,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Reader for an under file system file through a worker's data server. This class does not hold
@@ -44,9 +49,7 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Netty bootstrap for the connection. */
-  private final Bootstrap mClientBootstrap;
-  /** Handler for Netty messages. */
-  private final ClientHandler mHandler;
+  private final Callable<Bootstrap> mClientBootstrap;
   /** A reference to read response so we can explicitly release the resource after reading. */
   private RPCFileReadResponse mReadResponse;
 
@@ -54,8 +57,7 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
    * Creates a new reader for a file in an under file system through a worker's data server.
    */
   public NettyUnderFileSystemFileReader() {
-    mHandler = new ClientHandler();
-    mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
+    mClientBootstrap = NettyClient.bootstrapBuilder();
   }
 
   @Override
@@ -65,18 +67,24 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
     if (length == 0) {
       return ByteBuffer.allocate(0);
     }
-    SingleResponseListener listener = null;
-    try {
-      ChannelFuture f = mClientBootstrap.connect(address).sync();
 
-      LOG.debug("Connected to remote machine {}", address);
-      Channel channel = f.channel();
+    Metrics.NETTY_UFS_READ_OPS.inc();
+    SingleResponseListener listener = null;
+    Channel channel = null;
+    try {
+      channel = BlockStoreContext.acquireNettyChannel(address, mClientBootstrap);
       listener = new SingleResponseListener();
-      mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCFileReadRequest(ufsFileId, offset, length));
+      channel.pipeline().get(ClientHandler.class).addListener(listener);
+      ChannelFuture channelFuture =
+          channel.writeAndFlush(new RPCFileReadRequest(ufsFileId, offset, length)).sync();
+
+      if (channelFuture.isDone() && !channelFuture.isSuccess()) {
+        LOG.error("Failed to read ufs file from %s for ufsFilId %d with error %s.",
+            address.toString(), ufsFileId, channelFuture.cause());
+        throw new IOException(channelFuture.cause());
+      }
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      channel.close().sync();
 
       switch (response.getType()) {
         case RPC_FILE_READ_RESPONSE:
@@ -102,10 +110,14 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
               response.getType(), RPCMessage.Type.RPC_FILE_READ_RESPONSE));
       }
     } catch (Exception e) {
+      Metrics.NETTY_UFS_READ_FAILURES.inc();
       throw new IOException(e);
     } finally {
-      if (listener != null) {
-        mHandler.removeListener(listener);
+      if (channel != null && listener != null) {
+        channel.pipeline().get(ClientHandler.class).removeListener(listener);
+      }
+      if (channel != null) {
+        BlockStoreContext.releaseNettyChannel(address, channel);
       }
     }
   }
@@ -128,5 +140,18 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
       mReadResponse.getPayloadDataBuffer().release();
       mReadResponse = null;
     }
+  }
+
+  /**
+   * Class that contains metrics about {@link NettyUnderFileSystemFileReader}.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter NETTY_UFS_READ_OPS =
+        MetricsSystem.clientCounter("NettyUfsReadOps");
+    private static final Counter NETTY_UFS_READ_FAILURES =
+        MetricsSystem.clientCounter("NettyUfsReadFailures");
+
+    private Metrics() {} // prevent instantiation
   }
 }

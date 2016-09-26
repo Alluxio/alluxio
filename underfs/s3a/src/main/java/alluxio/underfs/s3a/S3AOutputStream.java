@@ -132,6 +132,7 @@ public class S3AOutputStream extends OutputStream {
       return;
     }
     mLocalOutputStream.close();
+    String path = getUploadPath();
     try {
       // Generate the object metadata by setting server side encryption, md5 checksum, the file
       // length, and encoding as octet stream since no assumptions are made about the file type
@@ -147,17 +148,24 @@ public class S3AOutputStream extends OutputStream {
 
       // Generate the put request and wait for the transfer manager to complete the upload, then
       // delete the temporary file on the local machine
-      PutObjectRequest putReq = new PutObjectRequest(mBucketName, mKey, mFile).withMetadata(meta);
+      PutObjectRequest putReq = new PutObjectRequest(mBucketName, path, mFile).withMetadata(meta);
       mManager.upload(putReq).waitForUploadResult();
       if (!mFile.delete()) {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
     } catch (Exception e) {
-      LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
+      LOG.error("Failed to upload {}. Temporary file @ {}", path, mFile.getPath());
       throw new IOException(e);
     }
 
     // Set the closed flag, close can be retried until mFile.delete is called successfully
     mClosed = true;
+  }
+
+  /**
+   * @return the path in S3 to upload the file to
+   */
+  protected String getUploadPath() {
+    return mKey;
   }
 }

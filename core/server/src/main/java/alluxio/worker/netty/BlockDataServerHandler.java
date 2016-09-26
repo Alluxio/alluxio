@@ -95,7 +95,6 @@ final class BlockDataServerHandler {
       RPCBlockReadResponse resp =
           new RPCBlockReadResponse(blockId, offset, readLength, buffer, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
       future.addListener(new ReleasableResourceChannelListener(buffer));
       mWorker.accessBlock(sessionId, blockId);
@@ -157,7 +156,6 @@ final class BlockDataServerHandler {
       RPCBlockWriteResponse resp =
           new RPCBlockWriteResponse(sessionId, blockId, offset, length, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(writer));
     } catch (Exception e) {
       LOG.error("Error writing remote block : {}", e.getMessage(), e);

@@ -72,6 +72,7 @@ public enum PropertyKey {
   UNDERFS_S3_PROXY_PORT(Name.UNDERFS_S3_PROXY_PORT, null),
   UNDERFS_S3_THREADS_MAX(Name.UNDERFS_S3_THREADS_MAX, 22),
   UNDERFS_S3_UPLOAD_THREADS_MAX(Name.UNDERFS_S3_UPLOAD_THREADS_MAX, 2),
+  UNDERFS_S3A_DIRECT_WRITES_ENABLED(Name.UNDERFS_S3A_DIRECT_WRITES_ENABLED, "true"),
   UNDERFS_S3A_SECURE_HTTP_ENABLED(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED, false),
   UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED,
       false),
@@ -231,6 +232,9 @@ public enum PropertyKey {
   USER_NETWORK_NETTY_CHANNEL(Name.USER_NETWORK_NETTY_CHANNEL, null),
   USER_NETWORK_NETTY_TIMEOUT_MS(Name.USER_NETWORK_NETTY_TIMEOUT_MS, 30000),
   USER_NETWORK_NETTY_WORKER_THREADS(Name.USER_NETWORK_NETTY_WORKER_THREADS, 0),
+  USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX, 1024),
+  USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_SECS(
+      Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_SECS, 300),
   USER_UFS_DELEGATION_ENABLED(Name.USER_UFS_DELEGATION_ENABLED, true),
   USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES,
       "8MB"),
@@ -266,8 +270,8 @@ public enum PropertyKey {
       null),
   SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS(Name.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS,
       "600000"),
-  SECURITY_AUTHENTICATION_TYPE(Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"),
-  SECURITY_AUTHORIZATION_PERMISSION_ENABLED(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false),
+  SECURITY_AUTHENTICATION_TYPE(Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"),
+  SECURITY_AUTHORIZATION_PERMISSION_ENABLED(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true),
   SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP(Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
       "supergroup"),
   SECURITY_AUTHORIZATION_PERMISSION_UMASK(Name.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "022"),
@@ -377,6 +381,8 @@ public enum PropertyKey {
         "alluxio.underfs.oss.connection.timeout.ms";
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout.ms";
+    public static final String UNDERFS_S3A_DIRECT_WRITES_ENABLED =
+        "alluxio.underfs.s3a.direct.writes.enabled";
     public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
         "alluxio.underfs.s3a.secure.http.enabled";
     public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
@@ -610,6 +616,10 @@ public enum PropertyKey {
         "alluxio.user.network.netty.timeout.ms";
     public static final String USER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.user.network.netty.worker.threads";
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
+        "alluxio.user.network.netty.channel.pool.size.max";
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_SECS =
+        "alluxio.user.network.netty.channel.pool.gc.threshold.secs";
     public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";

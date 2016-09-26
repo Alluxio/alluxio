@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.AuthenticatedUserRule;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -25,11 +26,13 @@ import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.util.Random;
 
 /**
@@ -39,11 +42,14 @@ import java.util.Random;
 // Need to mock Permission to use CommonTestUtils#testEquals.
 @PrepareForTest(Permission.class)
 public class OutStreamOptionsTest {
+  @Rule
+  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("test");
+
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.
    */
   @Test
-  public void defaults() {
+  public void defaults() throws IOException {
     AlluxioStorageType alluxioType = AlluxioStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
@@ -56,7 +62,8 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    Assert.assertEquals(Permission.defaults().applyFileUMask(), options.getPermission());
+    Assert.assertEquals(Permission.defaults().applyFileUMask().setOwnerFromLoginModule(),
+        options.getPermission());
     ConfigurationTestUtils.resetConfiguration();
   }
 

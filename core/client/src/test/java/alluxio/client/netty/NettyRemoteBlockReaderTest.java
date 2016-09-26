@@ -21,6 +21,7 @@ import alluxio.network.protocol.databuffer.DataByteBuffer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPipeline;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,10 +40,11 @@ import java.nio.ByteBuffer;
 public class NettyRemoteBlockReaderTest {
 
   private NettyRemoteBlockReader mNettyRemoteBlockReader;
-  private Bootstrap mBootstrap;
-  private ClientHandler mClientHandler;
+  private static Bootstrap sBootstrap = Mockito.mock(Bootstrap.class);
+  private static ClientHandler sClientHandler = new ClientHandler();
   private Channel mChannel;
   private ChannelFuture mChannelFuture;
+  private ChannelPipeline mChannelPipeline;
 
   private static final InetSocketAddress INET_SOCKET_ADDRESS = new InetSocketAddress(1234);
   private static final long BLOCK_ID = 4242L;
@@ -56,17 +58,25 @@ public class NettyRemoteBlockReaderTest {
    */
   @Before
   public void before() throws InterruptedException {
-    mBootstrap = Mockito.mock(Bootstrap.class);
-    mClientHandler = new ClientHandler();
-    mNettyRemoteBlockReader = new NettyRemoteBlockReader(mBootstrap, mClientHandler);
+    mNettyRemoteBlockReader = new NettyRemoteBlockReader(sBootstrap);
 
     mChannel = Mockito.mock(Channel.class);
     mChannelFuture = Mockito.mock(ChannelFuture.class);
+    mChannelPipeline = Mockito.mock(ChannelPipeline.class);
 
     Mockito.when(mChannel.close()).thenReturn(mChannelFuture);
     Mockito.when(mChannelFuture.sync()).thenReturn(mChannelFuture);
     Mockito.when(mChannelFuture.channel()).thenReturn(mChannel);
-    Mockito.when(mBootstrap.connect(Mockito.any(SocketAddress.class))).thenReturn(mChannelFuture);
+    Mockito.when(mChannelFuture.isDone()).thenReturn(true);
+    Mockito.when(mChannelFuture.isSuccess()).thenReturn(true);
+    Mockito.when(sBootstrap.connect(Mockito.any(SocketAddress.class))).thenReturn(mChannelFuture);
+    Mockito.when(sBootstrap.connect()).thenReturn(mChannelFuture);
+    Mockito.when(sBootstrap.clone()).thenReturn(sBootstrap);
+    Mockito.when(sBootstrap.remoteAddress(Mockito.any(InetSocketAddress.class)))
+        .thenReturn(sBootstrap);
+    Mockito.when(mChannel.pipeline()).thenReturn(mChannelPipeline);
+    Mockito.when(mChannelPipeline.get(Mockito.any(Class.class))).thenReturn(sClientHandler);
+
   }
 
   /**
@@ -77,8 +87,8 @@ public class NettyRemoteBlockReaderTest {
     Mockito.when(mChannel.writeAndFlush(Mockito.any())).then(new Answer<ChannelFuture>() {
       @Override
       public ChannelFuture answer(InvocationOnMock invocation) throws Throwable {
-        mClientHandler.channelRead0(null, createRPCBlockReadResponse(RPCResponse.Status.SUCCESS));
-        return null;
+        sClientHandler.channelRead0(null, createRPCBlockReadResponse(RPCResponse.Status.SUCCESS));
+        return mChannelFuture;
       }
     });
 
@@ -100,9 +110,9 @@ public class NettyRemoteBlockReaderTest {
     Mockito.when(mChannel.writeAndFlush(Mockito.any())).then(new Answer<ChannelFuture>() {
       @Override
       public ChannelFuture answer(InvocationOnMock invocation) throws Throwable {
-        mClientHandler.channelRead0(null,
+        sClientHandler.channelRead0(null,
                 createRPCBlockReadResponse(RPCResponse.Status.UFS_READ_FAILED));
-        return null;
+        return mChannelFuture;
       }
     });
 
@@ -118,8 +128,8 @@ public class NettyRemoteBlockReaderTest {
     Mockito.when(mChannel.writeAndFlush(Mockito.any())).then(new Answer<ChannelFuture>() {
       @Override
       public ChannelFuture answer(InvocationOnMock invocation) throws Throwable {
-        mClientHandler.channelRead0(null, new RPCErrorResponse(RPCResponse.Status.SUCCESS));
-        return null;
+        sClientHandler.channelRead0(null, new RPCErrorResponse(RPCResponse.Status.SUCCESS));
+        return mChannelFuture;
       }
     });
 
@@ -135,9 +145,9 @@ public class NettyRemoteBlockReaderTest {
     Mockito.when(mChannel.writeAndFlush(Mockito.any())).then(new Answer<ChannelFuture>() {
       @Override
       public ChannelFuture answer(InvocationOnMock invocation) throws Throwable {
-        mClientHandler.channelRead0(null,
+        sClientHandler.channelRead0(null,
                 new RPCFileWriteResponse(9876, 0, 20, RPCResponse.Status.SUCCESS));
-        return null;
+        return mChannelFuture;
       }
     });
 
