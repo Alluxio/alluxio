@@ -131,4 +131,9 @@ public final class MetricsConfig {
     }
     mProperties = newProperties;
   }
+
+  @Override
+  public String toString() {
+    return mProperties.toString();
+  }
 }

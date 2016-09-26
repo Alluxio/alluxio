@@ -11,18 +11,26 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.metrics.MetricsSystem;
+import alluxio.network.connection.NettyChannelPool;
 import alluxio.resource.CloseableResource;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +39,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -60,6 +69,9 @@ public final class BlockStoreContext {
   private final Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
       new ConcurrentHashMap<>();
 
+  private static final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
+      NETTY_CHANNEL_POOL_MAP = new ConcurrentHashMapV8<>();
+
   /**
    * Only one context will be kept for each master address.
    */
@@ -67,6 +79,10 @@ public final class BlockStoreContext {
       new ConcurrentHashMap<>();
 
   private boolean mLocalBlockWorkerClientPoolInitialized = false;
+
+  static {
+    Metrics.initializeGauges();
+  }
 
   /**
    * Creates a new block store context.
@@ -255,10 +271,75 @@ public final class BlockStoreContext {
   }
 
   /**
+   * Acquire a netty channel from the channel pools.
+   *
+   * @param address the network address of the channel
+   * @param bootstrapBuilder the bootstrap builder that creates a new bootstrap upon called
+   * @return the acquired netty channel
+   */
+  public static Channel acquireNettyChannel(final InetSocketAddress address,
+      final Callable<Bootstrap> bootstrapBuilder) {
+    if (!NETTY_CHANNEL_POOL_MAP.containsKey(address)) {
+      Callable<Bootstrap> bootstrapBuilderClone = new Callable<Bootstrap>() {
+        @Override
+        public Bootstrap call() throws Exception {
+          Bootstrap bs = bootstrapBuilder.call();
+          bs.remoteAddress(address);
+          return bs;
+        }
+      };
+      NETTY_CHANNEL_POOL_MAP.putIfAbsent(address, new NettyChannelPool(
+          bootstrapBuilderClone,
+          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
+          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_SECS)));
+    }
+    try {
+      return NETTY_CHANNEL_POOL_MAP.get(address).acquire();
+    } catch (IOException e) {
+      LOG.error("Failed to acquire netty channel with exception %s.", e.getMessage());
+      return null;
+    }
+  }
+
+  /**
+   * Release a netty channel to the channel pools.
+   *
+   * @param address the network address of the channel
+   * @param channel the channel to release
+   */
+  public static void releaseNettyChannel(InetSocketAddress address, Channel channel) {
+    Preconditions.checkArgument(NETTY_CHANNEL_POOL_MAP.containsKey(address));
+    NETTY_CHANNEL_POOL_MAP.get(address).release(channel);
+  }
+
+  /**
    * @return if there is a local worker running the same machine
    */
   public boolean hasLocalWorker() {
     initializeLocalBlockWorkerClientPool();
     return !mLocalBlockWorkerClientPoolMap.isEmpty();
   }
+
+  /**
+   * Class that contains metrics about BlockStoreContext.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static void initializeGauges() {
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClientMetricName("NettyConnectionsOpen"),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              long ret = 0;
+              for (NettyChannelPool pool : NETTY_CHANNEL_POOL_MAP.values()) {
+                ret += pool.size();
+              }
+              return ret;
+            }
+          });
+    }
+
+    private Metrics() {} // prevent instantiation
+  }
 }
+

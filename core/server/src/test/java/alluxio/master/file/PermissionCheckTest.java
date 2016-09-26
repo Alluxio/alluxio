@@ -27,6 +27,8 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
+import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
@@ -132,6 +134,8 @@ public final class PermissionCheckTest {
 
   @Before
   public void before() throws Exception {
+    LoginUserTestUtils.resetLoginUser();
+    GroupMappingServiceTestUtils.resetCache();
     // authentication
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "admin");
@@ -155,6 +159,7 @@ public final class PermissionCheckTest {
 
   @After
   public void after() throws Exception {
+    AuthenticatedClientUser.remove();
     ConfigurationTestUtils.resetConfiguration();
   }
 
