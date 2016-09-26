@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
@@ -112,7 +111,6 @@ public interface BlockWorkerClient extends Closeable {
    *
    * @param blockId The id of the block
    * @return true if success, false otherwise
-   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
   boolean unlockBlock(final long blockId) throws IOException;
@@ -130,7 +128,6 @@ public interface BlockWorkerClient extends Closeable {
    * {@link #sessionHeartbeat()} in order to handle the exceptions.
    */
   void periodicHeartbeat();
-
 
   /**
    * Closes the client.

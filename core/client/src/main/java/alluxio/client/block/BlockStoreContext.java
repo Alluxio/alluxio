@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.connection.NettyChannelPool;
 import alluxio.resource.CloseableResource;
@@ -43,6 +42,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -63,7 +63,7 @@ public final class BlockStoreContext {
   private BlockMasterClientPool mBlockMasterClientPool;
 
   private static final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
-    BLOCK_WORKER_THRIFT_CLIENT_POOL = new ConcurrentHashMapV8<>();
+      BLOCK_WORKER_THRIFT_CLIENT_POOL = new ConcurrentHashMapV8<>();
 
   private static final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
       NETTY_CHANNEL_POOL_MAP = new ConcurrentHashMapV8<>();
@@ -74,7 +74,12 @@ public final class BlockStoreContext {
   private static final Map<InetSocketAddress, BlockStoreContext> CACHED_CONTEXTS =
       new ConcurrentHashMap<>();
 
-  private final boolean sHasLocalWorker;
+  /**
+   * Indicates whether there is Alluxio workers running in the local machine. This is initialized
+   * lazily.
+   */
+  @GuardedBy("this")
+  private Boolean mHasLocalWorker;
 
   static {
     Metrics.initializeGauges();
@@ -85,7 +90,6 @@ public final class BlockStoreContext {
    */
   private BlockStoreContext(InetSocketAddress masterAddress) {
     mBlockMasterClientPool = new BlockMasterClientPool(masterAddress);
-    sHasLocalWorker = !getWorkerAddresses(NetworkAddressUtils.getLocalHostName()).isEmpty();
   }
 
   /**
@@ -262,8 +266,11 @@ public final class BlockStoreContext {
   /**
    * @return if there is a local worker running the same machine
    */
-  public boolean hasLocalWorker() {
-    return sHasLocalWorker;
+  public synchronized boolean hasLocalWorker() {
+    if (mHasLocalWorker == null) {
+      mHasLocalWorker = !getWorkerAddresses(NetworkAddressUtils.getLocalHostName()).isEmpty();
+    }
+    return mHasLocalWorker;
   }
 
   /**

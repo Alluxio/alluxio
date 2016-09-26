@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * The base class for clients that use {@link alluxio.network.connection.ThriftClientPool}.
  */
-// TODO(peis): Rename this to Client once we have deprecated AbstractClient class.
+// TODO(peis): Rename this to Client once we have deprecated AbstractClient and Client class.
 @ThreadSafe
 public abstract class AbstractThriftClient {
 
@@ -46,9 +46,6 @@ public abstract class AbstractThriftClient {
    * @param client the client to release
    */
   protected abstract void releaseClient(AlluxioService.Client client);
-
-
-
 
   /**
    * The RPC to be executed in {@link #retryRPC(RpcCallable)}.
