@@ -34,10 +34,12 @@ import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A pool to manage Alluxio thrift clients.
+ *  A pool to manage Alluxio thrift clients.
+ *
+ * @param <T> the Alluxio thrift service type
  */
 @ThreadSafe
-public abstract class ThriftClientPool<T extends  AlluxioService.Client>
+public abstract class ThriftClientPool<T extends AlluxioService.Client>
     extends DynamicResourcePool<T> {
   private final TransportProvider mTransportProvider;
   private final String mServiceName;
@@ -121,8 +123,9 @@ public abstract class ThriftClientPool<T extends  AlluxioService.Client>
           checkVersion(client);
         }
       } catch (TTransportException e) {
-        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to " + getServiceNameForLogging() +
-                " @ " + mAddress, e);
+        LOG.error(
+            "Failed to connect (" + retry.getRetryCount() + ") to " + getServiceNameForLogging()
+                + " @ " + mAddress, e);
         if (!retry.attemptRetry()) {
           throw new IOException(e);
         }
@@ -146,8 +149,8 @@ public abstract class ThriftClientPool<T extends  AlluxioService.Client>
 
   @Override
   protected boolean shouldGc(ResourceInternal<T> clientResourceInternal) {
-    return System.currentTimeMillis() - clientResourceInternal
-        .getLastAccessTimeMs() > (long) mGcThresholdInSecs * (long) Constants.SECOND_MS;
+    return System.currentTimeMillis() - clientResourceInternal.getLastAccessTimeMs()
+        > (long) mGcThresholdInSecs * (long) Constants.SECOND_MS;
   }
 
   /**
@@ -167,8 +170,8 @@ public abstract class ThriftClientPool<T extends  AlluxioService.Client>
     } catch (TTransportException e) {
       closeResource(client);
       // The newest version of Thrift provides a dedicated exception type for this (CORRUPTED_DATA).
-      if (FRAME_SIZE_NEGATIVE_EXCEPTION_PATTERN.matcher(e.getMessage()).find() ||
-          FRAME_SIZE_TOO_LARGE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
+      if (FRAME_SIZE_NEGATIVE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()
+          || FRAME_SIZE_TOO_LARGE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
         // See an error like "Frame size (67108864) larger than max length (16777216)!",
         // pointing to the helper page.
         String message = String.format("Failed to connect to %s @ %s: %s. "
