@@ -23,7 +23,6 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.util.network.NetworkAddressUtils;
@@ -51,8 +50,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * has to guarantee thread safety.
  */
 @ThreadSafe
-public final class RetryHandlingBlockWorkerClient extends AbstractThriftClient
-    implements BlockWorkerClient {
+public final class RetryHandlingBlockWorkerClient
+    extends AbstractThriftClient<BlockWorkerClientService.Client> implements BlockWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mSessionId;
@@ -81,27 +80,22 @@ public final class RetryHandlingBlockWorkerClient extends AbstractThriftClient
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
     mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
-    try {
-      sessionHeartbeat();
-    } catch (IOException e) {
-      LOG.error("Failed to send initial heartbeat to register a session with the worker.", e);
-      throw e;
-    }
+    sessionHeartbeat();
     mHeartbeat = mExecutorService.submit(
-        new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor,
-            Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS)));
+        new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor, Configuration
+            .getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS)));
   }
 
   @Override
-  public AlluxioService.Client acquireClient() throws IOException {
+  public BlockWorkerClientService.Client acquireClient() throws IOException {
     return BlockStoreContext.acquireBlockWorkerThriftClient(mRpcAddress);
   }
 
   @Override
-  public void releaseClient(AlluxioService.Client client) {
+  public void releaseClient(BlockWorkerClientService.Client client) {
     if (client instanceof BlockWorkerClientService.Client) {
       BlockStoreContext
-          .releaseBlockWorkerThriftClient(mRpcAddress, ((BlockWorkerClientService.Client) client));
+          .releaseBlockWorkerThriftClient(mRpcAddress, client);
     } else {
       throw new RuntimeException("Unexpected type. BlockWorkerClientService.Client is expected.");
     }
@@ -121,48 +115,35 @@ public final class RetryHandlingBlockWorkerClient extends AbstractThriftClient
 
   @Override
   public void accessBlock(final long blockId) throws IOException {
-    retryRPC(new RpcCallable<Void>() {
+    retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
       @Override
-      public Void call(AlluxioService.Client client) throws TException {
-        if (client instanceof BlockWorkerClientService.Client) {
-          ((BlockWorkerClientService.Client) client).accessBlock(blockId);
+      public Void call(BlockWorkerClientService.Client client) throws TException {
+          client.accessBlock(blockId);
           return null;
-        } else {
-          throw new RuntimeException(
-              "Unexpected type. BlockWorkerClientService.Client is expected.");
-        }
       }
     });
   }
 
   @Override
   public void cacheBlock(final long blockId) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
       @Override
-      public Void call(AlluxioService.Client client) throws AlluxioTException, TException {
-        if (client instanceof BlockWorkerClientService.Client) {
-          ((BlockWorkerClientService.Client) client).cacheBlock(mSessionId, blockId);
-          return null;
-        } else {
-          throw new RuntimeException(
-              "Unexpected type. BlockWorkerClientService.Client is expected.");
-        }
+      public Void call(BlockWorkerClientService.Client client)
+          throws AlluxioTException, TException {
+        client.cacheBlock(mSessionId, blockId);
+        return null;
       }
     });
   }
 
   @Override
   public void cancelBlock(final long blockId) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
       @Override
-      public Void call(AlluxioService.Client client) throws AlluxioTException, TException {
-        if (client instanceof BlockWorkerClientService.Client) {
-          ((BlockWorkerClientService.Client) client).cancelBlock(mSessionId, blockId);
-          return null;
-        } else {
-          throw new RuntimeException(
-              "Unexpected type. BlockWorkerClientService.Client is expected.");
-        }
+      public Void call(BlockWorkerClientService.Client client)
+          throws AlluxioTException, TException {
+        client.cancelBlock(mSessionId, blockId);
+        return null;
       }
     });
   }
@@ -181,19 +162,15 @@ public final class RetryHandlingBlockWorkerClient extends AbstractThriftClient
   public LockBlockResult lockBlock(final long blockId) throws IOException {
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
-      return retryRPC(new RpcCallableThrowsAlluxioTException<LockBlockResult>() {
-        @Override
-        public LockBlockResult call(AlluxioService.Client client)
-            throws AlluxioTException, TException {
-          if (client instanceof BlockWorkerClientService.Client) {
-            return ThriftUtils.fromThrift(
-                ((BlockWorkerClientService.Client) client).lockBlock(blockId, mSessionId));
-          } else {
-            throw new RuntimeException(
-                "Unexpected type. BlockWorkerClientService.Client is expected.");
-          }
-        }
-      });
+      return retryRPC(
+          new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService
+              .Client>() {
+            @Override
+            public LockBlockResult call(BlockWorkerClientService.Client client)
+                throws AlluxioTException, TException {
+              return ThriftUtils.fromThrift(client.lockBlock(blockId, mSessionId));
+            }
+          });
     } catch (AlluxioException e) {
       if (e instanceof FileDoesNotExistException) {
         return null;
@@ -205,35 +182,28 @@ public final class RetryHandlingBlockWorkerClient extends AbstractThriftClient
 
   @Override
   public boolean promoteBlock(final long blockId) throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
-      @Override
-      public Boolean call(AlluxioService.Client client) throws AlluxioTException, TException {
-        if (client instanceof BlockWorkerClientService.Client) {
-          return ((BlockWorkerClientService.Client) client).promoteBlock(blockId);
-        } else {
-          throw new RuntimeException(
-              "Unexpected type. BlockWorkerClientService.Client is expected.");
-        }
-      }
-    });
+    return retryRPC(
+        new RpcCallableThrowsAlluxioTException<Boolean, BlockWorkerClientService.Client>() {
+          @Override
+          public Boolean call(BlockWorkerClientService.Client client)
+              throws AlluxioTException, TException {
+            return client.promoteBlock(blockId);
+          }
+        });
   }
 
   @Override
   public String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
     try {
-      return retryRPC(new RpcCallableThrowsAlluxioTException<String>() {
-        @Override
-        public String call(AlluxioService.Client client) throws AlluxioTException, TException {
-          if (client instanceof BlockWorkerClientService.Client) {
-            return ((BlockWorkerClientService.Client) client)
-                .requestBlockLocation(mSessionId, blockId, initialBytes);
-          } else {
-            throw new RuntimeException(
-                "Unexpected type. BlockWorkerClientService.Client is expected.");
-          }
-        }
-      });
+      return retryRPC(
+          new RpcCallableThrowsAlluxioTException<String, BlockWorkerClientService.Client>() {
+            @Override
+            public String call(BlockWorkerClientService.Client client)
+                throws AlluxioTException, TException {
+              return client.requestBlockLocation(mSessionId, blockId, initialBytes);
+            }
+          });
     } catch (WorkerOutOfSpaceException e) {
       throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mRpcAddress, blockId));
@@ -243,21 +213,16 @@ public final class RetryHandlingBlockWorkerClient extends AbstractThriftClient
   }
 
   @Override
-  public boolean requestSpace(final long blockId, final long requestBytes)
-      throws IOException {
+  public boolean requestSpace(final long blockId, final long requestBytes) throws IOException {
     try {
-      boolean success = retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
-        @Override
-        public Boolean call(AlluxioService.Client client) throws AlluxioTException, TException {
-          if (client instanceof BlockWorkerClientService.Client) {
-            return ((BlockWorkerClientService.Client) client)
-                .requestSpace(mSessionId, blockId, requestBytes);
-          } else {
-            throw new RuntimeException(
-                "Unexpected type. BlockWorkerClientService.Client is expected.");
-          }
-        }
-      });
+      boolean success = retryRPC(
+          new RpcCallableThrowsAlluxioTException<Boolean, BlockWorkerClientService.Client>() {
+            @Override
+            public Boolean call(BlockWorkerClientService.Client client)
+                throws AlluxioTException, TException {
+              return client.requestSpace(mSessionId, blockId, requestBytes);
+            }
+          });
       if (!success) {
         throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE
             .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mRpcAddress, blockId));
@@ -270,31 +235,21 @@ public final class RetryHandlingBlockWorkerClient extends AbstractThriftClient
 
   @Override
   public boolean unlockBlock(final long blockId) throws IOException {
-    return retryRPC(new RpcCallable<Boolean>() {
+    return retryRPC(new RpcCallable<Boolean, BlockWorkerClientService.Client>() {
       @Override
-      public Boolean call(AlluxioService.Client client) throws TException {
-        if (client instanceof BlockWorkerClientService.Client) {
-          return ((BlockWorkerClientService.Client) client).unlockBlock(blockId, mSessionId);
-        } else {
-          throw new RuntimeException(
-              "Unexpected type. BlockWorkerClientService.Client is expected.");
-        }
+      public Boolean call(BlockWorkerClientService.Client client) throws TException {
+          return client.unlockBlock(blockId, mSessionId);
       }
     });
   }
 
   @Override
   public void sessionHeartbeat() throws IOException {
-    retryRPC(new RpcCallable<Void>() {
+    retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
       @Override
-      public Void call(AlluxioService.Client client) throws TException {
-        if (client instanceof BlockWorkerClientService.Client) {
-          ((BlockWorkerClientService.Client) client).sessionHeartbeat(mSessionId, null);
+      public Void call(BlockWorkerClientService.Client client) throws TException {
+          client.sessionHeartbeat(mSessionId, null);
           return null;
-        } else {
-          throw new RuntimeException(
-              "Unexpected type. BlockWorkerClientService.Client is expected.");
-        }
       }
     });
   }

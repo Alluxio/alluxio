@@ -34,10 +34,25 @@ import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- *  A pool to manage Alluxio thrift clients.
+ * A pool to manage Alluxio thrift clients.
+ * 1. It is recommended to keep one ThriftClientPool instance per <serverAddress, serviceType> pair.
+ * 2. Make sure to release every client acquired from the pool even when the client is disconnected
+ *    An example usage:
+ *    ClientType client = null;
+ *    try {
+ *      client = pool.acquire();
+ *      client.doRpc();
+ *    } catch (TTransportException e) {
+ *      client.getOutputProtocol().getTransport().close();
+ *    } finally {
+ *      if (client != null) {
+ *        pool.release(client)
+ *      }
+ *    }
  *
  * @param <T> the Alluxio thrift service type
  */
+// TODO(peis): Add unittest.
 @ThreadSafe
 public abstract class ThriftClientPool<T extends AlluxioService.Client>
     extends DynamicResourcePool<T> {
@@ -45,9 +60,14 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   private final String mServiceName;
   private final long mServiceVersion;
   private final InetSocketAddress mAddress;
-  private final int mGcThresholdInSecs;
+  private final int mGcThresholdMs;
 
-  // Makes sure that the version is not checked for every new Client.
+  /**
+   * 1. If set to true, the Alluxio service version is checked with the server no matter whether
+   *    the version is compatible with the server or not. An IOException will be thrown if the
+   *    version is not compatible with the server.
+   * 2 If set to false, the Alluxio service version is not yet checked with the server.
+   */
   private volatile boolean mIsVersionChecked = false;
 
   private static final int CONNECTION_OPEN_RETRY_BASE_SLEEP_MS = 50;
@@ -69,17 +89,17 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
    * @param serviceVersion the service version
    * @param address the server address
    * @param maxCapacity the maximum capacity of the pool
-   * @param gcThresholdInSecs when a channel is older than this threshold and the pool's capacity
-   *        is above the minimum capaicty (1), it is closed and removed from the pool.
+   * @param gcThresholdMs when a channel is older than this threshold and the pool's capacity
+   *        is above the minimum capacity (1), it is closed and removed from the pool.
    */
   public ThriftClientPool(String serviceName, long serviceVersion, InetSocketAddress address,
-      int maxCapacity, int gcThresholdInSecs) {
+      int maxCapacity, int gcThresholdMs) {
     super(Options.defaultOptions().setMaxCapacity(maxCapacity));
     mTransportProvider = TransportProvider.Factory.create();
     mServiceName = serviceName;
     mServiceVersion = serviceVersion;
     mAddress = address;
-    mGcThresholdInSecs = gcThresholdInSecs;
+    mGcThresholdMs = gcThresholdMs;
   }
 
   @Override
@@ -150,7 +170,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   @Override
   protected boolean shouldGc(ResourceInternal<T> clientResourceInternal) {
     return System.currentTimeMillis() - clientResourceInternal.getLastAccessTimeMs()
-        > (long) mGcThresholdInSecs * (long) Constants.SECOND_MS;
+        > (long) mGcThresholdMs;
   }
 
   /**
@@ -166,33 +186,36 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
 
     long serviceVersionFound = -1;
     try {
-      serviceVersionFound = client.getServiceVersion();
-    } catch (TTransportException e) {
-      closeResource(client);
-      // The newest version of Thrift provides a dedicated exception type for this (CORRUPTED_DATA).
-      if (FRAME_SIZE_NEGATIVE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()
-          || FRAME_SIZE_TOO_LARGE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
-        // See an error like "Frame size (67108864) larger than max length (16777216)!",
-        // pointing to the helper page.
-        String message = String.format("Failed to connect to %s @ %s: %s. "
-                + "This exception may be caused by incorrect network configuration. "
-                + "Please consult %s for common solutions to address this problem.",
-            getServiceNameForLogging(), mAddress, e.getMessage(),
-            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
-        throw new IOException(message, e);
+      try {
+        serviceVersionFound = client.getServiceVersion();
+      } catch (TTransportException e) {
+        closeResource(client);
+        // The master branch of Apache Thrift provides a dedicated exception type for this
+        // (CORRUPTED_DATA).
+        if (FRAME_SIZE_NEGATIVE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()
+            || FRAME_SIZE_TOO_LARGE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
+          // See an error like "Frame size (67108864) larger than max length (16777216)!",
+          // pointing to the helper page.
+          String message = String.format("Failed to connect to %s @ %s: %s. " + "This exception "
+                  + "may be caused by incorrect network configuration. "
+                  + "Please consult %s for common solutions to address this problem.",
+              getServiceNameForLogging(), mAddress, e.getMessage(),
+              RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
+          throw new IOException(message, e);
+        }
+        throw e;
+      } catch (TException e) {
+        closeResource(client);
+        throw new IOException(e);
       }
-      throw e;
-    } catch (TException e) {
-      closeResource(client);
-      throw new IOException(e);
+      if (serviceVersionFound != mServiceVersion) {
+        closeResource(client);
+        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION
+            .getMessage(mServiceName, mServiceVersion, serviceVersionFound));
+      }
+    } finally {
+      mIsVersionChecked = true;
     }
-    if (serviceVersionFound != mServiceVersion) {
-      closeResource(client);
-      throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION
-          .getMessage(mServiceName, mServiceVersion, serviceVersionFound));
-    }
-
-    mIsVersionChecked = true;
   }
 
   /**

@@ -29,9 +29,8 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * The base class for clients that use {@link alluxio.network.connection.ThriftClientPool}.
  */
-// TODO(peis): Rename this to Client once we have deprecated AbstractClient and Client class.
 @ThreadSafe
-public abstract class AbstractThriftClient {
+public abstract class AbstractThriftClient <C extends AlluxioService.Client> {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -40,26 +39,26 @@ public abstract class AbstractThriftClient {
   /**
    * @return a Thrift service client
    */
-  protected abstract AlluxioService.Client acquireClient() throws IOException;
+  protected abstract C acquireClient() throws IOException;
 
   /**
    * @param client the client to release
    */
-  protected abstract void releaseClient(AlluxioService.Client client);
+  protected abstract void releaseClient(C client);
 
   /**
    * The RPC to be executed in {@link #retryRPC(RpcCallable)}.
    *
    * @param <V> the return value of {@link #call(AlluxioService.Client)}
    */
-  protected interface RpcCallable<V> {
+  protected interface RpcCallable<V, C extends AlluxioService.Client> {
     /**
      * The task where RPC happens.
      *
      * @return RPC result
      * @throws TException when any exception defined in thrift happens
      */
-    V call(AlluxioService.Client client) throws TException;
+    V call(C client) throws TException;
   }
 
   /**
@@ -68,7 +67,7 @@ public abstract class AbstractThriftClient {
    *
    * @param <V> the return value of {@link #call(AlluxioService.Client)}
    */
-  protected interface RpcCallableThrowsAlluxioTException<V> {
+  protected interface RpcCallableThrowsAlluxioTException<V, C extends AlluxioService.Client> {
     /**
      * The task where RPC happens.
      *
@@ -77,7 +76,7 @@ public abstract class AbstractThriftClient {
      *         into {@link AlluxioTException}
      * @throws TException when any exception defined in thrift happens
      */
-    V call(AlluxioService.Client client) throws AlluxioTException, TException;
+    V call(C client) throws AlluxioTException, TException;
   }
 
   /**
@@ -89,11 +88,11 @@ public abstract class AbstractThriftClient {
    * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or some server
    *         side IOException occurred.
    */
-  protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException {
+  protected <V> V retryRPC(RpcCallable<V, C> rpc) throws IOException {
     int countingRetry = 0;
     TException exception = null;
     while ((countingRetry++) <= RPC_MAX_NUM_RETRY) {
-      AlluxioService.Client client = acquireClient();
+      C client = acquireClient();
       try {
         return rpc.call(client);
       } catch (ThriftIOException e) {
@@ -126,12 +125,12 @@ public abstract class AbstractThriftClient {
    * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or some server
    *         side IOException occurred.
    */
-  protected <V> V retryRPC(RpcCallableThrowsAlluxioTException<V> rpc)
+  protected <V> V retryRPC(RpcCallableThrowsAlluxioTException<V, C> rpc)
       throws AlluxioException, IOException {
     int countingRetry = 0;
     TException exception = null;
     while ((countingRetry++) <= RPC_MAX_NUM_RETRY) {
-      AlluxioService.Client client = acquireClient();
+      C client = acquireClient();
       try {
         return rpc.call(client);
       } catch (AlluxioTException e) {
@@ -157,7 +156,7 @@ public abstract class AbstractThriftClient {
    *
    * @param client the client to close
    */
-  private void closeClient(AlluxioService.Client client) {
+  private void closeClient(C client) {
     client.getOutputProtocol().getTransport().close();
   }
 }
