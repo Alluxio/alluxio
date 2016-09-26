@@ -107,10 +107,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
     // Note that the input and output protocol is the same in Alluxio.
     TTransport transport = client.getOutputProtocol().getTransport();
     if (transport.isOpen()) {
-      LOG.info("Closing thrift transport.");
       transport.close();
-    } else {
-      LOG.info("Close a closed thrift transport.");
     }
   }
 
