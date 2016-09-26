@@ -28,6 +28,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The base class for clients that use {@link alluxio.network.connection.ThriftClientPool}.
+ *
+ * @param <C> the Alluxio service type
  */
 @ThreadSafe
 public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
@@ -67,6 +69,7 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
    * is to be executed in {@link #retryRPC(RpcCallableThrowsAlluxioTException)}.
    *
    * @param <V> the return value of {@link #call(AlluxioService.Client)}
+   * @param <C> the Alluxio service type
    */
   protected interface RpcCallableThrowsAlluxioTException<V, C extends AlluxioService.Client> {
     /**
