@@ -11,7 +11,6 @@
 
 package alluxio.network.connection;
 
-import alluxio.Constants;
 import alluxio.resource.DynamicResourcePool;
 
 import com.google.common.base.Throwables;
