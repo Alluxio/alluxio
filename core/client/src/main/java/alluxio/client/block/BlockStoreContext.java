@@ -162,7 +162,7 @@ public final class BlockStoreContext {
     Preconditions.checkArgument(address != null, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     long clientId = IdUtils.getRandomNonNegativeLong();
     return new RetryHandlingBlockWorkerClient(address,
-        ClientContext.getBlockClientExecutorService(), clientId, false);
+        ClientContext.getBlockClientExecutorService(), clientId);
   }
 
   /**

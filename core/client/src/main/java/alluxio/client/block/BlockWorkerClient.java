@@ -11,19 +11,19 @@
 
 package alluxio.client.block;
 
-import alluxio.Client;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
  * Interface for an Alluxio block worker client.
  */
-public interface BlockWorkerClient {
+public interface BlockWorkerClient extends Closeable {
 
   /**
    * @return the address of the worker
