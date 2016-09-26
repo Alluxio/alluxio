@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.UnderStorageType;
@@ -78,13 +79,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, AlluxioBlockStore.class,
     UnderFileSystem.class, UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
-
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
   /** Used if ufs operation delegation is enabled. */
   private static final long UFS_FILE_ID = 1L;
 
-  private boolean mDelegationEnabled;
   private FileSystemContext mFileSystemContext;
   private AlluxioBlockStore mBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
@@ -104,7 +103,6 @@ public class FileOutStreamTest {
   @Before
   public void before() throws Exception {
     ClientTestUtils.setSmallBufferSizes();
-    mDelegationEnabled = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
@@ -182,6 +180,7 @@ public class FileOutStreamTest {
 
   @After
   public void after() {
+    ConfigurationTestUtils.resetConfiguration();
     ClientTestUtils.resetClient();
   }
 
@@ -245,12 +244,13 @@ public class FileOutStreamTest {
   }
 
   /**
-   * Tests that {@link FileOutStream#cancel()} will cancel and close the underlying out streams,
-   * and delete from the under file system. Also makes sure that cancel() doesn't persist or
-   * complete the file.
+   * Tests that {@link FileOutStream#cancel()} will cancel and close the underlying out streams, and
+   * delete from the under file system when the delegation flag is set. Also makes sure that
+   * cancel() doesn't persist or complete the file.
    */
   @Test
-  public void cancel() throws Exception {
+  public void cancelWithDelegation() throws Exception {
+    Configuration.set(PropertyKey.USER_UFS_DELEGATION_ENABLED, true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.cancel();
     for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
@@ -258,15 +258,32 @@ public class FileOutStreamTest {
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
     }
     // Don't persist or complete the file if the stream was canceled
-    if (mDelegationEnabled) {
-      verify(mWorkerClient, times(0)).completeUfsFile(UFS_FILE_ID,
-          CompleteUfsFileOptions.defaults());
-      verify(mWorkerClient).cancelUfsFile(eq(UFS_FILE_ID), any(CancelUfsFileOptions.class));
-    } else {
-      verify(mFileSystemMasterClient, times(0)).completeFile(FILE_NAME,
-          CompleteFileOptions.defaults());
-      verify(mUnderFileSystem).delete(anyString(), eq(false));
+    verify(mWorkerClient, times(0)).completeUfsFile(UFS_FILE_ID, CompleteUfsFileOptions.defaults());
+    verify(mWorkerClient).cancelUfsFile(eq(UFS_FILE_ID), any(CancelUfsFileOptions.class));
+  }
+
+  /**
+   * Tests that {@link FileOutStream#cancel()} will cancel and close the underlying out streams, and
+   * delete from the under file system when the delegation flag is not set. Also makes sure that
+   * cancel() doesn't persist or complete the file.
+   */
+  @Test
+  public void cancelWithoutDelegation() throws Exception {
+    Configuration.set(PropertyKey.USER_UFS_DELEGATION_ENABLED, false);
+    OutStreamOptions options =
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults());
+    mTestStream = createTestStream(FILE_NAME, options);
+    mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
+    mTestStream.cancel();
+    for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
+      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
+      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
     }
+    // Don't persist or complete the file if the stream was canceled
+    verify(mFileSystemMasterClient, times(0)).completeFile(FILE_NAME,
+        CompleteFileOptions.defaults());
+    verify(mUnderFileSystem).delete(anyString(), eq(false));
   }
 
   /**
