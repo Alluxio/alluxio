@@ -24,7 +24,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -32,7 +34,9 @@ import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
+import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
+import alluxio.client.file.options.CompleteUfsFileOptions;
 import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -61,6 +65,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +76,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, AlluxioBlockStore.class,
-    UnderFileSystem.class})
+    UnderFileSystem.class, UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
@@ -79,6 +84,7 @@ public class FileOutStreamTest {
   /** Used if ufs operation delegation is enabled. */
   private static final long UFS_FILE_ID = 1L;
 
+  private boolean mDelegationEnabled;
   private FileSystemContext mFileSystemContext;
   private AlluxioBlockStore mBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
@@ -88,6 +94,7 @@ public class FileOutStreamTest {
   private Map<Long, TestBufferedBlockOutStream> mAlluxioOutStreamMap;
   private ByteArrayOutputStream mUnderStorageOutputStream;
   private AtomicBoolean mUnderStorageFlushed;
+  private UnderFileSystemFileOutStream.Factory mFactory;
 
   private FileOutStream mTestStream;
 
@@ -97,11 +104,13 @@ public class FileOutStreamTest {
   @Before
   public void before() throws Exception {
     ClientTestUtils.setSmallBufferSizes();
+    mDelegationEnabled = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    mFactory = PowerMockito.mock(UnderFileSystemFileOutStream.Factory.class);
 
     when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
     when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
@@ -155,6 +164,9 @@ public class FileOutStreamTest {
       }
     };
     mUnderStorageFlushed = underStorageFlushed;
+
+    when(mFactory.create(any(InetSocketAddress.class), anyLong())).thenReturn(
+        mUnderStorageOutputStream);
 
     // Set up underFileStorage so that we can test UnderStorageType.SYNC_PERSIST
     mUnderFileSystem = ClientMockUtils.mockUnderFileSystem();
@@ -246,9 +258,15 @@ public class FileOutStreamTest {
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
     }
     // Don't persist or complete the file if the stream was canceled
-    verify(mFileSystemMasterClient, times(0)).completeFile(FILE_NAME,
-        CompleteFileOptions.defaults());
-    verify(mUnderFileSystem).delete(anyString(), eq(false));
+    if (mDelegationEnabled) {
+      verify(mWorkerClient, times(0)).completeUfsFile(UFS_FILE_ID,
+          CompleteUfsFileOptions.defaults());
+      verify(mWorkerClient).cancelUfsFile(UFS_FILE_ID, CancelUfsFileOptions.defaults());
+    } else {
+      verify(mFileSystemMasterClient, times(0)).completeFile(FILE_NAME,
+          CompleteFileOptions.defaults());
+      verify(mUnderFileSystem).delete(anyString(), eq(false));
+    }
   }
 
   /**
@@ -457,8 +475,6 @@ public class FileOutStreamTest {
 
   private FileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
-    FileOutStream stream = new FileOutStream(path, options, mFileSystemContext,
-        UnderFileSystemFileOutStream.Factory.get());
-    return stream;
+    return new FileOutStream(path, options, mFileSystemContext, mFactory);
   }
 }
