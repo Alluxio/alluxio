@@ -2294,14 +2294,14 @@ public final class FileSystemMaster extends AbstractMaster {
         for (Inode<?> inode : inodeChildren) {
           // the path to inode for getPath should already be locked.
           tempInodePath.setDescendant(inode, mInodeTree.getPath(inode));
-          List<Inode<?>> persistedInodes = setAttributeInternal(tempInodePath, true, opTimeMs,
+          List<Inode<?>> persistedInodes = setAttributeInternal(tempInodePath, false, opTimeMs,
               options);
           journalPersistedInodes(persistedInodes);
           journalSetAttribute(tempInodePath, opTimeMs, options);
         }
       }
     }
-    List<Inode<?>> persistedInodes = setAttributeInternal(inodePath, true, opTimeMs, options);
+    List<Inode<?>> persistedInodes = setAttributeInternal(inodePath, false, opTimeMs, options);
     journalPersistedInodes(persistedInodes);
     return journalSetAttribute(inodePath, opTimeMs, options);
   }
@@ -2529,7 +2529,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      setAttributeInternal(inodePath, false, entry.getOpTimeMs(), options);
+      setAttributeInternal(inodePath, true, entry.getOpTimeMs(), options);
       // Intentionally not journaling the persisted inodes from setAttributeInternal
     }
   }
