@@ -119,8 +119,16 @@ public class FileOutStream extends AbstractOutStream {
     mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
     if (mUnderStorageType.isSyncPersist()) {
+      // Get the ufs path from the master.
+      FileSystemMasterClient client = mContext.acquireMasterClient();
+      try {
+        mUfsPath = client.getStatus(mUri).getUfsPath();
+      } catch (AlluxioException e) {
+        throw new IOException(e);
+      } finally {
+        mContext.releaseMasterClient(client);
+      }
       if (mUfsDelegation) {
-        updateUfsPath();
         mFileSystemWorkerClient = mContext.createWorkerClient();
         try {
           Permission perm = options.getPermission();
@@ -134,7 +142,6 @@ public class FileOutStream extends AbstractOutStream {
         mUnderStorageOutputStream = mUnderOutStreamFactory
             .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId);
       } else {
-        updateUfsPath();
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
         // TODO(jiri): Implement collection of temporary files left behind by dead clients.
@@ -198,21 +205,12 @@ public class FileOutStream extends AbstractOutStream {
         if (mCanceled) {
           // TODO(yupeng): Handle this special case in under storage integrations.
           mUnderStorageOutputStream.close();
-          if (!ufs.exists(tmpPath)) {
-            // Location of the temporary file has changed, recompute it.
-            updateUfsPath();
-            tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-          }
           ufs.delete(tmpPath, false);
         } else {
           mUnderStorageOutputStream.flush();
           mUnderStorageOutputStream.close();
-          if (!ufs.exists(tmpPath)) {
-            // Location of the temporary file has changed, recompute it.
-            updateUfsPath();
-            tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-          }
-          if (!ufs.rename(tmpPath, mUfsPath)) {
+          if (!ufs.rename(tmpPath, mUfsPath)) { // Failed to commit file
+            ufs.delete(tmpPath, false);
             throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
           }
           options.setUfsLength(ufs.getFileSize(mUfsPath));
@@ -364,18 +362,6 @@ public class FileOutStream extends AbstractOutStream {
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
       mCurrentBlockOutStream.cancel();
-    }
-  }
-
-  private void updateUfsPath() throws IOException {
-    FileSystemMasterClient client = mContext.acquireMasterClient();
-    try {
-      URIStatus status = client.getStatus(mUri);
-      mUfsPath = status.getUfsPath();
-    } catch (AlluxioException e) {
-      throw new IOException(e);
-    } finally {
-      mContext.releaseMasterClient(client);
     }
   }
 
