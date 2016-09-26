@@ -93,12 +93,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void releaseClient(BlockWorkerClientService.Client client) {
-    if (client instanceof BlockWorkerClientService.Client) {
-      BlockStoreContext
-          .releaseBlockWorkerThriftClient(mRpcAddress, client);
-    } else {
-      throw new RuntimeException("Unexpected type. BlockWorkerClientService.Client is expected.");
-    }
+    BlockStoreContext.releaseBlockWorkerThriftClient(mRpcAddress, client);
   }
 
   @Override
