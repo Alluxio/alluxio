@@ -261,7 +261,7 @@ public class FileOutStreamTest {
     if (mDelegationEnabled) {
       verify(mWorkerClient, times(0)).completeUfsFile(UFS_FILE_ID,
           CompleteUfsFileOptions.defaults());
-      verify(mWorkerClient).cancelUfsFile(UFS_FILE_ID, CancelUfsFileOptions.defaults());
+      verify(mWorkerClient).cancelUfsFile(eq(UFS_FILE_ID), any(CancelUfsFileOptions.class));
     } else {
       verify(mFileSystemMasterClient, times(0)).completeFile(FILE_NAME,
           CompleteFileOptions.defaults());
