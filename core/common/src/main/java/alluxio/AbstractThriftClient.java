@@ -90,9 +90,9 @@ public abstract class AbstractThriftClient {
    *         side IOException occurred.
    */
   protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException {
-    int retry = 0;
+    int countingRetry = 0;
     TException exception = null;
-    while ((retry++) <= RPC_MAX_NUM_RETRY) {
+    while ((countingRetry++) <= RPC_MAX_NUM_RETRY) {
       AlluxioService.Client client = acquireClient();
       try {
         return rpc.call(client);
@@ -109,7 +109,7 @@ public abstract class AbstractThriftClient {
       }
     }
 
-    LOG.error("Failed after " + retry + " retries.");
+    LOG.error("Failed after " + countingRetry + " retries.");
     Preconditions.checkNotNull(exception);
     throw new IOException(exception);
   }
@@ -128,9 +128,9 @@ public abstract class AbstractThriftClient {
    */
   protected <V> V retryRPC(RpcCallableThrowsAlluxioTException<V> rpc)
       throws AlluxioException, IOException {
-    int retry = 0;
+    int countingRetry = 0;
     TException exception = null;
-    while ((retry++) <= RPC_MAX_NUM_RETRY) {
+    while ((countingRetry++) <= RPC_MAX_NUM_RETRY) {
       AlluxioService.Client client = acquireClient();
       try {
         return rpc.call(client);
@@ -147,7 +147,7 @@ public abstract class AbstractThriftClient {
       }
     }
 
-    LOG.error("Failed after " + retry + " retries.");
+    LOG.error("Failed after " + countingRetry + " retries.");
     Preconditions.checkNotNull(exception);
     throw new IOException(exception);
   }
@@ -155,7 +155,7 @@ public abstract class AbstractThriftClient {
   /**
    * Close the given client.
    *
-   * @param client  the client to close
+   * @param client the client to close
    */
   private void closeClient(AlluxioService.Client client) {
     client.getOutputProtocol().getTransport().close();
