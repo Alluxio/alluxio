@@ -2294,13 +2294,14 @@ public final class FileSystemMaster extends AbstractMaster {
         for (Inode<?> inode : inodeChildren) {
           // the path to inode for getPath should already be locked.
           tempInodePath.setDescendant(inode, mInodeTree.getPath(inode));
-          List<Inode<?>> persistedInodes = setAttributeInternal(tempInodePath, opTimeMs, options);
+          List<Inode<?>> persistedInodes = setAttributeInternal(tempInodePath, false, opTimeMs,
+              options);
           journalPersistedInodes(persistedInodes);
           journalSetAttribute(tempInodePath, opTimeMs, options);
         }
       }
     }
-    List<Inode<?>> persistedInodes = setAttributeInternal(inodePath, opTimeMs, options);
+    List<Inode<?>> persistedInodes = setAttributeInternal(inodePath, false, opTimeMs, options);
     journalPersistedInodes(persistedInodes);
     return journalSetAttribute(inodePath, opTimeMs, options);
   }
@@ -2415,6 +2416,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * @param inodePath the {@link LockedInodePath} to use
+   * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
    * @return list of inodes which were marked as persisted
@@ -2422,8 +2424,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if failed to set permission
    */
-  private List<Inode<?>> setAttributeInternal(LockedInodePath inodePath, long opTimeMs,
-      SetAttributeOptions options)
+  private List<Inode<?>> setAttributeInternal(LockedInodePath inodePath, boolean replayed,
+      long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     List<Inode<?>> persistedInodes = Collections.emptyList();
     Inode<?> inode = inodePath.getInode();
@@ -2472,7 +2474,7 @@ public final class FileSystemMaster extends AbstractMaster {
       permissionChanged = true;
     }
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
-    if ((ownerGroupChanged || permissionChanged) && inode.isPersisted()) {
+    if ((ownerGroupChanged || permissionChanged) && !replayed && inode.isPersisted()) {
       if ((inode instanceof InodeFile) && !((InodeFile) inode).isCompleted()) {
         LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
@@ -2527,7 +2529,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      setAttributeInternal(inodePath, entry.getOpTimeMs(), options);
+      setAttributeInternal(inodePath, true, entry.getOpTimeMs(), options);
       // Intentionally not journaling the persisted inodes from setAttributeInternal
     }
   }
