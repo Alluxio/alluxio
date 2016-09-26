@@ -18,6 +18,7 @@ import alluxio.client.block.RetryHandlingBlockWorkerClient;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 
+import org.apache.thrift.transport.TTransportException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -87,18 +88,24 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnect() throws Exception {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("Failed to connect to the worker");
+    boolean failedToConnect = false;
 
     // Using no-alluxio as loginUser to connect to Worker, the IOException will be thrown
     LoginUserTestUtils.resetLoginUser("no-alluxio");
 
     try (BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(), mExecutorService,
-        1 /* fake session id */)) {
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), mExecutorService, 1 /* fake
+        session id */)) {
+      // Just to supress the "Empty try block" warning in CheckStyle.
+      failedToConnect = false;
+    } catch (IOException e) {
+      if (e.getCause() instanceof TTransportException) {
+        failedToConnect = true;
+      }
     } finally {
       ClientTestUtils.resetClient();
     }
+    Assert.assertTrue(failedToConnect);
   }
 
   /**
