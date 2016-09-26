@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The base class for clients that use {@link alluxio.network.connection.ThriftClientPool}.
  */
 @ThreadSafe
-public abstract class AbstractThriftClient <C extends AlluxioService.Client> {
+public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -50,6 +50,7 @@ public abstract class AbstractThriftClient <C extends AlluxioService.Client> {
    * The RPC to be executed in {@link #retryRPC(RpcCallable)}.
    *
    * @param <V> the return value of {@link #call(AlluxioService.Client)}
+   * @param <C> the Alluxio service type
    */
   protected interface RpcCallable<V, C extends AlluxioService.Client> {
     /**
