@@ -232,6 +232,9 @@ public enum PropertyKey {
   USER_NETWORK_NETTY_CHANNEL(Name.USER_NETWORK_NETTY_CHANNEL, null),
   USER_NETWORK_NETTY_TIMEOUT_MS(Name.USER_NETWORK_NETTY_TIMEOUT_MS, 30000),
   USER_NETWORK_NETTY_WORKER_THREADS(Name.USER_NETWORK_NETTY_WORKER_THREADS, 0),
+  USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX, 1024),
+  USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_SECS(
+      Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_SECS, 300),
   USER_UFS_DELEGATION_ENABLED(Name.USER_UFS_DELEGATION_ENABLED, false),
   USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES,
       "8MB"),
@@ -613,6 +616,10 @@ public enum PropertyKey {
         "alluxio.user.network.netty.timeout.ms";
     public static final String USER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.user.network.netty.worker.threads";
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
+        "alluxio.user.network.netty.channel.pool.size.max";
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_SECS =
+        "alluxio.user.network.netty.channel.pool.gc.threshold.secs";
     public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";

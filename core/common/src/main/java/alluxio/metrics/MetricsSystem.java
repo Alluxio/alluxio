@@ -93,16 +93,19 @@ public final class MetricsSystem {
       LOG.warn("Sinks have already been started.");
       return;
     }
+    LOG.info("Starting sinks with config: {}.", config);
     sSinks = new ArrayList<>();
     Map<String, Properties> sinkConfigs =
         MetricsConfig.subProperties(config.getProperties(), SINK_REGEX);
     for (Map.Entry<String, Properties> entry : sinkConfigs.entrySet()) {
       String classPath = entry.getValue().getProperty("class");
       if (classPath != null) {
+        LOG.info("Starting sink {}.", classPath);
         try {
           Sink sink =
               (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
                   .newInstance(entry.getValue(), METRIC_REGISTRY);
+          sink.start();
           sSinks.add(sink);
         } catch (Exception e) {
           LOG.error("Sink class {} cannot be instantiated", classPath, e);
