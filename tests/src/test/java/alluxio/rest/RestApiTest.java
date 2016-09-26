@@ -32,7 +32,7 @@ public abstract class RestApiTest {
   @Rule
   public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource.Builder()
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
-      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName())
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
       .build();
 
   protected String getEndpoint(String suffix) {
