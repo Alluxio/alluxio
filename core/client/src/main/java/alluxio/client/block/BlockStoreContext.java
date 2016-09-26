@@ -75,7 +75,7 @@ public final class BlockStoreContext {
       new ConcurrentHashMap<>();
 
   /**
-   * Indicates whether there is Alluxio workers running in the local machine. This is initialized
+   * Indicates whether there is any Alluxio worker running in the local machine. This is initialized
    * lazily.
    */
   @GuardedBy("this")
@@ -163,7 +163,7 @@ public final class BlockStoreContext {
    *        worker is available for the given hostname)
    */
   public BlockWorkerClient acquireWorkerClient(WorkerNetAddress address) throws IOException {
-    Preconditions.checkArgument(address != null, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+    Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     long clientId = IdUtils.getRandomNonNegativeLong();
     return new RetryHandlingBlockWorkerClient(address,
         ClientContext.getBlockClientExecutorService(), clientId);
@@ -177,6 +177,7 @@ public final class BlockStoreContext {
    *        this method is called
    */
   public void releaseWorkerClient(BlockWorkerClient blockWorkerClient) {
+    Preconditions.checkNotNull(blockWorkerClient);
     blockWorkerClient.close();
   }
 
@@ -202,17 +203,13 @@ public final class BlockStoreContext {
       NettyChannelPool pool = new NettyChannelPool(
           bootstrapBuilderClone,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
-          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_SECS));
+          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
       if (NETTY_CHANNEL_POOL_MAP.putIfAbsent(address, pool) != null) {
+        // This can happen if this function is called concurrently.
         pool.close();
       }
     }
-    try {
-      return NETTY_CHANNEL_POOL_MAP.get(address).acquire();
-    } catch (IOException e) {
-      LOG.error(String.format("Failed to acquire netty channel %s.", address), e);
-      throw e;
-    }
+    return NETTY_CHANNEL_POOL_MAP.get(address).acquire();
   }
 
   /**
@@ -238,17 +235,12 @@ public final class BlockStoreContext {
     if (!BLOCK_WORKER_THRIFT_CLIENT_POOL.containsKey(address)) {
       BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(address,
           Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_SECS));
+          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
       if (BLOCK_WORKER_THRIFT_CLIENT_POOL.putIfAbsent(address, pool) != null) {
         pool.close();
       }
     }
-    try {
-      return BLOCK_WORKER_THRIFT_CLIENT_POOL.get(address).acquire();
-    } catch (IOException e) {
-      LOG.error(String.format("Failed to connect to block worker %s.", address), e);
-      throw e;
-    }
+    return BLOCK_WORKER_THRIFT_CLIENT_POOL.get(address).acquire();
   }
 
   /**

@@ -132,5 +132,6 @@ public interface BlockWorkerClient extends Closeable {
   /**
    * Closes the client.
    */
+  @Override
   void close();
 }
