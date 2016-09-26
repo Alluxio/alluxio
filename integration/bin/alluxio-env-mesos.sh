@@ -13,6 +13,8 @@
 export ALLUXIO_CONF_DIR="${MESOS_SANDBOX}/conf"
 export ALLUXIO_LOGS_DIR="${MESOS_SANDBOX}/logs"
 
+echo "${ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT}" > ${ALLUXIO_CONF_DIR}/alluxio-site.properties
+
 if [[ -z "${ALLUXIO_RAM_FOLDER}" ]]; then
     if [[ $(uname -s) == Darwin ]]; then
         # Assuming Mac OS X
