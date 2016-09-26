@@ -266,7 +266,7 @@ public class AlluxioScheduler implements Scheduler {
   private String createAlluxioSiteProperties() {
     StringBuilder siteProperties = new StringBuilder();
     for (Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      siteProperties.append(String.format("%s=%s\n", entry.getKey(), entry.getValue()));
+      siteProperties.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
     }
     return siteProperties.toString();
   }
