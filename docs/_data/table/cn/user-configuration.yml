@@ -2,6 +2,10 @@ alluxio.user.block.master.client.threads:
   数据块master client与数据块master通信使用的线程数目。
 alluxio.user.block.worker.client.threads:
   数据块worker client池从本地数据块worker处读取时使用的线程数目。
+alluxio.user.block.worker.client.pool.size.max:
+  数据块worker client池中缓存的worker client的最大数目。
+alluxio.user.block.worker.client.pool.gc.threshold.ms:
+  数据块worker client如果闲置超过这个时间会被关闭。
 alluxio.user.block.remote.read.buffer.size.bytes:
   从远程Alluxio worker读取数据时的缓冲区大小。
 alluxio.user.block.remote.reader.class:
@@ -41,6 +45,10 @@ alluxio.user.network.netty.timeout.ms:
   Netty client（用于数据块的读写操作）等待数据服务端回复的最长时间（单位：毫秒）。
 alluxio.user.network.netty.worker.threads:
   远程数据块worker client从远程数据块worker读取数据使用的线程数目。
+alluxio.user.network.netty.channel.pool.size.max:
+  netty网络通道池的最大容量。
+alluxio.user.network.netty.channel.pool.gc.threshold.ms:
+  netty网络通道会被关闭如果它被闲置超过这个时间。
 alluxio.user.ufs.delegation.enabled:
   是否使用worker对ufs数据进行代理。将该项设置为false会让client直接与ufs通信，目前该特性还处于实验阶段，若设置为true，可能在某些workload下会对性能有影响。
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
