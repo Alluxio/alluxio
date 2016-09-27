@@ -52,7 +52,7 @@ Apache HBase可以通过通用文件系统包装类（可用于Hadoop文件系�
 export HBASE_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${HBASE_CLASSPATH}
 ```
 
-#### 将Alluxio额外属性转化为HBase属性
+#### 添加Alluxio site中额外属性到HBase
 
 如果Alluxio site中有任何想要指定给HBase的属性，将其添加到`hbase-site.xml`。例如，
 将`alluxio.user.file.writetype.default`从默认的`MUST_CACHE`改为`CACHE_THROUGH`：
