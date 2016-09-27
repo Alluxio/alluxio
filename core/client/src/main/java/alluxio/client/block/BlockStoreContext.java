@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
@@ -31,8 +30,6 @@ import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -59,12 +56,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockStoreContext {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockMasterClientPool mBlockMasterClientPool;
 
+  // The following two maps never shrink in the current implementation because its
+  // size is limited by the number of Alluxio workers in the cluster. This simplifies the
+  // concurrent access to them.
   private static final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
       BLOCK_WORKER_THRIFT_CLIENT_POOL = new ConcurrentHashMapV8<>();
-
   private static final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
       NETTY_CHANNEL_POOL_MAP = new ConcurrentHashMapV8<>();
 
@@ -158,9 +156,9 @@ public final class BlockStoreContext {
    * Obtains a client for a worker with the given address.
    *
    * @param address the address of the worker to get a client to
-   * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
+   * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
    * @throws IOException if it fails to create a client for a given hostname (e.g. no Alluxio
-   *         worker is available for the given hostname)
+   *         worker is available for the given worker RPC address)
    */
   public BlockWorkerClient acquireWorkerClient(WorkerNetAddress address) throws IOException {
     Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
@@ -170,8 +168,7 @@ public final class BlockStoreContext {
   }
 
   /**
-   * Releases the {@link BlockWorkerClient} back to the client pool, or destroys it if it was a
-   * remote client.
+   * Releases the {@link BlockWorkerClient} by directly closing it.
    *
    * @param blockWorkerClient the worker client to release, the client should not be accessed after
    *        this method is called
@@ -182,12 +179,15 @@ public final class BlockStoreContext {
   }
 
   /**
-   * Acquires a netty channel from the channel pools.
+   * Acquires a netty channel from the channel pools. If there is no available client instance
+   * available in the pool, it tries to create a new one. And an exception is thrown if it fails to
+   * create a new one.
    *
    * @param address the network address of the channel
    * @param bootstrapBuilder the bootstrap builder that creates a new bootstrap upon called
    * @return the acquired netty channel
-   * @throws IOException if it fails to acquire the netty channel from the pools
+   * @throws IOException if it fails to create a new client instance mostly because it fails to
+   *         connect to remote worker
    */
   public static Channel acquireNettyChannel(final InetSocketAddress address,
       final Callable<Bootstrap> bootstrapBuilder) throws IOException {
@@ -203,7 +203,7 @@ public final class BlockStoreContext {
       NettyChannelPool pool = new NettyChannelPool(
           bootstrapBuilderClone,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
-          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
+          Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
       if (NETTY_CHANNEL_POOL_MAP.putIfAbsent(address, pool) != null) {
         // This can happen if this function is called concurrently.
         pool.close();
@@ -224,18 +224,21 @@ public final class BlockStoreContext {
   }
 
   /**
-   * Acquires a block worker thrift client from the block worker thrift client pools.
+   * Acquires a block worker thrift client from the block worker thrift client pools. If there is
+   * no available client instance available in the pool, it tries to create a new one. And an
+   * exception is thrown if it fails to create a new one.
    *
    * @param address the address of the block worker
    * @return the block worker thrift client
-   * @throws IOException if it fails to connect to remote worker
+   * @throws IOException if it fails to create a new client instance mostly because it fails to
+   *         connect to remote worker
    */
   public static BlockWorkerClientService.Client acquireBlockWorkerThriftClient(
       final InetSocketAddress address) throws IOException {
     if (!BLOCK_WORKER_THRIFT_CLIENT_POOL.containsKey(address)) {
       BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(address,
           Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
+          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
       if (BLOCK_WORKER_THRIFT_CLIENT_POOL.putIfAbsent(address, pool) != null) {
         pool.close();
       }

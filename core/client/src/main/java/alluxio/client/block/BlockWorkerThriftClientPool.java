@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 final class BlockWorkerThriftClientPool extends ThriftClientPool<BlockWorkerClientService.Client> {
   public BlockWorkerThriftClientPool(InetSocketAddress address, int maxCapacity,
-      int gcThresholdMs) {
+      long gcThresholdMs) {
     super(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME, Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION,
         address, maxCapacity, gcThresholdMs);
   }

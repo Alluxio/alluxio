@@ -94,8 +94,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   public static final class Options {
     private int mMaxCapacity = 1024;
     private int mMinCapacity = 1;
-    private int mInitialDelayMs = 100;
-    private int mGcIntervalMs = 120 * Constants.SECOND_MS;
+    private long mInitialDelayMs = 100;
+    private long mGcIntervalMs = 120 * Constants.SECOND_MS;
 
     /**
      * @return the max capacity
@@ -114,14 +114,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     /**
      * @return the initial delay
      */
-    public int getInitialDelayMs() {
+    public long getInitialDelayMs() {
       return mInitialDelayMs;
     }
 
     /**
      * @return the gc interval
      */
-    public int getGcIntervalMs() {
+    public long getGcIntervalMs() {
       return mGcIntervalMs;
     }
 
@@ -149,7 +149,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      * @param initialDelayMs the initial delay
      * @return the updated object
      */
-    public Options setInitialDelayMs(int initialDelayMs) {
+    public Options setInitialDelayMs(long initialDelayMs) {
       Preconditions.checkArgument(initialDelayMs >= 0);
       mInitialDelayMs = initialDelayMs;
       return this;
@@ -159,7 +159,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      * @param gcIntervalMs the gc interval
      * @return the updated object
      */
-    public Options setGcIntervalMs(int gcIntervalMs) {
+    public Options setGcIntervalMs(long gcIntervalMs) {
       Preconditions.checkArgument(gcIntervalMs > 0);
       mGcIntervalMs = gcIntervalMs;
       return this;

@@ -35,7 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   private Callable<Bootstrap> mBootstrap;
-  private final int mGcThresholdMs;
+  private final long mGcThresholdMs;
 
   /**
    * Creates a netty channel pool instance with a minimum capacity of 1.
@@ -45,7 +45,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
    * @param gcThresholdMs when a channel is older than this threshold and the pool's capacity
    *        is above the minimum capacity(1), it is closed and removed from the pool.
    */
-  public NettyChannelPool(Callable<Bootstrap> bootstrap, int maxCapacity, int gcThresholdMs) {
+  public NettyChannelPool(Callable<Bootstrap> bootstrap, int maxCapacity, long gcThresholdMs) {
     super(Options.defaultOptions().setMaxCapacity(maxCapacity));
     mBootstrap = bootstrap;
     mGcThresholdMs = gcThresholdMs;
@@ -107,6 +107,6 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   @Override
   protected boolean shouldGc(ResourceInternal<Channel> channelResourceInternal) {
     return System.currentTimeMillis() - channelResourceInternal
-        .getLastAccessTimeMs() > (long) mGcThresholdMs;
+        .getLastAccessTimeMs() > mGcThresholdMs;
   }
 }
