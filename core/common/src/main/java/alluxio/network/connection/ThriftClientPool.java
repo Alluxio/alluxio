@@ -58,7 +58,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   private final String mServiceName;
   private final long mServiceVersion;
   private final InetSocketAddress mAddress;
-  private final int mGcThresholdMs;
+  private final long mGcThresholdMs;
 
   @GuardedBy("this")
   private Long mServerVersionFound = null;
@@ -86,7 +86,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
    *        is above the minimum capacity (1), it is closed and removed from the pool.
    */
   public ThriftClientPool(String serviceName, long serviceVersion, InetSocketAddress address,
-      int maxCapacity, int gcThresholdMs) {
+      int maxCapacity, long gcThresholdMs) {
     super(Options.defaultOptions().setMaxCapacity(maxCapacity));
     mTransportProvider = TransportProvider.Factory.create();
     mServiceName = serviceName;
@@ -160,7 +160,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   @Override
   protected boolean shouldGc(ResourceInternal<T> clientResourceInternal) {
     return System.currentTimeMillis() - clientResourceInternal.getLastAccessTimeMs()
-        > (long) mGcThresholdMs;
+        > mGcThresholdMs;
   }
 
   /**
