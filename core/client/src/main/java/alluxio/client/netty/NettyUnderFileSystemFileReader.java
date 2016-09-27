@@ -119,7 +119,7 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
       }
       throw new IOException(e);
     } finally {
-      if (channel != null && listener != null) {
+      if (channel != null && listener != null && channel.isActive()) {
         channel.pipeline().get(ClientHandler.class).removeListener(listener);
       }
       if (channel != null) {
