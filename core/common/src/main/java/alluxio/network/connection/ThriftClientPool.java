@@ -29,8 +29,10 @@ import org.apache.thrift.transport.TTransportException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -59,13 +61,8 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   private final InetSocketAddress mAddress;
   private final int mGcThresholdMs;
 
-  /**
-   * 1. If set to true, the Alluxio service version is checked with the server no matter whether
-   *    the version is compatible with the server or not. An IOException will be thrown if the
-   *    version is not compatible with the server.
-   * 2 If set to false, the Alluxio service version is not yet checked with the server.
-   */
-  private volatile boolean mIsVersionChecked = false;
+  @GuardedBy("this")
+  private Long mServerVersionFound = null;
 
   private static final int CONNECTION_OPEN_RETRY_BASE_SLEEP_MS = 50;
   private static final int CONNECTION_OPEN_RETRY_MAX = 5;
@@ -174,41 +171,46 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
    * @throws IOException if it fails to check version
    */
   private void checkVersion(T client) throws TTransportException, IOException {
-    if (mIsVersionChecked) {
-      return;
+    synchronized (this) {
+      if (mServerVersionFound != null) {
+        if (mServerVersionFound != mServiceVersion) {
+          throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION
+              .getMessage(mServiceName, mServiceVersion, mServerVersionFound));
+        }
+        return;
+      }
     }
 
     long serviceVersionFound = -1;
     try {
-      try {
-        serviceVersionFound = client.getServiceVersion();
-      } catch (TTransportException e) {
-        closeResource(client);
-        // The master branch of Apache Thrift provides a dedicated exception type for this
-        // (CORRUPTED_DATA).
-        if (FRAME_SIZE_NEGATIVE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()
-            || FRAME_SIZE_TOO_LARGE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
-          // See an error like "Frame size (67108864) larger than max length (16777216)!",
-          // pointing to the helper page.
-          String message = String.format("Failed to connect to %s @ %s: %s. " + "This exception "
-                  + "may be caused by incorrect network configuration. "
-                  + "Please consult %s for common solutions to address this problem.",
-              getServiceNameForLogging(), mAddress, e.getMessage(),
-              RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
-          throw new IOException(message, e);
+      serviceVersionFound = client.getServiceVersion();
+      synchronized (this) {
+        mServerVersionFound = serviceVersionFound;
+        if (mServerVersionFound != mServiceVersion) {
+          throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION
+              .getMessage(mServiceName, mServiceVersion, mServerVersionFound));
         }
-        throw e;
-      } catch (TException e) {
-        closeResource(client);
-        throw new IOException(e);
+        return;
       }
-      if (serviceVersionFound != mServiceVersion) {
-        closeResource(client);
-        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION
-            .getMessage(mServiceName, mServiceVersion, serviceVersionFound));
+    } catch (TTransportException e) {
+      closeResource(client);
+      // The master branch of Apache Thrift provides a dedicated exception type for this
+      // (CORRUPTED_DATA).
+      if (FRAME_SIZE_NEGATIVE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()
+          || FRAME_SIZE_TOO_LARGE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
+        // See an error like "Frame size (67108864) larger than max length (16777216)!",
+        // pointing to the helper page.
+        String message = String.format("Failed to connect to %s @ %s: %s. " + "This exception "
+                + "may be caused by incorrect network configuration. "
+                + "Please consult %s for common solutions to address this problem.",
+            getServiceNameForLogging(), mAddress, e.getMessage(),
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
+        throw new IOException(message, e);
       }
-    } finally {
-      mIsVersionChecked = true;
+      throw e;
+    } catch (TException e) {
+      closeResource(client);
+      throw new IOException(e);
     }
   }
 
