@@ -73,7 +73,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
      * @param ufsFileId the file ID of the ufs fild to write to
      * @return a new {@link UnderFileSystemFileOutStream}
      */
-    public UnderFileSystemFileOutStream create(InetSocketAddress address, long ufsFileId) {
+    public OutputStream create(InetSocketAddress address, long ufsFileId) {
       return new UnderFileSystemFileOutStream(address, ufsFileId);
     }
   }
