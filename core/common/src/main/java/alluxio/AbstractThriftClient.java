@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.exception.AlluxioException;
+import alluxio.retry.CountingRetry;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
@@ -93,9 +94,9 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
    *         side IOException occurred.
    */
   protected <V> V retryRPC(RpcCallable<V, C> rpc) throws IOException {
-    int countingRetry = 0;
     TException exception = null;
-    while ((countingRetry++) <= RPC_MAX_NUM_RETRY) {
+    CountingRetry retryPolicy = new CountingRetry(RPC_MAX_NUM_RETRY);
+    do {
       C client = acquireClient();
       try {
         return rpc.call(client);
@@ -110,9 +111,9 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
       } finally {
         releaseClient(client);
       }
-    }
+    } while (retryPolicy.attemptRetry());
 
-    LOG.error("Failed after " + countingRetry + " retries.");
+    LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
     Preconditions.checkNotNull(exception);
     throw new IOException(exception);
   }
@@ -131,9 +132,9 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
    */
   protected <V> V retryRPC(RpcCallableThrowsAlluxioTException<V, C> rpc)
       throws AlluxioException, IOException {
-    int countingRetry = 0;
     TException exception = null;
-    while ((countingRetry++) <= RPC_MAX_NUM_RETRY) {
+    CountingRetry retryPolicy = new CountingRetry(RPC_MAX_NUM_RETRY);
+    do {
       C client = acquireClient();
       try {
         return rpc.call(client);
@@ -148,9 +149,9 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
       } finally {
         releaseClient(client);
       }
-    }
+    } while (retryPolicy.attemptRetry());
 
-    LOG.error("Failed after " + countingRetry + " retries.");
+    LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
     Preconditions.checkNotNull(exception);
     throw new IOException(exception);
   }
