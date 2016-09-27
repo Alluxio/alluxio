@@ -3,7 +3,7 @@ alluxio.user.block.master.client.threads:
 alluxio.user.block.worker.client.threads:
   数据块worker client池从本地数据块worker处读取时使用的线程数目。
 alluxio.user.block.remote.read.buffer.size.bytes:
-  从远程Alluxio worker读取数据时的缓冲区大小。它决定了一个Alluxio client 和一个 Alluxio worker之间Thrift connections的最大数量
+  从远程Alluxio worker读取数据时的缓冲区大小。它决定了一个Alluxio client和一个Alluxio worker之间Thrift connections的最大数量
 alluxio.user.block.remote.reader.class:
   选择运行client使用的网络栈，目前只支持`alluxio.client.netty.NettyRemoteBlockReader`（使用netty远程读取数据）。
 alluxio.user.block.remote.writer.class:
