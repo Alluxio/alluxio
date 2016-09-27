@@ -32,7 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * @param <C> the Alluxio service type
  */
-@ThreadSafe
 public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -40,6 +39,9 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
   private static final int RPC_MAX_NUM_RETRY = 30;
 
   /**
+   * If the implementation of this function guarantees that the client returned will not
+   * be returned to any other caller. Then this whole class is threadsafe.
+   *
    * @return a Thrift service client
    */
   protected abstract C acquireClient() throws IOException;

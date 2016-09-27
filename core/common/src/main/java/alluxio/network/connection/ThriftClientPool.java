@@ -38,16 +38,13 @@ import javax.annotation.concurrent.ThreadSafe;
  * 1. It is recommended to keep one ThriftClientPool instance per <serverAddress, serviceType> pair.
  * 2. Make sure to release every client acquired from the pool even when the client is disconnected
  *    An example usage:
- *    ClientType client = null;
+ *    ClientType client = pool.acquire();
  *    try {
- *      client = pool.acquire();
  *      client.doRpc();
  *    } catch (TTransportException e) {
  *      client.getOutputProtocol().getTransport().close();
  *    } finally {
- *      if (client != null) {
- *        pool.release(client)
- *      }
+ *      pool.release(client)
  *    }
  *
  * @param <T> the Alluxio thrift service type
