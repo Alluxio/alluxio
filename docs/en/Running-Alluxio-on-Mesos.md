@@ -1,4 +1,4 @@
-Alluxio can be deployed through Mesos. This allows Mesos to manage the resources used by Alluxio. The alternative to deploying Alluxio through Mesos is to install Alluxio separately and subtract the memory it uses from the pool of memory managed by Mesos.
+Alluxio can be deployed through Mesos. This allows Mesos to manage the resources used by Alluxio.
 
 ## Mesos version
 
@@ -10,6 +10,9 @@ To deploy Alluxio on Mesos, we need to make the Alluxio distribution available t
 
 1. Install Alluxio on all Mesos nodes.
 2. Point Mesos to an Alluxio tarball.
+
+#### Setting configuration properties
+See the [Configuration Settings](Configuration-Settings.html) documentation for instructions on how to set configuration properties.
 
 #### Deploy with Alluxio already installed on all Mesos nodes
 
@@ -41,3 +44,14 @@ to use whatever version of java is available on the Mesos executor, set the conf
 ```
 alluxio.integration.mesos.jdk.url="LOCAL"
 ```
+
+#### Configuring Alluxio Masters and Workers
+
+When Alluxio is deployed on Mesos, it propagates all Alluxio configuration to the launched masters and workers.
+This means you can configure the launched Alluxio cluster by setting configuration properties in `conf/alluxio-site.properties`.
+
+#### Log files
+
+The `./integration/bin/alluxio-mesos.sh` script will launch an `AlluxioFramework` Java process which will log to `logs/framework.out`.
+Alluxio masters and workers launched on Mesos will write their Alluxio logs to `logs/` inside the root Mesos container directory. There
+may also be useful information in the `stderr` file.
