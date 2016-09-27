@@ -160,7 +160,7 @@ public final class BlockStoreContext {
    * @param address the address of the worker to get a client to
    * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
    * @throws IOException if it fails to create a client for a given hostname (e.g. no Alluxio
-   *        worker is available for the given hostname)
+   *         worker is available for the given hostname)
    */
   public BlockWorkerClient acquireWorkerClient(WorkerNetAddress address) throws IOException {
     Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
