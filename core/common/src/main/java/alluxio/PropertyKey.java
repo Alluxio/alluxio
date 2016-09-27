@@ -72,6 +72,7 @@ public enum PropertyKey {
   UNDERFS_S3_PROXY_PORT(Name.UNDERFS_S3_PROXY_PORT, null),
   UNDERFS_S3_THREADS_MAX(Name.UNDERFS_S3_THREADS_MAX, 22),
   UNDERFS_S3_UPLOAD_THREADS_MAX(Name.UNDERFS_S3_UPLOAD_THREADS_MAX, 2),
+  UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, 60000),
   UNDERFS_S3A_DIRECT_WRITES_ENABLED(Name.UNDERFS_S3A_DIRECT_WRITES_ENABLED, "true"),
   UNDERFS_S3A_SECURE_HTTP_ENABLED(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED, false),
   UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED,
@@ -387,6 +388,8 @@ public enum PropertyKey {
         "alluxio.underfs.oss.connection.timeout.ms";
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout.ms";
+    public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
+        "alluxio.underfs.s3a.consistency.timeout.ms";
     public static final String UNDERFS_S3A_DIRECT_WRITES_ENABLED =
         "alluxio.underfs.s3a.direct.writes.enabled";
     public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
