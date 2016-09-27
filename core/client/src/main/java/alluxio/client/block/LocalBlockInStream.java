@@ -11,7 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.BufferUtils;
@@ -89,8 +88,6 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
         Metrics.BLOCKS_READ_LOCAL.inc();
       }
       mBlockWorkerClient.unlockBlock(mBlockId);
-    } catch (AlluxioException e) {
-      throw new IOException(e);
     } finally {
       mContext.releaseWorkerClient(mBlockWorkerClient);
       mCloser.close();

@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -92,8 +94,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   public static final class Options {
     private int mMaxCapacity = 1024;
     private int mMinCapacity = 1;
-    private int mInitialDelayMs = 100;
-    private int mGcIntervalMs = 120 * Constants.SECOND_MS;
+    private long mInitialDelayMs = 100;
+    private long mGcIntervalMs = 120 * Constants.SECOND_MS;
 
     /**
      * @return the max capacity
@@ -112,14 +114,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     /**
      * @return the initial delay
      */
-    public int getInitialDelayMs() {
+    public long getInitialDelayMs() {
       return mInitialDelayMs;
     }
 
     /**
      * @return the gc interval
      */
-    public int getGcIntervalMs() {
+    public long getGcIntervalMs() {
       return mGcIntervalMs;
     }
 
@@ -128,6 +130,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      * @return the updated object
      */
     public Options setMaxCapacity(int maxCapacity) {
+      Preconditions.checkArgument(maxCapacity >= 1);
       mMaxCapacity = maxCapacity;
       return this;
     }
@@ -137,6 +140,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      * @return the updated object
      */
     public Options setMinCapacity(int minCapacity) {
+      Preconditions.checkArgument(minCapacity >= 0);
       mMinCapacity = minCapacity;
       return this;
     }
@@ -145,7 +149,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      * @param initialDelayMs the initial delay
      * @return the updated object
      */
-    public Options setInitialDelayMs(int initialDelayMs) {
+    public Options setInitialDelayMs(long initialDelayMs) {
+      Preconditions.checkArgument(initialDelayMs >= 0);
       mInitialDelayMs = initialDelayMs;
       return this;
     }
@@ -154,7 +159,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      * @param gcIntervalMs the gc interval
      * @return the updated object
      */
-    public Options setGcIntervalMs(int gcIntervalMs) {
+    public Options setGcIntervalMs(long gcIntervalMs) {
+      Preconditions.checkArgument(gcIntervalMs > 0);
       mGcIntervalMs = gcIntervalMs;
       return this;
     }
@@ -198,6 +204,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
   // Thread to scan mResourceAvailable to close those resources that are old.
   private ScheduledExecutorService mExecutor;
+  private ScheduledFuture<?> mGcFuture;
 
   protected Clock mClock = new SystemClock();
 
@@ -212,7 +219,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
 
-    mExecutor.scheduleAtFixedRate(new Runnable() {
+    mGcFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
         List<T> resourcesToGc = new ArrayList<T>();
@@ -344,7 +351,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   }
 
   /**
-   * Closes the pool and clears all the resources.
+   * Closes the pool and clears all the resources. The resource pool should not be used after this.
    */
   @Override
   public void close() {
@@ -360,6 +367,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     } finally {
       mLock.unlock();
     }
+    mGcFuture.cancel(true);
+    mExecutor.shutdown();
   }
 
   @Override

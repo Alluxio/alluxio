@@ -61,10 +61,9 @@ public class ServiceSocketBindIntegrationTest {
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
-    mBlockWorkerClient = BlockStoreContext.get().acquireLocalWorkerClient();
-    mBlockWorkerClient.connect();
-
     WorkerNetAddress workerAddress = mLocalAlluxioCluster.getWorkerAddress();
+    mBlockWorkerClient = BlockStoreContext.get().acquireWorkerClient(workerAddress);
+
     // connect Worker data service
     mWorkerDataService = SocketChannel
         .open(new InetSocketAddress(workerAddress.getHost(), workerAddress.getDataPort()));
@@ -97,13 +96,17 @@ public class ServiceSocketBindIntegrationTest {
   @Test
   public void listenEmpty() throws Exception {
     startCluster("");
-    connectServices();
+    boolean allConnected = true;
+    try {
+      connectServices();
+    } catch (Exception e) {
+      allConnected = false;
+    }
+
+    Assert.assertTrue(allConnected);
 
     // test Master RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
-
-    // test Worker RPC service connectivity (application layer)
-    Assert.assertTrue(mBlockWorkerClient.isConnected());
 
     // test Worker data service connectivity (application layer)
     Assert.assertTrue(mWorkerDataService.isConnected());
@@ -120,13 +123,17 @@ public class ServiceSocketBindIntegrationTest {
   @Test
   public void listenSameAddress() throws Exception {
     startCluster(NetworkAddressUtils.getLocalHostName(100));
-    connectServices();
+    boolean allConnected = true;
+    try {
+      connectServices();
+    } catch (Exception e) {
+      allConnected = false;
+    }
+
+    Assert.assertTrue(allConnected);
 
     // test Master RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
-
-    // test Worker RPC service connectivity (application layer)
-    Assert.assertTrue(mBlockWorkerClient.isConnected());
 
     // test Worker data service connectivity (application layer)
     Assert.assertTrue(mWorkerDataService.isConnected());
