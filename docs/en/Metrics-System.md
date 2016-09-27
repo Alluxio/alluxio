@@ -47,7 +47,7 @@ Metrics are classified as:
 * Logical Operations: number of operations performed (e.g. FilesCreated).
 * RPC Invocations: number of RPC invocations per operation (e.g. CreateFileOps).
 
-The following shows the details of some of the available metrics. 
+The following shows the details of the available metrics. 
 
 ## Master
 
