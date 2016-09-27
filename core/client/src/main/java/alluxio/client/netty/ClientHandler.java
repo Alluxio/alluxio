@@ -98,7 +98,6 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
     for (ResponseListener listener : mListeners) {
       listener.onExceptionCaught(cause);
     }
-    ctx.close();
   }
 
   private void handleResponse(final RPCResponse resp) {

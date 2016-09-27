@@ -121,7 +121,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       }
       throw new IOException(e);
     } finally {
-      if (channel != null && listener != null) {
+      if (channel != null && listener != null && channel.isActive()) {
         channel.pipeline().get(ClientHandler.class).removeListener(listener);
       }
       if (channel != null) {
