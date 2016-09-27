@@ -68,9 +68,10 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * Adds the given inode to the set of children.
    *
    * @param child the inode to add
+   * @return true if inode was added successfully, false otherwise
    */
-  public void addChild(Inode<?> child) {
-    mChildren.add(child);
+  public boolean addChild(Inode<?> child) {
+    return mChildren.add(child);
   }
 
   /**
