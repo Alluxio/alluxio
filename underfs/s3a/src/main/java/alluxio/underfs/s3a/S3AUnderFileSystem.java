@@ -442,10 +442,10 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       // If the user has enabled direct writes, skip the rename of Alluxio temporary files if the
       // temporary file does not exist and the destination exists.
       if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_DIRECT_WRITES_ENABLED) && !exists(src)) {
-        ensureExists(dst, Constants.MINUTE_MS);
+        ensureExists(dst);
         return true;
       } else {
-        ensureExists(src, Constants.MINUTE_MS);
+        ensureExists(src);
       }
     }
     if (!exists(src)) {
@@ -585,8 +585,9 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    *
    * @throws IOException if the timeout is exceeded
    */
-  private void ensureExists(String key, long timeoutMs) throws IOException {
+  private void ensureExists(String key) throws IOException {
     long startMs = System.currentTimeMillis();
+    long timeoutMs = Configuration.getLong(PropertyKey.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS);
     while (!exists(key)) {
       if (System.currentTimeMillis() - startMs < timeoutMs) {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
