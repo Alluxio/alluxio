@@ -24,6 +24,7 @@ import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataByteArrayChannel;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -124,9 +125,15 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
       }
     } catch (Exception e) {
       Metrics.NETTY_BLOCK_WRITE_FAILURES.inc();
+      try {
+        // TODO(peis): We should not close the channel unless it is an exception caused by network.
+        channel.close().sync();
+      } catch (InterruptedException ee) {
+        Throwables.propagate(ee);
+      }
       throw new IOException(e);
     } finally {
-      if (channel != null && listener != null) {
+      if (channel != null && listener != null && channel.isActive()) {
         channel.pipeline().get(ClientHandler.class).removeListener(listener);
       }
       if (channel != null) {
