@@ -24,6 +24,7 @@ import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataByteArrayChannel;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -99,9 +100,14 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
       }
     } catch (Exception e) {
       Metrics.NETTY_UFS_WRITE_FAILURES.inc();
+      try {
+        channel.close().sync();
+      } catch (InterruptedException ee) {
+        Throwables.propagate(ee);
+      }
       throw new IOException(e);
     } finally {
-      if (channel != null && listener != null) {
+      if (channel != null && listener != null && channel.isActive()) {
         channel.pipeline().get(ClientHandler.class).removeListener(listener);
       }
       if (channel != null) {
