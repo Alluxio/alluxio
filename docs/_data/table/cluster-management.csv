@@ -3,7 +3,7 @@ alluxio.integration.master.resource.cpu,1
 alluxio.integration.master.resource.mem,1024 MB
 alluxio.integration.mesos.executor.dependency.path,http://downloads.alluxio.org/downloads/files/${alluxio.version}/alluxio-${alluxio.version}-bin.tar.gz
 alluxio.integration.mesos.jdk.path,jdk1.7.0_79
-alluxio.integration.mesos.jdk.url,https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-linux-x64.tar.gz
+alluxio.integration.mesos.jdk.url,https://alluxio-mesos.s3.amazonaws.com/jdk-7u79-linux-x64.tar.gz
 alluxio.integration.mesos.master.name,AlluxioMaster
 alluxio.integration.mesos.master.node.count,1
 alluxio.integration.mesos.principal,alluxio

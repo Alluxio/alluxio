@@ -295,7 +295,7 @@ public enum PropertyKey {
       "AlluxioWorker"),
   INTEGRATION_MESOS_JDK_PATH(Name.INTEGRATION_MESOS_JDK_PATH, "jdk1.7.0_79"),
   INTEGRATION_MESOS_JDK_URL(Name.INTEGRATION_MESOS_JDK_URL,
-      "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-linux-x64.tar.gz"),
+      "https://alluxio-mesos.s3.amazonaws.com/jdk-7u79-linux-x64.tar.gz"),
   INTEGRATION_MESOS_PRINCIPAL(Name.INTEGRATION_MESOS_PRINCIPAL, "alluxio"),
   INTEGRATION_MESOS_ROLE(Name.INTEGRATION_MESOS_ROLE, "*"),
   INTEGRATION_MESOS_SECRET(Name.INTEGRATION_MESOS_SECRET, null),

@@ -25,8 +25,8 @@ See the [Configuration Settings](Configuration-Settings.html) documentation for 
 #### Deploy with Alluxio already installed on all Mesos nodes
 
 1. Install Alluxio on all Mesos nodes. The remaining steps should be performed from an Alluxio installation
-2. Set the configuration property "alluxio.integration.mesos.alluxio.jar.url" to "LOCAL"
-3. Set the configuration property "alluxio.home" to the path where Alluxio is installed on the Mesos nodes
+2. Set the configuration property `alluxio.integration.mesos.alluxio.jar.url` to `LOCAL`
+3. Set the configuration property `alluxio.home` to the path where Alluxio is installed on the Mesos nodes
 4. Launch the Alluxio Mesos framework
 
 {% include Running-Alluxio-on-Mesos/alluxio-mesos.md %}
@@ -35,7 +35,7 @@ See the [Configuration Settings](Configuration-Settings.html) documentation for 
 
 From anywhere with Alluxio installed:
 
-1. Set the configuration property "alluxio.integration.mesos.alluxio.jar.url" to point to an Alluxio tarball
+1. Set the configuration property `alluxio.integration.mesos.alluxio.jar.url` to point to an Alluxio tarball
 2. Launch the Alluxio Mesos framework
 
 {% include Running-Alluxio-on-Mesos/alluxio-mesos.md %}
@@ -48,7 +48,7 @@ By default, the Alluxio Mesos framework will download the Java 7 jdk and use it 
 to use whatever version of java is available on the Mesos executor, set the configuration property
 
 ```
-alluxio.integration.mesos.jdk.url="LOCAL"
+alluxio.integration.mesos.jdk.url=LOCAL
 ```
 
 #### Configuring Alluxio Masters and Workers
