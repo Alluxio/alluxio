@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import alluxio.client.RemoteBlockReader;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.LockBlockResult;
@@ -93,8 +92,6 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     }
     try {
       mBlockWorkerClient.unlockBlock(mBlockId);
-    } catch (ConnectionFailedException e) {
-      throw new IOException(e);
     } finally {
       mContext.releaseWorkerClient(mBlockWorkerClient);
     }
