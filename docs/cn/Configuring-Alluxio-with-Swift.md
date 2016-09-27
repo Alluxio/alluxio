@@ -87,7 +87,7 @@ SoftLayer需要将`<swift-auth-model>`设置为`swiftauth`。
 
 在Alluxio中指定的Swift凭证(`fs.swift.user`, `fs.swift.tenant` and `fs.swift.password`) 代表了一个Swift用户。Swift服务的后端会检查访问容器的用户许可。
 如果给定的Swift用户没有访问特定容器的正确的访问许可，将会抛出一个许可被拒绝的错误。
-当Alluxio安全模式被启用后，并且当元数据已经加载到Alluxio命名空间的时候，Alluxio第一次将会载入容器ACL到Alluxio许可中。
+一旦Alluxio安全模式被启用，当元数据第一次加载到Alluxio命名空间时，Alluxio将会加载容器ACL到Alluxio许可中。
 
 ### 挂载点分享
 如果你想分享一个Swift挂载点给其他在Alluxio命名空间里的用户，你可以启用`alluxio.underfs.object.store.mount.shared.publicly`。
