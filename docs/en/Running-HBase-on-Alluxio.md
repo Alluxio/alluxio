@@ -52,6 +52,7 @@ We need to make the Alluxio client `jar` file available to HBase, because it con
 `alluxio.hadoop.FileSystem` class.
 
 There are two ways to achieve that:
+
 - Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
   `lib` directory of HBase.
 - Specify the location of the jar file in the `HBASE_CLASSPATH` environment variable (make sure it's available
@@ -86,14 +87,14 @@ visit HBase Web UI at `http://<hostname>:16010` to confirm that HBase is running
 
 ![HBaseRootDirectory]({{site.data.img.screenshot_start_hbase_webui}})
 
-and visit Alluxio Web UI at 'http://<hostname>:19999', click "Browse" and you can see the files HBase stores
-on Alluxio, incuding data and WALs:
+and visit Alluxio Web UI at `http://<hostname>:19999`, click `Browse` and you can see the files HBase stores
+on Alluxio, including data and WALs:
 
 ![HBaseRootDirectoryOnAlluxio]({{site.data.img.screenshot_start_hbase_alluxio_webui}})
 
 # HBase shell examples
 
-create a text file 'simple_test.txt' and write these commands into it:
+create a text file `simple_test.txt` and write these commands into it:
 
 ```
 create 'test', 'cf'
