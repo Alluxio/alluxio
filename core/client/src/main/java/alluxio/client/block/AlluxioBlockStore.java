@@ -140,7 +140,6 @@ public final class AlluxioBlockStore {
     // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
     // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
     // for hasLocalWorker is fixed.
-    /*
     for (BlockLocation location : blockInfo.getLocations()) {
       WorkerNetAddress workerNetAddress = location.getWorkerAddress();
       if (workerNetAddress.getHost().equals(mLocalHostName)) {
@@ -154,7 +153,6 @@ public final class AlluxioBlockStore {
         }
       }
     }
-    */
     // No local worker/block, get the first location since it's nearest to memory tier.
     WorkerNetAddress workerNetAddress = blockInfo.getLocations().get(0).getWorkerAddress();
     return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerNetAddress, mContext);
@@ -186,12 +184,10 @@ public final class AlluxioBlockStore {
     if (address == null) {
       throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
-    /*
     // Location is local.
     if (mLocalHostName.equals(address.getHost())) {
       return new LocalBlockOutStream(blockId, blockSize, address, mContext);
     }
-    */
     // Location is specified and it is remote.
     return new RemoteBlockOutStream(blockId, blockSize, address, mContext);
   }
