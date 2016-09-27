@@ -5,9 +5,9 @@ nickname: 开发者上手指南
 group: Resources
 ---
 
-欢迎来到Alluxio社区，我们热烈欢迎你参与到我们的社区和对社区进行贡献。本页面提供了如何参与到Alluxio开源项目社区并成为其中一员的指导。
+欢迎来到Alluxio社区，我们热烈欢迎你参与到我们的社区并着力于对社区做出贡献。这里提供了如何成为Alluxio开源项目社区成员的指南。
 
-## 系统需要
+## 系统需求
 
 最基本的需要是一台安装了Mac OS X或者Linux的电脑，目前版本的Alluxio尚未对Windows系统提供支持。
 
@@ -32,7 +32,7 @@ Alluxio项目使用Maven来管理构建，如果你还未安装，可以先[在�
 
 ### Git
 
-Alluxio使用Git分布式版本控制系统来管理源码，因此需要安装Git。
+Alluxio使用Git分布式版本控制系统来管理源码，因此需要安装Git来向Alluxio贡献代码。
 
 如果你还未安装`git`，请先进行[安装](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)。
 
@@ -61,7 +61,7 @@ $ cd alluxio
 
 这会将副本拷贝在`alluxio/`目录下。
 
-为了将远程的Alluxio源码改动更新到你本地的副本中，你需要创建一个指向远程Alluxio源代码库的源。在刚拷贝的副本的目录下，运行：
+为了将远程的Alluxio源码改动更新到你本地的副本中，你需要创建一个指向远程Alluxio源代码库的remote。在刚创建的副本的目录下，运行：
 
 ```bash
 $ git remote add upstream https://github.com/Alluxio/alluxio.git
@@ -108,7 +108,7 @@ Alluxio的ticket中有许多不同的等级，它们分别是：**New Contributo
 
 我们鼓励所有新的代码贡献者在进行更难的任务之前先完成两个**New Contributor**任务，这是帮助你熟悉向Alluxio贡献源码的整个流程的好方法。
 
-请浏览任何的未关闭的[New Contributor Alluxio Tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))并找到一个还未被他人领取的任务，你可以点击**Assign to me**链接来领取该ticket。另外你应该在你开始进行该任务之前先领取它，从而其他人知道你在完成这个ticket。
+请浏览任何的开放的[New Contributor Alluxio Tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))并找到一个还未被领取的任务，你可以点击**Assign to me**链接来领取该ticket。另外你应该在你开始进行该任务之前先领取它，从而其他人知道你在完成这个ticket。
 
 注意所有的Alluxio JIRA ticket都名为**ALLUXIO-####**，其中**####**是一个数字。当你创建一个pull request的时候，这个名称就非常重要了，这个pull request的标题应该像**[ALLUXIO-XXXX] Awesome Feature**这样。
 
@@ -117,7 +117,7 @@ Alluxio的ticket中有许多不同的等级，它们分别是：**New Contributo
 
 在领取ticket之后，切换到终端下，进入本地副本的目录，现在，我们开始动手修复吧！
 
-要向Alluxio提交一个修改，最好是为每一个ticket单独建一个分支，并且在该分支下进行修改。以下命令将展示如何创建一个新的分支。
+要向Alluxio提交一个修改，最好的办法是为一个ticket单独建一个分支，并且在该分支下进行你所有的修改。以下命令将展示如何创建一个新的分支。
 
 首先，确保你在本地副本的`master`分支下，运行以下命令切换到`master`分支：
 
@@ -133,7 +133,7 @@ $ git pull upstream master
 
 这将会获取到Alluxio项目中所有的更新，并合并到你的本地`master`分支里。
 
-现在，你可以新建一个分支来进行之前领取的**New Contributor**啦！运行以下命令创建一个名为**awesome_feature**的分支：
+现在，你可以新建一个分支来为解决之前领取的**New Contributor**任务啦！运行以下命令创建一个名为**awesome_feature**的分支：
 
 ```bash
 $ git checkout -b awesome_feature
@@ -159,7 +159,7 @@ $ git commit -m "<concise but descriptive commit message>"
 
 ## 提交一个Pull Request
 
-在你完成了修复该JIRA ticket的所有修改后，就马上要向Alluxio项目提交一个pull request啦！这里是一个[提交一个pull request的详细指南](https://help.github.com/articles/using-pull-requests/)，不过以下是通常的做法。
+在你完成了处理该JIRA ticket任务需要的所有修改后，就已经可以向Alluxio项目提交一个pull request啦！这里是一个[提交一个pull request的详细指南](https://help.github.com/articles/using-pull-requests/)，不过以下是通常的做法。
 
 在你提交了所有需要的本地commit后，你可以将这些commit推送到你的GitHub源代码库中。对于**awesome_feature**分支，运行以下命令推送到GitHub上：
 
@@ -173,9 +173,8 @@ $ git push origin awesome_feature
 
 在新打开的**Open a pull request**页面中，base fork应该显示为`Alluxio/alluxio`，并且base branch应该为**master**，head fork为你的fork，并且compare branch应该是你想提交pull request的那个分支。
 
-对于这个pull request的标题，它应该以这个JIRA ticket名称为前缀，因此，这个标题应该像**[ALLUXIO-1234] Awesome Feature**这样。
-
-接着添加一个标签表明你的pull request对应于Alluxio的哪个组件，这些组件与Alluxio源代码库根目录下的目录一一对应。
+对于这个pull request的标题，它应该以这个JIRA ticket名称为前缀，因此，这个标题应该像**[ALLUXIO-1234] Awesome Feature**这样
+（在标题里面，请用和你的request相关的信息替换掉 Awesome Feature，例如，"Fix format in error message"或者"Improve java doc of method Foo"）。
 
 在描述框的第一行，请添加一个该JIRA ticket的链接，该链接像`https://alluxio.atlassian.net/browse/ALLUXIO-####`这样。
 
@@ -186,7 +185,7 @@ $ git push origin awesome_feature
 
 在pull request成功提交后，可以在[Alluxio源代码库的pull request页面](https://github.com/Alluxio/alluxio/pulls)看到它。
 
-在提交后，社区里的其他开发者会审阅你的pull request，并且可能会添加评论或者问题。
+在提交后，社区里的其他开发者会审阅你的pull request。别人可能会添加评论或者有关问题。
 
 在该过程中，某些开发者可能会请求你修改某些部分。要进行修改的话，只需简单地在该pull request对应的本地分支下进行修改，接着提交本地commit，接着推送到对应的远程分支，然后这个pull request就会自动更新了。详细操作步骤如下：
 
