@@ -587,14 +587,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    */
   private void ensureExists(String key, long timeoutMs) throws IOException {
     long startMs = System.currentTimeMillis();
-     do {
-      if (exists(key)) {
-        return;
+    while (!exists(key)) {
+      if (System.currentTimeMillis() - startMs < timeoutMs) {
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       } else {
-        CommonUtils.sleepMs(Constants.SECOND_MS);
+        throw new IOException("Timeout exceeded while waiting for " + key + " to exist.");
       }
-    } while (System.currentTimeMillis() - startMs < timeoutMs);
-    throw new IOException("Timeout exceeded while waiting for " + key + " to exist.");
+    }
   }
 
   /**
