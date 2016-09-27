@@ -108,10 +108,19 @@ The following shows the details of some of the available metrics.
 * BlocksDeleted: Total number of blocks deleted.
 * BlocksEvicted: Total number of blocks evicted.
 * BlocksPromoted: Total number of blocks promoted.
-* BlocksReadRemote: Total number of blocks read remotely from the worker.
-* BlocksWrittenLocal: Total number of blocks written to the worker locally.
-* BytesReadRemote: Total number of bytes read remotely from the worker.
-* BytesWrittenRemote: Total number of bytes written remotely to the worker.
-* BytesReadUfs: Total number of bytes read from under file system on the worker.
-* BytesWrittenLocal: Total number of bytes written to the worker locally.
-* BytesWrittenUfs: Total number of bytes written to under file system on the worker.
+* NettyBlockRead: Total number of netty block read request to the worker.
+* NettyBlockReadFailures: Total number of netty block read request failed on the worker.
+* NettyBlockWrite: Total number of netty block write request to the worker.
+* NettyBlockWriteFailures: Total number of netty block write request failed on the worker.
+
+## Client
+
+### General
+* NettyConnectionsOpen: Total number of netty connections to the Alluxio workers open on the client.
+
+### Logical Operations
+
+* BytesReadRemote: Total number of bytes read remotely from on the client.
+* BytesWrittenRemote: Total number of bytes written remotely on the client.
+* BytesReadUfs: Total number of bytes read from under file system on the client.
+* BytesWrittenUfs: Total number of bytes written to under file system on the client.
