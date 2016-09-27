@@ -25,8 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * The base class for clients that use {@link alluxio.network.connection.ThriftClientPool}.
  *
