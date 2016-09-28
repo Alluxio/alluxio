@@ -160,6 +160,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public long getSessionId() {
+    Preconditions.checkNotNull(mSessionId, "SessionId is accessed when it is not supported");
     return mSessionId;
   }
 
