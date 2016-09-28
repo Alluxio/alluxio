@@ -56,7 +56,7 @@ public final class RetryHandlingBlockWorkerClient
     extends AbstractThriftClient<BlockWorkerClientService.Client> implements BlockWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final long mSessionId;
+  private final Long mSessionId;
   // This is the address of the data server on the worker.
   private final InetSocketAddress mWorkerDataServerAddress;
   private final WorkerNetAddress mWorkerNetAddress;
@@ -66,7 +66,9 @@ public final class RetryHandlingBlockWorkerClient
   private final Future<?> mHeartbeat;
 
   /**
-   * Creates a {@link RetryHandlingBlockWorkerClient}.
+   * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session Id is
+   * required when using this client. For example, if you only call RPCs like promote, a session
+   * Id is not required.
    *
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
@@ -135,7 +137,7 @@ public final class RetryHandlingBlockWorkerClient
       @Override
       public Void call(BlockWorkerClientService.Client client)
           throws AlluxioTException, TException {
-        client.cacheBlock(mSessionId, blockId);
+        client.cacheBlock(getSessionId(), blockId);
         return null;
       }
     });
@@ -147,7 +149,7 @@ public final class RetryHandlingBlockWorkerClient
       @Override
       public Void call(BlockWorkerClientService.Client client)
           throws AlluxioTException, TException {
-        client.cancelBlock(mSessionId, blockId);
+        client.cancelBlock(getSessionId(), blockId);
         return null;
       }
     });
@@ -174,7 +176,7 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public LockBlockResult call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
-              return ThriftUtils.fromThrift(client.lockBlock(blockId, mSessionId));
+              return ThriftUtils.fromThrift(client.lockBlock(blockId, getSessionId()));
             }
           });
     } catch (AlluxioException e) {
@@ -207,7 +209,7 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public String call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
-              return client.requestBlockLocation(mSessionId, blockId, initialBytes);
+              return client.requestBlockLocation(getSessionId(), blockId, initialBytes);
             }
           });
     } catch (WorkerOutOfSpaceException e) {
@@ -226,7 +228,7 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public Boolean call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
-              return client.requestSpace(mSessionId, blockId, requestBytes);
+              return client.requestSpace(getSessionId(), blockId, requestBytes);
             }
           });
       if (!success) {
@@ -244,7 +246,7 @@ public final class RetryHandlingBlockWorkerClient
     return retryRPC(new RpcCallable<Boolean, BlockWorkerClientService.Client>() {
       @Override
       public Boolean call(BlockWorkerClientService.Client client) throws TException {
-          return client.unlockBlock(blockId, mSessionId);
+          return client.unlockBlock(blockId, getSessionId());
       }
     });
   }
@@ -254,7 +256,7 @@ public final class RetryHandlingBlockWorkerClient
     BlockWorkerClientService.Client client =
         BlockStoreContext.acquireBlockWorkerThriftClientHeartbeat(mRpcAddress);
     try {
-      client.sessionHeartbeat(mSessionId, null);
+      client.sessionHeartbeat(getSessionId(), null);
     } catch (AlluxioTException e) {
       throw Throwables.propagate(e);
     } catch (ThriftIOException e) {
