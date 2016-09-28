@@ -13,6 +13,7 @@ package alluxio.resource;
 
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
+import alluxio.util.ThreadFactoryUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -44,13 +47,16 @@ public final class DynamicResourcePoolTest {
     private int mGcThresholdInSecs = 120;
     private int mCounter = 0;
 
+    private static ScheduledExecutorService mGcExecutor =
+        new ScheduledThreadPoolExecutor(5, ThreadFactoryUtils.build("TestPool-%d", true));
+
     public TestPool(Options options, ManualClock clock) {
-      super(options);
+      super(options.setGcExecutor(mGcExecutor));
       mClock = clock;
     }
 
     public TestPool(Options options) {
-      super(options);
+      super(options.setGcExecutor(mGcExecutor));
     }
 
     @Override
