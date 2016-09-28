@@ -281,8 +281,8 @@ public final class BlockStoreContext {
       final InetSocketAddress address) throws IOException, InterruptedException {
     if (!BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.containsKey(address)) {
       BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(address,
-          1,  // one dedicated connection for heartbeat
-          Constants.HOUR_MS);
+          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX) / 2,
+          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
       if (BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.putIfAbsent(address, pool) != null) {
         pool.close();
       }
