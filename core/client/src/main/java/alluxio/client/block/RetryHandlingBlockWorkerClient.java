@@ -79,7 +79,7 @@ public final class RetryHandlingBlockWorkerClient
 
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    mExecutorService = Preconditions.checkNotNull(executorService);
+    mExecutorService = executorService;
     mSessionId = sessionId;
     mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
     if (sessionId != null && executorService != null) {
