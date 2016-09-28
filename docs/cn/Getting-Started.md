@@ -281,6 +281,8 @@ $ ./bin/alluxio-stop.sh all
 
 ### 部署Alluxio
 
+Alluxio可以部署在很多不同的环境下。
+
 * [本地运行Alluxio](Running-Alluxio-Locally.html)
 * [在Virtual Box上运行Alluxio](Running-Alluxio-on-Virtual-Box.html)
 * [在集群上独立运行Alluxio](Running-Alluxio-on-a-Cluster.html)
