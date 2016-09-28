@@ -98,7 +98,7 @@ final class BlockDataServerHandler {
       future.addListener(new ClosableResourceChannelListener(reader));
       future.addListener(new ReleasableResourceChannelListener(buffer));
       mWorker.accessBlock(sessionId, blockId);
-      LOG.info("Preparation for responding to remote block request for: {} done.", blockId);
+      LOG.debug("Preparation for responding to remote block request for: {} done.", blockId);
     } catch (Exception e) {
       LOG.error("Exception reading block {}", blockId, e);
       RPCBlockReadResponse resp;
