@@ -25,12 +25,14 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
+import alluxio.thrift.ThriftIOException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +56,7 @@ public final class RetryHandlingBlockWorkerClient
     extends AbstractThriftClient<BlockWorkerClientService.Client> implements BlockWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final long mSessionId;
+  private final Long mSessionId;
   // This is the address of the data server on the worker.
   private final InetSocketAddress mWorkerDataServerAddress;
   private final WorkerNetAddress mWorkerNetAddress;
@@ -64,7 +66,9 @@ public final class RetryHandlingBlockWorkerClient
   private final Future<?> mHeartbeat;
 
   /**
-   * Creates a {@link RetryHandlingBlockWorkerClient}.
+   * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session Id is
+   * required when using this client. For example, if you only call RPCs like promote, a session
+   * Id is not required.
    *
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
@@ -72,18 +76,27 @@ public final class RetryHandlingBlockWorkerClient
    * @throws IOException if it fails to register the session with the worker specified
    */
   public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress,
-      ExecutorService executorService, long sessionId) throws IOException {
+      ExecutorService executorService, Long sessionId) throws IOException {
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    mExecutorService = Preconditions.checkNotNull(executorService);
+    mExecutorService = executorService;
     mSessionId = sessionId;
-    mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
-    sessionHeartbeat();
-    mHeartbeat = mExecutorService.submit(
-        new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor, Configuration
-            .getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS)));
+    if (sessionId != null && executorService != null) {
+      mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
+      try {
+        sessionHeartbeat();
+      } catch (InterruptedException e) {
+        throw Throwables.propagate(e);
+      }
+      mHeartbeat = mExecutorService.submit(
+          new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor,
+              Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS)));
+    } else {
+      mHeartbeatExecutor = null;
+      mHeartbeat = null;
+    }
   }
 
   @Override
@@ -125,7 +138,7 @@ public final class RetryHandlingBlockWorkerClient
       @Override
       public Void call(BlockWorkerClientService.Client client)
           throws AlluxioTException, TException {
-        client.cacheBlock(mSessionId, blockId);
+        client.cacheBlock(getSessionId(), blockId);
         return null;
       }
     });
@@ -137,7 +150,7 @@ public final class RetryHandlingBlockWorkerClient
       @Override
       public Void call(BlockWorkerClientService.Client client)
           throws AlluxioTException, TException {
-        client.cancelBlock(mSessionId, blockId);
+        client.cancelBlock(getSessionId(), blockId);
         return null;
       }
     });
@@ -150,6 +163,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public long getSessionId() {
+    Preconditions.checkNotNull(mSessionId, "SessionId is accessed when it is not supported");
     return mSessionId;
   }
 
@@ -163,7 +177,7 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public LockBlockResult call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
-              return ThriftUtils.fromThrift(client.lockBlock(blockId, mSessionId));
+              return ThriftUtils.fromThrift(client.lockBlock(blockId, getSessionId()));
             }
           });
     } catch (AlluxioException e) {
@@ -196,7 +210,7 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public String call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
-              return client.requestBlockLocation(mSessionId, blockId, initialBytes);
+              return client.requestBlockLocation(getSessionId(), blockId, initialBytes);
             }
           });
     } catch (WorkerOutOfSpaceException e) {
@@ -215,7 +229,7 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public Boolean call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
-              return client.requestSpace(mSessionId, blockId, requestBytes);
+              return client.requestSpace(getSessionId(), blockId, requestBytes);
             }
           });
       if (!success) {
@@ -233,26 +247,41 @@ public final class RetryHandlingBlockWorkerClient
     return retryRPC(new RpcCallable<Boolean, BlockWorkerClientService.Client>() {
       @Override
       public Boolean call(BlockWorkerClientService.Client client) throws TException {
-          return client.unlockBlock(blockId, mSessionId);
+          return client.unlockBlock(blockId, getSessionId());
       }
     });
   }
 
+  /**
+   * sessionHeartbeat is not retried because it is supposed to be called periodically.
+   *
+   * @throws IOException if it fails to heartbeat
+   * @throws InterruptedException if heartbeat is interrupted
+   */
   @Override
-  public void sessionHeartbeat() throws IOException {
-    retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
-      @Override
-      public Void call(BlockWorkerClientService.Client client) throws TException {
-          client.sessionHeartbeat(mSessionId, null);
-          return null;
-      }
-    });
+  public void sessionHeartbeat() throws IOException, InterruptedException {
+    BlockWorkerClientService.Client client =
+        BlockStoreContext.acquireBlockWorkerThriftClientHeartbeat(mRpcAddress);
+    try {
+      client.sessionHeartbeat(getSessionId(), null);
+    } catch (AlluxioTException e) {
+      throw Throwables.propagate(e);
+    } catch (ThriftIOException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      client.getOutputProtocol().getTransport().close();
+      throw new IOException(e);
+    } finally {
+      BlockStoreContext.releaseBlockWorkerThriftClientHeartbeat(mRpcAddress, client);
+    }
   }
 
   @Override
-  public void periodicHeartbeat() {
+  public void periodicHeartbeat() throws InterruptedException {
     try {
       sessionHeartbeat();
+    } catch (InterruptedException e) {
+      throw e;
     } catch (Exception e) {
       LOG.error("Periodic heartbeat failed, cleaning up.", e);
     }

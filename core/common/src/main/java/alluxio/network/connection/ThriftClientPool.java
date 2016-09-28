@@ -142,7 +142,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
       }
       break;
     }
-
+    LOG.info("Created a new thrift client {}", client.toString());
     return client;
   }
 

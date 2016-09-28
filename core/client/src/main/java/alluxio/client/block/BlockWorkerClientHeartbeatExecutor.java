@@ -30,7 +30,7 @@ final class BlockWorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat() throws InterruptedException {
     mBlockWorkerClient.periodicHeartbeat();
   }
 
