@@ -64,7 +64,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   private final long mGcThresholdMs;
 
   private static final int THRIFT_CLIENT_POOL_GC_THREADPOOL_SIZE = 5;
-  private static ScheduledExecutorService mGcExecutor =
+  private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(THRIFT_CLIENT_POOL_GC_THREADPOOL_SIZE,
           ThreadFactoryUtils.build("ThriftClientPoolGcThreads-%d", true));
 
@@ -95,7 +95,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
    */
   public ThriftClientPool(String serviceName, long serviceVersion, InetSocketAddress address,
       int maxCapacity, long gcThresholdMs) {
-    super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(mGcExecutor));
+    super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
     mTransportProvider = TransportProvider.Factory.create();
     mServiceName = serviceName;
     mServiceVersion = serviceVersion;

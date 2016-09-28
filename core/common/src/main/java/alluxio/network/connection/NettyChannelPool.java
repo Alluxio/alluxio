@@ -40,7 +40,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   private static final int NETTY_CHANNEL_POOL_GC_THREADPOOL_SIZE = 10;
   private Callable<Bootstrap> mBootstrap;
   private final long mGcThresholdMs;
-  private static ScheduledExecutorService mGcExecutor =
+  private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(NETTY_CHANNEL_POOL_GC_THREADPOOL_SIZE,
           ThreadFactoryUtils.build("NettyChannelPoolGcThreads-%d", true));
 
@@ -53,7 +53,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
    *        is above the minimum capacity(1), it is closed and removed from the pool.
    */
   public NettyChannelPool(Callable<Bootstrap> bootstrap, int maxCapacity, long gcThresholdMs) {
-    super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(mGcExecutor));
+    super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
     mBootstrap = bootstrap;
     mGcThresholdMs = gcThresholdMs;
   }

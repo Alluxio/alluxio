@@ -47,16 +47,16 @@ public final class DynamicResourcePoolTest {
     private int mGcThresholdInSecs = 120;
     private int mCounter = 0;
 
-    private static ScheduledExecutorService mGcExecutor =
+    private static final ScheduledExecutorService GC_EXECUTOR =
         new ScheduledThreadPoolExecutor(5, ThreadFactoryUtils.build("TestPool-%d", true));
 
     public TestPool(Options options, ManualClock clock) {
-      super(options.setGcExecutor(mGcExecutor));
+      super(options.setGcExecutor(GC_EXECUTOR));
       mClock = clock;
     }
 
     public TestPool(Options options) {
-      super(options.setGcExecutor(mGcExecutor));
+      super(options.setGcExecutor(GC_EXECUTOR));
     }
 
     @Override
