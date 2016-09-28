@@ -120,14 +120,16 @@ public interface BlockWorkerClient extends Closeable {
    * locks and temporary files.
    *
    * @throws IOException if an I/O error occurs
+   * @throws InterruptedException if this thread is interrupted
    */
-  void sessionHeartbeat() throws IOException;
+  void sessionHeartbeat() throws IOException, InterruptedException;
 
   /**
    * Called only by {@link BlockWorkerClientHeartbeatExecutor}, encapsulates
    * {@link #sessionHeartbeat()} in order to handle the exceptions.
+   * @throws InterruptedException if this thread is interrupted
    */
-  void periodicHeartbeat();
+  void periodicHeartbeat() throws InterruptedException;
 
   /**
    * Closes the client.
