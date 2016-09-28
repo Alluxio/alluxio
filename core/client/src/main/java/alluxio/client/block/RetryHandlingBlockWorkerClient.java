@@ -25,12 +25,14 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
+import alluxio.thrift.ThriftIOException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +82,11 @@ public final class RetryHandlingBlockWorkerClient
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
     mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
-    sessionHeartbeat();
+    try {
+      sessionHeartbeat();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
     mHeartbeat = mExecutorService.submit(
         new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor, Configuration
             .getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS)));
@@ -239,20 +245,29 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
-  public void sessionHeartbeat() throws IOException {
-    retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
-      @Override
-      public Void call(BlockWorkerClientService.Client client) throws TException {
-          client.sessionHeartbeat(mSessionId, null);
-          return null;
-      }
-    });
+  public void sessionHeartbeat() throws IOException, InterruptedException {
+    BlockWorkerClientService.Client client =
+        BlockStoreContext.acquireBlockWorkerThriftClientHeartbeat(mRpcAddress);
+    try {
+      client.sessionHeartbeat(mSessionId, null);
+    } catch (AlluxioTException e) {
+      throw Throwables.propagate(e);
+    } catch (ThriftIOException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      client.getOutputProtocol().getTransport().close();
+      throw new IOException(e);
+    } finally {
+      BlockStoreContext.releaseBlockWorkerThriftClient(mRpcAddress, client);
+    }
   }
 
   @Override
-  public void periodicHeartbeat() {
+  public void periodicHeartbeat() throws InterruptedException{
     try {
       sessionHeartbeat();
+    } catch (InterruptedException e) {
+      throw e;
     } catch (Exception e) {
       LOG.error("Periodic heartbeat failed, cleaning up.", e);
     }
