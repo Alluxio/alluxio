@@ -101,7 +101,9 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
     } catch (Exception e) {
       Metrics.NETTY_UFS_WRITE_FAILURES.inc();
       try {
-        channel.close().sync();
+        if (channel != null) {
+          channel.close().sync();
+        }
       } catch (InterruptedException ee) {
         Throwables.propagate(ee);
       }
