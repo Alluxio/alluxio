@@ -76,25 +76,25 @@ change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE
 
 # Using Alluxio with HBase
 
-start HBase
+Start HBase:
 
 ```bash
 $ ${HBASE_HOME}/bin/start-hbase.sh
 ```
 
-visit HBase Web UI at `http://<hostname>:16010` to confirm that HBase is running on Alluxio
+Visit HBase Web UI at `http://<hostname>:16010` to confirm that HBase is running on Alluxio
 (check the `HBase Root Directory` attribute):
 
 ![HBaseRootDirectory]({{site.data.img.screenshot_start_hbase_webui}})
 
-and visit Alluxio Web UI at `http://<hostname>:19999`, click `Browse` and you can see the files HBase stores
+And visit Alluxio Web UI at `http://<hostname>:19999`, click `Browse` and you can see the files HBase stores
 on Alluxio, including data and WALs:
 
 ![HBaseRootDirectoryOnAlluxio]({{site.data.img.screenshot_start_hbase_alluxio_webui}})
 
 # HBase shell examples
 
-create a text file `simple_test.txt` and write these commands into it:
+Create a text file `simple_test.txt` and write these commands into it:
 
 ```
 create 'test', 'cf'
@@ -106,13 +106,13 @@ scan 'test', {LIMIT => 10, STARTROW => 'row1'}
 get 'test', 'row1'
 ```
 
-run the following command from the top level HBase project directory
+Run the following command from the top level HBase project directory:
 
 ```bash
 bin/hbase shell simple_test.txt
 ```
 
-you should see some output like this:
+You should see some output like this:
 
 ![HBaseShellOutput]({{site.data.img.screenshot_hbase_shell_output}})
 
