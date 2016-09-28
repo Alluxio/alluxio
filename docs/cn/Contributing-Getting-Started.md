@@ -175,8 +175,6 @@ $ git push origin awesome_feature
 
 对于这个pull request的标题，它应该以这个JIRA ticket名称为前缀，因此，这个标题应该像**[ALLUXIO-1234] Awesome Feature**这样（在标题里面，请用和你的request相关的信息替换掉 Awesome Feature，例如，"Fix format in error message"或者"Improve java doc of method Foo"）。
 
-接着添加一个标签表明你的pull request对应于Alluxio的哪个组件，这些组件与Alluxio源代码库根目录下的目录一一对应。
-
 在描述框的第一行，请添加一个该JIRA ticket的链接，该链接像`https://alluxio.atlassian.net/browse/ALLUXIO-####`这样。
 
 完成以上步骤后，点击下方的**Create pull request**按钮。恭喜！你向Alluxio的第一个pull request成功提交啦！！
