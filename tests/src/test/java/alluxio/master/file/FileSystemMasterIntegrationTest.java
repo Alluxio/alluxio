@@ -577,6 +577,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.getFileInfo(fileId);
   }
 
+  @Test
   public void ttlExpiredCreateFileWithFreeActionTest() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
