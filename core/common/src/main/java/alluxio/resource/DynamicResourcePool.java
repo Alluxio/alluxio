@@ -453,8 +453,10 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @return the resource
    * @throws IOException if it fails to create a resource
    * @throws TimeoutException if it times out to wait for a resource
+   * @throws InterruptedException if this thread is interrupted
    */
-  private T checkHealthyAndRetry(T resource, long endTimeMs) throws IOException, TimeoutException {
+  private T checkHealthyAndRetry(T resource, long endTimeMs)
+      throws IOException, TimeoutException, InterruptedException {
     if (isHealthy(resource)) {
       return resource;
     } else {
