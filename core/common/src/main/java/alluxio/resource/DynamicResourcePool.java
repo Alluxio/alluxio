@@ -176,7 +176,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     }
   }
 
-  private final ReentrantLock mLock = new ReentrantLock();
+  private final ReentrantLock mLock = new ReentrantLock(true);
   private final Condition mNotEmpty = mLock.newCondition();
   private final int mMaxCapacity;
   private final int mMinCapacity;
