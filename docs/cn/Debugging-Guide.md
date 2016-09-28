@@ -7,7 +7,7 @@ group: Resources
 * Table of Contents
 {:toc}
 
-本页面主要是关于Alluxio使用过程中的一些高水平的指导和提示，方便用户能够更快的解决使用过程遇到的问题。
+本页面主要是关于Alluxio使用过程中的一些指导和提示，方便用户能够更快的解决使用过程遇到的问题。
 
 注意: 本页面的定位并不是指导解决Alluxio使用过程中遇到的所有问题。
 用户可随时向[Alluxio邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)或其[镜像](http://alluxio-users.85194.x6.nabble.com/)提交问题。
@@ -59,7 +59,7 @@ master和worker日志对于理解Alluxio master节点和worker节点的运行过
 
 - 请仔细检查Alluxio的master节点的端口(port)是否正确，Alluxio的master节点默认的监听端口号为19998。
 通常情况下master地址的端口号错误会导致这种错误提示的出现(例如端口号写成了19999,而19999是Alluxio的master节点的web用户界面的端口号)
-- 请确保Alluxion的master节点和client节点的安全设置保持一致.
+- 请确保Alluxio的master节点和client节点的安全设置保持一致.
 Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用户身份验证(Security.html#authentication)的方法。
 如果客户端和服务器的这项配置属性不一致，这种错误将会发生。(例如，客户端的属性为默认值`NOSASL`,而服务器端设为`SIMPLE`)
 有关如何设定Alluxio的集群和应用的问题，用户请参照[Configuration-Settings](Configuration-Settings.html)
