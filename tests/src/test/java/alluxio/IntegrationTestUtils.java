@@ -25,7 +25,6 @@ import org.powermock.reflect.Whitebox;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Util methods for writing integration tests.
@@ -92,9 +91,8 @@ public final class IntegrationTestUtils {
    */
   public static void waitForBlocksToBeFreed(final BlockWorker bw, final Long... blockIds) {
     try {
-      // Schedule 1st heartbeat from worker.
-      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
-      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+      // Execute 1st heartbeat from worker.
+      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
       // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
       // removed from master in the next heartbeat.
@@ -107,12 +105,8 @@ public final class IntegrationTestUtils {
         }
       }, 100 * Constants.SECOND_MS);
 
-      // Schedule 2nd heartbeat from worker.
-      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
-      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-      // Ensure the 2nd heartbeat is finished.
-      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
+      // Execute 2nd heartbeat from worker.
+      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
