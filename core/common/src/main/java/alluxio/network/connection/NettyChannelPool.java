@@ -12,6 +12,7 @@
 package alluxio.network.connection;
 
 import alluxio.resource.DynamicResourcePool;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
@@ -20,6 +21,8 @@ import io.netty.channel.ChannelFuture;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,8 +37,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class NettyChannelPool extends DynamicResourcePool<Channel> {
+  private static final int NETTY_CHANNEL_POOL_GC_THREADPOOL_SIZE = 10;
   private Callable<Bootstrap> mBootstrap;
   private final long mGcThresholdMs;
+  private static final ScheduledExecutorService GC_EXECUTOR =
+      new ScheduledThreadPoolExecutor(NETTY_CHANNEL_POOL_GC_THREADPOOL_SIZE,
+          ThreadFactoryUtils.build("NettyChannelPoolGcThreads-%d", true));
 
   /**
    * Creates a netty channel pool instance with a minimum capacity of 1.
@@ -46,7 +53,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
    *        is above the minimum capacity(1), it is closed and removed from the pool.
    */
   public NettyChannelPool(Callable<Bootstrap> bootstrap, int maxCapacity, long gcThresholdMs) {
-    super(Options.defaultOptions().setMaxCapacity(maxCapacity));
+    super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
     mBootstrap = bootstrap;
     mGcThresholdMs = gcThresholdMs;
   }
