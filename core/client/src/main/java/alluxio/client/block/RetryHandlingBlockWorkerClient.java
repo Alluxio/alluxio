@@ -258,12 +258,12 @@ public final class RetryHandlingBlockWorkerClient
       client.getOutputProtocol().getTransport().close();
       throw new IOException(e);
     } finally {
-      BlockStoreContext.releaseBlockWorkerThriftClient(mRpcAddress, client);
+      BlockStoreContext.releaseBlockWorkerThriftClientHeartbeat(mRpcAddress, client);
     }
   }
 
   @Override
-  public void periodicHeartbeat() throws InterruptedException{
+  public void periodicHeartbeat() throws InterruptedException {
     try {
       sessionHeartbeat();
     } catch (InterruptedException e) {
