@@ -118,17 +118,13 @@ public final class HeartbeatScheduler {
   }
 
   /**
-   * Waits until the given thread can be executed.
+   * Waits for up to 10 seconds until the given thread can be executed.
    *
    * @param name a name of the thread to wait for
    * @throws InterruptedException if the waiting thread is interrupted
    */
   public static void await(String name) throws InterruptedException {
-    try (LockResource r = new LockResource(sLock)) {
-      while (!sTimers.containsKey(name)) {
-        sCondition.await();
-      }
-    }
+    await(name, 10, TimeUnit.SECONDS);
   }
 
   /**
@@ -149,5 +145,17 @@ public final class HeartbeatScheduler {
         }
       }
     }
+  }
+
+  /**
+   * Convenience method for executing a heartbeat and waiting for it to complete.
+   *
+   * @param name the name of the heartbeat to execute
+   * @throws InterruptedException if the waiting thread is interrupted
+   */
+  public static void execute(String name) throws InterruptedException {
+    await(name);
+    schedule(name);
+    await(name);
   }
 }
