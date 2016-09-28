@@ -30,5 +30,12 @@ public class BlockStoreContextTestUtils {
       pool.close();
     }
     poolMap.clear();
+
+    ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool> heartbeatPoolMap = Whitebox
+        .getInternalState(BlockStoreContext.class, "BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL");
+    for (BlockWorkerThriftClientPool pool : heartbeatPoolMap.values()) {
+      pool.close();
+    }
+    heartbeatPoolMap.clear();
   }
 }
