@@ -21,7 +21,7 @@ import java.net.InetSocketAddress;
  */
 public class BlockStoreContextTestUtils {
   /**
-   * Resets the {@link BlockStoreContext#mBlockMasterClientPool}.
+   * Resets the {@link BlockStoreContext#BLOCK_WORKER_THRIFT_CLIENT_POOL}.
    */
   public static void resetPool() {
     ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool> poolMap =
