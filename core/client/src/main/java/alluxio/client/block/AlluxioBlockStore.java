@@ -252,7 +252,7 @@ public final class AlluxioBlockStore {
     } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
-      mContext.releaseWorkerClient(blockWorkerClient);
+      blockWorkerClient.close();
     }
   }
 }

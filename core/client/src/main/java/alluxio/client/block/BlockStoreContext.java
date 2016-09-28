@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
@@ -193,7 +192,7 @@ public final class BlockStoreContext {
    *         connect to remote worker
    */
   public static Channel acquireNettyChannel(final InetSocketAddress address,
-      final Callable<Bootstrap> bootstrapBuilder) throws IOException{
+      final Callable<Bootstrap> bootstrapBuilder) throws IOException {
     if (!NETTY_CHANNEL_POOL_MAP.containsKey(address)) {
       Callable<Bootstrap> bootstrapBuilderClone = new Callable<Bootstrap>() {
         @Override
