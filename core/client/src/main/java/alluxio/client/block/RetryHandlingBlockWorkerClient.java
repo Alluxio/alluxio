@@ -83,8 +83,8 @@ public final class RetryHandlingBlockWorkerClient
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = executorService;
     mSessionId = sessionId;
-    mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
     if (sessionId != null && executorService != null) {
+      mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
       try {
         sessionHeartbeat();
       } catch (InterruptedException e) {
@@ -94,6 +94,7 @@ public final class RetryHandlingBlockWorkerClient
           new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor,
               Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS)));
     } else {
+      mHeartbeatExecutor = null;
       mHeartbeat = null;
     }
   }
@@ -251,6 +252,12 @@ public final class RetryHandlingBlockWorkerClient
     });
   }
 
+  /**
+   * sessionHeartbeat is not retried because it is supposed to be called periodically.
+   *
+   * @throws IOException if it fails to heartbeat
+   * @throws InterruptedException if heartbeat is interrupted
+   */
   @Override
   public void sessionHeartbeat() throws IOException, InterruptedException {
     BlockWorkerClientService.Client client =
