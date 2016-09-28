@@ -74,7 +74,7 @@ public final class RetryHandlingBlockWorkerClient
    * @throws IOException if it fails to register the session with the worker specified
    */
   public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress,
-      ExecutorService executorService, long sessionId) throws IOException {
+      ExecutorService executorService, Long sessionId) throws IOException {
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
@@ -82,14 +82,18 @@ public final class RetryHandlingBlockWorkerClient
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
     mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
-    try {
-      sessionHeartbeat();
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+    if (sessionId != null && executorService != null) {
+      try {
+        sessionHeartbeat();
+      } catch (InterruptedException e) {
+        throw Throwables.propagate(e);
+      }
+      mHeartbeat = mExecutorService.submit(
+          new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor,
+              Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS)));
+    } else {
+      mHeartbeat = null;
     }
-    mHeartbeat = mExecutorService.submit(
-        new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor, Configuration
-            .getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS)));
   }
 
   @Override

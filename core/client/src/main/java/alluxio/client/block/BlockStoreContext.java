@@ -191,10 +191,9 @@ public final class BlockStoreContext {
    * @return the acquired netty channel
    * @throws IOException if it fails to create a new client instance mostly because it fails to
    *         connect to remote worker
-   * @throws InterruptedException if this thread is interrupted
    */
   public static Channel acquireNettyChannel(final InetSocketAddress address,
-      final Callable<Bootstrap> bootstrapBuilder) throws IOException, InterruptedException {
+      final Callable<Bootstrap> bootstrapBuilder) throws IOException{
     if (!NETTY_CHANNEL_POOL_MAP.containsKey(address)) {
       Callable<Bootstrap> bootstrapBuilderClone = new Callable<Bootstrap>() {
         @Override
@@ -213,7 +212,11 @@ public final class BlockStoreContext {
         pool.close();
       }
     }
-    return NETTY_CHANNEL_POOL_MAP.get(address).acquire();
+    try {
+      return NETTY_CHANNEL_POOL_MAP.get(address).acquire();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   /**

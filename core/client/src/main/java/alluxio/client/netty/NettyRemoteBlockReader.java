@@ -115,7 +115,9 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
     } catch (Exception e) {
       Metrics.NETTY_BLOCK_READ_FAILURES.inc();
       try {
-        channel.close().sync();
+        if (channel != null) {
+          channel.close().sync();
+        }
       } catch (InterruptedException ee) {
         throw Throwables.propagate(ee);
       }
