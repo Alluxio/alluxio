@@ -6,7 +6,9 @@ group: Deploying Alluxio
 priority: 4
 ---
 
-Alluxio can be deployed through Mesos. This allows Mesos to manage the resources used by Alluxio.
+Alluxio can be deployed through Mesos. This allows Mesos to manage the resources used by Alluxio. For the Alluxio
+master this is just the cpu and memory needed by the JVM process. For the worker it is the same, but with the addition
+of the memory needed by the ramdisk.
 
 ## Mesos version
 
