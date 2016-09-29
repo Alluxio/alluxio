@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
@@ -96,6 +95,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     private int mMinCapacity = 1;
     private long mInitialDelayMs = 100;
     private long mGcIntervalMs = 120 * Constants.SECOND_MS;
+    private ScheduledExecutorService mGcExecutor;
 
     /**
      * @return the max capacity
@@ -123,6 +123,13 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      */
     public long getGcIntervalMs() {
       return mGcIntervalMs;
+    }
+
+    /**
+     * @return the gc executor
+     */
+    public ScheduledExecutorService getGcExecutor() {
+      return mGcExecutor;
     }
 
     /**
@@ -165,6 +172,15 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       return this;
     }
 
+    /**
+     * @param gcExecutor the gc executor
+     * @return updated object
+     */
+    public Options setGcExecutor(ScheduledExecutorService gcExecutor) {
+      mGcExecutor = gcExecutor;
+      return this;
+    }
+
     private Options() {
     }  // prevents instantiation
 
@@ -176,7 +192,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     }
   }
 
-  private final ReentrantLock mLock = new ReentrantLock();
+  private final ReentrantLock mLock = new ReentrantLock(true);
   private final Condition mNotEmpty = mLock.newCondition();
   private final int mMaxCapacity;
   private final int mMinCapacity;
@@ -214,7 +230,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param options the options
    */
   public DynamicResourcePool(Options options) {
-    mExecutor = new ScheduledThreadPoolExecutor(1);
+    mExecutor = Preconditions.checkNotNull(options.getGcExecutor());
 
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
@@ -365,11 +381,11 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       for (ResourceInternal<T> resourceInternal : mResourceAvailable) {
         closeResourceSync(resourceInternal.mResource);
       }
+      mResourceAvailable.clear();
     } finally {
       mLock.unlock();
     }
     mGcFuture.cancel(true);
-    mExecutor.shutdown();
   }
 
   @Override
