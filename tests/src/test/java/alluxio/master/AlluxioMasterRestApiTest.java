@@ -164,7 +164,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_FREE_BYTES), NO_PARAMS, HttpMethod.GET,
         null).call();
 
-    Assert.assertTrue(Long.valueOf(ufsFreeBytes) > 0 || Long.valueOf(ufsFreeBytes) == -1);  }
+    Assert.assertTrue(Long.valueOf(ufsFreeBytes) > 0 || Long.valueOf(ufsFreeBytes) == -1);
+  }
 
   @Test
   public void getCapacityBytesOnTiers() throws Exception {
