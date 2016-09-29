@@ -16,6 +16,7 @@
 # alluxio.underfs.address=${alluxio.work.dir}/underFSStorage
 
 # Security properties
+# alluxio.security.authorization.permission.enabled=true
 # alluxio.security.authentication.type=SIMPLE
 
 # Worker properties
