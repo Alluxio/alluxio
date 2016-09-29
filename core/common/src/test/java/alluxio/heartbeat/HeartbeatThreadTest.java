@@ -23,7 +23,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link HeartbeatThread}. This test uses
@@ -128,13 +127,9 @@ public final class HeartbeatThreadTest {
         // Run the HeartbeatThread.
         mExecutorService.submit(ht);
 
-        // Wait for the DummyHeartbeatExecutor executor to be ready to execute its heartbeat.
-        HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS);
-
         final int numIterations = 5000;
         for (int i = 0; i < numIterations; i++) {
-          HeartbeatScheduler.schedule(mThreadName);
-          HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS);
+          HeartbeatScheduler.execute(mThreadName);
         }
 
         Assert.assertEquals("The executor counter is wrong.", numIterations, executor.getCounter());

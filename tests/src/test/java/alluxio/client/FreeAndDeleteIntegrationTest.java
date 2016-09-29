@@ -114,8 +114,7 @@ public final class FreeAndDeleteIntegrationTest {
     }
 
     // Execute the lost files detection.
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
     // Verify the blocks are not in mLostBlocks.
     Assert.assertTrue(bm.getLostBlocks().isEmpty());
