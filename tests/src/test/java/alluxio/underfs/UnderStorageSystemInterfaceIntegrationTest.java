@@ -25,6 +25,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,12 +43,23 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       new LocalAlluxioClusterResource.Builder().build();
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
+  private int mUfsListingLength = -1;
 
   @Before
   public final void before() throws Exception {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_LISTING_LENGTH)) {
+      mUfsListingLength = Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
+    }
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
+  }
+
+  @After
+  public final void after() throws Exception {
+    if (mUfsListingLength > 0) {
+      Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, mUfsListingLength);
+    }
   }
 
   /**
