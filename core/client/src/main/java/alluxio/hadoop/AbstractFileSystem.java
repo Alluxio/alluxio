@@ -420,7 +420,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
       Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
 
+      // These must be reset to pick up the change to the master address.
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
+      ClientContext.init();
       FileSystemContext.INSTANCE.reset();
       LineageContext.INSTANCE.reset();
 
