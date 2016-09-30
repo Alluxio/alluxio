@@ -73,9 +73,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = PATH_SEPARATOR;
 
-  /** Maximum number of directory entries to fetch at once. */
-  private static final int DIR_PAGE_SIZE = 1000;
-
   /** Number of retries in case of Swift internal errors. */
   private static final int NUM_RETRIES = 3;
 
@@ -248,7 +245,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
       // For a file, recursive delete will not find any children
       PaginationMap paginationMap = container.getPaginationMap(
-          PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), DIR_PAGE_SIZE);
+          PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), LISTING_LENGTH);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
         for (StoredObject childObject : container.list(paginationMap, page)) {
           deleteObject(childObject);
@@ -666,7 +663,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     // TODO(adit): UnderFileSystem interface should be changed to support pagination
     ArrayDeque<DirectoryOrObject> results = new ArrayDeque<>();
     Container container = mAccount.getContainer(mContainerName);
-    PaginationMap paginationMap = container.getPaginationMap(prefix, DIR_PAGE_SIZE);
+    PaginationMap paginationMap = container.getPaginationMap(prefix, LISTING_LENGTH);
     for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
       if (!recursive) {
         // If not recursive, use delimiter to limit results fetched

@@ -59,6 +59,14 @@ public abstract class UnderFileSystem {
    */
   private boolean mProvidesStorage = true;
 
+  /** Maximum length for a single listing query. */
+  private static final int MAX_LISTING_LENGTH = 1000;
+
+  /** Length of each list request. */
+  protected static final int LISTING_LENGTH =
+      Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > MAX_LISTING_LENGTH ?
+          MAX_LISTING_LENGTH : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
+
   private static final Cache UFS_CACHE = new Cache();
 
   /**
