@@ -52,7 +52,7 @@ Alternatively, you can also create the configuration file from the template and 
 Then edit `conf/alluxio-site.properties` file to set the under storage address to the HDFS namenode address
 and the HDFS directory you want to mount to Alluxio. For example, the under storage address can be
 `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port and mapping HDFS root directory to Alluxio,
-`hdfs://localhost:9000/alluxio/data` if only the HDFS directory `/alluxio/data` is mapped to Alluxio.
+or `hdfs://localhost:9000/alluxio/data` if only the HDFS directory `/alluxio/data` is mapped to Alluxio.
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
