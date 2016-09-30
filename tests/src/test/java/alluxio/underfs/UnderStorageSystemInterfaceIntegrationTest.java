@@ -446,7 +446,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     String topLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDir");
 
-    final int numFiles = 1500;
+    final int numFiles = 100;
 
     String[] children = new String[numFiles + numFiles];
 

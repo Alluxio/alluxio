@@ -259,6 +259,7 @@
                 <!-- Change "s3n://my-bucket/alluxio-test" to the name of your
                      S3 bucket for this test -->
                 <s3Bucket>s3n://my-bucket/alluxio-test</s3Bucket>
+                <alluxio.underfs.listing.length>50</alluxio.underfs.listing.length>
               </systemPropertyVariables>
             </configuration>
           </plugin>
@@ -298,6 +299,7 @@
                 <fs.oss.endpoint>http://oss-cn-hangzhou.aliyuncs.com</fs.oss.endpoint>
                 <!-- Change "your-bucket" to your oss bucket for this test -->
                 <ossBucket>oss://your-bucket/alluxio-test/</ossBucket>
+                <alluxio.underfs.listing.length>50</alluxio.underfs.listing.length>
               </systemPropertyVariables>
             </configuration>
           </plugin>
@@ -337,6 +339,7 @@
                 <!-- Change "container/folder" to contain the testing container  -->
                 <!-- Keep the structure in form container/folder -->
                 <containerKey>swift://container/folder</containerKey>
+                <alluxio.underfs.listing.length>50</alluxio.underfs.listing.length>
               </systemPropertyVariables>
             </configuration>
           </plugin>
@@ -369,6 +372,7 @@
                 <!-- Change "gs://my-bucket/alluxio-test" to the name of your
                      gcs bucket for this test -->
                 <gcsBucket>gs://my-bucket/alluxio-test</gcsBucket>
+                <alluxio.underfs.listing.length>50</alluxio.underfs.listing.length>
               </systemPropertyVariables>
             </configuration>
           </plugin>
