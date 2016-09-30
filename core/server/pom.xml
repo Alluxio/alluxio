@@ -64,7 +64,6 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.5</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
