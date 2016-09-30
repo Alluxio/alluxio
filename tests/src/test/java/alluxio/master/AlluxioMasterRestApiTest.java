@@ -148,6 +148,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_CAPACITY_BYTES), NO_PARAMS,
         HttpMethod.GET, null).call();
 
+    // Capacity should be greater than 0, or -1 which means capacity is not applicable for the
+    // under storage (ie. for an object store in the cloud)
     Assert.assertTrue(Long.valueOf(ufsCapacity) > 0 || Long.valueOf(ufsCapacity) == -1);
   }
 
@@ -164,6 +166,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_FREE_BYTES), NO_PARAMS, HttpMethod.GET,
         null).call();
 
+    // Free space should be greater than 0, or -1 which means free space is not applicable for the
+    // under storage (ie. for an object store in the cloud)
     Assert.assertTrue(Long.valueOf(ufsFreeBytes) > 0 || Long.valueOf(ufsFreeBytes) == -1);
   }
 
