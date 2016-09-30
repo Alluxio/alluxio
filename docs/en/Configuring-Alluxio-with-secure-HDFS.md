@@ -7,9 +7,7 @@ priority: 3
 ---
 
 This guide
-describes how to configure Alluxio with secure [HDFS](https://hadoop.apache
-.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide
-.html)
+describes how to configure Alluxio with [secure HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)
 as the under storage system. Alluxio supports secure HDFS as the under filesystem, with
 [Kerberos](http://web.mit.edu/kerberos/) authentication.
 
@@ -59,9 +57,11 @@ Then edit `alluxio-site.properties` file to set the under storage address to the
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
-Copy secure HDFS conf xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to
+## HDFS configuration files 
+Please copy secure HDFS conf xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to
 `${ALLUXIO_HOME}/conf/`
 
+## Kerberos configuration
 Optionally, you can set jvm-level system properties for customized Kerberos configurations:
 `java.security.krb5.realm` and `java.security.krb5.kdc`. Those Kerberos configurations route java libraries to specified Kerberos realm and KDC server address.
 If both are set to empty, Kerberos library will respect
@@ -79,6 +79,7 @@ the default Kerberos configuration on the machine. For example:
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-opts.md %}
 
+## Alluxio server Kerberos credential
 Set the following Alluxio properties in `alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-properties-for-secure-hdfs-kerberos.md %}
