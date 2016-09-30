@@ -120,7 +120,9 @@ public class S3AInputStream extends InputStream {
       return;
     }
     GetObjectRequest getReq = new GetObjectRequest(mBucketName, mKey);
-    getReq.setRange(mPos);
+    if (mPos > 0) {
+      getReq.setRange(mPos);
+    }
     mIn = mClient.getObject(getReq).getObjectContent();
   }
 
