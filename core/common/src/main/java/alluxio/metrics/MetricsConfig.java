@@ -100,7 +100,7 @@ public final class MetricsConfig {
   private void loadConfigFile(String configFile) {
     try (InputStream is = new FileInputStream(configFile)) {
       mProperties.load(is);
-    } catch(Exception e) {
+    } catch (Exception e) {
       LOG.error("Error loading metrics configuration file.", e);
     }
   }
