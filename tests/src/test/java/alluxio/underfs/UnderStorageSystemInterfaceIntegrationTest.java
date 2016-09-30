@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
@@ -43,13 +44,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       new LocalAlluxioClusterResource.Builder().build();
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
-  private int mUfsListingLength = -1;
 
   @Before
   public final void before() throws Exception {
-    if (Configuration.containsKey(PropertyKey.UNDERFS_LISTING_LENGTH)) {
-      mUfsListingLength = Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
-    }
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
@@ -57,9 +54,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   @After
   public final void after() throws Exception {
-    if (mUfsListingLength > 0) {
-      Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, mUfsListingLength);
-    }
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
