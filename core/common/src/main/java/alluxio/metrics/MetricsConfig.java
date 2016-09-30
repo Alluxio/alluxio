@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -40,7 +42,9 @@ public final class MetricsConfig {
    */
   public MetricsConfig(String configFile) {
     mProperties = new Properties();
-    loadConfigFile(configFile);
+    if (Files.exists(Paths.get(configFile))) {
+      loadConfigFile(configFile);
+    }
     removeInstancePrefix();
   }
 
@@ -94,22 +98,10 @@ public final class MetricsConfig {
    * @param configFile the metrics config file
    */
   private void loadConfigFile(String configFile) {
-    InputStream is = null;
-    try {
-      is = new FileInputStream(configFile);
-      if (is != null) {
-        mProperties.load(is);
-      }
-    } catch (Exception e) {
-      LOG.error("Error loading metrics configuration file.");
-    } finally {
-      if (is != null) {
-        try {
-          is.close();
-        } catch (Exception e) {
-          LOG.error(e.getMessage(), e);
-        }
-      }
+    try (InputStream is = new FileInputStream(configFile)) {
+      mProperties.load(is);
+    } catch(Exception e) {
+      LOG.error("Error loading metrics configuration file.", e);
     }
   }
 

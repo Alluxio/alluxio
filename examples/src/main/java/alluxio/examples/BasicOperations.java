@@ -68,7 +68,6 @@ public class BasicOperations implements Callable<Boolean> {
   public Boolean call() throws Exception {
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mMasterLocation.getHost());
     Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
-    ClientContext.init();
     FileSystem fs = FileSystem.Factory.get();
     writeFile(fs);
     return readFile(fs);
