@@ -64,8 +64,8 @@ public abstract class UnderFileSystem {
 
   /** Length of each list request. */
   protected static final int LISTING_LENGTH =
-      Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > MAX_LISTING_LENGTH ?
-          MAX_LISTING_LENGTH : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
+      Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > MAX_LISTING_LENGTH
+          ? MAX_LISTING_LENGTH : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
 
   private static final Cache UFS_CACHE = new Cache();
 
