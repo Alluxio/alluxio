@@ -43,7 +43,6 @@ import java.util.concurrent.Callable;
  * </p>
  */
 public final class BasicNonByteBufferOperations implements Callable<Boolean> {
-  private final AlluxioURI mMasterLocation;
   private final AlluxioURI mFilePath;
   private final ReadType mReadType;
   private final WriteType mWriteType;
@@ -51,16 +50,14 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private final int mLength;
 
   /**
-   * @param masterLocation the location of the master
    * @param filePath the path for the files
    * @param readType the {@link ReadType}
    * @param writeType the {@link WriteType}
    * @param deleteIfExists delete files if they already exist
    * @param length the number of files
    */
-  public BasicNonByteBufferOperations(AlluxioURI masterLocation, AlluxioURI filePath, ReadType
-      readType, WriteType writeType, boolean deleteIfExists, int length) {
-    mMasterLocation = masterLocation;
+  public BasicNonByteBufferOperations(AlluxioURI filePath, ReadType readType, WriteType writeType,
+      boolean deleteIfExists, int length) {
     mFilePath = filePath;
     mWriteType = writeType;
     mReadType = readType;
@@ -70,8 +67,6 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, mMasterLocation.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     FileSystem alluxioClient = FileSystem.Factory.get();
     write(alluxioClient);
     return read(alluxioClient);
