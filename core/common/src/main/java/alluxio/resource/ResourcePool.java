@@ -54,7 +54,7 @@ public abstract class ResourcePool<T> {
    * @param resources blocking queue to use
    */
   protected ResourcePool(int maxCapacity, ConcurrentLinkedQueue<T> resources) {
-    mTakeLock = new ReentrantLock(true);
+    mTakeLock = new ReentrantLock();
     mNotEmpty = mTakeLock.newCondition();
     mMaxCapacity = maxCapacity;
     mCurrentCapacity = new AtomicInteger();
