@@ -13,6 +13,7 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
@@ -23,6 +24,11 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -43,6 +49,8 @@ import java.util.concurrent.Callable;
  * </p>
  */
 public final class BasicNonByteBufferOperations implements Callable<Boolean> {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final AlluxioURI mFilePath;
   private final ReadType mReadType;
   private final WriteType mWriteType;
@@ -74,12 +82,14 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private void write(FileSystem alluxioClient) throws IOException, AlluxioException {
     FileOutStream fileOutStream = createFile(alluxioClient, mFilePath, mDeleteIfExists);
+    long startTimeMs = CommonUtils.getCurrentMs();
     try (DataOutputStream os = new DataOutputStream(fileOutStream)) {
       os.writeInt(mLength);
       for (int i = 0; i < mLength; i++) {
         os.writeInt(i);
       }
     }
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "writeFile to file " + mFilePath));
   }
 
   private FileOutStream createFile(FileSystem fileSystem, AlluxioURI filePath,
@@ -99,15 +109,18 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
-
+    boolean pass = true;
+    long startTimeMs = CommonUtils.getCurrentMs();
     try (DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options))) {
       int length = input.readInt();
       for (int i = 0; i < length; i++) {
         if (input.readInt() != i) {
-          return false;
+          pass = false;
+          break;
         }
       }
     }
-    return true;
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "readFile file " + mFilePath));
+    return pass;
   }
 }
