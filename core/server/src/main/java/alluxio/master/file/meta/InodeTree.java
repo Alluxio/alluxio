@@ -831,8 +831,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
       if (directory.getName().equals(ROOT_INODE_NAME)) {
         // This is the root inode. Clear all the state, and set the root.
-        if (SecurityUtils.isSecurityEnabled() && mRoot != null && !mRoot.getOwner()
-            .equals(directory.getOwner())) {
+        // For backwards-compatibility:
+        // Empty owner in journal entry indicates that previous journal has no security. In this
+        // case, the journal is allowed to be applied to the new inode with security turned on.
+        if (SecurityUtils.isSecurityEnabled() && mRoot != null && !directory.getOwner().isEmpty()
+            && !mRoot.getOwner().equals(directory.getOwner())) {
           // user is not the owner of journal root entry
           throw new AccessControlException(
               ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
@@ -840,6 +843,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
         mInodes.clear();
         mPinnedInodeFileIds.clear();
         mRoot = directory;
+        // If journal entry has no security enabled, change the replayed inode permission to be 0777
+        // for backwards-compatibility.
+        if (SecurityUtils.isSecurityEnabled() && mRoot != null && mRoot.getOwner().isEmpty()
+            && mRoot.getGroup().isEmpty()) {
+          mRoot.setPermission(Constants.DEFAULT_FILE_SYSTEM_MODE);
+        }
         mCachedInode = mRoot;
         mInodes.add(mRoot);
       } else {
@@ -864,6 +873,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
     parentDirectory.addChild(inode);
     mInodes.add(inode);
+    // If journal entry has no security enabled, change the replayed inode permission to be 0777
+    // for backwards-compatibility.
+    if (SecurityUtils.isSecurityEnabled() && inode != null && inode.getOwner().isEmpty()
+        && inode.getGroup().isEmpty()) {
+      inode.setPermission(Constants.DEFAULT_FILE_SYSTEM_MODE);
+    }
     // Update indexes.
     if (inode.isFile() && inode.isPinned()) {
       mPinnedInodeFileIds.add(inode.getId());
