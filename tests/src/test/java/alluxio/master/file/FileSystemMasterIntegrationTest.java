@@ -58,6 +58,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test behavior of {@link FileSystemMaster}.
@@ -92,8 +93,7 @@ public class FileSystemMasterIntegrationTest {
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
               String.valueOf(TTL_CHECKER_INTERVAL_MS))
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, 1000)
-          .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER)
-          .build();
+          .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -166,8 +166,8 @@ public class FileSystemMasterIntegrationTest {
       concurrentCreator.call();
 
       FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
-      for (FileInfo info : mFsMaster
-          .listStatus(new AlluxioURI("/"), ListStatusOptions.defaults())) {
+      for (FileInfo info : mFsMaster.listStatus(new AlluxioURI("/"),
+          ListStatusOptions.defaults())) {
         AlluxioURI path = new AlluxioURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
@@ -202,8 +202,7 @@ public class FileSystemMasterIntegrationTest {
         new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentCreator.call();
 
-    ConcurrentFreer concurrentFreer =
-        new ConcurrentFreer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    ConcurrentFreer concurrentFreer = new ConcurrentFreer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentFreer.call();
   }
 
@@ -395,8 +394,8 @@ public class FileSystemMasterIntegrationTest {
   public void lastModificationTimeCompleteFile() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
-    try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(new AlluxioURI("/testFile"), InodeTree.LockMode.WRITE)) {
+    try (LockedInodePath inodePath =
+        mInodeTree.lockFullInodePath(new AlluxioURI("/testFile"), InodeTree.LockMode.WRITE)) {
       mFsMaster.completeFileInternal(new ArrayList<Long>(), inodePath, 0, opTimeMs);
     }
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
@@ -438,9 +437,9 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
 
-    try (InodePathPair inodePathPair = mInodeTree
-        .lockInodePathPair(new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
-            new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
+    try (InodePathPair inodePathPair = mInodeTree.lockInodePathPair(
+        new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
+        new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
       LockedInodePath srcPath = inodePathPair.getFirst();
       LockedInodePath dstPath = inodePathPair.getSecond();
       mFsMaster.renameInternal(srcPath, dstPath, true, opTimeMs);
@@ -470,8 +469,8 @@ public class FileSystemMasterIntegrationTest {
     for (FileInfo info : infoList) {
       long id = info.getFileId();
       listedDirIds.add(id);
-      for (FileInfo fileInfo : mFsMaster
-          .listStatus(new AlluxioURI(info.getPath()), ListStatusOptions.defaults())) {
+      for (FileInfo fileInfo : mFsMaster.listStatus(new AlluxioURI(info.getPath()),
+          ListStatusOptions.defaults())) {
         listedIds.add(fileInfo.getFileId());
       }
     }
@@ -491,12 +490,10 @@ public class FileSystemMasterIntegrationTest {
     }
 
     Assert.assertEquals(1,
-        mFsMaster.listStatus(new AlluxioURI("/i0/j0"), ListStatusOptions.defaults())
-            .size());
+        mFsMaster.listStatus(new AlluxioURI("/i0/j0"), ListStatusOptions.defaults()).size());
     for (int i = 0; i < 10; i++) {
       Assert.assertEquals(10,
-          mFsMaster.listStatus(new AlluxioURI("/i" + i), ListStatusOptions.defaults())
-              .size());
+          mFsMaster.listStatus(new AlluxioURI("/i" + i), ListStatusOptions.defaults()).size());
     }
     Assert.assertEquals(10,
         mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
@@ -603,9 +600,9 @@ public class FileSystemMasterIntegrationTest {
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
 
-    try (InodePathPair inodePathPair = mInodeTree
-        .lockInodePathPair(new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
-            new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
+    try (InodePathPair inodePathPair = mInodeTree.lockInodePathPair(
+        new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
+        new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
       LockedInodePath srcPath = inodePathPair.getFirst();
       LockedInodePath dstPath = inodePathPair.getSecond();
       mFsMaster.renameInternal(srcPath, dstPath, true, TEST_CURRENT_TIME);
@@ -849,7 +846,7 @@ public class FileSystemMasterIntegrationTest {
     private AlluxioURI mInitPath;
 
     ConcurrentRenamer(int depth, int concurrencyDepth, AlluxioURI rootPath, AlluxioURI rootPath2,
-                      AlluxioURI initPath) {
+        AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
       mRootPath = rootPath;
