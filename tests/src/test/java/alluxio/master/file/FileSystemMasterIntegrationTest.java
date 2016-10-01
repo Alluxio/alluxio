@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.TtlExpiryAction;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -38,6 +37,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
+import alluxio.wire.TtlAction;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -146,7 +146,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertFalse(fileInfo.isPersisted());
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TtlExpiryAction.DELETE, fileInfo.getTtlExpiryAction());
+    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
     Assert.assertEquals("", fileInfo.getOwner());
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
@@ -547,7 +547,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 100;
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
-    options.setTtlExpiryAction(TtlExpiryAction.FREE);
+    options.setTtlAction(TtlAction.FREE);
     try (LockedInodePath inodePath = mInodeTree
         .lockInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
       mFsMaster.createFileInternal(inodePath, options);
@@ -555,7 +555,7 @@ public class FileSystemMasterIntegrationTest {
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
-    Assert.assertEquals(TtlExpiryAction.FREE, folderInfo.getTtlExpiryAction());
+    Assert.assertEquals(TtlAction.FREE, folderInfo.getTtlAction());
   }
 
   @Test
@@ -582,13 +582,13 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
-    options.setTtlExpiryAction(TtlExpiryAction.FREE);
+    options.setTtlAction(TtlAction.FREE);
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
     Assert.assertEquals(fileId, folderInfo.getFileId());
     Assert.assertEquals(ttl, folderInfo.getTtl());
-    Assert.assertEquals(TtlExpiryAction.FREE, folderInfo.getTtlExpiryAction());
+    Assert.assertEquals(TtlAction.FREE, folderInfo.getTtlAction());
     // Sleep for the ttl expiration.
     CommonUtils.sleepMs(2 * TTL_CHECKER_INTERVAL_MS);
     HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
@@ -596,7 +596,7 @@ public class FileSystemMasterIntegrationTest {
     HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TtlExpiryAction.DELETE, fileInfo.getTtlExpiryAction());
+    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
   }
 
   @Test

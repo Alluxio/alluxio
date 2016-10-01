@@ -17,7 +17,6 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.TtlExpiryAction;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -51,6 +50,7 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
+import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -771,7 +771,7 @@ public final class FileSystemMasterTest {
     // Set ttl & operation
     SetAttributeOptions options = SetAttributeOptions.defaults();
     options.setTtl(0);
-    options.setTtlExpiryAction(TtlExpiryAction.FREE);
+    options.setTtlAction(TtlAction.FREE);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     Command heartBeat = mBlockMaster

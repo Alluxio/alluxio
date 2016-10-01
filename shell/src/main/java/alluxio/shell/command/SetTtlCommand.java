@@ -12,9 +12,9 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.TtlExpiryAction;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -34,10 +34,10 @@ public final class SetTtlCommand extends AbstractShellCommand {
 
   private static final String TTL_ACTION = "action";
 
-  private static final Option TTL_EXPIRY_ACTION_OPTION = Option.builder(TTL_ACTION).required(false)
+  private static final Option TTL_ACTION_OPTION = Option.builder(TTL_ACTION).required(false)
       .numberOfArgs(1).desc("Action to take after Ttl expiry").build();
 
-  private TtlExpiryAction mExpiryAction = TtlExpiryAction.DELETE;
+  private TtlAction mAction = TtlAction.DELETE;
 
   /**
    * @param fs the filesystem of Alluxio
@@ -58,7 +58,7 @@ public final class SetTtlCommand extends AbstractShellCommand {
 
   @Override
   protected Options getOptions() {
-    return new Options().addOption(TTL_EXPIRY_ACTION_OPTION);
+    return new Options().addOption(TTL_ACTION_OPTION);
   }
 
   @Override
@@ -68,7 +68,7 @@ public final class SetTtlCommand extends AbstractShellCommand {
     try {
       String operation = cmd.getOptionValue(TTL_ACTION);
       if (operation != null) {
-        mExpiryAction = TtlExpiryAction.valueOf(operation.toUpperCase());
+        mAction = TtlAction.valueOf(operation.toUpperCase());
       }
     } catch (Exception e) {
       System.err.println("operation should be delete OR free");
@@ -83,9 +83,9 @@ public final class SetTtlCommand extends AbstractShellCommand {
     long ttlMs = Long.parseLong(args[1]);
     Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
     AlluxioURI path = new AlluxioURI(args[0]);
-    CommandUtils.setTtl(mFileSystem, path, ttlMs, mExpiryAction);
+    CommandUtils.setTtl(mFileSystem, path, ttlMs, mAction);
     System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs
-        + " milliseconds, with expiry action set to " + mExpiryAction);
+        + " milliseconds, with expiry action set to " + mAction);
   }
 
   @Override

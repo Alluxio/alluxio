@@ -9,13 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.wire;
 
 /**
  * Represents an Action to take on file after Ttl.
  *
  */
-public enum TtlExpiryAction {
+public enum TtlAction {
 
   /**
    * Indicates that the file has to be deleted (Even in underFS) after Ttl.

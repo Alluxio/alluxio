@@ -43,7 +43,6 @@ import alluxio.master.lineage.meta.LineageStore;
 import alluxio.master.lineage.meta.LineageStoreView;
 import alluxio.master.lineage.recompute.RecomputeExecutor;
 import alluxio.master.lineage.recompute.RecomputePlanner;
-import alluxio.proto.journal.File.TtlExpiryAction;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
 import alluxio.proto.journal.Lineage.LineageEntry;
@@ -54,6 +53,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.google.protobuf.Message;
@@ -276,7 +276,7 @@ public final class LineageMaster extends AbstractMaster {
    * @param path the path to the file
    * @param blockSizeBytes the block size
    * @param ttl the TTL
-   * @param ttlExpiryAction Action to perform on ttl expiry
+   * @param ttlAction action to perform on ttl expiry
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
    * @throws LineageDoesNotExistException when the file does not exist
@@ -284,7 +284,7 @@ public final class LineageMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the path does not exist
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl,
-      TtlExpiryAction ttlExpiryAction)
+      TtlAction ttlAction)
       throws InvalidPathException, LineageDoesNotExistException, AccessControlException,
       FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
@@ -294,7 +294,7 @@ public final class LineageMaster extends AbstractMaster {
       if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
         LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
         return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl,
-            ttlExpiryAction);
+            ttlAction);
       }
     } catch (FileDoesNotExistException e) {
       throw new LineageDoesNotExistException(

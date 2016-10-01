@@ -12,8 +12,9 @@
 package alluxio.master.file.options;
 
 import alluxio.Constants;
-import alluxio.TtlExpiryAction;
 import alluxio.thrift.SetAttributeTOptions;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
@@ -26,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;
-  private TtlExpiryAction mTtlExpiryAction;
+  private TtlAction mTtlAction;
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
@@ -49,8 +50,7 @@ public class SetAttributeOptions {
   public SetAttributeOptions(SetAttributeTOptions options) {
     mPinned = options.isSetPinned() ? options.isPinned() : null;
     mTtl = options.isSetTtl() ? options.getTtl() : null;
-    mTtlExpiryAction = (options.getTtlExpiryAction() == alluxio.thrift.TtlExpiryAction.Free)
-        ? TtlExpiryAction.FREE : TtlExpiryAction.DELETE;
+    mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
     mOwner = options.isSetOwner() ? options.getOwner() : null;
     mGroup = options.isSetGroup() ? options.getGroup() : null;
@@ -62,7 +62,7 @@ public class SetAttributeOptions {
   private SetAttributeOptions() {
     mPinned = null;
     mTtl = null;
-    mTtlExpiryAction = TtlExpiryAction.DELETE;
+    mTtlAction = TtlAction.DELETE;
     mPersisted = null;
     mOwner = null;
     mGroup = null;
@@ -86,11 +86,11 @@ public class SetAttributeOptions {
   }
 
   /**
-   * @return the {@link TtlExpiryAction}; It informs the action to take when Ttl is expired. It can
+   * @return the {@link TtlAction}; It informs the action to take when Ttl is expired. It can
    *         be either DELETE/FREE.
    */
-  public TtlExpiryAction getTtlExpiryAction() {
-    return mTtlExpiryAction;
+  public TtlAction getTtlAction() {
+    return mTtlAction;
   }
 
   /**
@@ -154,12 +154,12 @@ public class SetAttributeOptions {
   }
 
   /**
-   * @param ttlExpiryAction the {@link TtlExpiryAction}; It informs the action to take when Ttl is
+   * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is
    *        expired.It can be either DELETE/FREE.
    * @return the updated options object
    */
-  public SetAttributeOptions setTtlExpiryAction(TtlExpiryAction ttlExpiryAction) {
-    mTtlExpiryAction = ttlExpiryAction;
+  public SetAttributeOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
     return this;
   }
 
@@ -228,7 +228,7 @@ public class SetAttributeOptions {
     SetAttributeOptions that = (SetAttributeOptions) o;
     return Objects.equal(mPinned, that.mPinned)
         && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlExpiryAction, that.mTtlExpiryAction)
+        && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
@@ -238,7 +238,7 @@ public class SetAttributeOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPinned, mTtl, mTtlExpiryAction, mPersisted, mOwner, mGroup, mMode,
+    return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode,
         mRecursive);
   }
 
@@ -247,7 +247,7 @@ public class SetAttributeOptions {
     return Objects.toStringHelper(this)
         .add("mPinned", mPinned)
         .add("ttl", mTtl)
-        .add("ttlExpiryAction", mTtlExpiryAction)
+        .add("ttlAction", mTtlAction)
         .add("persisted", mPersisted)
         .add("owner", mOwner)
         .add("group", mGroup)
