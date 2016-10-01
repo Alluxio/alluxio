@@ -18,7 +18,7 @@ struct CreateFileTOptions {
   2: optional bool persisted
   3: optional bool recursive
   4: optional i64 ttl
-  5: optional TtlExpiryAction ttlExpiryAction
+  5: optional common.TTtlAction ttlAction
 }
 
 struct MountTOptions {
@@ -73,7 +73,7 @@ struct FileInfo {
   21: string persistenceState
   22: bool mountPoint
   23: list<FileBlockInfo> fileBlockInfos
-  24: TtlExpiryAction ttlExpiryAction
+  24: common.TTtlAction ttlAction
 }
 
 struct FileSystemCommand {
@@ -98,7 +98,7 @@ struct SetAttributeTOptions {
   5: optional string group
   6: optional i16 mode
   7: optional bool recursive
-  8: optional TtlExpiryAction ttlExpiryAction
+  8: optional common.TTtlAction ttlAction
 }
 
 union FileSystemCommandOptions {

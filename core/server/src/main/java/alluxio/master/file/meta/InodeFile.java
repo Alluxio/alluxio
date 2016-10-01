@@ -15,10 +15,11 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
+import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
-import alluxio.proto.journal.File.TtlExpiryAction;
+import alluxio.proto.journal.File.PTtlAction;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
@@ -43,7 +44,7 @@ public final class InodeFile extends Inode<InodeFile> {
   private boolean mCompleted;
   private long mLength;
   private long mTtl;
-  private TtlExpiryAction mTtlExpiryAction;
+  private PTtlAction mTtlAction;
 
   /**
    * Creates a new instance of {@link InodeFile}.
@@ -59,7 +60,7 @@ public final class InodeFile extends Inode<InodeFile> {
     mCompleted = false;
     mLength = 0;
     mTtl = Constants.NO_TTL;
-    mTtlExpiryAction = TtlExpiryAction.DELETE;
+    mTtlAction = PTtlAction.DELETE;
   }
 
   @Override
@@ -86,8 +87,7 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setBlockIds(getBlockIds());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(mTtl);
-    ret.setTtlExpiryAction(mTtlExpiryAction == TtlExpiryAction.FREE ? alluxio.TtlExpiryAction.FREE
-        : alluxio.TtlExpiryAction.DELETE);
+    ret.setTtlAction(ProtobufUtils.fromProtobuf(mTtlAction));
     ret.setOwner(getOwner());
     ret.setGroup(getGroup());
     ret.setMode(getMode());
@@ -226,12 +226,12 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
-   * @param ttlExpiryAction the {@link TtlExpiryAction}; It informs the action to take when Ttl is
+   * @param ttlAction the {@link PTtlAction}; It informs the action to take when Ttl is
    *        expired.It can be either DELETE/FREE
    * @return the updated options object
    */
-  public InodeFile setTtlExpiryAction(TtlExpiryAction ttlExpiryAction) {
-    mTtlExpiryAction = ttlExpiryAction;
+  public InodeFile setTtlAction(PTtlAction ttlAction) {
+    mTtlAction = ttlAction;
     return getThis();
   }
 
@@ -278,7 +278,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .add("completed", mCompleted)
         .add("length", mLength)
         .add("ttl", mTtl)
-        .add("ttlExpiryAction", mTtlExpiryAction).toString();
+        .add("ttlAction", mTtlAction).toString();
   }
 
   /**
@@ -304,9 +304,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setTtl(entry.getTtl())
-        .setTtlExpiryAction(
-            (entry.getTtlExpiryAction() == alluxio.proto.journal.File.TtlExpiryAction.FREE)
-                ? TtlExpiryAction.FREE : TtlExpiryAction.DELETE)
+        .setTtlAction((entry.getTtlAction()))
         .setPermission(permission);
   }
 
@@ -324,15 +322,12 @@ public final class InodeFile extends Inode<InodeFile> {
       long creationTimeMs, CreateFileOptions fileOptions) {
     Permission permission = new Permission(fileOptions.getPermission()).applyFileUMask();
 
-    alluxio.TtlExpiryAction ttlExpiryAction = fileOptions.getTtlExpiryAction();
-
     return new InodeFile(blockContainerId)
         .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
         .setTtl(fileOptions.getTtl())
-        .setTtlExpiryAction((ttlExpiryAction == alluxio.TtlExpiryAction.FREE ? TtlExpiryAction.FREE
-            : TtlExpiryAction.DELETE))
+        .setTtlAction(ProtobufUtils.toProtobuf(fileOptions.getTtlAction()))
         .setParentId(parentId)
         .setPermission(permission)
         .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED
@@ -359,7 +354,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
         .setTtl(getTtl())
-        .setTtlExpiryAction(getTtlExpiryAction()).build();
+        .setTtlAction(getTtlAction()).build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 
@@ -373,8 +368,8 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * @return the action to take when Ttl is expired
    */
-  public TtlExpiryAction getTtlExpiryAction() {
-    return mTtlExpiryAction;
+  public PTtlAction getTtlAction() {
+    return mTtlAction;
   }
 
 }

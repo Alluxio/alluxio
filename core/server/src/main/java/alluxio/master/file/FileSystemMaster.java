@@ -32,6 +32,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
+import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.async.AsyncPersistHandler;
@@ -78,7 +79,7 @@ import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.StringPairEntry;
-import alluxio.proto.journal.File.TtlExpiryAction;
+import alluxio.proto.journal.File.PTtlAction;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
@@ -100,6 +101,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
+import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
@@ -830,20 +832,20 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param path the path to the file
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
-   * @param ttlExpiryAction Action to take after Ttl expiry
+   * @param ttlAction action to take after Ttl expiry
    * @return the file id
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the path does not exist
    */
   // Used by lineage master
   public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl,
-      TtlExpiryAction ttlExpiryAction) throws InvalidPathException, FileDoesNotExistException {
+      TtlAction ttlAction) throws InvalidPathException, FileDoesNotExistException {
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
-      long id = mInodeTree.reinitializeFile(inodePath, blockSizeBytes, ttl, ttlExpiryAction);
+      long id = mInodeTree.reinitializeFile(inodePath, blockSizeBytes, ttl, ttlAction);
       ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder()
           .setPath(path.getPath()).setBlockSizeBytes(blockSizeBytes).setTtl(ttl)
-          .setTtlExpiryAction(ttlExpiryAction).build();
+          .setTtlAction(ProtobufUtils.toProtobuf(ttlAction)).build();
       flushCounter = appendJournalEntry(
           JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
       return id;
@@ -860,7 +862,7 @@ public final class FileSystemMaster extends AbstractMaster {
     try (LockedInodePath inodePath =
         mInodeTree.lockFullInodePath(new AlluxioURI(entry.getPath()), InodeTree.LockMode.WRITE)) {
       mInodeTree.reinitializeFile(inodePath, entry.getBlockSizeBytes(), entry.getTtl(),
-          entry.getTtlExpiryAction());
+          ProtobufUtils.fromProtobuf(entry.getTtlAction()));
     } catch (InvalidPathException | FileDoesNotExistException e) {
       throw new RuntimeException(e);
     }
@@ -2347,9 +2349,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     if (options.getTtl() != null) {
       builder.setTtl(options.getTtl());
-      alluxio.TtlExpiryAction ttlExpiryAction = options.getTtlExpiryAction();
-      builder.setTtlExpiryAction((ttlExpiryAction == alluxio.TtlExpiryAction.FREE)
-          ? TtlExpiryAction.FREE : TtlExpiryAction.DELETE);
+      builder.setTtlAction(ProtobufUtils.toProtobuf(options.getTtlAction()));
     }
 
     if (options.getPersisted() != null) {
@@ -2471,9 +2471,7 @@ public final class FileSystemMaster extends AbstractMaster {
         file.setTtl(ttl);
         mTtlBuckets.insert(file);
         file.setLastModificationTimeMs(opTimeMs);
-        alluxio.TtlExpiryAction ttlExpiryAction = options.getTtlExpiryAction();
-        file.setTtlExpiryAction((ttlExpiryAction == alluxio.TtlExpiryAction.FREE
-            ? TtlExpiryAction.FREE : TtlExpiryAction.DELETE));
+        file.setTtlAction(ProtobufUtils.toProtobuf(options.getTtlAction()));
       }
 
     }
@@ -2604,23 +2602,26 @@ public final class FileSystemMaster extends AbstractMaster {
           }
           if (path != null) {
             try {
+              PTtlAction ttlAction = file.getTtlAction();
               if (LOG.isDebugEnabled()) {
                 LOG.debug("File {} is expired. Performing action {}", file.getName(),
-                    file.getTtlExpiryAction());
+                    ttlAction);
               }
-              switch (file.getTtlExpiryAction()) {
+              switch (ttlAction) {
                 case FREE:
                   free(path, false);
                   // Reset state
                   file.setTtl(Constants.NO_TTL);
-                  file.setTtlExpiryAction(TtlExpiryAction.DELETE);
+                  file.setTtlAction(PTtlAction.DELETE);
                   mTtlBuckets.remove(file);
                   break;
                 case DELETE:// Default if not set is DELETE
-                default:
                   // public delete method will lock the path, and check WRITE permission required at
                   // parent of file
                   delete(path, false);
+                  break;
+                default:
+                  LOG.error("Unknown TtlAction.");
               }
             } catch (Exception e) {
               LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),

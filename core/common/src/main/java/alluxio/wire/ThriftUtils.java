@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.thrift.TTtlAction;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -122,6 +124,31 @@ public final class ThriftUtils {
   }
 
   /**
+   * Converts thrift type to wire type.
+   *
+   * @param tTtlAction {@link TTtlAction}
+   * @return {@link TtlAction} equivalent
+   */
+  public static TtlAction fromThrift(TTtlAction tTtlAction) {
+
+    TtlAction ttlAction = TtlAction.DELETE;
+    if (tTtlAction != null) {
+      switch (tTtlAction) {
+        case Delete:
+          ttlAction = TtlAction.DELETE;
+          break;
+        case Free:
+          ttlAction = TtlAction.FREE;
+          break;
+        default:
+          ttlAction = TtlAction.DELETE;
+          break;
+      }
+    }
+    return ttlAction;
+  }
+
+  /**
    * Converts a wire type to a thrift type.
    *
    * @param blockInfo the wire representation of a block descriptor
@@ -219,6 +246,31 @@ public final class ThriftUtils {
    */
   public static alluxio.thrift.WorkerNetAddress toThrift(WorkerNetAddress workerNetAddress) {
     return workerNetAddress.toThrift();
+  }
+
+  /**
+   * Converts wire type to thrift type.
+   *
+   * @param ttlAction {@link TtlAction}
+   * @return {@link TTtlAction} equivalent
+   */
+  public static TTtlAction toThrift(TtlAction ttlAction) {
+
+    TTtlAction tTtlAction = TTtlAction.Delete;
+    if (ttlAction != null) {
+      switch (ttlAction) {
+        case DELETE:
+          tTtlAction = TTtlAction.Delete;
+          break;
+        case FREE:
+          tTtlAction = TTtlAction.Free;
+          break;
+        default:
+          tTtlAction = TTtlAction.Delete;
+          break;
+      }
+    }
+    return tTtlAction;
   }
 }
 

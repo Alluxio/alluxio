@@ -183,9 +183,10 @@ public abstract class AbstractClient implements Client {
         if (FRAME_SIZE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
           // See an error like "Frame size (67108864) larger than max length (16777216)!",
           // pointing to the helper page.
-          String message = String.format("Failed to connect to %s %s @ %s: %s. "
-              + "This exception may be caused by incorrect network configuration. "
-              + "Please consult %s for common solutions to address this problem.",
+          String message = String.format(
+              "Failed to connect to %s %s @ %s: %s. "
+                  + "This exception may be caused by incorrect network configuration. "
+                  + "Please consult %s for common solutions to address this problem.",
               getServiceName(), mMode, mAddress, e.getMessage(),
               RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
           throw new IOException(message, e);
@@ -271,8 +272,8 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * Same with {@link RpcCallable} except that this RPC call throws {@link AlluxioTException} and
-   * is to be executed in {@link #retryRPC(RpcCallableThrowsAlluxioTException)}.
+   * Same with {@link RpcCallable} except that this RPC call throws {@link AlluxioTException} and is
+   * to be executed in {@link #retryRPC(RpcCallableThrowsAlluxioTException)}.
    *
    * @param <V> the return value of {@link #call()}
    */
@@ -301,8 +302,8 @@ public abstract class AbstractClient implements Client {
    *         been called before calling this method or during the retry
    * @throws ConnectionFailedException if network connection failed
    */
-  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws IOException,
-      ConnectionFailedException {
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc)
+      throws IOException, ConnectionFailedException {
     int retry = 0;
     while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
       connect();

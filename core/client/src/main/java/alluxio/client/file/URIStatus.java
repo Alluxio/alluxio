@@ -11,10 +11,10 @@
 
 package alluxio.client.file;
 
-import alluxio.TtlExpiryAction;
 import alluxio.annotation.PublicApi;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 
@@ -144,8 +144,8 @@ public class URIStatus {
   /**
    * @return the action to perform on ttl expiry
    */
-  public TtlExpiryAction getTtlExpiryAction() {
-    return mInfo.getTtlExpiryAction();
+  public TtlAction getTtlAction() {
+    return mInfo.getTtlAction();
   }
 
   /**

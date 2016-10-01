@@ -24,7 +24,7 @@ import alluxio.thrift.CommandLineJobInfo;
 import alluxio.thrift.LineageInfo;
 import alluxio.thrift.LineageMasterClientService;
 import alluxio.thrift.ThriftIOException;
-import alluxio.thrift.TtlExpiryAction;
+import alluxio.thrift.TTtlAction;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
@@ -92,15 +92,13 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
 
   @Override
   public long reinitializeFile(final String path, final long blockSizeBytes, final long ttl,
-      final TtlExpiryAction ttlExpiryAction)
+      final TTtlAction ttlAction)
       throws AlluxioTException {
     return RpcUtils.call(new RpcCallable<Long>() {
       @Override
       public Long call() throws AlluxioException {
         return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl,
-            ttlExpiryAction == TtlExpiryAction.Free
-                ? alluxio.proto.journal.File.TtlExpiryAction.FREE
-                : alluxio.proto.journal.File.TtlExpiryAction.DELETE);
+            ThriftUtils.fromThrift(ttlAction));
       }
     });
   }

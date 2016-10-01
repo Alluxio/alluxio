@@ -14,7 +14,6 @@ package alluxio.client.file.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.TtlExpiryAction;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
@@ -22,6 +21,8 @@ import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.CommonUtils;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
@@ -38,7 +39,7 @@ public final class CreateFileOptions {
   private long mBlockSizeBytes;
   private FileWriteLocationPolicy mLocationPolicy;
   private long mTtl;
-  private TtlExpiryAction mTtlExpiryAction;
+  private TtlAction mTtlAction;
   private WriteType mWriteType;
 
   /**
@@ -52,15 +53,15 @@ public final class CreateFileOptions {
     mRecursive = true;
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     try {
-      mLocationPolicy =
-          CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+      mLocationPolicy = CommonUtils
+          .createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
               PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
-    mTtlExpiryAction = TtlExpiryAction.DELETE;
+    mTtlAction = TtlAction.DELETE;
   }
 
   /**
@@ -93,11 +94,11 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @return the {@link TtlExpiryAction}; It informs the action to take when Ttl is expired. It can
+   * @return the {@link TtlAction}; It informs the action to take when Ttl is expired. It can
    *          be either DELETE/FREE.
    */
-  public TtlExpiryAction getTtlExpiryAction() {
-    return mTtlExpiryAction;
+  public TtlAction getTtlAction() {
+    return mTtlAction;
   }
 
   /**
@@ -153,12 +154,12 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @param ttlExpiryAction the {@link TtlExpiryAction};
+   * @param ttlAction the {@link TtlAction};
    *        It informs the action to take when Ttl is expired.It can be either DELETE/FREE.
    * @return the updated options object
    */
-  public CreateFileOptions setTtlExpiryAction(TtlExpiryAction ttlExpiryAction) {
-    mTtlExpiryAction = ttlExpiryAction;
+  public CreateFileOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
     return this;
   }
 
@@ -180,7 +181,7 @@ public final class CreateFileOptions {
         .setBlockSizeBytes(mBlockSizeBytes)
         .setLocationPolicy(mLocationPolicy)
         .setTtl(mTtl)
-        .setTtlExpiryAction(mTtlExpiryAction)
+        .setTtlAction(mTtlAction)
         .setWriteType(mWriteType);
   }
 
@@ -197,13 +198,13 @@ public final class CreateFileOptions {
         && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlExpiryAction, that.mTtlExpiryAction)
+        && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mTtlExpiryAction,
+    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mTtlAction,
         mWriteType);
   }
 
@@ -214,7 +215,7 @@ public final class CreateFileOptions {
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("locationPolicy", mLocationPolicy)
         .add("ttl", mTtl)
-        .add("ttlExpiryAction", mTtlExpiryAction)
+        .add("ttlAction", mTtlAction)
         .add("writeType", mWriteType)
         .toString();
   }
@@ -228,9 +229,7 @@ public final class CreateFileOptions {
     options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
     options.setRecursive(mRecursive);
     options.setTtl(mTtl);
-    options.setTtlExpiryAction(mTtlExpiryAction == TtlExpiryAction.FREE
-        ? alluxio.thrift.TtlExpiryAction.Free
-        : alluxio.thrift.TtlExpiryAction.Delete);
+    options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
     return options;
   }
 }

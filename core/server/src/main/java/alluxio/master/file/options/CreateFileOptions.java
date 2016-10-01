@@ -14,9 +14,10 @@ package alluxio.master.file.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.TtlExpiryAction;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateFileTOptions;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
@@ -31,7 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
   private long mBlockSizeBytes;
   private long mTtl;
-  private TtlExpiryAction mTtlExpiryAction;
+  private TtlAction mTtlAction;
 
   /**
    * @return the default {@link CreateFileOptions}
@@ -41,8 +42,8 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
   }
 
   /**
-   * Constructs an instance of {@link CreateFileOptions} from {@link CreateFileTOptions}. The
-   * option of permission is constructed with the username obtained from thrift transport.
+   * Constructs an instance of {@link CreateFileOptions} from {@link CreateFileTOptions}. The option
+   * of permission is constructed with the username obtained from thrift transport.
    *
    * @param options the {@link CreateFileTOptions} to use
    * @throws IOException if it failed to retrieve users or groups from thrift transport
@@ -53,8 +54,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
-    mTtlExpiryAction = (options.getTtlExpiryAction() == alluxio.thrift.TtlExpiryAction.Free)
-        ? TtlExpiryAction.FREE : TtlExpiryAction.DELETE;
+    mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
     mPermission = Permission.defaults().setOwnerFromThriftClient();
   }
 
@@ -62,7 +62,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     super();
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
-    mTtlExpiryAction = TtlExpiryAction.DELETE;
+    mTtlAction = TtlAction.DELETE;
   }
 
   /**
@@ -81,11 +81,11 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
   }
 
   /**
-   * @return the {@link TtlExpiryAction}; It informs the action to take when Ttl is expired. It can
-   *         be either DELETE/FREE.git che
+   * @return the {@link TtlAction}; It informs the action to take when Ttl is expired. It can be
+   *         either DELETE/FREE.git che
    */
-  public TtlExpiryAction getTtlExpiryAction() {
-    return mTtlExpiryAction;
+  public TtlAction getTtlAction() {
+    return mTtlAction;
   }
 
   /**
@@ -108,12 +108,11 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
   }
 
   /**
-   * @param ttlExpiryAction the {@link TtlExpiryAction};
-   *        It informs the action to take when Ttl is expired;
+   * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is expired;
    * @return the updated options object
    */
-  public CreateFileOptions setTtlExpiryAction(TtlExpiryAction ttlExpiryAction) {
-    mTtlExpiryAction = ttlExpiryAction;
+  public CreateFileOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
     return getThis();
   }
 
@@ -134,22 +133,18 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
       return false;
     }
     CreateFileOptions that = (CreateFileOptions) o;
-    return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
-        && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlExpiryAction, that.mTtlExpiryAction);
+    return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes) && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlAction, that.mTtlAction);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl, mTtlExpiryAction);
+    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl, mTtlAction);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
-        .add("blockSizeBytes", mBlockSizeBytes)
-        .add("ttl", mTtl)
-        .add("ttlExpiryAction", mTtlExpiryAction)
-        .toString();
+    return toStringHelper().add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
+        .add("ttlAction", mTtlAction).toString();
   }
 }

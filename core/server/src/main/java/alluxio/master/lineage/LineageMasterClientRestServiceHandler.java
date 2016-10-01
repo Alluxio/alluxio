@@ -14,12 +14,12 @@ package alluxio.master.lineage;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.TtlExpiryAction;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.AlluxioMaster;
 import alluxio.web.MasterUIWebServer;
 import alluxio.wire.LineageInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -177,7 +177,7 @@ public final class LineageMasterClientRestServiceHandler {
    * @param path the file path
    * @param blockSizeBytes the file block size (in bytes)
    * @param ttl the file time-to-live (in seconds)
-   * @param ttlExpiryAction Action to take after Ttl is expired
+   * @param ttlAction Action to take after Ttl is expired
    * @return the response object
    */
   @POST
@@ -185,7 +185,7 @@ public final class LineageMasterClientRestServiceHandler {
   @ReturnType("java.lang.Long")
   public Response reinitializeFile(@QueryParam("path") final String path,
       @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl,
-      @QueryParam("ttlExpiryAction") final TtlExpiryAction ttlExpiryAction) {
+      @QueryParam("ttlAction") final TtlAction ttlAction) {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
@@ -193,10 +193,7 @@ public final class LineageMasterClientRestServiceHandler {
         Preconditions
             .checkNotNull(blockSizeBytes, "required 'blockSizeBytes' parameter is missing");
         Preconditions.checkNotNull(ttl, "required 'ttl' parameter is missing");
-        return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl,
-            (ttlExpiryAction == TtlExpiryAction.FREE)
-            ? alluxio.proto.journal.File.TtlExpiryAction.FREE
-            : alluxio.proto.journal.File.TtlExpiryAction.DELETE);
+        return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl, ttlAction);
       }
     });
   }

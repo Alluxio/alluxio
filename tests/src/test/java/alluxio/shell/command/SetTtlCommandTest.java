@@ -13,11 +13,11 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.TtlExpiryAction;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.URIStatus;
 import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
       Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
       URIStatus status = mFileSystem.getStatus(uri);
       Assert.assertEquals(ttl, status.getTtl());
-      Assert.assertEquals(TtlExpiryAction.DELETE, status.getTtlExpiryAction());
+      Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
     }
   }
 
@@ -58,7 +58,7 @@ public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
         mFsShell.run("setTtl", "-action", "delete", filePath, String.valueOf(ttl)));
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(ttl, status.getTtl());
-    Assert.assertEquals(TtlExpiryAction.DELETE, status.getTtlExpiryAction());
+    Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
   }
 
   @Test
@@ -74,7 +74,7 @@ public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
         mFsShell.run("setTtl", "-action", "free", filePath, String.valueOf(ttl)));
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(ttl, status.getTtl());
-    Assert.assertEquals(TtlExpiryAction.FREE, status.getTtlExpiryAction());
+    Assert.assertEquals(TtlAction.FREE, status.getTtlAction());
   }
 
   @Test
