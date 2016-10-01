@@ -244,14 +244,15 @@ public final class AlluxioBlockStore {
     }
     // Get the first worker address for now, as this will likely be the location being read from
     // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
-    WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-    BlockWorkerClient blockWorkerClient = mContext.acquireWorkerClient(workerAddr);
+    BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
+        info.getLocations().get(0).getWorkerAddress(), null  /* no heartbeat */,
+        null  /* no session */);
     try {
       blockWorkerClient.promoteBlock(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
-      mContext.releaseWorkerClient(blockWorkerClient);
+      blockWorkerClient.close();
     }
   }
 }

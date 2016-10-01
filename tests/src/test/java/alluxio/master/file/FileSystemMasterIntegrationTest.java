@@ -58,7 +58,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Test behavior of {@link FileSystemMaster}.
@@ -570,9 +569,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(ttl, folderInfo.getTtl());
     // Sleep for the ttl expiration.
     CommonUtils.sleepMs(2 * TTL_CHECKER_INTERVAL_MS);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     mThrown.expect(FileDoesNotExistException.class);
     mFsMaster.getFileInfo(fileId);
   }

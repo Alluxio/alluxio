@@ -260,9 +260,10 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    *
    * @return the acquired resource
    * @throws IOException if it fails to acquire because of the failure to create a new resource
+   * @throws InterruptedException if this thread is interrupted
    */
   @Override
-  public T acquire() throws IOException {
+  public T acquire() throws IOException, InterruptedException {
     try {
       return acquire(100  /* no timeout */, TimeUnit.DAYS);
     } catch (TimeoutException e) {
@@ -282,9 +283,11 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @return a resource taken from the pool
    * @throws IOException if it fails to acquire because of the failure to create a new resource
    * @throws TimeoutException if it fails to acquire because of time out
+   * @throws InterruptedException if this thread is interrupted
    */
   @Override
-  public T acquire(long time, TimeUnit unit) throws IOException, TimeoutException {
+  public T acquire(long time, TimeUnit unit)
+      throws IOException, TimeoutException, InterruptedException {
     long endTimeMs = mClock.millis() + unit.toMillis(time);
 
     // Try to take a resource without blocking
@@ -318,8 +321,6 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
           throw new TimeoutException("Acquire resource times out.");
         }
       }
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
     } finally {
       mLock.unlock();
     }
@@ -452,8 +453,10 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @return the resource
    * @throws IOException if it fails to create a resource
    * @throws TimeoutException if it times out to wait for a resource
+   * @throws InterruptedException if this thread is interrupted
    */
-  private T checkHealthyAndRetry(T resource, long endTimeMs) throws IOException, TimeoutException {
+  private T checkHealthyAndRetry(T resource, long endTimeMs)
+      throws IOException, TimeoutException, InterruptedException {
     if (isHealthy(resource)) {
       return resource;
     } else {

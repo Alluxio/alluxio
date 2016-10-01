@@ -78,7 +78,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -251,16 +250,6 @@ public final class FileSystemMasterTest {
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
-  }
-
-  private void executeTtlCheckOnce() throws Exception {
-    // Wait for the TTL check executor to be ready to execute its heartbeat.
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1, TimeUnit.SECONDS);
-    // Execute the TTL check executor heartbeat.
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
-    // Wait for the TLL check executor to be ready to execute its heartbeat again. This is needed to
-    // avoid a race between the subsequent test logic and the heartbeat thread.
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1, TimeUnit.SECONDS);
   }
 
   @Test
@@ -714,7 +703,7 @@ public final class FileSystemMasterTest {
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.getFileId(), fileId);
 
-    executeTtlCheckOnce();
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }
@@ -728,12 +717,12 @@ public final class FileSystemMasterTest {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
-    executeTtlCheckOnce();
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since no TTL is set, the file should not be deleted.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
-    executeTtlCheckOnce();
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
@@ -749,12 +738,12 @@ public final class FileSystemMasterTest {
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true)
             .setTtl(Constants.HOUR_MS);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
-    executeTtlCheckOnce();
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
-    executeTtlCheckOnce();
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
@@ -794,7 +783,7 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster
         .setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
-    executeTtlCheckOnce();
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
   }
@@ -811,7 +800,7 @@ public final class FileSystemMasterTest {
     // deleted during next TTL check.
     mFileSystemMaster
         .setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(Constants.NO_TTL));
-    executeTtlCheckOnce();
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
   }
 
@@ -1151,8 +1140,6 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void lostFilesDetection() throws Exception {
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
-
     createFileWithSingleBlock(NESTED_FILE_URI);
     long fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
     mFileSystemMaster.reportLostFile(fileId);
@@ -1164,8 +1151,7 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getPersistenceState(fileId));
 
     // run the detector
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());

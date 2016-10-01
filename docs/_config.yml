@@ -6,8 +6,7 @@ kramdown:
 
 # These allow the documentation to be updated with new releases of Alluxio.
 ALLUXIO_RELEASED_VERSION: 1.2.0
-# This would be "master" for the master branch, 1.1.1 for the 1.1.1 release, and
-# 1.1.1-RC2 for the second 1.1.1 release candidate.
+# For example, "master" for the master branch, and 1.1 for 1.1.x releases and release candidates.
 ALLUXIO_MASTER_VERSION_SHORT: master
 
 # These attach the pages of different languages with different 'lang' attributes
