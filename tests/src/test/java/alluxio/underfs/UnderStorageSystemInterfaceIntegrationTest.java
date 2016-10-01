@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
@@ -25,6 +26,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,8 +47,14 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   @Before
   public final void before() throws Exception {
+    Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
+  }
+
+  @After
+  public final void after() throws Exception {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -469,7 +477,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     String topLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDir");
 
-    final int numFiles = 1500;
+    final int numFiles = 100;
 
     String[] children = new String[numFiles + numFiles];
 
