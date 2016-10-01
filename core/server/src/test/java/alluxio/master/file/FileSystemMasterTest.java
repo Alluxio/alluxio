@@ -110,8 +110,7 @@ public final class FileSystemMasterTest {
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
-      HeartbeatContext.MASTER_TTL_CHECK,
-      HeartbeatContext.MASTER_LOST_FILES_DETECTION);
+      HeartbeatContext.MASTER_TTL_CHECK, HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
   // Set ttl interval to 0 so that there is no delay in detecting expired files.
   @ClassRule
@@ -144,8 +143,7 @@ public final class FileSystemMasterTest {
     mBlockMaster = new BlockMaster(blockJournal);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));
-    mFileSystemMaster =
-        new FileSystemMaster(mBlockMaster, fsJournal, mExecutorService);
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal, mExecutorService);
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
@@ -196,8 +194,8 @@ public final class FileSystemMasterTest {
     mBlockMaster.getBlockInfo(blockId);
 
     // Update the heartbeat of removedBlockId received from worker 1
-    Command heartBeat1 = mBlockMaster
-        .workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
+    Command heartBeat1 =
+        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat1);
@@ -434,8 +432,7 @@ public final class FileSystemMasterTest {
 
     // getFileId should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
-    List<FileInfo> fileInfoList =
-        mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
+    List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
     Set<String> paths = new HashSet<>();
     for (FileInfo fileInfo : fileInfoList) {
       paths.add(fileInfo.getPath());
@@ -462,8 +459,7 @@ public final class FileSystemMasterTest {
 
     // getFileId should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
-    List<FileInfo> fileInfoList =
-        mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
+    List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
     Assert.assertEquals(0, fileInfoList.size());
     // listStatus should have loaded another files (dir1), so now 4 paths exist.
     Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
@@ -734,9 +730,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setSmallerTtlForFileWithTtl() throws Exception {
-    CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true)
-            .setTtl(Constants.HOUR_MS);
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
+        .setRecursive(true).setTtl(Constants.HOUR_MS);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
@@ -750,8 +745,8 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests that file information is still present after it has been
-   * freed after the TTL has been set to 0.
+   * Tests that file information is still present after it has been freed after the TTL has been set
+   * to 0.
    */
   @Test
   public void setTtlForFileWithFreeOperationTest() throws Exception {
@@ -762,9 +757,8 @@ public final class FileSystemMasterTest {
     options.setTtl(0);
     options.setTtlAction(TtlAction.FREE);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, options);
-    executeTtlCheckOnce();
-    Command heartBeat = mBlockMaster
-        .workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
+    Command heartBeat =
+        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat);
@@ -781,8 +775,8 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getFileId());
 
-    mFileSystemMaster
-        .setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
@@ -798,8 +792,8 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
-    mFileSystemMaster
-        .setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(Constants.NO_TTL));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setTtl(Constants.NO_TTL));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
   }
@@ -828,8 +822,8 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Both pinned flag and ttl value.
-    mFileSystemMaster
-        .setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(false).setTtl(1));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setPinned(false).setTtl(1));
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(1, fileInfo.getTtl());
@@ -972,8 +966,8 @@ public final class FileSystemMasterTest {
     // free the file
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
     // Update the heartbeat of removedBlockId received from worker 1
-    Command heartBeat2 = mBlockMaster
-        .workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
+    Command heartBeat2 =
+        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
@@ -991,8 +985,8 @@ public final class FileSystemMasterTest {
     // free the dir
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), true));
     // Update the heartbeat of removedBlockId received from worker 1
-    Command heartBeat3 = mBlockMaster
-        .workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
+    Command heartBeat3 =
+        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat3);
@@ -1126,13 +1120,12 @@ public final class FileSystemMasterTest {
     FileSystemCommand command =
         mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
     Assert.assertEquals(CommandType.Persist, command.getCommandType());
-    Assert
-        .assertEquals(1, command.getCommandOptions().getPersistOptions().getPersistFiles().size());
+    Assert.assertEquals(1,
+        command.getCommandOptions().getPersistOptions().getPersistFiles().size());
     Assert.assertEquals(fileId,
         command.getCommandOptions().getPersistOptions().getPersistFiles().get(0).getFileId());
-    Assert.assertEquals(blockId,
-        (long) command.getCommandOptions().getPersistOptions().getPersistFiles().get(0)
-            .getBlockIds().get(0));
+    Assert.assertEquals(blockId, (long) command.getCommandOptions().getPersistOptions()
+        .getPersistFiles().get(0).getBlockIds().get(0));
   }
 
   /**
@@ -1172,8 +1165,8 @@ public final class FileSystemMasterTest {
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     try {
-      mFileSystemMaster
-          .createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
+      mFileSystemMaster.createDirectory(new AlluxioURI("alluxio:/a"),
+          CreateDirectoryOptions.defaults());
       Assert.fail("createDirectory was expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
       Assert.assertEquals(
