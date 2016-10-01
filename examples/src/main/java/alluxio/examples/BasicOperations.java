@@ -44,20 +44,16 @@ public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int NUMBERS = 20;
 
-  private final AlluxioURI mMasterLocation;
   private final AlluxioURI mFilePath;
   private final OpenFileOptions mReadOptions;
   private final CreateFileOptions mWriteOptions;
 
   /**
-   * @param masterLocation the location of the master
    * @param filePath the path for the files
    * @param readType the {@link ReadType}
    * @param writeType the {@link WriteType}
    */
-  public BasicOperations(AlluxioURI masterLocation, AlluxioURI filePath, ReadType readType,
-                         WriteType writeType) {
-    mMasterLocation = masterLocation;
+  public BasicOperations(AlluxioURI filePath, ReadType readType, WriteType writeType) {
     mFilePath = filePath;
     mReadOptions = OpenFileOptions.defaults().setReadType(readType);
     mWriteOptions = CreateFileOptions.defaults().setWriteType(writeType);
@@ -65,8 +61,6 @@ public class BasicOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, mMasterLocation.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     FileSystem fs = FileSystem.Factory.get();
     writeFile(fs);
     return readFile(fs);
