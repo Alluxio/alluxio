@@ -17,16 +17,16 @@ import alluxio.clock.SystemClock;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -55,9 +55,6 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param <T> the resource type
    */
   protected class ResourceInternal<T> {
-    /** A unique ID used to distinguish the objects. */
-    private int mIdentity = System.identityHashCode(this);
-
     /** The resource. */
     private T mResource;
 
@@ -212,26 +209,15 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   /** The min capacity. */
   private final int mMinCapacity;
 
-  // Tracks the resources that are available ordered by lastAccessTime (the first one is
+  // Tracks the resources that are available ordered by lastAccessTime (the head is
   // the most recently used resource).
   @GuardedBy("mLock")
-  private TreeSet<ResourceInternal<T>> mResourceAvailable =
-      new TreeSet<>(new Comparator<ResourceInternal<T>>() {
-        @Override
-        public int compare(ResourceInternal<T> c1, ResourceInternal<T> c2) {
-          if (c1 == c2) {
-            return 0;
-          }
-          if (c1.mLastAccessTimeMs == c2.mLastAccessTimeMs) {
-            return c1.mIdentity - c2.mIdentity;
-          }
-          return (int) (c2.mLastAccessTimeMs - c1.mLastAccessTimeMs);
-        }
-      });
+  private Deque<ResourceInternal<T>> mResourceAvailable;
 
   // Tracks all the resources that are not closed.
-  @GuardedBy("mLock")
-  private HashMap<T, ResourceInternal<T>> mResources = new HashMap<>(32);
+  // The size of the map is guarded by mLock. The mLock should be acquired if you add/delete/iterate
+  // this map. Readonly operations like Contains don't need to be locked.
+  private ConcurrentHashMapV8<T, ResourceInternal<T>> mResources = new ConcurrentHashMapV8<>(32);
 
   // Thread to scan mResourceAvailable to close those resources that are old.
   private ScheduledExecutorService mExecutor;
@@ -249,6 +235,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
+    mResourceAvailable = new ArrayDeque<>(Math.min(mMaxCapacity, 32));
 
     mGcFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
       @Override
@@ -367,15 +354,15 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    */
   @Override
   public void release(T resource) {
+    if (!mResources.containsKey(resource)) {
+      throw new IllegalArgumentException(
+          "Resource " + resource.toString() + " was not acquired from this resource pool.");
+    }
+    ResourceInternal<T> resourceInternal = mResources.get(resource);
+    resourceInternal.setLastAccessTimeMs(mClock.millis());
     try {
       mLock.lock();
-      if (!mResources.containsKey(resource)) {
-        throw new IllegalArgumentException(
-            "Resource " + resource.toString() + " was not acquired from this resource pool.");
-      }
-      ResourceInternal<T> resourceInternal = mResources.get(resource);
-      resourceInternal.setLastAccessTimeMs(mClock.millis());
-      mResourceAvailable.add(resourceInternal);
+      mResourceAvailable.addFirst(resourceInternal);
       mNotEmpty.signal();
     } finally {
       mLock.unlock();
@@ -417,14 +404,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @return true if the pool is full
    */
   private boolean isFull() {
-    boolean full = false;
-    try {
-      mLock.lock();
-      full = mResources.size() >= mMaxCapacity;
-    } finally {
-      mLock.unlock();
-    }
-    return full;
+    return mResources.size() >= mMaxCapacity;
   }
 
   /**
@@ -465,14 +445,12 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @return the most recently used resource
    */
   private ResourceInternal<T> poll() {
-    ResourceInternal<T> resource;
     try {
       mLock.lock();
-      resource = mResourceAvailable.pollFirst();
+      return mResourceAvailable.pollFirst();
     } finally {
       mLock.unlock();
     }
-    return resource;
   }
 
   /**
