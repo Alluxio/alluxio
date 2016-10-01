@@ -127,7 +127,9 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
       Metrics.NETTY_BLOCK_WRITE_FAILURES.inc();
       try {
         // TODO(peis): We should not close the channel unless it is an exception caused by network.
-        channel.close().sync();
+        if (channel != null) {
+          channel.close().sync();
+        }
       } catch (InterruptedException ee) {
         Throwables.propagate(ee);
       }

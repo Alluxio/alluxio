@@ -36,7 +36,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link SpaceReserver}.
@@ -91,9 +90,7 @@ public class SpaceReserverTest {
         new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, spaceReserver, 0));
 
     // Run the space reserver once.
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_SPACE_RESERVER, 5, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_SPACE_RESERVER, 5, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
     // 400 * 0.2 = 80
     Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "MEM");
