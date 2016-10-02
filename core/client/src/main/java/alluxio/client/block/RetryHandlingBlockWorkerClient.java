@@ -23,14 +23,17 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.ThriftIOException;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
@@ -40,7 +43,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -61,9 +69,13 @@ public final class RetryHandlingBlockWorkerClient
   private final InetSocketAddress mWorkerDataServerAddress;
   private final WorkerNetAddress mWorkerNetAddress;
   private final InetSocketAddress mRpcAddress;
-  private final ExecutorService mExecutorService;
-  private final HeartbeatExecutor mHeartbeatExecutor;
-  private final Future<?> mHeartbeat;
+  private static final ScheduledExecutorService mHeartbeatPool = new ScheduledThreadPoolExecutor(
+      Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
+      ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+  private static final ExecutorService mHeartbeatCancelPool = Executors.newFixedThreadPool(5,
+      ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
+
+  private ScheduledFuture<?> mHeartbeat = null;
 
   /**
    * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session Id is
@@ -71,31 +83,36 @@ public final class RetryHandlingBlockWorkerClient
    * Id is not required.
    *
    * @param workerNetAddress to worker's location
-   * @param executorService the executor service
    * @param sessionId the id of the session
    * @throws IOException if it fails to register the session with the worker specified
    */
-  public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress,
-      ExecutorService executorService, Long sessionId) throws IOException {
+  public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress, Long sessionId)
+      throws IOException {
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    mExecutorService = executorService;
     mSessionId = sessionId;
-    if (sessionId != null && executorService != null) {
-      mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
+    if (sessionId != null) {
+      mHeartbeat = mHeartbeatPool.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+              try {
+                sessionHeartbeat();
+              } catch (InterruptedException e) {
+                LOG.info("Heartbeat is " + "interrupted" + ".");
+              } catch (Exception e) {
+                LOG.error("Failed to heartbeat", e);
+              }
+            }
+          }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
+          Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
+
       try {
         sessionHeartbeat();
       } catch (InterruptedException e) {
         throw Throwables.propagate(e);
       }
-      mHeartbeat = mExecutorService.submit(
-          new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor,
-              Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS)));
-    } else {
-      mHeartbeatExecutor = null;
-      mHeartbeat = null;
     }
   }
 
@@ -112,7 +129,12 @@ public final class RetryHandlingBlockWorkerClient
   @Override
   public void close() {
     if (mHeartbeat != null) {
-      mHeartbeat.cancel(true);
+      mHeartbeatCancelPool.submit(new Runnable() {
+        @Override
+        public void run() {
+          mHeartbeat.cancel(true);
+        }
+      });
     }
   }
 
@@ -274,16 +296,14 @@ public final class RetryHandlingBlockWorkerClient
     } finally {
       BlockStoreContext.releaseBlockWorkerThriftClientHeartbeat(mRpcAddress, client);
     }
+    Metrics.BLOCK_WORKER_HEATBEATS.inc();
   }
 
-  @Override
-  public void periodicHeartbeat() throws InterruptedException {
-    try {
-      sessionHeartbeat();
-    } catch (InterruptedException e) {
-      throw e;
-    } catch (Exception e) {
-      LOG.error("Periodic heartbeat failed, cleaning up.", e);
-    }
+  public static final class Metrics {
+    private static Counter BLOCK_WORKER_HEATBEATS =
+        MetricsSystem.clientCounter("BlockWorkerHeartbeats");
+
+    private Metrics() {
+    } // prevent instantiation
   }
 }
