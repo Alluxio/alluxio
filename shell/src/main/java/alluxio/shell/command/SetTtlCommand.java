@@ -71,7 +71,7 @@ public final class SetTtlCommand extends AbstractShellCommand {
         mAction = TtlAction.valueOf(operation.toUpperCase());
       }
     } catch (Exception e) {
-      System.err.println("operation should be delete OR free");
+      System.err.println("action should be delete OR free");
       cmd = null;
     }
     return cmd;
@@ -90,7 +90,7 @@ public final class SetTtlCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "setTtl [-operation delete|free] <path> <time to live(in milliseconds)>";
+    return "setTtl [-action delete|free] <path> <time to live(in milliseconds)>";
   }
 
   @Override
