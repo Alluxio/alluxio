@@ -75,10 +75,9 @@ public final class HeartbeatThread implements Runnable {
     // set the thread name
     Thread.currentThread().setName(mThreadName);
     try {
-      // Thread.interrupted clears the interrupt status. Do not call interrupt again to clear it.
+      // Thread.interrupted() clears the interrupt status. Do not call interrupt again to clear it.
       while (!Thread.interrupted()) {
-        // TODO(peis): Improve this. The current implementation consumes one thread per heartbeat
-        // which is too expensive.
+        // TODO(peis): Fix this. The current implementation consumes one thread even when ticking.
         mTimer.tick();
         mExecutor.heartbeat();
       }
