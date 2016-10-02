@@ -27,8 +27,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Tests RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
@@ -39,21 +37,18 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
-  private ExecutorService mExecutorService;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
-    mExecutorService = Executors.newFixedThreadPool(2);
     clearLoginUser();
   }
 
   @After
   public void after() throws Exception {
     clearLoginUser();
-    mExecutorService.shutdownNow();
   }
 
   @Test
@@ -94,7 +89,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
     LoginUserTestUtils.resetLoginUser("no-alluxio");
 
     try (BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(), mExecutorService, (long) 1 /* fake
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake
         session id */)) {
       // Just to supress the "Empty try block" warning in CheckStyle.
       failedToConnect = false;
@@ -113,8 +108,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest() throws Exception {
     RetryHandlingBlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(),
-        mExecutorService, (long) 1 /* fake session id */);
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake session id */);
 
     blockWorkerClient.close();
   }
