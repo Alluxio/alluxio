@@ -2550,6 +2550,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     if (entry.hasTtl()) {
       options.setTtl(entry.getTtl());
+      options.setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()));
     }
     if (entry.hasPersisted()) {
       options.setPersisted(entry.getPersisted());

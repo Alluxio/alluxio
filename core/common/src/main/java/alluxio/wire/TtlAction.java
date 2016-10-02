@@ -12,18 +12,18 @@
 package alluxio.wire;
 
 /**
- * Represents an Action to take on file after Ttl.
+ * Represents the file action to take when its TTL expires.
  *
  */
 public enum TtlAction {
 
   /**
-   * Indicates that the file has to be deleted (Even in underFS) after Ttl.
+   * Indicates that the file should be deleted (both in Alluxio and UFS).
    */
   DELETE,
 
   /**
-   * Indicates that the file has to be freed (From Alluxio) after Ttl.
+   * Indicates that the file should be freed (i.e. deleted in Alluxio but not in UFS).
    */
   FREE
 }
