@@ -194,7 +194,7 @@ public enum ExceptionMessage {
   KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
 
   // block worker
-  FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master."),
+  FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
