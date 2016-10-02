@@ -30,7 +30,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class ClientContext {
-  private static ExecutorService sBlockClientExecutorService;
   private static ExecutorService sFileClientExecutorService;
   private static InetSocketAddress sMasterAddress;
 
@@ -67,13 +66,6 @@ public final class ClientContext {
    */
   public static InetSocketAddress getMasterAddress() {
     return sMasterAddress;
-  }
-
-  /**
-   * @return the executor service for block clients
-   */
-  public static ExecutorService getBlockClientExecutorService() {
-    return sBlockClientExecutorService;
   }
 
   /**

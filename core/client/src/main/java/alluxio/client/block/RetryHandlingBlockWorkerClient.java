@@ -20,9 +20,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
@@ -44,7 +41,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -69,10 +65,10 @@ public final class RetryHandlingBlockWorkerClient
   private final InetSocketAddress mWorkerDataServerAddress;
   private final WorkerNetAddress mWorkerNetAddress;
   private final InetSocketAddress mRpcAddress;
-  private static final ScheduledExecutorService mHeartbeatPool = new ScheduledThreadPoolExecutor(
+  private static final ScheduledExecutorService HEARTBEAT_POOL = new ScheduledThreadPoolExecutor(
       Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
       ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-  private static final ExecutorService mHeartbeatCancelPool = Executors.newFixedThreadPool(5,
+  private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
 
   private ScheduledFuture<?> mHeartbeat = null;
@@ -94,7 +90,7 @@ public final class RetryHandlingBlockWorkerClient
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
     if (sessionId != null) {
-      mHeartbeat = mHeartbeatPool.scheduleAtFixedRate(new Runnable() {
+      mHeartbeat = HEARTBEAT_POOL.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
               try {
@@ -129,7 +125,7 @@ public final class RetryHandlingBlockWorkerClient
   @Override
   public void close() {
     if (mHeartbeat != null) {
-      mHeartbeatCancelPool.submit(new Runnable() {
+      HEARTBEAT_CANCEL_POOL.submit(new Runnable() {
         @Override
         public void run() {
           mHeartbeat.cancel(true);
@@ -299,8 +295,11 @@ public final class RetryHandlingBlockWorkerClient
     Metrics.BLOCK_WORKER_HEATBEATS.inc();
   }
 
+  /**
+   * Metrics related to the {@link RetryHandlingBlockWorkerClient}.
+   */
   public static final class Metrics {
-    private static Counter BLOCK_WORKER_HEATBEATS =
+    private static final Counter BLOCK_WORKER_HEATBEATS =
         MetricsSystem.clientCounter("BlockWorkerHeartbeats");
 
     private Metrics() {
