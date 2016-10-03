@@ -17,6 +17,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -1202,6 +1203,28 @@ public final class FileSystemMasterTest {
   @Test
   public void loadRoot() throws Exception {
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/"), LoadMetadataOptions.defaults());
+  }
+
+  @Test
+  public void setOwnerToEmptyShouldFail() throws Exception {
+    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    try {
+      mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setOwner(""));
+      Assert.fail("Expected setOwner to fail with empty owner field");
+    } catch (AccessControlException e) {
+      // Expected
+    }
+  }
+
+  @Test
+  public void setGroupToEmptyShouldFail() throws Exception {
+    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    try {
+      mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setGroup(""));
+      Assert.fail("Expected setOwner to fail with empty group field");
+    } catch (AccessControlException e) {
+      // Expected
+    }
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {

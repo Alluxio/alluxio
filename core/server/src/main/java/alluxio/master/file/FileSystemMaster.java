@@ -2486,10 +2486,16 @@ public final class FileSystemMaster extends AbstractMaster {
     boolean ownerGroupChanged = false;
     boolean permissionChanged = false;
     if (options.getOwner() != null) {
+      if (options.getOwner().isEmpty()) {
+        throw new AccessControlException("It is not allowed to set owner to empty");
+      }
       inode.setOwner(options.getOwner());
       ownerGroupChanged = true;
     }
     if (options.getGroup() != null) {
+      if (options.getGroup().isEmpty()) {
+        throw new AccessControlException("It is not allowed to set group to empty");
+      }
       inode.setGroup(options.getGroup());
       ownerGroupChanged = true;
     }
