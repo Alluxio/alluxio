@@ -19,6 +19,7 @@ import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
+import alluxio.util.ThreadFactoryUtils;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -29,6 +30,8 @@ import org.apache.thrift.transport.TTransportException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -60,6 +63,11 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   private final InetSocketAddress mAddress;
   private final long mGcThresholdMs;
 
+  private static final int THRIFT_CLIENT_POOL_GC_THREADPOOL_SIZE = 5;
+  private static final ScheduledExecutorService GC_EXECUTOR =
+      new ScheduledThreadPoolExecutor(THRIFT_CLIENT_POOL_GC_THREADPOOL_SIZE,
+          ThreadFactoryUtils.build("ThriftClientPoolGcThreads-%d", true));
+
   @GuardedBy("this")
   private Long mServerVersionFound = null;
 
@@ -87,7 +95,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
    */
   public ThriftClientPool(String serviceName, long serviceVersion, InetSocketAddress address,
       int maxCapacity, long gcThresholdMs) {
-    super(Options.defaultOptions().setMaxCapacity(maxCapacity));
+    super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
     mTransportProvider = TransportProvider.Factory.create();
     mServiceName = serviceName;
     mServiceVersion = serviceVersion;

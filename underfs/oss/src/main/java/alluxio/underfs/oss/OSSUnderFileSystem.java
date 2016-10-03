@@ -56,9 +56,6 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** Value used to indicate folder structure in OSS. */
   private static final String PATH_SEPARATOR = "/";
 
-  /** Length of each list request in S3. */
-  private static final int LISTING_LENGTH = 1000;
-
   /** Aliyun OSS client. */
   private final OSSClient mClient;
 
