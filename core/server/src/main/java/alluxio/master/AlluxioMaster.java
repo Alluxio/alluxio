@@ -83,7 +83,7 @@ public class AlluxioMaster implements Server {
       System.exit(-1);
     }
 
-    AlluxioMaster master = new AlluxioMaster();
+    AlluxioMaster master = Factory.create();
     try {
       master.start();
     } catch (Exception e) {
