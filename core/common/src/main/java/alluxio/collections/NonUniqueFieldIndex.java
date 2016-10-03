@@ -104,7 +104,6 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
     if (set == null) {
       return false;
     }
-
     return set.contains(object);
   }
 
