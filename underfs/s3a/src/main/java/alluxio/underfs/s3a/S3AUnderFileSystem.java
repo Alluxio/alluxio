@@ -73,9 +73,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Static hash for a directory's empty contents. */
   private static final String DIR_HASH;
 
-  /** Length of each list request in S3. */
-  private static final int LISTING_LENGTH = 1000;
-
   /** Threshold to do multipart copy. */
   private static final long MULTIPART_COPY_THRESHOLD = 100 * Constants.MB;
 
