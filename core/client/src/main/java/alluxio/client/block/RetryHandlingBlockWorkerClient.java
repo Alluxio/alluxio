@@ -59,17 +59,17 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RetryHandlingBlockWorkerClient
     extends AbstractThriftClient<BlockWorkerClientService.Client> implements BlockWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
+      Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
+      ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+  private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
+      ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
 
   private final Long mSessionId;
   // This is the address of the data server on the worker.
   private final InetSocketAddress mWorkerDataServerAddress;
   private final WorkerNetAddress mWorkerNetAddress;
   private final InetSocketAddress mRpcAddress;
-  private static final ScheduledExecutorService HEARTBEAT_POOL = new ScheduledThreadPoolExecutor(
-      Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
-      ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-  private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
-      ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
 
   private ScheduledFuture<?> mHeartbeat = null;
 
@@ -82,7 +82,7 @@ public final class RetryHandlingBlockWorkerClient
    * @param sessionId the id of the session
    * @throws IOException if it fails to register the session with the worker specified
    */
-  public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress, Long sessionId)
+  public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress, final Long sessionId)
       throws IOException {
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
@@ -90,15 +90,17 @@ public final class RetryHandlingBlockWorkerClient
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
     if (sessionId != null) {
+      // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
+      // from the pool while it is not running.
       mHeartbeat = HEARTBEAT_POOL.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
               try {
                 sessionHeartbeat();
               } catch (InterruptedException e) {
-                LOG.info("Heartbeat is " + "interrupted" + ".");
+                LOG.info("Heartbeat for session {} is " + "interrupted" + ".", sessionId);
               } catch (Exception e) {
-                LOG.error("Failed to heartbeat", e);
+                LOG.error("Failed to heartbeat for session " + sessionId, e);
               }
             }
           }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
