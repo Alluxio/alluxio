@@ -38,7 +38,7 @@
     <dependency>
         <groupId>com.ibm.stocator</groupId>
         <artifactId>stocator</artifactId>
-        <version>1.0.6-SNAPSHOT</version>
+        <version>1.0.6</version>
     </dependency>
     <dependency>
         <groupId>org.apache.hadoop</groupId>
