@@ -34,7 +34,6 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests on Alluxio client (do not reuse the {@link LocalAlluxioCluster}).
@@ -79,9 +78,7 @@ public class IsolatedFileSystemIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
 
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     Assert.assertFalse(mFileSystem.getStatus(files.get(0)).getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k++) {
@@ -116,9 +113,7 @@ public class IsolatedFileSystemIntegrationTest {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     URIStatus info = mFileSystem.getStatus(files.get(numOfFiles));
     Assert.assertTrue(info.getInMemoryPercentage() == 100);
   }
@@ -148,9 +143,7 @@ public class IsolatedFileSystemIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     URIStatus info = mFileSystem.getStatus(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k++) {
@@ -181,9 +174,7 @@ public class IsolatedFileSystemIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     URIStatus info = mFileSystem.getStatus(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k++) {
@@ -221,9 +212,7 @@ public class IsolatedFileSystemIntegrationTest {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     URIStatus info = mFileSystem.getStatus(files.get(numOfFiles));
     Assert.assertTrue(info.getInMemoryPercentage() == 100);
   }
@@ -254,9 +243,7 @@ public class IsolatedFileSystemIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     URIStatus info = mFileSystem.getStatus(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k++) {
