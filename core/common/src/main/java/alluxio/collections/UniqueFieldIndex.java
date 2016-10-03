@@ -75,7 +75,6 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
     if (res == null) {
       return false;
     }
-
     return res == object;
   }
 

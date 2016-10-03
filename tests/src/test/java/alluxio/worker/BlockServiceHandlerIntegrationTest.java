@@ -47,7 +47,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for {@link BlockWorkerClientServiceHandler}.
@@ -134,7 +133,7 @@ public class BlockServiceHandlerIntegrationTest {
     Assert.assertFalse(new File(filename).exists());
 
     // The master should not have recorded any used space after the block is cancelled
-    waitForHeartbeat();
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     Assert.assertEquals(0, mBlockMasterClient.getUsedBytes());
   }
 
@@ -211,7 +210,7 @@ public class BlockServiceHandlerIntegrationTest {
     AlluxioURI file3 = new AlluxioURI("/file3");
     FileSystemTestUtils.createByteFile(mFileSystem, file3, WriteType.MUST_CACHE, blockSize);
 
-    waitForHeartbeat();
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     fileInfo1 = mFileSystem.getStatus(file1);
     fileInfo2 = mFileSystem.getStatus(file2);
@@ -291,13 +290,5 @@ public class BlockServiceHandlerIntegrationTest {
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(len), 0, len);
     out.close();
-  }
-
-  // Waits for a worker heartbeat to master to be processed
-  private void waitForHeartbeat() throws InterruptedException {
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    // Wait for the next heartbeat to be ready to guarantee that the previous heartbeat has finished
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
   }
 }

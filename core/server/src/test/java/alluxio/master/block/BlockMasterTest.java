@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link alluxio.master.block.BlockMaster}.
@@ -133,9 +132,7 @@ public class BlockMasterTest {
     mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
 
     // Run the lost worker detector.
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
 
     // Make sure the worker is detected as lost.
     Set<WorkerInfo> info = mMaster.getLostWorkersInfo();
@@ -156,9 +153,7 @@ public class BlockMasterTest {
     mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
 
     // Run the lost worker detector.
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
 
     // Reregister the worker using its original worker id.
     mMaster.getWorkerId(NET_ADDRESS_1);

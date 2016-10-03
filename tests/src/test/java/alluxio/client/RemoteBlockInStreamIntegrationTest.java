@@ -522,8 +522,7 @@ public class RemoteBlockInStreamIntegrationTest {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
-      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
+      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = new AlluxioBlockStore().getInfo(blockId);
@@ -533,8 +532,7 @@ public class RemoteBlockInStreamIntegrationTest {
           workerAddr, BlockStoreContext.get());
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
-      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
+      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
       // The file has been deleted.
       Assert.assertFalse(mFileSystem.exists(uri));
