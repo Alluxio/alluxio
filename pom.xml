@@ -562,10 +562,13 @@
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
+            <exclude>conf/alluxio-site.properties</exclude>
+            <exclude>conf/workers</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
-            <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
+            <exclude>**/.checkstyle</exclude>
+            <exclude>**/*.log</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>docs/**/*</exclude>
