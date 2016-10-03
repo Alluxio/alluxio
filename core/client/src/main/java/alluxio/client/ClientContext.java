@@ -22,13 +22,13 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A shared context in each client JVM. It provides common functionality such as the Alluxio
  * configuration and master address.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class ClientContext {
   private static ExecutorService sBlockClientExecutorService;
   private static ExecutorService sFileClientExecutorService;

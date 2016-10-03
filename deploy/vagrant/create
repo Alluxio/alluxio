@@ -60,10 +60,10 @@ while [[ $# > 0 ]]; do
 shift
 done
 
-# Tracking anonymous usage statistics.
-# If `curl` fails, following scripts should still be executed instead of being
-# interrupted due to `set -e`, so `|| true` is appended to `curl`.
-curl --data "provider=${PROVIDER}&num_machines=${TOTAL}" http://statistics.alluxio.org:5000 || true
+# Asynchronously tracking anonymous usage statistics.
+# The following scripts are not blocked by the `curl` call, even when `curl`
+# fails, it does not affect the execution of the remaining scripts.
+curl --data "provider=${PROVIDER}&num_machines=${TOTAL}" http://statistics.alluxio.org:5000 &
 
 HERE=`dirname "$0"`
 cd $HERE
