@@ -54,14 +54,14 @@ Alternatively, you can also create the configuration file from the template and 
 
 Then edit `conf/alluxio-site.properties` file to set the under storage address to the HDFS namenode address
 and the HDFS directory you want to mount to Alluxio. For example, the under storage address can be
-`hdfs://localhost:9000` if you are running the HDFS namenode locally with default port and mapping HDFS root directory to Alluxio,
-or `hdfs://localhost:9000/alluxio/data` if only the HDFS directory `/alluxio/data` is mapped to Alluxio.
+`hdfs://localhost:9000` if you are running the HDFS namenode locally with default port and mounting HDFS root directory to Alluxio,
+or `hdfs://localhost:9000/alluxio/data` if only the HDFS directory `/alluxio/data` is mounted to Alluxio.
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
 ## HDFS configuration files 
-Please copy secure HDFS conf xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to
-`${ALLUXIO_HOME}/conf/`
+To ensure Alluxio client picks up HDFS configurations in classpath, please copy secure HDFS configuration xml files
+(`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to `${ALLUXIO_HOME}/conf/`
 
 ## Kerberos configuration
 Optionally, you can set jvm-level system properties for customized Kerberos configurations:
@@ -92,7 +92,7 @@ details about setting configuration parameters can be found in
 
 # Running Alluxio Locally with secure HDFS
 
-Before this step, please make sure your HDFS cluster is running and the directory mapped to Alluxio exists.
+Before this step, please make sure your HDFS cluster is running and the directory mounted to Alluxio exists.
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 {% include Common-Commands/start-alluxio.md %}
