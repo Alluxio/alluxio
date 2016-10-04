@@ -118,7 +118,7 @@ public final class HeartbeatScheduler {
   }
 
   /**
-   * Waits until the given thread can be executed.
+   * Waits for the given thread to be ready to be scheduled.
    *
    * @param name a name of the thread to wait for
    * @throws InterruptedException if the waiting thread is interrupted
@@ -149,5 +149,17 @@ public final class HeartbeatScheduler {
         }
       }
     }
+  }
+
+  /**
+   * Convenience method for executing a heartbeat and waiting for it to complete.
+   *
+   * @param name the name of the heartbeat to execute
+   * @throws InterruptedException if the waiting thread is interrupted
+   */
+  public static void execute(String name) throws InterruptedException {
+    await(name);
+    schedule(name);
+    await(name);
   }
 }
