@@ -105,17 +105,6 @@ public final class UnderFileSystemManagerTest {
   }
 
   /**
-   * Tests creating an already existing file with the manager will throw the appropriate exception.
-   */
-  @Test
-  public void createExistingUfsFile() throws Exception {
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
-    mThrown.expect(FileAlreadyExistsException.class);
-    mThrown.expectMessage(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri.toString()));
-    mManager.createFile(SESSION_ID, mUri, Permission.defaults());
-  }
-
-  /**
    * Tests completing a file with the manager will call {@link UnderFileSystem#rename}.
    */
   @Test

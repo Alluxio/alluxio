@@ -273,11 +273,7 @@ public final class UnderFileSystemManager {
       UnderFileSystem ufs = UnderFileSystem.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-      if (ufs.exists(mUri)) {
-        throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri));
-      }
-      mStream = ufs.create(mTemporaryUri,
-          new CreateOptions().setPermission(mPermission));
+      mStream = ufs.create(mTemporaryUri, new CreateOptions().setPermission(mPermission));
     }
 
     /**
