@@ -71,10 +71,9 @@ public final class LoginUser {
     AuthType authType =
         Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     checkSecurityEnabled(authType);
+    Subject subject = new Subject();
 
     try {
-      Subject subject = new Subject();
-
       CallbackHandler callbackHandler = null;
       if (authType.equals(AuthType.SIMPLE) || authType.equals(AuthType.CUSTOM)) {
         callbackHandler = new AppLoginModule.AppCallbackHandler();
@@ -86,18 +85,18 @@ public final class LoginUser {
           new LoginContext(authType.getAuthName(), subject, callbackHandler,
               new LoginModuleConfiguration());
       loginContext.login();
-
-      Set<User> userSet = subject.getPrincipals(User.class);
-      if (userSet.isEmpty()) {
-        throw new LoginException("No Alluxio User is found.");
-      }
-      if (userSet.size() > 1) {
-        throw new LoginException("More than one Alluxio User is found");
-      }
-      return userSet.iterator().next();
     } catch (LoginException e) {
       throw new IOException("Failed to login: " + e.getMessage(), e);
     }
+
+    Set<User> userSet = subject.getPrincipals(User.class);
+    if (userSet.isEmpty()) {
+      throw new IOException("Failed to login: No Alluxio User is found.");
+    }
+    if (userSet.size() > 1) {
+      throw new IOException("Failed to login: More than one Alluxio User is found");
+    }
+    return userSet.iterator().next();
   }
 
   /**
