@@ -15,7 +15,7 @@ First, the Alluxio binaries must be on your machine. You can either
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 Then, if you haven't already done so, create your configuration file with `bootstrapConf` command.
-For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+For example, if you are running Alluxio on your local machine, `<ALLUXIO_MASTER_HOSTNAME>` should be set to `localhost` in the following command:
 
 ```bash
 $ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
