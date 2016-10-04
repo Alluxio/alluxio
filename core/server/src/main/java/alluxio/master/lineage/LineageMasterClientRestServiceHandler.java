@@ -177,7 +177,7 @@ public final class LineageMasterClientRestServiceHandler {
    * @param path the file path
    * @param blockSizeBytes the file block size (in bytes)
    * @param ttl the file time-to-live (in seconds)
-   * @param ttlAction Action to take after Ttl is expired
+   * @param ttlAction action to take after TTL is expired
    * @return the response object
    */
   @POST

@@ -206,8 +206,7 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @return the {@link TtlAction}; It informs the action to take when Ttl is expired. It can be
-   *         either DELETE/FREE.
+   * @return the {@link TtlAction}
    */
   public TtlAction getTtlAction() {
     return mTtlAction;
@@ -404,8 +403,7 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is expired.It
-   *        can be either DELETE/FREE.
+   * @param ttlAction the {@link TtlAction} to use
    * @return the updated options object
    */
   public FileInfo setTtlAction(TtlAction ttlAction) {

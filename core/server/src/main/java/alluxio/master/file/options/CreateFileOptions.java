@@ -81,8 +81,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
   }
 
   /**
-   * @return the {@link TtlAction}; It informs the action to take when Ttl is expired. It can be
-   *         either DELETE/FREE.git che
+   * @return the {@link TtlAction}
    */
   public TtlAction getTtlAction() {
     return mTtlAction;

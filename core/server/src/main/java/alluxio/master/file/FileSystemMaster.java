@@ -79,7 +79,6 @@ import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.StringPairEntry;
-import alluxio.proto.journal.File.PTtlAction;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
@@ -2471,7 +2470,7 @@ public final class FileSystemMaster extends AbstractMaster {
         file.setTtl(ttl);
         mTtlBuckets.insert(file);
         file.setLastModificationTimeMs(opTimeMs);
-        file.setTtlAction(ProtobufUtils.toProtobuf(options.getTtlAction()));
+        file.setTtlAction(options.getTtlAction());
       }
 
     }
@@ -2603,7 +2602,7 @@ public final class FileSystemMaster extends AbstractMaster {
           }
           if (path != null) {
             try {
-              PTtlAction ttlAction = file.getTtlAction();
+              TtlAction ttlAction = file.getTtlAction();
               if (LOG.isDebugEnabled()) {
                 LOG.debug("File {} is expired. Performing action {}", file.getName(),
                     ttlAction);
@@ -2613,7 +2612,7 @@ public final class FileSystemMaster extends AbstractMaster {
                   free(path, false);
                   // Reset state
                   file.setTtl(Constants.NO_TTL);
-                  file.setTtlAction(PTtlAction.DELETE);
+                  file.setTtlAction(TtlAction.DELETE);
                   mTtlBuckets.remove(file);
                   break;
                 case DELETE:// Default if not set is DELETE

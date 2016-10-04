@@ -24,7 +24,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.master.ProtobufUtils;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -656,7 +655,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param inodePath the path to the file
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
-   * @param ttlAction action to perform after Ttl expiry
+   * @param ttlAction action to perform after TTL expiry
    * @return the file id
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the path does not exist
@@ -667,7 +666,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     InodeFile file = inodePath.getInodeFile();
     file.setBlockSizeBytes(blockSizeBytes);
     file.setTtl(ttl);
-    file.setTtlAction(ProtobufUtils.toProtobuf(ttlAction));
+    file.setTtlAction(ttlAction);
     return file.getId();
   }
 

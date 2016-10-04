@@ -12,13 +12,12 @@
 package alluxio.master;
 
 import alluxio.proto.journal.File.PTtlAction;
-import alluxio.thrift.TTtlAction;
 import alluxio.wire.TtlAction;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utility methods for conversion between wire types, thrift types and protobuf types.
+ * Utility methods for conversion between wire types and protobuf types.
  */
 @ThreadSafe
 public final class ProtobufUtils {
@@ -74,30 +73,4 @@ public final class ProtobufUtils {
     }
     return pTtlAction;
   }
-
-  /**
-   * Converts Thrift type to Protobuf type.
-   *
-   * @param tTtlAction {@link TTtlAction}
-   * @return {@link TtlAction} equivalent
-   */
-  public static PTtlAction toProtobuf(TTtlAction tTtlAction) {
-
-    PTtlAction pTtlAction = PTtlAction.DELETE;
-    if (tTtlAction != null) {
-      switch (tTtlAction) {
-        case Delete:
-          pTtlAction = PTtlAction.DELETE;
-          break;
-        case Free:
-          pTtlAction = PTtlAction.FREE;
-          break;
-        default:
-          pTtlAction = PTtlAction.DELETE;
-          break;
-      }
-    }
-    return pTtlAction;
-  }
-
 }
