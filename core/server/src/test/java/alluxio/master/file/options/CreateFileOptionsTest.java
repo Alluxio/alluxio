@@ -73,7 +73,8 @@ public class CreateFileOptionsTest {
         .setPersisted(persisted)
         .setPermission(permission)
         .setRecursive(recursive)
-        .setTtl(ttl).setTtlAction(TtlAction.FREE);
+        .setTtl(ttl)
+        .setTtlAction(TtlAction.FREE);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(mountPoint, options.isMountPoint());

@@ -197,7 +197,8 @@ public abstract class AbstractJournalFormatterTest {
             .setReinitializeFile(ReinitializeFileEntry.newBuilder()
                 .setPath(TEST_FILE_NAME)
                 .setBlockSizeBytes(TEST_BLOCK_SIZE_BYTES)
-                .setTtl(TEST_TTL).setTtlAction(PTtlAction.DELETE))
+                .setTtl(TEST_TTL)
+                .setTtlAction(PTtlAction.DELETE))
             .build())
         .add(
             JournalEntry.newBuilder()

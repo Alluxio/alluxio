@@ -186,7 +186,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param recursive whether parent directories should be created if they do not already exist
    * @param blockSizeBytes the target block size in bytes
    * @param ttl the time-to-live (in milliseconds)
-   * @param ttlAction Action to take after Ttl is expired
+   * @param ttlAction action to take after TTL is expired
    * @return the response object
    */
   @POST
@@ -444,7 +444,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param group the file group
    * @param permission the file permission bits
    * @param recursive whether the attribute should be set recursively
-   * @param ttlAction Action to take after Ttl is expired
+   * @param ttlAction action to take after TTL is expired
    * @return the response object
    */
   @POST

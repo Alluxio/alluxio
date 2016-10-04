@@ -131,21 +131,7 @@ public final class ThriftUtils {
    */
   public static TtlAction fromThrift(TTtlAction tTtlAction) {
 
-    TtlAction ttlAction = TtlAction.DELETE;
-    if (tTtlAction != null) {
-      switch (tTtlAction) {
-        case Delete:
-          ttlAction = TtlAction.DELETE;
-          break;
-        case Free:
-          ttlAction = TtlAction.FREE;
-          break;
-        default:
-          ttlAction = TtlAction.DELETE;
-          break;
-      }
-    }
-    return ttlAction;
+    return TtlAction.fromTTtlAction(tTtlAction);
   }
 
   /**
@@ -255,22 +241,7 @@ public final class ThriftUtils {
    * @return {@link TTtlAction} equivalent
    */
   public static TTtlAction toThrift(TtlAction ttlAction) {
-
-    TTtlAction tTtlAction = TTtlAction.Delete;
-    if (ttlAction != null) {
-      switch (ttlAction) {
-        case DELETE:
-          tTtlAction = TTtlAction.Delete;
-          break;
-        case FREE:
-          tTtlAction = TTtlAction.Free;
-          break;
-        default:
-          tTtlAction = TTtlAction.Delete;
-          break;
-      }
-    }
-    return tTtlAction;
+    return TtlAction.toThrift(ttlAction);
   }
 }
 

@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.thrift.TTtlAction;
+
 /**
  * Represents the file action to take when its TTL expires.
  *
@@ -25,5 +27,55 @@ public enum TtlAction {
   /**
    * Indicates that the file should be freed (i.e. deleted in Alluxio but not in UFS).
    */
-  FREE
+  FREE;
+
+  /**
+   * Converts thrift type to wire type.
+   *
+   * @param tTtlAction {@link TTtlAction}
+   * @return {@link TtlAction} equivalent
+   */
+  public static TtlAction fromTTtlAction(TTtlAction tTtlAction) {
+
+    TtlAction ttlAction = TtlAction.DELETE;
+    if (tTtlAction != null) {
+      switch (tTtlAction) {
+        case Delete:
+          ttlAction = TtlAction.DELETE;
+          break;
+        case Free:
+          ttlAction = TtlAction.FREE;
+          break;
+        default:
+          ttlAction = TtlAction.DELETE;
+          break;
+      }
+    }
+    return ttlAction;
+  }
+
+  /**
+   * Converts wire type to thrift type.
+   *
+   * @param ttlAction {@link TtlAction}
+   * @return {@link TTtlAction} equivalent
+   */
+  public static TTtlAction toThrift(TtlAction ttlAction) {
+
+    TTtlAction tTtlAction = TTtlAction.Delete;
+    if (ttlAction != null) {
+      switch (ttlAction) {
+        case DELETE:
+          tTtlAction = TTtlAction.Delete;
+          break;
+        case FREE:
+          tTtlAction = TTtlAction.Free;
+          break;
+        default:
+          tTtlAction = TTtlAction.Delete;
+          break;
+      }
+    }
+    return tTtlAction;
+  }
 }

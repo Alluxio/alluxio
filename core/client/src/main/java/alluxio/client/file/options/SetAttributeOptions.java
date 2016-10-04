@@ -90,8 +90,7 @@ public final class SetAttributeOptions {
   }
 
   /**
-   * @return the {@link TtlAction}; It informs the action to take when Ttl is expired. It can
-   *          be either DELETE/FREE.
+   * @return the {@link TtlAction}
    */
   public TtlAction getTtlAction() {
     return mTtlAction;
@@ -188,8 +187,7 @@ public final class SetAttributeOptions {
   }
 
   /**
-   * @param ttlAction the {@link TtlAction};
-   *        It informs the action to take when Ttl is expired.It can be either DELETE/FREE.
+   * @param ttlAction the {@link TtlAction} to use
    * @return the updated options object
    */
   public SetAttributeOptions setTtlAction(TtlAction ttlAction) {
