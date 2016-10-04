@@ -14,7 +14,6 @@ package alluxio.worker.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.Mode;
