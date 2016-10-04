@@ -97,7 +97,7 @@ public final class RetryHandlingBlockWorkerClient
               try {
                 sessionHeartbeat();
               } catch (InterruptedException e) {
-                LOG.info("Heartbeat for session {} is " + "interrupted" + ".", sessionId);
+                // Do nothing.
               } catch (Exception e) {
                 LOG.error("Failed to heartbeat for session " + sessionId, e);
               }
