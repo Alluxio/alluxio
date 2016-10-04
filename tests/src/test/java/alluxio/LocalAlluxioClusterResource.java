@@ -129,10 +129,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * Explicitly starts the {@link LocalAlluxioCluster}.
    */
   public void start() throws IOException, AlluxioException {
-    // Init configuration for integration test
-    mLocalAlluxioCluster.initConfiguration();
     AuthenticatedClientUser.remove();
     LoginUserTestUtils.resetLoginUser();
+    // Init configuration for integration test
+    mLocalAlluxioCluster.initConfiguration();
     // Overwrite the test configuration with test specific parameters
     for (Entry<PropertyKey, String> entry : mConfiguration.entrySet()) {
       Configuration.set(entry.getKey(), entry.getValue());
