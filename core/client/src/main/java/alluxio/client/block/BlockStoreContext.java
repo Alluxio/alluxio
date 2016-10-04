@@ -165,8 +165,7 @@ public final class BlockStoreContext {
   public BlockWorkerClient acquireWorkerClient(WorkerNetAddress address) throws IOException {
     Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     long clientId = IdUtils.getRandomNonNegativeLong();
-    return new RetryHandlingBlockWorkerClient(address,
-        ClientContext.getBlockClientExecutorService(), clientId);
+    return new RetryHandlingBlockWorkerClient(address, clientId);
   }
 
   /**

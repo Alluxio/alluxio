@@ -30,7 +30,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class ClientContext {
-  private static ExecutorService sBlockClientExecutorService;
   private static ExecutorService sFileClientExecutorService;
   private static InetSocketAddress sMasterAddress;
 
@@ -47,13 +46,6 @@ public final class ClientContext {
    * This method requires that configuration has been initialized.
    */
   public static void init() {
-    // If this is a re-initialization, we must shut down the previous executors.
-    if (sBlockClientExecutorService != null) {
-      sBlockClientExecutorService.shutdownNow();
-    }
-    sBlockClientExecutorService = Executors
-        .newFixedThreadPool(Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
-            ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
     if (sFileClientExecutorService != null) {
       sFileClientExecutorService.shutdownNow();
     }
@@ -74,13 +66,6 @@ public final class ClientContext {
    */
   public static InetSocketAddress getMasterAddress() {
     return sMasterAddress;
-  }
-
-  /**
-   * @return the executor service for block clients
-   */
-  public static ExecutorService getBlockClientExecutorService() {
-    return sBlockClientExecutorService;
   }
 
   /**
