@@ -144,6 +144,13 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
         LOG.error(
             "Failed to connect (" + retry.getRetryCount() + ") to " + getServiceNameForLogging()
                 + " @ " + mAddress, e);
+        if (e.getMessage().contains("java.net.SocketTimeoutException")) {
+          // Do not retry if socket timeout.
+          String message = "Thrift transport open times out. Please check whether the "
+              + "authentication types match between client and server. Note that NOSASL client "
+              + "is not able to connect to servers with SIMPLE security mode.";
+          throw new IOException(message, e);
+        }
         if (!retry.attemptRetry()) {
           throw new IOException(e);
         }
