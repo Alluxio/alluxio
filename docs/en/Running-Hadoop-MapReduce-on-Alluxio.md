@@ -50,7 +50,7 @@ using HDFS as the under storage system for Alluxio, it may be necessary to add t
 the `hdfs-site.xml` file as well.
 
 In order for the Alluxio client jar to be available to the JobClient, you can modify
-`HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
+`$HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-hadoop.md %}
 
@@ -108,7 +108,7 @@ For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by r
 {% include Running-Hadoop-MapReduce-on-Alluxio/start-cluster.md %}
 
 Configure Alluxio to use the local HDFS cluster as its under storage system. You can do this by
-modifying `conf/alluxio-env.sh` to include:
+modifying `conf/alluxio-site.properties` to include:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-Alluxio.md %}
 
