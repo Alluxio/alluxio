@@ -35,7 +35,7 @@ public enum ExceptionMessage {
   BLOCK_NOT_LOCALLY_AVAILABLE("blockId {0,number,#} is not available on local machine"),
   BLOCK_UNAVAILABLE("blockId {0,number,#} is not available in Alluxio"),
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
-  NO_LOCAL_WORKER("Local {0} requested but there is no local worker"),
+  NO_LOCAL_WORKER("Local address {0} requested but there is no local worker"),
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
@@ -194,7 +194,7 @@ public enum ExceptionMessage {
   KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
 
   // block worker
-  FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master."),
+  FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
