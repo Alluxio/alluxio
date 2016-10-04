@@ -194,7 +194,7 @@ public abstract class AbstractClient implements Client {
       } catch (TTransportException e) {
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to " + getServiceName() + " "
             + mMode + " @ " + mAddress + " : " + e.getMessage());
-        if (e.getMessage().contains("java.net.SocketTimeoutException")) {
+        if (e.getCause() instanceof java.net.SocketTimeoutException) {
           // Do not retry if socket timeout.
           String message = "Thrift transport open times out. Please check whether the "
               + "authentication types match between client and server. Note that NOSASL client "
