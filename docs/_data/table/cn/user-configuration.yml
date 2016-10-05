@@ -50,8 +50,7 @@ alluxio.user.network.netty.channel.pool.size.max:
 alluxio.user.network.netty.channel.pool.gc.threshold.ms:
   netty网络通道会被关闭如果它被闲置超过这个时间。
 alluxio.user.network.netty.channel.pool.disable:
-  禁用netty网络通道池特性。设置这个选项为真如果客户端的版本 >= 1.3.0 但是服务器版本 <= 1.2.0。
-  Disable netty channel pool. This should be turned on if > 1.3.0 client is used with <= 1.2.0 server.
+  禁用netty网络通道池特性。设置这个选项为真如果客户端的版本 >= 1.3.0 但是服务器版本 <= 1.2.x。
 alluxio.user.ufs.delegation.enabled:
   是否使用worker对ufs数据进行代理。将该项设置为false会让client直接与ufs通信，目前该特性还处于实验阶段，若设置为true，可能在某些workload下会对性能有影响。
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
