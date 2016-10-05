@@ -2424,8 +2424,12 @@ public final class FileSystemMaster extends AbstractMaster {
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     for (long fileId : persistedFiles) {
-      // Permission checking for each file is performed inside setAttribute
-      setAttribute(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
+      try {
+        // Permission checking for each file is performed inside setAttribute
+        setAttribute(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
+      } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
+        LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
+      }
     }
 
     // get the files for the given worker to persist
