@@ -19,6 +19,7 @@ import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -66,6 +67,7 @@ public class TieredStoreIntegrationTest {
 
   @Before
   public final void before() throws Exception {
+    FileSystemWorkerClientTestUtils.resetPool();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mSetPinned = SetAttributeOptions.defaults().setPinned(true);
     mSetUnpinned = SetAttributeOptions.defaults().setPinned(false);
