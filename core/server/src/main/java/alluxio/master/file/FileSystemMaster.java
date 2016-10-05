@@ -253,7 +253,7 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param blockMaster the {@link BlockMaster} to use
    * @param journal the journal to use for tracking master operations
-   * @param executorServiceFactory a factory for creating the the executor service to use for
+   * @param executorServiceFactory a factory for creating the executor service to use for
    *        running maintenance threads
    */
   public FileSystemMaster(BlockMaster blockMaster, Journal journal,
