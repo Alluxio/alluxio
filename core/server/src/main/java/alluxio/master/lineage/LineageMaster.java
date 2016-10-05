@@ -49,7 +49,8 @@ import alluxio.proto.journal.Lineage.LineageEntry;
 import alluxio.proto.journal.Lineage.LineageIdGeneratorEntry;
 import alluxio.thrift.LineageMasterClientService;
 import alluxio.util.IdUtils;
-import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
@@ -65,8 +66,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -97,8 +96,8 @@ public final class LineageMaster extends AbstractMaster {
    * @param journal the journal
    */
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    this(fileSystemMaster, journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("LineageMaster-%d", true)));
+    this(fileSystemMaster, journal, ExecutorServiceFactories
+        .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
 
   /**
@@ -106,13 +105,12 @@ public final class LineageMaster extends AbstractMaster {
    *
    * @param fileSystemMaster the file system master
    * @param journal the journal
-   * @param executorService the executor service to use for running maintenance threads; the
-   *        {@link LineageMaster} becomes the owner of the executorService and will shut it down
-   *        when the master stops
+   * @param executorServiceFactory a factory for creating the the executor service to use for
+   *        running maintenance threads
    */
   public LineageMaster(FileSystemMaster fileSystemMaster,
-      Journal journal, ExecutorService executorService) {
-    super(journal, new SystemClock(), executorService);
+      Journal journal, ExecutorServiceFactory executorServiceFactory) {
+    super(journal, new SystemClock(), executorServiceFactory);
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();
