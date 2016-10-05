@@ -40,13 +40,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   private static final int NETTY_CHANNEL_POOL_GC_THREADPOOL_SIZE = 10;
-  private Callable<Bootstrap> mBootstrap;
-  private final long mGcThresholdMs;
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(NETTY_CHANNEL_POOL_GC_THREADPOOL_SIZE,
           ThreadFactoryUtils.build("NettyChannelPoolGcThreads-%d", true));
   private static final boolean POOL_DISABLED =
       Configuration.getBoolean(alluxio.PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLE);
+  private Callable<Bootstrap> mBootstrap;
+  private final long mGcThresholdMs;
 
   /**
    * Creates a netty channel pool instance with a minimum capacity of 1.
@@ -113,9 +113,9 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   @Override
   protected boolean isHealthy(Channel channel) {
     if (POOL_DISABLED) {
-      // If we always returns false here, channels acquired by acquire will always be a newly
-      // created channel. With this feature turned on, 1.3.0 client will be backward compatible
-      // with 1.2.0 server.
+      // If we always return false here, channels acquired by NettyChannelPool#acquire() will always
+      // be newly created channel. With this feature turned on, >= 1.3.0 client will be backward
+      // compatible with <= 1.2.0 server.
       return false;
     }
     return channel.isActive();
