@@ -241,6 +241,7 @@ public enum PropertyKey {
   USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX, 1024),
   USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS(
       Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS),
+  USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED(Name.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED, false),
   USER_UFS_DELEGATION_ENABLED(Name.USER_UFS_DELEGATION_ENABLED, true),
   USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES,
       "8MB"),
@@ -633,6 +634,8 @@ public enum PropertyKey {
         "alluxio.user.network.netty.channel.pool.size.max";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
         "alluxio.user.network.netty.channel.pool.gc.threshold.ms";
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
+        "alluxio.user.network.netty.channel.pool.disabled";
     public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
