@@ -67,7 +67,7 @@ public abstract class AbstractMaster implements Master {
   /**
    * @param journal the journal to use for tracking master operations
    * @param clock the Clock to use for determining the time
-   * @param executorServiceFactory a factory for creating the the executor service to use for
+   * @param executorServiceFactory a factory for creating the executor service to use for
    *        running maintenance threads
    */
   protected AbstractMaster(Journal journal, Clock clock,
@@ -180,18 +180,21 @@ public abstract class AbstractMaster implements Master {
     }
     // Shut down the executor service, interrupting any running threads.
     if (mExecutorService != null) {
-      mExecutorService.shutdownNow();
-      String awaitFailureMessage =
-          "waiting for {} executor service to shut down. Daemons may still be running";
       try {
-        if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-          LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+        mExecutorService.shutdownNow();
+        String awaitFailureMessage =
+            "waiting for {} executor service to shut down. Daemons may still be running";
+        try {
+          if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+          }
+        } catch (InterruptedException e) {
+          LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
         }
-      } catch (InterruptedException e) {
-        LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
+      } finally {
+        mExecutorService = null;
       }
     }
-    mExecutorService = null;
   }
 
   @Override

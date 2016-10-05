@@ -105,7 +105,7 @@ public final class LineageMaster extends AbstractMaster {
    *
    * @param fileSystemMaster the file system master
    * @param journal the journal
-   * @param executorServiceFactory a factory for creating the the executor service to use for
+   * @param executorServiceFactory a factory for creating the executor service to use for
    *        running maintenance threads
    */
   public LineageMaster(FileSystemMaster fileSystemMaster,
