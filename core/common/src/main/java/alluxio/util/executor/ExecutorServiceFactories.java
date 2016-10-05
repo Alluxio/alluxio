@@ -37,15 +37,16 @@ public final class ExecutorServiceFactories {
   }
 
   /**
-   * @param es the executor service to supply
+   * @param executorService the executor service to supply
    * @return an {@link ExecutorServiceFactory} which always returns the given
    *         {@link ExecutorService}
    */
-  public static ExecutorServiceFactory constantExecutorServiceFactory(final ExecutorService es) {
+  public static ExecutorServiceFactory constantExecutorServiceFactory(
+      final ExecutorService executorService) {
     return new ExecutorServiceFactory() {
       @Override
       public ExecutorService create() {
-        return es;
+        return executorService;
       }
     };
   }
