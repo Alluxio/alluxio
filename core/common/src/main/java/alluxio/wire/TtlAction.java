@@ -35,7 +35,7 @@ public enum TtlAction {
    * @param tTtlAction {@link TTtlAction}
    * @return {@link TtlAction} equivalent
    */
-  public static TtlAction fromTTtlAction(TTtlAction tTtlAction) {
+  public static TtlAction fromThrift(TTtlAction tTtlAction) {
 
     TtlAction ttlAction = TtlAction.DELETE;
     if (tTtlAction != null) {

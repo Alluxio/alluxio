@@ -131,7 +131,7 @@ public final class ThriftUtils {
    */
   public static TtlAction fromThrift(TTtlAction tTtlAction) {
 
-    return TtlAction.fromTTtlAction(tTtlAction);
+    return TtlAction.fromThrift(tTtlAction);
   }
 
   /**
