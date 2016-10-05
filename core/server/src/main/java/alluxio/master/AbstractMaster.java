@@ -23,6 +23,7 @@ import alluxio.master.journal.JournalTailerThread;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -45,6 +46,8 @@ public abstract class AbstractMaster implements Master {
 
   private static final long SHUTDOWN_TIMEOUT_MS = 10000;
 
+  /** A factory for creating executor services when they are needed. */
+  private ExecutorServiceFactory mExecutorServiceFactory = null;
   /** The executor used for running maintenance threads for the master. */
   private ExecutorService mExecutorService = null;
   /** A handler to the journal for this master. */
@@ -64,14 +67,14 @@ public abstract class AbstractMaster implements Master {
   /**
    * @param journal the journal to use for tracking master operations
    * @param clock the Clock to use for determining the time
-   * @param executorService the executor service to use for running maintenance threads; the
-   *        {@link AbstractMaster} becomes the owner of the executorService and will shut it down
-   *        when the master stops
+   * @param executorServiceFactory a factory for creating the the executor service to use for
+   *        running maintenance threads
    */
-  protected AbstractMaster(Journal journal, Clock clock, ExecutorService executorService) {
+  protected AbstractMaster(Journal journal, Clock clock,
+      ExecutorServiceFactory executorServiceFactory) {
     mJournal = Preconditions.checkNotNull(journal);
     mClock = Preconditions.checkNotNull(clock);
-    mExecutorService = Preconditions.checkNotNull(executorService);
+    mExecutorServiceFactory = Preconditions.checkNotNull(executorServiceFactory);
   }
 
   @Override
@@ -88,6 +91,8 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public void start(boolean isLeader) throws IOException {
+    Preconditions.checkState(mExecutorService == null);
+    mExecutorService = mExecutorServiceFactory.create();
     mIsLeader = isLeader;
     LOG.info("{}: Starting {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
@@ -174,16 +179,19 @@ public abstract class AbstractMaster implements Master {
       }
     }
     // Shut down the executor service, interrupting any running threads.
-    mExecutorService.shutdownNow();
-    String awaitFailureMessage =
-        "waiting for {} executor service to shut down. Daemons may still be running";
-    try {
-      if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-        LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+    if (mExecutorService != null) {
+      mExecutorService.shutdownNow();
+      String awaitFailureMessage =
+          "waiting for {} executor service to shut down. Daemons may still be running";
+      try {
+        if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+          LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+        }
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
       }
-    } catch (InterruptedException e) {
-      LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
     }
+    mExecutorService = null;
   }
 
   @Override
