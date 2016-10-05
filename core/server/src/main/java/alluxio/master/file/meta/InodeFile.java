@@ -365,7 +365,7 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
-   * @return {@link TtlAction}
+   * @return the {@link TtlAction}
    */
   public TtlAction getTtlAction() {
     return mTtlAction;
