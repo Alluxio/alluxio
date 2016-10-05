@@ -61,7 +61,7 @@ alluxio.user.network.netty.channel.pool.size.max:
   The maximum number of netty channels cached in the netty channel pool.
 alluxio.user.network.netty.channel.pool.gc.threshold.ms:
   A netty channel is closed if it has been idle for more than this threshold.
-alluxio.user.network.netty.channel.pool.disable:
+alluxio.user.network.netty.channel.pool.disabled:
   Disable netty channel pool. This should be turned on if the client version is >= 1.3.0 but server version is <= 1.2.x.
 alluxio.user.ufs.delegation.enabled:
   Flag for delegating ufs data operations to the worker, enabled by default. When enabled, the
