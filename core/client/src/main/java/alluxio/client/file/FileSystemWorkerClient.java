@@ -76,9 +76,9 @@ public class FileSystemWorkerClient
   private ScheduledFuture<?> mHeartbeat = null;
 
   private static final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
-      CLIENT_POOL = new ConcurrentHashMapV8<>();
+      CLIENT_POOLS = new ConcurrentHashMapV8<>();
   private static final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
-      HEARTBEAT_CLIENT_POOL = new ConcurrentHashMapV8<>();
+      HEARTBEAT_CLIENT_POOLS = new ConcurrentHashMapV8<>();
 
   /**
    * Constructor for a client that communicates with the {@link FileSystemWorkerClientService}.
@@ -100,6 +100,8 @@ public class FileSystemWorkerClient
           public void run() {
             try {
               sessionHeartbeat();
+            } catch (InterruptedException e) {
+              // do nothing
             } catch (Exception e) {
               LOG.error("Failed to heartbeat for session " + sessionId, e);
             }
@@ -108,17 +110,25 @@ public class FileSystemWorkerClient
         Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
 
     // Register the session before any RPCs for this session start.
-    sessionHeartbeat();
+    try {
+      sessionHeartbeat();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   @Override
   public FileSystemWorkerClientService.Client acquireClient() throws IOException {
-    return acquireInternal(CLIENT_POOL);
+    try {
+      return acquireInternal(CLIENT_POOLS);
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   @Override
   public void releaseClient(FileSystemWorkerClientService.Client client) {
-    releaseInternal(client, CLIENT_POOL);
+    releaseInternal(client, CLIENT_POOLS);
   }
 
   @Override
@@ -248,12 +258,13 @@ public class FileSystemWorkerClient
 
   /**
    * Sends a session heartbeat to the worker. This renews the client's lease on resources such as
-   * temporary files and updates the worker's metrics.
+   * temporary files.
    *
    * @throws IOException if an I/O error occurs
+   * @throws InterruptedException if the heartbeat is interrupted
    */
-  public void sessionHeartbeat() throws IOException {
-    FileSystemWorkerClientService.Client client = acquireInternal(HEARTBEAT_CLIENT_POOL);
+  public void sessionHeartbeat() throws IOException, InterruptedException {
+    FileSystemWorkerClientService.Client client = acquireInternal(HEARTBEAT_CLIENT_POOLS);
     try {
       client.sessionHeartbeat(mSessionId, null);
     } catch (AlluxioTException e) {
@@ -264,7 +275,7 @@ public class FileSystemWorkerClient
       client.getOutputProtocol().getTransport().close();
       throw new IOException(e);
     } finally {
-      releaseInternal(client, HEARTBEAT_CLIENT_POOL);
+      releaseInternal(client, HEARTBEAT_CLIENT_POOLS);
     }
   }
 
@@ -276,10 +287,11 @@ public class FileSystemWorkerClient
    * @return the client
    * @throws IOException if it fails to create a new client there is no client available and
    *         there is enough capacity
+   * @throws InterruptedException if it is interrupted
    */
   private FileSystemWorkerClientService.Client acquireInternal(
       ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> pools)
-      throws IOException {
+      throws IOException, InterruptedException {
     if (!pools.containsKey(mWorkerRpcServerAddress)) {
       FileSystemWorkerThriftClientPool pool =
           new FileSystemWorkerThriftClientPool(mWorkerRpcServerAddress,
@@ -289,11 +301,7 @@ public class FileSystemWorkerClient
         pool.close();
       }
     }
-    try {
-      return pools.get(mWorkerRpcServerAddress).acquire();
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
-    }
+    return pools.get(mWorkerRpcServerAddress).acquire();
   }
 
   /**
