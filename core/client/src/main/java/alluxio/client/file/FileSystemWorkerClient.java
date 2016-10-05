@@ -70,6 +70,8 @@ public class FileSystemWorkerClient
 
   /** Address of the data server on the worker. */
   private final InetSocketAddress mWorkerDataServerAddress;
+  /** Address of the rpc server on the worker. */
+  private final InetSocketAddress mWorkerRpcServerAddress;
 
   private ScheduledFuture<?> mHeartbeat = null;
 
@@ -87,6 +89,7 @@ public class FileSystemWorkerClient
    */
   public FileSystemWorkerClient(WorkerNetAddress workerNetAddress, final long sessionId)
       throws IOException {
+    mWorkerRpcServerAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
 
@@ -277,17 +280,17 @@ public class FileSystemWorkerClient
   private FileSystemWorkerClientService.Client acquireInternal(
       ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> pools)
       throws IOException {
-    if (!pools.containsKey(mWorkerDataServerAddress)) {
+    if (!pools.containsKey(mWorkerRpcServerAddress)) {
       FileSystemWorkerThriftClientPool pool =
-          new FileSystemWorkerThriftClientPool(mWorkerDataServerAddress,
+          new FileSystemWorkerThriftClientPool(mWorkerRpcServerAddress,
               Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX),
               Configuration.getLong(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (pools.putIfAbsent(mWorkerDataServerAddress, pool) != null) {
+      if (pools.putIfAbsent(mWorkerRpcServerAddress, pool) != null) {
         pool.close();
       }
     }
     try {
-      return pools.get(mWorkerDataServerAddress).acquire();
+      return pools.get(mWorkerRpcServerAddress).acquire();
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }
@@ -301,7 +304,7 @@ public class FileSystemWorkerClient
    */
   private void releaseInternal(FileSystemWorkerClientService.Client client,
       ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> pools) {
-    Preconditions.checkArgument(pools.containsKey(mWorkerDataServerAddress));
-    pools.get(mWorkerDataServerAddress).release(client);
+    Preconditions.checkArgument(pools.containsKey(mWorkerRpcServerAddress));
+    pools.get(mWorkerRpcServerAddress).release(client);
   }
 }
