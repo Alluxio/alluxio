@@ -279,10 +279,9 @@ public class FileSystemWorkerClient
       throws IOException {
     if (!pools.containsKey(mWorkerDataServerAddress)) {
       FileSystemWorkerThriftClientPool pool =
-          // TODO(peis): Add configs.
           new FileSystemWorkerThriftClientPool(mWorkerDataServerAddress,
               Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX),
-          Configuration.getLong(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
+              Configuration.getLong(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
       if (pools.putIfAbsent(mWorkerDataServerAddress, pool) != null) {
         pool.close();
       }
@@ -300,8 +299,7 @@ public class FileSystemWorkerClient
    * @param client the client to release
    * @param pools the client pool for the workers
    */
-  private void releaseInternal(
-      FileSystemWorkerClientService.Client client,
+  private void releaseInternal(FileSystemWorkerClientService.Client client,
       ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> pools) {
     Preconditions.checkArgument(pools.containsKey(mWorkerDataServerAddress));
     pools.get(mWorkerDataServerAddress).release(client);
