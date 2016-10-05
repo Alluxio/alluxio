@@ -169,7 +169,8 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
    */
   @Override
   protected boolean isHealthy(T client) {
-    return client.getOutputProtocol().getTransport().isOpen();
+//    return client.getOutputProtocol().getTransport().isOpen();
+    return false;
   }
 
   @Override
