@@ -119,11 +119,7 @@ public class FileSystemWorkerClient
 
   @Override
   public FileSystemWorkerClientService.Client acquireClient() throws IOException {
-    try {
-      return acquireInternal(CLIENT_POOLS);
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
-    }
+    return acquireInternalNoInterrupt(CLIENT_POOLS);
   }
 
   @Override
@@ -302,6 +298,25 @@ public class FileSystemWorkerClient
       }
     }
     return pools.get(mWorkerRpcServerAddress).acquire();
+  }
+
+  /**
+   * Acquire a client from the specified pool. It creates a new client if the pool doesn't
+   * have any clients available and have remaining capacity. Otherwise, it blocks.
+   *
+   * @param pools the client pool for the workers
+   * @return the client
+   * @throws IOException if it fails to create a new client there is no client available and
+   *         there is enough capacity
+   */
+  private FileSystemWorkerClientService.Client acquireInternalNoInterrupt(
+      ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> pools)
+      throws IOException {
+    try {
+      return acquireInternal(pools);
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   /**
