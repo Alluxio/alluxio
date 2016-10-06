@@ -11,10 +11,14 @@
 
 package alluxio.client.file;
 
+import alluxio.client.block.RetryHandlingBlockWorkerClient;
+
+import com.google.common.base.Throwables;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.powermock.reflect.Whitebox;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Test utils for {@link FileSystemWorkerClient}.
@@ -23,8 +27,10 @@ public class FileSystemWorkerClientTestUtils {
   /**
    * Resets the {@link FileSystemWorkerClient#CLIENT_POOLS} and
    * {@link FileSystemWorkerClient#HEARTBEAT_CLIENT_POOLS}.
+   * Resets the {@link FileSystemWorkerClient#HEARTBEAT_CANCEL_POOL} by waiting for all the
+   * pending heartbeats.
    */
-  public static void resetPool() {
+  public static void reset() {
     ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> poolMap =
         Whitebox.getInternalState(FileSystemWorkerClient.class, "CLIENT_POOLS");
     for (FileSystemWorkerThriftClientPool pool : poolMap.values()) {
@@ -38,5 +44,17 @@ public class FileSystemWorkerClientTestUtils {
       pool.close();
     }
     heartbeatPoolMap.clear();
+
+    while (true) {
+      AtomicInteger numActiveHeartbeats =
+          Whitebox.getInternalState(FileSystemWorkerClient.class, "NUM_ACTIVE_HEARTBEATS");
+      if (numActiveHeartbeats.intValue() > 0) {
+        try {
+          Thread.sleep(1);
+        } catch (InterruptedException e) {
+          throw Throwables.propagate(e);
+        }
+      }
+    }
   }
 }

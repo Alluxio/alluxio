@@ -44,6 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -61,8 +62,11 @@ public final class RetryHandlingBlockWorkerClient
   private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
       Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
       ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-  private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
+  private static ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
+
+  // Tracks the number of active heartbeats.
+  private static final AtomicInteger NUM_ACTIVE_HEARTBEATS = new AtomicInteger(0);
 
   private final Long mSessionId;
   // This is the address of the data server on the worker.
@@ -105,6 +109,7 @@ public final class RetryHandlingBlockWorkerClient
           }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
           Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
 
+      NUM_ACTIVE_HEARTBEATS.incrementAndGet();
       try {
         sessionHeartbeat();
       } catch (InterruptedException e) {
@@ -130,6 +135,7 @@ public final class RetryHandlingBlockWorkerClient
         @Override
         public void run() {
           mHeartbeat.cancel(true);
+          NUM_ACTIVE_HEARTBEATS.decrementAndGet();
         }
       });
     }
