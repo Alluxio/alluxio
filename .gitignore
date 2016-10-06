@@ -40,3 +40,4 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+**/nb-configuration*.xml
