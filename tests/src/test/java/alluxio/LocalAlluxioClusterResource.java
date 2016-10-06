@@ -11,9 +11,6 @@
 
 package alluxio;
 
-import alluxio.client.block.BlockStoreContextTestUtils;
-import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
-import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.metrics.MetricsSystem;
@@ -107,10 +104,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
     MetricsSystem.resetAllCounters();
-
-    RetryHandlingBlockWorkerClientTestUtils.reset();
-    FileSystemWorkerClientTestUtils.reset();
-    BlockStoreContextTestUtils.resetPool();
   }
 
   /**

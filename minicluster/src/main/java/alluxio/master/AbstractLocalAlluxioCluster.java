@@ -17,7 +17,10 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
+import alluxio.client.block.BlockStoreContextTestUtils;
+import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -328,6 +331,11 @@ public abstract class AbstractLocalAlluxioCluster {
   protected void reset() {
     ClientTestUtils.resetClient();
     GroupMappingServiceTestUtils.resetCache();
+
+    RetryHandlingBlockWorkerClientTestUtils.reset();
+    FileSystemWorkerClientTestUtils.reset();
+    BlockStoreContextTestUtils.resetPool();
+
   }
 
   /**
