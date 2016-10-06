@@ -135,10 +135,10 @@ public class FileSystemWorkerClient
   @Override
   public void close() {
     if (mHeartbeat != null) {
+      NUM_PENDING_HEARTBEAT_CLOSE.incrementAndGet();
       HEARTBEAT_CANCEL_POOL.submit(new Runnable() {
         @Override
         public void run() {
-          NUM_PENDING_HEARTBEAT_CLOSE.incrementAndGet();
           mHeartbeat.cancel(true);
           NUM_PENDING_HEARTBEAT_CLOSE.decrementAndGet();
         }
