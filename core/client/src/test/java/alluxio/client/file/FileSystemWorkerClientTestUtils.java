@@ -46,15 +46,14 @@ public class FileSystemWorkerClientTestUtils {
     }
     heartbeatPoolMap.clear();
 
-    CommonUtils
-        .waitFor("All pending file system worker heartbeats are closed", new Function<Void, Boolean>() {
+    CommonUtils.waitFor("All pending file system worker heartbeats are closed",
+        new Function<Void, Boolean>() {
           @Override
           public Boolean apply(Void input) {
             AtomicInteger numActiveHeartbeats = Whitebox
-                .getInternalState(FileSystemWorkerClient.class,
-                    "NUM_PENDING_HEARTBEAT_CLOSE");
+                .getInternalState(FileSystemWorkerClient.class, "NUM_PENDING_HEARTBEAT_CLOSE");
             return numActiveHeartbeats.intValue() == 0;
           }
-        }, 60 * Constants.MINUTE_MS);
+        }, Constants.MINUTE_MS);
   }
 }

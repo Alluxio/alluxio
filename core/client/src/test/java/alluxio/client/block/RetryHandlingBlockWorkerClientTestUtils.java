@@ -37,6 +37,6 @@ public class RetryHandlingBlockWorkerClientTestUtils {
                     "NUM_PENDING_HEARTBEAT_CLOSE");
             return numActiveHeartbeats.intValue() == 0;
           }
-        }, 60 * Constants.MINUTE_MS);
+        }, Constants.MINUTE_MS);
   }
 }
