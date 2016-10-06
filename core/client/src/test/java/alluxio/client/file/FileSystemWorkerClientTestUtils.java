@@ -47,7 +47,7 @@ public class FileSystemWorkerClientTestUtils {
     heartbeatPoolMap.clear();
 
     CommonUtils
-        .waitFor("All pending block worker heartbeats are closed", new Function<Void, Boolean>() {
+        .waitFor("All pending file system worker heartbeats are closed", new Function<Void, Boolean>() {
           @Override
           public Boolean apply(Void input) {
             AtomicInteger numActiveHeartbeats = Whitebox
