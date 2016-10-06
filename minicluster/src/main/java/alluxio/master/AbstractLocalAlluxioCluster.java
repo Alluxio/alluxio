@@ -89,6 +89,7 @@ public abstract class AbstractLocalAlluxioCluster {
       worker.waitForReady();
     }
 
+    resetClientPools();
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
   }
@@ -166,6 +167,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
+    resetClientPools();
     stopFS();
     stopUFS();
     ConfigurationTestUtils.resetConfiguration();
@@ -331,11 +333,15 @@ public abstract class AbstractLocalAlluxioCluster {
   protected void reset() {
     ClientTestUtils.resetClient();
     GroupMappingServiceTestUtils.resetCache();
+  }
 
+  /**
+   * Resets the client pools to the original state.
+   */
+  protected void resetClientPools() {
     RetryHandlingBlockWorkerClientTestUtils.reset();
     FileSystemWorkerClientTestUtils.reset();
     BlockStoreContextTestUtils.resetPool();
-
   }
 
   /**
