@@ -21,19 +21,19 @@ import java.net.InetSocketAddress;
  */
 public class FileSystemWorkerClientTestUtils {
   /**
-   * Resets the {@link FileSystemWorkerClient#CLIENT_POOL} and
-   * {@link FileSystemWorkerClient#HEARTBEAT_CLIENT_POOL}.
+   * Resets the {@link FileSystemWorkerClient#CLIENT_POOLS} and
+   * {@link FileSystemWorkerClient#HEARTBEAT_CLIENT_POOLS}.
    */
   public static void resetPool() {
     ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> poolMap =
-        Whitebox.getInternalState(FileSystemWorkerClient.class, "CLIENT_POOL");
+        Whitebox.getInternalState(FileSystemWorkerClient.class, "CLIENT_POOLS");
     for (FileSystemWorkerThriftClientPool pool : poolMap.values()) {
       pool.close();
     }
     poolMap.clear();
 
     ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> heartbeatPoolMap =
-        Whitebox.getInternalState(FileSystemWorkerClient.class, "HEARTBEAT_CLIENT_POOL");
+        Whitebox.getInternalState(FileSystemWorkerClient.class, "HEARTBEAT_CLIENT_POOLS");
     for (FileSystemWorkerThriftClientPool pool : heartbeatPoolMap.values()) {
       pool.close();
     }
