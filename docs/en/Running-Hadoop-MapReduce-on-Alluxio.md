@@ -61,7 +61,6 @@ release in which security is enabled by default, if the `HADOOP_CLASSPATH` does 
 client jar, running mapreduce on Alluxio might result in "Failed to login: No Alluxio User is
 found." error.
 
-
 # Distributing the Alluxio Client Jar
 
 In order for the MapReduce job to be able to read and write files in Alluxio, the Alluxio client jar
