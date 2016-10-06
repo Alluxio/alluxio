@@ -62,7 +62,7 @@ public final class RetryHandlingBlockWorkerClient
   private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
       Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
       ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-  private static ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
+  private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
 
   // Tracks the number of active heartbeat close requests.
