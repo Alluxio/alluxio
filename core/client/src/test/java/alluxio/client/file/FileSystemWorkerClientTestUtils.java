@@ -11,10 +11,10 @@
 
 package alluxio.client.file;
 
-import alluxio.client.block.RetryHandlingBlockWorkerClient;
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
+import com.google.common.base.Function;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.powermock.reflect.Whitebox;
 
@@ -46,21 +46,15 @@ public class FileSystemWorkerClientTestUtils {
     }
     heartbeatPoolMap.clear();
 
-    int maxWaitMs = 10000;
-    while (maxWaitMs > 0) {
-      AtomicInteger numActiveHeartbeats =
-          Whitebox.getInternalState(FileSystemWorkerClient.class, "NUM_PENDING_HEARTBEAT_CLOSE");
-      if (numActiveHeartbeats.intValue() > 0) {
-        try {
-          Thread.sleep(1);
-          maxWaitMs--;
-        } catch (InterruptedException e) {
-          throw Throwables.propagate(e);
-        }
-      } else {
-        break;
-      }
-    }
-    Preconditions.checkState(maxWaitMs > 0);
+    CommonUtils
+        .waitFor("All pending block worker heartbeats are closed", new Function<Void, Boolean>() {
+          @Override
+          public Boolean apply(Void input) {
+            AtomicInteger numActiveHeartbeats = Whitebox
+                .getInternalState(FileSystemWorkerClient.class,
+                    "NUM_PENDING_HEARTBEAT_CLOSE");
+            return numActiveHeartbeats.intValue() == 0;
+          }
+        }, 60 * Constants.MINUTE_MS);
   }
 }
