@@ -68,7 +68,7 @@ public class FileSystemWorkerClient
       ThreadFactoryUtils.build("file-worker-heartbeat-cancel-%d", true));
 
   // Tracks the number of active heartbeats.
-  private static final AtomicInteger NUM_ACTIVE_HEARTBEATS = new AtomicInteger(0);
+  private static final AtomicInteger NUM_PENDING_HEARTBEAT_CLOSE = new AtomicInteger(0);
 
   /** The current session id, managed by the caller. */
   private final long mSessionId;
@@ -113,7 +113,6 @@ public class FileSystemWorkerClient
           }
         }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
         Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
-    NUM_ACTIVE_HEARTBEATS.incrementAndGet();
 
     // Register the session before any RPCs for this session start.
     try {
@@ -139,8 +138,9 @@ public class FileSystemWorkerClient
       HEARTBEAT_CANCEL_POOL.submit(new Runnable() {
         @Override
         public void run() {
+          NUM_PENDING_HEARTBEAT_CLOSE.incrementAndGet();
           mHeartbeat.cancel(true);
-          NUM_ACTIVE_HEARTBEATS.decrementAndGet();
+          NUM_PENDING_HEARTBEAT_CLOSE.decrementAndGet();
         }
       });
     }
