@@ -15,13 +15,9 @@ import alluxio.Constants;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.Nullable;
 
 /**
  * Test utils for {@link RetryHandlingBlockWorkerClient}.
