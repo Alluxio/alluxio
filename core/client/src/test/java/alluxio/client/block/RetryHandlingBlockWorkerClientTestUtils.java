@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
 
@@ -25,16 +26,21 @@ public class RetryHandlingBlockWorkerClientTestUtils {
    * pending heartbeats.
    */
   public static void reset() {
-    while (true) {
-      AtomicInteger numActiveHeartbeats =
-          Whitebox.getInternalState(RetryHandlingBlockWorkerClient.class, "NUM_ACTIVE_HEARTBEATS");
+    int maxWaitMs = 10000;
+    while (maxWaitMs > 0) {
+      AtomicInteger numActiveHeartbeats = Whitebox
+          .getInternalState(RetryHandlingBlockWorkerClient.class, "NUM_PENDING_HEARTBEAT_CLOSE");
       if (numActiveHeartbeats.intValue() > 0) {
         try {
           Thread.sleep(1);
+          maxWaitMs--;
         } catch (InterruptedException e) {
           throw Throwables.propagate(e);
         }
+      } else {
+        break;
       }
     }
+    Preconditions.checkState(maxWaitMs > 0);
   }
 }

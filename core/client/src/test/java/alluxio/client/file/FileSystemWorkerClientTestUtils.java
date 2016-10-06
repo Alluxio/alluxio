@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.client.block.RetryHandlingBlockWorkerClient;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.powermock.reflect.Whitebox;
@@ -45,16 +46,21 @@ public class FileSystemWorkerClientTestUtils {
     }
     heartbeatPoolMap.clear();
 
-    while (true) {
+    int maxWaitMs = 10000;
+    while (maxWaitMs > 0) {
       AtomicInteger numActiveHeartbeats =
-          Whitebox.getInternalState(FileSystemWorkerClient.class, "NUM_ACTIVE_HEARTBEATS");
+          Whitebox.getInternalState(FileSystemWorkerClient.class, "NUM_PENDING_HEARTBEAT_CLOSE");
       if (numActiveHeartbeats.intValue() > 0) {
         try {
           Thread.sleep(1);
+          maxWaitMs--;
         } catch (InterruptedException e) {
           throw Throwables.propagate(e);
         }
+      } else {
+        break;
       }
     }
+    Preconditions.checkState(maxWaitMs > 0);
   }
 }

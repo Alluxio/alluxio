@@ -65,8 +65,8 @@ public final class RetryHandlingBlockWorkerClient
   private static ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
 
-  // Tracks the number of active heartbeats.
-  private static final AtomicInteger NUM_ACTIVE_HEARTBEATS = new AtomicInteger(0);
+  // Tracks the number of active heartbeat close requests.
+  private static final AtomicInteger NUM_PENDING_HEARTBEAT_CLOSE = new AtomicInteger(0);
 
   private final Long mSessionId;
   // This is the address of the data server on the worker.
@@ -109,7 +109,6 @@ public final class RetryHandlingBlockWorkerClient
           }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
           Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
 
-      NUM_ACTIVE_HEARTBEATS.incrementAndGet();
       try {
         sessionHeartbeat();
       } catch (InterruptedException e) {
@@ -134,8 +133,9 @@ public final class RetryHandlingBlockWorkerClient
       HEARTBEAT_CANCEL_POOL.submit(new Runnable() {
         @Override
         public void run() {
+          NUM_PENDING_HEARTBEAT_CLOSE.incrementAndGet();
           mHeartbeat.cancel(true);
-          NUM_ACTIVE_HEARTBEATS.decrementAndGet();
+          NUM_PENDING_HEARTBEAT_CLOSE.decrementAndGet();
         }
       });
     }
