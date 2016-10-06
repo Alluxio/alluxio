@@ -92,14 +92,14 @@ public final class LoginUser {
     Set<User> userSet = subject.getPrincipals(User.class);
     if (userSet.isEmpty()) {
       String msg = String.format("Failed to login: No Alluxio User is found. Current login "
-          + "principals are {}. If you are running hadoop with Alluxio, please double check "
+          + "principals are %s.\n If you are running hadoop with Alluxio, please double check "
           + "whether you have alluxio client jar included in HADOOP_CLASSPATH. Otherwise, you "
           + "are expected to see this error.", subject.getPrincipals().toString());
       throw new IOException(msg);
     }
     if (userSet.size() > 1) {
       String msg = String.format("Failed to login: More than one Alluxio User is found. Current "
-          + "login principals are {}.", subject.getPrincipals().toString());
+          + "login principals are %s.", subject.getPrincipals().toString());
       throw new IOException(msg);
     }
     return userSet.iterator().next();
