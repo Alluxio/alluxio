@@ -93,7 +93,6 @@ public final class RetryHandlingBlockWorkerClient
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
     if (sessionId != null) {
-      NUM_ACTIVE_SESSIONS.incrementAndGet();
       // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
       // from the pool while it is not running.
       mHeartbeat = HEARTBEAT_POOL.scheduleAtFixedRate(new Runnable() {
@@ -110,6 +109,7 @@ public final class RetryHandlingBlockWorkerClient
           }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
           Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
 
+      NUM_ACTIVE_SESSIONS.incrementAndGet();
       try {
         sessionHeartbeat();
       } catch (InterruptedException e) {
