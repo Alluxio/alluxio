@@ -32,6 +32,16 @@ public class FileSystemWorkerClientTestUtils {
    * pending heartbeats.
    */
   public static void reset() {
+    CommonUtils.waitFor("All active file system worker sessions are closed",
+        new Function<Void, Boolean>() {
+          @Override
+          public Boolean apply(Void input) {
+            AtomicInteger numActiveSessions = Whitebox
+                .getInternalState(FileSystemWorkerClient.class, "NUM_ACTIVE_SESSIONS");
+            return numActiveSessions.intValue() == 0;
+          }
+        }, Constants.MINUTE_MS);
+
     ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> poolMap =
         Whitebox.getInternalState(FileSystemWorkerClient.class, "CLIENT_POOLS");
     for (FileSystemWorkerThriftClientPool pool : poolMap.values()) {
@@ -45,15 +55,5 @@ public class FileSystemWorkerClientTestUtils {
       pool.close();
     }
     heartbeatPoolMap.clear();
-
-    CommonUtils.waitFor("All pending file system worker heartbeats are closed",
-        new Function<Void, Boolean>() {
-          @Override
-          public Boolean apply(Void input) {
-            AtomicInteger numActiveHeartbeats = Whitebox
-                .getInternalState(FileSystemWorkerClient.class, "NUM_PENDING_HEARTBEAT_CLOSE");
-            return numActiveHeartbeats.intValue() == 0;
-          }
-        }, Constants.MINUTE_MS);
   }
 }
