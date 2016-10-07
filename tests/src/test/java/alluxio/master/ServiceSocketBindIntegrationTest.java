@@ -88,7 +88,7 @@ public class ServiceSocketBindIntegrationTest {
   private void closeServices() throws Exception {
     mWorkerWebService.disconnect();
     mWorkerDataService.close();
-    mBlockWorkerClient.close();
+    BlockStoreContext.get().releaseWorkerClient(mBlockWorkerClient);
     mMasterWebService.disconnect();
     mBlockMasterClient.close();
   }
@@ -170,6 +170,8 @@ public class ServiceSocketBindIntegrationTest {
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
     } catch (Exception e) {
       // This is expected, since Work RPC service is NOT listening on loopback.
+    } finally {
+      BlockStoreContext.get().releaseWorkerClient(mBlockWorkerClient);
     }
 
     // connect Worker data service on loopback, while Worker is listening on local hostname.
