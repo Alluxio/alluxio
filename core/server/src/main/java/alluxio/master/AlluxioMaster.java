@@ -83,7 +83,7 @@ public class AlluxioMaster implements Server {
       System.exit(-1);
     }
 
-    AlluxioMaster master = new AlluxioMaster();
+    AlluxioMaster master = Factory.create();
     try {
       master.start();
     } catch (Exception e) {
@@ -268,13 +268,6 @@ public class AlluxioMaster implements Server {
           mAdditionalMasters.add(master);
         }
       }
-
-      // The web server needs to be created at the end of the constructor because it needs a
-      // reference to this class.
-      mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB.getServiceName(),
-          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
-      // reset master web port
-      Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -442,6 +435,10 @@ public class AlluxioMaster implements Server {
   }
 
   protected void startServingWebServer() {
+    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB.getServiceName(),
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
+    // reset master web port
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     // Add the metrics servlet to the web server.
     mWebServer.addHandler(mMetricsServlet.getHandler());
     // start web ui

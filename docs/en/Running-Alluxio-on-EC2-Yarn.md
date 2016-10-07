@@ -57,8 +57,8 @@ key file so that only you can read it:
 
 {% include Running-Alluxio-on-EC2-Yarn/generate-key-pair.md %}
 
-In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
-name and `Key_Path` to the path to the pem key.
+Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml`, then
+set the value of `Keypair` to your keypair name and `Key_Path` to the path to the pem key.
 
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
