@@ -29,12 +29,12 @@ public class RetryHandlingBlockWorkerClientTestUtils {
    */
   public static void reset() {
     CommonUtils
-        .waitFor("All pending block worker heartbeats are closed", new Function<Void, Boolean>() {
+        .waitFor("All active block worker sessions are closed", new Function<Void, Boolean>() {
           @Override
           public Boolean apply(Void input) {
             AtomicInteger numActiveHeartbeats = Whitebox
                 .getInternalState(RetryHandlingBlockWorkerClient.class,
-                    "NUM_PENDING_HEARTBEAT_CLOSE");
+                    "NUM_ACTIVE_SESSIONS");
             return numActiveHeartbeats.intValue() == 0;
           }
         }, Constants.MINUTE_MS);

@@ -81,6 +81,8 @@ public abstract class AbstractLocalAlluxioCluster {
     // Disable HDFS client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
+    resetClientPools();
+
     setupTest();
     startMaster();
     getMaster().getInternalMaster().waitForReady();
@@ -89,7 +91,6 @@ public abstract class AbstractLocalAlluxioCluster {
       worker.waitForReady();
     }
 
-    resetClientPools();
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
   }
@@ -167,7 +168,6 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
-    resetClientPools();
     stopFS();
     stopUFS();
     ConfigurationTestUtils.resetConfiguration();
