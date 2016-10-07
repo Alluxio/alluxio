@@ -76,9 +76,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Threshold to do multipart copy. */
   private static final long MULTIPART_COPY_THRESHOLD = 100 * Constants.MB;
 
-  /** Minimum size of each copy part. */
-  private static final long MULTIPART_COPY_SIZE = 5 * Constants.MB;
-
   /** AWS-SDK S3 client. */
   private final AmazonS3Client mClient;
 
@@ -159,7 +156,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
-    transferConf.setMultipartCopyPartSize(MULTIPART_COPY_SIZE);
     transferManager.setConfiguration(transferConf);
 
     String accountOwnerId = amazonS3Client.getS3AccountOwner().getId();

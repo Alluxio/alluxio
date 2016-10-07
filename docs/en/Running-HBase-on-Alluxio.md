@@ -55,7 +55,7 @@ There are two ways to achieve that:
 
 - Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
   `lib` directory of HBase.
-- Specify the location of the jar file in the `HBASE_CLASSPATH` environment variable (make sure it's available
+- Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
 on all cluster nodes). For example:
 
 ```bash
