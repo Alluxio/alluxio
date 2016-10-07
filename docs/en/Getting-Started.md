@@ -363,7 +363,7 @@ There are many Under storage systems that can be accessed through Alluxio.
 * [Alluxio with Swift](Configuring-Alluxio-with-Swift.html)
 * [Alluxio with GlusterFS](Configuring-Alluxio-with-GlusterFS.html)
 * [Alluxio with HDFS](Configuring-Alluxio-with-HDFS.html)
-* [Alluxio with MapRFS](Configuring-Alluxio-with-MapR-FS.html)
+* [Alluxio with MapR-FS](Configuring-Alluxio-with-MapR-FS.html)
 * [Alluxio with Secure HDFS](Configuring-Alluxio-with-secure-HDFS.html)
 * [Alluxio with OSS](Configuring-Alluxio-with-OSS.html)
 * [Alluxio with NFS](Configuring-Alluxio-with-NFS.html)
