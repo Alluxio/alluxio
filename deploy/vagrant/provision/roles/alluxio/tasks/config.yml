@@ -15,6 +15,7 @@
 - name: set ufs related info in alluxio-env.sh
   script: roles/ufs_{{ ufs }}/files/config_alluxio.sh
   environment:
+    ALLUXIO_VERSION_LESSTHAN_1_1: "{{ alluxio_version_lessthan_1_1 }}"
     S3_BUCKET: "{{ s3_bucket }}"
     S3_ID: "{{ s3_id }}"
     S3_KEY: "{{ s3_key }}"
@@ -49,12 +50,21 @@
     dest=/alluxio/conf/alluxio-env.sh
     regexp='^export ALLUXIO_WORKER_MEMORY_SIZE=.*'
     replace='export ALLUXIO_WORKER_MEMORY_SIZE={{ alluxio_memory }}'
+  when: alluxio_version_lessthan_1_1
+
+- name: set worker memory in alluxio-env.sh
+  replace: >
+    dest=/alluxio/conf/alluxio-env.sh
+    regexp='^ALLUXIO_WORKER_MEMORY_SIZE=.*'
+    replace='ALLUXIO_WORKER_MEMORY_SIZE={{ alluxio_memory }}'
+  when: not alluxio_version_lessthan_1_1
 
 - name: let alluxio ssh to workers in parallel when start
   replace: >
     dest=/alluxio/conf/alluxio-env.sh
     regexp='ALLUXIO_SSH_FOREGROUND="yes"'
     replace='ALLUXIO_SSH_FOREGROUND=""'
+  when: alluxio_version_lessthan_1_1
 
 - name: set ALLUXIO_JAR in libexec/alluxio-config.sh
   script: alluxio_jar.sh
