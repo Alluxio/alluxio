@@ -27,7 +27,7 @@ from the top level `alluxio` directory with the following command:
 
 {% include Running-Spark-on-Alluxio/spark-profile-build.md %}
 
-* Add the following line to `spark/conf/spark-env.sh`.
+* Add the following line to `spark/conf/spark-defaults.conf`.
 
 {% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
 
@@ -43,7 +43,7 @@ add the following additionally entry to the previously created `spark/conf/core-
 
 {% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-xml.md %}
 
-and the following line to `spark/conf/spark-env.sh`:
+and the following line to `spark/conf/spark-defaults.conf`:
 
 {% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-bash.md %}
 

@@ -63,6 +63,7 @@ import java.util.concurrent.Future;
  *
  * For example, (concurrently) creating/deleting/renaming files.
  */
+@Ignore("TODO(chaomin, pei): re-enable this test once the heartbeat thread issue is fixed.")
 public class FileSystemMasterIntegrationTest {
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;

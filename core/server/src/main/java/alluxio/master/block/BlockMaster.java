@@ -44,7 +44,8 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
-import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -70,8 +71,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -180,8 +179,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param journal the journal to use for tracking master operations
    */
   public BlockMaster(Journal journal) {
-    super(journal, new SystemClock(), Executors.newFixedThreadPool(2,
-        ThreadFactoryUtils.build("BlockMaster-%d", true)));
+    super(journal, new SystemClock(), ExecutorServiceFactories
+        .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
+
     Metrics.registerGauges(this);
   }
 
@@ -190,12 +190,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    *
    * @param journal the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
-   * @param executorService the executor service to use for launching maintenance threads; the
-   *        {@link BlockMaster} becomes the owner of the executorService and will shut it down when
-   *        the master stops
+   * @param executorServiceFactory a factory for creating the executor service to use for
+   *        running maintenance threads
    */
-  public BlockMaster(Journal journal, Clock clock, ExecutorService executorService) {
-    super(journal, clock, executorService);
+  public BlockMaster(Journal journal, Clock clock, ExecutorServiceFactory executorServiceFactory) {
+    super(journal, clock, executorServiceFactory);
     Metrics.registerGauges(this);
   }
 
