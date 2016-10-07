@@ -373,7 +373,7 @@
             <argLine>-Djava.net.preferIPv4Stack=true -XX:MaxPermSize=512M</argLine>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <!-- Alphabetical order on even hours, reverse-alphabetical on odd hours  -->
-            <runOrder>hourly</runOrder>
+            <runOrder>reversealphabetical</runOrder>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>
