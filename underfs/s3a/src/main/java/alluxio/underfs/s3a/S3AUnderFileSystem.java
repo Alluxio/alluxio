@@ -315,10 +315,11 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getFileSize(String path) throws IOException {
-    ObjectMetadata details = getObjectDetails(path);
-    if (details != null) {
+    try {
+      ObjectMetadata details = mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path));
       return details.getContentLength();
-    } else {
+    } catch (AmazonClientException e) {
+      LOG.error("Error fetching file size, assuming file does not exist", e);
       throw new FileNotFoundException(path);
     }
   }

@@ -12,7 +12,7 @@ priority: 1
 # Where Alluxio Fits
 
 Because of Alluxio's memory centric design and being the central point of access, Alluxio holds a
-unique place in the big data ecosystem, residing between traditional storage such as Amazon S3,
+unique place in the big data ecosystem, residing between storage systems such as Amazon S3,
 Apache HDFS or OpenStack Swift and computation frameworks and applications such as Apache Spark or
 Hadoop MapReduce. For user applications and computation frameworks, Alluxio is the underlayer that
 manages data access and fast storage, facilitating data sharing and locality between jobs,
