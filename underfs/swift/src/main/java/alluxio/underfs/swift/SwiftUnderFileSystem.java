@@ -28,7 +28,7 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.AuthenticationMethod;
-import org.javaswift.joss.exception.NotFoundException;
+import org.javaswift.joss.exception.CommandException;
 import org.javaswift.joss.model.Access;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
@@ -351,7 +351,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean isFile(String path) throws IOException {
     String pathAsFile = stripFolderSuffixIfPresent(path);
-    return getObject(pathAsFile).exists();
+    return doesObjectExist(pathAsFile);
   }
 
   @Override
@@ -570,7 +570,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         container.getObject(strippedSourcePath)
             .copyObject(container, container.getObject(strippedDestinationPath));
         return true;
-      } catch (NotFoundException e) {
+      } catch (CommandException e) {
         LOG.error("Source path {} does not exist", source);
         return false;
       } catch (Exception e) {
@@ -598,7 +598,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
 
     final String pathAsFolder = addFolderSuffixIfNotPresent(path);
-    return getObject(pathAsFolder).exists();
+    return doesObjectExist(pathAsFolder);
   }
 
   /**
@@ -711,6 +711,21 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
+   * Check if the object at given path exists. The object could be either a file or directory.
+   * @param path path of object
+   * @return true if the object exists
+   */
+  private boolean doesObjectExist(String path) {
+    boolean exist = false;
+    try {
+      exist = getObject(path).exists();
+    } catch (CommandException e) {
+      LOG.debug("Error getting object details for {}", path);
+    }
+    return exist;
+  }
+
+  /**
    * Deletes an object if it exists.
    *
    * @param object object handle to delete
@@ -720,7 +735,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     try {
       object.delete();
       return true;
-    } catch (NotFoundException e) {
+    } catch (CommandException e) {
       LOG.debug("Object {} not found", object.getPath());
     }
     return false;

@@ -21,6 +21,7 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
@@ -82,7 +83,8 @@ public class BlockMasterTest {
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mMaster = new BlockMaster(blockJournal, mClock, mExecutorService);
+    mMaster = new BlockMaster(blockJournal, mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mMaster.start(true);
   }
 

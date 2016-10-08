@@ -1,3 +1,4 @@
 ```bash
-export SPARK_CLASSPATH=/pathToAlluxio/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
+spark.driver.extraClassPath /pathToAlluxio/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
+spark.executor.extraClassPath /pathToAlluxio/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
 ```

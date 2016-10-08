@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * A rule for modifying Alluxio configuration during a test suite.
  */
-public class ConfigurationRule implements TestRule {
+public final class ConfigurationRule implements TestRule {
   private final Map<PropertyKey, String> mKeyValuePairs;
 
   /**

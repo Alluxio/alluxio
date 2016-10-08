@@ -74,6 +74,12 @@ public final class MetricsSystem {
    * Note: This has to be called after Alluxio configuration is initialized.
    */
   public static void startSinks() {
+    synchronized (MetricsSystem.class) {
+      if (sSinks != null) {
+        LOG.info("Sinks have already been started.");
+        return;
+      }
+    }
     String metricsConfFile = Configuration.get(PropertyKey.METRICS_CONF_FILE);
     if (metricsConfFile.isEmpty()) {
       LOG.info("Metrics is not enabled.");
@@ -90,7 +96,7 @@ public final class MetricsSystem {
    */
   public static synchronized void startSinksFromConfig(MetricsConfig config) {
     if (sSinks != null) {
-      LOG.warn("Sinks have already been started.");
+      LOG.info("Sinks have already been started.");
       return;
     }
     LOG.info("Starting sinks with config: {}.", config);
