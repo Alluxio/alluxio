@@ -50,9 +50,6 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
  * server.
- *
- * Since {@link alluxio.thrift.BlockWorkerClientService.Client} is not thread safe, this class
- * has to guarantee thread safety.
  */
 @ThreadSafe
 public final class RetryHandlingBlockWorkerClient
