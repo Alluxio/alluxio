@@ -73,9 +73,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Static hash for a directory's empty contents. */
   private static final String DIR_HASH;
 
-  /** Length of each list request in S3. */
-  private static final int LISTING_LENGTH = 1000;
-
   /** Threshold to do multipart copy. */
   private static final long MULTIPART_COPY_THRESHOLD = 100 * Constants.MB;
 
@@ -322,10 +319,11 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getFileSize(String path) throws IOException {
-    ObjectMetadata details = getObjectDetails(path);
-    if (details != null) {
+    try {
+      ObjectMetadata details = mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path));
       return details.getContentLength();
-    } else {
+    } catch (AmazonClientException e) {
+      LOG.error("Error fetching file size, assuming file does not exist", e);
       throw new FileNotFoundException(path);
     }
   }

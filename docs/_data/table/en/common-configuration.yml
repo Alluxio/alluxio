@@ -43,6 +43,9 @@ alluxio.underfs.hdfs.impl:
 alluxio.underfs.hdfs.prefixes:
   Optionally, specify which prefixes should run through the Apache Hadoop implementation of
   UnderFileSystem. The delimiter is any whitespace and/or ','.
+alluxio.underfs.listing.length:
+  The maximum number of directory entries to list in a single query to under file system. If the
+  total number of entries is greater than the specified length, multiple queries will be issued.
 alluxio.underfs.object.store.mount.shared.publicly:
   Whether or not to share object storage under storage system mounted point with all Alluxio users.
   Note that this configuration has no effect on HDFS nor local UFS. The default value is false.
