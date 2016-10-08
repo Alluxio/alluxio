@@ -50,9 +50,6 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Client for talking to a file system worker server. It keeps sending keep alive messages to the
  * worker server to preserve its state.
- *
- * Since {@link alluxio.thrift.FileSystemWorkerClientService} is not thread safe, this class
- * guarantees thread safety.
  */
 // TODO(calvin): Session logic can be abstracted
 @ThreadSafe
