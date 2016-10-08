@@ -125,13 +125,6 @@ public interface BlockWorkerClient extends Closeable {
   void sessionHeartbeat() throws IOException, InterruptedException;
 
   /**
-   * Called only by {@link BlockWorkerClientHeartbeatExecutor}, encapsulates
-   * {@link #sessionHeartbeat()} in order to handle the exceptions.
-   * @throws InterruptedException if this thread is interrupted
-   */
-  void periodicHeartbeat() throws InterruptedException;
-
-  /**
    * Closes the client.
    */
   @Override

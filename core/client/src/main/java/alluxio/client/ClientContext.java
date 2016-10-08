@@ -14,13 +14,10 @@ package alluxio.client;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Preconditions;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -30,8 +27,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class ClientContext {
-  private static ExecutorService sBlockClientExecutorService;
-  private static ExecutorService sFileClientExecutorService;
   private static InetSocketAddress sMasterAddress;
 
   static {
@@ -47,20 +42,6 @@ public final class ClientContext {
    * This method requires that configuration has been initialized.
    */
   public static void init() {
-    // If this is a re-initialization, we must shut down the previous executors.
-    if (sBlockClientExecutorService != null) {
-      sBlockClientExecutorService.shutdownNow();
-    }
-    sBlockClientExecutorService = Executors
-        .newFixedThreadPool(Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
-            ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-    if (sFileClientExecutorService != null) {
-      sFileClientExecutorService.shutdownNow();
-    }
-    sFileClientExecutorService = Executors
-        .newFixedThreadPool(Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_THREADS),
-            ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
-
     String masterHostname =
         Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
@@ -74,20 +55,6 @@ public final class ClientContext {
    */
   public static InetSocketAddress getMasterAddress() {
     return sMasterAddress;
-  }
-
-  /**
-   * @return the executor service for block clients
-   */
-  public static ExecutorService getBlockClientExecutorService() {
-    return sBlockClientExecutorService;
-  }
-
-  /**
-   * @return the executor service for file clients
-   */
-  public static ExecutorService getFileClientExecutorService() {
-    return sFileClientExecutorService;
   }
 
   private ClientContext() {} // prevent instantiation

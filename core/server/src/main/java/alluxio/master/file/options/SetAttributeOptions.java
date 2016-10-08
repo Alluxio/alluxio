@@ -173,8 +173,12 @@ public class SetAttributeOptions {
   /**
    * @param owner the owner to use
    * @return the updated options object
+   * @throws IllegalArgumentException if the owner is set to empty
    */
   public SetAttributeOptions setOwner(String owner) {
+    if (owner != null && owner.isEmpty()) {
+      throw new IllegalArgumentException("It is not allowed to set owner to empty.");
+    }
     mOwner = owner;
     return this;
   }
@@ -182,8 +186,12 @@ public class SetAttributeOptions {
   /**
    * @param group the group to use
    * @return the updated options object
+   * @throws IllegalArgumentException if the group is set to empty
    */
   public SetAttributeOptions setGroup(String group) {
+    if (group != null && group.isEmpty()) {
+      throw new IllegalArgumentException("It is not allowed to set group to empty");
+    }
     mGroup = group;
     return this;
   }

@@ -229,6 +229,9 @@ public enum PropertyKey {
   USER_FILE_SEEK_BUFFER_SIZE_BYTES(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES, "1MB"),
   USER_FILE_WAITCOMPLETED_POLL_MS(Name.USER_FILE_WAITCOMPLETED_POLL_MS, 1000),
   USER_FILE_WORKER_CLIENT_THREADS(Name.USER_FILE_WORKER_CLIENT_THREADS, 10),
+  USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX(Name.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX, 128),
+  USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS(
+      Name.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS),
   USER_FILE_WRITE_LOCATION_POLICY(Name.USER_FILE_WRITE_LOCATION_POLICY,
       "alluxio.client.file.policy.LocalFirstPolicy"),
   USER_FILE_WRITE_TYPE_DEFAULT(Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE"),
@@ -241,6 +244,7 @@ public enum PropertyKey {
   USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX, 1024),
   USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS(
       Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS),
+  USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED(Name.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED, false),
   USER_UFS_DELEGATION_ENABLED(Name.USER_UFS_DELEGATION_ENABLED, true),
   USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES,
       "8MB"),
@@ -617,6 +621,10 @@ public enum PropertyKey {
         "alluxio.user.file.waitcompleted.poll.ms";
     public static final String USER_FILE_WORKER_CLIENT_THREADS =
         "alluxio.user.file.worker.client.threads";
+    public static final String USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX =
+        "alluxio.user.file.worker.client.pool.size.max";
+    public static final String USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.file.worker.client.pool.gc.threshold.ms";
     public static final String USER_FILE_WRITE_LOCATION_POLICY =
         "alluxio.user.file.write.location.policy.class";
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
@@ -633,6 +641,8 @@ public enum PropertyKey {
         "alluxio.user.network.netty.channel.pool.size.max";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
         "alluxio.user.network.netty.channel.pool.gc.threshold.ms";
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
+        "alluxio.user.network.netty.channel.pool.disabled";
     public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
