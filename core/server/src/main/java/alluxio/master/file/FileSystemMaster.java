@@ -2603,10 +2603,7 @@ public final class FileSystemMaster extends AbstractMaster {
           if (path != null) {
             try {
               TtlAction ttlAction = file.getTtlAction();
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("File {} is expired. Performing action {}", file.getName(),
-                    ttlAction);
-              }
+              LOG.debug("File {} is expired. Performing action {}", file.getName(), ttlAction);
               switch (ttlAction) {
                 case FREE:
                   free(path, false);
