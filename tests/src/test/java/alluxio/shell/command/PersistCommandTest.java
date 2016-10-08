@@ -22,6 +22,7 @@ import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -65,6 +66,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     ConfigurationTestUtils.resetConfiguration();
   }
 
+  @Ignore
   @Test
   public void persistMultiFiles() throws Exception {
     String filePath1 = "/testPersist/testFile1";
@@ -88,6 +90,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
   /**
    * Tests persisting files and directories together in one persist command.
    */
+  @Ignore
   @Test
   public void persistMultiFilesAndDirs() throws Exception {
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
@@ -112,6 +115,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     ConfigurationTestUtils.resetConfiguration();
   }
 
+  @Ignore
   @Test
   public void persistNonexistentFile() throws Exception {
     // Cannot persist a nonexistent file
@@ -122,6 +126,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
         mOutput.toString());
   }
 
+  @Ignore
   @Test
   public void persistTwice() throws Exception {
     // Persisting an already-persisted file is okay
