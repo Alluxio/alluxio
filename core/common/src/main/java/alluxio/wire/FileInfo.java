@@ -520,7 +520,7 @@ public final class FileInfo implements Serializable {
         .add("pinned", mPinned).add("cacheable", mCacheable).add("persisted", mPersisted)
         .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
-        .add("mTtlAction", mTtlAction).add("owner", mOwner).add("group", mGroup).add("mode", mMode)
+        .add("ttlAction", mTtlAction).add("owner", mOwner).add("group", mGroup).add("mode", mMode)
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
         .add("fileBlockInfos", mFileBlockInfos).toString();
   }
