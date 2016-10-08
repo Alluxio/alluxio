@@ -490,7 +490,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
 
     if (isDirectory(destination)) {
-      // If destination is a directory target is a file or folder within that directory
+      // If the destination is a directory, the target path is a file or a folder within that directory
       strippedDestinationPath = PathUtils.concatPath(strippedDestinationPath,
           FilenameUtils.getName(stripFolderSuffixIfPresent(strippedSourcePath)));
     }
