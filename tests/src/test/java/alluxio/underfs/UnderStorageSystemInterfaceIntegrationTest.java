@@ -442,7 +442,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     AlluxioURI file1URI = rootAlluxioURI.join("file1");
     try {
-      client.createFile(file1URI, CreateFileOptions.defaults());
+      client.createFile(file1URI, CreateFileOptions.defaults()).close();
       Assert.fail("create is expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
       Assert.assertEquals(
@@ -451,7 +451,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     AlluxioURI file2URI = rootAlluxioURI.join("file2");
     try {
-      client.createFile(file2URI, CreateFileOptions.defaults());
+      client.createFile(file2URI, CreateFileOptions.defaults()).close();
       Assert.fail("create is expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
       Assert.assertEquals(
