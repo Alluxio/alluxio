@@ -120,7 +120,10 @@ public class S3AInputStream extends InputStream {
       return;
     }
     GetObjectRequest getReq = new GetObjectRequest(mBucketName, mKey);
-    getReq.setRange(mPos);
+    // If the position is 0, setting range is redundant and causes an error if the file is 0 length
+    if (mPos > 0) {
+      getReq.setRange(mPos);
+    }
     mIn = mClient.getObject(getReq).getObjectContent();
   }
 

@@ -208,8 +208,12 @@ public final class SetAttributeOptions {
   /**
    * @param owner to be set as the owner of a path
    * @return the updated options object
+   * @throws IllegalArgumentException if the owner is set to empty
    */
-  public SetAttributeOptions setOwner(String owner) {
+  public SetAttributeOptions setOwner(String owner) throws IllegalArgumentException {
+    if (owner != null && owner.isEmpty()) {
+      throw new IllegalArgumentException("It is not allowed to set owner to empty.");
+    }
     mOwner = owner;
     return this;
   }
@@ -217,8 +221,12 @@ public final class SetAttributeOptions {
   /**
    * @param group to be set as the group of a path
    * @return the updated options object
+   * @throws IllegalArgumentException if the group is set to empty
    */
-  public SetAttributeOptions setGroup(String group) {
+  public SetAttributeOptions setGroup(String group) throws IllegalArgumentException {
+    if (group != null && group.isEmpty()) {
+      throw new IllegalArgumentException("It is not allowed to set group to empty");
+    }
     mGroup = group;
     return this;
   }

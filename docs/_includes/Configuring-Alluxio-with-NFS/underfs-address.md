@@ -1,3 +1,3 @@
 ```bash
-ALLUXIO_UNDERFS_ADDRESS=/mnt/nfs
+alluxio.underfs.address=/mnt/nfs
 ```

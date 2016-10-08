@@ -45,6 +45,7 @@ import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
@@ -143,7 +144,8 @@ public final class FileSystemMasterTest {
     mBlockMaster = new BlockMaster(blockJournal);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal, mExecutorService);
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
