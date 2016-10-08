@@ -112,8 +112,9 @@ public class AlluxioScheduler implements Scheduler {
     long masterMem =
         Configuration.getBytes(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
     long workerCpu = Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
-    long workerMem =
+    long workerOverheadMem =
         Configuration.getBytes(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+    long ramdiskMem = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB;
 
     LOG.info("Master launched {}, master count {}, "
         + "requested master cpu {} mem {} MB and required master hostname {}",
@@ -181,10 +182,10 @@ public class AlluxioScheduler implements Scheduler {
       } else if (mMasterLaunched
           && !mWorkers.contains(offer.getHostname())
           && offerCpu >= workerCpu
-          && offerMem >= workerMem
+          && offerMem >= (ramdiskMem + workerOverheadMem)
           && OfferUtils.hasAvailableWorkerPorts(offer)) {
         LOG.debug("Creating Alluxio Worker executor");
-        final String memSize = FormatUtils.getSizeFromBytes((long) workerMem * Constants.MB);
+        final String memSize = FormatUtils.getSizeFromBytes((long) ramdiskMem * Constants.MB);
         executorBuilder
             .setName("Alluxio Worker Executor")
             .setSource("worker")
@@ -218,7 +219,7 @@ public class AlluxioScheduler implements Scheduler {
                                     .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
-        resources = getWorkerRequiredResources(workerCpu, workerMem);
+        resources = getWorkerRequiredResources(workerCpu, ramdiskMem + workerOverheadMem);
         mWorkers.add(offer.getHostname());
         mTaskName = Configuration.get(PropertyKey.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME);
       } else {

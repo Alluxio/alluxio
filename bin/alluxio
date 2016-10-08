@@ -44,13 +44,12 @@ function printUsage {
 }
 
 function bootstrapConf {
-  local usage="Usage: $0 bootstrapConf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift|oss]"
+  local usage="Usage: $0 bootstrapConf <alluxio_master_hostname>"
   if [[ $# -lt 1 ]]; then
     echo ${usage} >&2
     exit 1
   fi
   local master=${1}
-  local ufs=${2:-local}
 
   ALLUXIO_CONF_DIR="${BIN}/../conf"
   local dst="${ALLUXIO_CONF_DIR}/alluxio-env.sh"
@@ -82,41 +81,6 @@ function bootstrapConf {
   # Set the ramdisk folder
   ALLUXIO_RAM_FOLDER="${RAMDISK_FOLDER}"
 
-  # Set under storage specific configuration
-  case ${ufs} in
-    local)
-      ALLUXIO_UNDERFS_ADDRESS="\${ALLUXIO_HOME}/underFSStorage/"
-      ;;
-    hdfs)
-      ALLUXIO_UNDERFS_ADDRESS="hdfs://localhost:9000/alluxio/"
-      ;;
-    s3)
-      ALLUXIO_UNDERFS_ADDRESS="s3a://bucket/directory/"
-      ;;
-    s3a)
-      ALLUXIO_UNDERFS_ADDRESS="s3a://bucket/directory/"
-      ;;
-    s3n)
-      ALLUXIO_UNDERFS_ADDRESS="s3n://bucket/directory/"
-      ;;
-    gcs)
-      ALLUXIO_UNDERFS_ADDRESS="gs://bucket/directory/"
-      ;;
-    glusterfs)
-      ALLUXIO_UNDERFS_ADDRESS="/gluster_vol/"
-      ;;
-    swift)
-      ALLUXIO_UNDERFS_ADDRESS="swift://swift-container/"
-      ;;
-    oss)
-      ALLUXIO_UNDERFS_ADDRESS="oss://bucket/directory/"
-      ;;
-    *)
-      echo ${usage} >&2
-      exit 1
-      ;;
-  esac
-
   cat > ${dst} <<EOF
 #!/usr/bin/env bash
 #
@@ -136,7 +100,6 @@ function bootstrapConf {
 ALLUXIO_MASTER_HOSTNAME=\${ALLUXIO_MASTER_HOSTNAME:-"${ALLUXIO_MASTER_HOSTNAME}"}
 ALLUXIO_WORKER_MEMORY_SIZE=\${ALLUXIO_WORKER_MEMORY_SIZE:-"${ALLUXIO_WORKER_MEMORY_SIZE}"}
 ALLUXIO_RAM_FOLDER=\${ALLUXIO_RAM_FOLDER:-"${ALLUXIO_RAM_FOLDER}"}
-ALLUXIO_UNDERFS_ADDRESS=\${ALLUXIO_UNDERFS_ADDRESS:-"${ALLUXIO_UNDERFS_ADDRESS}"}
 EOF
 
   echo "${dst} is created."
