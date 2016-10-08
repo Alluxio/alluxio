@@ -45,6 +45,7 @@ public enum PropertyKey {
   // UFS related properties
   //
   UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, "${alluxio.work.dir}/underFSStorage"),
+  UNDERFS_LISTING_LENGTH(Name.UNDERFS_LISTING_LENGTH, 1000),
   UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ""),
   UNDERFS_GLUSTERFS_IMPL(Name.UNDERFS_GLUSTERFS_IMPL,
       "org.apache.hadoop.fs.glusterfs.GlusterFileSystem"),
@@ -150,7 +151,7 @@ public enum PropertyKey {
       "alluxio.worker.block.allocator.MaxFreeAllocator"),
   WORKER_BIND_HOST(Name.WORKER_BIND_HOST, "0.0.0.0"),
   WORKER_BLOCK_HEARTBEAT_INTERVAL_MS(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 1000),
-  WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, 10000),
+  WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, 60000),
   WORKER_BLOCK_THREADS_MAX(Name.WORKER_BLOCK_THREADS_MAX, 2048),
   WORKER_BLOCK_THREADS_MIN(Name.WORKER_BLOCK_THREADS_MIN, 256),
   WORKER_DATA_BIND_HOST(Name.WORKER_DATA_BIND_HOST, "0.0.0.0"),
@@ -183,7 +184,7 @@ public enum PropertyKey {
   WORKER_NETWORK_NETTY_WORKER_THREADS(Name.WORKER_NETWORK_NETTY_WORKER_THREADS, 0),
   WORKER_PRINCIPAL(Name.WORKER_PRINCIPAL, null),
   WORKER_RPC_PORT(Name.WORKER_RPC_PORT, 29998),
-  WORKER_SESSION_TIMEOUT_MS(Name.WORKER_SESSION_TIMEOUT_MS, 10000),
+  WORKER_SESSION_TIMEOUT_MS(Name.WORKER_SESSION_TIMEOUT_MS, 60000),
   WORKER_TIERED_STORE_BLOCK_LOCKS(Name.WORKER_TIERED_STORE_BLOCK_LOCKS, 1000),
   WORKER_TIERED_STORE_LEVEL0_ALIAS(Name.WORKER_TIERED_STORE_LEVEL0_ALIAS, "MEM"),
   WORKER_TIERED_STORE_LEVEL0_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, "/mnt/ramdisk"),
@@ -300,7 +301,7 @@ public enum PropertyKey {
       "AlluxioWorker"),
   INTEGRATION_MESOS_JDK_PATH(Name.INTEGRATION_MESOS_JDK_PATH, "jdk1.7.0_79"),
   INTEGRATION_MESOS_JDK_URL(Name.INTEGRATION_MESOS_JDK_URL,
-      "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-linux-x64.tar.gz"),
+      "https://alluxio-mesos.s3.amazonaws.com/jdk-7u79-linux-x64.tar.gz"),
   INTEGRATION_MESOS_PRINCIPAL(Name.INTEGRATION_MESOS_PRINCIPAL, "alluxio"),
   INTEGRATION_MESOS_ROLE(Name.INTEGRATION_MESOS_ROLE, "*"),
   INTEGRATION_MESOS_SECRET(Name.INTEGRATION_MESOS_SECRET, null),
@@ -369,6 +370,7 @@ public enum PropertyKey {
     // UFS related properties
     //
     public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
+    public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
     public static final String UNDERFS_GLUSTERFS_IMPL = "alluxio.underfs.glusterfs.impl";
