@@ -30,6 +30,13 @@ alluxio.underfs.hdfs.impl:
   作为底层存储系统的hdfs的实现类。
 alluxio.underfs.hdfs.prefixes:
   可选配置项，指定以哪些前缀开头的文件应该存放在Apache Hadoop底层文件系统。分隔符为任何空白符或者','。
+alluxio.underfs.listing.length:
+  底层文件系统在一次查询中可以列出的目录条目的最大数量。如果条目数量大于指定长度，则需要多次查询才能列出。
+alluxio.underfs.object.store.mount.shared.publicly:
+  是否对所有Alluxio用户共享挂载的对象存储系统。
+  注意，该配置对HDFS或者本地文件系统没有任何影响。默认值是false。
+alluxio.underfs.s3.owner.id.to.username.mapping:
+  可选配置项，指定一个预设的s3规范ID作为Alluxio用户名的静态映射，格式为“id1=user1;id2=user2”。AWS的s3规范ID可以在控制台地址https://console.aws.amazon.com/iam/home?#security_credential找到。请展开“Account Identifiers”选项卡，并参考“Canonical User ID”。
 alluxio.underfs.s3.endpoint:
   可选配置项，在组织AWS服务请求的时候可以指定某个区域地址来降低数据延迟或者访问某些隔离在不同AWS Region的资源。
   一个endpoint是某个服务的一个入口地址。举例，s3.cn-north-1.amazonaws.com.cn 就是一个北京区域的亚马逊S3服务的一个endpoing。
