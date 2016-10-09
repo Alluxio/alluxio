@@ -23,7 +23,7 @@ import java.util.Locale;
 /**
  * Provides a fake {@link RateLimiter} to facilitate testing. Note that in Guava 14.0 the
  * {@link RateLimiter$SleepingTicker} class is package private, so this fake rate limiter has to
- * be in the same package to be able to extend it. Later version of Guava makes it public, so this
+ * be in the same package to be able to extend it. Later versions of Guava makes it public, so this
  * can be moved to a package belongs to alluxio when updating to a newer version of Guava.
  */
 public final class MockRateLimiter {
