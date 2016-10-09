@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import java.util.Map;
  * Configurations properties constants. Please check and update Configuration-Settings.md file when
  * you change or add Alluxio configuration properties.
  */
+@ThreadSafe
 public enum PropertyKey {
   CONF_DIR(Name.CONF_DIR, "${alluxio.home}/conf"),
   DEBUG(Name.DEBUG, false),
