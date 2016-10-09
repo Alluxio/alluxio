@@ -89,7 +89,7 @@ public interface FieldIndex<T> extends Iterable<T> {
   Iterator<T> iterator();
 
   /**
-   * @return the number of objects in this indexed set
+   * @return the number of objects in this index set
    */
   int size();
 }
