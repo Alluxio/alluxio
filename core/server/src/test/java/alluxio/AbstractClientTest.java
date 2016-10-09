@@ -11,7 +11,8 @@
 
 package alluxio;
 
-import alluxio.exception.ExceptionMessage;
+import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
+
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioService.Client;
 
@@ -19,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
+
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -65,11 +67,12 @@ public final class AbstractClientTest {
     final AlluxioService.Client thriftClient = Mockito.mock(AlluxioService.Client.class);
     Mockito.when(thriftClient.getServiceVersion()).thenReturn(1L);
     mExpectedException.expect(IOException.class);
-    mExpectedException.expectMessage(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(SERVICE_NAME,
-        0, 1));
-    TestClient client = new TestClient();
-    client.checkVersion(thriftClient, 0);
-    Assert.fail("checkVersion() should fail");
+    mExpectedException.expectMessage(INCOMPATIBLE_VERSION.getMessage(SERVICE_NAME, 0, 1));
+
+    try (TestClient client = new TestClient();) {
+      client.checkVersion(thriftClient, 0);
+      Assert.fail("checkVersion() should fail");
+    }
   }
 
   @Test
