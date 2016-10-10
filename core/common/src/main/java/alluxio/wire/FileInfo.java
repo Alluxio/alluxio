@@ -44,6 +44,7 @@ public final class FileInfo implements Serializable {
   private int mInMemoryPercentage;
   private long mLastModificationTimeMs;
   private long mTtl;
+  private TtlAction mTtlAction;
   private String mOwner = "";
   private String mGroup = "";
   private int mMode;
@@ -78,6 +79,7 @@ public final class FileInfo implements Serializable {
     mInMemoryPercentage = fileInfo.getInMemoryPercentage();
     mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
     mTtl = fileInfo.getTtl();
+    mTtlAction = ThriftUtils.fromThrift(fileInfo.getTtlAction());
     mOwner = fileInfo.getOwner();
     mGroup = fileInfo.getGroup();
     mMode = fileInfo.getMode();
@@ -201,6 +203,13 @@ public final class FileInfo implements Serializable {
    */
   public long getTtl() {
     return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
   }
 
   /**
@@ -394,6 +403,15 @@ public final class FileInfo implements Serializable {
   }
 
   /**
+   * @param ttlAction the {@link TtlAction} to use
+   * @return the updated options object
+   */
+  public FileInfo setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
+    return this;
+  }
+
+  /**
    * @param owner the file owner
    * @return the file descriptor
    */
@@ -458,10 +476,11 @@ public final class FileInfo implements Serializable {
     for (FileBlockInfo fileBlockInfo : mFileBlockInfos) {
       fileBlockInfos.add(fileBlockInfo.toThrift());
     }
+
     return new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
-        mPersistenceState, mMountPoint, fileBlockInfos);
+        mPersistenceState, mMountPoint, fileBlockInfos, ThriftUtils.toThrift(mTtlAction));
   }
 
   @Override
@@ -477,21 +496,20 @@ public final class FileInfo implements Serializable {
         && mUfsPath.equals(that.mUfsPath) && mLength == that.mLength
         && mBlockSizeBytes == that.mBlockSizeBytes && mCreationTimeMs == that.mCreationTimeMs
         && mCompleted == that.mCompleted && mFolder == that.mFolder && mPinned == that.mPinned
-        && mCacheable == that.mCacheable && mPersisted == that.mPersisted && mBlockIds
-        .equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
-        && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl && mOwner
-        .equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
+        && mCacheable == that.mCacheable && mPersisted == that.mPersisted
+        && mBlockIds.equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
+        && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl
+        && mOwner.equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
-        && mFileBlockInfos.equals(that.mFileBlockInfos);
+        && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction;
   }
 
   @Override
   public int hashCode() {
-    return Objects
-        .hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes, mCreationTimeMs,
-            mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds, mInMemoryPercentage,
-            mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode, mPersistenceState, mMountPoint,
-            mFileBlockInfos);
+    return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
+        mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
+        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
+        mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction);
   }
 
   @Override
@@ -502,7 +520,7 @@ public final class FileInfo implements Serializable {
         .add("pinned", mPinned).add("cacheable", mCacheable).add("persisted", mPersisted)
         .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
-        .add("owner", mOwner).add("group", mGroup).add("mode", mMode)
+        .add("ttlAction", mTtlAction).add("owner", mOwner).add("group", mGroup).add("mode", mMode)
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
         .add("fileBlockInfos", mFileBlockInfos).toString();
   }

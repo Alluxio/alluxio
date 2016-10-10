@@ -54,6 +54,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.google.protobuf.Message;
@@ -273,13 +274,15 @@ public final class LineageMaster extends AbstractMaster {
    * @param path the path to the file
    * @param blockSizeBytes the block size
    * @param ttl the TTL
+   * @param ttlAction action to perform on ttl expiry
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
    * @throws LineageDoesNotExistException when the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
-  public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
+  public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl,
+      TtlAction ttlAction)
       throws InvalidPathException, LineageDoesNotExistException, AccessControlException,
       FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
@@ -288,7 +291,8 @@ public final class LineageMaster extends AbstractMaster {
       fileInfo = mFileSystemMaster.getFileInfo(fileId);
       if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
         LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
-        return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl);
+        return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl,
+            ttlAction);
       }
     } catch (FileDoesNotExistException e) {
       throw new LineageDoesNotExistException(

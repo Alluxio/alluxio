@@ -28,6 +28,7 @@ import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
+import alluxio.proto.journal.File.PTtlAction;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue.CompletePartitionEntry;
 import alluxio.proto.journal.KeyValue.CompleteStoreEntry;
@@ -130,6 +131,7 @@ public abstract class AbstractJournalFormatterTest {
                     Range.closedOpen(TEST_BLOCK_ID, TEST_BLOCK_ID + 10), DiscreteDomain.longs())
                     .asList())
                 .setTtl(Constants.NO_TTL)
+                .setTtlAction(PTtlAction.DELETE)
                 .setOwner(TEST_PERMISSION.getOwner())
                 .setGroup(TEST_PERMISSION.getGroup())
                 .setMode(TEST_PERMISSION.getMode().toShort()))
@@ -195,7 +197,8 @@ public abstract class AbstractJournalFormatterTest {
             .setReinitializeFile(ReinitializeFileEntry.newBuilder()
                 .setPath(TEST_FILE_NAME)
                 .setBlockSizeBytes(TEST_BLOCK_SIZE_BYTES)
-                .setTtl(TEST_TTL))
+                .setTtl(TEST_TTL)
+                .setTtlAction(PTtlAction.DELETE))
             .build())
         .add(
             JournalEntry.newBuilder()
@@ -229,6 +232,7 @@ public abstract class AbstractJournalFormatterTest {
                     .setPinned(true)
                     .setPersisted(true)
                     .setTtl(TEST_TTL)
+                    .setTtlAction(PTtlAction.DELETE)
                     .setOwner(TEST_PERMISSION.getOwner())
                     .setGroup(TEST_PERMISSION.getGroup())
                     .setPermission(TEST_PERMISSION.getMode().toShort()))

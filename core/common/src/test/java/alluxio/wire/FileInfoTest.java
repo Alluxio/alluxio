@@ -55,6 +55,7 @@ public class FileInfoTest {
     Assert.assertEquals(a.getInMemoryPercentage(), b.getInMemoryPercentage());
     Assert.assertEquals(a.getLastModificationTimeMs(), b.getLastModificationTimeMs());
     Assert.assertEquals(a.getTtl(), b.getTtl());
+    Assert.assertEquals(a.getTtlAction(), b.getTtlAction());
     Assert.assertEquals(a.getOwner(), b.getOwner());
     Assert.assertEquals(a.getGroup(), b.getGroup());
     Assert.assertEquals(a.getMode(), b.getMode());
@@ -115,6 +116,7 @@ public class FileInfoTest {
     result.setInMemoryPercentage(inMemoryPercentage);
     result.setLastModificationTimeMs(lastModificationTimeMs);
     result.setTtl(ttl);
+    result.setTtlAction(TtlAction.DELETE);
     result.setOwner(userName);
     result.setGroup(groupName);
     result.setMode(permission);
