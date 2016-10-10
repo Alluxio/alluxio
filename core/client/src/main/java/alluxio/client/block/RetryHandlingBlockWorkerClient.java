@@ -77,7 +77,7 @@ public final class RetryHandlingBlockWorkerClient
   private ScheduledFuture<?> mHeartbeat = null;
 
   /** Whether the session ID has been registered to the worker or not. */
-  private volatile boolean sessionRegistered = false;
+  private volatile boolean mSessionRegistered = false;
 
   /**
    * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session Id is
@@ -302,6 +302,7 @@ public final class RetryHandlingBlockWorkerClient
     } finally {
       BlockStoreContext.releaseBlockWorkerThriftClientHeartbeat(mRpcAddress, client);
     }
+    mSessionRegistered = true;
     Metrics.BLOCK_WORKER_HEATBEATS.inc();
   }
 
@@ -312,7 +313,7 @@ public final class RetryHandlingBlockWorkerClient
    * @throws IOException if it fails to register the session with the worker specified
    */
   private void maybeRegisterSession() throws IOException {
-    if (sessionRegistered || mSessionId == null) {
+    if (mSessionRegistered || mSessionId == null) {
       return;
     }
     // Register the session before any RPCs for this session start.

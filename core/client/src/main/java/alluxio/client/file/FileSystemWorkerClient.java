@@ -86,7 +86,7 @@ public class FileSystemWorkerClient
   private ScheduledFuture<?> mHeartbeat = null;
 
   /** Whether the session ID has been registered to the worker or not. */
-  private volatile boolean sessionRegistered = false;
+  private volatile boolean mSessionRegistered = false;
 
   /**
    * Constructor for a client that communicates with the {@link FileSystemWorkerClientService}.
@@ -280,7 +280,7 @@ public class FileSystemWorkerClient
     } finally {
       releaseInternal(client, HEARTBEAT_CLIENT_POOLS);
     }
-    sessionRegistered = true;
+    mSessionRegistered = true;
   }
 
   /**
@@ -346,7 +346,7 @@ public class FileSystemWorkerClient
    * @throws IOException if it fails to register the session with the worker specified
    */
   private void maybeRegisterSession() throws IOException {
-    if (sessionRegistered) {
+    if (mSessionRegistered) {
       return;
     }
     // Register the session before any RPCs for this session start.
