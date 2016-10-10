@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
- * "License"). You may not use this work except in compliance with the License, which is available
- * at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -40,6 +40,15 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
+import alluxio.web.MasterUIWebServer;
+import alluxio.RuntimeConstants;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.journal.Journal;
+import alluxio.wire.WorkerInfo;
+
+import org.junit.Test;
+import org.junit.Before;
+
 import javax.ws.rs.core.Response;
 import javax.servlet.ServletContext;
 
@@ -68,8 +77,8 @@ public class AlluxioMasterRestServiceHandlerTest {
     mBlockMaster = new BlockMaster(journal);
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
     when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
-    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
-        mMaster);
+    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
+        .thenReturn(mMaster);
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
   }
 
@@ -228,7 +237,6 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertTrue("Entry must be a List!", (response.getEntity() instanceof List));
-    @SuppressWarnings("unchecked")
     List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
     assertTrue(entry.isEmpty());
   }
