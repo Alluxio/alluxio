@@ -55,8 +55,8 @@ import javax.servlet.ServletContext;
 /**
  * Unit tests for {@link AlluxioMasterRestServiceHandler}.
  */
-
 public class AlluxioMasterRestServiceHandlerTest {
+
   private AlluxioMaster mMaster;
   private ServletContext mContext;
   private BlockMaster mBlockMaster;
@@ -239,7 +239,6 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertTrue("Entry must be a List!", (response.getEntity() instanceof List));
-    @SuppressWarnings("unchecked")
     List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
     assertTrue(entry.isEmpty());
   }
