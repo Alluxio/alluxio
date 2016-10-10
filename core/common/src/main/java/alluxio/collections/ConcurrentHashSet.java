@@ -134,7 +134,7 @@ public final class ConcurrentHashSet<T> extends AbstractSet<T> {
 
   @Override
   public Object[] toArray() {
-    return mMap.keySet().toArray(); ConcurrentHashSet.java
+    return mMap.keySet().toArray();
   }
 
   @Override
