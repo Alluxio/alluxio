@@ -11,6 +11,7 @@
 
 package alluxio.security;
 
+import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerClient;
@@ -23,10 +24,11 @@ import org.apache.thrift.transport.TTransportException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -35,8 +37,8 @@ import java.io.IOException;
  * KERBEROS.
  */
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
-@Ignore
 public final class BlockWorkerClientAuthenticationIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
@@ -94,6 +96,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
     try (BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
         mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake
         session id */)) {
+      blockWorkerClient.sessionHeartbeat();
       // Just to supress the "Empty try block" warning in CheckStyle.
       failedToConnect = false;
     } catch (IOException e) {
@@ -110,10 +113,10 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
    * Tests Alluxio Worker client connects or disconnects to the Worker.
    */
   private void authenticationOperationTest() throws Exception {
-    RetryHandlingBlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake session id */);
-
-    blockWorkerClient.close();
+    try (RetryHandlingBlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake session id */)) {
+      blockWorkerClient.sessionHeartbeat();
+    }
   }
 
   private void clearLoginUser() throws Exception {
