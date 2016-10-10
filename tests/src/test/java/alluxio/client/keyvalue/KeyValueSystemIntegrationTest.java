@@ -24,10 +24,10 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -41,7 +41,6 @@ import java.util.List;
 /**
  * Integration tests for {@link KeyValueSystem}.
  */
-@Ignore
 public final class KeyValueSystemIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final String BASE_KEY = "base_key";
@@ -59,8 +58,8 @@ public final class KeyValueSystemIntegrationTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-  @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+  @ClassRule
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, Constants.GB)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
@@ -68,14 +67,14 @@ public final class KeyValueSystemIntegrationTest {
           .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true")
           .build();
 
-  @Before
-  public void before() throws Exception {
+  @BeforeClass
+  public static void beforeClass() throws Exception {
     sKeyValueSystem = KeyValueSystem.Factory.create();
-    mStoreUri = new AlluxioURI(PathUtils.uniqPath());
   }
 
-  @After
-  public void after() throws Exception {
+  @Before
+  public void before() throws Exception {
+    mStoreUri = new AlluxioURI(PathUtils.uniqPath());
   }
 
   /**
@@ -304,18 +303,18 @@ public final class KeyValueSystemIntegrationTest {
    */
   private AlluxioURI createStoreOfSize(int size, List<KeyValuePair> pairs) throws Exception {
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
-    try (KeyValueStoreWriter writer = sKeyValueSystem.createStore(path)) {
-      for (int i = 0; i < size; i++) {
-        byte[] key = genBaseKey(i).getBytes();
-        byte[] value = genBaseValue(i).getBytes();
-        writer.put(key, value);
-        if (pairs != null) {
-          pairs.add(new KeyValuePair(key, value));
-        }
+    KeyValueStoreWriter writer = sKeyValueSystem.createStore(path);
+    for (int i = 0; i < size; i++) {
+      byte[] key = genBaseKey(i).getBytes();
+      byte[] value = genBaseValue(i).getBytes();
+      writer.put(key, value);
+      if (pairs != null) {
+        pairs.add(new KeyValuePair(key, value));
       }
-
-      Assert.assertEquals(size, sKeyValueSystem.openStore(path).size());
     }
+    writer.close();
+
+    Assert.assertEquals(size, sKeyValueSystem.openStore(path).size());
 
     return path;
   }
