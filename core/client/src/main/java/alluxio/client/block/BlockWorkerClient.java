@@ -49,7 +49,7 @@ public interface BlockWorkerClient extends Closeable {
   /**
    * Notifies worker that the block has been cancelled.
    *
-   * @param blockId The Id of the block to be cancelled
+   * @param blockId The ID of the block to be cancelled
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
