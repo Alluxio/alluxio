@@ -144,7 +144,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void accessBlock(final long blockId) throws IOException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client) throws TException {
@@ -156,7 +156,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void cacheBlock(final long blockId) throws IOException, AlluxioException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client)
@@ -169,7 +169,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void cancelBlock(final long blockId) throws IOException, AlluxioException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client)
@@ -193,7 +193,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public LockBlockResult lockBlock(final long blockId) throws IOException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
       return retryRPC(
@@ -229,7 +229,7 @@ public final class RetryHandlingBlockWorkerClient
   @Override
   public String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     try {
       return retryRPC(
           new RpcCallableThrowsAlluxioTException<String, BlockWorkerClientService.Client>() {
@@ -249,7 +249,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public boolean requestSpace(final long blockId, final long requestBytes) throws IOException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     try {
       boolean success = retryRPC(
           new RpcCallableThrowsAlluxioTException<Boolean, BlockWorkerClientService.Client>() {
@@ -271,7 +271,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public boolean unlockBlock(final long blockId) throws IOException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     return retryRPC(new RpcCallable<Boolean, BlockWorkerClientService.Client>() {
       @Override
       public Boolean call(BlockWorkerClientService.Client client) throws TException {
@@ -312,7 +312,7 @@ public final class RetryHandlingBlockWorkerClient
    *
    * @throws IOException if it fails to register the session with the worker specified
    */
-  private void maybeRegisterSession() throws IOException {
+  private void ensureSessionRegistered() throws IOException {
     if (mSessionRegistered || mSessionId == null) {
       return;
     }

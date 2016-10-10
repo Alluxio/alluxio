@@ -152,7 +152,7 @@ public class FileSystemWorkerClient
    */
   public void cancelUfsFile(final long tempUfsFileId, final CancelUfsFileOptions options)
       throws AlluxioException, IOException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, FileSystemWorkerClientService.Client>() {
       @Override
       public Void call(FileSystemWorkerClientService.Client client)
@@ -174,7 +174,7 @@ public class FileSystemWorkerClient
    */
   public void closeUfsFile(final long tempUfsFileId, final CloseUfsFileOptions options)
       throws AlluxioException, IOException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, FileSystemWorkerClientService.Client>() {
       @Override
       public Void call(FileSystemWorkerClientService.Client client)
@@ -197,7 +197,7 @@ public class FileSystemWorkerClient
    */
   public long completeUfsFile(final long tempUfsFileId, final CompleteUfsFileOptions options)
       throws AlluxioException, IOException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     return retryRPC(
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {
           @Override
@@ -219,7 +219,7 @@ public class FileSystemWorkerClient
    */
   public long createUfsFile(final AlluxioURI path, final CreateUfsFileOptions options)
       throws AlluxioException, IOException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     return retryRPC(
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {
           @Override
@@ -248,7 +248,7 @@ public class FileSystemWorkerClient
    */
   public long openUfsFile(final AlluxioURI path, final OpenUfsFileOptions options)
       throws AlluxioException, IOException {
-    maybeRegisterSession();
+    ensureSessionRegistered();
     return retryRPC(
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {
           @Override
@@ -345,7 +345,7 @@ public class FileSystemWorkerClient
    *
    * @throws IOException if it fails to register the session with the worker specified
    */
-  private void maybeRegisterSession() throws IOException {
+  private void ensureSessionRegistered() throws IOException {
     if (mSessionRegistered) {
       return;
     }
