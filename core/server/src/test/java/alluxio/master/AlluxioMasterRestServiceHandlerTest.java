@@ -35,8 +35,8 @@ import javax.servlet.ServletContext;
 /**
  * Unit tests for {@link AlluxioMasterRestServiceHandler}.
  */
-
 public class AlluxioMasterRestServiceHandlerTest {
+
   private AlluxioMaster mMaster;
   private ServletContext mContext;
   private BlockMaster mBlockMaster;
@@ -49,8 +49,8 @@ public class AlluxioMasterRestServiceHandlerTest {
     Journal journal = mock(Journal.class);
     mBlockMaster = new BlockMaster(journal);
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
-    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
-        mMaster);
+    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
+        .thenReturn(mMaster);
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
   }
 
@@ -92,7 +92,6 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertTrue("Entry must be a List!", (response.getEntity() instanceof List));
-    @SuppressWarnings("unchecked")
     List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
     assertTrue(entry.isEmpty());
   }
