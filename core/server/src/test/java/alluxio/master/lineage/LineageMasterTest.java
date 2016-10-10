@@ -28,6 +28,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
@@ -179,8 +180,9 @@ public final class LineageMasterTest {
     mLineageMaster.start(true);
     mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
-    mLineageMaster.reinitializeFile("/test1", 500L, 10L);
-    Mockito.verify(mFileSystemMaster).reinitializeFile(new AlluxioURI("/test1"), 500L, 10L);
+    mLineageMaster.reinitializeFile("/test1", 500L, 10L, TtlAction.DELETE);
+    Mockito.verify(mFileSystemMaster).reinitializeFile(new AlluxioURI("/test1"), 500L, 10L,
+        TtlAction.DELETE);
   }
 
   /**

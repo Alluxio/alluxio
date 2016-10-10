@@ -39,6 +39,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -654,15 +655,18 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param inodePath the path to the file
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
+   * @param ttlAction action to perform after TTL expiry
    * @return the file id
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the path does not exist
    */
-  public long reinitializeFile(LockedInodePath inodePath, long blockSizeBytes, long ttl)
+  public long reinitializeFile(LockedInodePath inodePath, long blockSizeBytes, long ttl,
+      TtlAction ttlAction)
       throws InvalidPathException, FileDoesNotExistException {
     InodeFile file = inodePath.getInodeFile();
     file.setBlockSizeBytes(blockSizeBytes);
     file.setTtl(ttl);
+    file.setTtlAction(ttlAction);
     return file.getId();
   }
 
