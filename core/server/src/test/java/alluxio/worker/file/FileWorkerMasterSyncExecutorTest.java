@@ -40,7 +40,7 @@ public final class FileWorkerMasterSyncExecutorTest {
     mFileDataManager = Mockito.mock(FileDataManager.class);
     mFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
     mFileWorkerMasterSyncExecutor = new FileWorkerMasterSyncExecutor(mFileDataManager,
-        mFileSystemMasterClient, new AtomicReference<Long>(10L));
+        mFileSystemMasterClient, new AtomicReference<>(10L));
   }
 
   /**
@@ -57,8 +57,6 @@ public final class FileWorkerMasterSyncExecutorTest {
     mFileWorkerMasterSyncExecutor.heartbeat();
     Mockito.verify(mFileDataManager, Mockito.never()).clearPersistedFiles(persistedFiles);
   }
-
-  
 
   /**
    * Verifies {@link FileDataManager#clearPersistedFiles(java.util.List)} is called when the
