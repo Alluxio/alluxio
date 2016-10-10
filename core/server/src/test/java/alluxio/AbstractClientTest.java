@@ -69,7 +69,7 @@ public final class AbstractClientTest {
     mExpectedException.expect(IOException.class);
     mExpectedException.expectMessage(INCOMPATIBLE_VERSION.getMessage(SERVICE_NAME, 0, 1));
 
-    try (TestClient client = new TestClient();) {
+    try (TestClient client = new TestClient()) {
       client.checkVersion(thriftClient, 0);
       Assert.fail("checkVersion() should fail");
     }
