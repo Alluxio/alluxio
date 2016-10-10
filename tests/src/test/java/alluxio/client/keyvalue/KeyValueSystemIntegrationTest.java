@@ -24,10 +24,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -41,6 +43,8 @@ import java.util.List;
 /**
  * Integration tests for {@link KeyValueSystem}.
  */
+@Ignore("TODO(Bin): Clear the resources when done with tests. Run the following two tests together "
+    + "KeyValuePartitionIntegrationTest,KeyValueSystemIntegrationTest to reproduce.")
 public final class KeyValueSystemIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final String BASE_KEY = "base_key";
@@ -75,6 +79,13 @@ public final class KeyValueSystemIntegrationTest {
   @Before
   public void before() throws Exception {
     mStoreUri = new AlluxioURI(PathUtils.uniqPath());
+  }
+
+  @After
+  public void after() throws Exception {
+    mWriter = null;
+    mReader = null;
+    mStoreUri = null;
   }
 
   /**
