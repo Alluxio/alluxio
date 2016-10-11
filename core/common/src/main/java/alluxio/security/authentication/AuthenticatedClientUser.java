@@ -46,7 +46,7 @@ public final class AuthenticatedClientUser {
    *
    * @param userName the name of the client user
    */
-  public static synchronized void set(String userName) {
+  public static void set(String userName) {
     sUserThreadLocal.set(new User(userName));
   }
 
@@ -56,7 +56,7 @@ public final class AuthenticatedClientUser {
    * @return the client user
    * @throws IOException if authentication is not enabled
    */
-  public static synchronized User get() throws IOException {
+  public static User get() throws IOException {
     if (!SecurityUtils.isAuthenticationEnabled()) {
       throw new IOException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
     }
