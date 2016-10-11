@@ -76,9 +76,6 @@ public final class RetryHandlingBlockWorkerClient
 
   private ScheduledFuture<?> mHeartbeat = null;
 
-  /** Whether the session ID has been registered to the worker or not. */
-  private volatile boolean mSessionRegistered = false;
-
   /**
    * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session Id is
    * required when using this client. For example, if you only call RPCs like promote, a session
@@ -86,14 +83,23 @@ public final class RetryHandlingBlockWorkerClient
    *
    * @param workerNetAddress to worker's location
    * @param sessionId the id of the session
+   * @throws IOException if it fails to register the session with the worker specified
    */
-  public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress, final Long sessionId) {
+  public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress, final Long sessionId)
+      throws IOException {
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
     if (sessionId != null) {
+      // Register the session before any RPCs for this session start.
+      try {
+        sessionHeartbeat();
+      } catch (InterruptedException e) {
+        throw Throwables.propagate(e);
+      }
+
       // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
       // from the pool while it is not running.
       mHeartbeat = HEARTBEAT_POOL.scheduleAtFixedRate(new Runnable() {
@@ -144,7 +150,6 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void accessBlock(final long blockId) throws IOException {
-    ensureSessionRegistered();
     retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client) throws TException {
@@ -156,7 +161,6 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void cacheBlock(final long blockId) throws IOException, AlluxioException {
-    ensureSessionRegistered();
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client)
@@ -169,7 +173,6 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void cancelBlock(final long blockId) throws IOException, AlluxioException {
-    ensureSessionRegistered();
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client)
@@ -193,7 +196,6 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public LockBlockResult lockBlock(final long blockId) throws IOException {
-    ensureSessionRegistered();
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
       return retryRPC(
@@ -229,7 +231,6 @@ public final class RetryHandlingBlockWorkerClient
   @Override
   public String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
-    ensureSessionRegistered();
     try {
       return retryRPC(
           new RpcCallableThrowsAlluxioTException<String, BlockWorkerClientService.Client>() {
@@ -249,7 +250,6 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public boolean requestSpace(final long blockId, final long requestBytes) throws IOException {
-    ensureSessionRegistered();
     try {
       boolean success = retryRPC(
           new RpcCallableThrowsAlluxioTException<Boolean, BlockWorkerClientService.Client>() {
@@ -271,7 +271,6 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public boolean unlockBlock(final long blockId) throws IOException {
-    ensureSessionRegistered();
     return retryRPC(new RpcCallable<Boolean, BlockWorkerClientService.Client>() {
       @Override
       public Boolean call(BlockWorkerClientService.Client client) throws TException {
@@ -302,26 +301,7 @@ public final class RetryHandlingBlockWorkerClient
     } finally {
       BlockStoreContext.releaseBlockWorkerThriftClientHeartbeat(mRpcAddress, client);
     }
-    mSessionRegistered = true;
     Metrics.BLOCK_WORKER_HEATBEATS.inc();
-  }
-
-  /**
-   * Registers the session Id if it has not. Call this before any RPCs that requires a registered
-   * session ID.
-   *
-   * @throws IOException if it fails to register the session with the worker specified
-   */
-  private void ensureSessionRegistered() throws IOException {
-    if (mSessionRegistered || mSessionId == null) {
-      return;
-    }
-    // Register the session before any RPCs for this session start.
-    try {
-      sessionHeartbeat();
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
-    }
   }
 
   /**

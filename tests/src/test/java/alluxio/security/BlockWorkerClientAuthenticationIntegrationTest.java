@@ -96,7 +96,6 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
     try (BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
         mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake
         session id */)) {
-      blockWorkerClient.sessionHeartbeat();
       // Just to supress the "Empty try block" warning in CheckStyle.
       failedToConnect = false;
     } catch (IOException e) {
@@ -113,10 +112,9 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
    * Tests Alluxio Worker client connects or disconnects to the Worker.
    */
   private void authenticationOperationTest() throws Exception {
-    try (RetryHandlingBlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake session id */)) {
-      blockWorkerClient.sessionHeartbeat();
-    }
+    RetryHandlingBlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake session id */);
+    blockWorkerClient.close();
   }
 
   private void clearLoginUser() throws Exception {
