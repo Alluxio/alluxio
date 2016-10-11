@@ -1,4 +1,4 @@
-/*
+  /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
  * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
@@ -96,10 +96,10 @@ public final class TieredBlockStore implements BlockStore {
   /** Lock to guard metadata operations. */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
 
-  /** ReadLock provided by {@link #mMetadataReadLock} to guard metadata read operations. */
+  /** ReadLock provided by {@link #mMetadataLock} to guard metadata read operations. */
   private final Lock mMetadataReadLock = mMetadataLock.readLock();
 
-  /** WriteLock provided by {@link #mMetadataReadLock} to guard metadata write operations. */
+  /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
   /** Association between storage tier aliases and ordinals. */
