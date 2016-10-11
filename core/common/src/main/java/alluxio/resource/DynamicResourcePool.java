@@ -212,12 +212,13 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   // Tracks the resources that are available ordered by lastAccessTime (the head is
   // the most recently used resource).
   @GuardedBy("mLock")
-  private Deque<ResourceInternal<T>> mResourceAvailable;
+  private final Deque<ResourceInternal<T>> mResourceAvailable;
 
   // Tracks all the resources that are not closed.
-  // The size of the map is guarded by mLock. The mLock should be acquired if you add/delete/iterate
+  // The size of the map is guarded by mLock. The mLock should be acquired if you add/delete
   // this map. Readonly operations like Contains don't need to be locked.
-  private ConcurrentHashMapV8<T, ResourceInternal<T>> mResources = new ConcurrentHashMapV8<>(32);
+  private final ConcurrentHashMapV8<T, ResourceInternal<T>> mResources =
+      new ConcurrentHashMapV8<>(32);
 
   // Thread to scan mResourceAvailable to close those resources that are old.
   private ScheduledExecutorService mExecutor;
@@ -243,7 +244,6 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         List<T> resourcesToGc = new ArrayList<T>();
 
         try {
-          mLock.lock();
           if (mResources.size() <= mMinCapacity) {
             return;
           }
@@ -354,6 +354,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    */
   @Override
   public void release(T resource) {
+    // We don't need to acquire mLock here because the resource is guaranteed not to be removed
+    // if it is not available (i.e. not in mResourceAvailable list).
     if (!mResources.containsKey(resource)) {
       throw new IllegalArgumentException(
           "Resource " + resource.toString() + " was not acquired from this resource pool.");
@@ -392,12 +394,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
   @Override
   public int size() {
-    try {
-      mLock.lock();
-      return mResources.size();
-    } finally {
-      mLock.unlock();
-    }
+    return mResources.size();
   }
 
   /**
