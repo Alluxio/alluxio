@@ -74,12 +74,12 @@ public final class RetryHandlingBlockWorkerClient
   private ScheduledFuture<?> mHeartbeat = null;
 
   /**
-   * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session Id is
+   * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session ID is
    * required when using this client. For example, if you only call RPCs like promote, a session
-   * Id is not required.
+   * ID is not required.
    *
    * @param workerNetAddress to worker's location
-   * @param sessionId the id of the session
+   * @param sessionId the ID of the session
    * @throws IOException if it fails to register the session with the worker specified
    */
   public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress, final Long sessionId)
