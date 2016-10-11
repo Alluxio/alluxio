@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @param <T> the type of the set objects
  */
 @ThreadSafe
-public class ConcurrentHashSet<T> extends AbstractSet<T> {
+public final class ConcurrentHashSet<T> extends AbstractSet<T> {
   // COMPATIBILITY: This field needs to declared as Map (as opposed to ConcurrentHashMap). The
   // reason is that the return type of ConcurrentHashMapV8#keySet() has changed from Set<K> to
   // KeySetView<K,V> between Java 7 and Java 8 and this can result in a NoSuchMethod runtime
