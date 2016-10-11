@@ -1,1 +1,1 @@
-    GCS_BUCKET/GCS_DIRECTORY/alluxio/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST
+    GCS_BUCKET/GCS_DIRECTORY/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
