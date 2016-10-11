@@ -11,12 +11,10 @@
 
 package alluxio.security;
 
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.RetryHandlingBlockWorkerClient;
-import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 
@@ -27,8 +25,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -38,7 +34,6 @@ import java.io.IOException;
  */
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
 public final class BlockWorkerClientAuthenticationIntegrationTest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
@@ -48,12 +43,12 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    RetryHandlingBlockWorkerClientTestUtils.reset();
+    clearLoginUser();
   }
 
   @After
   public void after() throws Exception {
-    RetryHandlingBlockWorkerClientTestUtils.reset();
+    clearLoginUser();
   }
 
   @Test
@@ -114,6 +109,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   private void authenticationOperationTest() throws Exception {
     RetryHandlingBlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
         mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake session id */);
+
     blockWorkerClient.close();
   }
 
