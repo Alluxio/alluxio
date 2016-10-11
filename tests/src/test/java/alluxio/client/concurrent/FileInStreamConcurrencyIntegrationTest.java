@@ -75,10 +75,8 @@ public final class FileInStreamConcurrencyIntegrationTest {
 
     @Override
     public void run() {
-      try {
-        FileInStream stream = sFileSystem.openFile(mUri);
+      try (FileInStream stream = sFileSystem.openFile(mUri)) {
         stream.read();
-        stream.close();
       } catch (Exception e) {
         Throwables.propagate(e);
       }

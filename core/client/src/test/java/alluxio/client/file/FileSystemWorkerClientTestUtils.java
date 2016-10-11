@@ -11,10 +11,15 @@
 
 package alluxio.client.file;
 
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Function;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.powermock.reflect.Whitebox;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Test utils for {@link FileSystemWorkerClient}.
@@ -23,8 +28,20 @@ public class FileSystemWorkerClientTestUtils {
   /**
    * Resets the {@link FileSystemWorkerClient#CLIENT_POOLS} and
    * {@link FileSystemWorkerClient#HEARTBEAT_CLIENT_POOLS}.
+   * Resets the {@link FileSystemWorkerClient#HEARTBEAT_CANCEL_POOL} by waiting for all the
+   * pending heartbeats.
    */
-  public static void resetPool() {
+  public static void reset() {
+    CommonUtils.waitFor("All active file system worker sessions are closed",
+        new Function<Void, Boolean>() {
+          @Override
+          public Boolean apply(Void input) {
+            AtomicInteger numActiveSessions = Whitebox
+                .getInternalState(FileSystemWorkerClient.class, "NUM_ACTIVE_SESSIONS");
+            return numActiveSessions.intValue() == 0;
+          }
+        }, Constants.MINUTE_MS);
+
     ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> poolMap =
         Whitebox.getInternalState(FileSystemWorkerClient.class, "CLIENT_POOLS");
     for (FileSystemWorkerThriftClientPool pool : poolMap.values()) {
