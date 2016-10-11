@@ -217,8 +217,9 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   private final Deque<ResourceInternal<T>> mAvailableResources;
 
   // Tracks all the resources that are not closed.
-  // The size of the map is guarded by mLock. The mLock should be acquired if you add/delete
-  // this map. Readonly operations like Contains don't need to be locked.
+  // put/delete operations are guarded by "mLock" so that we can control its size to be within
+  // a [min, max] range. mLock is reused for simplicity. A separate lock can be used if we see
+  // any performance overhead.
   private final ConcurrentHashMapV8<T, ResourceInternal<T>> mResources =
       new ConcurrentHashMapV8<>(32);
 
