@@ -44,6 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -63,6 +64,9 @@ public final class RetryHandlingBlockWorkerClient
       ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
   private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
+
+  // Tracks the number of active heartbeat close requests.
+  private static final AtomicInteger NUM_ACTIVE_SESSIONS = new AtomicInteger(0);
 
   private final Long mSessionId;
   // This is the address of the data server on the worker.
@@ -89,6 +93,13 @@ public final class RetryHandlingBlockWorkerClient
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
     if (sessionId != null) {
+      // Register the session before any RPCs for this session start.
+      try {
+        sessionHeartbeat();
+      } catch (InterruptedException e) {
+        throw Throwables.propagate(e);
+      }
+
       // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
       // from the pool while it is not running.
       mHeartbeat = HEARTBEAT_POOL.scheduleAtFixedRate(new Runnable() {
@@ -105,11 +116,7 @@ public final class RetryHandlingBlockWorkerClient
           }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
           Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
 
-      try {
-        sessionHeartbeat();
-      } catch (InterruptedException e) {
-        throw Throwables.propagate(e);
-      }
+      NUM_ACTIVE_SESSIONS.incrementAndGet();
     }
   }
 
@@ -130,6 +137,7 @@ public final class RetryHandlingBlockWorkerClient
         @Override
         public void run() {
           mHeartbeat.cancel(true);
+          NUM_ACTIVE_SESSIONS.decrementAndGet();
         }
       });
     }
