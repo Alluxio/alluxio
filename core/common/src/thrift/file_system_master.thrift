@@ -188,7 +188,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
    * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
   i64 loadMetadata( /** the path of the under file system */ 1: string ufsPath,
-      /** whether to load meta data recursively */ 2: bool recursive)
+      /** whether to load metadata recursively */ 2: bool recursive)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
