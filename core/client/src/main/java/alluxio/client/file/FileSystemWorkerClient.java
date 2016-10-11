@@ -85,19 +85,25 @@ public class FileSystemWorkerClient
 
   private ScheduledFuture<?> mHeartbeat = null;
 
-  /** Whether the session ID has been registered to the worker or not. */
-  private volatile boolean mSessionRegistered = false;
-
   /**
    * Constructor for a client that communicates with the {@link FileSystemWorkerClientService}.
    *
    * @param workerNetAddress the worker address to connect to
    * @param sessionId the session id to use, this should be unique
+   * @throws IOException if it fails to register the session with the worker specified
    */
-  public FileSystemWorkerClient(WorkerNetAddress workerNetAddress, final long sessionId) {
+  public FileSystemWorkerClient(WorkerNetAddress workerNetAddress, final long sessionId)
+      throws IOException {
     mWorkerRpcServerAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
+
+    // Register the session before any RPCs for this session start.
+    try {
+      sessionHeartbeat();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
 
     // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
     // from the pool while it is not running.
@@ -152,7 +158,6 @@ public class FileSystemWorkerClient
    */
   public void cancelUfsFile(final long tempUfsFileId, final CancelUfsFileOptions options)
       throws AlluxioException, IOException {
-    ensureSessionRegistered();
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, FileSystemWorkerClientService.Client>() {
       @Override
       public Void call(FileSystemWorkerClientService.Client client)
@@ -174,7 +179,6 @@ public class FileSystemWorkerClient
    */
   public void closeUfsFile(final long tempUfsFileId, final CloseUfsFileOptions options)
       throws AlluxioException, IOException {
-    ensureSessionRegistered();
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, FileSystemWorkerClientService.Client>() {
       @Override
       public Void call(FileSystemWorkerClientService.Client client)
@@ -197,7 +201,6 @@ public class FileSystemWorkerClient
    */
   public long completeUfsFile(final long tempUfsFileId, final CompleteUfsFileOptions options)
       throws AlluxioException, IOException {
-    ensureSessionRegistered();
     return retryRPC(
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {
           @Override
@@ -219,7 +222,6 @@ public class FileSystemWorkerClient
    */
   public long createUfsFile(final AlluxioURI path, final CreateUfsFileOptions options)
       throws AlluxioException, IOException {
-    ensureSessionRegistered();
     return retryRPC(
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {
           @Override
@@ -248,7 +250,6 @@ public class FileSystemWorkerClient
    */
   public long openUfsFile(final AlluxioURI path, final OpenUfsFileOptions options)
       throws AlluxioException, IOException {
-    ensureSessionRegistered();
     return retryRPC(
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {
           @Override
@@ -280,7 +281,6 @@ public class FileSystemWorkerClient
     } finally {
       releaseInternal(client, HEARTBEAT_CLIENT_POOLS);
     }
-    mSessionRegistered = true;
   }
 
   /**
@@ -337,23 +337,5 @@ public class FileSystemWorkerClient
       ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> pools) {
     Preconditions.checkArgument(pools.containsKey(mWorkerRpcServerAddress));
     pools.get(mWorkerRpcServerAddress).release(client);
-  }
-
-  /**
-   * Registers the session Id if it has not. Call this before any RPCs that requires a registered
-   * session ID.
-   *
-   * @throws IOException if it fails to register the session with the worker specified
-   */
-  private void ensureSessionRegistered() throws IOException {
-    if (mSessionRegistered) {
-      return;
-    }
-    // Register the session before any RPCs for this session start.
-    try {
-      sessionHeartbeat();
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
-    }
   }
 }
