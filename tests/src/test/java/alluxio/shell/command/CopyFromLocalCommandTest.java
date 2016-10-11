@@ -221,7 +221,7 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     localDir.mkdir();
     innerDir.mkdir();
     generateFileContent("/localDir/srcFile", BufferUtils.getIncreasingByteArray(10));
-    mFileSystem.createFile(new AlluxioURI("/dstFile"));
+    mFileSystem.createFile(new AlluxioURI("/dstFile")).close();
     int ret = mFsShell.run("copyFromLocal", localDir.getPath(), "/dstFile");
     Assert.assertEquals(-1, ret);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/dstFile")).isFolder());
@@ -284,11 +284,12 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     Assert.assertNotNull(status);
     Assert.assertEquals(SIZE_BYTES, status.getLength());
 
-    FileInStream tfis =
-        mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE));
-    byte[] read = new byte[SIZE_BYTES];
-    tfis.read(read);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
+    try (FileInStream tfis =
+        mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
+      byte[] read = new byte[SIZE_BYTES];
+      tfis.read(read);
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
+    }
   }
 
   @Test
