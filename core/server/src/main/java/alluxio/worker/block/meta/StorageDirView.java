@@ -24,7 +24,7 @@ import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class is a wrapper of {@link StorageDir} to provIDe more limited access and a filtered list
+ * This class is a wrapper of {@link StorageDir} to provide more limited access and a filtered list
  * of blocks.
  */
 @NotThreadSafe
@@ -77,8 +77,8 @@ public final class StorageDirView {
     List<BlockMeta> filteredList = new ArrayList<>();
 
     for (BlockMeta blockMeta : mDir.getBlocks()) {
-      long blockID = blockMeta.getBlockID();
-      if (mManagerView.isBlockEvictable(blockID)) {
+      long blockId = blockMeta.getBlockId();
+      if (mManagerView.isBlockEvictable(blockId)) {
         filteredList.add(blockMeta);
       }
     }
@@ -120,8 +120,8 @@ public final class StorageDirView {
   public long getEvitableBytes() {
     long bytes = 0;
     for (BlockMeta blockMeta : mDir.getBlocks()) {
-      long blockID = blockMeta.getBlockID();
-      if (mManagerView.isBlockEvictable(blockID)) {
+      long blockId = blockMeta.getBlockId();
+      if (mManagerView.isBlockEvictable(blockId)) {
         bytes += blockMeta.getBlockSize();
       }
     }
@@ -131,22 +131,22 @@ public final class StorageDirView {
   /**
    * Clears all marks about blocks to move in/out in this view.
    */
-  public voID clearBlockMarks() {
+  public void clearBlockMarks() {
     mBlocksToMoveIn.clear();
     mBlocksToMoveOut.clear();
     mBlocksToMoveInSize = mBlocksToMoveOutSize = 0L;
   }
 
   /**
-   * Creates a {@link TempBlockMeta} given sessionID, blockID, and initialBlockSize.
+   * Creates a {@link TempBlockMeta} given sessionId, blockId, and initialBlockSize.
    *
-   * @param sessionID of the owning session
-   * @param blockID of the new block
+   * @param sessionId of the owning session
+   * @param blockId of the new block
    * @param initialBlockSize of the new block
    * @return a new {@link TempBlockMeta} under the underlying directory
    */
-  public TempBlockMeta createTempBlockMeta(long sessionID, long blockID, long initialBlockSize) {
-    return new TempBlockMeta(sessionID, blockID, initialBlockSize, mDir);
+  public TempBlockMeta createTempBlockMeta(long sessionId, long blockId, long initialBlockSize) {
+    return new TempBlockMeta(sessionId, blockId, initialBlockSize, mDir);
   }
 
   /**
@@ -159,21 +159,21 @@ public final class StorageDirView {
   /**
    * Returns an indication whether the given block is marked to be moved out.
    *
-   * @param blockID the block ID
+   * @param blockId the block ID
    * @return whether the block is marked to be moved out
    */
-  public boolean isMarkedToMoveOut(long blockID) {
-    return mBlocksToMoveOut.contains(blockID);
+  public boolean isMarkedToMoveOut(long blockId) {
+    return mBlocksToMoveOut.contains(blockId);
   }
 
   /**
    * Marks a block to move into this dir view, which is used by the evictor.
    *
-   * @param blockID the ID of the block
+   * @param blockId the Id of the block
    * @param blockSize the block size
    */
-  public voID markBlockMoveIn(long blockID, long blockSize) {
-    if (mBlocksToMoveIn.add(blockID)) {
+  public void markBlockMoveIn(long blockId, long blockSize) {
+    if (mBlocksToMoveIn.add(blockId)) {
       mBlocksToMoveInSize += blockSize;
     }
   }
@@ -181,11 +181,11 @@ public final class StorageDirView {
   /**
    * Marks a block to move out of this dir view, which is used by the evictor.
    *
-   * @param blockID the ID of the block
+   * @param blockId the Id of the block
    * @param blockSize the block size
    */
-  public voID markBlockMoveOut(long blockID, long blockSize) {
-    if (mBlocksToMoveOut.add(blockID)) {
+  public void markBlockMoveOut(long blockId, long blockSize) {
+    if (mBlocksToMoveOut.add(blockId)) {
       mBlocksToMoveOutSize += blockSize;
     }
   }
