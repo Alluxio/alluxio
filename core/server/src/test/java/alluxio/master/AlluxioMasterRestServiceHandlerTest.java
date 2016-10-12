@@ -32,6 +32,7 @@ import com.codahale.metrics.MetricSet;
 
 import org.junit.Test;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
 import java.util.List;
 import java.util.SortedMap;
@@ -51,6 +52,13 @@ public class AlluxioMasterRestServiceHandlerTest {
   private ServletContext mContext;
   private BlockMaster mBlockMaster;
   private AlluxioMasterRestServiceHandler mHandler;
+
+  @BeforeClass
+  public static void setUpClass() {
+    String filesPinnedProperty =
+        MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
+    MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
+  }
 
   @Before
   public void setUp() {
