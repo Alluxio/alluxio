@@ -61,7 +61,7 @@ public final class LeaderInquireClient {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
-    LOG.info("create new zookeeper client. address: {}", mZookeeperAddress);
+    LOG.info("Creating new zookeeper client. address: {}", mZookeeperAddress);
     mClient =
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
