@@ -18,9 +18,10 @@ uses Alluxio to improve speedup the throughput of their data analytics pipeline
 [30 times](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf). Barclays makes the
 impossible possible with Alluxio to accelerate jobs from
 [hours to seconds](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon).
-Beyond performance, Alluxio bridges new workloads with data stored in
-traditional storage systems. Users can run Alluxio using its standalone cluster mode, for example on
-Amazon EC2, Google Cloud, or launch Alluxio with Apache Mesos or Apache Yarn.
+Qunar performs [real-time data analytics](http://www.alluxio.com/2016/07/qunar-performs-real-time-data-analytics-up-to-300x-faster-with-alluxio/)
+on top of Alluxio. Beyond performance, Alluxio bridges new workloads with data stored in traditional
+storage systems. Users can run Alluxio using its standalone cluster mode, for example on Amazon EC2,
+Google Cloud, or launch Alluxio with Apache Mesos or Apache Yarn.
 
 Alluxio is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
 of Alluxio without any code changes. The project is open source
