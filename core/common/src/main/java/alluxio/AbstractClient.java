@@ -227,8 +227,6 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * Returns the connected status of the client.
-   *
    * @return true if this client is connected to the remote
    */
   public synchronized boolean isConnected() {
