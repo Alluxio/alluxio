@@ -269,7 +269,7 @@ public class AlluxioMaster implements Server {
         }
       }
     } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
+      //LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
