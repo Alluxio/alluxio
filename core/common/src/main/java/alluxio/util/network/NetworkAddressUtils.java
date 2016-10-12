@@ -324,7 +324,6 @@ public final class NetworkAddressUtils {
       sLocalHost = InetAddress.getByName(getLocalIpAddress(timeoutMs)).getCanonicalHostName();
       return sLocalHost;
     } catch (UnknownHostException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
