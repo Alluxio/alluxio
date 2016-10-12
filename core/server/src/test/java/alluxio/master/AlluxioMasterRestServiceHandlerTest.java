@@ -49,6 +49,7 @@ import alluxio.wire.WorkerInfo;
 import org.junit.Test;
 import org.junit.Before;
 
+
 import javax.ws.rs.core.Response;
 import javax.servlet.ServletContext;
 
@@ -79,6 +80,9 @@ public class AlluxioMasterRestServiceHandlerTest {
     when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
     when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
         .thenReturn(mMaster);
+    when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
+    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
+        mMaster);
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
   }
 
@@ -151,6 +155,7 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertEquals(0L, entry.longValue());
     assertTrue("Entry must be a SortedMap!",
         (response.getEntity().getClass().isAssignableFrom(SortedMap.class)));
+
   }
 
   @Test
