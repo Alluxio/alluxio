@@ -44,6 +44,7 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 [Meetup Group](https://www.meetup.com/Alluxio/) |
 [Issue Tracking](https://alluxio.atlassian.net/browse/ALLUXIO) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
+[Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
 [Powered By](Powered-By-Alluxio.html) |
 [Github](https://github.com/alluxio/alluxio/) |
 [Releases](http://alluxio.org/releases/)
