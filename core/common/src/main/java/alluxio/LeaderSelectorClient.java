@@ -167,10 +167,10 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   public void takeLeadership(CuratorFramework client) throws Exception {
     mIsLeader.set(true);
     if (client.checkExists().forPath(mLeaderFolder + mName) != null) {
-      LOG.info("deleting zk path: {}{}", mLeaderFolder, mName);
+      LOG.info("Deleting zk path: {}{}", mLeaderFolder, mName);
       client.delete().forPath(mLeaderFolder + mName);
     }
-    LOG.info("creating zk path: {}{}", mLeaderFolder, mName);
+    LOG.info("Creating zk path: {}{}", mLeaderFolder, mName);
     client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
     LOG.info("{} is now the leader.", mName);
     try {
