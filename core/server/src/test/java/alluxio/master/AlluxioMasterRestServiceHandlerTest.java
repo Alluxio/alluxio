@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.Before;
 
 import java.util.List;
+import java.util.SortedMap;
 
 import javax.ws.rs.core.Response;
 import javax.servlet.ServletContext;
@@ -51,6 +52,18 @@ public class AlluxioMasterRestServiceHandlerTest {
     when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMaster);
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
+  }
+
+  @Test
+  public void testGetConfiguration() {
+    Response response = mHandler.getConfiguration();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertTrue("Entry must be a SortedMap!",
+        (response.getEntity().getClass().isAssignableFrom(SortedMap.class)));
+    @SuppressWarnings("unchecked")
+    SortedMap<java.lang.String, java.lang.String> entry =
+        (SortedMap<java.lang.String, java.lang.String>) response.getEntity();
   }
 
   @Test
