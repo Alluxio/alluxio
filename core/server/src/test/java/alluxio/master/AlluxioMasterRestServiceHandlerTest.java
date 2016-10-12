@@ -122,7 +122,26 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertTrue("Map must contains key " + filesPinnedProperty + "!",
         entry.containsKey(filesPinnedProperty));
     assertEquals(FILES_PINNED_TEST_VALUE, entry.get(filesPinnedProperty).longValue());
+  }
 
+  @Test
+  public void testGetStartTimeMs() {
+    Response response = mHandler.getStartTimeMs();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
+    Long entry = (Long) response.getEntity();
+    assertEquals(0L, entry.longValue());
+  }
+
+  @Test
+  public void testGetUptimeMs() {
+    Response response = mHandler.getUptimeMs();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
+    Long entry = (Long) response.getEntity();
+    assertEquals(0L, entry.longValue());
   }
 
   @Test
@@ -133,6 +152,66 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertEquals("Entry must be a String!", String.class, response.getEntity().getClass());
     String entry = (String) response.getEntity();
     assertEquals("\"" + RuntimeConstants.VERSION + "\"", entry);
+  }
+
+  @Test
+  public void testGetCapacityBytes() {
+    Response response = mHandler.getCapacityBytes();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
+    Long entry = (Long) response.getEntity();
+    assertEquals(0L, entry.longValue());
+  }
+
+  @Test
+  public void testGetUsedBytes() {
+    Response response = mHandler.getUsedBytes();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
+    Long entry = (Long) response.getEntity();
+    assertEquals(0L, entry.longValue());
+  }
+
+  @Test
+  public void testGetFreeBytes() {
+    Response response = mHandler.getFreeBytes();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
+    Long entry = (Long) response.getEntity();
+    assertEquals(0L, entry.longValue());
+  }
+
+  @Test
+  public void testGetUfsCapacityBytes() {
+    Response response = mHandler.getUfsCapacityBytes();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
+    Long entry = (Long) response.getEntity();
+    assertEquals(0L, entry.longValue());
+  }
+
+  @Test
+  public void testGetUfsUsedBytes() {
+    Response response = mHandler.getUfsUsedBytes();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
+    Long entry = (Long) response.getEntity();
+    assertEquals(0L, entry.longValue());
+  }
+
+  @Test
+  public void testGetUfsFreeBytes() {
+    Response response = mHandler.getUfsFreeBytes();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
+    Long entry = (Long) response.getEntity();
+    assertEquals(0L, entry.longValue());
   }
 
   @Test
