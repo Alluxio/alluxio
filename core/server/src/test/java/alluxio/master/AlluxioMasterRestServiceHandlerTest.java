@@ -79,7 +79,10 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertTrue("Entry must be a List!", (response.getEntity() instanceof List));
+<<<<<<< refs/remotes/upstream/master
     @SuppressWarnings("unchecked")
+=======
+>>>>>>> create unit test for 3 methods
     List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
     assertTrue(entry.isEmpty());
   }
