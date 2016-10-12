@@ -16,18 +16,28 @@ import static org.mockito.Mockito.mock;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
-import alluxio.web.MasterUIWebServer;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
+import alluxio.metrics.MetricsSystem;
 import alluxio.wire.WorkerInfo;
+import alluxio.web.MasterUIWebServer;
+
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricSet;
 
 import org.junit.Test;
 import org.junit.Before;
 
 import java.util.List;
 import java.util.SortedMap;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.ws.rs.core.Response;
 import javax.servlet.ServletContext;
@@ -51,6 +61,9 @@ public class AlluxioMasterRestServiceHandlerTest {
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
     when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
         .thenReturn(mMaster);
+    when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
+    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
+        mMaster);
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
   }
 
@@ -59,11 +72,49 @@ public class AlluxioMasterRestServiceHandlerTest {
     Response response = mHandler.getConfiguration();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
-    assertTrue("Entry must be a SortedMap!",
-        (response.getEntity().getClass().isAssignableFrom(SortedMap.class)));
-    @SuppressWarnings("unchecked")
-    SortedMap<java.lang.String, java.lang.String> entry =
-        (SortedMap<java.lang.String, java.lang.String>) response.getEntity();
+    assertTrue("Entry must be a SortedMap!", (response.getEntity() instanceof SortedMap));
+    SortedMap<String, String> entry = (SortedMap<String, String>) response.getEntity();
+    assertFalse("Properties Map must be not empty!", (entry.isEmpty()));
+  }
+
+  @Test
+  public void testGetRpcAddress() {
+    Response response = mHandler.getRpcAddress();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertEquals("Entry must be a String!", String.class, response.getEntity().getClass());
+    String entry = (String) response.getEntity();
+    assertFalse("Properties Map must be not empty!", (entry.isEmpty()));
+  }
+
+  @Test
+  public void testGetMetrics() {
+    final int FILES_PINNED_TEST_VALUE = 100;
+    String filesPinnedProperty =
+        MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
+    Gauge<Integer> filesPinnedGauge = new Gauge<Integer>() {
+      @Override
+      public Integer getValue() {
+        return FILES_PINNED_TEST_VALUE;
+      }
+    };
+    MetricSet mockMetricsSet = mock(MetricSet.class);
+    Map<String, Metric> map = new HashMap<>();
+    map.put(filesPinnedProperty, filesPinnedGauge);
+
+    when(mockMetricsSet.getMetrics()).thenReturn(map);
+    MetricsSystem.METRIC_REGISTRY.registerAll(mockMetricsSet);
+
+    Response response = mHandler.getMetrics();
+    assertNotNull("Response must be not null!", response);
+    assertNotNull("Response must have a entry!", response.getEntity());
+    assertTrue("Entry must be a SortedMap!", (response.getEntity() instanceof SortedMap));
+    SortedMap<String, Long> entry = (SortedMap<String, Long>) response.getEntity();
+    assertFalse("Properties Map must be not empty!", (entry.isEmpty()));
+    assertTrue("Map must contains key " + filesPinnedProperty + "!",
+        entry.containsKey(filesPinnedProperty));
+    assertEquals(FILES_PINNED_TEST_VALUE, entry.get(filesPinnedProperty).longValue());
+
   }
 
   @Test
