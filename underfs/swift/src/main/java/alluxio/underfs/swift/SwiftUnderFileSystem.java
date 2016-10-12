@@ -104,7 +104,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   public SwiftUnderFileSystem(AlluxioURI uri) {
     super(uri);
-    String containerName = uri.getHost();
+    String containerName = uri.getAuthority();
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
 
