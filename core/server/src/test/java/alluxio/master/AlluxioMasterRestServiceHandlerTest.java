@@ -153,9 +153,6 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
     assertEquals(0L, entry.longValue());
-    assertTrue("Entry must be a SortedMap!",
-        (response.getEntity().getClass().isAssignableFrom(SortedMap.class)));
-
   }
 
   @Test
