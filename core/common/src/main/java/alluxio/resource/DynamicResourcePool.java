@@ -55,7 +55,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param <T> the resource type
    */
   protected class ResourceInternal<T> {
-    // A unique Id used to distinguish the objects.
+    // A unique ID used to distinguish the objects.
     private int mIdentity = System.identityHashCode(this);
 
     private T mResource;
