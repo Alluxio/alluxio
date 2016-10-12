@@ -1073,11 +1073,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   private static final class TraversalResult {
     private final boolean mFound;
-    /**
-     * When the path is not found in a traversal, the index of the first path component that
-     * couldn't be found.
-     */
-    private final int mNonexistentIndex;
+
     /**
      * The found inode when the traversal succeeds; otherwise the last path component navigated.
      */
@@ -1099,18 +1095,17 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // TODO(gpang): consider a builder paradigm to iteratively build the traversal result.
     static TraversalResult createFoundResult(List<Inode<?>> nonPersisted, List<Inode<?>> inodes,
         InodeLockList lockList) {
-      return new TraversalResult(true, -1, nonPersisted, inodes, lockList);
+      return new TraversalResult(true, nonPersisted, inodes, lockList);
     }
 
     static TraversalResult createNotFoundResult(int index, List<Inode<?>> nonPersisted,
         List<Inode<?>> inodes, InodeLockList lockList) {
-      return new TraversalResult(false, index, nonPersisted, inodes, lockList);
+      return new TraversalResult(false, nonPersisted, inodes, lockList);
     }
 
-    private TraversalResult(boolean found, int index, List<Inode<?>> nonPersisted,
+    private TraversalResult(boolean found, List<Inode<?>> nonPersisted,
         List<Inode<?>> inodes, InodeLockList lockList) {
       mFound = found;
-      mNonexistentIndex = index;
       mInode = inodes.get(inodes.size() - 1);
       mNonPersisted = nonPersisted;
       mInodes = inodes;
@@ -1119,13 +1114,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     boolean isFound() {
       return mFound;
-    }
-
-    int getNonexistentPathIndex() {
-      if (mFound) {
-        throw new UnsupportedOperationException("The traversal is successful");
-      }
-      return mNonexistentIndex;
     }
 
     Inode<?> getInode() {
