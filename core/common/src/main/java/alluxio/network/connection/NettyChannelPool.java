@@ -113,7 +113,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   protected boolean isHealthy(Channel channel) {
     if (POOL_DISABLED) {
       // If we always return false here, channels acquired by NettyChannelPool#acquire() will always
-      // be newly created channel. With this feature turned on, >= 1.3.0 client will be backward
+      // be newly created channels. With this feature turned on, >= 1.3.0 client will be backward
       // compatible with <= 1.2.0 server.
       return false;
     }
