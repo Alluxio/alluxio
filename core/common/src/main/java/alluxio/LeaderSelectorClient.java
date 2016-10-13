@@ -50,10 +50,10 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   /**
    * Constructs a new {@link LeaderSelectorClient}.
    *
-   * @param zookeeperAddress the address to Zookeeper
-   * @param electionPath the election path
-   * @param leaderPath the path of the leader
-   * @param name the name
+   * @param mZookeeperAddress the address to Zookeeper
+   * @param mElectionPath the election path
+   * @param mLeaderFolder the fold of the leader
+   * @param mName the name
    */
   public LeaderSelectorClient(String zookeeperAddress, String electionPath, String leaderPath,
       String name) {
