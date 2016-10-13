@@ -1,1 +1,1 @@
-    /mnt/gluster/default_tests_files/BasicFile_STORE_SYNC_PERSIST
+    /mnt/gluster/default_tests_files/Basic_CACHE_THROUGH
