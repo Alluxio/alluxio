@@ -311,21 +311,22 @@ public final class FileSystemMasterTest {
     long fileId;
     FileInfo info;
 
-    fileId = mFileSystemMaster.getFileId(ROOT_URI);
+    fileId = mFileSystemMaster.getFileId(ROOT_URI);//get the ROOT_URI's id
     info = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(ROOT_URI.getPath(), info.getPath());
-    Assert.assertEquals(ROOT_URI.getPath(), mFileSystemMaster.getFileInfo(ROOT_URI).getPath());
+    Assert.assertEquals(ROOT_URI.getPath(), mFileSystemMaster.getFileInfo(ROOT_URI).getPath());//to assert whether the two ways of getting the path are equal
 
-    fileId = mFileSystemMaster.getFileId(NESTED_URI);
+    fileId = mFileSystemMaster.getFileId(NESTED_URI);//get the NESTED_URI's id
     info = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(NESTED_URI.getPath(), info.getPath());
-    Assert.assertEquals(NESTED_URI.getPath(), mFileSystemMaster.getFileInfo(NESTED_URI).getPath());
+    Assert.assertEquals(NESTED_URI.getPath(), mFileSystemMaster.getFileInfo(NESTED_URI).getPath());//to assert whether the two ways of getting the path are equal
 
-    fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
+
+            fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);//get the NESTED_FILE_URI's id
     info = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(NESTED_FILE_URI.getPath(), info.getPath());
     Assert.assertEquals(NESTED_FILE_URI.getPath(),
-        mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPath());
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPath());//to assert whether the two ways of getting the path are equal
 
     // Test non-existent id.
     try {
