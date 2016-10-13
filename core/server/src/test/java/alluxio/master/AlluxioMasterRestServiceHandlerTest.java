@@ -46,8 +46,8 @@ import javax.servlet.ServletContext;
 /**
  * Unit tests for {@link AlluxioMasterRestServiceHandler}.
  */
-public class AlluxioMasterRestServiceHandlerTest {
 
+public class AlluxioMasterRestServiceHandlerTest {
   private AlluxioMaster mMaster;
   private ServletContext mContext;
   private BlockMaster mBlockMaster;
@@ -70,8 +70,8 @@ public class AlluxioMasterRestServiceHandlerTest {
     when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
         .thenReturn(mMaster);
     when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
-    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
-        mMaster);
+    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
+        .thenReturn(mMaster);
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
   }
 
