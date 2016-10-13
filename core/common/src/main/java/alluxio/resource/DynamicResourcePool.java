@@ -55,11 +55,13 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param <T> the resource type
    */
   protected class ResourceInternal<T> {
-    // A unique ID used to distinguish the objects.
+    /** A unique ID used to distinguish the objects. */
     private int mIdentity = System.identityHashCode(this);
 
+    /** The resource. */
     private T mResource;
 
+    /** The last access time in ms. */
     private long mLastAccessTimeMs;
 
     /**
@@ -91,10 +93,19 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * Options to initialize a Dynamic resource pool.
    */
   public static final class Options {
+    /** The max capacity. */
     private int mMaxCapacity = 1024;
+
+    /** The min capacity. */
     private int mMinCapacity = 1;
+
+    /** The initial delay. */
     private long mInitialDelayMs = 100;
+
+    /** The gc interval. */
     private long mGcIntervalMs = 120 * Constants.SECOND_MS;
+
+    /** The gc executor. */
     private ScheduledExecutorService mGcExecutor;
 
     /**
@@ -182,7 +193,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     }
 
     private Options() {
-    }  // prevents instantiation
+    }  /** prevents instantiation */
 
     /**
      * @return the default option
@@ -192,13 +203,26 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     }
   }
 
+  /**
+   * A reentrant mutual exclusion lock with the same basic behavior and semantics
+   * as the implicit monitor lock accessed using synchronized methods
+   * and statements, but with extended capabilities.
+   */
   private final ReentrantLock mLock = new ReentrantLock();
+
+  /** Provide a mean for one thread to suspend execution. */
   private final Condition mNotEmpty = mLock.newCondition();
+
+  /** The max capacity. */
   private final int mMaxCapacity;
+
+  /** The min capacity. */
   private final int mMinCapacity;
 
-  // Tracks the resources that are available ordered by lastAccessTime (the first one is
-  // the most recently used resource).
+  /**
+   * Tracks the resources that are available ordered by lastAccessTime (the first one is
+   * the most recently used resource).
+   */
   @GuardedBy("mLock")
   private TreeSet<ResourceInternal<T>> mResourceAvailable =
       new TreeSet<>(new Comparator<ResourceInternal<T>>() {
@@ -214,11 +238,11 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         }
       });
 
-  // Tracks all the resources that are not closed.
+  /** Tracks all the resources that are not closed. */
   @GuardedBy("mLock")
   private HashMap<T, ResourceInternal<T>> mResources = new HashMap<>(32);
 
-  // Thread to scan mResourceAvailable to close those resources that are old.
+  /** Thread to scan mResourceAvailable to close those resources that are old. */
   private ScheduledExecutorService mExecutor;
   private ScheduledFuture<?> mGcFuture;
 
@@ -283,7 +307,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     try {
       return acquire(100  /* no timeout */, TimeUnit.DAYS);
     } catch (TimeoutException e) {
-      // Never should timeout in acquire().
+      /** Never should timeout in acquire(). */
       throw Throwables.propagate(e);
     }
   }
@@ -306,14 +330,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       throws IOException, TimeoutException, InterruptedException {
     long endTimeMs = mClock.millis() + unit.toMillis(time);
 
-    // Try to take a resource without blocking
+    /** Try to take a resource without blocking. */
     ResourceInternal<T> resource = poll();
     if (resource != null) {
       return checkHealthyAndRetry(resource.mResource, endTimeMs);
     }
 
     if (!isFull()) {
-      // If the resource pool is empty but capacity is not yet full, create a new resource.
+      /** If the resource pool is empty but capacity is not yet full, create a new resource. */
       T newResource = createNewResource();
       ResourceInternal<T> resourceInternal = new ResourceInternal<>(newResource);
       if (add(resourceInternal)) {
@@ -323,7 +347,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       }
     }
 
-    // Otherwise, try to take a resource from the pool, blocking if none are available.
+    /** Otherwise, try to take a resource from the pool, blocking if none are available. */
     try {
       mLock.lock();
       while (true) {
@@ -483,7 +507,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     }
   }
 
-  // The following functions should be overridden by implementations.
+  /** The following functions should be overridden by implementations. */
 
   /**
    * @param resourceInternal the resource to check
