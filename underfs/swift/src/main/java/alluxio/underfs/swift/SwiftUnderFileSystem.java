@@ -476,8 +476,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * @inheritDoc
-   * Rename will overwrite destination if it already exists
+   * {@inheritDoc}
+   * Rename will overwrite destination if it already exists.
    *
    * @param source the source file or folder name
    * @param destination the destination file or folder name
