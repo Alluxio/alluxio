@@ -323,8 +323,7 @@ public abstract class AbstractClient implements Client {
         throw Throwables.propagate(AlluxioException.fromThrift(e));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mProtocol.getTransport().close();
-        mConnected = false;
+        disconnect();
       }
     }
     throw new IOException("Failed after " + retry + " retries.");
@@ -355,8 +354,7 @@ public abstract class AbstractClient implements Client {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mProtocol.getTransport().close();
-        mConnected = false;
+        disconnect();
       }
     }
     throw new IOException("Failed after " + retry + " retries.");
