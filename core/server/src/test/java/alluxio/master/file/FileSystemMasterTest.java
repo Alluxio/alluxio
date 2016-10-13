@@ -281,6 +281,7 @@ public final class FileSystemMasterTest {
       // Expected case.
     }
   }
+
   /**
    * Tests the {@link FileSystemMaster#getFileId(AlluxioURI)} method.
    */
