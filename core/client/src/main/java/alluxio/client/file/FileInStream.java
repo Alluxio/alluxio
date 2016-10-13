@@ -11,17 +11,19 @@
 
 package alluxio.client.file;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
 import alluxio.client.Seekable;
 import alluxio.client.block.BlockInStream;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
+import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
@@ -67,18 +69,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected final FileSystemContext mContext;
   /** File information. */
   protected URIStatus mStatus;
-  /** Constant error message for block ID not cached. */
-  protected static final String BLOCK_ID_NOT_CACHED =
-      "The block with ID {} could not be cached into Alluxio storage.";
-  /** Error message for cache collision. */
-  private static final String BLOCK_ID_EXISTS_SO_NOT_CACHED =
-      "The block with ID {} is already stored in the target worker, canceling the cache request.";
 
   /** If the stream is closed, this can only go from false to true. */
   protected boolean mClosed;
-  /**
-   * Current position of the file instream.
-   */
+  /** Current position of the file instream. */
   protected long mPos;
 
   /**
@@ -105,13 +99,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param status the file status
    * @param options the client options
+   * @param context file system context
    * @return the created {@link FileInStream} instance
    */
-  public static FileInStream create(URIStatus status, InStreamOptions options) {
+  public static FileInStream create(URIStatus status, InStreamOptions options,
+      FileSystemContext context) {
     if (status.getLength() == Constants.UNKNOWN_SIZE) {
-      return new UnknownLengthFileInStream(status, options);
+      return new UnknownLengthFileInStream(status, options, context);
     }
-    return new FileInStream(status, options);
+    return new FileInStream(status, options, context);
   }
 
   /**
@@ -120,11 +116,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @param status the file status
    * @param options the client options
    */
-  protected FileInStream(URIStatus status, InStreamOptions options) {
+  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mStatus = status;
     mBlockSize = status.getBlockSizeBytes();
     mFileLength = status.getLength();
-    mContext = FileSystemContext.INSTANCE;
+    mContext = context;
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
@@ -285,7 +281,17 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
-    return UnderStoreBlockInStream.Factory.create(blockStart, length, mBlockSize, path);
+    return new UnderStoreBlockInStream(blockStart, length, mBlockSize,
+        getUnderStoreStreamFactory(path, mContext));
+  }
+
+  protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path, FileSystemContext
+      context) throws IOException {
+    if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
+      return new DelegatedUnderStoreStreamFactory(context, path);
+    } else {
+      return new DirectUnderStoreStreamFactory(path);
+    }
   }
 
   /**
@@ -390,9 +396,12 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // This can happen if there are two readers trying to cache the same block. The first one
       // created the block (either as temp block or committed block). The second sees this
       // exception.
-      LOG.info(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId());
+      LOG.info(
+          "The block with ID {} is already stored in the target worker, canceling the cache "
+              + "request.", getCurrentBlockId());
     } else {
-      LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId());
+      LOG.warn("The block with ID {} could not be cached into Alluxio storage.",
+          getCurrentBlockId());
     }
     closeOrCancelCacheStream();
   }
@@ -455,7 +464,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
     // If this block is read from a remote worker but we don't have a local worker, don't cache
     if (mCurrentBlockInStream instanceof RemoteBlockInStream
-        && !BlockStoreContext.INSTANCE.hasLocalWorker()) {
+        && !mContext.getBlockStoreContext().hasLocalWorker()) {
       return;
     }
 
@@ -474,7 +483,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     } catch (IOException e) {
       handleCacheStreamIOException(e);
     } catch (AlluxioException e) {
-      LOG.warn(BLOCK_ID_NOT_CACHED, blockId, e);
+      LOG.warn("The block with ID {} could not be cached into Alluxio storage.", blockId, e);
     }
   }
 
@@ -622,6 +631,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * Reads the remaining of the current block.
+   *
    * @throws IOException if read or cache write fails
    */
   private void readCurrentBlockToEnd() throws IOException {

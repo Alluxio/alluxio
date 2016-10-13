@@ -13,7 +13,7 @@ package alluxio.underfs.local;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
@@ -59,8 +59,8 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.LOCAL;
+  public String getUnderFSType() {
+    return "local";
   }
 
   @Override
@@ -91,8 +91,13 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     boolean success = true;
     if (recursive && file.isDirectory()) {
       String[] files = file.list();
-      for (String child : files) {
-        success = success && delete(PathUtils.concatPath(path, child), true);
+
+      // File.list() will return null if an I/O error occurs.
+      // e.g.: Reading an non-readable directory
+      if (files != null) {
+        for (String child : files) {
+          success = success && delete(PathUtils.concatPath(path, child), true);
+        }
       }
     }
 
@@ -113,7 +118,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     if (!file.exists()) {
       throw new FileNotFoundException(path);
     }
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override

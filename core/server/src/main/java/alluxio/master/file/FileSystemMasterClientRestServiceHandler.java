@@ -22,9 +22,11 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.web.MasterUIWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -35,12 +37,14 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -69,12 +73,19 @@ public final class FileSystemMasterClientRestServiceHandler {
   public static final String SET_ATTRIBUTE = "set_attribute";
   public static final String UNMOUNT = "unmount";
 
-  private final FileSystemMaster mFileSystemMaster = AlluxioMaster.get().getFileSystemMaster();
+  private final FileSystemMaster mFileSystemMaster;
 
   /**
    * Constructs a new {@link FileSystemMasterClientRestServiceHandler}.
+   *
+   * @param context context for the servlet
    */
-  public  FileSystemMasterClientRestServiceHandler() {}
+  public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
+    // Poor man's dependency injection through the Jersey application scope.
+    AlluxioMaster master =
+        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mFileSystemMaster = master.getFileSystemMaster();
+  }
 
   /**
    * @summary get the service name
@@ -175,6 +186,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param recursive whether parent directories should be created if they do not already exist
    * @param blockSizeBytes the target block size in bytes
    * @param ttl the time-to-live (in milliseconds)
+   * @param ttlAction action to take after TTL is expired
    * @return the response object
    */
   @POST
@@ -183,7 +195,8 @@ public final class FileSystemMasterClientRestServiceHandler {
   public Response createFile(@QueryParam("path") final String path,
       @QueryParam("persisted") final Boolean persisted,
       @QueryParam("recursive") final Boolean recursive,
-      @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl) {
+      @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl,
+      @QueryParam("ttlAction") final TtlAction ttlAction) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -200,6 +213,12 @@ public final class FileSystemMasterClientRestServiceHandler {
         }
         if (ttl != null) {
           options.setTtl(ttl);
+        }
+        if (ttl != null) {
+          options.setTtl(ttl);
+          if (ttlAction != null) {
+            options.setTtlAction(ttlAction);
+          }
         }
         mFileSystemMaster.createFile(new AlluxioURI(path), options);
         return null;
@@ -298,21 +317,29 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @summary mount a UFS path
    * @param path the alluxio mount point
    * @param ufsPath the UFS path to mount
+   * @param readOnly whether to make the mount option read only
+   * @param shared whether to make the mount option shared with all Alluxio users
    * @return the response object
    */
   @POST
   @Path(MOUNT)
   @ReturnType("java.lang.Void")
   public Response mount(@QueryParam("path") final String path,
-      @QueryParam("ufsPath") final String ufsPath) {
+      @QueryParam("ufsPath") final String ufsPath, @QueryParam("readOnly") final Boolean readOnly,
+      @QueryParam("shared") final Boolean shared) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         Preconditions.checkNotNull(ufsPath, "required 'ufsPath' parameter is missing");
-        // TODO(gpang): Update the rest API to get the mount options.
-        mFileSystemMaster
-            .mount(new AlluxioURI(path), new AlluxioURI(ufsPath), MountOptions.defaults());
+        MountOptions options = MountOptions.defaults();
+        if (readOnly != null) {
+          options.setReadOnly(readOnly);
+        }
+        if (shared != null) {
+          options.setShared(shared);
+        }
+        mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath), options);
         return null;
       }
     });
@@ -337,6 +364,7 @@ public final class FileSystemMasterClientRestServiceHandler {
           info.setUfsInfo(mountInfo.getUfsUri().toString());
           info.setReadOnly(mountInfo.getOptions().isReadOnly());
           info.setProperties(mountInfo.getOptions().getProperties());
+          info.setShared(mountInfo.getOptions().isShared());
           mountPoints.put(mountPoint.getKey(), info);
         }
         return mountPoints;
@@ -416,6 +444,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param group the file group
    * @param permission the file permission bits
    * @param recursive whether the attribute should be set recursively
+   * @param ttlAction action to take after TTL is expired
    * @return the response object
    */
   @POST
@@ -425,7 +454,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("pinned") final Boolean pinned, @QueryParam("ttl") final Long ttl,
       @QueryParam("persisted") final Boolean persisted, @QueryParam("owner") final String owner,
       @QueryParam("group") final String group, @QueryParam("permission") final Short permission,
-      @QueryParam("recursive") final Boolean recursive) {
+      @QueryParam("recursive") final Boolean recursive,
+      @QueryParam("ttxAction") final TtlAction ttlAction) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -436,6 +466,9 @@ public final class FileSystemMasterClientRestServiceHandler {
         }
         if (ttl != null) {
           options.setTtl(ttl);
+        }
+        if (ttlAction != null) {
+          options.setTtlAction(ttlAction);
         }
         if (persisted != null) {
           options.setPersisted(persisted);

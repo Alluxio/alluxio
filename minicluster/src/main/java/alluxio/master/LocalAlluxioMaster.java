@@ -11,17 +11,19 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Supplier;
-import org.powermock.reflect.Whitebox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -35,6 +37,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioMaster {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final String mHostname;
 
   private final String mJournalFolder;
@@ -52,14 +56,8 @@ public final class LocalAlluxioMaster {
 
   private LocalAlluxioMaster() throws IOException {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-
-    mJournalFolder = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
-
+    mJournalFolder = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     mAlluxioMaster = AlluxioMaster.Factory.create();
-    Whitebox.setInternalState(AlluxioMaster.class, "sAlluxioMaster", mAlluxioMaster);
-
-    // Reset the master port
-    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(getRPCLocalPort()));
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -67,6 +65,8 @@ public final class LocalAlluxioMaster {
         try {
           mAlluxioMaster.start();
         } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+          LOG.error("Start master error", e);
           throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
         }
       }
@@ -76,32 +76,30 @@ public final class LocalAlluxioMaster {
   }
 
   /**
-   * Creates a new local alluxio master with a isolated home and port.
+   * Creates a new local Alluxio master with an isolated work directory and port.
    *
    * @throws IOException when unable to do file operation or listen on port
    * @return an instance of Alluxio master
    */
   public static LocalAlluxioMaster create() throws IOException {
-    final String alluxioHome = uniquePath();
-    UnderFileSystemUtils.deleteDir(alluxioHome);
-    UnderFileSystemUtils.mkdirIfNotExists(alluxioHome);
+    String workDirectory = uniquePath();
+    UnderFileSystemUtils.deleteDir(workDirectory);
+    UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
 
-    // Update Alluxio home in the passed Alluxio configuration instance.
-    Configuration.set(Constants.HOME, alluxioHome);
+    Configuration.set(PropertyKey.WORK_DIR, workDirectory);
 
     return new LocalAlluxioMaster();
   }
 
   /**
-   * Creates a new local alluxio master with a isolated port.
+   * Creates a new local Alluxio master with a isolated port.
    *
-   * @param alluxioHome Alluxio home directory, if the directory already exists, this method will
-   *        reuse any directory/file if possible, no deletion will be made
-   * @return an instance of Alluxio master
+   * @param workDirectory Alluxio work directory, this method will create it if it doesn't exist yet
+   * @return the created Alluxio master
    * @throws IOException when unable to do file operation or listen on port
    */
-  public static LocalAlluxioMaster create(final String alluxioHome) throws IOException {
-    UnderFileSystemUtils.mkdirIfNotExists(alluxioHome);
+  public static LocalAlluxioMaster create(final String workDirectory) throws IOException {
+    UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
 
     return new LocalAlluxioMaster();
   }
@@ -219,7 +217,7 @@ public final class LocalAlluxioMaster {
   }
 
   private static String uniquePath() throws IOException {
-    return File.createTempFile("Alluxio", "").getAbsoluteFile() + "U" + System.nanoTime();
+    return AlluxioTestDirectory.createTemporaryDirectory("alluxio-master").getAbsolutePath();
   }
 
   /**

@@ -14,6 +14,7 @@ package alluxio.client.file.options;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -41,7 +42,7 @@ public class InStreamOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     ReadType readType = ReadType.NO_CACHE;
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
 
@@ -61,8 +62,8 @@ public class InStreamOptionsTest {
    * Tests that building a {@link InStreamOptions} with a modified configuration works.
    */
   @Test
-  public void modifiedConfTest() {
-    Configuration.set(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
+  public void modifiedConf() {
+    Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
     try {
       InStreamOptions options = InStreamOptions.defaults();
       Assert.assertEquals(ReadType.NO_CACHE.getAlluxioStorageType(),

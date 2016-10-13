@@ -12,8 +12,9 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
+import alluxio.collections.UniqueFieldIndex;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -33,15 +34,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> {
-  private final IndexDefinition<Inode<?>> mNameIndex = new IndexDefinition<Inode<?>>(true) {
+  private static final IndexDefinition<Inode<?>> NAME_INDEX = new IndexDefinition<Inode<?>>(true) {
     @Override
     public Object getFieldValue(Inode<?> o) {
       return o.getName();
     }
   };
 
-  @SuppressWarnings("unchecked")
-  private IndexedSet<Inode<?>> mChildren = new IndexedSet<>(mNameIndex);
+  /** Use UniqueFieldIndex directly for name index rather than using IndexedSet. */
+  private FieldIndex<Inode<?>> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
 
   private boolean mMountPoint;
 
@@ -53,15 +54,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @param id the id to use
    */
   private InodeDirectory(long id) {
-    super(id);
-    mDirectory = true;
+    super(id, true);
     mMountPoint = false;
-  }
-
-  private InodeDirectory(long id, long creationTimeMs) {
-    this(id);
-    mCreationTimeMs = creationTimeMs;
-
     mDirectChildrenLoaded = false;
   }
 
@@ -74,9 +68,10 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * Adds the given inode to the set of children.
    *
    * @param child the inode to add
+   * @return true if inode was added successfully, false otherwise
    */
-  public void addChild(Inode<?> child) {
-    mChildren.add(child);
+  public boolean addChild(Inode<?> child) {
+    return mChildren.add(child);
   }
 
   /**
@@ -84,7 +79,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the inode with the given name, or null if there is no child with that name
    */
   public Inode<?> getChild(String name) {
-    return mChildren.getFirstByField(mNameIndex, name);
+    return mChildren.getFirst(name);
   }
 
   /**
@@ -143,7 +138,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return true if the inode was removed, false otherwise
    */
   public boolean removeChild(String name) {
-    return mChildren.removeByField(mNameIndex, name) == 0;
+    Inode<?> child = mChildren.getFirst(name);
+    return mChildren.remove(child);
   }
 
   /**
@@ -208,7 +204,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
     Permission permission =
         new Permission(entry.getOwner(), entry.getGroup(), (short) entry.getMode());
-    return new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
+    return new InodeDirectory(entry.getId())
+        .setCreationTimeMs(entry.getCreationTimeMs())
         .setName(entry.getName())
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))

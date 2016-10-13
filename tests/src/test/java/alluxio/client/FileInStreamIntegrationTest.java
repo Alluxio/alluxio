@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -34,7 +33,7 @@ import java.util.List;
 /**
  * Integration tests for {@link alluxio.client.file.FileInStream}.
  */
-public class FileInStreamIntegrationTest {
+public final class FileInStreamIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static final int MIN_LEN = BLOCK_SIZE + 1;
   private static final int MAX_LEN = BLOCK_SIZE * 4 + 1;
@@ -42,7 +41,7 @@ public class FileInStreamIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE);
+      new LocalAlluxioClusterResource.Builder().build();
   private static FileSystem sFileSystem = null;
   private static CreateFileOptions sWriteBoth;
   private static CreateFileOptions sWriteAlluxio;
@@ -58,9 +57,9 @@ public class FileInStreamIntegrationTest {
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
-    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
-    sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
+    sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    sWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    sWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
     sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
@@ -175,7 +174,7 @@ public class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#read(byte[], int, int)} for end of file.
    */
   @Test
-  public void readEndOfFileTest() throws Exception {
+  public void readEndOfFile() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
@@ -239,7 +238,7 @@ public class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#seek(long)}.
    */
   @Test
-  public void seekTest() throws Exception {
+  public void seek() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
@@ -261,7 +260,7 @@ public class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#seek(long)} when at the end of a file at the block boundary.
    */
   @Test
-  public void eofSeekTest() throws Exception {
+  public void eofSeek() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int length = BLOCK_SIZE * 3;
     for (CreateFileOptions op : getOptionSet()) {
@@ -284,7 +283,7 @@ public class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws Exception {
+  public void skip() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();

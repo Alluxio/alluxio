@@ -13,10 +13,10 @@ package alluxio.client.concurrent;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
-import alluxio.client.StreamOptionUtils;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -36,25 +36,25 @@ import java.util.List;
 public final class FileInStreamConcurrencyIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static int sNumReadThreads =
-      Configuration.getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
+      Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE);
+      new LocalAlluxioClusterResource.Builder().build();
   private static FileSystem sFileSystem = null;
   private static CreateFileOptions sWriteAlluxio;
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
+    sWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
   }
 
   /**
    * Tests the concurrent read of {@link FileInStream}.
    */
   @Test
-  public void FileInStreamConcurrencyTest() throws Exception {
+  public void FileInStreamConcurrency() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     FileSystemTestUtils.createByteFile(sFileSystem, uniqPath, BLOCK_SIZE * 2, sWriteAlluxio);
 
@@ -75,10 +75,8 @@ public final class FileInStreamConcurrencyIntegrationTest {
 
     @Override
     public void run() {
-      try {
-        FileInStream stream = sFileSystem.openFile(mUri);
+      try (FileInStream stream = sFileSystem.openFile(mUri)) {
         stream.read();
-        stream.close();
       } catch (Exception e) {
         Throwables.propagate(e);
       }

@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,11 +32,11 @@ public final class FileSystemContextTest {
    * occurred preventing the release of the master clients.
    */
   @Test(timeout = 10000)
-  public void acquireAtMaxLimitTest() throws Exception {
+  public void acquireAtMaxLimit() throws Exception {
     final List<FileSystemMasterClient> clients = new ArrayList<>();
 
     // Acquire all the clients
-    for (int i = 0; i < Configuration.getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS); i++) {
       clients.add(FileSystemContext.INSTANCE.acquireMasterClient());
     }
     Thread acquireThread = new Thread(new AcquireClient());

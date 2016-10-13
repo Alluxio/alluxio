@@ -12,8 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.client.netty.NettyUnderFileSystemFileReader;
+import alluxio.PropertyKey;
+import alluxio.client.UnderFileSystemFileReader;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -40,7 +40,7 @@ public final class UnderFileSystemFileInStream extends InputStream {
   /** Flag indicating EOF has been reached. */
   private boolean mEOF;
   /** Reader to the worker, currently only implemented through Netty. */
-  private final NettyUnderFileSystemFileReader mReader;
+  private final UnderFileSystemFileReader mReader;
   /** Address of the worker to write to. */
   private final InetSocketAddress mAddress;
   /** Worker file id referencing the file to write to. */
@@ -52,16 +52,18 @@ public final class UnderFileSystemFileInStream extends InputStream {
   private boolean mClosed;
 
   /**
-   * Constructs a new input stream for the under file system file. Creates the initial buffer
-   * which is empty and invalid.
+   * Constructs a new input stream for the under file system file. Creates the initial buffer which
+   * is empty and invalid.
    *
    * @param address worker address to read from
    * @param ufsFileId worker specific file id referencing the file to read
+   * @param reader a reader for reading from the worker
    */
-  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId) {
+  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId,
+      UnderFileSystemFileReader reader) {
     mAddress = address;
     mUfsFileId = ufsFileId;
-    mReader = new NettyUnderFileSystemFileReader();
+    mReader = reader;
     mBuffer = allocateBuffer();
     mIsBufferValid = false; // No data in buffer
     mEOF = false;
@@ -152,7 +154,7 @@ public final class UnderFileSystemFileInStream extends InputStream {
    */
   private ByteBuffer allocateBuffer() {
     return ByteBuffer.allocate(
-        (int) Configuration.getBytes(Constants.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES));
+        (int) Configuration.getBytes(PropertyKey.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES));
   }
 
   /**

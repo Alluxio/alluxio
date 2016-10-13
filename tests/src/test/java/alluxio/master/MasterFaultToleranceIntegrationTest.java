@@ -12,7 +12,9 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -53,8 +55,10 @@ public class MasterFaultToleranceIntegrationTest {
   public final void before() throws Exception {
     // TODO(gpang): Implement multi-master cluster as a resource.
     mMultiMasterLocalAlluxioCluster =
-        new MultiMasterLocalAlluxioCluster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
-    mMultiMasterLocalAlluxioCluster.initializeTestConfiguration();
+        new MultiMasterLocalAlluxioCluster(MASTERS);
+    mMultiMasterLocalAlluxioCluster.initConfiguration();
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
   }
@@ -79,25 +83,25 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   /**
-   * Tells if the results can match the answer.
+   * Tells if the results can match the answers.
    *
-   * @param answer the correct results
+   * @param answers the correct results
    */
-  private void faultTestDataCheck(List<Pair<Long, AlluxioURI>> answer) throws IOException,
+  private void faultTestDataCheck(List<Pair<Long, AlluxioURI>> answers) throws IOException,
       AlluxioException {
     List<String> files = FileSystemTestUtils.listFiles(mFileSystem, AlluxioURI.SEPARATOR);
     Collections.sort(files);
-    Assert.assertEquals(answer.size(), files.size());
-    for (int k = 0; k < answer.size(); k++) {
-      Assert.assertEquals(answer.get(k).getSecond().toString(),
-          mFileSystem.getStatus(answer.get(k).getSecond()).getPath());
-      Assert.assertEquals(answer.get(k).getFirst().longValue(),
-          mFileSystem.getStatus(answer.get(k).getSecond()).getFileId());
+    Assert.assertEquals(answers.size(), files.size());
+    for (Pair<Long, AlluxioURI> answer : answers) {
+      Assert.assertEquals(answer.getSecond().toString(),
+          mFileSystem.getStatus(answer.getSecond()).getPath());
+      Assert.assertEquals(answer.getFirst().longValue(),
+          mFileSystem.getStatus(answer.getSecond()).getFileId());
     }
   }
 
   @Test
-  public void createFileFaultTest() throws Exception {
+  public void createFileFault() throws Exception {
     int clients = 10;
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int k = 0; k < clients; k++) {
@@ -114,7 +118,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Test
-  public void deleteFileFaultTest() throws Exception {
+  public void deleteFileFault() throws Exception {
     // Kill leader -> create files -> kill leader -> delete files, repeat.
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
@@ -148,7 +152,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Test
-  public void createFilesTest() throws Exception {
+  public void createFiles() throws Exception {
     int clients = 10;
     CreateFileOptions option =
         CreateFileOptions.defaults().setBlockSizeBytes(1024).setWriteType(WriteType.THROUGH);
@@ -164,7 +168,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Test
-  public void killStandbyTest() throws Exception {
+  public void killStandby() throws Exception {
     // If standby masters are killed(or node failure), current leader should not be affected and the
     // cluster should run properly.
 
@@ -190,8 +194,9 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Test
-  public void workerReRegisterTest() throws Exception {
-    Assert.assertEquals(WORKER_CAPACITY_BYTES, AlluxioBlockStore.get().getCapacityBytes());
+  public void workerReRegister() throws Exception {
+    AlluxioBlockStore store = new AlluxioBlockStore();
+    Assert.assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
 
     List<Pair<Long, AlluxioURI>> emptyAnswer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
@@ -202,7 +207,7 @@ public class MasterFaultToleranceIntegrationTest {
       faultTestDataCheck(emptyAnswer);
 
       // If worker is successfully re-registered, the capacity bytes should not change.
-      Assert.assertEquals(WORKER_CAPACITY_BYTES, AlluxioBlockStore.get().getCapacityBytes());
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
     }
   }
 }

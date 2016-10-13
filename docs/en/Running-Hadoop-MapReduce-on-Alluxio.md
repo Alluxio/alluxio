@@ -49,12 +49,17 @@ This will allow your MapReduce jobs to use Alluxio for their input and output fi
 using HDFS as the under storage system for Alluxio, it may be necessary to add these properties to
 the `hdfs-site.xml` file as well.
 
-In order for the Alluxio client jar to be available to the JobClient, you can modify
-`HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
+In order for the Alluxio client jar to be available to the JobClient, you must modify
+`$HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-hadoop.md %}
 
 This allows the code that creates and submits the Job to use URIs with Alluxio scheme.
+
+NOTE: adding Alluxio client jar to `HADOOP_CLASSPATH` is required. Starting from Alluxio 1.3.0
+release in which security is enabled by default, if the `HADOOP_CLASSPATH` does not include Alluxio
+client jar, running mapreduce on Alluxio might result in "Failed to login: No Alluxio User is
+found." error.
 
 # Distributing the Alluxio Client Jar
 
@@ -108,7 +113,7 @@ For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by r
 {% include Running-Hadoop-MapReduce-on-Alluxio/start-cluster.md %}
 
 Configure Alluxio to use the local HDFS cluster as its under storage system. You can do this by
-modifying `conf/alluxio-env.sh` to include:
+modifying `conf/alluxio-site.properties` to include:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-Alluxio.md %}
 

@@ -12,7 +12,7 @@
 package alluxio.security;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.login.AppLoginModule;
 import alluxio.security.login.LoginModuleConfiguration;
@@ -69,12 +69,11 @@ public final class LoginUser {
    */
   private static User login() throws IOException {
     AuthType authType =
-        Configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+        Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     checkSecurityEnabled(authType);
+    Subject subject = new Subject();
 
     try {
-      Subject subject = new Subject();
-
       CallbackHandler callbackHandler = null;
       if (authType.equals(AuthType.SIMPLE) || authType.equals(AuthType.CUSTOM)) {
         callbackHandler = new AppLoginModule.AppCallbackHandler();
@@ -86,18 +85,24 @@ public final class LoginUser {
           new LoginContext(authType.getAuthName(), subject, callbackHandler,
               new LoginModuleConfiguration());
       loginContext.login();
-
-      Set<User> userSet = subject.getPrincipals(User.class);
-      if (userSet.isEmpty()) {
-        throw new LoginException("No Alluxio User is found.");
-      }
-      if (userSet.size() > 1) {
-        throw new LoginException("More than one Alluxio User is found");
-      }
-      return userSet.iterator().next();
     } catch (LoginException e) {
       throw new IOException("Failed to login: " + e.getMessage(), e);
     }
+
+    Set<User> userSet = subject.getPrincipals(User.class);
+    if (userSet.isEmpty()) {
+      String msg = String.format("Failed to login: No Alluxio User is found. Current login "
+          + "principals are %s.%n If you are running hadoop with Alluxio, please double check "
+          + "whether you have alluxio client jar included in HADOOP_CLASSPATH. Otherwise, you "
+          + "are expected to see this error.", subject.getPrincipals().toString());
+      throw new IOException(msg);
+    }
+    if (userSet.size() > 1) {
+      String msg = String.format("Failed to login: More than one Alluxio User is found. Current "
+          + "login principals are %s.", subject.getPrincipals().toString());
+      throw new IOException(msg);
+    }
+    return userSet.iterator().next();
   }
 
   /**

@@ -12,7 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
@@ -43,7 +43,7 @@ public final class CreateDirectoryOptions {
     mRecursive = false;
     mAllowExists = false;
     WriteType defaultWriteType =
-        Configuration.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+        Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mUnderStorageType = defaultWriteType.getUnderStorageType();
   }
 

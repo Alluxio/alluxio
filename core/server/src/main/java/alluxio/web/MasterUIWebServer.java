@@ -11,18 +11,19 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.AlluxioMaster;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.net.InetSocketAddress;
-import java.util.Collections;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletException;
 
 /**
  * A master's UI web server.
@@ -30,15 +31,18 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MasterUIWebServer extends UIWebServer {
 
+  public static final String ALLUXIO_MASTER_SERVLET_RESOURCE_KEY = "Alluxio Master";
+
   /**
    * Creates a new instance of {@link MasterUIWebServer}.
    *
-   * @param service the service type
+   * @param serviceName the service name
    * @param address the service address
    * @param master the Alluxio master
    */
-  public MasterUIWebServer(ServiceType service, InetSocketAddress address, AlluxioMaster master) {
-    super(service, address);
+  public MasterUIWebServer(String serviceName, InetSocketAddress address,
+      final AlluxioMaster master) {
+    super(serviceName, address);
     Preconditions.checkNotNull(master, "Alluxio master cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
@@ -58,10 +62,25 @@ public final class MasterUIWebServer extends UIWebServer {
         "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()),
         "/header");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet(
-        master.getMasterMetricsSystem())), "/metricsui");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet()),
+        "/metricsui");
+
     // REST configuration
-    mWebAppContext.setOverrideDescriptors(Collections
-        .singletonList(Configuration.get(Constants.WEB_RESOURCES) + "/WEB-INF/master.xml"));
+    ResourceConfig config = new ResourceConfig().packages("alluxio.master", "alluxio.master.block",
+        "alluxio.master.file", "alluxio.master.lineage");
+    // Override the init method to inject a reference to AlluxioMaster into the servlet context.
+    // ServletContext may not be modified until after super.init() is called.
+    ServletContainer servlet = new ServletContainer(config) {
+      private static final long serialVersionUID = 7756010860672831556L;
+
+      @Override
+      public void init() throws ServletException {
+        super.init();
+        getServletContext().setAttribute(ALLUXIO_MASTER_SERVLET_RESOURCE_KEY, master);
+      }
+    };
+
+    ServletHolder servletHolder = new ServletHolder("Alluxio Master Web Service", servlet);
+    mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }
 }

@@ -13,7 +13,7 @@ package alluxio.underfs.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Permission;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
@@ -37,7 +37,7 @@ public final class MkdirsOptionsTest {
    * Tests for default {@link MkdirsOptions}.
    */
   @Test
-  public void defaultsTest() throws IOException {
+  public void defaults() throws IOException {
     MkdirsOptions options = new MkdirsOptions();
 
     Permission expectedPs = Permission.defaults().applyDirectoryUMask();
@@ -55,11 +55,12 @@ public final class MkdirsOptionsTest {
    * configuration.
    */
   @Test
-  public void securityEnabledTest() throws IOException {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "foo");
+  public void securityEnabled() throws IOException {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
-    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+        IdentityUserGroupsMapping.class.getName());
 
     MkdirsOptions options = new MkdirsOptions();
 
@@ -78,7 +79,7 @@ public final class MkdirsOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     boolean createParent = false;
     Permission perm = Permission.defaults();
     MkdirsOptions options = new MkdirsOptions();

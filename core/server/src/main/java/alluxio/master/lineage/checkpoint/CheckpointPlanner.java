@@ -12,7 +12,7 @@
 package alluxio.master.lineage.checkpoint;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.lineage.meta.LineageStoreView;
 import alluxio.util.CommonUtils;
@@ -40,7 +40,7 @@ public interface CheckpointPlanner {
         FileSystemMasterView fileSystemMasterView) {
       try {
         return CommonUtils.createNewClassInstance(
-            Configuration.<CheckpointPlanner>getClass(Constants.MASTER_LINEAGE_CHECKPOINT_CLASS),
+            Configuration.<CheckpointPlanner>getClass(PropertyKey.MASTER_LINEAGE_CHECKPOINT_CLASS),
             new Class[] {LineageStoreView.class, FileSystemMasterView.class},
             new Object[] {lineageStoreView, fileSystemMasterView});
       } catch (Exception e) {

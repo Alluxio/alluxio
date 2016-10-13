@@ -13,6 +13,7 @@ package alluxio.web;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -66,9 +67,8 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    */
   private void displayLocalFile(File file, HttpServletRequest request, long offset)
       throws IOException {
-    String fileData = null;
-    InputStream is = new FileInputStream(file);
-    try {
+    String fileData;
+    try (InputStream is = new FileInputStream(file)) {
       long fileSize = file.length();
       int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
       byte[] data = new byte[len];
@@ -89,8 +89,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
           fileData = WebUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
         }
       }
-    } finally {
-      is.close();
     }
     request.setAttribute("fileData", fileData);
   }
@@ -108,7 +106,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    request.setAttribute("debug", Configuration.getBoolean(Constants.DEBUG));
+    request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
     request.setAttribute("invalidPathError", "");
     request.setAttribute("viewingOffset", 0);
     request.setAttribute("downloadLogFile", 1);
@@ -116,7 +114,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("currentPath", "");
     request.setAttribute("showPermissions", false);
 
-    String logsPath = Configuration.get(Constants.LOGS_DIR);
+    String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
     File logsDir = new File(logsPath);
     String requestFile = request.getParameter("path");
 

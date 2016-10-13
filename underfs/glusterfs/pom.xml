@@ -15,11 +15,11 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-glusterfs</artifactId>
   <name>Alluxio Under File System - Gluster FS</name>
-  <description>Alluxio Under File System implementation which adds Gluster FS as a Under File System</description>
+  <description>Gluster FS Under File System implementation</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run

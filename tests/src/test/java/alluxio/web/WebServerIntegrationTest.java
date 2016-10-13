@@ -12,14 +12,12 @@
 package alluxio.web;
 
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimap;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,16 +43,18 @@ public class WebServerIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
-
-  @Before
-  public final void before() throws Exception {
-    LocalAlluxioCluster localAlluxioCluster = mLocalAlluxioClusterResource.get();
-  }
+      new LocalAlluxioClusterResource.Builder().build();
 
   private void verifyWebService(ServiceType serviceType, String path)
       throws IOException {
-    InetSocketAddress webAddr = NetworkAddressUtils.getConnectAddress(serviceType);
+    int port;
+    if (serviceType == ServiceType.MASTER_WEB) {
+      port = mLocalAlluxioClusterResource.get().getMaster().getWebLocalPort();
+    } else {
+      port = mLocalAlluxioClusterResource.get().getWorker().getWebLocalPort();
+    }
+    InetSocketAddress webAddr =
+        new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType), port);
     HttpURLConnection webService = (HttpURLConnection) new URL(
         "http://" + webAddr.getAddress().getHostAddress() + ":"
         + webAddr.getPort() + path).openConnection();
@@ -89,7 +89,7 @@ public class WebServerIntegrationTest {
    * Tests whether the master and worker web homepage is up.
    */
   @Test
-  public void serverUpTest() throws Exception {
+  public void serverUp() throws Exception {
     for (Entry<ServiceType, String> entry : PAGES.entries()) {
       verifyWebService(entry.getKey(), entry.getValue());
     }

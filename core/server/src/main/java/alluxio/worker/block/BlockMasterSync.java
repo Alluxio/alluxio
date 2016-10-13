@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -24,7 +25,6 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.WorkerIdRegistry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -60,6 +61,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
 
+  /** The worker ID for the worker. This may change if the master asks the worker to re-register. */
+  private AtomicReference<Long> mWorkerId;
+
   /** The net address of the worker. */
   private final WorkerNetAddress mWorkerAddress;
 
@@ -84,31 +88,31 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Creates a new instance of {@link BlockMasterSync}.
    *
    * @param blockWorker the {@link BlockWorker} this syncer is updating to
+   * @param workerId the worker id of the worker, assigned by the block master
    * @param workerAddress the net address of the worker
    * @param masterClient the Alluxio master client
    */
-  BlockMasterSync(BlockWorker blockWorker, WorkerNetAddress workerAddress,
-      BlockMasterClient masterClient) {
+  BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
+      WorkerNetAddress workerAddress, BlockMasterClient masterClient) {
     mBlockWorker = blockWorker;
+    mWorkerId = workerId;
     mWorkerAddress = workerAddress;
     mMasterClient = masterClient;
-    mHeartbeatTimeoutMs = Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatTimeoutMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mRemovingBlockIdToFinished = new HashMap<>();
 
     try {
       registerWithMaster();
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    } catch (IOException e) {
+    } catch (IOException | ConnectionFailedException e) {
       // If failed to register when the thread starts, no retry will happen.
-      throw new RuntimeException("Failed to register with master.", e);
-    } catch (ConnectionFailedException e) {
       throw new RuntimeException("Failed to register with master.", e);
     }
   }
 
   /**
    * Registers with the Alluxio master. This should be called before the continuous heartbeat thread
-   * begins. The workerId will be set after this method is successful.
+   * begins.
    *
    * @throws IOException when workerId cannot be found
    * @throws ConnectionFailedException if network connection failed
@@ -117,7 +121,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     try {
       StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
-      mMasterClient.register(WorkerIdRegistry.getWorkerId(),
+      mMasterClient.register(mWorkerId.get(),
           storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException e) {
@@ -142,7 +146,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     Command cmdFromMaster = null;
     try {
       cmdFromMaster = mMasterClient
-          .heartbeat(WorkerIdRegistry.getWorkerId(), storeMeta.getUsedBytesOnTiers(),
+          .heartbeat(mWorkerId.get(), storeMeta.getUsedBytesOnTiers(),
               blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -206,7 +210,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests re-registration
       case Register:
-        WorkerIdRegistry.registerWithBlockMaster(mMasterClient, mWorkerAddress);
+        mWorkerId.set(mMasterClient.getId(mWorkerAddress));
         registerWithMaster();
         break;
       // Unknown request

@@ -13,7 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
@@ -26,10 +26,10 @@ import org.junit.Test;
  */
 public class OpenFileOptionsTest {
   private final ReadType mDefaultReadType =
-      Configuration.getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+      Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
 
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     OpenFileOptions options = OpenFileOptions.defaults();
     Assert.assertEquals(mDefaultReadType.getAlluxioStorageType(), options.getAlluxioStorageType());
   }
@@ -38,7 +38,7 @@ public class OpenFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
     ReadType readType = ReadType.NO_CACHE;
 
@@ -54,7 +54,7 @@ public class OpenFileOptionsTest {
    * Tests conversion to {@link InStreamOptions}.
    */
   @Test
-  public void toInStreamOptionsTest() {
+  public void toInStreamOptions() {
     OpenFileOptions options = OpenFileOptions.defaults();
     InStreamOptions inStreamOptions = options.toInStreamOptions();
     Assert.assertEquals(options.getAlluxioStorageType(),

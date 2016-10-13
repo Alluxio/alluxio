@@ -12,7 +12,7 @@
 package alluxio.client;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Throwables;
@@ -42,8 +42,8 @@ public interface RemoteBlockReader extends Closeable {
     public static RemoteBlockReader create() {
       try {
         return CommonUtils.createNewClassInstance(
-            Configuration.<RemoteBlockReader>getClass(Constants.USER_BLOCK_REMOTE_READER), null,
-            null);
+            Configuration.<RemoteBlockReader>getClass(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS),
+            null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

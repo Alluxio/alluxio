@@ -27,7 +27,7 @@ import java.io.IOException;
  */
 public final class ChgrpCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void chgrpTest() throws IOException, AlluxioException {
+  public void chgrp() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chgrp", "group1", "/testFile");
@@ -42,7 +42,7 @@ public final class ChgrpCommandTest extends AbstractAlluxioShellTest {
    * Tests -R option for chgrp recursively.
    */
   @Test
-  public void chgrpRecursiveTest() throws IOException, AlluxioException {
+  public void chgrpRecursive() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
     // "chgrp -R group1 /testDir" should apply to both dir and child file

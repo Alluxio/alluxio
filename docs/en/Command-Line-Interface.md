@@ -65,6 +65,14 @@ output:
 
 {% include Command-Line-Interface/cat.md %}
 
+## checksum
+The `checksum` command outputs the md5 value of a file in Alluxio.
+
+For example, `checksum` can be used to verify the content of a file stored in Alluxio
+matches the content stored in an UnderFS or local filesystem:
+
+{% include Command-Line-Interface/checksum.md %}
+
 ## chgrp
 The `chgrp` command changes the group of the file or directory in Alluxio. Alluxio supports file
 authorization with Posix file permission. Group is an authorizable entity in Posix file permission
@@ -140,6 +148,16 @@ For example, if data files are stored by their date, `count` can be used to dete
 data files and their total size for any date, month, or year.
 
 {% include Command-Line-Interface/count.md %}
+
+## cp
+The `cp` command copies a file or directory in the Alluxio filesystem.
+
+If the `-R` option is used and the source designates a directory, cp copies the entire subtree at
+source to the destination.
+
+For example, `cp` can be used to copy files between Under file systems.
+
+{% include Command-Line-Interface/cp.md %}
 
 ## du
 The `du` command outputs the size of a file. If a directory is specified, it will output the
@@ -320,12 +338,14 @@ For example, `rm` can be used to remove temporary files which are no longer need
 {% include Command-Line-Interface/rm2.md %}
 
 ## setTtl
-The `setTtl` command sets the time-to-live of a file, in milliseconds. The file will automatically
-be deleted once the current time is greater than the TTL + creation time of the file. This delete
-will affect both Alluxio and the under storage system.
+The `setTtl` command sets the time-to-live of a file, in milliseconds. Action parameter will
+indicate the action to perform once the current time is greater than the TTL + creation time of the file.
+Action `delete` (default) will delete file from both Alluxio and the under storage system, whereas action
+`free` will just free the file from Alluxio.
 
-For example, `setTtl` can be used to clean up files the administrator knows are unnecessary after a
-period of time.
+For example, `setTtl` with action `delete` can be used to clean up files the administrator knows are
+unnecessary after a period of time, or can be used to just remove the contents from Alluxio to make room
+for more space in Alluxio.
 
 {% include Command-Line-Interface/setTtl.md %}
 

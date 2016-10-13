@@ -14,9 +14,11 @@ package alluxio.underfs.s3;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -24,6 +26,7 @@ import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.StorageObjectsChunk;
+import org.jets3t.service.acl.AccessControlList;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
 import org.jets3t.service.model.S3Object;
 import org.jets3t.service.model.StorageObject;
@@ -58,9 +61,6 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   /** Value used to indicate folder structure in S3. */
   private static final String PATH_SEPARATOR = "/";
 
-  /** Length of each list request in S3. */
-  private static final long LISTING_LENGTH = 1000L;
-
   private static final byte[] DIR_HASH;
 
   /** Jets3t S3 client. */
@@ -71,6 +71,12 @@ public final class S3UnderFileSystem extends UnderFileSystem {
 
   /** Prefix of the bucket, for example s3n://my-bucket-name/ . */
   private final String mBucketPrefix;
+
+  /** The name of the account owner. */
+  private final String mAccountOwner;
+
+  /** The permission mode that the account owner has to the bucket. */
+  private final short mBucketMode;
 
   static {
     try {
@@ -84,65 +90,109 @@ public final class S3UnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link S3UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @return the created {@link S3UnderFileSystem} instance
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public S3UnderFileSystem(AlluxioURI uri) throws ServiceException {
-    super(uri);
+  public static S3UnderFileSystem createInstance(AlluxioURI uri) throws ServiceException {
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(Configuration.containsKey(Constants.S3N_ACCESS_KEY),
-        "Property " + Constants.S3N_ACCESS_KEY + " is required to connect to S3");
-    Preconditions.checkArgument(Configuration.containsKey(Constants.S3N_SECRET_KEY),
-        "Property " + Constants.S3N_SECRET_KEY + " is required to connect to S3");
-    AWSCredentials awsCredentials = new AWSCredentials(Configuration.get(Constants.S3N_ACCESS_KEY),
-        Configuration.get(Constants.S3N_SECRET_KEY));
-    mBucketName = bucketName;
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY),
+        "Property " + PropertyKey.S3N_ACCESS_KEY + " is required to connect to S3");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.S3N_SECRET_KEY),
+        "Property " + PropertyKey.S3N_SECRET_KEY + " is required to connect to S3");
+    AWSCredentials awsCredentials = new AWSCredentials(
+        Configuration.get(PropertyKey.S3N_ACCESS_KEY),
+        Configuration.get(PropertyKey.S3N_SECRET_KEY));
 
     Jets3tProperties props = new Jets3tProperties();
-    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
       props.setProperty("httpclient.proxy-autodetect", "false");
-      props
-          .setProperty("httpclient.proxy-host", Configuration.get(Constants.UNDERFS_S3_PROXY_HOST));
-      props
-          .setProperty("httpclient.proxy-port", Configuration.get(Constants.UNDERFS_S3_PROXY_PORT));
+      props.setProperty(
+          "httpclient.proxy-host", Configuration.get(PropertyKey.UNDERFS_S3_PROXY_HOST));
+      props.setProperty(
+          "httpclient.proxy-port", Configuration.get(PropertyKey.UNDERFS_S3_PROXY_PORT));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
       props.setProperty("s3service.https-only",
-          Boolean.toString(Configuration.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
+          Boolean.toString(Configuration.getBoolean(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY)));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_ENDPOINT)) {
-      props.setProperty("s3service.s3-endpoint", Configuration.get(Constants.UNDERFS_S3_ENDPOINT));
-      if (Configuration.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      props.setProperty(
+          "s3service.s3-endpoint", Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT));
+      if (Configuration.getBoolean(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
         props.setProperty("s3service.s3-endpoint-https-port",
-            Configuration.get(Constants.UNDERFS_S3_ENDPOINT_HTTPS_PORT));
+            Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT_HTTPS_PORT));
       } else {
         props.setProperty("s3service.s3-endpoint-http-port",
-            Configuration.get(Constants.UNDERFS_S3_ENDPOINT_HTTP_PORT));
+            Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT_HTTP_PORT));
       }
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
       props.setProperty("s3service.disable-dns-buckets",
-          Configuration.get(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS));
+          Configuration.get(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX)) {
       props.setProperty("threaded-service.max-thread-count",
-          Configuration.get(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX));
+          Configuration.get(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_ADMIN_THREADS_MAX)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX)) {
       props.setProperty("threaded-service.admin-max-thread-count",
-          Configuration.get(Constants.UNDERFS_S3_ADMIN_THREADS_MAX));
+          Configuration.get(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_THREADS_MAX)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_THREADS_MAX)) {
       props.setProperty("httpclient.max-connections",
-          Configuration.get(Constants.UNDERFS_S3_THREADS_MAX));
+          Configuration.get(PropertyKey.UNDERFS_S3_THREADS_MAX));
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
-    mClient = new RestS3Service(awsCredentials, null, null, props);
-    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
+    RestS3Service restS3Service = new RestS3Service(awsCredentials, null, null, props);
+    String bucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + bucketName,
+        PATH_SEPARATOR);
+
+    String accountOwnerId = restS3Service.getAccountOwner().getId();
+    // Gets the owner from user-defined static mapping from S3 canonical user id to Alluxio
+    // user name.
+    String owner = CommonUtils.getValueFromStaticMapping(
+        Configuration.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING),
+        accountOwnerId);
+    // If there is no user-defined mapping, use the display name.
+    if (owner == null) {
+      owner = restS3Service.getAccountOwner().getDisplayName();
+    }
+    String accountOwner = owner == null ? accountOwnerId : owner;
+
+    AccessControlList acl = restS3Service.getBucketAcl(bucketName);
+    short bucketMode = S3Utils.translateBucketAcl(acl, accountOwnerId);
+
+    return new S3UnderFileSystem(uri, restS3Service, bucketName, bucketPrefix,
+        bucketMode, accountOwner);
+  }
+
+  /**
+   * Constructor for {@link S3UnderFileSystem}.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param s3Service Jets3t S3 client
+   * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param bucketPrefix prefix of the bucket
+   * @param bucketMode the permission mode that the account owner has to the bucket
+   * @param accountOwner the name of the account owner
+   */
+  protected S3UnderFileSystem(AlluxioURI uri,
+      S3Service s3Service,
+      String bucketName,
+      String bucketPrefix,
+      short bucketMode,
+      String accountOwner) {
+    super(uri);
+    mClient = s3Service;
+    mBucketName = bucketName;
+    mBucketPrefix = bucketPrefix;
+    mBucketMode = bucketMode;
+    mAccountOwner = accountOwner;
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.S3;
+  public String getUnderFSType() {
+    return "s3";
   }
 
   @Override
@@ -175,15 +225,24 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     if (!recursive) {
-      if (isFolder(path) && listInternal(path, false).length != 0) {
-        LOG.error("Unable to delete " + path + " because it is a non empty directory. Specify "
-            + "recursive as true in order to delete non empty directories.");
+      String[] children = listInternal(path, false);
+      if (children == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
+        return false;
+      }
+      if (isFolder(path) && children.length != 0) {
+        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
+                + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
       return deleteInternal(path);
     }
     // Get all relevant files
     String[] pathsToDelete = listInternal(path, true);
+    if (pathsToDelete == null) {
+      LOG.error("Unable to delete {} because listInternal returns null", path);
+      return false;
+    }
     for (String pathToDelete : pathsToDelete) {
       // If we fail to deleteInternal one file, stop
       if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
@@ -211,7 +270,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
@@ -361,8 +420,13 @@ public final class S3UnderFileSystem extends UnderFileSystem {
       }
       // Rename each child in the src folder to destination/child
       String [] children = list(src);
-      for (String child: children) {
+      if (children == null) {
+        LOG.error("Failed to list path {}, aborting rename.", src);
+        return false;
+      }
+      for (String child : children) {
         if (!rename(PathUtils.concatPath(src, child), PathUtils.concatPath(dst, child))) {
+          LOG.error("Failed to rename path {}, aborting rename.", child);
           return false;
         }
       }
@@ -377,30 +441,30 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public void setConf(Object conf) {}
 
-  // No ACL integration currently, no-op
+  // Setting S3 owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
 
-  // No ACL integration currently, no-op
+  // Setting S3 mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // No ACL integration currently, returns default empty value
+  // Returns the account owner.
   @Override
   public String getOwner(String path) throws IOException {
-    return "";
+    return mAccountOwner;
   }
 
-  // No ACL integration currently, returns default empty value
+  // No group in S3 ACL, returns the account owner.
   @Override
   public String getGroup(String path) throws IOException {
-    return "";
+    return mAccountOwner;
   }
 
-  // No ACL integration currently, returns default value
+  // Returns the account owner's permission mode to the S3 bucket.
   @Override
   public short getMode(String path) throws IOException {
-    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+    return mBucketMode;
   }
 
   /**
@@ -605,7 +669,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
-          child = stripFolderSuffixIfPresent(child);
+          child = CommonUtils.stripSuffixIfPresent(child, FOLDER_SUFFIX);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
             children.add(child);
@@ -615,13 +679,16 @@ public final class S3UnderFileSystem extends UnderFileSystem {
         for (String commonPrefix : chunk.getCommonPrefixes()) {
           // Remove parent portion of the key
           String child = getChildName(commonPrefix, path);
-          // Remove any portion after the last path delimiter
-          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
-          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-          if (!child.isEmpty() && !children.contains(child)) {
-            // This directory has not been created through Alluxio.
-            mkdirsInternal(commonPrefix);
-            children.add(child);
+
+          if (child != null) {
+            // Remove any portion after the last path delimiter
+            int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+            child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+            if (!child.isEmpty() && !children.contains(child)) {
+              // This directory has not been created through Alluxio.
+              mkdirsInternal(commonPrefix);
+              children.add(child);
+            }
           }
         }
         done = chunk.isListingComplete();
@@ -672,20 +739,6 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
-   *
-   * @param key the key to strip the suffix from
-   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
-   */
-  private String stripFolderSuffixIfPresent(String key) {
-    if (key.endsWith(FOLDER_SUFFIX)) {
-      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
-    }
-    return key;
-  }
-
-  /**
    * Strips the s3 bucket prefix or the preceding path separator from the key if it is present. For
    * example, for input key s3n://my-bucket-name/my-path/file, the output would be my-path/file. If
    * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
@@ -695,12 +748,15 @@ public final class S3UnderFileSystem extends UnderFileSystem {
    * @return the key without the s3 bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
-    if (key.startsWith(mBucketPrefix)) {
-      return key.substring(mBucketPrefix.length());
+    String stripedKey = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
+    if (!stripedKey.equals(key)) {
+      return stripedKey;
     }
-    if (key.startsWith(PATH_SEPARATOR)) {
-      return key.substring(PATH_SEPARATOR.length());
-    }
-    return key;
+    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return false;
   }
 }

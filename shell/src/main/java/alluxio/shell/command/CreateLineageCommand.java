@@ -13,9 +13,10 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
+import alluxio.client.lineage.LineageContext;
 import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
@@ -64,7 +65,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
   @Override
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioLineage tl = AlluxioLineage.get();
+    AlluxioLineage tl = AlluxioLineage.get(LineageContext.INSTANCE);
     // TODO(yupeng) more validation
     List<AlluxioURI> inputFiles = new ArrayList<>();
     if (!args[0].equals("noInput")) {
@@ -81,7 +82,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
       cmd += args[i] + " ";
     }
 
-    String outputPath = Configuration.get(Constants.MASTER_LINEAGE_RECOMPUTE_LOG_PATH);
+    String outputPath = Configuration.get(PropertyKey.MASTER_LINEAGE_RECOMPUTE_LOG_PATH);
     if (outputPath == null) {
       throw new IOException("recompute output log is not configured");
     }

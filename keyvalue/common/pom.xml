@@ -15,11 +15,11 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-keyvalue</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-keyvalue-common</artifactId>
   <name>Alluxio Key Value - Common Utilities</name>
-  <description>Clients of Alluxio Key Value Store</description>
+  <description>Common utilities shared in Alluxio Key Value Store modules</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run

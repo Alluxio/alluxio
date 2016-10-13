@@ -14,6 +14,7 @@ package alluxio.shell;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.cli.AlluxioShell;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
@@ -48,8 +49,10 @@ public abstract class AbstractAlluxioShellTest {
   protected static final int SIZE_BYTES = Constants.MB * 10;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(SIZE_BYTES, Constants.MB,
-          Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE));
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, SIZE_BYTES)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, SIZE_BYTES)
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE).build();
   protected LocalAlluxioCluster mLocalAlluxioCluster = null;
   protected FileSystem mFileSystem = null;
   protected AlluxioShell mFsShell = null;
@@ -163,11 +166,12 @@ public abstract class AbstractAlluxioShellTest {
   }
 
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
-    FileInStream tfis =
-        mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE));
-    byte[] read = new byte[length];
-    tfis.read(read);
-    return read;
+    try (FileInStream tfis = mFileSystem
+        .openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
+      byte[] read = new byte[length];
+      tfis.read(read);
+      return read;
+    }
   }
 
   protected boolean isInMemoryTest(String path) throws IOException, AlluxioException {
@@ -194,9 +198,10 @@ public abstract class AbstractAlluxioShellTest {
   protected void checkFilePersisted(AlluxioURI uri, int size) throws Exception {
     Assert.assertTrue(mFileSystem.getStatus(uri).isPersisted());
     mFileSystem.free(uri);
-    FileInStream tfis = mFileSystem.openFile(uri);
-    byte[] actual = new byte[size];
-    tfis.read(actual);
-    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);
+    try (FileInStream tfis = mFileSystem.openFile(uri)) {
+      byte[] actual = new byte[size];
+      tfis.read(actual);
+      Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);
+    }
   }
 }

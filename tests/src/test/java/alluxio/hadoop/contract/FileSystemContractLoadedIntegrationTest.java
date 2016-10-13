@@ -23,7 +23,8 @@ import java.net.URL;
 
 public class FileSystemContractLoadedIntegrationTest extends AbstractFSContractTestBase {
   @Rule
-  public LocalAlluxioClusterResource mClusterResource = new LocalAlluxioClusterResource();
+  public LocalAlluxioClusterResource mClusterResource =
+      new LocalAlluxioClusterResource.Builder().build();
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {

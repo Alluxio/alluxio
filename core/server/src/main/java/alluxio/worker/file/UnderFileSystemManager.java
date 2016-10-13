@@ -24,6 +24,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.s3.S3UnderFileSystem;
+import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -55,7 +56,7 @@ public final class UnderFileSystemManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Input stream agent session index
-  private final IndexDefinition<InputStreamAgent> mInputStreamAgentSessionIdIndex =
+  private static final IndexDefinition<InputStreamAgent> INPUT_AGENT_SESSION_ID_INDEX =
       new IndexDefinition<InputStreamAgent>(false) {
         @Override
         public Object getFieldValue(InputStreamAgent o) {
@@ -64,7 +65,7 @@ public final class UnderFileSystemManager {
       };
 
   // Input stream agent id index
-  private final IndexDefinition<InputStreamAgent> mInputStreamAgentIdIndex =
+  private static final IndexDefinition<InputStreamAgent> INPUT_AGENT_ID_INDEX =
       new IndexDefinition<InputStreamAgent>(true) {
         @Override
         public Object getFieldValue(InputStreamAgent o) {
@@ -73,7 +74,7 @@ public final class UnderFileSystemManager {
       };
 
   // Output stream agent session index
-  private final IndexDefinition<OutputStreamAgent> mOutputStreamAgentSessionIdIndex =
+  private static final IndexDefinition<OutputStreamAgent> OUTPUT_AGENT_SESSION_ID_INDEX =
       new IndexDefinition<OutputStreamAgent>(false) {
         @Override
         public Object getFieldValue(OutputStreamAgent o) {
@@ -82,7 +83,7 @@ public final class UnderFileSystemManager {
       };
 
   // Output stream agent id index
-  private final IndexDefinition<OutputStreamAgent> mOutputStreamAgentIdIndex =
+  private static final IndexDefinition<OutputStreamAgent> OUTPUT_AGENT_ID_INDEX =
       new IndexDefinition<OutputStreamAgent>(true) {
         @Override
         public Object getFieldValue(OutputStreamAgent o) {
@@ -106,9 +107,9 @@ public final class UnderFileSystemManager {
   public UnderFileSystemManager() {
     mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
     mInputStreamAgents =
-        new IndexedSet<>(mInputStreamAgentSessionIdIndex, mInputStreamAgentIdIndex);
+        new IndexedSet<>(INPUT_AGENT_ID_INDEX, INPUT_AGENT_SESSION_ID_INDEX);
     mOutputStreamAgents =
-        new IndexedSet<>(mOutputStreamAgentSessionIdIndex, mOutputStreamAgentIdIndex);
+        new IndexedSet<>(OUTPUT_AGENT_ID_INDEX, OUTPUT_AGENT_SESSION_ID_INDEX);
   }
 
   /**
@@ -193,7 +194,11 @@ public final class UnderFileSystemManager {
         }
         UnderFileSystem ufs = UnderFileSystem.get(mUri);
         // TODO(calvin): Consider making openAtPosition part of the UFS API
-        if (ufs instanceof S3UnderFileSystem) { // Optimization for S3 UFS
+        if (ufs instanceof S3AUnderFileSystem) { // Optimization for S3A UFS
+          mStream =
+              new CountingInputStream(((S3AUnderFileSystem) ufs).openAtPosition(mUri, position));
+          mInitPos = position;
+        } else if (ufs instanceof S3UnderFileSystem) { // Optimization for S3 UFS
           mStream =
               new CountingInputStream(((S3UnderFileSystem) ufs).openAtPosition(mUri, position));
           mInitPos = position;
@@ -268,11 +273,7 @@ public final class UnderFileSystemManager {
       UnderFileSystem ufs = UnderFileSystem.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-      if (ufs.exists(mUri)) {
-        throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri));
-      }
-      mStream = ufs.create(mTemporaryUri,
-          new CreateOptions().setPermission(mPermission));
+      mStream = ufs.create(mTemporaryUri, new CreateOptions().setPermission(mPermission));
     }
 
     /**
@@ -355,7 +356,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
-      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      agent = mOutputStreamAgents.getFirstByField(OUTPUT_AGENT_ID_INDEX, tempUfsFileId);
       if (agent == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -377,8 +378,8 @@ public final class UnderFileSystemManager {
     Set<InputStreamAgent> toClose;
     synchronized (mInputStreamAgents) {
       toClose =
-          new HashSet<>(mInputStreamAgents.getByField(mInputStreamAgentSessionIdIndex, sessionId));
-      mInputStreamAgents.removeByField(mInputStreamAgentSessionIdIndex, sessionId);
+          new HashSet<>(mInputStreamAgents.getByField(INPUT_AGENT_SESSION_ID_INDEX, sessionId));
+      mInputStreamAgents.removeByField(INPUT_AGENT_SESSION_ID_INDEX, sessionId);
     }
     // close is done outside of the synchronized block since it may be expensive
     for (InputStreamAgent agent : toClose) {
@@ -392,8 +393,8 @@ public final class UnderFileSystemManager {
     Set<OutputStreamAgent> toCancel;
     synchronized (mOutputStreamAgents) {
       toCancel = new HashSet<>(
-          mOutputStreamAgents.getByField(mOutputStreamAgentSessionIdIndex, sessionId));
-      mOutputStreamAgents.removeByField(mOutputStreamAgentSessionIdIndex, sessionId);
+          mOutputStreamAgents.getByField(OUTPUT_AGENT_SESSION_ID_INDEX, sessionId));
+      mOutputStreamAgents.removeByField(OUTPUT_AGENT_SESSION_ID_INDEX, sessionId);
     }
     // cancel is done outside of the synchronized block since it may be expensive
     for (OutputStreamAgent agent : toCancel) {
@@ -418,7 +419,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     InputStreamAgent agent;
     synchronized (mInputStreamAgents) {
-      agent = mInputStreamAgents.getFirstByField(mInputStreamAgentIdIndex, tempUfsFileId);
+      agent = mInputStreamAgents.getFirstByField(INPUT_AGENT_ID_INDEX, tempUfsFileId);
       if (agent == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -447,7 +448,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
-      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      agent = mOutputStreamAgents.getFirstByField(OUTPUT_AGENT_ID_INDEX, tempUfsFileId);
       if (agent == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -472,7 +473,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     InputStreamAgent agent;
     synchronized (mInputStreamAgents) {
-      agent = mInputStreamAgents.getFirstByField(mInputStreamAgentIdIndex, tempUfsFileId);
+      agent = mInputStreamAgents.getFirstByField(INPUT_AGENT_ID_INDEX, tempUfsFileId);
     }
     if (agent == null) {
       throw new FileDoesNotExistException(
@@ -489,7 +490,7 @@ public final class UnderFileSystemManager {
   public OutputStream getOutputStream(long tempUfsFileId) throws FileDoesNotExistException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
-      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      agent = mOutputStreamAgents.getFirstByField(OUTPUT_AGENT_ID_INDEX, tempUfsFileId);
     }
     if (agent == null) {
       throw new FileDoesNotExistException(

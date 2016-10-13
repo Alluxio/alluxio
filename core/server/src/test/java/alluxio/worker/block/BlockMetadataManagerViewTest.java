@@ -68,7 +68,7 @@ public final class BlockMetadataManagerViewTest {
    * Tests the {@link BlockMetadataManagerView#getTierView(String)} method.
    */
   @Test
-  public void getTierViewTest() {
+  public void getTierView() {
     for (StorageTier tier : mMetaManager.getTiers()) {
       String tierAlias = tier.getTierAlias();
       StorageTierView tierView = mMetaManagerView.getTierView(tierAlias);
@@ -81,7 +81,7 @@ public final class BlockMetadataManagerViewTest {
    * Tests the {@link BlockMetadataManagerView#getTierViews()} method.
    */
   @Test
-  public void getTierViewsTest() {
+  public void getTierViews() {
     Assert.assertEquals(mMetaManager.getTiers().size(), mMetaManagerView.getTierViews().size());
   }
 
@@ -89,7 +89,7 @@ public final class BlockMetadataManagerViewTest {
    * Tests the {@link BlockMetadataManagerView#getTierViewsBelow(String)} method.
    */
   @Test
-  public void getTierViewsBelowTest() {
+  public void getTierViewsBelow() {
     for (StorageTier tier : mMetaManager.getTiers()) {
       String tierAlias = tier.getTierAlias();
       Assert.assertEquals(mMetaManager.getTiersBelow(tierAlias).size(),
@@ -101,7 +101,7 @@ public final class BlockMetadataManagerViewTest {
    * Tests the {@link BlockMetadataManagerView#getAvailableBytes(BlockStoreLocation)} method.
    */
   @Test
-  public void getAvailableBytesTest() {
+  public void getAvailableBytes() {
     BlockStoreLocation location;
     // When location represents anyTier
     location = BlockStoreLocation.anyTier();
@@ -127,7 +127,7 @@ public final class BlockMetadataManagerViewTest {
    * method when the block does not exist.
    */
   @Test
-  public void getBlockMetaNotExistingTest() throws BlockDoesNotExistException {
+  public void getBlockMetaNotExisting() throws BlockDoesNotExistException {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
     mMetaManagerView.getBlockMeta(TEST_BLOCK_ID);
@@ -138,7 +138,7 @@ public final class BlockMetadataManagerViewTest {
    * method when the tier alias does not exist.
    */
   @Test
-  public void getTierNotExistingTest() {
+  public void getTierNotExisting() {
     String badTierAlias = "HDD";
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(badTierAlias));
@@ -149,7 +149,7 @@ public final class BlockMetadataManagerViewTest {
    * Tests the {@link BlockMetadataManagerView#getBlockMeta(long)}  method.
    */
   @Test
-  public void getBlockMetaTest() throws Exception {
+  public void getBlockMeta() throws Exception {
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getDir(TEST_DIR);
 
     // Add one block to test dir, expect block meta found
@@ -182,7 +182,7 @@ public final class BlockMetadataManagerViewTest {
    * {@link BlockMetadataManagerView#isBlockPinned(long)} method.
    */
   @Test
-  public void isBlockPinnedOrLockedTest() {
+  public void isBlockPinnedOrLocked() {
     long inode = BlockId.createBlockId(BlockId.getContainerId(TEST_BLOCK_ID),
         BlockId.getMaxSequenceNumber());
 
@@ -240,7 +240,7 @@ public final class BlockMetadataManagerViewTest {
    * TierView as {@code new StorageTierView(mMetadataManager.getTier(tierAlias), this)}.
    */
   @Test
-  public void sameTierViewTest() {
+  public void sameTierView() {
     String tierAlias = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getTierAlias();
     StorageTierView tierView1 = mMetaManagerView.getTierView(tierAlias);
 
@@ -262,7 +262,7 @@ public final class BlockMetadataManagerViewTest {
    * TierViews as constructing by {@link BlockMetadataManager#getTiersBelow(String)}.
    */
   @Test
-  public void sameTierViewsBelowTest() {
+  public void sameTierViewsBelow() {
     String tierAlias = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getTierAlias();
     List<StorageTierView> tierViews1 = mMetaManagerView.getTierViewsBelow(tierAlias);
 

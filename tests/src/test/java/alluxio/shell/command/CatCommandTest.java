@@ -28,7 +28,7 @@ import java.io.IOException;
  */
 public final class CatCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void catDirectoryTest() throws IOException {
+  public void catDirectory() throws IOException {
     String[] command = new String[] {"mkdir", "/testDir"};
     mFsShell.run(command);
     int ret = mFsShell.run("cat", "/testDir");
@@ -39,13 +39,13 @@ public final class CatCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void catNotExistTest() throws IOException {
+  public void catNotExist() throws IOException {
     int ret = mFsShell.run("cat", "/testFile");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
-  public void catTest() throws IOException {
+  public void cat() throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("cat", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
@@ -53,7 +53,7 @@ public final class CatCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void catWildcardTest() throws IOException, AlluxioException {
+  public void catWildcard() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     // the expect contents (remember that the order is based on path)
     byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testDir/bar/foobar3

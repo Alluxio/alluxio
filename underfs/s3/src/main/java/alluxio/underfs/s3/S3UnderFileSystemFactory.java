@@ -14,6 +14,7 @@ package alluxio.underfs.s3;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -44,9 +45,9 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   public UnderFileSystem create(String path, Object unusedConf) {
     Preconditions.checkNotNull(path);
 
-    if (addAndCheckAWSCredentials()) {
+    if (checkAWSCredentials()) {
       try {
-        return new S3UnderFileSystem(new AlluxioURI(path));
+        return S3UnderFileSystem.createInstance(new AlluxioURI(path));
       } catch (ServiceException e) {
         LOG.error("Failed to create S3UnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -64,21 +65,10 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
-   * Adds AWS credentials from system properties to the Alluxio configuration if they are not
-   * already present.
-   *
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckAWSCredentials() {
-    // TODO(binfan): remove System.getProperty as it is covered by configuration
-    String accessKeyConf = Constants.S3N_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && !Configuration.containsKey(accessKeyConf)) {
-      Configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
-    }
-    String secretKeyConf = Constants.S3N_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && !Configuration.containsKey(secretKeyConf)) {
-      Configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
-    }
-    return Configuration.containsKey(accessKeyConf) && Configuration.containsKey(secretKeyConf);
+  private boolean checkAWSCredentials() {
+    return Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY)
+        && Configuration.containsKey(PropertyKey.S3N_SECRET_KEY);
   }
 }

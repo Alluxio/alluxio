@@ -3,7 +3,7 @@ layout: global
 title: 通过Zeppelin访问Alluxio
 nickname: Apache Zeppelin
 group: Frameworks
-priority: 3
+priority: 4
 ---
 
 [Apache Zeppelin](http://zeppelin.incubator.apache.org/) 是一个能够进行交互式数据分析的基于Web的记事本。Alluxio 1.0已经

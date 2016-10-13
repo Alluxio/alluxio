@@ -24,7 +24,7 @@ import java.io.IOException;
  */
 public final class MvCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void renameTest() throws IOException {
+  public void rename() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
@@ -37,7 +37,7 @@ public final class MvCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void renameParentDirectoryTest() throws IOException {
+  public void renameParentDirectory() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/test/File1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/test/File1"}));
@@ -50,7 +50,7 @@ public final class MvCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void renameToExistingFileTest() throws IOException {
+  public void renameToExistingFile() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));

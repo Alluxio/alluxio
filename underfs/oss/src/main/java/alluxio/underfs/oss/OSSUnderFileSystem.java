@@ -14,9 +14,11 @@ package alluxio.underfs.oss;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientConfiguration;
@@ -54,17 +56,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** Value used to indicate folder structure in OSS. */
   private static final String PATH_SEPARATOR = "/";
 
-  /** Length of each list request in S3. */
-  private static final int LISTING_LENGTH = 1000;
-
   /** Aliyun OSS client. */
   private final OSSClient mClient;
-
-  /** The accessId to connect OSS. */
-  private final String mAccessId;
-
-  /** The accessKey to connect OSS. */
-  private final String mAccessKey;
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
@@ -72,31 +65,53 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example oss://bucket-name/ . */
   private final String mBucketPrefix;
 
-  /** The OSS endpoint. */
-  private final String mEndPoint;
-
-  protected OSSUnderFileSystem(AlluxioURI uri) throws Exception {
-    super(uri);
+  /**
+   * Constructs a new instance of {@link OSSUnderFileSystem}.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @return the created {@link OSSUnderFileSystem} instance
+   * @throws Exception when a connection to GCS could not be created
+   */
+  public static OSSUnderFileSystem createInstance(AlluxioURI uri) throws Exception {
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(Configuration.containsKey(Constants.OSS_ACCESS_KEY),
-        "Property " + Constants.OSS_ACCESS_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(Configuration.containsKey(Constants.OSS_SECRET_KEY),
-        "Property " + Constants.OSS_SECRET_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(Configuration.containsKey(Constants.OSS_ENDPOINT_KEY),
-        "Property " + Constants.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    mAccessId = Configuration.get(Constants.OSS_ACCESS_KEY);
-    mAccessKey = Configuration.get(Constants.OSS_SECRET_KEY);
-    mBucketName = bucketName;
-    mBucketPrefix = Constants.HEADER_OSS + mBucketName + PATH_SEPARATOR;
-    mEndPoint = Configuration.get(Constants.OSS_ENDPOINT_KEY);
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY),
+        "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_SECRET_KEY),
+        "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ENDPOINT_KEY),
+        "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
+    String accessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY);
+    String accessKey = Configuration.get(PropertyKey.OSS_SECRET_KEY);
+    String bucketPrefix = Constants.HEADER_OSS + bucketName + PATH_SEPARATOR;
+    String endPoint = Configuration.get(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
-    mClient = new OSSClient(mEndPoint, mAccessId, mAccessKey, ossClientConf);
+    OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
+
+    return new OSSUnderFileSystem(uri, ossClient, bucketName, bucketPrefix);
+  }
+
+  /**
+   * Constructor for {@link OSSUnderFileSystem}.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param ossClient Aliyun OSS client
+   * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param bucketPrefix prefix of the bucket
+   */
+  protected OSSUnderFileSystem(AlluxioURI uri,
+      OSSClient ossClient,
+      String bucketName,
+      String bucketPrefix) {
+    super(uri);
+    mClient = ossClient;
+    mBucketName = bucketName;
+    mBucketPrefix = bucketPrefix;
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.OSS;
+  public String getUnderFSType() {
+    return "oss";
   }
 
   @Override
@@ -130,15 +145,24 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     if (!recursive) {
-      if (isFolder(path) && listInternal(path, false).length != 0) {
-        LOG.error("Unable to delete " + path + " because it is a non empty directory. Specify "
-            + "recursive as true in order to delete non empty directories.");
+      String[] children = listInternal(path, false);
+      if (children == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
+        return false;
+      }
+      if (isFolder(path) && children.length != 0) {
+        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
+                + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
       return deleteInternal(path);
     }
     // Get all relevant files
     String[] pathsToDelete = listInternal(path, true);
+    if (pathsToDelete == null) {
+      LOG.error("Unable to delete {} because listInternal returns null", path);
+      return false;
+    }
     for (String pathToDelete : pathsToDelete) {
       // If we fail to deleteInternal one file, stop
       if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
@@ -165,7 +189,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
@@ -298,8 +322,13 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       }
       // Rename each child in the src folder to destination/child
       String [] children = list(src);
-      for (String child: children) {
+      if (children == null) {
+        LOG.error("Failed to list path {}, aborting rename.", src);
+        return false;
+      }
+      for (String child : children) {
         if (!rename(PathUtils.concatPath(src, child), PathUtils.concatPath(dst, child))) {
+          LOG.error("Failed to rename path {}, aborting rename.", child);
           return false;
         }
       }
@@ -435,14 +464,14 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    *
    * @return the OSS {@link ClientConfiguration}
    */
-  private ClientConfiguration initializeOSSClientConfig() {
+  private static ClientConfiguration initializeOSSClientConfig() {
     ClientConfiguration ossClientConf = new ClientConfiguration();
     ossClientConf.setConnectionTimeout(
-        Configuration.getInt(Constants.UNDERFS_OSS_CONNECT_TIMEOUT));
+        Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
     ossClientConf.setSocketTimeout(
-        Configuration.getInt(Constants.UNDERFS_OSS_SOCKET_TIMEOUT));
-    ossClientConf.setConnectionTTL(Configuration.getLong(Constants.UNDERFS_OSS_CONNECT_TTL));
-    ossClientConf.setMaxConnections(Configuration.getInt(Constants.UNDERFS_OSS_CONNECT_MAX));
+        Configuration.getInt(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
+    ossClientConf.setConnectionTTL(Configuration.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
+    ossClientConf.setMaxConnections(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
   }
 
@@ -539,7 +568,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
         // Remove parent portion of the key
         String child = getChildName(objectSummary.getKey(), path);
         // Prune the special folder suffix
-        child = stripFolderSuffixIfPresent(child);
+        child = CommonUtils.stripSuffixIfPresent(child, FOLDER_SUFFIX);
         // Add to the set of children, the set will deduplicate.
         children.add(child);
       }
@@ -548,10 +577,13 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       for (String commonPrefix : listing.getCommonPrefixes()) {
         // Remove parent portion of the key
         String child = getChildName(commonPrefix, path);
-        // Remove any portion after the last path delimiter
-        int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
-        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-        children.add(child);
+
+        if (child != null) {
+          // Remove any portion after the last path delimiter
+          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+          children.add(child);
+        }
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {
@@ -625,20 +657,6 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
-   *
-   * @param key the key to strip the suffix from
-   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
-   */
-  private String stripFolderSuffixIfPresent(String key) {
-    if (key.endsWith(FOLDER_SUFFIX)) {
-      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
-    }
-    return key;
-  }
-
-  /**
    * Strips the OSS bucket prefix or the preceding path separator from the key if it is present. For
    * example, for input key oss://my-bucket-name/my-path/file, the output would be my-path/file. If
    * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
@@ -648,12 +666,15 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    * @return the key without the oss bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
-    if (key.startsWith(mBucketPrefix)) {
-      return key.substring(mBucketPrefix.length());
+    String stripedKey = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
+    if (!stripedKey.equals(key)) {
+      return stripedKey;
     }
-    if (key.startsWith(PATH_SEPARATOR)) {
-      return key.substring(PATH_SEPARATOR.length());
-    }
-    return key;
+    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return false;
   }
 }

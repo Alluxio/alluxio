@@ -10,10 +10,10 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
+
+source "${SCRIPT_DIR}/alluxio-env-mesos.sh"
 source "${SCRIPT_DIR}/common.sh"
-ALLUXIO_WORKER_JAVA_OPTS="${ALLUXIO_WORKER_JAVA_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 
 echo Mount ramdisk on worker
@@ -28,8 +28,5 @@ mkdir -p "${ALLUXIO_LOGS_DIR}"
   -Dalluxio.logger.type="WORKER_LOGGER" \
   -Dalluxio.logs.dir="${ALLUXIO_LOGS_DIR}" \
   -Dalluxio.master.hostname="${ALLUXIO_MASTER_HOSTNAME}" \
-  -Dalluxio.worker.tieredstore.levels=1 \
-  -Dalluxio.worker.tieredstore.level0.alias=MEM \
-  -Dalluxio.worker.tieredstore.level0.dirs.path="/mnt/ramdisk" \
   -Dalluxio.worker.tieredstore.level0.dirs.quota="${ALLUXIO_WORKER_MEMORY_SIZE}" \
   alluxio.mesos.AlluxioWorkerExecutor > "${ALLUXIO_LOGS_DIR}"/worker.out 2>&1

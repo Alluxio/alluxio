@@ -12,7 +12,7 @@
 package alluxio.underfs.glusterfs;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
@@ -35,11 +35,11 @@ public class GlusterFSUnderFileSystemFactoryTest {
    */
   @Before
   public final void before() {
-    if (Configuration.containsKey(Constants.UNDERFS_GLUSTERFS_MR_DIR)) {
-      mMount = Configuration.get(Constants.UNDERFS_GLUSTERFS_MR_DIR);
+    if (Configuration.containsKey(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR)) {
+      mMount = Configuration.get(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR);
     }
-    if (Configuration.containsKey(Constants.UNDERFS_GLUSTERFS_VOLUMES)) {
-      mVolume = Configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES);
+    if (Configuration.containsKey(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES)) {
+      mVolume = Configuration.get(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES);
     }
   }
 
@@ -61,7 +61,7 @@ public class GlusterFSUnderFileSystemFactoryTest {
    * Tests the {@link UnderFileSystemRegistry#find(String)} method.
    */
   @Test
-  public void factoryTest() {
+  public void factory() {
     UnderFileSystemFactory factory =
         UnderFileSystemRegistry.find("glusterfs://localhost/test/path");
     Assert.assertNotNull(

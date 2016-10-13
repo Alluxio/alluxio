@@ -29,4 +29,4 @@ Alluxio的Worker负责管理分配给Alluxio的[本地资源](Tiered-Storage-on-
 
 ### Client
 
-Alluxio的Client为用户提供了一个与Alluxio服务端交互的入口。它为用户暴露了一组[文件系统API](File-System-API.html)。Client通过发起与Master的通信来执行元数据操作，并且通过与Worker通信来读取Alluxio上的数据或者向Alluxio上写数据。存在在底层存储系统上而不是Alluxio上的数据可以直接通过底层存储客户端访问。
+Alluxio的Client为用户提供了一个与Alluxio服务端交互的入口。它为用户暴露了一组[文件系统API](File-System-API.html)。Client通过发起与Master的通信来执行元数据操作，并且通过与Worker通信来读取Alluxio上的数据或者向Alluxio上写数据。存储在底层存储系统上而不是Alluxio上的数据可以直接通过底层存储客户端访问。

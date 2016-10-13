@@ -15,7 +15,9 @@ import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authorization.Permission;
+import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,8 +39,8 @@ public class CreateFileOptionsTest {
    * Tests the {@link CreateFileOptions#defaults()} method.
    */
   @Test
-  public void defaultsTest() throws Exception {
-    Configuration.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
+  public void defaults() throws Exception {
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
 
     CreateFileOptions options = CreateFileOptions.defaults();
 
@@ -46,6 +48,7 @@ public class CreateFileOptionsTest {
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
+    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -53,7 +56,7 @@ public class CreateFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() throws Exception {
+  public void fields() throws Exception {
     Random random = new Random();
     long blockSize = random.nextLong();
     boolean mountPoint = random.nextBoolean();
@@ -70,7 +73,8 @@ public class CreateFileOptionsTest {
         .setPersisted(persisted)
         .setPermission(permission)
         .setRecursive(recursive)
-        .setTtl(ttl);
+        .setTtl(ttl)
+        .setTtlAction(TtlAction.FREE);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(mountPoint, options.isMountPoint());
@@ -79,6 +83,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
   }
 
   @Test

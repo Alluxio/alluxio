@@ -14,6 +14,7 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -79,12 +80,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   private void displayFile(AlluxioURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, AlluxioException {
     FileSystem fs = FileSystem.Factory.get();
-    String fileData = null;
+    String fileData;
     URIStatus status = fs.getStatus(path);
     if (status.isCompleted()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-      FileInStream is = fs.openFile(path, options);
-      try {
+      try (FileInStream is = fs.openFile(path, options)) {
         int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
         byte[] data = new byte[len];
         long skipped = is.skip(offset);
@@ -104,13 +104,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
             fileData = WebUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
           }
         }
-      } finally {
-        is.close();
       }
     } else {
       fileData = "The requested file is not complete yet.";
     }
-    List<UIFileBlockInfo> uiBlockInfo = new ArrayList<UIFileBlockInfo>();
+    List<UIFileBlockInfo> uiBlockInfo = new ArrayList<>();
     for (FileBlockInfo fileBlockInfo : mMaster.getFileSystemMaster().getFileBlockInfoList(path)) {
       uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo));
     }
@@ -136,9 +134,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
-    request.setAttribute("debug", Configuration.getBoolean(Constants.DEBUG));
+    request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
     request.setAttribute("showPermissions",
-        Configuration.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
+        Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");
@@ -160,7 +158,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       }
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeBytes", currentFileInfo.getBlockSizeBytes());
-      request.setAttribute("workerWebPort", Configuration.getInt(Constants.WORKER_WEB_PORT));
       if (!currentFileInfo.getIsDirectory()) {
         String offsetParam = request.getParameter("offset");
         long relativeOffset = 0;

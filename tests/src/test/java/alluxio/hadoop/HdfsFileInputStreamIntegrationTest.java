@@ -12,8 +12,8 @@
 package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -49,7 +49,7 @@ public final class HdfsFileInputStreamIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private FileSystem mFileSystem;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
@@ -78,19 +78,19 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   private void createUfsInStream(ReadType readType) throws IOException {
-    String defaultReadType = alluxio.Configuration.get(Constants.USER_FILE_READ_TYPE_DEFAULT);
-    alluxio.Configuration.set(Constants.USER_FILE_READ_TYPE_DEFAULT, readType.name());
+    String defaultReadType = alluxio.Configuration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT);
+    alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
     FileSystemTestUtils.createByteFile(mFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
     mUfsInputStream = new HdfsFileInputStream(
         new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
-    alluxio.Configuration.set(Constants.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
+    alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
   }
 
   /**
    * Tests {@link HdfsFileInputStream#available()}.
    */
   @Test
-  public void availableTest() throws IOException {
+  public void available() throws IOException {
     Assert.assertEquals(FILE_LEN, mInMemInputStream.available());
     createUfsInStream(ReadType.NO_CACHE);
     Assert.assertEquals(FILE_LEN, mUfsInputStream.available());
@@ -333,12 +333,12 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   @Test
-  public void inMemSeekTest() throws IOException {
+  public void inMemSeek() throws IOException {
     seekTest(mInMemInputStream);
   }
 
   @Test
-  public void ufsSeekTest() throws IOException {
+  public void ufsSeek() throws IOException {
     createUfsInStream(ReadType.NO_CACHE);
     seekTest(mUfsInputStream);
   }
@@ -355,21 +355,21 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   @Test
-  public void seekNegativeTest() throws IOException {
+  public void seekNegative() throws IOException {
     mThrown.expect(IOException.class);
     mThrown.expectMessage(ExceptionMessage.SEEK_NEGATIVE.getMessage(-1));
     mInMemInputStream.seek(-1);
   }
 
   @Test
-  public void seekPastEofTest() throws IOException {
+  public void seekPastEof() throws IOException {
     mThrown.expect(IOException.class);
     mThrown.expectMessage(ExceptionMessage.SEEK_PAST_EOF.getMessage(FILE_LEN + 1, FILE_LEN));
     mInMemInputStream.seek(FILE_LEN + 1);
   }
 
   @Test
-  public void seekNegativeUfsTest() throws IOException {
+  public void seekNegativeUfs() throws IOException {
     mThrown.expect(IOException.class);
     mThrown.expectMessage(ExceptionMessage.SEEK_NEGATIVE.getMessage(-1));
     createUfsInStream(ReadType.NO_CACHE);
@@ -377,7 +377,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   @Test
-  public void seekPastEofUfsTest() throws IOException {
+  public void seekPastEofUfs() throws IOException {
     mThrown.expect(IOException.class);
     mThrown.expectMessage(ExceptionMessage.SEEK_PAST_EOF.getMessage(FILE_LEN + 1, FILE_LEN));
     createUfsInStream(ReadType.NO_CACHE);
@@ -385,7 +385,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   @Test
-  public void readCacheTest() throws IOException, AlluxioException {
+  public void readCache() throws IOException, AlluxioException {
     createUfsInStream(ReadType.CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFile = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
@@ -393,7 +393,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   @Test
-  public void readNoCacheTest() throws IOException, AlluxioException {
+  public void readNoCache() throws IOException, AlluxioException {
     createUfsInStream(ReadType.NO_CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFIle = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));

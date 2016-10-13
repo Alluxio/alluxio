@@ -11,16 +11,23 @@
 
 package alluxio.client.file.options;
 
+import alluxio.AuthenticatedUserRule;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Permission;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.thrift.CreateUfsFileTOptions;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -35,22 +42,38 @@ import java.io.IOException;
 // Need to mock Permission to use CommonTestUtils#testEquals.
 @PrepareForTest(Permission.class)
 public final class CreateUfsFileOptionsTest {
+  private static final String TEST_USER = "test";
+
+  @Rule
+  public AuthenticatedUserRule mRule = new AuthenticatedUserRule(TEST_USER);
+
+  @Before
+  public void before() {
+    LoginUserTestUtils.resetLoginUser();
+    GroupMappingServiceTestUtils.resetCache();
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
+    // Use IdentityOwnerGroupMapping to map owner "foo" to group "foo".
+    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+        IdentityUserGroupsMapping.class.getName());
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   /**
-   * Tests that building an {@link CreateUfsFileOptions} with the defaults works.
+   * Tests that building a {@link CreateUfsFileOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() throws IOException {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "foo");
-    // Use IdentityOwnerGroupMapping to map owner "foo" to group "foo".
-    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
-
+  public void defaults() throws IOException {
     CreateUfsFileOptions options = CreateUfsFileOptions.defaults();
 
     Permission expectedPs = Permission.defaults().applyFileUMask();
 
-    Assert.assertEquals("foo", options.getPermission().getOwner());
-    Assert.assertEquals("foo", options.getPermission().getGroup());
+    Assert.assertEquals(TEST_USER, options.getPermission().getOwner());
+    Assert.assertEquals(TEST_USER, options.getPermission().getGroup());
     Assert.assertEquals(expectedPs.getMode(), options.getPermission().getMode());
     ConfigurationTestUtils.resetConfiguration();
   }
@@ -59,7 +82,7 @@ public final class CreateUfsFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() throws IOException {
+  public void fields() throws IOException {
     CreateUfsFileOptions options = CreateUfsFileOptions.defaults();
     String owner = "test-owner";
     String group = "test-group";
@@ -75,7 +98,7 @@ public final class CreateUfsFileOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThriftTest() throws IOException {
+  public void toThrift() throws IOException {
     CreateUfsFileOptions options = CreateUfsFileOptions.defaults();
     String owner = "test-owner";
     String group = "test-group";

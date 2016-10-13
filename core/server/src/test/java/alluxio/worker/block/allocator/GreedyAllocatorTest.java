@@ -13,7 +13,7 @@ package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.junit.Test;
 
@@ -26,8 +26,8 @@ public class GreedyAllocatorTest extends AllocatorTestBase {
    * Tests that blocks are allocated in the first storage directory which has enough free space.
    */
   @Test
-  public void allocateBlockTest() throws Exception {
-    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
+  public void allocateBlock() throws Exception {
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getManagerView());
     //
     // idx | tier1 | tier2 | tier3

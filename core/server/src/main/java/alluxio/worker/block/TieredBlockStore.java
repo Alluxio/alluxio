@@ -96,10 +96,10 @@ public final class TieredBlockStore implements BlockStore {
   /** Lock to guard metadata operations. */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
 
-  /** ReadLock provided by {@link #mMetadataReadLock} to guard metadata read operations. */
+  /** ReadLock provided by {@link #mMetadataLock} to guard metadata read operations. */
   private final Lock mMetadataReadLock = mMetadataLock.readLock();
 
-  /** WriteLock provided by {@link #mMetadataReadLock} to guard metadata write operations. */
+  /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
   /** Association between storage tier aliases and ordinals. */
@@ -533,12 +533,7 @@ public final class TieredBlockStore implements BlockStore {
         // Add allocated temp block to metadata manager. This should never fail if allocator
         // correctly assigns a StorageDir.
         mMetaManager.addTempBlockMeta(tempBlock);
-      } catch (WorkerOutOfSpaceException e) {
-        // If we reach here, allocator is not working properly
-        LOG.error("Unexpected failure: {} bytes allocated at {} by allocator, "
-            + "but addTempBlockMeta failed", initialBlockSize, location);
-        throw Throwables.propagate(e);
-      } catch (BlockAlreadyExistsException e) {
+      } catch (WorkerOutOfSpaceException | BlockAlreadyExistsException e) {
         // If we reach here, allocator is not working properly
         LOG.error("Unexpected failure: {} bytes allocated at {} by allocator, "
             + "but addTempBlockMeta failed", initialBlockSize, location);
@@ -744,14 +739,11 @@ public final class TieredBlockStore implements BlockStore {
         // If this metadata update fails, we panic for now.
         // TODO(bin): Implement rollback scheme to recover from IO failures.
         mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
-      } catch (BlockAlreadyExistsException e) {
+      } catch (BlockAlreadyExistsException | BlockDoesNotExistException
+          | WorkerOutOfSpaceException e) {
+        // WorkerOutOfSpaceException is only possible if session id gets cleaned between
+        // createBlockMetaInternal and moveBlockMeta.
         throw Throwables.propagate(e); // we shall never reach here
-      } catch (BlockDoesNotExistException e) {
-        throw Throwables.propagate(e); // we shall never reach here
-      } catch (WorkerOutOfSpaceException e) {
-        // Only possible if session id gets cleaned between createBlockMetaInternal and
-        // moveBlockMeta.
-        throw Throwables.propagate(e);
       }
 
       return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);

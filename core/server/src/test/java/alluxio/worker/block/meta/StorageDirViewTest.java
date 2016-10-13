@@ -68,7 +68,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#getDirViewIndex()} method.
    */
   @Test
-  public void getDirViewIndexTest() {
+  public void getDirViewIndex() {
     Assert.assertEquals(mTestDir.getDirIndex(), mTestDirView.getDirViewIndex());
   }
 
@@ -76,7 +76,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#getParentTierView()} method.
    */
   @Test
-  public void getParentTierViewTest() {
+  public void getParentTierView() {
     Assert.assertEquals(mTestTierView, mTestDirView.getParentTierView());
   }
 
@@ -84,7 +84,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#toBlockStoreLocation()} method.
    */
   @Test
-  public void toBlockStoreLocationTest() {
+  public void toBlockStoreLocation() {
     Assert.assertEquals(mTestDir.toBlockStoreLocation(), mTestDirView.toBlockStoreLocation());
   }
 
@@ -92,7 +92,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#getCapacityBytes()} method.
    */
   @Test
-  public void getCapacityBytesTest() {
+  public void getCapacityBytes() {
     Assert.assertEquals(mTestDir.getCapacityBytes(), mTestDirView.getCapacityBytes());
   }
 
@@ -100,7 +100,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#getAvailableBytes()} method.
    */
   @Test
-  public void getAvailableBytesTest() {
+  public void getAvailableBytes() {
     Assert.assertEquals(mTestDir.getAvailableBytes(), mTestDirView.getAvailableBytes());
   }
 
@@ -108,7 +108,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#getCommittedBytes()} method.
    */
   @Test
-  public void getCommittedBytesTest() {
+  public void getCommittedBytes() {
     Assert.assertEquals(mTestDir.getCommittedBytes(), mTestDirView.getCommittedBytes());
   }
 
@@ -116,7 +116,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#getEvictableBlocks()} method.
    */
   @Test
-  public void getEvictableBlocksTest() throws Exception {
+  public void getEvictableBlocks() throws Exception {
     // When test dir is empty, expect no block to be evictable
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
@@ -152,7 +152,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#createTempBlockMeta(long, long, long)} method.
    */
   @Test
-  public void createTempBlockMetaTest() {
+  public void createTempBlockMeta() {
     TempBlockMeta tempBlockMeta =
         mTestDirView.createTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE);
     Assert.assertEquals(TEST_SESSION_ID, tempBlockMeta.getSessionId());

@@ -15,11 +15,11 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-local</artifactId>
   <name>Alluxio Under File System - Local FS</name>
-  <description>Under File System implementation that uses local file system</description>
+  <description>Local FS Under File System implementation</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run

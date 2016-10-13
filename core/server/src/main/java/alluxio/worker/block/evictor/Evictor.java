@@ -12,7 +12,7 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
@@ -47,7 +47,7 @@ public interface Evictor {
     public static Evictor create(BlockMetadataManagerView view, Allocator allocator) {
       try {
         return CommonUtils.createNewClassInstance(
-            Configuration.<Evictor>getClass(Constants.WORKER_EVICTOR_CLASS),
+            Configuration.<Evictor>getClass(PropertyKey.WORKER_EVICTOR_CLASS),
             new Class[]{BlockMetadataManagerView.class, Allocator.class},
             new Object[]{view, allocator});
       } catch (Exception e) {

@@ -173,9 +173,7 @@ $ git push origin awesome_feature
 
 在新打开的**Open a pull request**页面中，base fork应该显示为`Alluxio/alluxio`，并且base branch应该为**master**，head fork为你的fork，并且compare branch应该是你想提交pull request的那个分支。
 
-对于这个pull request的标题，它应该以这个JIRA ticket名称为前缀，因此，这个标题应该像**[ALLUXIO-1234] Awesome Feature**这样。
-
-接着添加一个标签表明你的pull request对应于Alluxio的哪个组件，这些组件与Alluxio源代码库根目录下的目录一一对应。
+对于这个pull request的标题，它应该以这个JIRA ticket名称为前缀，因此，这个标题应该像**[ALLUXIO-1234] Awesome Feature**这样（在标题里面，请用和你的request相关的信息替换掉 Awesome Feature，例如，"Fix format in error message"或者"Improve java doc of method Foo"）。
 
 在描述框的第一行，请添加一个该JIRA ticket的链接，该链接像`https://alluxio.atlassian.net/browse/ALLUXIO-####`这样。
 

@@ -12,8 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.client.netty.NettyUnderFileSystemFileWriter;
+import alluxio.PropertyKey;
+import alluxio.client.UnderFileSystemFileWriter;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -37,7 +37,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
   /** Java heap buffer to buffer writes before flushing them to the worker. */
   private final ByteBuffer mBuffer;
   /** Writer to the worker, currently only implemented through Netty. */
-  private final NettyUnderFileSystemFileWriter mWriter;
+  private final UnderFileSystemFileWriter mWriter;
   /** Address of the worker to write to. */
   private final InetSocketAddress mAddress;
   /** Worker file id referencing the file to write to. */
@@ -51,16 +51,44 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
   private long mWrittenBytes;
 
   /**
+   * Factory for creating an {@link UnderFileSystemFileOutStream}.
+   */
+  public static class Factory {
+    private static Factory sInstance;
+
+    /**
+     * @return an instance of a factory for creating {@link UnderFileSystemFileOutStream}
+     */
+    public static synchronized Factory get() {
+      if (sInstance == null) {
+        sInstance = new Factory();
+      }
+      return sInstance;
+    }
+
+    protected Factory() {} // prevent external instantiation.
+
+    /**
+     * @param address the address of an Alluxio worker
+     * @param ufsFileId the file ID of the ufs fild to write to
+     * @return a new {@link UnderFileSystemFileOutStream}
+     */
+    public OutputStream create(InetSocketAddress address, long ufsFileId) {
+      return new UnderFileSystemFileOutStream(address, ufsFileId);
+    }
+  }
+
+  /**
    * Constructor for a under file system file output stream.
    *
    * @param address address of the worker
    * @param ufsFileId the worker specific file id
    */
-  public UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
+  private UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
     mBuffer = allocateBuffer();
     mAddress = address;
     mUfsFileId = ufsFileId;
-    mWriter = new NettyUnderFileSystemFileWriter();
+    mWriter = UnderFileSystemFileWriter.Factory.create();
     mFlushedBytes = 0;
     mWrittenBytes = 0;
     mClosed = false;
@@ -167,6 +195,6 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
    */
   private ByteBuffer allocateBuffer() {
     return ByteBuffer.allocate(
-        (int) Configuration.getBytes(Constants.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES));
+        (int) Configuration.getBytes(PropertyKey.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES));
   }
 }

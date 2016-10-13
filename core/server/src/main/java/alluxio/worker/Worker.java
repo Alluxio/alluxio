@@ -11,33 +11,18 @@
 
 package alluxio.worker;
 
+import alluxio.Server;
+
 import org.apache.thrift.TProcessor;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
  * Interface of an Alluxio worker.
  */
-public interface Worker {
+public interface Worker extends Server {
   /**
    * @return a map from service names to {@link TProcessor}s that serve RPCs for this worker
    */
   Map<String, TProcessor> getServices();
-
-  /**
-   * Starts the worker. Here, the worker should initialize state and possibly start threads required
-   * for operation.
-   *
-   * @throws IOException if I/O error occurs
-   */
-  void start() throws IOException;
-
-  /**
-   * Stops the worker. Here, anything created or started in {@link #start()} should be cleaned up
-   * and shutdown.
-   *
-   * @throws IOException if I/O error occurs
-   */
-  void stop() throws IOException;
 }

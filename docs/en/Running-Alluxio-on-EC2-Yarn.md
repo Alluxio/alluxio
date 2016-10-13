@@ -57,8 +57,8 @@ key file so that only you can read it:
 
 {% include Running-Alluxio-on-EC2-Yarn/generate-key-pair.md %}
 
-In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
-name and `Key_Path` to the path to the pem key.
+Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml`, then
+set the value of `Keypair` to your keypair name and `Key_Path` to the path to the pem key.
 
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
@@ -134,7 +134,7 @@ Use script `integration/bin/alluxio-yarn.sh` to start Alluxio. This script takes
 3. The Yarn name for the node on which to run the Alluxio Master (optional, defaults to `ALLUXIO_MASTER_HOSTNAME`)
 
 For example, here we launch an Alluxio cluster with 3 worker nodes, where an HDFS temp directory is
-`hdfs://AlluxioMaster:9000/tmp/`
+`hdfs://AlluxioMaster:9000/tmp/` and the master hostname is `AlluxioMaster`
 
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
 

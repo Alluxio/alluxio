@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMetadataManager.class)
-public class BlockLockManagerTest {
+public final class BlockLockManagerTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
 
@@ -75,7 +75,7 @@ public class BlockLockManagerTest {
    * Tests the {@link BlockLockManager#lockBlock(long, long, BlockLockType)} method.
    */
   @Test
-  public void lockBlockTest() {
+  public void lockBlock() {
     // Read-lock on can both get through
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
@@ -87,7 +87,7 @@ public class BlockLockManagerTest {
    * {@link BlockLockManager#unlockBlock(long)} which is not locked.
    */
   @Test
-  public void unlockNonExistingLockTest() throws Exception {
+  public void unlockNonExistingLock() throws Exception {
     long badLockId = 1;
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
@@ -100,7 +100,7 @@ public class BlockLockManagerTest {
    * {@link BlockLockManager#validateLock(long, long, long)} which is not locked.
    */
   @Test
-  public void validateLockIdWithNoRecordTest() throws Exception {
+  public void validateLockIdWithNoRecord() throws Exception {
     long badLockId = 1;
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
@@ -113,7 +113,7 @@ public class BlockLockManagerTest {
    * {@link BlockLockManager#validateLock(long, long, long)} with an incorrect session ID.
    */
   @Test
-  public void validateLockIdWithWrongSessionIdTest() throws Exception {
+  public void validateLockIdWithWrongSessionId() throws Exception {
     long lockId = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongSessionId = TEST_SESSION_ID + 1;
     mThrown.expect(InvalidWorkerStateException.class);
@@ -128,7 +128,7 @@ public class BlockLockManagerTest {
    * {@link BlockLockManager#validateLock(long, long, long)} with an incorrect block ID.
    */
   @Test
-  public void validateLockIdWithWrongBlockIdTest() throws Exception {
+  public void validateLockIdWithWrongBlockId() throws Exception {
     long lockId = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongBlockId = TEST_BLOCK_ID + 1;
     mThrown.expect(InvalidWorkerStateException.class);
@@ -143,7 +143,7 @@ public class BlockLockManagerTest {
    * {@link BlockLockManager#validateLock(long, long, long)} after the session was cleaned up.
    */
   @Test
-  public void cleanupSessionTest() throws Exception {
+  public void cleanupSession() throws Exception {
     long sessionId1 = TEST_SESSION_ID;
     long sessionId2 = TEST_SESSION_ID + 1;
     long lockId1 = mLockManager.lockBlock(sessionId1, TEST_BLOCK_ID, BlockLockType.READ);
@@ -161,7 +161,7 @@ public class BlockLockManagerTest {
    * Tests that up to WORKER_TIERED_STORE_BLOCK_LOCKS block locks can be grabbed simultaneously.
    */
   @Test(timeout = 10000)
-  public void grabManyLocksTest() throws Exception {
+  public void grabManyLocks() throws Exception {
     int maxLocks = 100;
     setMaxLocks(maxLocks);
     BlockLockManager manager = new BlockLockManager();
@@ -175,7 +175,7 @@ public class BlockLockManagerTest {
    * Tests that two sessions can both take a read lock on the same block.
    */
   @Test(timeout = 10000)
-  public void lockAcrossSessionsTest() throws Exception {
+  public void lockAcrossSessions() throws Exception {
     BlockLockManager manager = new BlockLockManager();
     manager.lockBlock(1, TEST_BLOCK_ID, BlockLockType.READ);
     manager.lockBlock(2, TEST_BLOCK_ID, BlockLockType.READ);
@@ -185,7 +185,7 @@ public class BlockLockManagerTest {
    * Tests that a write lock can't be taken while a read lock is held.
    */
   @Test(timeout = 10000)
-  public void readBlocksWriteTest() throws Exception {
+  public void readBlocksWrite() throws Exception {
     BlockLockManager manager = new BlockLockManager();
     manager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     lockExpectingHang(manager, TEST_BLOCK_ID);
@@ -195,7 +195,7 @@ public class BlockLockManagerTest {
    * Tests that block locks are returned to the pool when they are no longer in use.
    */
   @Test(timeout = 10000)
-  public void reuseLockTest() throws Exception {
+  public void reuseLock() throws Exception {
     setMaxLocks(1);
     BlockLockManager manager = new BlockLockManager();
     long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.WRITE);
@@ -207,7 +207,7 @@ public class BlockLockManagerTest {
    * Tests that block locks are not returned to the pool when they are still in use.
    */
   @Test(timeout = 10000)
-  public void dontReuseLockTest() throws Exception {
+  public void dontReuseLock() throws Exception {
     setMaxLocks(1);
     final BlockLockManager manager = new BlockLockManager();
     long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.READ);
@@ -245,7 +245,7 @@ public class BlockLockManagerTest {
    * returning. At the end of the test, the internal state of the lock manager is validated.
    */
   @Test(timeout = 10000)
-  public void stressTest() throws Throwable {
+  public void stress() throws Throwable {
     final int numBlocks = 2;
     final int threadsPerBlock = 100;
     final int lockUnlocksPerThread = 50;
@@ -307,6 +307,6 @@ public class BlockLockManagerTest {
   }
 
   private void setMaxLocks(int maxLocks) {
-    Configuration.set(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS, Integer.toString(maxLocks));
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, Integer.toString(maxLocks));
   }
 }

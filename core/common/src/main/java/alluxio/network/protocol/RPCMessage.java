@@ -40,7 +40,8 @@ public abstract class RPCMessage implements EncodedMessage {
     RPC_FILE_READ_REQUEST(5),
     RPC_FILE_READ_RESPONSE(6),
     RPC_FILE_WRITE_REQUEST(7),
-    RPC_FILE_WRITE_RESPONSE(8);
+    RPC_FILE_WRITE_RESPONSE(8),
+    ;
 
     private final int mId;
 

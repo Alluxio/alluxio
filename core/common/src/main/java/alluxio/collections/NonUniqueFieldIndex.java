@@ -12,11 +12,11 @@
 package alluxio.collections;
 
 import com.google.common.collect.Iterables;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -27,20 +27,22 @@ import javax.annotation.concurrent.ThreadSafe;
  * @param <T> type of objects in this {@link IndexedSet}
  */
 @ThreadSafe
-class NonUniqueFieldIndex<T> implements FieldIndex<T> {
+public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   private final IndexDefinition<T> mIndexDefinition;
-  private final ConcurrentHashMap<Object, ConcurrentHashSet<T>> mIndexMap;
+  private final ConcurrentHashMapV8<Object, ConcurrentHashSet<T>> mIndexMap;
 
   /**
    * Constructs a new {@link NonUniqueFieldIndex} instance.
+   *
+   * @param indexDefinition definition of index
    */
   public NonUniqueFieldIndex(IndexDefinition<T> indexDefinition) {
-    mIndexMap = new ConcurrentHashMap<>(8, 0.95f, 8);
+    mIndexMap = new ConcurrentHashMapV8<>(8, 0.95f, 8);
     mIndexDefinition = indexDefinition;
   }
 
   @Override
-  public void add(T object) {
+  public boolean add(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
 
     ConcurrentHashSet<T> objSet;
@@ -62,6 +64,7 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
         break;
       }
     }
+    return true;
   }
 
   @Override
@@ -84,6 +87,11 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
+  public void clear() {
+    mIndexMap.clear();
+  }
+
+  @Override
   public boolean containsField(Object fieldValue) {
     return mIndexMap.containsKey(fieldValue);
   }
@@ -96,7 +104,6 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
     if (set == null) {
       return false;
     }
-
     return set.contains(object);
   }
 
@@ -133,7 +140,7 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
    */
   private class NonUniqueFieldIndexIterator implements Iterator<T> {
     /**
-     * Iterator of {@link NonUniqueFieldIndex#mIndexMap}. This Iterator keeps track of the
+     * Iterator of {@link NonUniqueFieldIndex#mIndexMap}. This iterator keeps track of the
      * inner set which is under iteration.
      */
     private final Iterator<ConcurrentHashSet<T>> mIndexIterator;

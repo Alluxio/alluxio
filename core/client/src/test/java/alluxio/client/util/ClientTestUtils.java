@@ -12,9 +12,8 @@
 package alluxio.client.util;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 import alluxio.hadoop.HadoopClientTestUtils;
@@ -30,8 +29,8 @@ public final class ClientTestUtils {
    * Sets small buffer sizes so that Alluxio does not run out of heap space.
    */
   public static void setSmallBufferSizes() {
-    Configuration.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
-    Configuration.set(Constants.USER_FILE_BUFFER_BYTES, "4KB");
+    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
+    Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES, "4KB");
   }
 
   /**
@@ -51,7 +50,6 @@ public final class ClientTestUtils {
   }
 
   private static void resetContexts() {
-    BlockStoreContext.INSTANCE.reset();
     FileSystemContext.INSTANCE.reset();
     LineageContext.INSTANCE.reset();
   }

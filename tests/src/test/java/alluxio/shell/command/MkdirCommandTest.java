@@ -26,10 +26,10 @@ import java.io.IOException;
  */
 public final class MkdirCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void mkdirTest() throws IOException, AlluxioException {
+  public void mkdir() throws IOException, AlluxioException {
     String qualifiedPath =
         "alluxio://" + mLocalAlluxioCluster.getHostname() + ":" + mLocalAlluxioCluster
-            .getMasterPort() + "/root/testFile1";
+            .getMasterRpcPort() + "/root/testFile1";
     mFsShell.run("mkdir", qualifiedPath);
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
     Assert.assertNotNull(status);
@@ -39,7 +39,7 @@ public final class MkdirCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void mkdirComplexPathTest() throws IOException, AlluxioException {
+  public void mkdirComplexPath() throws IOException, AlluxioException {
     mFsShell.run("mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
     URIStatus status =
         mFileSystem.getStatus(new AlluxioURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
@@ -50,18 +50,18 @@ public final class MkdirCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void mkdirExistingTest() throws IOException {
+  public void mkdirExisting() throws IOException {
     Assert.assertEquals(0, mFsShell.run("mkdir", "/testFile1"));
     Assert.assertEquals(-1, mFsShell.run("mkdir", "/testFile1"));
   }
 
   @Test
-  public void mkdirInvalidPathTest() throws IOException {
+  public void mkdirInvalidPath() throws IOException {
     Assert.assertEquals(-1, mFsShell.run("mkdir", "/test File Invalid Path"));
   }
 
   @Test
-  public void mkdirMultiPathTest() throws IOException, AlluxioException {
+  public void mkdirMultiPath() throws IOException, AlluxioException {
     String path1 = "/testDir1";
     String path2 = "/testDir2";
     String path3 = "/testDir2/testDir2.1";
@@ -82,7 +82,7 @@ public final class MkdirCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void mkdirShortPathTest() throws IOException, AlluxioException {
+  public void mkdirShortPath() throws IOException, AlluxioException {
     mFsShell.run("mkdir", "/root/testFile1");
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
     Assert.assertNotNull(status);

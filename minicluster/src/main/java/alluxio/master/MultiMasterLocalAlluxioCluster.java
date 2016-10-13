@@ -11,11 +11,14 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.worker.AlluxioWorkerService;
 
 import com.google.common.base.Throwables;
 import org.apache.curator.test.TestingServer;
@@ -38,16 +41,24 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   private final List<LocalAlluxioMaster> mMasters = new ArrayList<>();
 
   /**
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param masters the number of the master
-   * @param userBlockSize the block size for a user
+   * Runs a multi master local Alluxio cluster with a single worker.
+   *
+   * @param masters the number masters to run
    */
-  public MultiMasterLocalAlluxioCluster(long workerCapacityBytes, int masters, int userBlockSize) {
-    super(workerCapacityBytes, userBlockSize);
+  public MultiMasterLocalAlluxioCluster(int masters) {
+    this(masters, 1);
+  }
+
+  /**
+   * @param masters the number of masters to run
+   * @param numWorkers the number of workers to run
+   */
+  public MultiMasterLocalAlluxioCluster(int masters, int numWorkers) {
+    super(numWorkers);
     mNumOfMasters = masters;
 
     try {
-      mCuratorServer = new TestingServer();
+      mCuratorServer = new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
       LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
     } catch (Exception e) {
       throw Throwables.propagate(e);
@@ -153,31 +164,31 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void startWorker() throws IOException, ConnectionFailedException {
-    Configuration.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
-    runWorker();
+  protected void startWorkers() throws IOException, ConnectionFailedException {
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
+    runWorkers();
   }
 
   @Override
   protected void startMaster() throws IOException {
-    Configuration.set(Constants.ZOOKEEPER_ENABLED, "true");
-    Configuration.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    Configuration.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
-    Configuration.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
+    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
+    Configuration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/election");
+    Configuration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/leader");
 
     for (int k = 0; k < mNumOfMasters; k++) {
-      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mHome);
+      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory);
       master.start();
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
           master.getAddress());
       mMasters.add(master);
       // Each master should generate a new port for binding
-      Configuration.set(Constants.MASTER_RPC_PORT, "0");
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, "0");
     }
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
     // sets UNDERFS_ADDRESS.
-    mkdir(Configuration.get(Constants.UNDERFS_ADDRESS));
+    mkdir(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
 
     LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");
@@ -193,12 +204,14 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     // Use first master port
-    Configuration.set(Constants.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
   }
 
   @Override
   public void stopFS() throws Exception {
-    mWorker.stop();
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
     for (int k = 0; k < mNumOfMasters; k++) {
       // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
       mMasters.get(k).kill();

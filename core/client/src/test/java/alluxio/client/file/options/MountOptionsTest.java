@@ -25,35 +25,38 @@ public class MountOptionsTest {
    * Tests creating a default {@link MountOptions} instance.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     MountOptions options = MountOptions.defaults();
     Assert.assertFalse(options.isReadOnly());
+    Assert.assertFalse(options.isShared());
   }
 
-  /**
-   * Tests getting and setting fields.
-   */
   @Test
-  public void fieldsTest() {
-    MountOptions options = MountOptions.defaults();
-    options.setReadOnly(true);
-    Assert.assertTrue(options.isReadOnly());
-    options.setReadOnly(false);
-    Assert.assertFalse(options.isReadOnly());
+  public void readOnlyField() {
+    Assert.assertTrue(MountOptions.defaults().setReadOnly(true).isReadOnly());
+    Assert.assertFalse(MountOptions.defaults().setReadOnly(false).isReadOnly());
+  }
+
+  @Test
+  public void sharedField() {
+    Assert.assertTrue(MountOptions.defaults().setShared(true).isShared());
+    Assert.assertFalse(MountOptions.defaults().setShared(false).isShared());
   }
 
   /**
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThriftTest() {
+  public void toThrift() {
     MountOptions options = MountOptions.defaults();
     MountTOptions thriftOptions = options.toThrift();
     Assert.assertFalse(thriftOptions.isReadOnly());
 
     options.setReadOnly(true);
+    options.setShared(true);
     thriftOptions = options.toThrift();
     Assert.assertTrue(thriftOptions.isReadOnly());
+    Assert.assertTrue(thriftOptions.isShared());
   }
 
   @Test

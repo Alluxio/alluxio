@@ -61,13 +61,13 @@ public final class LeaderInquireClient {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
-    LOG.info("create new zookeeper client. address: {}", mZookeeperAddress);
+    LOG.info("Creating new zookeeper client. address: {}", mZookeeperAddress);
     mClient =
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
     mClient.start();
 
-    mMaxTry = Configuration.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
+    mMaxTry = Configuration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
   /**
@@ -106,7 +106,8 @@ public final class LeaderInquireClient {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
     } catch (Exception e) {
-      LOG.error("Error with zookeeper: {} message: {}", mZookeeperAddress, e.getMessage());
+      LOG.error("Error getting the master address from zookeeper. Zookeeper address: {}",
+          mZookeeperAddress, e);
     }
 
     return null;

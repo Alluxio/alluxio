@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.SystemPropertyRule;
@@ -27,6 +28,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -39,6 +41,8 @@ import java.util.concurrent.TimeUnit;
  * reproduce the correct state. Test both the single master(alluxio) and multi masters(alluxio-ft).
  */
 public class JournalShutdownIntegrationTest {
+  @Rule
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
 
   /**
    * Hold a client and keep creating files.
@@ -93,7 +97,6 @@ public class JournalShutdownIntegrationTest {
     }
   }
 
-  private static final int TEST_BLOCK_SIZE = 128;
   private static final String TEST_FILE_DIR = "/files/";
   private static final int TEST_NUM_MASTERS = 3;
   private static final long TEST_TIME_MS = Constants.SECOND_MS;
@@ -142,8 +145,8 @@ public class JournalShutdownIntegrationTest {
       throws IOException, ConnectionFailedException {
     // Setup and start the alluxio-ft cluster.
     MultiMasterLocalAlluxioCluster cluster =
-        new MultiMasterLocalAlluxioCluster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
-    cluster.initializeTestConfiguration();
+        new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
+    cluster.initConfiguration();
     cluster.start();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
@@ -153,8 +156,8 @@ public class JournalShutdownIntegrationTest {
   private LocalAlluxioCluster setupSingleMasterCluster()
       throws IOException, ConnectionFailedException {
     // Setup and start the local alluxio cluster.
-    LocalAlluxioCluster cluster = new LocalAlluxioCluster(100, TEST_BLOCK_SIZE);
-    cluster.initializeTestConfiguration();
+    LocalAlluxioCluster cluster = new LocalAlluxioCluster();
+    cluster.initConfiguration();
     cluster.start();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
@@ -162,7 +165,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   @Test
-  public void singleMasterJournalCrashIntegrationTest() throws Exception {
+  public void singleMasterJournalCrashIntegration() throws Exception {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Shutdown the cluster
@@ -178,7 +181,7 @@ public class JournalShutdownIntegrationTest {
 
   @Ignore
   @Test
-  public void multiMasterJournalCrashIntegrationTest() throws Exception {
+  public void multiMasterJournalCrashIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {

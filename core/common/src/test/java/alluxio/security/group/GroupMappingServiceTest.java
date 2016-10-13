@@ -13,7 +13,7 @@ package alluxio.security.group;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
 import org.junit.Assert;
@@ -28,11 +28,12 @@ public final class GroupMappingServiceTest {
    * Tests the {@link GroupMappingService#getGroups(String)} method.
    */
   @Test
-  public void groupTest() throws Throwable {
+  public void group() throws Throwable {
     String userName = "alluxio-user1";
 
-    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
-    GroupMappingService groups = GroupMappingService.Factory.getUserToGroupsMappingService();
+    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+        IdentityUserGroupsMapping.class.getName());
+    GroupMappingService groups = GroupMappingService.Factory.get();
 
     Assert.assertNotNull(groups);
     Assert.assertNotNull(groups.getGroups(userName));

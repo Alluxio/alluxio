@@ -14,7 +14,7 @@ package alluxio.client.lineage;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.util.ClientTestUtils;
@@ -23,7 +23,6 @@ import alluxio.job.JobConf;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +30,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.util.List;
 
@@ -47,13 +45,11 @@ public final class AlluxioLineageTest {
 
   @Before
   public void before() throws Exception {
-    Configuration.set(Constants.USER_LINEAGE_ENABLED, "true");
+    Configuration.set(PropertyKey.USER_LINEAGE_ENABLED, "true");
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
-    Whitebox.setInternalState(LineageContext.class, "INSTANCE", mLineageContext);
-    mAlluxioLineage = AlluxioLineage.get();
-    Whitebox.setInternalState(mAlluxioLineage, "mContext", mLineageContext);
+    mAlluxioLineage = AlluxioLineage.get(mLineageContext);
   }
 
   @After
@@ -63,14 +59,7 @@ public final class AlluxioLineageTest {
   }
 
   @Test
-  public void getInstanceTest() {
-    AlluxioLineage tl = AlluxioLineage.get();
-    // same as the second get
-    Assert.assertEquals(tl, AlluxioLineage.get());
-  }
-
-  @Test
-  public void createLineageTest() throws Exception {
+  public void createLineage() throws Exception {
     List<AlluxioURI> inputFiles = Lists.newArrayList(new AlluxioURI("input"));
     List<AlluxioURI> outputFiles = Lists.newArrayList(new AlluxioURI("output"));
     CommandLineJob job = new CommandLineJob("cmd", new JobConf("out"));
@@ -82,7 +71,7 @@ public final class AlluxioLineageTest {
   }
 
   @Test
-  public void deleteLineageTest() throws Exception {
+  public void deleteLineage() throws Exception {
     DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
     mAlluxioLineage.deleteLineage(0, options);
     Mockito.verify(mLineageMasterClient).deleteLineage(0, true);

@@ -12,11 +12,11 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -52,8 +52,6 @@ public class TieredBlockStoreTestUtils {
    * the parameters. For simplicity, you can use {@link #setupDefaultConf(String)} which
    * calls this method with default values.
    *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
-   *
    * @param baseDir the directory path as prefix for all the paths of directories in the tiered
    *        storage; when specified, the directory needs to exist before calling this method
    * @param tierOrdinal like {@link #TIER_ORDINAL}, length must be &gt; 0
@@ -84,9 +82,9 @@ public class TieredBlockStoreTestUtils {
 
     tierPath = createDirHierarchy(baseDir, tierPath);
     if (workerDataFolder != null) {
-      Configuration.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
+      Configuration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    Configuration.set(Constants.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i++) {
@@ -112,23 +110,20 @@ public class TieredBlockStoreTestUtils {
    * @throws Exception when error happens during creating temporary folder
    */
   public static void setupConfWithSingleTier(String baseDir, int tierOrdinal, String tierAlias,
-      String[] tierPath, long[] tierCapacity, String workerDataFolder)          throws Exception {
+      String[] tierPath, long[] tierCapacity, String workerDataFolder) throws Exception {
     if (baseDir != null) {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
     if (workerDataFolder != null) {
-      Configuration.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
+      Configuration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    Configuration.set(Constants.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
     setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity);
   }
 
   /**
    * Sets up a specific tier's {@link Configuration} for a {@link TieredBlockStore}.
    *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
-   *
-   * @param ordinal ordinal value of the tier
    * @param tierAlias alias of the tier
    * @param tierPath absolute path of the tier
    * @param tierCapacity capacity of the tier
@@ -138,17 +133,17 @@ public class TieredBlockStoreTestUtils {
     Preconditions.checkNotNull(tierPath);
     Preconditions.checkNotNull(tierCapacity);
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
-        String.format("tierPath and tierCapacity should have the same length"));
+        "tierPath and tierCapacity should have the same length");
 
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, ordinal),
-        tierAlias);
+    Configuration
+        .set(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(ordinal), tierAlias);
 
     String tierPathString = StringUtils.join(tierPath, ",");
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, ordinal),
+    Configuration.set(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(ordinal),
         tierPathString);
 
     String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, ordinal),
+    Configuration.set(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(ordinal),
         tierCapacityString);
   }
 
@@ -195,8 +190,6 @@ public class TieredBlockStoreTestUtils {
   /**
    * Creates a BlockMetadataManager with {@link #setupDefaultConf(String)}.
    *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
-   *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
    * @return the created metadata manager
@@ -209,8 +202,6 @@ public class TieredBlockStoreTestUtils {
 
   /**
    * Creates a {@link BlockMetadataManagerView} with {@link #setupDefaultConf(String)}.
-   *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
@@ -228,8 +219,6 @@ public class TieredBlockStoreTestUtils {
    * Sets up a {@link Configuration} with default values of {@link #TIER_ORDINAL},
    * {@link #TIER_ALIAS}, {@link #TIER_PATH} with the baseDir as path prefix,
    * {@link #TIER_CAPACITY_BYTES}.
-   *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
@@ -261,8 +250,8 @@ public class TieredBlockStoreTestUtils {
 
     // update evictor
     if (evictor instanceof BlockStoreEventListener) {
-      ((BlockStoreEventListener) evictor).onCommitBlock(sessionId, blockId,
-          dir.toBlockStoreLocation());
+      ((BlockStoreEventListener) evictor)
+          .onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
     }
   }
 
@@ -338,9 +327,9 @@ public class TieredBlockStoreTestUtils {
    */
   public static long getDefaultTotalCapacityBytes() {
     long totalCapacity = 0;
-    for (int i = 0; i < TIER_CAPACITY_BYTES.length; i++) {
-      for (int j = 0; j < TIER_CAPACITY_BYTES[i].length; j++) {
-        totalCapacity += TIER_CAPACITY_BYTES[i][j];
+    for (long[] tierCapacityBytes : TIER_CAPACITY_BYTES) {
+      for (long tierCapacityByte : tierCapacityBytes) {
+        totalCapacity += tierCapacityByte;
       }
     }
     return totalCapacity;
@@ -353,8 +342,8 @@ public class TieredBlockStoreTestUtils {
    */
   public static long getDefaultDirNum() {
     int dirNum = 0;
-    for (int i = 0; i < TIER_PATH.length; i++) {
-      dirNum += TIER_PATH[i].length;
+    for (String[] tierPath : TIER_PATH) {
+      dirNum += tierPath.length;
     }
     return dirNum;
   }

@@ -12,7 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -23,7 +23,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
-import alluxio.security.group.GroupMappingService;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -47,9 +47,6 @@ public final class PermissionChecker {
   /** The super group of Alluxio file system. All users in this group have super permission. */
   private final String mFileSystemSuperGroup;
 
-  /** This provides user groups mapping service. */
-  private final GroupMappingService mGroupMappingService;
-
   /**
    * Constructs a {@link PermissionChecker} instance for Alluxio file system.
    *
@@ -58,10 +55,9 @@ public final class PermissionChecker {
   public PermissionChecker(InodeTree inodeTree) {
     mInodeTree = Preconditions.checkNotNull(inodeTree);
     mPermissionCheckEnabled =
-        Configuration.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
+        Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =
-        Configuration.get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
-    mGroupMappingService = GroupMappingService.Factory.getUserToGroupsMappingService();
+        Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
   }
 
   /**
@@ -176,7 +172,7 @@ public final class PermissionChecker {
    */
   private List<String> getGroups(String user) throws AccessControlException {
     try {
-      return mGroupMappingService.getGroups(user);
+      return CommonUtils.getGroups(user);
     } catch (IOException e) {
       throw new AccessControlException(
           ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));

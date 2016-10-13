@@ -14,6 +14,8 @@ package alluxio.master.lineage;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.clock.SystemClock;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -47,13 +49,15 @@ import alluxio.proto.journal.Lineage.LineageEntry;
 import alluxio.proto.journal.Lineage.LineageIdGeneratorEntry;
 import alluxio.thrift.LineageMasterClientService;
 import alluxio.util.IdUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.google.protobuf.Message;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +67,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -80,17 +83,6 @@ public final class LineageMaster extends AbstractMaster {
   private final LineageIdGenerator mLineageIdGenerator;
 
   /**
-   * The service that checkpoints lineages. We store it here so that it can be accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mCheckpointExecutionService;
-  /**
-   * The service that recomputes lineages. We store it here so that it can be accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mRecomputeExecutionService;
-
-  /**
    * @param baseDirectory the base journal directory
    * @return the journal directory for this master
    */
@@ -105,7 +97,21 @@ public final class LineageMaster extends AbstractMaster {
    * @param journal the journal
    */
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal, 2);
+    this(fileSystemMaster, journal, ExecutorServiceFactories
+        .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
+  }
+
+  /**
+   * Creates a new instance of {@link LineageMaster}.
+   *
+   * @param fileSystemMaster the file system master
+   * @param journal the journal
+   * @param executorServiceFactory a factory for creating the executor service to use for
+   *        running maintenance threads
+   */
+  public LineageMaster(FileSystemMaster fileSystemMaster,
+      Journal journal, ExecutorServiceFactory executorServiceFactory) {
+    super(journal, new SystemClock(), executorServiceFactory);
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();
@@ -143,15 +149,13 @@ public final class LineageMaster extends AbstractMaster {
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
-      mCheckpointExecutionService = getExecutorService()
-          .submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
-              new CheckpointSchedulingExecutor(this, mFileSystemMaster),
-              Configuration.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
-      mRecomputeExecutionService = getExecutorService()
-          .submit(new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
-              new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
-                  mFileSystemMaster),
-              Configuration.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
+      getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
+          new CheckpointSchedulingExecutor(this, mFileSystemMaster),
+          Configuration.getInt(PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
+      getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
+          new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
+              mFileSystemMaster),
+          Configuration.getInt(PropertyKey.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
     }
   }
 
@@ -259,9 +263,7 @@ public final class LineageMaster extends AbstractMaster {
   private void deleteLineageFromEntry(DeleteLineageEntry entry) {
     try {
       deleteLineageInternal(entry.getLineageId(), entry.getCascade());
-    } catch (LineageDoesNotExistException e) {
-      LOG.error("Failed to delete lineage {}", entry.getLineageId(), e);
-    } catch (LineageDeletionException e) {
+    } catch (LineageDoesNotExistException | LineageDeletionException e) {
       LOG.error("Failed to delete lineage {}", entry.getLineageId(), e);
     }
   }
@@ -272,13 +274,15 @@ public final class LineageMaster extends AbstractMaster {
    * @param path the path to the file
    * @param blockSizeBytes the block size
    * @param ttl the TTL
+   * @param ttlAction action to perform on ttl expiry
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
    * @throws LineageDoesNotExistException when the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
-  public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
+  public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl,
+      TtlAction ttlAction)
       throws InvalidPathException, LineageDoesNotExistException, AccessControlException,
       FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
@@ -287,7 +291,8 @@ public final class LineageMaster extends AbstractMaster {
       fileInfo = mFileSystemMaster.getFileInfo(fileId);
       if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
         LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
-        return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl);
+        return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl,
+            ttlAction);
       }
     } catch (FileDoesNotExistException e) {
       throw new LineageDoesNotExistException(

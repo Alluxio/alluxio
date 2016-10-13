@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -23,10 +24,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -40,11 +43,12 @@ import java.util.List;
 /**
  * Integration tests for {@link KeyValueSystem}.
  */
+@Ignore("TODO(Bin): Clear the resources when done with tests. Run the following two tests together "
+    + "KeyValuePartitionIntegrationTest,KeyValueSystemIntegrationTest to reproduce.")
 public final class KeyValueSystemIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final String BASE_KEY = "base_key";
   private static final String BASE_VALUE = "base_value";
-  private static final int BASE_KEY_VALUE_NUMBER = 100;
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
@@ -60,9 +64,12 @@ public final class KeyValueSystemIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE,
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, Constants.GB)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           /* ensure key-value service is turned on */
-          Constants.KEY_VALUE_ENABLED, "true");
+          .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true")
+          .build();
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -74,11 +81,18 @@ public final class KeyValueSystemIntegrationTest {
     mStoreUri = new AlluxioURI(PathUtils.uniqPath());
   }
 
+  @After
+  public void after() throws Exception {
+    mWriter = null;
+    mReader = null;
+    mStoreUri = null;
+  }
+
   /**
    * Tests creating and opening an empty store.
    */
   @Test
-  public void createAndOpenEmptyStoreTest() throws Exception {
+  public void createAndOpenEmptyStore() throws Exception {
     mWriter = sKeyValueSystem.createStore(mStoreUri);
     Assert.assertNotNull(mWriter);
     mWriter.close();
@@ -92,7 +106,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests creating and opening a store with one key.
    */
   @Test
-  public void createAndOpenStoreWithOneKeyTest() throws Exception {
+  public void createAndOpenStoreWithOneKey() throws Exception {
     mWriter = sKeyValueSystem.createStore(mStoreUri);
     mWriter.put(KEY1, VALUE1);
     mWriter.close();
@@ -107,7 +121,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests creating and opening a store with a number of key.
    */
   @Test
-  public void createAndOpenStoreWithMultiKeysTest() throws Exception {
+  public void createAndOpenStoreWithMultiKeys() throws Exception {
     final int numKeys = 100;
     final int keyLength = 4; // 4Byte key
     final int valueLength = 5 * Constants.KB; // 5KB value
@@ -134,7 +148,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests that an iterator for an empty store has no next elements.
    */
   @Test
-  public void emptyStoreIteratorTest() throws Exception {
+  public void emptyStoreIterator() throws Exception {
     mWriter = sKeyValueSystem.createStore(mStoreUri);
     mWriter.close();
 
@@ -170,7 +184,7 @@ public final class KeyValueSystemIntegrationTest {
    * iterated.
    */
   @Test
-  public void noOrderIteratorTest() throws Exception {
+  public void noOrderIterator() throws Exception {
     List<AlluxioURI> storeUris = new ArrayList<>();
     List<List<KeyValuePair>> keyValuePairs = new ArrayList<>();
 
@@ -210,7 +224,7 @@ public final class KeyValueSystemIntegrationTest {
    * enough to take a separate key-value partition.
    */
   @Test
-  public void createMultiPartitionsTest() throws Exception {
+  public void createMultiPartitions() throws Exception {
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     final int numKeys = 10;
     final int keyLength = 4; // 4Byte key
@@ -242,20 +256,27 @@ public final class KeyValueSystemIntegrationTest {
    * expecting exception thrown.
    */
   @Test
-  public void putKeyValueTooLargeTest() throws Exception {
+  public void putKeyValueTooLarge() throws Exception {
     final long maxPartitionSize = 500 * Constants.KB; // Each partition is at most 500 KB
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
 
     Configuration
-        .set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
-    mWriter = sKeyValueSystem.createStore(mStoreUri);
-    byte[] key = BufferUtils.getIncreasingByteArray(0, keyLength);
-    byte[] value = BufferUtils.getIncreasingByteArray(0, valueLength);
+        .set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
+    try {
+      mWriter = sKeyValueSystem.createStore(mStoreUri);
+      byte[] key = BufferUtils.getIncreasingByteArray(0, keyLength);
+      byte[] value = BufferUtils.getIncreasingByteArray(0, valueLength);
 
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.KEY_VALUE_TOO_LARGE.getMessage(keyLength, valueLength));
-    mWriter.put(key, value);
+      mThrown.expect(IOException.class);
+      mThrown
+          .expectMessage(ExceptionMessage.KEY_VALUE_TOO_LARGE.getMessage(keyLength, valueLength));
+      mWriter.put(key, value);
+    } finally {
+      if (mWriter != null) {
+        mWriter.close();
+      }
+    }
   }
 
   /**
@@ -263,15 +284,21 @@ public final class KeyValueSystemIntegrationTest {
    * thrown.
    */
   @Test
-  public void putKeyAlreadyExistsTest() throws Exception {
-    mWriter = sKeyValueSystem.createStore(mStoreUri);
-    mWriter.put(KEY1, VALUE1);
+  public void putKeyAlreadyExists() throws Exception {
+    try {
+      mWriter = sKeyValueSystem.createStore(mStoreUri);
+      mWriter.put(KEY1, VALUE1);
 
-    byte[] copyOfKey1 = Arrays.copyOf(KEY1, KEY1.length);
+      byte[] copyOfKey1 = Arrays.copyOf(KEY1, KEY1.length);
 
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.KEY_ALREADY_EXISTS.getMessage());
-    mWriter.put(copyOfKey1, VALUE2);
+      mThrown.expect(IOException.class);
+      mThrown.expectMessage(ExceptionMessage.KEY_ALREADY_EXISTS.getMessage());
+      mWriter.put(copyOfKey1, VALUE2);
+    } finally {
+      if (mWriter != null) {
+        mWriter.close();
+      }
+    }
   }
 
   /**
@@ -312,7 +339,7 @@ public final class KeyValueSystemIntegrationTest {
   /**
    * Creates a store with the specified number of partitions.
    *
-   * NOTE: calling this method will set {@link Constants#KEY_VALUE_PARTITION_SIZE_BYTES_MAX} to
+   * NOTE: calling this method will set {@link PropertyKey#KEY_VALUE_PARTITION_SIZE_BYTES_MAX} to
    * {@link Constants#MB}.
    *
    * @param partitionNumber the number of partitions
@@ -324,7 +351,7 @@ public final class KeyValueSystemIntegrationTest {
     // These sizes are carefully selected, one partition holds only one key-value pair.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     Configuration
-        .set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
+        .set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
 
@@ -363,7 +390,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests that a store of various sizes (including empty store) can be correctly deleted.
    */
   @Test
-  public void deleteStoreTest() throws Exception {
+  public void deleteStore() throws Exception {
     List<AlluxioURI> storeUris = new ArrayList<>();
     storeUris.add(createStoreOfSize(0, null));
     storeUris.add(createStoreOfSize(2, null));
@@ -403,7 +430,7 @@ public final class KeyValueSystemIntegrationTest {
    * Test that rename a store of 5 key-value pairs.
    */
   @Test
-  public void renameStoreTest() throws Exception {
+  public void renameStore() throws Exception {
     final int storeOfSize = 5;
     final String newPath = "newPath";
     List<KeyValuePair> pairs = new ArrayList<>();
@@ -450,7 +477,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests that two stores of various sizes (including empty store) can be correctly merged.
    */
   @Test
-  public void mergeStoreTest() throws Exception {
+  public void mergeStore() throws Exception {
     final int storeOfSize = 1;
     final int storeOfPartitions = 2;
     final int[][] storeCreationMethodAndParameter = new int[][]{

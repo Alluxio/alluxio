@@ -13,6 +13,7 @@ package alluxio.shell.command;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
+import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.exception.AlluxioException;
 
@@ -48,7 +49,7 @@ public final class DeleteLineageCommand extends AbstractShellCommand {
   @Override
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioLineage tl = AlluxioLineage.get();
+    AlluxioLineage tl = AlluxioLineage.get(LineageContext.INSTANCE);
     long lineageId = Long.parseLong(args[0]);
     boolean cascade = Boolean.parseBoolean(args[1]);
     DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(cascade);

@@ -44,14 +44,14 @@ public class BufferedBlockOutStreamTest {
    */
   @Before
   public void before() {
-    mTestStream = new TestBufferedBlockOutStream(1L, BLOCK_LENGTH);
+    mTestStream = new TestBufferedBlockOutStream(1L, BLOCK_LENGTH, BlockStoreContext.get());
   }
 
   /**
    * Tests for the {@link BufferedBlockOutStream#remaining()} method.
    */
   @Test
-  public void remainingTest() {
+  public void remaining() {
     mTestStream.setWrittenBytes(BLOCK_LENGTH);
     Assert.assertEquals(0L, mTestStream.remaining());
 
@@ -66,7 +66,7 @@ public class BufferedBlockOutStreamTest {
    * Tests writing an increasing byte array one byte at a time.
    */
   @Test
-  public void singleByteWriteTest() throws Exception {
+  public void singleByteWrite() throws Exception {
     for (int i = 0; i < BLOCK_LENGTH; i++) {
       mTestStream.write(INCREASING_BYTES[i]);
       Assert.assertEquals(i + 1, mTestStream.getWrittenBytes());
@@ -79,7 +79,7 @@ public class BufferedBlockOutStreamTest {
    * Tests writing an increasing byte array.
    */
   @Test
-  public void byteArrayWriteTest() throws Exception {
+  public void byteArrayWrite() throws Exception {
     mTestStream.write(INCREASING_BYTES);
     Assert.assertEquals(INCREASING_BYTES.length, mTestStream.getWrittenBytes());
     Assert.assertArrayEquals(INCREASING_BYTES,
@@ -91,7 +91,7 @@ public class BufferedBlockOutStreamTest {
    * buffer limit. This causes an unbuffered write and flush.
    */
   @Test
-  public void byteArrayAtOffsetTest() throws Exception {
+  public void byteArrayAtOffset() throws Exception {
     mTestStream.write(INCREASING_BYTES, 25, 50);
     Assert.assertEquals(50, mTestStream.getWrittenBytes());
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(25, 50),

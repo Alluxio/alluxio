@@ -208,8 +208,8 @@ function mount_local() {
       DECL_INIT=$(declare -f init_env)
       DECL_MEM_SIZE_TO_BYTES=$(declare -f mem_size_to_bytes)
       DECL_MOUNT_LINUX=$(declare -f mount_ramfs_linux)
-      sudo bash -O extglob -c "BIN=${BIN}; ${DECL_INIT}; ${DECL_MEM_SIZE_TO_BYTES}; \
-       ${DECL_MOUNT_LINUX}; mount_ramfs_linux $0"
+      sudo bash -O extglob -c "ALLUXIO_CONF_DIR=${ALLUXIO_CONF_DIR}; BIN=${BIN}; ${DECL_INIT}; \
+${DECL_MEM_SIZE_TO_BYTES}; ${DECL_MOUNT_LINUX}; mount_ramfs_linux $0"
     else
       mount_ramfs_linux $0
     fi

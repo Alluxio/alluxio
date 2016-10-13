@@ -13,7 +13,7 @@ package alluxio.security.authentication;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class PlainSaslServerCallbackHandlerTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         NameMatchAuthenticationProvider.class.getName());
     mPlainServerCBHandler = new PlainSaslServerCallbackHandler(
         AuthenticationProvider.Factory.create(AuthType.CUSTOM));
@@ -55,6 +55,7 @@ public class PlainSaslServerCallbackHandlerTest {
 
   @After
   public void after() {
+    AuthenticatedClientUser.remove();
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -64,7 +65,7 @@ public class PlainSaslServerCallbackHandlerTest {
    * @throws Exception thrown if the handler fails
    */
   @Test
-  public void authenticateNameMatchTest() throws Exception {
+  public void authenticateNameMatch() throws Exception {
     String authenticateId = "alluxio-1";
     NameCallback ncb = new NameCallback(" authentication id: ");
     ncb.setName(authenticateId);
@@ -81,7 +82,7 @@ public class PlainSaslServerCallbackHandlerTest {
    * Tests that the authentication callbacks do not match.
    */
   @Test
-  public void authenticateNameNotMatchTest() throws Exception {
+  public void authenticateNameNotMatch() throws Exception {
     mThrown.expect(AuthenticationException.class);
     mThrown.expectMessage("Only allow the user starting with alluxio");
 
@@ -101,7 +102,7 @@ public class PlainSaslServerCallbackHandlerTest {
    * Tests that the incorrect password should fail the authentication.
    */
   @Test
-  public void authenticateCorrectPasswordTest() throws Exception {
+  public void authenticateCorrectPassword() throws Exception {
     mThrown.expect(AuthenticationException.class);
     mThrown.expectMessage("Wrong password");
 

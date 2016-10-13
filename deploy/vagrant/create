@@ -60,6 +60,11 @@ while [[ $# > 0 ]]; do
 shift
 done
 
+# Asynchronously tracking anonymous usage statistics.
+# The following scripts are not blocked by the `curl` call, even when `curl`
+# fails, it does not affect the execution of the remaining scripts.
+curl --data "provider=${PROVIDER}&num_machines=${TOTAL}" http://statistics.alluxio.org:5000 &
+
 HERE=`dirname "$0"`
 cd $HERE
 

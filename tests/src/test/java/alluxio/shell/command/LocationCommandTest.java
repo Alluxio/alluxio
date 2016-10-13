@@ -24,7 +24,7 @@ import java.io.IOException;
  */
 public final class LocationCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void locationNotExistTest() throws IOException {
+  public void locationNotExist() throws IOException {
     int ret = mFsShell.run("location", "/NotExistFile");
     Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
         mOutput.toString());

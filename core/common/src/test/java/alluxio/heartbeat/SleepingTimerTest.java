@@ -11,78 +11,67 @@
 
 package alluxio.heartbeat;
 
-import alluxio.util.CommonUtils;
+import alluxio.clock.ManualClock;
+import alluxio.time.Sleeper;
 
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 
 /**
- * Unit tests for {@link SleepingTimer}. It tests three scenarios listed below:
- * 1. Sleep more than the interval of SleepingTimer and see if the SleepingTimer warns correctly;
- * 2. Tick continuously for several times and see if the time interval is correct;
- * 3. Sleep less than the interval of SleepingTimer and see if the time interval is correct.
+ * Unit tests for {@link SleepingTimer}.
  */
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({SleepingTimer.class})
 public final class SleepingTimerTest {
   private static final String THREAD_NAME = "sleepingtimer-test-thread-name";
   private static final long INTERVAL_MS = 500;
+  private Logger mMockLogger;
+  private ManualClock mFakeClock;
+  private Sleeper mMockSleeper;
 
-  /**
-   *  This is a test to make sure that SleepingTimer should warn when execution time
-   *  is longer than interval.
-   */
+  @Before
+  public void before() {
+    mMockLogger = Mockito.mock(Logger.class);
+    mFakeClock = new ManualClock();
+    mMockSleeper = Mockito.mock(Sleeper.class);
+  }
+
   @Test
-  public void executeLongerThanIntervalTest() throws Exception {
-    SleepingTimer stimer = new SleepingTimer(THREAD_NAME, INTERVAL_MS);
+  public void warnWhenExecutionTakesLongerThanInterval() throws Exception {
+    SleepingTimer timer =
+        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
 
-    Logger logger = Mockito.mock(Logger.class);
-    Whitebox.setInternalState(SleepingTimer.class, "LOG", logger);
+    timer.tick();
+    mFakeClock.addTimeMs(5 * INTERVAL_MS);
+    timer.tick();
 
-    stimer.tick();
-    CommonUtils.sleepMs(5 * INTERVAL_MS);
-    stimer.tick();
+    Mockito.verify(mMockLogger).warn(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
+        Mockito.anyLong());
+  }
 
-    Mockito.verify(logger)
-        .warn(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong());
+  @Test
+  public void sleepForSpecifiedInterval() throws Exception {
+    final SleepingTimer timer =
+        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
+    timer.tick(); // first tick won't sleep
+    Mockito.verify(mMockSleeper, Mockito.times(0)).sleep(Mockito.anyLong());
+    timer.tick();
+    Mockito.verify(mMockSleeper).sleep(INTERVAL_MS);
   }
 
   /**
-   *  This test ticks three times continuously and checks the correctness of the interval.
+   * Tests that the sleeping timer will attempt to run at the same interval, independently of how
+   * long the execution between ticks takes. For example, if the interval is 100ms and execution
+   * takes 80ms, the timer should sleep for only 20ms to maintain the regular interval of 100ms.
    */
   @Test
-  public void continuousTickTest() throws Exception {
-    SleepingTimer stimer = new SleepingTimer(THREAD_NAME, INTERVAL_MS);
-    stimer.tick();
-    long timeBeforeMs = Whitebox.getInternalState(stimer, "mPreviousTickMs");
-    stimer.tick();
-    stimer.tick();
-    stimer.tick();
-    long timeIntervalMs = System.currentTimeMillis() - timeBeforeMs;
-    Assert.assertTrue(timeIntervalMs >= 3 * INTERVAL_MS);
-  }
-
-  /**
-   *  This test sleeps for a time period shorter than the interval of SleepingTimer, and checks
-   *  whether the SleepingTimer works correctly after that.
-   */
-  @Test
-  public void executeShorterThanIntervalTest() throws Exception {
-    SleepingTimer stimer = new SleepingTimer(THREAD_NAME, INTERVAL_MS);
+  public void maintainInterval() throws Exception {
+    SleepingTimer stimer =
+        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
 
     stimer.tick();
-    long timeBeforeMs = Whitebox.getInternalState(stimer, "mPreviousTickMs");
-
-    CommonUtils.sleepMs(INTERVAL_MS / 2);
+    mFakeClock.addTimeMs(INTERVAL_MS / 3);
     stimer.tick();
-    long timeIntervalMs = System.currentTimeMillis() - timeBeforeMs;
-    Assert.assertTrue(timeIntervalMs >= INTERVAL_MS);
+    Mockito.verify(mMockSleeper).sleep(INTERVAL_MS - (INTERVAL_MS / 3));
   }
 }

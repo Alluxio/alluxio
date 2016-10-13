@@ -14,7 +14,7 @@ package alluxio.util.network;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 
@@ -161,19 +161,19 @@ public class NetworkAddressUtilsTest {
     // connect host and wildcard bind host with port
     switch (service) {
       case MASTER_RPC:
-        Configuration.set(Constants.MASTER_RPC_PORT, "20000");
+        Configuration.set(PropertyKey.MASTER_RPC_PORT, "20000");
         break;
       case MASTER_WEB:
-        Configuration.set(Constants.MASTER_WEB_PORT, "20000");
+        Configuration.set(PropertyKey.MASTER_WEB_PORT, "20000");
         break;
       case WORKER_RPC:
-        Configuration.set(Constants.WORKER_RPC_PORT, "20000");
+        Configuration.set(PropertyKey.WORKER_RPC_PORT, "20000");
         break;
       case WORKER_DATA:
-        Configuration.set(Constants.WORKER_DATA_PORT, "20000");
+        Configuration.set(PropertyKey.WORKER_DATA_PORT, "20000");
         break;
       case WORKER_WEB:
-        Configuration.set(Constants.WORKER_WEB_PORT, "20000");
+        Configuration.set(PropertyKey.WORKER_WEB_PORT, "20000");
         break;
       default:
         Assert.fail("Unrecognized service type: " + service.toString());
@@ -209,7 +209,7 @@ public class NetworkAddressUtilsTest {
    * Tests the {@link NetworkAddressUtils#replaceHostName(AlluxioURI)} method.
    */
   @Test
-  public void replaceHostNameTest() throws UnknownHostException {
+  public void replaceHostName() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.replaceHostName(AlluxioURI.EMPTY_URI),
         AlluxioURI.EMPTY_URI);
     Assert.assertEquals(NetworkAddressUtils.replaceHostName(null), null);
@@ -229,7 +229,7 @@ public class NetworkAddressUtilsTest {
    * Tests the {@link NetworkAddressUtils#resolveHostName(String)} method.
    */
   @Test
-  public void resolveHostNameTest() throws UnknownHostException {
+  public void resolveHostName() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.resolveHostName(""), null);
     Assert.assertEquals(NetworkAddressUtils.resolveHostName(null), null);
     Assert.assertEquals(NetworkAddressUtils.resolveHostName("localhost"), "localhost");
@@ -240,7 +240,7 @@ public class NetworkAddressUtilsTest {
    * {@link NetworkAddressUtils#getFqdnHost(WorkerNetAddress)} methods.
    */
   @Test
-  public void getFqdnHostTest() throws UnknownHostException {
+  public void getFqdnHost() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),
         "localhost");
     Assert.assertEquals(

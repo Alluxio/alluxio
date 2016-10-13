@@ -13,7 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -28,6 +28,7 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
+import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -55,10 +56,10 @@ public interface FileSystem {
     private Factory() {} // prevent instantiation
 
     public static FileSystem get() {
-      if (Configuration.getBoolean(Constants.USER_LINEAGE_ENABLED)) {
-        return LineageFileSystem.get();
+      if (Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
+        return LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
       }
-      return BaseFileSystem.get();
+      return BaseFileSystem.get(FileSystemContext.INSTANCE);
     }
   }
 

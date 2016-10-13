@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
@@ -20,6 +21,8 @@ import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.CommonUtils;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
@@ -36,6 +39,7 @@ public final class CreateFileOptions {
   private long mBlockSizeBytes;
   private FileWriteLocationPolicy mLocationPolicy;
   private long mTtl;
+  private TtlAction mTtlAction;
   private WriteType mWriteType;
 
   /**
@@ -47,16 +51,17 @@ public final class CreateFileOptions {
 
   private CreateFileOptions() {
     mRecursive = true;
-    mBlockSizeBytes = Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     try {
       mLocationPolicy =
           CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
-              Constants.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
+              PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
-    mWriteType = Configuration.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
+    mTtlAction = TtlAction.DELETE;
   }
 
   /**
@@ -86,6 +91,13 @@ public final class CreateFileOptions {
    */
   public long getTtl() {
     return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
   }
 
   /**
@@ -141,6 +153,15 @@ public final class CreateFileOptions {
   }
 
   /**
+   * @param ttlAction the {@link TtlAction} to use
+   * @return the updated options object
+   */
+  public CreateFileOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
+    return this;
+  }
+
+  /**
    * @param writeType the {@link WriteType} to use for this operation. This will override both the
    *        {@link AlluxioStorageType} and {@link UnderStorageType}.
    * @return the updated options object
@@ -154,8 +175,12 @@ public final class CreateFileOptions {
    * @return representation of this object in the form of {@link OutStreamOptions}
    */
   public OutStreamOptions toOutStreamOptions() {
-    return OutStreamOptions.defaults().setBlockSizeBytes(mBlockSizeBytes)
-        .setLocationPolicy(mLocationPolicy).setTtl(mTtl).setWriteType(mWriteType);
+    return OutStreamOptions.defaults()
+        .setBlockSizeBytes(mBlockSizeBytes)
+        .setLocationPolicy(mLocationPolicy)
+        .setTtl(mTtl)
+        .setTtlAction(mTtlAction)
+        .setWriteType(mWriteType);
   }
 
   @Override
@@ -171,12 +196,14 @@ public final class CreateFileOptions {
         && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mWriteType);
+    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mTtlAction,
+        mWriteType);
   }
 
   @Override
@@ -186,6 +213,7 @@ public final class CreateFileOptions {
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("locationPolicy", mLocationPolicy)
         .add("ttl", mTtl)
+        .add("ttlAction", mTtlAction)
         .add("writeType", mWriteType)
         .toString();
   }
@@ -199,6 +227,7 @@ public final class CreateFileOptions {
     options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
     options.setRecursive(mRecursive);
     options.setTtl(mTtl);
+    options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
     return options;
   }
 }

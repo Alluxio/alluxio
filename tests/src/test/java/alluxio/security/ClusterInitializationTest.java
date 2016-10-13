@@ -12,13 +12,14 @@
 package alluxio.security;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
 import org.junit.Assert;
@@ -40,19 +41,17 @@ public class ClusterInitializationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(
-          LocalAlluxioClusterResource.DEFAULT_WORKER_CAPACITY_BYTES,
-          LocalAlluxioClusterResource.DEFAULT_USER_BLOCK_SIZE,
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+      new LocalAlluxioClusterResource.Builder().build()
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
 
   /**
    * When a user starts a new cluster, an empty root dir is created and owned by the user.
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
-  public void startClusterTest() throws Exception {
+      confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
+  public void startCluster() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     URIStatus status = fs.getStatus(ROOT);
     Assert.assertEquals(SUPER_USER, status.getOwner());
@@ -67,10 +66,10 @@ public class ClusterInitializationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
-  public void recoverClusterSuccessTest() throws Exception {
+      confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
+  public void recoverClusterSuccess() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
-    fs.createFile(new AlluxioURI("/testFile"));
+    fs.createFile(new AlluxioURI("/testFile")).close();
     mLocalAlluxioClusterResource.get().stopFS();
 
     LoginUserTestUtils.resetLoginUser(SUPER_USER);
@@ -89,14 +88,14 @@ public class ClusterInitializationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
-  public void recoverClusterFailTest() throws Exception {
+      confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
+  public void recoverClusterFail() throws Exception {
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED
         .getMessage("Unauthorized user on root"));
 
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
-    fs.createFile(new AlluxioURI("/testFile"));
+    fs.createFile(new AlluxioURI("/testFile")).close();
     mLocalAlluxioClusterResource.get().stopFS();
 
     LoginUserTestUtils.resetLoginUser(USER);

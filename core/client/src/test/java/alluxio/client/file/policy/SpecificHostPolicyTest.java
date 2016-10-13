@@ -31,7 +31,7 @@ public final class SpecificHostPolicyTest {
    * Tests that the correct worker is returned when using the policy.
    */
   @Test
-  public void policyTest() {
+  public void policy() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker2");
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
@@ -47,7 +47,7 @@ public final class SpecificHostPolicyTest {
    * worker list.
    */
   @Test
-  public void noMatchingHostTest() {
+  public void noMatchingHost() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker3");
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")

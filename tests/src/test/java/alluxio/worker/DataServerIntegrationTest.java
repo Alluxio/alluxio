@@ -15,12 +15,14 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.RemoteBlockReader;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -48,7 +50,6 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for {@link DataServer}.
@@ -76,11 +77,15 @@ public class DataServerIntegrationTest {
   private BlockWorkerClient mBlockWorkerClient;
 
   public DataServerIntegrationTest(String className, String nettyTransferType, String blockReader) {
-    mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES,
-        Constants.MB, Constants.WORKER_DATA_SERVER, className,
-        Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, nettyTransferType,
-        Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100), Constants.USER_BLOCK_REMOTE_READER,
-        blockReader);
+    mLocalAlluxioClusterResource =
+        new LocalAlluxioClusterResource.Builder()
+            .setProperty(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS, blockReader)
+            .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB)
+            .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
+            .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, className)
+            .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
+            .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, nettyTransferType)
+            .build();
   }
 
   @ClassRule
@@ -91,15 +96,17 @@ public class DataServerIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
-    mBlockWorkerClient = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
-    mBlockMasterClient = new BlockMasterClient(
+    mBlockWorkerClient = BlockStoreContext.get()
+        .acquireWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress());
+    mBlockMasterClient = new RetryHandlingBlockMasterClient(
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
-            mLocalAlluxioClusterResource.get().getMasterPort()));
+            mLocalAlluxioClusterResource.get().getMasterRpcPort()));
   }
 
   @After
   public final void after() throws Exception {
     mBlockMasterClient.close();
+    BlockStoreContext.get().releaseWorkerClient(mBlockWorkerClient);
   }
 
   /**
@@ -140,7 +147,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void multiReadTest() throws Exception {
+  public void multiRead() throws Exception {
     final int length = 20;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -161,21 +168,15 @@ public class DataServerIntegrationTest {
 
   @Test
   public void readMultiFiles() throws Exception {
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-        TimeUnit.SECONDS));
     final int length = WORKER_CAPACITY_BYTES / 2 + 1;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file1", WriteType.MUST_CACHE, length);
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     BlockInfo block1 = getFirstBlockInfo(new AlluxioURI("/file1"));
     DataServerMessage recvMsg1 = request(block1);
     assertValid(recvMsg1, length, block1.getBlockId(), 0, length);
 
     FileSystemTestUtils.createByteFile(mFileSystem, "/file2", WriteType.MUST_CACHE, length);
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     BlockInfo block2 = getFirstBlockInfo(new AlluxioURI("/file2"));
     DataServerMessage recvMsg2 = request(block2);
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
@@ -205,7 +206,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readTest() throws Exception {
+  public void read() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -227,7 +228,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readThroughClientTest() throws Exception {
+  public void readThroughClient() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -240,7 +241,7 @@ public class DataServerIntegrationTest {
 
   // TODO(calvin): Make this work with the new BlockReader.
   // @Test
-  public void readThroughClientNonExistentTest() throws Exception {
+  public void readThroughClientNonExistent() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));

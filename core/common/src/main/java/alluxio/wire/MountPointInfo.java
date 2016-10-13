@@ -16,13 +16,16 @@ import alluxio.underfs.UnderFileSystem;
 import com.google.common.base.Objects;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * The mount point descriptor.
  */
-public class MountPointInfo {
+public class MountPointInfo implements Serializable {
+  private static final long serialVersionUID = -2912330427506888886L;
+
   private static final long UNKNOWN_CAPACITY_BYTES = -1;
   private static final long UNKNOWN_USED_BYTES = -1;
 
@@ -31,7 +34,8 @@ public class MountPointInfo {
   private long mUfsCapacityBytes = UNKNOWN_CAPACITY_BYTES;
   private long mUfsUsedBytes = UNKNOWN_USED_BYTES;
   private boolean mReadOnly;
-  private Map<String, String> mProperties = new HashMap<>();
+  private HashMap<String, String> mProperties = new HashMap<>();
+  private boolean mShared;
 
   /**
    * Creates a new instance of {@link MountPointInfo}.
@@ -78,6 +82,13 @@ public class MountPointInfo {
    */
   public Map<String, String> getProperties() {
     return mProperties;
+  }
+
+  /**
+   * @return whether the mount point is shared
+   */
+  public boolean getShared() {
+    return mShared;
   }
 
   /**
@@ -130,7 +141,16 @@ public class MountPointInfo {
    * @return the mount point descriptor
    */
   public MountPointInfo setProperties(Map<String, String> properties) {
-    mProperties = properties;
+    mProperties = new HashMap<>(properties);
+    return this;
+  }
+
+  /**
+   * @param shared the indicator of whether the mount point is shared with all Alluxio users
+   * @return the mount point descriptor
+   */
+  public MountPointInfo setShared(boolean shared) {
+    mShared = shared;
     return this;
   }
 
@@ -166,19 +186,21 @@ public class MountPointInfo {
     MountPointInfo that = (MountPointInfo) o;
     return mUfsUri.equals(that.mUfsUri) && mUfsType.equals(that.mUfsType)
         && mUfsCapacityBytes == that.mUfsCapacityBytes && mUfsUsedBytes == that.mUfsUsedBytes
-        && mReadOnly == that.mReadOnly && mProperties.equals(that.mProperties);
+        && mReadOnly == that.mReadOnly && mProperties.equals(that.mProperties)
+        && mShared == that.mShared;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes, mReadOnly,
-        mProperties);
+        mProperties, mShared);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("ufsUrl", mUfsUri).add("ufsType", mUfsType)
         .add("ufsCapacityBytes", mUfsCapacityBytes).add("ufsUsedBytes", mUfsUsedBytes)
-        .add("readOnly", mReadOnly).add("properties", mProperties).toString();
+        .add("readOnly", mReadOnly).add("properties", mProperties)
+        .add("shared", mShared).toString();
   }
 }

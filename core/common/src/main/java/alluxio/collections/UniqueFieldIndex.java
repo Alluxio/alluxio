@@ -11,10 +11,11 @@
 
 package alluxio.collections;
 
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -25,32 +26,40 @@ import javax.annotation.concurrent.ThreadSafe;
  * @param <T> type of objects in this {@link IndexedSet}
  */
 @ThreadSafe
-class UniqueFieldIndex<T> implements FieldIndex<T> {
+public class UniqueFieldIndex<T> implements FieldIndex<T> {
   private final IndexDefinition<T> mIndexDefinition;
-  private final ConcurrentHashMap<Object, T> mIndexMap;
+  private final ConcurrentHashMapV8<Object, T> mIndexMap;
 
   /**
    * Constructs a new {@link UniqueFieldIndex} instance.
+   *
+   * @param indexDefinition definition of index
    */
   public UniqueFieldIndex(IndexDefinition<T> indexDefinition) {
-    mIndexMap = new ConcurrentHashMap<>(8, 0.95f, 8);
+    mIndexMap = new ConcurrentHashMapV8<>(8, 0.95f, 8);
     mIndexDefinition = indexDefinition;
   }
 
   @Override
-  public void add(T object) {
+  public boolean add(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
+    T previousObject = mIndexMap.putIfAbsent(fieldValue, object);
 
-    if (mIndexMap.putIfAbsent(fieldValue, object) != null) {
-      throw new IllegalStateException("Adding more than one value to a unique index:"
-          + fieldValue.toString());
+    if (previousObject != null && previousObject != object) {
+      return false;
     }
+    return true;
   }
 
   @Override
   public boolean remove(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
     return mIndexMap.remove(fieldValue, object);
+  }
+
+  @Override
+  public void clear() {
+    mIndexMap.clear();
   }
 
   @Override
@@ -66,7 +75,6 @@ class UniqueFieldIndex<T> implements FieldIndex<T> {
     if (res == null) {
       return false;
     }
-
     return res == object;
   }
 

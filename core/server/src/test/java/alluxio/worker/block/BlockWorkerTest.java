@@ -13,20 +13,18 @@ package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
+import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.SessionCleaner;
-import alluxio.worker.SessionCleanupCallback;
-import alluxio.worker.WorkerIdRegistry;
-import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -42,26 +40,22 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Unit tests for {@link BlockWorker}.
+ * Unit tests for {@link DefaultBlockWorker}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, Configuration.class,
-    UnderFileSystem.class, BlockWorker.class, WorkerIdRegistry.class, Sessions.class})
+    UnderFileSystem.class, BlockWorker.class, Sessions.class})
 public class BlockWorkerTest {
 
   /** Rule to create a new temporary folder during each test. */
@@ -71,11 +65,8 @@ public class BlockWorkerTest {
   private BlockMasterClient mBlockMasterClient;
   private BlockStore mBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
-  private BlockHeartbeatReporter mHeartbeatReporter;
-  private BlockMetricsReporter mMetricsReporter;
   private Random mRandom;
   private Sessions mSessions;
-  private long mWorkerId;
   private BlockWorker mBlockWorker;
 
   /**
@@ -87,24 +78,14 @@ public class BlockWorkerTest {
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mBlockStore = PowerMockito.mock(BlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    mHeartbeatReporter = PowerMockito.mock(BlockHeartbeatReporter.class);
-    mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
     mSessions = PowerMockito.mock(Sessions.class);
-    mWorkerId = mRandom.nextLong();
-    ((AtomicLong) Whitebox.getInternalState(WorkerIdRegistry.class, "sWorkerId")).set(mWorkerId);
 
-    Configuration.set("alluxio.worker.tieredstore.level0.dirs.path",
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
         mFolder.newFolder().getAbsolutePath());
-    Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
 
-    mBlockWorker = new BlockWorker();
-
-    Whitebox.setInternalState(mBlockWorker, "mBlockMasterClient", mBlockMasterClient);
-    Whitebox.setInternalState(mBlockWorker, "mFileSystemMasterClient", mFileSystemMasterClient);
-    Whitebox.setInternalState(mBlockWorker, "mBlockStore", mBlockStore);
-    Whitebox.setInternalState(mBlockWorker, "mHeartbeatReporter", mHeartbeatReporter);
-    Whitebox.setInternalState(mBlockWorker, "mMetricsReporter", mMetricsReporter);
-    Whitebox.setInternalState(mBlockWorker, "mSessions", mSessions);
+    mBlockWorker = new DefaultBlockWorker(mBlockMasterClient, mFileSystemMasterClient, mSessions,
+        mBlockStore, new AtomicReference<>(10L));
   }
 
   /**
@@ -119,7 +100,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#abortBlock(long, long)} method.
    */
   @Test
-  public void abortBlockTest() throws Exception {
+  public void abortBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.abortBlock(sessionId, blockId);
@@ -130,7 +111,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#accessBlock(long, long)} method.
    */
   @Test
-  public void accessBlockTest() throws Exception {
+  public void accessBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.accessBlock(sessionId, blockId);
@@ -138,29 +119,10 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the Block Worker's session cleanable implementation.
-   */
-  @Test
-  public void cleanupSessionsTest() throws Exception {
-    long sessionId = 1;
-    LinkedList<Long> sessions = new LinkedList<>();
-    sessions.add(sessionId);
-
-    when(mSessions.getTimedOutSessions()).thenReturn(sessions);
-    Whitebox.invokeMethod(mBlockWorker, "setupSessionCleaner");
-    SessionCleaner cleaner = Whitebox.getInternalState(mBlockWorker, "mSessionCleaner");
-    SessionCleanupCallback callback =
-        Whitebox.getInternalState(cleaner, "mSessionCleanupCallback");
-    callback.cleanupSessions();
-    verify(mSessions).removeSession(sessionId);
-    verify(mBlockStore).cleanupSession(sessionId);
-  }
-
-  /**
    * Tests the {@link BlockWorker#commitBlock(long, long)} method.
    */
   @Test
-  public void commitBlockTest() throws Exception {
+  public void commitBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long length = mRandom.nextLong();
     long lockId = mRandom.nextLong();
@@ -184,41 +146,39 @@ public class BlockWorkerTest {
     when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 
     mBlockWorker.commitBlock(sessionId, blockId);
-    verify(mBlockMasterClient).commitBlock(mWorkerId, usedBytes,
-        tierAlias, blockId, length);
+    verify(mBlockMasterClient).commitBlock(anyLong(), eq(usedBytes), eq(tierAlias), eq(blockId),
+        eq(length));
     verify(mBlockStore).unlockBlock(lockId);
   }
 
   /**
-   * Tests commitBlock, the master-side RPC failed for the first time, expecting retry to succeed.
+   * Tests that commitBlock doesn't throw an exception when {@link BlockAlreadyExistsException} gets
+   * thrown by the block store.
    */
   @Test
-  public void commitBlockOnRetryTest() throws Exception {
-    mBlockWorker = new BlockWorker();
+  public void commitBlockOnRetry() throws Exception {
     long blockId = mRandom.nextLong();
+    long length = mRandom.nextLong();
+    long lockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
+    long usedBytes = mRandom.nextLong();
     String tierAlias = "MEM";
-    long initialBytes = 1;
+    HashMap<String, Long> usedBytesOnTiers = new HashMap<>();
+    usedBytesOnTiers.put(tierAlias, usedBytes);
+    BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
+    BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
+    BlockStoreMeta blockStoreMeta = PowerMockito.mock(BlockStoreMeta.class);
 
-    Whitebox.setInternalState(mBlockWorker, "mBlockMasterClient", mBlockMasterClient);
-    PowerMockito.mockStatic(WorkerIdRegistry.class);
-    when(WorkerIdRegistry.getWorkerId()).thenReturn(Long.valueOf(1));
+    when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
+    when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(blockMeta);
+    when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
+    when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
+    when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);
+    when(blockMeta.getBlockSize()).thenReturn(length);
+    when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 
-    PowerMockito.doThrow(new IOException("Server RPC failure")).when(mBlockMasterClient)
-        .commitBlock(anyLong(), anyLong(), anyString(), anyLong(), anyLong());
-
-    String blockPath = mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes);
-    LocalFileBlockWriter writer = new LocalFileBlockWriter(blockPath);
-    writer.close();
-    try {
-      mBlockWorker.commitBlock(sessionId, blockId);
-    } catch (IOException e) {
-      // expect an IOException thrown
-    }
-
-    // Let's retry commitBlock
-    PowerMockito.doNothing().when(mBlockMasterClient)
-        .commitBlock(anyLong(), anyLong(), anyString(), anyLong(), anyLong());
+    doThrow(new BlockAlreadyExistsException("")).when(mBlockStore).commitBlock(sessionId,
+        blockId);
     mBlockWorker.commitBlock(sessionId, blockId);
   }
 
@@ -226,7 +186,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method.
    */
   @Test
-  public void createBlockTest() throws Exception {
+  public void createBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long initialBytes = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
@@ -248,7 +208,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#createBlockRemote(long, long, String, long)} method.
    */
   @Test
-  public void createBlockRemoteTest() throws Exception {
+  public void createBlockRemote() throws Exception {
     long blockId = mRandom.nextLong();
     long initialBytes = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
@@ -269,7 +229,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#freeSpace(long, long, String)} method.
    */
   @Test
-  public void freeSpaceTest() throws Exception {
+  public void freeSpace() throws Exception {
     long sessionId = mRandom.nextLong();
     long availableBytes = mRandom.nextLong();
     String tierAlias = "MEM";
@@ -282,7 +242,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#getTempBlockWriterRemote(long, long)} method.
    */
   @Test
-  public void getTempBlockWriterRemoteTest() throws Exception {
+  public void getTempBlockWriterRemote() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.getTempBlockWriterRemote(sessionId, blockId);
@@ -291,12 +251,12 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#getReport()} method.
-   *
    */
   @Test
-  public void getReportTest() {
-    mBlockWorker.getReport();
-    verify(mHeartbeatReporter).generateReport();
+  public void getReport() {
+    BlockHeartbeatReport report = mBlockWorker.getReport();
+    assertEquals(0, report.getAddedBlocks().size());
+    assertEquals(0, report.getRemovedBlocks().size());
   }
 
   /**
@@ -304,7 +264,7 @@ public class BlockWorkerTest {
    *
    */
   @Test
-  public void getStoreMetaTest() {
+  public void getStoreMeta() {
     mBlockWorker.getStoreMeta();
     mBlockWorker.getStoreMetaFull();
     verify(mBlockStore).getBlockStoreMeta();
@@ -315,7 +275,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#getVolatileBlockMeta(long)} method.
    */
   @Test
-  public void getVolatileBlockMetaTest() throws Exception {
+  public void getVolatileBlockMeta() throws Exception {
     long blockId = mRandom.nextLong();
     mBlockWorker.getVolatileBlockMeta(blockId);
     verify(mBlockStore).getVolatileBlockMeta(blockId);
@@ -325,7 +285,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#getBlockMeta(long, long, long)} method.
    */
   @Test
-  public void getBlockMetaTest() throws Exception {
+  public void getBlockMeta() throws Exception {
     long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
     long lockId = mRandom.nextLong();
@@ -337,7 +297,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#hasBlockMeta(long)} method.
    */
   @Test
-  public void hasBlockMetaTest() {
+  public void hasBlockMeta() {
     long blockId = mRandom.nextLong();
     mBlockWorker.hasBlockMeta(blockId);
     verify(mBlockStore).hasBlockMeta(blockId);
@@ -347,7 +307,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#lockBlock(long, long)} method.
    */
   @Test
-  public void lockBlockTest() throws Exception {
+  public void lockBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.lockBlock(sessionId, blockId);
@@ -358,7 +318,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#moveBlock(long, long, String)} method.
    */
   @Test
-  public void moveBlockTest() throws Exception {
+  public void moveBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
@@ -378,7 +338,7 @@ public class BlockWorkerTest {
    * already at the destination location.
    */
   @Test
-  public void moveBlockNoopTest() throws Exception {
+  public void moveBlockNoop() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
@@ -397,7 +357,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#readBlock(long, long, long)} method.
    */
   @Test
-  public void readBlockTest() throws Exception {
+  public void readBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long lockId = mRandom.nextLong();
@@ -430,7 +390,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#removeBlock(long, long)} method.
    */
   @Test
-  public void removeBlockTest() throws Exception {
+  public void removeBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.removeBlock(sessionId, blockId);
@@ -441,7 +401,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#requestSpace(long, long, long)} method.
    */
   @Test
-  public void requestSpaceTest() throws Exception {
+  public void requestSpace() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long additionalBytes = mRandom.nextLong();
@@ -454,7 +414,7 @@ public class BlockWorkerTest {
    * {@link BlockWorker#unlockBlock(long, long)} method.
    */
   @Test
-  public void unlockBlockTest() throws Exception {
+  public void unlockBlock() throws Exception {
     long lockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
@@ -467,24 +427,22 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#sessionHeartbeat(long, List<long>)} method.
+   * Tests the {@link BlockWorker#sessionHeartbeat(long)}  method.
    */
   @Test
-  public void sessionHeartbeatTest() {
+  public void sessionHeartbeat() {
     long sessionId = mRandom.nextLong();
-    List<Long> metrics = new ArrayList<>();
-    metrics.add(mRandom.nextLong());
+    long metricIncrease = 3;
 
-    mBlockWorker.sessionHeartbeat(sessionId, metrics);
+    mBlockWorker.sessionHeartbeat(sessionId);
     verify(mSessions).sessionHeartbeat(sessionId);
-    verify(mMetricsReporter).updateClientMetrics(metrics);
   }
 
   /**
-   * Tests the {@link BlockWorker#updatePinList(Set<long>)} method.
+   * Tests the {@link BlockWorker#updatePinList(Set)} method.
    */
   @Test
-  public void updatePinListTest() {
+  public void updatePinList() {
     Set<Long> pinnedInodes = new HashSet<>();
     pinnedInodes.add(mRandom.nextLong());
 
@@ -496,7 +454,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#getFileInfo(long)} method.
    */
   @Test
-  public void getFileInfoTest() throws Exception {
+  public void getFileInfo() throws Exception {
     long fileId = mRandom.nextLong();
 
     mBlockWorker.getFileInfo(fileId);

@@ -118,7 +118,7 @@ public final class HeartbeatScheduler {
   }
 
   /**
-   * Waits until the given thread can be executed.
+   * Waits for the given thread to be ready to be scheduled.
    *
    * @param name a name of the thread to wait for
    * @throws InterruptedException if the waiting thread is interrupted
@@ -132,23 +132,34 @@ public final class HeartbeatScheduler {
   }
 
   /**
-   * Waits until the given thread can be executed or the given timeout expires.
+   * Waits until the given thread can be executed, throwing an unchecked exception of the given
+   * timeout expires.
    *
    * @param name a name of the thread to wait for
    * @param time the maximum time to wait
    * @param unit the time unit of the {@code time} argument
-   * @return {@code false} if the waiting time detectably elapsed before return from the method,
-   *         else {@code true}
    * @throws InterruptedException if the waiting thread is interrupted
    */
-  public static boolean await(String name, long time, TimeUnit unit) throws InterruptedException {
+  public static void await(String name, long time, TimeUnit unit) throws InterruptedException {
     try (LockResource r = new LockResource(sLock)) {
       while (!sTimers.containsKey(name)) {
         if (!sCondition.await(time, unit)) {
-          return false;
+          throw new RuntimeException(
+              "Timed out waiting for thread " + name + " to be ready for scheduling");
         }
       }
     }
-    return true;
+  }
+
+  /**
+   * Convenience method for executing a heartbeat and waiting for it to complete.
+   *
+   * @param name the name of the heartbeat to execute
+   * @throws InterruptedException if the waiting thread is interrupted
+   */
+  public static void execute(String name) throws InterruptedException {
+    await(name);
+    schedule(name);
+    await(name);
   }
 }

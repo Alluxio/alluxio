@@ -19,7 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * outperforms {@link #TRANSFER}.
  */
 @ThreadSafe
-public enum FileTransferType {
+enum FileTransferType {
   /**
    * Uses a {@link java.nio.MappedByteBuffer} to transfer data over the network.
    */

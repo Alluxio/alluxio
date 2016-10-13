@@ -37,7 +37,7 @@ public class PathUtilsTest {
    * Tests the {@link PathUtils#cleanPath(String)} method.
    */
   @Test
-  public void cleanPathNoExceptionTest() throws InvalidPathException {
+  public void cleanPathNoException() throws InvalidPathException {
     // test clean path
     Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar"));
 
@@ -66,7 +66,7 @@ public class PathUtilsTest {
    * path is provided.
    */
   @Test
-  public void cleanPathExceptionTest() throws InvalidPathException {
+  public void cleanPathException() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
     Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/\\   foo / bar"));
   }
@@ -75,7 +75,7 @@ public class PathUtilsTest {
    * Tests the {@link PathUtils#concatPath(Object, Object...)} method.
    */
   @Test
-  public void concatPathTest() {
+  public void concatPath() {
     Assert.assertEquals("/", PathUtils.concatPath("/"));
     Assert.assertEquals("/", PathUtils.concatPath("/", ""));
     Assert.assertEquals("/bar", PathUtils.concatPath("/", "bar"));
@@ -121,7 +121,7 @@ public class PathUtilsTest {
    * Tests the {@link PathUtils#getParent(String)} method.
    */
   @Test
-  public void getParentTest() throws InvalidPathException {
+  public void getParent() throws InvalidPathException {
     // get a parent that is non-root
     Assert.assertEquals("/foo", PathUtils.getParent("/foo/bar"));
     Assert.assertEquals("/foo", PathUtils.getParent("/foo/bar/"));
@@ -143,7 +143,7 @@ public class PathUtilsTest {
    * Tests the {@link PathUtils#getPathComponents(String)} method.
    */
   @Test
-  public void getPathComponentsNoExceptionTest() throws InvalidPathException {
+  public void getPathComponentsNoException() throws InvalidPathException {
     Assert.assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
     Assert.assertArrayEquals(new String[] {"", "bar"}, PathUtils.getPathComponents("/bar"));
     Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
@@ -161,7 +161,7 @@ public class PathUtilsTest {
    * path is invalid.
    */
   @Test
-  public void getPathComponentsExceptionTest() throws InvalidPathException {
+  public void getPathComponentsException() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
     PathUtils.getPathComponents("/\\   foo / bar");
   }
@@ -170,7 +170,7 @@ public class PathUtilsTest {
    * Tests the {@link PathUtils#subtractPaths(String, String)} method.
    */
   @Test
-  public void subtractPathsTest() throws InvalidPathException {
+  public void subtractPaths() throws InvalidPathException {
     Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a"));
     Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a/"));
     Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a/"));
@@ -186,7 +186,7 @@ public class PathUtilsTest {
    * path is invalid or the second argument isn't a prefix of the first.
    */
   @Test
-  public void subtractPathsExceptionTest() throws InvalidPathException {
+  public void subtractPathsException() throws InvalidPathException {
     try {
       PathUtils.subtractPaths("", "/");
       Assert.fail("\"\" should throw an InvalidPathException");
@@ -212,7 +212,7 @@ public class PathUtilsTest {
    * Tests the {@link PathUtils#hasPrefix(String, String)} method.
    */
   @Test
-  public void hasPrefixTest() throws InvalidPathException {
+  public void hasPrefix() throws InvalidPathException {
     Assert.assertTrue(PathUtils.hasPrefix("/", "/"));
     Assert.assertTrue(PathUtils.hasPrefix("/a", "/a"));
     Assert.assertTrue(PathUtils.hasPrefix("/a", "/a/"));
@@ -235,7 +235,7 @@ public class PathUtilsTest {
    * Tests the {@link PathUtils#isRoot(String)} method.
    */
   @Test
-  public void isRootTest() throws InvalidPathException {
+  public void isRoot() throws InvalidPathException {
     // check a path that is non-root
     Assert.assertFalse(PathUtils.isRoot("/foo/bar"));
     Assert.assertFalse(PathUtils.isRoot("/foo/bar/"));
@@ -257,7 +257,7 @@ public class PathUtilsTest {
    * Tests the {@link PathUtils#temporaryFileName(long, String)} method.
    */
   @Test
-  public void temporaryFileNameTest() {
+  public void temporaryFileName() {
     Assert.assertEquals(PathUtils.temporaryFileName(1, "/"),
         PathUtils.temporaryFileName(1, "/"));
     Assert.assertNotEquals(PathUtils.temporaryFileName(1, "/"),
@@ -266,11 +266,21 @@ public class PathUtilsTest {
         PathUtils.temporaryFileName(1, "/a"));
   }
 
+  @Test
+  public void getPermanentFileName() {
+    Assert.assertEquals("/", PathUtils.getPermanentFileName(PathUtils.temporaryFileName(1, "/")));
+    Assert.assertEquals("/",
+        PathUtils.getPermanentFileName(PathUtils.temporaryFileName(0xFFFFFFFFFFFFFFFFL, "/")));
+    Assert.assertEquals("/foo.alluxio.0x0123456789ABCDEF.tmp", PathUtils
+        .getPermanentFileName(PathUtils.temporaryFileName(14324,
+            "/foo.alluxio.0x0123456789ABCDEF.tmp")));
+  }
+
   /**
    * Test the {@link PathUtils#isTemporaryFileName(String)} method.
    */
   @Test
-  public void isTemporaryFileNameTest() {
+  public void isTemporaryFileName() {
     Assert.assertTrue(PathUtils.isTemporaryFileName(PathUtils.temporaryFileName(0, "/")));
     Assert.assertTrue(
         PathUtils.isTemporaryFileName(PathUtils.temporaryFileName(0xFFFFFFFFFFFFFFFFL, "/")));
@@ -286,7 +296,7 @@ public class PathUtilsTest {
    * Tests the {@link PathUtils#uniqPath()} method.
    */
   @Test
-  public void uniqPathTest() {
+  public void uniqPath() {
     Assert.assertNotEquals(PathUtils.uniqPath(), PathUtils.uniqPath());
   }
 
@@ -296,7 +306,7 @@ public class PathUtilsTest {
    * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
-  public void validatePathTest() throws InvalidPathException {
+  public void validatePath() throws InvalidPathException {
     // check valid paths
     PathUtils.validatePath("/foo/bar");
     PathUtils.validatePath("/foo/bar/");
@@ -325,7 +335,7 @@ public class PathUtilsTest {
    * Tests the {@link PathUtils#normalizePath(String, String)} method.
    */
   @Test
-  public void normalizePathTest() throws Exception {
+  public void normalizePath() throws Exception {
     Assert.assertEquals("/", PathUtils.normalizePath("", "/"));
     Assert.assertEquals("/", PathUtils.normalizePath("/", "/"));
     Assert.assertEquals("/foo/bar/", PathUtils.normalizePath("/foo/bar", "/"));

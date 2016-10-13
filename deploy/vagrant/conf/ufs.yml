@@ -30,3 +30,7 @@ S3:
 GCS:
   # The bucket should be the name of an existing bucket (e.g. alluxiodata, not gs://alluxiodata)
   Bucket:
+
+Swift:
+  # The container should be the name of an existing container (e.g. alluxiodata, not swift://alluxiodata)
+  Container:

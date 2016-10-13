@@ -13,8 +13,8 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
@@ -37,12 +37,12 @@ import java.util.concurrent.TimeUnit;
  * Tests for {@link alluxio.client.file.FileSystemUtils}.
  */
 public class FileSystemUtilsIntegrationTest {
-  private static final int WORKER_CAPACITY_BYTES = 2 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
-          Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES))
+          .build();
   private static CreateFileOptions sWriteBoth;
   private static FileSystem sFileSystem = null;
 
@@ -52,7 +52,7 @@ public class FileSystemUtilsIntegrationTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
+    sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
   }
 
   @Test
@@ -139,8 +139,8 @@ public class FileSystemUtilsIntegrationTest {
         try {
           // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
-          String original = Configuration.get(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
-          Configuration.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
+          String original = Configuration.get(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
+          Configuration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
           try {
             // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
             boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri, 300,
@@ -149,7 +149,7 @@ public class FileSystemUtilsIntegrationTest {
             completed = sFileSystem.getStatus(uri).isCompleted();
             Assert.assertFalse(completed);
           } finally {
-            Configuration.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, original);
+            Configuration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, original);
           }
         } catch (Exception e) {
           e.printStackTrace();

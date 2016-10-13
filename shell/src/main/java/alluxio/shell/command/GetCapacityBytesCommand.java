@@ -26,6 +26,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class GetCapacityBytesCommand extends AbstractShellCommand {
 
+  /** The block store client. */
+  private final AlluxioBlockStore mBlockStore;
+
   /**
    * Constructs a new instance to get the capacity of the {@link FileSystem}.
    *
@@ -33,6 +36,7 @@ public final class GetCapacityBytesCommand extends AbstractShellCommand {
    */
   public GetCapacityBytesCommand(FileSystem fs) {
     super(fs);
+    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override
@@ -47,7 +51,7 @@ public final class GetCapacityBytesCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    long capacityBytes = AlluxioBlockStore.get().getCapacityBytes();
+    long capacityBytes = mBlockStore.getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
   }
 

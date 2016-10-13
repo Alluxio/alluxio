@@ -35,7 +35,7 @@ public class TtlBucketTest {
    * Tests the different interval methods.
    */
   @Test
-  public void intervalTest() {
+  public void interval() {
     for (long i = 0; i < 10; i++) {
       mBucket = new TtlBucket(i);
       Assert.assertEquals(mBucket.getTtlIntervalEndTimeMs(), mBucket.getTtlIntervalStartTimeMs()
@@ -48,7 +48,7 @@ public class TtlBucketTest {
    * {@link TtlBucket#getTtlIntervalStartTimeMs()} method.
    */
   @Test
-  public void compareIntervalStartTimeTest() {
+  public void compareIntervalStartTime() {
     for (long i = 0; i < 10; i++) {
       for (long j = i + 1; j < 10; j++) {
         TtlBucket bucket1 = new TtlBucket(i);
@@ -73,9 +73,11 @@ public class TtlBucketTest {
    * methods.
    */
   @Test
-  public void addAndRemoveFileTest() {
-    InodeFile mFileTtl1 = InodeFile.create(0, 0, "test1", CreateFileOptions.defaults().setTtl(1));
-    InodeFile mFileTtl2 = InodeFile.create(1, 0, "test1", CreateFileOptions.defaults().setTtl(2));
+  public void addAndRemoveFile() {
+    InodeFile mFileTtl1 =
+        InodeFile.create(0, 0, "test1", 0, CreateFileOptions.defaults().setTtl(1));
+    InodeFile mFileTtl2 =
+        InodeFile.create(1, 0, "test1", 0, CreateFileOptions.defaults().setTtl(2));
     Assert.assertTrue(mBucket.getFiles().isEmpty());
 
     mBucket.addFile(mFileTtl1);
@@ -101,7 +103,7 @@ public class TtlBucketTest {
    * Tests the {@link TtlBucket#compareTo(TtlBucket)} method.
    */
   @Test
-  public void compareToTest() {
+  public void compareTo() {
     TtlBucket firstBucket = new TtlBucket(0);
     TtlBucket secondBucket = new TtlBucket(0);
     TtlBucket thirdBucket = new TtlBucket(1);
@@ -118,7 +120,7 @@ public class TtlBucketTest {
    * Tests the {@link TtlBucket#equals(Object)} method.
    */
   @Test
-  public void equalsTest() {
+  public void equals() {
     TtlBucket firstBucket = new TtlBucket(0);
     TtlBucket secondBucket = new TtlBucket(0);
     TtlBucket thirdBucket = new TtlBucket(1);

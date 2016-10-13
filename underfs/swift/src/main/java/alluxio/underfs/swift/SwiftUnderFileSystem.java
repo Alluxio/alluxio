@@ -14,6 +14,7 @@ package alluxio.underfs.swift;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -27,7 +28,7 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.AuthenticationMethod;
-import org.javaswift.joss.exception.NotFoundException;
+import org.javaswift.joss.exception.CommandException;
 import org.javaswift.joss.model.Access;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
@@ -41,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -65,11 +67,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /** Value used to indicate nested structure in Swift. */
   private static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
+  /** Regexp for Swift container ACL separator, including optional whitespaces. */
+  private static final String ACL_SEPARATOR_REGEXP = "\\s*,\\s*";
+
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = PATH_SEPARATOR;
-
-  /** Maximum number of directory entries to fetch at once. */
-  private static final int DIR_PAGE_SIZE = 1000;
 
   /** Number of retries in case of Swift internal errors. */
   private static final int NUM_RETRIES = 3;
@@ -86,6 +88,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /** JOSS access object. */
   private final Access mAccess;
 
+  /** Determine whether to run JOSS in simulation mode. */
+  private boolean mSimulationMode;
+
+  /** The name of the account owner. */
+  private String mAccountOwner;
+
+  /** The permission mode that the account owner has to the container. */
+  private short mAccountMode;
+
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
@@ -93,35 +104,56 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   public SwiftUnderFileSystem(AlluxioURI uri) {
     super(uri);
-    String containerName = uri.getHost();
+    String containerName = getContainerName(uri);
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
-    if (Configuration.containsKey(Constants.SWIFT_API_KEY)) {
-      config.setPassword(Configuration.get(Constants.SWIFT_API_KEY));
-    } else if (Configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
-      config.setPassword(Configuration.get(Constants.SWIFT_PASSWORD_KEY));
+
+    // Whether to run against a simulated Swift backend
+    mSimulationMode = false;
+    if (Configuration.containsKey(PropertyKey.SWIFT_SIMULATION)) {
+      mSimulationMode = Configuration.getBoolean(PropertyKey.SWIFT_SIMULATION);
     }
-    config.setAuthUrl(Configuration.get(Constants.SWIFT_AUTH_URL_KEY));
-    String authMethod = Configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
-    if (authMethod != null) {
-      config.setUsername(Configuration.get(Constants.SWIFT_USER_KEY));
-      config.setTenantName(Configuration.get(Constants.SWIFT_TENANT_KEY));
-      switch (authMethod) {
-        case Constants.SWIFT_AUTH_KEYSTONE:
-          config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
-          break;
-        case Constants.SWIFT_AUTH_SWIFTAUTH:
-          // swiftauth authenticates directly against swift
-          // note: this method is supported in swift object storage api v1
-          config.setAuthenticationMethod(AuthenticationMethod.BASIC);
-          break;
-        default:
-          config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
-          // tempauth requires authentication header to be of the form tenant:user.
-          // JOSS however generates header of the form user:tenant.
-          // To resolve this, we switch user with tenant
-          config.setTenantName(Configuration.get(Constants.SWIFT_USER_KEY));
-          config.setUsername(Configuration.get(Constants.SWIFT_TENANT_KEY));
+
+    if (mSimulationMode) {
+      // In simulation mode we do not need access credentials
+      config.setMock(true);
+      config.setMockAllowEveryone(true);
+    } else {
+      if (Configuration.containsKey(PropertyKey.SWIFT_API_KEY)) {
+        config.setPassword(Configuration.get(PropertyKey.SWIFT_API_KEY));
+      } else if (Configuration.containsKey(PropertyKey.SWIFT_PASSWORD_KEY)) {
+        config.setPassword(Configuration.get(PropertyKey.SWIFT_PASSWORD_KEY));
+      }
+      config.setAuthUrl(Configuration.get(PropertyKey.SWIFT_AUTH_URL_KEY));
+      String authMethod = Configuration.get(PropertyKey.SWIFT_AUTH_METHOD_KEY);
+      if (authMethod != null) {
+        config.setUsername(Configuration.get(PropertyKey.SWIFT_USER_KEY));
+        config.setTenantName(Configuration.get(PropertyKey.SWIFT_TENANT_KEY));
+        switch (authMethod) {
+          case Constants.SWIFT_AUTH_KEYSTONE:
+            config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+            if (Configuration.containsKey(PropertyKey.SWIFT_REGION_KEY)) {
+              config.setPreferredRegion(Configuration.get(PropertyKey.SWIFT_REGION_KEY));
+            }
+            break;
+          case Constants.SWIFT_AUTH_SWIFTAUTH:
+            // swiftauth authenticates directly against swift
+            // note: this method is supported in swift object storage api v1
+            config.setAuthenticationMethod(AuthenticationMethod.BASIC);
+            // swiftauth requires authentication header to be of the form tenant:user.
+            // JOSS however generates header of the form user:tenant.
+            // To resolve this, we switch user with tenant
+            config.setTenantName(Configuration.get(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(Configuration.get(PropertyKey.SWIFT_TENANT_KEY));
+            break;
+          default:
+            config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
+            // tempauth requires authentication header to be of the form tenant:user.
+            // JOSS however generates header of the form user:tenant.
+            // To resolve this, we switch user with tenant
+            config.setTenantName(Configuration.get(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(Configuration.get(PropertyKey.SWIFT_TENANT_KEY));
+        }
       }
     }
 
@@ -137,6 +169,28 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       container.create();
     }
     mContainerPrefix = Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
+
+    // Assume the Swift user name has 1-1 mapping to Alluxio username.
+    mAccountOwner = Configuration.get(PropertyKey.SWIFT_USER_KEY);
+    short mode = (short) 0;
+    List<String> readAcl = Arrays.asList(
+        container.getContainerReadPermission().split(ACL_SEPARATOR_REGEXP));
+    // If there is any container ACL for the Swift user, translates it to Alluxio permission.
+    if (readAcl.contains(mAccountOwner) || readAcl.contains("*") || readAcl.contains(".r:*")) {
+      mode |= (short) 0500;
+    }
+    List<String> writeAcl = Arrays.asList(
+        container.getcontainerWritePermission().split(ACL_SEPARATOR_REGEXP));
+    if (writeAcl.contains(mAccountOwner) || writeAcl.contains("*") || writeAcl.contains(".w:*")) {
+      mode |= (short) 0200;
+    }
+    // If there is no container ACL but the user can still access the container, the only
+    // possibility is that the user has the admin role. In this case, the user should have 0700
+    // mode to the Swift container.
+    if (mode == 0 && mAccess.getToken() != null) {
+      mode = (short) 0700;
+    }
+    mAccountMode = mode;
   }
 
   @Override
@@ -170,18 +224,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       return null;
     }
 
-    final String strippedPath = CommonUtils.stripPrefixIfPresent(path,
-        Constants.HEADER_SWIFT);
     // TODO(adit): remove special handling of */_SUCCESS objects
-    if (strippedPath.endsWith("_SUCCESS")) {
+    if (path.endsWith("_SUCCESS")) {
       // when path/_SUCCESS is created, there is need to create path as
       // an empty object. This is required by Spark in case Spark
       // accesses path directly, bypassing Alluxio
-      String plainName = CommonUtils.stripSuffixIfPresent(strippedPath, "_SUCCESS");
-      SwiftDirectClient.put(mAccess, plainName).close();
+      createOutputStream(CommonUtils.stripSuffixIfPresent(path, "_SUCCESS")).close();
     }
-    // We do not check if a folder with the same name exists
-    return SwiftDirectClient.put(mAccess, strippedPath);
+
+    return createOutputStream(path);
   }
 
   @Override
@@ -194,7 +245,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
       // For a file, recursive delete will not find any children
       PaginationMap paginationMap = container.getPaginationMap(
-          PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), DIR_PAGE_SIZE);
+          PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), LISTING_LENGTH);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
         for (StoredObject childObject : container.list(paginationMap, page)) {
           deleteObject(childObject);
@@ -229,6 +280,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
+    LOG.debug("Check if {} exists", path);
     // TODO(adit): remove special treatment of the _temporary suffix
     // To get better performance Swift driver does not create a _temporary folder.
     // This optimization should be hidden from Spark, therefore exists _temporary will return true.
@@ -255,7 +307,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    LOG.debug("Get block size for {}", path);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -285,6 +338,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
+    LOG.debug("Get modification time for {}", path);
     return getObject(path).getLastModifiedAsDate().getTime();
   }
 
@@ -297,16 +351,18 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean isFile(String path) throws IOException {
     String pathAsFile = stripFolderSuffixIfPresent(path);
-    return getObject(pathAsFile).exists();
+    return doesObjectExist(pathAsFile);
   }
 
   @Override
   public String[] listRecursive(String path) throws IOException {
+    LOG.debug("List {} recursively", path);
     return listHelper(path, true);
   }
 
   @Override
   public String[] list(String path) throws IOException {
+    LOG.debug("List {}", path);
     return listHelper(path, false);
   }
 
@@ -317,6 +373,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
+    LOG.debug("Make directory {}", path);
     if (path == null) {
       LOG.error("Attempting to create directory with a null path");
       return false;
@@ -353,12 +410,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean mkdirsInternal(String path) {
     try {
-      String keyAsFolder = addFolderSuffixIfNotPresent(
-          CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
       // We do not check if a file with same name exists, i.e. a file with name
       // 'swift://swift-container/path' and a folder with name 'swift://swift-container/path/'
       // may both exist simultaneously
-      SwiftDirectClient.put(mAccess, keyAsFolder).close();
+      createOutputStream(addFolderSuffixIfNotPresent(path)).close();
       return true;
     } catch (IOException e) {
       LOG.error("Failed to create directory: {}", path, e);
@@ -400,13 +455,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param path the path to check
    * @return true if the path is the root, false otherwise
    */
-  private boolean isRoot(String path) {
-    return addFolderSuffixIfNotPresent(path).equals(mContainerPrefix);
+  private boolean isRoot(final String path) {
+    final String pathWithSuffix = addFolderSuffixIfNotPresent(path);
+    return pathWithSuffix.equals(mContainerPrefix) || pathWithSuffix.equals(PATH_SEPARATOR);
   }
 
   @Override
   public InputStream open(String path) throws IOException {
-    return getObject(path).downloadObjectAsInputStream();
+    return new SwiftInputStream(mAccount, mContainerName, stripContainerPrefixIfPresent(path));
   }
 
   /**
@@ -415,7 +471,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param path URI to the object
    * @return folder path
    */
-  private String addFolderSuffixIfNotPresent(String path) {
+  private String addFolderSuffixIfNotPresent(final String path) {
     return PathUtils.normalizePath(path, FOLDER_SUFFIX);
   }
 
@@ -434,7 +490,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
 
     if (isDirectory(destination)) {
-      // If destination is a directory target is a file or folder within that directory
+      // If the destination is a directory, the target path is a file or a folder within that
+      // directory.
       strippedDestinationPath = PathUtils.concatPath(strippedDestinationPath,
           FilenameUtils.getName(stripFolderSuffixIfPresent(strippedSourcePath)));
     }
@@ -448,7 +505,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       if (!copy(strippedSourcePath, strippedDestinationPath)) {
         return false;
       }
-      // TODO(adit): Use pagination to list large directories and merge duplicate call in delete
       // Rename each child in the source folder to destination/child
       String [] children = list(source);
       for (String child: children) {
@@ -471,30 +527,30 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public void setConf(Object conf) {}
 
-  // No ACL integration currently, no-op
+  // Setting Swift owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
 
-  // No ACL integration currently, no-op
+  // Setting Swift mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // No ACL integration currently, returns default empty value
+  // Returns the account owner.
   @Override
   public String getOwner(String path) throws IOException {
-    return "";
+    return mAccountOwner;
   }
 
-  // No ACL integration currently, returns default empty value
+  // No group in Swift ACL, returns the account owner.
   @Override
   public String getGroup(String path) throws IOException {
-    return "";
+    return mAccountOwner;
   }
 
-  // No ACL integration currently, returns default value
+  // Returns the account owner's permission mode to the Swift container.
   @Override
   public short getMode(String path) throws IOException {
-    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+    return mAccountMode;
   }
 
   /**
@@ -515,7 +571,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         container.getObject(strippedSourcePath)
             .copyObject(container, container.getObject(strippedDestinationPath));
         return true;
-      } catch (NotFoundException e) {
+      } catch (CommandException e) {
         LOG.error("Source path {} does not exist", source);
         return false;
       } catch (Exception e) {
@@ -543,7 +599,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
 
     final String pathAsFolder = addFolderSuffixIfNotPresent(path);
-    return getObject(pathAsFolder).exists();
+    return doesObjectExist(pathAsFolder);
   }
 
   /**
@@ -557,7 +613,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private String[] listHelper(String path, boolean recursive) throws IOException {
     String prefix = PathUtils.normalizePath(stripContainerPrefixIfPresent(path), PATH_SEPARATOR);
-    prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
+    prefix = CommonUtils.stripPrefixIfPresent(prefix, PATH_SEPARATOR);
 
     Collection<DirectoryOrObject> objects = listInternal(prefix, recursive);
     Set<String> children = new HashSet<>();
@@ -573,9 +629,23 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       }
     }
 
+    if (isRoot(self)) {
+      foundSelf = true;
+    }
+
     if (!foundSelf) {
-      // Path does not exist
-      return null;
+      if (mSimulationMode) {
+        if (children.size() != 0 || isDirectory(path)) {
+          // In simulation mode, the JOSS listDirectory call does not return the prefix itself,
+          // so we need the extra isDirectory call
+          foundSelf = true;
+        }
+      }
+
+      if (!foundSelf) {
+        // Path does not exist
+        return null;
+      }
     }
 
     return children.toArray(new String[children.size()]);
@@ -594,7 +664,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     // TODO(adit): UnderFileSystem interface should be changed to support pagination
     ArrayDeque<DirectoryOrObject> results = new ArrayDeque<>();
     Container container = mAccount.getContainer(mContainerName);
-    PaginationMap paginationMap = container.getPaginationMap(prefix, DIR_PAGE_SIZE);
+    PaginationMap paginationMap = container.getPaginationMap(prefix, LISTING_LENGTH);
     for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
       if (!recursive) {
         // If not recursive, use delimiter to limit results fetched
@@ -642,7 +712,22 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Delete an object if it exists.
+   * Check if the object at given path exists. The object could be either a file or directory.
+   * @param path path of object
+   * @return true if the object exists
+   */
+  private boolean doesObjectExist(String path) {
+    boolean exist = false;
+    try {
+      exist = getObject(path).exists();
+    } catch (CommandException e) {
+      LOG.debug("Error getting object details for {}", path);
+    }
+    return exist;
+  }
+
+  /**
+   * Deletes an object if it exists.
    *
    * @param object object handle to delete
    * @return true if object deletion was successful
@@ -651,14 +736,38 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     try {
       object.delete();
       return true;
-    } catch (NotFoundException e) {
+    } catch (CommandException e) {
       LOG.debug("Object {} not found", object.getPath());
     }
     return false;
   }
 
+  /**
+   * Creates a simulated or actual OutputStream for object uploads.
+   * @throws IOException if failed to create path
+   * @return new OutputStream
+   */
+  private OutputStream createOutputStream(String path) throws IOException {
+    if (mSimulationMode) {
+      return new SwiftMockOutputStream(mAccount, mContainerName,
+          stripContainerPrefixIfPresent(path));
+    }
+
+    return SwiftDirectClient.put(mAccess,
+        CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
+  }
+
+  /**
+   * Get container name from AlluxioURI.
+   * @param uri URI used to construct Swift UFS
+   * @return the container name from the given uri
+   */
+  protected static String getContainerName(AlluxioURI uri) {
+    return uri.getAuthority();
+  }
+
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.SWIFT;
+  public String getUnderFSType() {
+    return "swift";
   }
 }

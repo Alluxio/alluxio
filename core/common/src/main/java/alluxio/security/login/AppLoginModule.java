@@ -12,7 +12,7 @@
 package alluxio.security.login;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.User;
 
 import java.io.IOException;
@@ -54,7 +54,7 @@ public final class AppLoginModule implements LoginModule {
 
   /**
    * Retrieves the user name by querying the property of
-   * {@link Constants#SECURITY_LOGIN_USERNAME} through {@link AppCallbackHandler}.
+   * {@link PropertyKey#SECURITY_LOGIN_USERNAME} through {@link AppCallbackHandler}.
    *
    * @return true if user name provided by application is set and not empty
    * @throws LoginException when the login fails
@@ -65,9 +65,7 @@ public final class AppLoginModule implements LoginModule {
     callbacks[0] = new NameCallback("user name: ");
     try {
       mCallbackHandler.handle(callbacks);
-    } catch (IOException e) {
-      throw new LoginException(e.getMessage());
-    } catch (UnsupportedCallbackException e) {
+    } catch (IOException | UnsupportedCallbackException e) {
       throw new LoginException(e.getMessage());
     }
 
@@ -155,8 +153,8 @@ public final class AppLoginModule implements LoginModule {
      * Creates a new instance of {@link AppCallbackHandler}.
      */
     public AppCallbackHandler() {
-      if (Configuration.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
-        mUserName = Configuration.get(Constants.SECURITY_LOGIN_USERNAME);
+      if (Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME)) {
+        mUserName = Configuration.get(PropertyKey.SECURITY_LOGIN_USERNAME);
       } else {
         mUserName = "";
       }

@@ -12,7 +12,7 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
@@ -62,9 +62,9 @@ public class AllocatorContractTest extends AllocatorTestBase {
    * Tests that no allocation happens when the RAM, SSD and HDD size is more than the default one.
    */
   @Test
-  public void shouldNotAllocateTest() throws Exception {
+  public void shouldNotAllocate() throws Exception {
     for (String strategyName : mStrategies) {
-      Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
+      Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
       Allocator allocator = Allocator.Factory.create(getManagerView());
       assertTempBlockMeta(allocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE + 1, false);
@@ -79,9 +79,9 @@ public class AllocatorContractTest extends AllocatorTestBase {
    * Tests that allocation happens when the RAM, SSD and HDD size is lower than the default size.
    */
   @Test
-  public void shouldAllocateTest() throws Exception {
+  public void shouldAllocate() throws Exception {
     for (String strategyName : mStrategies) {
-      Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
+      Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
       Allocator tierAllocator = Allocator.Factory.create(getManagerView());
       for (int i = 0; i < DEFAULT_RAM_NUM; i++) {

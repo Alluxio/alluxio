@@ -13,7 +13,7 @@ package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
@@ -54,8 +54,8 @@ public class AllocatorFactoryTest {
    * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
-  public void createGreedyAllocatorTest() {
-    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
+  public void createGreedyAllocator() {
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof GreedyAllocator);
   }
@@ -65,8 +65,8 @@ public class AllocatorFactoryTest {
    * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
-  public void createMaxFreeAllocatorTest() {
-    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+  public void createMaxFreeAllocator() {
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
@@ -76,8 +76,8 @@ public class AllocatorFactoryTest {
    * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
-  public void createRoundRobinAllocatorTest() {
-    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
+  public void createRoundRobinAllocator() {
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof RoundRobinAllocator);
   }
@@ -87,7 +87,7 @@ public class AllocatorFactoryTest {
    * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
-  public void createDefaultAllocatorTest() {
+  public void createDefaultAllocator() {
     // Create a new instance of Alluxio configuration with original properties to test the default
     // behavior of create.
     Allocator allocator = Allocator.Factory.create(mManagerView);

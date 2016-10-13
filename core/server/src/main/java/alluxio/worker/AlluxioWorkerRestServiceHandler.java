@@ -12,11 +12,14 @@
 package alluxio.worker;
 
 import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.util.CommonUtils;
+import alluxio.metrics.MetricsSystem;
+import alluxio.web.WorkerUIWebServer;
 import alluxio.worker.block.BlockStoreMeta;
+import alluxio.worker.block.DefaultBlockWorker;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -31,9 +34,11 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -44,8 +49,6 @@ import javax.ws.rs.core.Response;
 @Path(AlluxioWorkerRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioWorkerRestServiceHandler {
-  private static final String ALLUXIO_CONF_PREFIX = "alluxio";
-
   public static final String SERVICE_PREFIX = "worker";
   public static final String GET_RPC_ADDRESS = "rpc_address";
   public static final String GET_CAPACITY_BYTES = "capacity_bytes";
@@ -59,13 +62,17 @@ public final class AlluxioWorkerRestServiceHandler {
   public static final String GET_VERSION = "version";
   public static final String GET_METRICS = "metrics";
 
-  private final AlluxioWorker mWorker = AlluxioWorker.get();
-  private final BlockStoreMeta mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
+  private final AlluxioWorkerService mWorker;
+  private final BlockStoreMeta mStoreMeta;
 
   /**
-   * Constructs a new {@link AlluxioWorkerRestServiceHandler}.
+   * @param context context for the servlet
    */
-  public AlluxioWorkerRestServiceHandler() {}
+  public AlluxioWorkerRestServiceHandler(@Context ServletContext context) {
+    mWorker = (AlluxioWorkerService) context
+        .getAttribute(WorkerUIWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY);
+    mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
+  }
 
   /**
    * @summary get the configuration map, the keys are ordered alphabetically.
@@ -82,7 +89,7 @@ public final class AlluxioWorkerRestServiceHandler {
         SortedMap<String, String> configuration = new TreeMap<>();
         for (Map.Entry<String, String> entry : properties) {
           String key = entry.getKey();
-          if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
+          if (PropertyKey.isValid(key)) {
             configuration.put(key, entry.getValue());
           }
         }
@@ -102,7 +109,7 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
       public String call() throws Exception {
-        return mWorker.getWorkerAddress().toString();
+        return mWorker.getRpcAddress().toString();
       }
     });
   }
@@ -277,17 +284,17 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
       @Override
       public Map<String, Long> call() throws Exception {
-        MetricRegistry metricRegistry = mWorker.getWorkerMetricsSystem().getMetricRegistry();
+        MetricRegistry metricRegistry = MetricsSystem.METRIC_REGISTRY;
 
         // Get all counters.
         Map<String, Counter> counters = metricRegistry.getCounters();
 
         // Only the gauge for cached blocks is retrieved here, other gauges are statistics of
         // free/used spaces, those statistics can be gotten via other REST apis.
-        String blocksCachedProperty = CommonUtils
-            .argsToString(".", WorkerContext.getWorkerSource().getName(),
-                WorkerSource.BLOCKS_CACHED);
-        @SuppressWarnings("unchecked") Gauge<Integer> blocksCached =
+        String blocksCachedProperty =
+            MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
+        @SuppressWarnings("unchecked")
+        Gauge<Integer> blocksCached =
             (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 
         // Get values of the counters and gauges and put them into a metrics map.

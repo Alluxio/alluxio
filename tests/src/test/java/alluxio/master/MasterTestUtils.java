@@ -12,7 +12,7 @@
 package alluxio.master;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
@@ -24,7 +24,7 @@ import java.io.IOException;
 public class MasterTestUtils {
   public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
       throws IOException {
-    String masterJournal = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+    String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     Journal blockJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(masterJournal));
     Journal fsJournal = new ReadWriteJournal(FileSystemMaster.getJournalDirectory(masterJournal));
     BlockMaster blockMaster = new BlockMaster(blockJournal);
@@ -36,7 +36,7 @@ public class MasterTestUtils {
 
   public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
       throws IOException {
-    String masterJournal = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+    String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     Journal blockJournal = new ReadOnlyJournal(BlockMaster.getJournalDirectory(masterJournal));
     Journal fsJournal = new ReadOnlyJournal(FileSystemMaster.getJournalDirectory(masterJournal));
     BlockMaster blockMaster = new BlockMaster(blockJournal);

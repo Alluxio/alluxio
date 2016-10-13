@@ -11,19 +11,20 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.worker.AlluxioWorker;
+import alluxio.util.io.PathUtils;
+import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.net.InetSocketAddress;
-import java.util.Collections;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletException;
 
 /**
  * A worker's UI web server.
@@ -31,22 +32,24 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class WorkerUIWebServer extends UIWebServer {
 
+  public static final String ALLUXIO_WORKER_SERVLET_RESOURCE_KEY = "Alluxio Worker";
+
   /**
    * Creates a new instance of {@link WorkerUIWebServer}.
    *
-   * @param serviceType the service type
    * @param webAddress the service address
-   * @param alluxioWorker Alluxio worker
+   * @param alluxioWorker the alluxio worker
    * @param blockWorker block worker to manage blocks
-   * @param workerAddress the worker address
+   * @param connectHost the connect host for the web server
    * @param startTimeMs start time milliseconds
    */
-  public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
-      AlluxioWorker alluxioWorker, BlockWorker blockWorker, InetSocketAddress workerAddress,
+  public WorkerUIWebServer(InetSocketAddress webAddress,
+      final AlluxioWorkerService alluxioWorker, BlockWorker blockWorker, String connectHost,
       long startTimeMs) {
-    super(serviceType, webAddress);
+    super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
-    Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
+
+    InetSocketAddress workerAddress = new InetSocketAddress(connectHost, getLocalPort());
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(
         blockWorker, workerAddress, startTimeMs)), "/home");
@@ -57,11 +60,24 @@ public final class WorkerUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),
         "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()), "/header");
-    mWebAppContext.addServlet(new ServletHolder(new
-        WebInterfaceWorkerMetricsServlet(alluxioWorker.getWorkerMetricsSystem())), "/metricsui");
+    mWebAppContext
+        .addServlet(new ServletHolder(new WebInterfaceWorkerMetricsServlet()), "/metricsui");
 
     // REST configuration
-    mWebAppContext.setOverrideDescriptors(Collections
-        .singletonList(Configuration.get(Constants.WEB_RESOURCES) + "/WEB-INF/worker.xml"));
+    ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");
+    // Override the init method to inject a reference to AlluxioWorker into the servlet context.
+    // ServletContext may not be modified until after super.init() is called.
+    ServletContainer servlet = new ServletContainer(config) {
+      private static final long serialVersionUID = -7586014404855912954L;
+
+      @Override
+      public void init() throws ServletException {
+        super.init();
+        getServletContext().setAttribute(ALLUXIO_WORKER_SERVLET_RESOURCE_KEY, alluxioWorker);
+      }
+    };
+
+    ServletHolder servletHolder = new ServletHolder("Alluxio Worker Web Service", servlet);
+    mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }
 }

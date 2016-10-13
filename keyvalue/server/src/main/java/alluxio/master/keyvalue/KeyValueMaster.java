@@ -13,6 +13,7 @@ package alluxio.master.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.clock.SystemClock;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -35,6 +36,7 @@ import alluxio.proto.journal.KeyValue.RenameStoreEntry;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.IdUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -83,8 +85,10 @@ public final class KeyValueMaster extends AbstractMaster {
    * @param fileSystemMaster handler to a {@link FileSystemMaster} to use for filesystem operations
    * @param journal a {@link Journal} to write journal entries to
    */
-  public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal, 2);
+  public KeyValueMaster(FileSystemMaster fileSystemMaster,
+      Journal journal) {
+    super(journal, new SystemClock(), ExecutorServiceFactories
+        .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
     mFileSystemMaster = fileSystemMaster;
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();

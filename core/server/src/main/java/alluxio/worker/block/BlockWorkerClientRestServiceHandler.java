@@ -16,8 +16,9 @@ import alluxio.RestUtils;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.web.WorkerUIWebServer;
 import alluxio.wire.LockBlockResult;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -27,12 +28,14 @@ import com.qmino.miredot.annotations.ReturnType;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -46,7 +49,6 @@ public final class BlockWorkerClientRestServiceHandler {
   public static final String SERVICE_NAME = "service_name";
   public static final String SERVICE_VERSION = "service_version";
   public static final String ACCESS_BLOCK = "access_block";
-  public static final String ASYNC_CHECKPOINT = "async_checkpoint";
   public static final String CACHE_BLOCK = "cache_block";
   public static final String CANCEL_BLOCK = "cancel_block";
   public static final String LOCK_BLOCK = "lock_block";
@@ -57,14 +59,17 @@ public final class BlockWorkerClientRestServiceHandler {
   public static final String UNLOCK_BLOCK = "unlock_block";
   public static final String WRITE_BLOCK = "write_block";
 
-  private final BlockWorker mBlockWorker = AlluxioWorker.get().getBlockWorker();
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
+  private final BlockWorker mBlockWorker;
+  private final StorageTierAssoc mStorageTierAssoc;
 
   /**
-   * Constructs a new {@link BlockWorkerClientRestServiceHandler}.
+   * @param context context for the servlet
    */
-  public BlockWorkerClientRestServiceHandler() {}
-
+  public BlockWorkerClientRestServiceHandler(@Context ServletContext context) {
+    mBlockWorker = ((AlluxioWorkerService) context
+        .getAttribute(WorkerUIWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY)).getBlockWorker();
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
+  }
   /**
    * @summary get the service name
    * @return the response object
@@ -115,25 +120,6 @@ public final class BlockWorkerClientRestServiceHandler {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         mBlockWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
         return null;
-      }
-    });
-  }
-
-  /**
-   * @summary asynchronously persist a file
-   * @param fileId the file id
-   * @return the response object
-   */
-  @POST
-  @Path(ASYNC_CHECKPOINT)
-  @Produces(MediaType.APPLICATION_JSON)
-  @ReturnType("java.lang.Boolean")
-  public Response asyncCheckpoint(@QueryParam("fileId") final Long fileId) {
-    return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
-      @Override
-      public Boolean call() throws Exception {
-        Preconditions.checkNotNull(fileId, "required 'fileId' parameter is missing");
-        return false;
       }
     });
   }

@@ -80,17 +80,6 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
     });
   }
 
-  // TODO(calvin): Make this supported again.
-  @Override
-  public boolean asyncCheckpoint(long fileId) throws AlluxioTException {
-    return RpcUtils.call(new RpcCallable<Boolean>() {
-      @Override
-      public Boolean call() throws AlluxioException {
-        return false;
-      }
-    });
-  }
-
   /**
    * Used to cache a block into Alluxio space, worker will move the temporary block file from
    * session folder to data folder, and update the space usage information related. then update the
@@ -210,7 +199,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param blockId the id of the block to add the space to, this must be a temporary block
    * @param requestBytes the amount of bytes to add to the block
    * @return true if the worker successfully allocates space for the block on block’s location,
-   *         false if there is no enough space
+   *         false if there is not enough space
    * @throws AlluxioTException if an Alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
@@ -266,8 +255,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * Local session send heartbeat to local worker to keep its temporary folder.
    *
    * @param sessionId the id of the client heartbeating
-   * @param metrics a list of the client metrics that were collected between this heartbeat and the
-   *        last. Each value in the list represents a specific metric based on the index.
+   * @param metrics deprecated
    */
   @Override
   public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
@@ -275,7 +263,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
     RpcUtils.call(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioException {
-        mWorker.sessionHeartbeat(sessionId, metrics);
+        mWorker.sessionHeartbeat(sessionId);
         return null;
       }
     });

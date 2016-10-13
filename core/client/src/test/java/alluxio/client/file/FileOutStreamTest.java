@@ -11,28 +11,43 @@
 
 package alluxio.client.file;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyByte;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockStoreContext;
-import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
+import alluxio.client.file.options.CompleteUfsFileOptions;
 import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.client.file.policy.LocalFirstPolicy;
-import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -44,19 +59,20 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -64,17 +80,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Tests for the {@link FileOutStream} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, BlockStoreContext.class, FileSystemMasterClient.class,
-    AlluxioBlockStore.class, UnderFileSystem.class, BlockWorkerClient.class})
+@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, AlluxioBlockStore.class,
+    UnderFileSystem.class, UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
+  @Rule
+  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("Test");
 
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
   /** Used if ufs operation delegation is enabled. */
   private static final long UFS_FILE_ID = 1L;
 
-  private BlockStoreContext mBlockStoreContext;
   private FileSystemContext mFileSystemContext;
+  private AlluxioBlockStore mBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
   private FileSystemWorkerClient mWorkerClient;
   private UnderFileSystem mUnderFileSystem;
@@ -82,38 +100,38 @@ public class FileOutStreamTest {
   private Map<Long, TestBufferedBlockOutStream> mAlluxioOutStreamMap;
   private ByteArrayOutputStream mUnderStorageOutputStream;
   private AtomicBoolean mUnderStorageFlushed;
+  private UnderFileSystemFileOutStream.Factory mFactory;
 
   private FileOutStream mTestStream;
-  private boolean mDelegateUfsOps;
 
   /**
    * Sets up the different contexts and clients before a test runs.
    */
   @Before
   public void before() throws Exception {
+    LoginUserTestUtils.resetLoginUser();
+    GroupMappingServiceTestUtils.resetCache();
     ClientTestUtils.setSmallBufferSizes();
-    mDelegateUfsOps = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    AlluxioBlockStore mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
-    mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
+    mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    mFactory = PowerMockito.mock(UnderFileSystemFileOutStream.Factory.class);
 
-    Mockito.when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
-    Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
-    Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
+    when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
+    when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
+    when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class))).thenReturn(
         new URIStatus(new FileInfo()));
 
     // Worker file client mocking
     mWorkerClient = PowerMockito.mock(FileSystemWorkerClient.class);
-    Mockito.when(mFileSystemContext.createWorkerClient()).thenReturn(mWorkerClient);
-    Mockito.when(
-        mWorkerClient.createUfsFile(Mockito.any(AlluxioURI.class),
-            Mockito.any(CreateUfsFileOptions.class))).thenReturn(UFS_FILE_ID);
+    when(mFileSystemContext.createWorkerClient()).thenReturn(mWorkerClient);
+    when(mWorkerClient.createUfsFile(any(AlluxioURI.class), any(CreateUfsFileOptions.class)))
+        .thenReturn(UFS_FILE_ID);
 
     // Return sequentially increasing numbers for new block ids
-    Mockito.when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_NAME))
+    when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_NAME))
         .thenAnswer(new Answer<Long>() {
           private long mCount = 0;
 
@@ -125,14 +143,14 @@ public class FileOutStreamTest {
 
     // Set up out streams. When they are created, add them to outStreamMap
     final Map<Long, TestBufferedBlockOutStream> outStreamMap = new HashMap<>();
-    Mockito.when(mBlockStore.getOutStream(Mockito.anyLong(), Mockito.eq(BLOCK_LENGTH),
-        Mockito.any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
+    when(mBlockStore.getOutStream(anyLong(), eq(BLOCK_LENGTH),
+        any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
           @Override
           public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
             Long blockId = invocation.getArgumentAt(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
               TestBufferedBlockOutStream newStream =
-                  new TestBufferedBlockOutStream(blockId, BLOCK_LENGTH);
+                  new TestBufferedBlockOutStream(blockId, BLOCK_LENGTH, BlockStoreContext.get());
               outStreamMap.put(blockId, newStream);
             }
             return outStreamMap.get(blockId);
@@ -141,7 +159,7 @@ public class FileOutStreamTest {
     BlockWorkerInfo workerInfo =
         new BlockWorkerInfo(new WorkerNetAddress().setHost("localhost").setRpcPort(1)
             .setDataPort(2).setWebPort(3), Constants.GB, 0);
-    Mockito.when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
+    when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mAlluxioOutStreamMap = outStreamMap;
 
     // Create an under storage stream so that we can check whether it has been flushed
@@ -154,12 +172,14 @@ public class FileOutStreamTest {
     };
     mUnderStorageFlushed = underStorageFlushed;
 
+    when(mFactory.create(any(InetSocketAddress.class), anyLong())).thenReturn(
+        mUnderStorageOutputStream);
+
     // Set up underFileStorage so that we can test UnderStorageType.SYNC_PERSIST
     mUnderFileSystem = ClientMockUtils.mockUnderFileSystem();
-    Mockito.when(mUnderFileSystem.create(Mockito.anyString()))
+    when(mUnderFileSystem.create(anyString())).thenReturn(mUnderStorageOutputStream);
+    when(mUnderFileSystem.create(anyString(), any(CreateOptions.class)))
         .thenReturn(mUnderStorageOutputStream);
-    Mockito.when(mUnderFileSystem.create(Mockito.anyString(),
-        Mockito.any(CreateOptions.class))).thenReturn(mUnderStorageOutputStream);
 
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
@@ -169,6 +189,7 @@ public class FileOutStreamTest {
 
   @After
   public void after() {
+    ConfigurationTestUtils.resetConfiguration();
     ClientTestUtils.resetClient();
   }
 
@@ -176,7 +197,7 @@ public class FileOutStreamTest {
    * Tests that a single byte is written to the out stream correctly.
    */
   @Test
-  public void singleByteWriteTest() throws Exception {
+  public void singleByteWrite() throws Exception {
     mTestStream.write(5);
     Assert.assertArrayEquals(new byte[] {5}, mAlluxioOutStreamMap.get(0L).getWrittenData());
   }
@@ -185,7 +206,7 @@ public class FileOutStreamTest {
    * Tests that many bytes, written one at a time, are written to the out streams correctly.
    */
   @Test
-  public void manyBytesWriteTest() throws IOException {
+  public void manyBytesWrite() throws IOException {
     int bytesToWrite = (int) ((BLOCK_LENGTH * 5) + (BLOCK_LENGTH / 2));
     for (int i = 0; i < bytesToWrite; i++) {
       mTestStream.write(i);
@@ -197,7 +218,7 @@ public class FileOutStreamTest {
    * Tests that writing a buffer all at once will write bytes to the out streams correctly.
    */
   @Test
-  public void writeBufferTest() throws IOException {
+  public void writeBuffer() throws IOException {
     int bytesToWrite = (int) ((BLOCK_LENGTH * 5) + (BLOCK_LENGTH / 2));
     mTestStream.write(BufferUtils.getIncreasingByteArray(bytesToWrite));
     verifyIncreasingBytesWritten(bytesToWrite);
@@ -207,7 +228,7 @@ public class FileOutStreamTest {
    * Tests writing a buffer at an offset.
    */
   @Test
-  public void writeOffsetTest() throws IOException {
+  public void writeOffset() throws IOException {
     int bytesToWrite = (int) ((BLOCK_LENGTH * 5) + (BLOCK_LENGTH / 2));
     int offset = (int) (BLOCK_LENGTH / 3);
     mTestStream.write(BufferUtils.getIncreasingByteArray(bytesToWrite + offset), offset,
@@ -220,26 +241,25 @@ public class FileOutStreamTest {
    * Also checks that {@link FileOutStream#close()} persists and completes the file.
    */
   @Test
-  public void closeTest() throws Exception {
-    Mockito.when(mUnderFileSystem.rename(Mockito.anyString(), Mockito.anyString()))
-        .thenReturn(true);
+  public void close() throws Exception {
+    when(mUnderFileSystem.rename(anyString(), anyString())).thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
     for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
       Assert.assertFalse(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
     }
-    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_NAME),
-        Mockito.any(CompleteFileOptions.class));
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFileOptions.class));
   }
 
   /**
-   * Tests that {@link FileOutStream#cancel()} will cancel and close the underlying out streams,
-   * and delete from the under file system. Also makes sure that cancel() doesn't persist or
-   * complete the file.
+   * Tests that {@link FileOutStream#cancel()} will cancel and close the underlying out streams, and
+   * delete from the under file system when the delegation flag is set. Also makes sure that
+   * cancel() doesn't persist or complete the file.
    */
   @Test
-  public void cancelTest() throws Exception {
+  public void cancelWithDelegation() throws Exception {
+    Configuration.set(PropertyKey.USER_UFS_DELEGATION_ENABLED, true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.cancel();
     for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
@@ -247,21 +267,39 @@ public class FileOutStreamTest {
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
     }
     // Don't persist or complete the file if the stream was canceled
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_NAME,
-        CompleteFileOptions.defaults());
+    verify(mWorkerClient, times(0)).completeUfsFile(UFS_FILE_ID, CompleteUfsFileOptions.defaults());
+    verify(mWorkerClient).cancelUfsFile(eq(UFS_FILE_ID), any(CancelUfsFileOptions.class));
+  }
 
-    if (mDelegateUfsOps) {
-      Mockito.verify(mWorkerClient).cancelUfsFile(UFS_FILE_ID, CancelUfsFileOptions.defaults());
-    } else {
-      Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
+  /**
+   * Tests that {@link FileOutStream#cancel()} will cancel and close the underlying out streams, and
+   * delete from the under file system when the delegation flag is not set. Also makes sure that
+   * cancel() doesn't persist or complete the file.
+   */
+  @Test
+  public void cancelWithoutDelegation() throws Exception {
+    Configuration.set(PropertyKey.USER_UFS_DELEGATION_ENABLED, false);
+    OutStreamOptions options =
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults());
+    mTestStream = createTestStream(FILE_NAME, options);
+    mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
+    mTestStream.cancel();
+    for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
+      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
+      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
     }
+    // Don't persist or complete the file if the stream was canceled
+    verify(mFileSystemMasterClient, times(0)).completeFile(FILE_NAME,
+        CompleteFileOptions.defaults());
+    verify(mUnderFileSystem).delete(anyString(), eq(false));
   }
 
   /**
    * Tests that {@link FileOutStream#flush()} will flush the under store stream.
    */
   @Test
-  public void flushTest() throws IOException {
+  public void flush() throws IOException {
     Assert.assertFalse(mUnderStorageFlushed.get());
     mTestStream.flush();
     Assert.assertTrue(mUnderStorageFlushed.get());
@@ -273,16 +311,17 @@ public class FileOutStreamTest {
    * message will be thrown.
    */
   @Test
-  public void cacheWriteExceptionNonSyncPersistTest() throws IOException {
+  public void cacheWriteExceptionNonSyncPersist() throws IOException {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
+    BufferedBlockOutStream stream = mock(BufferedBlockOutStream.class);
+    when(mBlockStore.getOutStream(anyInt(), anyLong(), any(WorkerNetAddress.class)))
+        .thenReturn(stream);
     mTestStream = createTestStream(FILE_NAME, options);
 
-    BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
-    Whitebox.setInternalState(mTestStream, "mCurrentBlockOutStream", stream);
-    Mockito.when(stream.remaining()).thenReturn(BLOCK_LENGTH);
-    Mockito.doThrow(new IOException("test error")).when(stream).write((byte) 7);
+    when(stream.remaining()).thenReturn(BLOCK_LENGTH);
+    doThrow(new IOException("test error")).when(stream).write((byte) 7);
     try {
       mTestStream.write(7);
       Assert.fail("the test should fail");
@@ -294,26 +333,29 @@ public class FileOutStreamTest {
   /**
    * Tests that if an exception is thrown by the underlying out stream, and the user is using
    * {@link UnderStorageType#SYNC_PERSIST} for their under storage type, the error is recovered
-   * from by writing the data to the under storage out stream and setting the current block as not
-   * cacheable.
+   * from by writing the data to the under storage out stream.
    */
   @Test
-  public void cacheWriteExceptionSyncPersistTest() throws IOException {
-    BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
-    Whitebox.setInternalState(mTestStream, "mCurrentBlockOutStream", stream);
-    Mockito.when(stream.remaining()).thenReturn(BLOCK_LENGTH);
-    Mockito.doThrow(new IOException("test error")).when(stream).write((byte) 7);
+  public void cacheWriteExceptionSyncPersist() throws IOException {
+    BufferedBlockOutStream stream = mock(BufferedBlockOutStream.class);
+    when(mBlockStore.getOutStream(anyLong(), anyLong(), any(WorkerNetAddress.class)))
+        .thenReturn(stream);
+
+    when(stream.remaining()).thenReturn(BLOCK_LENGTH);
+    doThrow(new IOException("test error")).when(stream).write((byte) 7);
     mTestStream.write(7);
-    Assert.assertArrayEquals(new byte[]{7}, mUnderStorageOutputStream.toByteArray());
-    Assert
-        .assertFalse((Boolean) Whitebox.getInternalState(mTestStream, "mShouldCacheCurrentBlock"));
+    mTestStream.write(8);
+    Assert.assertArrayEquals(new byte[] {7, 8}, mUnderStorageOutputStream.toByteArray());
+    // The cache stream is written to only once - the FileInStream gives up on it after it throws
+    // the first exception.
+    verify(stream, times(1)).write(anyByte());
   }
 
   /**
    * Tests that write only writes a byte.
    */
   @Test
-  public void truncateWriteTest() throws IOException {
+  public void truncateWrite() throws IOException {
     // Only writes the lowest byte
     mTestStream.write(0x1fffff00);
     mTestStream.write(0x1fffff01);
@@ -324,7 +366,7 @@ public class FileOutStreamTest {
    * Tests that the correct exception is thrown when a buffer is written with invalid offset/length.
    */
   @Test
-  public void writeBadBufferOffsetTest() throws IOException {
+  public void writeBadBufferOffset() throws IOException {
     try {
       mTestStream.write(new byte[10], 5, 6);
       Assert.fail("buffer write with invalid offset/length should fail");
@@ -338,7 +380,7 @@ public class FileOutStreamTest {
    * Tests that writing a null buffer throws the correct exception.
    */
   @Test
-  public void writeNullBufferTest() throws IOException {
+  public void writeNullBuffer() throws IOException {
     try {
       mTestStream.write(null);
       Assert.fail("writing null should fail");
@@ -351,7 +393,7 @@ public class FileOutStreamTest {
    * Tests that writing a null buffer with offset/length information throws the correct exception.
    */
   @Test
-  public void writeNullBufferOffsetTest() throws IOException {
+  public void writeNullBufferOffset() throws IOException {
     try {
       mTestStream.write(null, 0, 0);
       Assert.fail("writing null should fail");
@@ -364,47 +406,43 @@ public class FileOutStreamTest {
    * Tests that the async write invokes the expected client APIs.
    */
   @Test
-  public void asyncWriteTest() throws Exception {
+  public void asyncWrite() throws Exception {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
-    Mockito.when(mUnderFileSystem.rename(Mockito.anyString(), Mockito.anyString()))
-        .thenReturn(true);
+    when(mUnderFileSystem.rename(anyString(), anyString())).thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
-    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_NAME),
-        Mockito.any(CompleteFileOptions.class));
-    Mockito.verify(mFileSystemMasterClient).scheduleAsyncPersist(Mockito.eq(FILE_NAME));
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFileOptions.class));
+    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME));
   }
 
-  /**
-   * Tests the location policy created with different options.
-   */
   @Test
-  public void locationPolicyTest() throws IOException {
-    OutStreamOptions options =
-        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.MUST_CACHE);
+  public void useLocationPolicy() throws IOException {
+    OutStreamOptions options = OutStreamOptions.defaults().setWriteType(WriteType.MUST_CACHE)
+        .setLocationPolicy(new FileWriteLocationPolicy() {
+          @Override
+          public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+              long blockSizeBytes) {
+            throw new RuntimeException("policy threw exception");
+          }
+        });
     mTestStream = createTestStream(FILE_NAME, options);
-
-    // by default local first policy used
-    FileWriteLocationPolicy policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
-    Assert.assertTrue(policy instanceof LocalFirstPolicy);
-
-    // configure a different policy
-    options.setLocationPolicy(new RoundRobinPolicy());
-    mTestStream = createTestStream(FILE_NAME, options);
-    policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
-    Assert.assertTrue(policy instanceof RoundRobinPolicy);
+    try {
+      mTestStream.write(5);
+      Assert.fail("An exception should have been thrown");
+    } catch (Exception e) {
+      Assert.assertEquals("policy threw exception", e.getMessage());
+    }
   }
 
   /**
    * Tests that the correct exception message is produced when the location policy is not specified.
    */
   @Test
-  public void missingLocationPolicyTest() throws IOException {
+  public void missingLocationPolicy() throws IOException {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
@@ -422,7 +460,7 @@ public class FileOutStreamTest {
    * under storage types.
    */
   @Test
-  public void getBytesWrittenWithDifferentUnderStorageTypeTest() throws IOException {
+  public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
     for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
           OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type);
@@ -463,13 +501,6 @@ public class FileOutStreamTest {
 
   private FileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
-    Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
-    FileOutStream stream = new FileOutStream(path, options);
-    // Set up under file storage for delegated ufs operations if enabled
-    if (mDelegateUfsOps) {
-      Whitebox.setInternalState(stream, "mUnderStorageOutputStream", mUnderStorageOutputStream);
-    }
-    return stream;
+    return new FileOutStream(path, options, mFileSystemContext, mFactory);
   }
 }

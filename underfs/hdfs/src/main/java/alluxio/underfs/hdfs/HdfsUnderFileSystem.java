@@ -14,6 +14,7 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
@@ -73,7 +74,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       hadoopConf = new org.apache.hadoop.conf.Configuration();
     }
     prepareConfiguration(ufsPrefix, hadoopConf);
-    hadoopConf.addResource(new Path(hadoopConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
+    hadoopConf.addResource(
+        new Path(hadoopConf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION.toString())));
     HdfsUnderFileSystemUtils.addS3Credentials(hadoopConf);
 
     Path path = new Path(ufsPrefix);
@@ -86,8 +88,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.HDFS;
+  public String getUnderFSType() {
+    return "hdfs";
   }
 
   /**
@@ -108,18 +110,17 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
     // if present propagate it to the Hadoop configuration
-    String ufsHdfsImpl = Configuration.get(Constants.UNDERFS_HDFS_IMPL);
+    String ufsHdfsImpl = Configuration.get(PropertyKey.UNDERFS_HDFS_IMPL);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
       hadoopConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
 
-    // To disable the instance cache for hdfs client, otherwise it causes the
-    // FileSystem closed exception. Being configurable for unit/integration
-    // test only, and not expose to the end-user currently.
+    // Disable hdfs client caching so that input configuration is respected. Configurable from
+    // system property
     hadoopConf.set("fs.hdfs.impl.disable.cache",
-        System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+        System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
-    HdfsUnderFileSystemUtils.addKey(hadoopConf, Constants.UNDERFS_HDFS_CONFIGURATION);
+    HdfsUnderFileSystemUtils.addKey(hadoopConf, PropertyKey.UNDERFS_HDFS_CONFIGURATION);
   }
 
   @Override
@@ -299,36 +300,36 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void connectFromMaster(String host) throws IOException {
-    if (!Configuration.containsKey(Constants.MASTER_KEYTAB_KEY)
-        || !Configuration.containsKey(Constants.MASTER_PRINCIPAL_KEY)) {
+    if (!Configuration.containsKey(PropertyKey.MASTER_KEYTAB_KEY_FILE)
+        || !Configuration.containsKey(PropertyKey.MASTER_PRINCIPAL)) {
       return;
     }
-    String masterKeytab = Configuration.get(Constants.MASTER_KEYTAB_KEY);
-    String masterPrincipal = Configuration.get(Constants.MASTER_PRINCIPAL_KEY);
+    String masterKeytab = Configuration.get(PropertyKey.MASTER_KEYTAB_KEY_FILE);
+    String masterPrincipal = Configuration.get(PropertyKey.MASTER_PRINCIPAL);
 
-    login(Constants.MASTER_KEYTAB_KEY, masterKeytab, Constants.MASTER_PRINCIPAL_KEY,
+    login(PropertyKey.MASTER_KEYTAB_KEY_FILE, masterKeytab, PropertyKey.MASTER_PRINCIPAL,
         masterPrincipal, host);
   }
 
   @Override
   public void connectFromWorker(String host) throws IOException {
-    if (!Configuration.containsKey(Constants.WORKER_KEYTAB_KEY)
-        || !Configuration.containsKey(Constants.WORKER_PRINCIPAL_KEY)) {
+    if (!Configuration.containsKey(PropertyKey.WORKER_KEYTAB_FILE)
+        || !Configuration.containsKey(PropertyKey.WORKER_PRINCIPAL)) {
       return;
     }
-    String workerKeytab = Configuration.get(Constants.WORKER_KEYTAB_KEY);
-    String workerPrincipal = Configuration.get(Constants.WORKER_PRINCIPAL_KEY);
+    String workerKeytab = Configuration.get(PropertyKey.WORKER_KEYTAB_FILE);
+    String workerPrincipal = Configuration.get(PropertyKey.WORKER_PRINCIPAL);
 
-    login(Constants.WORKER_KEYTAB_KEY, workerKeytab, Constants.WORKER_PRINCIPAL_KEY,
+    login(PropertyKey.WORKER_KEYTAB_FILE, workerKeytab, PropertyKey.WORKER_PRINCIPAL,
         workerPrincipal, host);
   }
 
-  private void login(String keytabFileKey, String keytabFile, String principalKey,
+  private void login(PropertyKey keytabFileKey, String keytabFile, PropertyKey principalKey,
       String principal, String hostname) throws IOException {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    conf.set(keytabFileKey, keytabFile);
-    conf.set(principalKey, principal);
-    SecurityUtil.login(conf, keytabFileKey, principalKey, hostname);
+    conf.set(keytabFileKey.toString(), keytabFile);
+    conf.set(principalKey.toString(), principal);
+    SecurityUtil.login(conf, keytabFileKey.toString(), principalKey.toString(), hostname);
   }
 
   @Override

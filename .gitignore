@@ -14,6 +14,8 @@
 .project
 .settings/
 /conf/alluxio-env.sh
+/conf/metrics.properties
+/conf/alluxio-env.sh.bootstrap.bk
 /data/
 /deploy/vagrant/.request_ids
 /deploy/vagrant/.vagrant/
@@ -26,6 +28,8 @@
 /deploy/vagrant/spot/roles/tag_ec2/vars/
 /deploy/vagrant/vbox/.vagrant/
 /deploy/vagrant/vbox/alluxio-dev.box
+/dev/scripts/tarballs
+/dev/scripts/workdir
 /docs/_site/
 /docs/api/
 /docs/serve/
@@ -36,3 +40,4 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+**/nb-configuration*.xml

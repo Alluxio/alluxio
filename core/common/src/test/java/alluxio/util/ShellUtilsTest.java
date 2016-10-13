@@ -25,7 +25,7 @@ public class ShellUtilsTest {
    * @throws Throwable when the execution of the command fails
    */
   @Test
-  public void execCommandTest() throws Throwable {
+  public void execCommand() throws Throwable {
     String testString = "alluxio";
     // Execute echo for testing command execution.
     String result = ShellUtils.execCommand("bash", "-c", "echo " + testString);
@@ -38,7 +38,7 @@ public class ShellUtilsTest {
    * @throws Throwable when the execution of the commands fails
    */
   @Test
-  public void execGetGroupCommandTest() throws Throwable {
+  public void execGetGroupCommand() throws Throwable {
     String result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand("root"));
     // On Linux user "root" will be a part of the group "root". On OSX it will be a part of "admin".
     Assert.assertTrue(result.contains("root") || result.contains("admin"));

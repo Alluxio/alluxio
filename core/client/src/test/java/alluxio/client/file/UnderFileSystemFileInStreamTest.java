@@ -11,11 +11,15 @@
 
 package alluxio.client.file;
 
+import alluxio.ConfigurationRule;
+import alluxio.PropertyKey;
 import alluxio.client.netty.NettyUnderFileSystemFileReader;
 import alluxio.util.io.BufferUtils;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -24,7 +28,6 @@ import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -41,6 +44,10 @@ public class UnderFileSystemFileInStreamTest {
   private byte[] mData;
   private NettyUnderFileSystemFileReader mMockReader;
   private UnderFileSystemFileInStream mTestStream;
+
+  @Rule
+  public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
+       PropertyKey.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, Long.toString(FILE_SIZE)));
 
   @Before
   public final void before() throws Exception {
@@ -61,16 +68,14 @@ public class UnderFileSystemFileInStreamTest {
             return ByteBuffer.wrap(mData, (int) offset, len);
           }
         });
-    mTestStream = new UnderFileSystemFileInStream(mockAddr, FILE_ID);
-    Whitebox.setInternalState(mTestStream, "mReader", mMockReader);
-    Whitebox.setInternalState(mTestStream, "mBuffer", ByteBuffer.allocate(FILE_SIZE));
+    mTestStream = new UnderFileSystemFileInStream(mockAddr, FILE_ID, mMockReader);
   }
 
   /**
    * Tests the read() method.
    */
   @Test
-  public void readByteTest() throws Exception {
+  public void readByte() throws Exception {
     for (int i = 0; i < FILE_SIZE; i++) {
       Assert.assertEquals((byte) mTestStream.read(), mData[i]);
     }
@@ -80,7 +85,7 @@ public class UnderFileSystemFileInStreamTest {
    * Tests the internal buffering of the class.
    */
   @Test
-  public void readByteBufferedTest() throws Exception {
+  public void readByteBuffered() throws Exception {
     for (int i = 0; i < FILE_SIZE; i++) {
       Assert.assertEquals((byte) mTestStream.read(), mData[i]);
     }
@@ -93,7 +98,7 @@ public class UnderFileSystemFileInStreamTest {
    * Tests the internal buffering of the class.
    */
   @Test
-  public void readBulkBufferedTest() throws Exception {
+  public void readBulkBuffered() throws Exception {
     int readLen = FILE_SIZE / 2;
     byte[] b = new byte[readLen];
     Assert.assertEquals(readLen, mTestStream.read(b));
@@ -109,7 +114,7 @@ public class UnderFileSystemFileInStreamTest {
    * Tests the read(byte[]) method.
    */
   @Test
-  public void readByteArrayTest() throws Exception {
+  public void readByteArray() throws Exception {
     byte[] b = new byte[FILE_SIZE];
     Assert.assertEquals(FILE_SIZE, mTestStream.read(b));
     BufferUtils.equalIncreasingByteArray(FILE_SIZE, b);
@@ -119,7 +124,7 @@ public class UnderFileSystemFileInStreamTest {
    * Tests the read(byte[], int, int) method.
    */
   @Test
-  public void readByteArrayOffsetTest() throws Exception {
+  public void readByteArrayOffset() throws Exception {
     byte[] b = new byte[FILE_SIZE];
     Assert.assertEquals(FILE_SIZE / 2, mTestStream.read(b, FILE_SIZE / 2, FILE_SIZE / 2));
     for (int i = 0; i < FILE_SIZE; i++) {
@@ -128,18 +133,15 @@ public class UnderFileSystemFileInStreamTest {
   }
 
   /**
-   * Tests that the stream stops at EOF when reading more than available data and sets the flag
-   * appropriately after detecting EOF.
+   * Tests that the stream stops at EOF when reading more than available data.
    */
   @Test
-  public void readToEOFTest() throws Exception {
+  public void readToEOF() throws Exception {
     byte[] b = new byte[FILE_SIZE * 100];
     Assert.assertEquals(FILE_SIZE, mTestStream.read(b));
     for (int i = 0; i < FILE_SIZE; i++) {
       Assert.assertEquals((byte) i, b[i]);
     }
     Assert.assertEquals(-1, mTestStream.read());
-    boolean eof = Whitebox.getInternalState(mTestStream, "mEOF");
-    Assert.assertTrue(eof);
   }
 }

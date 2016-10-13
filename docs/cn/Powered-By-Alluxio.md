@@ -8,6 +8,7 @@ group: Resources
 
 * [Alibaba](http://www.alibaba.com/)
 * [Alluxio](http://www.alluxio.com/)
+* [Ants Programmatic AD](http://ants.vn/)
 * [Arimo](http://arimo.com/)
 * [Atigeo](http://atigeo.com/)
 * [Baidu](http://www.baidu.com/)
@@ -16,6 +17,7 @@ group: Resources
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
 * [JD](http://www.jd.com/)
+* [Juniper Networks](http://www.juniper.net/)
 * [Neusoft](http://www.neusoft.com/)
 * [Qunar](http://www.qunar.com/)
 * [Radicalbit](http://www.radicalbit.io)

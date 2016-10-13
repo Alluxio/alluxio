@@ -28,6 +28,7 @@ import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
+import alluxio.proto.journal.File.PTtlAction;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue.CompletePartitionEntry;
 import alluxio.proto.journal.KeyValue.CompleteStoreEntry;
@@ -130,6 +131,7 @@ public abstract class AbstractJournalFormatterTest {
                     Range.closedOpen(TEST_BLOCK_ID, TEST_BLOCK_ID + 10), DiscreteDomain.longs())
                     .asList())
                 .setTtl(Constants.NO_TTL)
+                .setTtlAction(PTtlAction.DELETE)
                 .setOwner(TEST_PERMISSION.getOwner())
                 .setGroup(TEST_PERMISSION.getGroup())
                 .setMode(TEST_PERMISSION.getMode().toShort()))
@@ -195,7 +197,8 @@ public abstract class AbstractJournalFormatterTest {
             .setReinitializeFile(ReinitializeFileEntry.newBuilder()
                 .setPath(TEST_FILE_NAME)
                 .setBlockSizeBytes(TEST_BLOCK_SIZE_BYTES)
-                .setTtl(TEST_TTL))
+                .setTtl(TEST_TTL)
+                .setTtlAction(PTtlAction.DELETE))
             .build())
         .add(
             JournalEntry.newBuilder()
@@ -229,6 +232,7 @@ public abstract class AbstractJournalFormatterTest {
                     .setPinned(true)
                     .setPersisted(true)
                     .setTtl(TEST_TTL)
+                    .setTtlAction(PTtlAction.DELETE)
                     .setOwner(TEST_PERMISSION.getOwner())
                     .setGroup(TEST_PERMISSION.getGroup())
                     .setPermission(TEST_PERMISSION.getMode().toShort()))
@@ -331,7 +335,7 @@ public abstract class AbstractJournalFormatterTest {
    * Tests the number of entries written.
    */
   @Test
-  public void checkEntriesNumberTest() {
+  public void checkEntriesNumber() {
     // Subtract one to exclude ENTRY_NOT_SET
     Assert.assertEquals(JournalEntry.EntryCase.values().length - 1, ENTRIES_LIST.size());
   }
@@ -341,7 +345,7 @@ public abstract class AbstractJournalFormatterTest {
    * {@link JournalFormatter#serialize(JournalEntry, OutputStream)} methods.
    */
   @Test
-  public void entriesTest() throws IOException {
+  public void entries() throws IOException {
     for (JournalEntry entry : ENTRIES_LIST) {
       entryTest(entry);
     }

@@ -29,9 +29,9 @@ public interface MasterFactory {
 
   /**
    * Factory method to create a new master instance.
-   *
    * @param masters a list of other masters created
    * @param journalDirectory base directory of journals
+   *
    * @return a new {@link Master} instance or null if failed to launch the master
    */
   Master create(List<? extends Master> masters, String journalDirectory);

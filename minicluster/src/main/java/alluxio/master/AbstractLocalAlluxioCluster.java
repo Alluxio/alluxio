@@ -15,28 +15,29 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
+import alluxio.client.block.BlockStoreContextTestUtils;
+import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.block.BlockMasterPrivateAccess;
-import alluxio.security.LoginUser;
+import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.LocalFileSystemCluster;
 import alluxio.underfs.UnderFileSystemCluster;
-import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.AlluxioWorker;
-import alluxio.worker.WorkerIdRegistry;
+import alluxio.worker.AlluxioWorkerService;
+import alluxio.worker.DefaultAlluxioWorker;
 
 import com.google.common.base.Joiner;
-import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -50,29 +51,24 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractLocalAlluxioCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
-  private static final long CLUSTER_READY_TIMEOUT_MS = 60000;
-  private static final String ELLIPSIS = "…";
   private static final Random RANDOM_GENERATOR = new Random();
+  private static final int DEFAULT_BLOCK_SIZE_BYTES = Constants.KB;
+  private static final long DEFAULT_WORKER_MEMORY_BYTES = 100 * Constants.MB;
 
-  protected long mWorkerCapacityBytes;
-  protected int mUserBlockSize;
+  protected List<AlluxioWorkerService> mWorkers;
 
-  protected AlluxioWorker mWorker;
   protected UnderFileSystemCluster mUfsCluster;
 
-  protected String mHome;
+  protected String mWorkDirectory;
   protected String mHostname;
 
-  protected Thread mWorkerThread;
+  private int mNumWorkers;
 
   /**
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param userBlockSize the block size for a user
+   * @param numWorkers the number of workers to run
    */
-  public AbstractLocalAlluxioCluster(long workerCapacityBytes, int userBlockSize) {
-    mWorkerCapacityBytes = workerCapacityBytes;
-    mUserBlockSize = userBlockSize;
+  public AbstractLocalAlluxioCluster(int numWorkers) {
+    mNumWorkers = numWorkers;
   }
 
   /**
@@ -85,100 +81,18 @@ public abstract class AbstractLocalAlluxioCluster {
     // Disable HDFS client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
+    resetClientPools();
+
     setupTest();
     startMaster();
-    waitForMasterReady();
-    startWorker();
-    waitForWorkerReady();
+    getMaster().getInternalMaster().waitForReady();
+    startWorkers();
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.waitForReady();
+    }
 
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
-  }
-
-  /**
-   * Waits for the master to be ready.
-   *
-   * Specifically, waits for it to be possible to connect to the master's rpc and web ports.
-   */
-  private void waitForMasterReady() {
-    long startTime = System.currentTimeMillis();
-    String actionMessage = "waiting for master to serve web";
-    LOG.info(actionMessage + ELLIPSIS);
-    // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(getMaster().getWebBindHost(),
-        getMaster().getWebLocalPort()) || Configuration.getInt(Constants.MASTER_WEB_PORT) == 0) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-    actionMessage = "waiting for master to serve rpc";
-    LOG.info(actionMessage + ELLIPSIS);
-    // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(getMaster().getRPCBindHost(),
-        getMaster().getRPCLocalPort()) || Configuration.getInt(Constants.MASTER_RPC_PORT) == 0) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-  }
-
-  /**
-   * Waits for the worker to be ready.
-   *
-   * Specifically, waits for the worker to register with the master and for it to be possible to
-   * connect to the worker's data, rpc, and web ports.
-   */
-  private void waitForWorkerReady() {
-    long startTime = System.currentTimeMillis();
-    String actionMessage = "waiting for worker to register with master";
-    LOG.info(actionMessage + ELLIPSIS);
-    while (!workerRegistered()) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-    actionMessage = "waiting for worker to serve web";
-    LOG.info(actionMessage + ELLIPSIS);
-    // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())
-        || Configuration.getInt(Constants.WORKER_WEB_PORT) == 0) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-    actionMessage = "waiting for worker to serve data";
-    LOG.info(actionMessage + ELLIPSIS);
-    // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())
-        || Configuration.getInt(Constants.WORKER_DATA_PORT) == 0) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-    actionMessage = "waiting for worker to serve rpc";
-    LOG.info(actionMessage + ELLIPSIS);
-    // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())
-        || Configuration.getInt(Constants.WORKER_RPC_PORT) == 0) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-  }
-
-  /**
-   * Checks whether the time since startTime has exceeded the maximum timeout, then sleeps for
-   * {@link #CLUSTER_READY_POLL_INTERVAL_MS}ms.
-   *
-   * @param startTime the time to compare against the current time to check for timeout
-   * @param actionMessage a message describing the action being waited for; this message is included
-   *        in the error message reported if timeout occurs
-   */
-  private void waitAndCheckTimeout(long startTime, String actionMessage) {
-    if (System.currentTimeMillis() - startTime > CLUSTER_READY_TIMEOUT_MS) {
-      throw new RuntimeException("Failed to start cluster. Timed out " + actionMessage);
-    }
-    CommonUtils.sleepMs(CLUSTER_READY_POLL_INTERVAL_MS);
-  }
-
-  /**
-   * @return whether the worker has registered with the master
-   */
-  private boolean workerRegistered() {
-    long workerId = WorkerIdRegistry.getWorkerId();
-    if (workerId == WorkerIdRegistry.INVALID_WORKER_ID) {
-      return false;
-    }
-    BlockMaster blockMaster = PrivateAccess.getBlockMaster(getMaster().getInternalMaster());
-    return BlockMasterPrivateAccess.isWorkerRegistered(blockMaster, workerId);
   }
 
   /**
@@ -189,12 +103,12 @@ public abstract class AbstractLocalAlluxioCluster {
   protected abstract void startMaster() throws IOException;
 
   /**
-   * Configures and starts a worker.
+   * Configures and starts the workers.
    *
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
-  protected abstract void startWorker() throws IOException, ConnectionFailedException;
+  protected abstract void startWorkers() throws IOException, ConnectionFailedException;
 
   /**
    * Sets up corresponding directories for tests.
@@ -202,19 +116,19 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when creating or deleting dirs failed
    */
   protected void setupTest() throws IOException {
-    String alluxioHome = Configuration.get(Constants.HOME);
+    String underfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
 
-    // Deletes the alluxio home dir for this test from ufs to avoid permission problems
-    UnderFileSystemUtils.deleteDir(alluxioHome);
+    // Deletes the ufs dir for this test from to avoid permission problems
+    UnderFileSystemUtils.deleteDir(underfsAddress);
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
-    UnderFileSystemUtils.mkdirIfNotExists(Configuration.get(Constants.UNDERFS_ADDRESS));
+    UnderFileSystemUtils.mkdirIfNotExists(underfsAddress);
 
     // Creates storage dirs for worker
-    int numLevel = Configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
+    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level++) {
-      String tierLevelDirPath =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+      PropertyKey tierLevelDirPath =
+          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
         UnderFileSystemUtils.mkdirIfNotExists(dirPath);
@@ -224,12 +138,12 @@ public abstract class AbstractLocalAlluxioCluster {
     // Starts the UFS for integration tests. If this is for HDFS profiles, it starts miniDFSCluster
     // (see also {@link alluxio.LocalMiniDFSCluster} and sets up the folder like
     // "hdfs://xxx:xxx/alluxio*".
-    mUfsCluster = UnderFileSystemCluster.get(mHome);
+    mUfsCluster = UnderFileSystemCluster.get(mWorkDirectory);
 
     // Sets the journal folder
     String journalFolder =
         mUfsCluster.getUnderFilesystemAddress() + "/journal" + RANDOM_GENERATOR.nextLong();
-    Configuration.set(Constants.MASTER_JOURNAL_FOLDER, journalFolder);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder);
 
     // Formats the journal
     UnderFileSystemUtils.mkdirIfNotExists(journalFolder);
@@ -243,8 +157,8 @@ public abstract class AbstractLocalAlluxioCluster {
     // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
     if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
-      String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mHome;
-      Configuration.set(Constants.UNDERFS_ADDRESS, ufsAddress);
+      String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mWorkDirectory;
+      Configuration.set(PropertyKey.UNDERFS_ADDRESS, ufsAddress);
     }
   }
 
@@ -256,10 +170,9 @@ public abstract class AbstractLocalAlluxioCluster {
   public void stop() throws Exception {
     stopFS();
     stopUFS();
-
     ConfigurationTestUtils.resetConfiguration();
     reset();
-    resetLoginUser();
+    LoginUserTestUtils.resetLoginUser();
   }
 
   /**
@@ -282,95 +195,85 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Resets the {@link LoginUser}. This is called when the cluster is stopped.
-   *
-   * @throws Exception when the operation fails
-   */
-  private void resetLoginUser() throws Exception {
-    // Use reflection to reset the private static member sLoginUser in LoginUser.
-    Field field = LoginUser.class.getDeclaredField("sLoginUser");
-    field.setAccessible(true);
-    field.set(null, null);
-  }
-
-  /**
    * Creates a default {@link Configuration} for testing.
    *
    * @throws IOException when the operation fails
    */
-  public void initializeTestConfiguration() throws IOException {
-    setAlluxioHome();
+  public void initConfiguration() throws IOException {
+    setAlluxioWorkDirectory();
     setHostname();
 
-    Configuration.set(Constants.IN_TEST_MODE, "true");
-    Configuration.set(Constants.HOME, mHome);
-    Configuration.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
-    Configuration.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
-    Configuration.set(Constants.MASTER_HOSTNAME, mHostname);
-    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(0));
-    Configuration.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
-    Configuration.set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.toString(1000));
-    Configuration.set(Constants.MASTER_WORKER_THREADS_MIN, "1");
-    Configuration.set(Constants.MASTER_WORKER_THREADS_MAX, "100");
+    Configuration.set(PropertyKey.TEST_MODE, "true");
+    Configuration.set(PropertyKey.WORK_DIR, mWorkDirectory);
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT,
+        Integer.toString(DEFAULT_BLOCK_SIZE_BYTES));
+    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.toString(1000));
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
 
-    Configuration.set(Constants.MASTER_BIND_HOST, mHostname);
-    Configuration.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
+    Configuration.set(PropertyKey.MASTER_BIND_HOST, mHostname);
+    Configuration.set(PropertyKey.MASTER_WEB_BIND_HOST, mHostname);
 
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
-    Configuration.set(Constants.MASTER_RETRY_COUNT, "3");
+    Configuration.set(PropertyKey.MASTER_RETRY, "3");
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
-    Configuration.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
+    Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    Configuration.set(Constants.WEB_THREAD_COUNT, "1");
-    Configuration.set(Constants.WEB_RESOURCES,
+    Configuration.set(PropertyKey.WEB_THREADS, "1");
+    Configuration.set(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
-    // default alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
+    // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
-    Configuration.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
-    Configuration.set(Constants.WORKER_RPC_PORT, Integer.toString(0));
-    Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
-    Configuration.set(Constants.WORKER_WEB_PORT, Integer.toString(0));
-    Configuration.set(Constants.WORKER_DATA_FOLDER, "/datastore");
-    Configuration.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
-    Configuration.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
-    Configuration.set(Constants.WORKER_WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
-    Configuration.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
-    Configuration.set(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
+    Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(DEFAULT_WORKER_MEMORY_BYTES));
+    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
 
-    Configuration.set(Constants.WORKER_BIND_HOST, mHostname);
-    Configuration.set(Constants.WORKER_DATA_BIND_HOST, mHostname);
-    Configuration.set(Constants.WORKER_WEB_BIND_HOST, mHostname);
+    Configuration.set(PropertyKey.WORKER_BIND_HOST, mHostname);
+    Configuration.set(PropertyKey.WORKER_DATA_BIND_HOST, mHostname);
+    Configuration.set(PropertyKey.WORKER_WEB_BIND_HOST, mHostname);
 
     // Performs an immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    Configuration.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    Configuration.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
     // Sets up the tiered store
-    String ramdiskPath = PathUtils.concatPath(mHome, "ramdisk");
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
+    String ramdiskPath = PathUtils.concatPath(mWorkDirectory, "ramdisk");
+    Configuration.set(
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(0), "MEM");
+    Configuration.set(
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(0),
         ramdiskPath);
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
-        Long.toString(mWorkerCapacityBytes));
 
-    int numLevel = Configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
+    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {
-      String tierLevelDirPath =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+      PropertyKey tierLevelDirPath =
+          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
-        String newPath = mHome + dirPath;
+        String newPath = mWorkDirectory + dirPath;
         newPaths.add(newPath);
       }
-      Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
-              Joiner.on(',').join(newPaths));
+      Configuration.set(
+          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level),
+          Joiner.on(',').join(newPaths));
     }
 
     // For some test profiles, default properties get overwritten by system properties (e.g., s3
@@ -381,28 +284,34 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Runs a worker.
+   * Runs workers.
    *
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
-  protected void runWorker() throws IOException, ConnectionFailedException {
-    mWorker = new AlluxioWorker();
-    Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", mWorker);
+  protected void runWorkers() throws IOException, ConnectionFailedException {
+    mWorkers = new ArrayList<>();
+    for (int i = 0; i < mNumWorkers; i++) {
+      mWorkers.add(new DefaultAlluxioWorker());
+    }
 
-    Runnable runWorker = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          mWorker.start();
+    for (final AlluxioWorkerService worker : mWorkers) {
+      Runnable runWorker = new Runnable() {
+        @Override
+        public void run() {
+          try {
+            worker.start();
 
-        } catch (Exception e) {
-          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+          } catch (Exception e) {
+            // Log the exception as the RuntimeException will be caught and handled silently by
+            // JUnit
+            LOG.error("Start worker error", e);
+            throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+          }
         }
-      }
-    };
-    mWorkerThread = new Thread(runWorker);
-    mWorkerThread.start();
+      };
+      new Thread(runWorker).start();
+    }
   }
 
   /**
@@ -423,6 +332,16 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void reset() {
     ClientTestUtils.resetClient();
+    GroupMappingServiceTestUtils.resetCache();
+  }
+
+  /**
+   * Resets the client pools to the original state.
+   */
+  protected void resetClientPools() {
+    RetryHandlingBlockWorkerClientTestUtils.reset();
+    FileSystemWorkerClientTestUtils.reset();
+    BlockStoreContextTestUtils.resetPool();
   }
 
   /**
@@ -433,11 +352,10 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Sets alluxio home.
-   *
-   * @throws IOException when the operation fails
+   * Sets Alluxio work directory.
    */
-  protected void setAlluxioHome() {
-    mHome = AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
+  protected void setAlluxioWorkDirectory() {
+    mWorkDirectory =
+        AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
   }
 }

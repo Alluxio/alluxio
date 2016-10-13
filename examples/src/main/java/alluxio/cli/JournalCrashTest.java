@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -21,6 +22,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -244,8 +246,8 @@ public final class JournalCrashTest {
     // Set NO_STORE and NO_PERSIST so that this test can work without AlluxioWorker.
     sCreateFileOptions = CreateFileOptions.defaults().setWriteType(WriteType.NONE);
     // Set the max retry to avoid long pending for client disconnect.
-    if (System.getProperty(Constants.MASTER_RETRY_COUNT) == null) {
-      System.setProperty(Constants.MASTER_RETRY_COUNT, "10");
+    if (System.getProperty(PropertyKey.MASTER_RETRY.toString()) == null) {
+      System.setProperty(PropertyKey.MASTER_RETRY.toString(), "10");
     }
 
     System.out.println("Start Journal Crash Test...");
@@ -378,8 +380,9 @@ public final class JournalCrashTest {
    * Starts Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
-    String startMasterCommand = Configuration.get(Constants.HOME)
-        + "/bin/alluxio-start.sh master";
+    String alluxioStartPath = PathUtils.concatPath(Configuration.get(PropertyKey.HOME),
+        "bin", "alluxio-start.sh");
+    String startMasterCommand = String.format("%s master", alluxioStartPath);
     try {
       Runtime.getRuntime().exec(startMasterCommand).waitFor();
       CommonUtils.sleepMs(LOG, 1000);
@@ -393,8 +396,9 @@ public final class JournalCrashTest {
    * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
-    String stopClusterCommand = Configuration.get(Constants.HOME)
-        + "/bin/alluxio-stop.sh all";
+    String alluxioStopPath =
+        PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "bin", "alluxio-stop.sh");
+    String stopClusterCommand = String.format("%s all", alluxioStopPath);
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();
       CommonUtils.sleepMs(LOG, 1000);

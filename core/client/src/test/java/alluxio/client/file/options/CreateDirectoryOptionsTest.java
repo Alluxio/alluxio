@@ -13,7 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.thrift.CreateDirectoryTOptions;
 
@@ -27,10 +27,10 @@ import java.util.Random;
  */
 public class CreateDirectoryOptionsTest {
   private final WriteType mDefaultWriteType =
-      Configuration.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+      Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
 
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
     Assert.assertFalse(options.isAllowExists());
     Assert.assertFalse(options.isRecursive());
@@ -41,7 +41,7 @@ public class CreateDirectoryOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     Random random = new Random();
     boolean allowExists = random.nextBoolean();
     boolean recursive = random.nextBoolean();
@@ -61,7 +61,7 @@ public class CreateDirectoryOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThriftTest() {
+  public void toThrift() {
     Random random = new Random();
     boolean allowExists = random.nextBoolean();
     boolean recursive = random.nextBoolean();

@@ -13,7 +13,7 @@ package alluxio.security.authentication;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -74,8 +74,8 @@ public final class TransportProviderTest {
    * In NOSASL mode, the TTransport used should be the same as Alluxio original code.
    */
   @Test
-  public void nosaslAuthentricationTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+  public void nosaslAuthentrication() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     mTransportProvider = TransportProvider.Factory.create();
 
     // start server
@@ -96,8 +96,8 @@ public final class TransportProviderTest {
    * client user, it use {@link SimpleAuthenticationProvider}.
    */
   @Test
-  public void simpleAuthenticationTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+  public void simpleAuthentication() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mTransportProvider = TransportProvider.Factory.create();
 
     // start server
@@ -117,8 +117,8 @@ public final class TransportProviderTest {
    * In SIMPLE mode, if client's username is null, an exception should be thrown in client side.
    */
   @Test
-  public void simpleAuthenticationNullUserTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+  public void simpleAuthenticationNullUser() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that user is null
@@ -132,8 +132,8 @@ public final class TransportProviderTest {
    * In SIMPLE mode, if client's password is null, an exception should be thrown in client side.
    */
   @Test
-  public void simpleAuthenticationNullPasswordTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+  public void simpleAuthenticationNullPassword() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that password is null
@@ -147,8 +147,8 @@ public final class TransportProviderTest {
    * In SIMPLE mode, if client's username is empty, an exception should be thrown in server side.
    */
   @Test
-  public void simpleAuthenticationEmptyUserTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+  public void simpleAuthenticationEmptyUser() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mTransportProvider = TransportProvider.Factory.create();
 
     // start server
@@ -173,8 +173,8 @@ public final class TransportProviderTest {
    * mode, we need the Plain SASL server has ability to check empty password.
    */
   @Test
-  public void simpleAuthenticationEmptyPasswordTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+  public void simpleAuthenticationEmptyPassword() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mTransportProvider = TransportProvider.Factory.create();
 
     // start server
@@ -199,9 +199,9 @@ public final class TransportProviderTest {
    * connection should be built.
    */
   @Test
-  public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+  public void customAuthenticationExactNamePasswordMatch() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     mTransportProvider = TransportProvider.Factory.create();
 
@@ -225,9 +225,9 @@ public final class TransportProviderTest {
    * AuthenticationProvider, an exception should be thrown in server side.
    */
   @Test
-  public void customAuthenticationExactNamePasswordNotMatchTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+  public void customAuthenticationExactNamePasswordNotMatch() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     mTransportProvider = TransportProvider.Factory.create();
 
@@ -252,8 +252,8 @@ public final class TransportProviderTest {
    * In CUSTOM mode, if client's username is null, an exception should be thrown in client side.
    */
   @Test
-  public void customAuthenticationNullUserTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+  public void customAuthenticationNullUser() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that user is null
@@ -267,8 +267,8 @@ public final class TransportProviderTest {
    * In CUSTOM mode, if client's password is null, an exception should be thrown in client side.
    */
   @Test
-  public void customAuthenticationNullPasswordTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+  public void customAuthenticationNullPassword() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that password is null
@@ -282,9 +282,9 @@ public final class TransportProviderTest {
    * In CUSTOM mode, if client's username is empty, an exception should be thrown in server side.
    */
   @Test
-  public void customAuthenticationEmptyUserTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+  public void customAuthenticationEmptyUser() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     mTransportProvider = TransportProvider.Factory.create();
 
@@ -308,9 +308,9 @@ public final class TransportProviderTest {
    * In CUSTOM mode, if client's password is empty, an exception should be thrown in server side.
    */
   @Test
-  public void customAuthenticationEmptyPasswordTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+  public void customAuthenticationEmptyPassword() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     mTransportProvider = TransportProvider.Factory.create();
 
@@ -335,8 +335,8 @@ public final class TransportProviderTest {
    * Tests that an exception is thrown when trying to use KERBEROS mode.
    */
   @Test
-  public void kerberosAuthenticationTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.KERBEROS.getAuthName());
+  public void kerberosAuthentication() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.KERBEROS.getAuthName());
 
     // throw unsupported exception currently
     mThrown.expect(UnsupportedOperationException.class);

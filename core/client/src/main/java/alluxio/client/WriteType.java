@@ -53,7 +53,8 @@ public enum WriteType {
    * Do not store the data in Alluxio or Under Storage. This write type should only be used for
    * testing.
    */
-  NONE(6);
+  NONE(6),
+  ;
 
   private final int mValue;
 

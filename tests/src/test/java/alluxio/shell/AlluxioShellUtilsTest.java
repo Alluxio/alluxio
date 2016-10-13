@@ -45,7 +45,7 @@ public final class AlluxioShellUtilsTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private FileSystem mFileSystem = null;
 
   @Before
@@ -54,7 +54,7 @@ public final class AlluxioShellUtilsTest {
   }
 
   @Test
-  public void getFilePathTest() throws IOException {
+  public void getFilePath() throws IOException {
     String[] paths =
         new String[] {Constants.HEADER + "localhost:19998/dir",
             Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
@@ -156,7 +156,7 @@ public final class AlluxioShellUtilsTest {
   }
 
   @Test
-  public void getPathTest() throws IOException, AlluxioException, TException {
+  public void getPath() throws IOException, AlluxioException, TException {
     for (FsType fsType : FsType.values()) {
       String rootDir = resetFsHierarchy(fsType);
 
@@ -191,7 +191,7 @@ public final class AlluxioShellUtilsTest {
   }
 
   @Test
-  public void matchTest() {
+  public void match() {
     Assert.assertEquals(AlluxioShellUtils.match("/a/b/c", "/a/*"), true);
     Assert.assertEquals(AlluxioShellUtils.match("/a/b/c", "/a/*/"), true);
     Assert.assertEquals(AlluxioShellUtils.match("/a/b/c", "/a/*/c"), true);

@@ -41,7 +41,7 @@ public abstract class AbstractInodeTest {
   }
 
   protected InodeFile createInodeFile(long id) {
-    return InodeFile.create(id, 1, "testFile" + id,
+    return InodeFile.create(id, 1, "testFile" + id, 0,
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
             .setPermission(TEST_PERMISSION));
   }

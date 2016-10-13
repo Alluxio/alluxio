@@ -28,6 +28,11 @@ enum CommandType {
   Persist = 5,  // Ask the worker to persist a file for lineage
 }
 
+enum TTtlAction {
+  Delete = 0, // Delete the file after TTL expires.
+  Free = 1,   // Free the file after TTL expires.
+}
+
 struct Command {
   1: CommandType commandType
   2: list<i64> data

@@ -39,7 +39,10 @@ The following configuration should be provided in the `conf/alluxio-site.propert
 {% include Configuring-Alluxio-with-Swift/several-configurations.md %}
   	
 Possible values of `<swift-use-public>` are `true`, `false`.
-Possible values of `<swift-auth-model>` are `keystone`, `tempauth`, `swiftauth`
+Possible values of `<swift-auth-model>` are `keystone`, `tempauth`, `swiftauth`.
+When using `keystone` authentication, the following parameter can optionally be set
+
+{% include Configuring-Alluxio-with-Swift/keystone-region-configuration.md %}
 
 Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
 details about setting configuration parameters can be found in
@@ -85,3 +88,17 @@ To run functional tests execute
 In case of failures, logs located under `tests/target/logs`. You may also activate heap dump via
 
 {% include Configuring-Alluxio-with-Swift/heap-dump.md %}
+
+# Swift Access Control
+
+If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object storage.
+
+The Swift credentials specified in Alluxio (`fs.swift.user`, `fs.swift.tenant` and `fs.swift.password`) represents a Swift user. Swift service backend checks the user permission to the container.
+If the given Swift user does not have the right access permission to the specified container, a permission denied error will be thrown.
+When Alluxio security is enabled, Alluxio loads the container ACL to Alluxio permission on the first time when the metadata is loaded to Alluxio namespace.
+
+### Mount point sharing
+If you want to share the Swift mount point with other users in Alluxio namespace, you can enable `alluxio.underfs.object.store.mount.shared.publicly`.
+
+### Permission change
+In addition, chown/chgrp/chmod to Alluxio directories and files do NOT propagate to the underlying Swift containers nor objects.

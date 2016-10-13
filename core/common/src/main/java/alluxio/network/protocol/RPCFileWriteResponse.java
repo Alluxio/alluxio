@@ -128,9 +128,7 @@ public final class RPCFileWriteResponse extends RPCResponse {
     return mOffset;
   }
 
-  /**
-   * @return the status
-   */
+  @Override
   public Status getStatus() {
     return mStatus;
   }

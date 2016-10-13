@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-tests</artifactId>
   <packaging>jar</packaging>
@@ -76,6 +76,14 @@
           <artifactId>jsp-2.1</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jsp-api-2.1</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>tomcat</groupId>
           <artifactId>jasper-runtime</artifactId>
         </exclusion>
@@ -125,6 +133,12 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-s3</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-oss</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

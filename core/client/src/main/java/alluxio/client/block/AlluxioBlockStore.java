@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Constants;
+import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,25 +42,43 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AlluxioBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static AlluxioBlockStore sClient = null;
+  private final BlockStoreContext mContext;
+  private final String mLocalHostName;
 
   /**
-   * @return a new instance of Alluxio block store
+   * Creates a block store using the master address got from config.
    */
-  public static synchronized AlluxioBlockStore get() {
-    if (sClient == null) {
-      sClient = new AlluxioBlockStore();
-    }
-    return sClient;
+  public AlluxioBlockStore() {
+    this(ClientContext.getMasterAddress());
   }
 
-  private final BlockStoreContext mContext;
+  /**
+   * Creates a block store with the specified master address.
+   *
+   * @param masterAddress the master's address
+   */
+  public AlluxioBlockStore(InetSocketAddress masterAddress) {
+    this(BlockStoreContext.get(masterAddress), NetworkAddressUtils.getLocalHostName());
+  }
+
+  /**
+   * Creates a block store with the given block store context.
+   *
+   * @param context the block store context
+   */
+  public AlluxioBlockStore(BlockStoreContext context) {
+    this(context, NetworkAddressUtils.getLocalHostName());
+  }
 
   /**
    * Creates an Alluxio block store.
+   *
+   * @param context the block store context to use for acquiring worker and master clients
+   * @param localHostName the local hostname for the block store
    */
-  private AlluxioBlockStore() {
-    mContext = BlockStoreContext.INSTANCE;
+  AlluxioBlockStore(BlockStoreContext context, String localHostName) {
+    mContext = context;
+    mLocalHostName = localHostName;
   }
 
   /**
@@ -120,13 +140,12 @@ public final class AlluxioBlockStore {
     // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
     // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
     // for hasLocalWorker is fixed.
-    String localHostName = NetworkAddressUtils.getLocalHostName();
     for (BlockLocation location : blockInfo.getLocations()) {
       WorkerNetAddress workerNetAddress = location.getWorkerAddress();
-      if (workerNetAddress.getHost().equals(localHostName)) {
+      if (workerNetAddress.getHost().equals(mLocalHostName)) {
         // There is a local worker and the block is local.
         try {
-          return new LocalBlockInStream(blockId, blockInfo.getLength(), workerNetAddress);
+          return new LocalBlockInStream(blockId, blockInfo.getLength(), workerNetAddress, mContext);
         } catch (IOException e) {
           LOG.warn("Failed to open local stream for block " + blockId + ". " + e.getMessage());
           // Getting a local stream failed, do not try again
@@ -136,7 +155,7 @@ public final class AlluxioBlockStore {
     }
     // No local worker/block, get the first location since it's nearest to memory tier.
     WorkerNetAddress workerNetAddress = blockInfo.getLocations().get(0).getWorkerAddress();
-    return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerNetAddress);
+    return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerNetAddress, mContext);
   }
 
   /**
@@ -166,11 +185,11 @@ public final class AlluxioBlockStore {
       throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
     // Location is local.
-    if (NetworkAddressUtils.getLocalHostName().equals(address.getHost())) {
-      return new LocalBlockOutStream(blockId, blockSize, address);
+    if (mLocalHostName.equals(address.getHost())) {
+      return new LocalBlockOutStream(blockId, blockSize, address, mContext);
     }
     // Location is specified and it is remote.
-    return new RemoteBlockOutStream(blockId, blockSize, address);
+    return new RemoteBlockOutStream(blockId, blockSize, address, mContext);
   }
 
   /**
@@ -225,14 +244,14 @@ public final class AlluxioBlockStore {
     }
     // Get the first worker address for now, as this will likely be the location being read from
     // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
-    WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-    BlockWorkerClient blockWorkerClient = mContext.acquireWorkerClient(workerAddr);
+    BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
+        info.getLocations().get(0).getWorkerAddress(), null  /* no session */);
     try {
       blockWorkerClient.promoteBlock(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
-      mContext.releaseWorkerClient(blockWorkerClient);
+      blockWorkerClient.close();
     }
   }
 }

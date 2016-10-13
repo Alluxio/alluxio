@@ -14,6 +14,7 @@ package alluxio.underfs.gcs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -46,7 +47,7 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
 
     if (addAndCheckGoogleCredentials()) {
       try {
-        return new GCSUnderFileSystem(new AlluxioURI(path));
+        return GCSUnderFileSystem.createInstance(new AlluxioURI(path));
       } catch (ServiceException e) {
         LOG.error("Failed to create GCSUnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -70,15 +71,7 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
    * @return true if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckGoogleCredentials() {
-    // TODO(binfan): remove System.getProperty as it is covered by configuration
-    String accessKeyConf = Constants.GCS_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && !Configuration.containsKey(accessKeyConf)) {
-      Configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
-    }
-    String secretKeyConf = Constants.GCS_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && !Configuration.containsKey(secretKeyConf)) {
-      Configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
-    }
-    return Configuration.containsKey(accessKeyConf) && Configuration.containsKey(secretKeyConf);
+    return Configuration.containsKey(PropertyKey.GCS_ACCESS_KEY)
+        && Configuration.containsKey(PropertyKey.GCS_SECRET_KEY);
   }
 }

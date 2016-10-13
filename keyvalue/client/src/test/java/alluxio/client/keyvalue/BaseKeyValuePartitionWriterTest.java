@@ -14,6 +14,7 @@ package alluxio.client.keyvalue;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ByteArrayOutStream;
 
 import org.junit.Assert;
@@ -42,7 +43,7 @@ public final class BaseKeyValuePartitionWriterTest {
    * Tests {@link BaseKeyValuePartitionWriter#put(byte[], byte[])}.
    */
   @Test
-  public void putTest() throws Exception {
+  public void put() throws Exception {
     mWriter.put(KEY1, VALUE1);
   }
 
@@ -51,7 +52,7 @@ public final class BaseKeyValuePartitionWriterTest {
    * writing to a closed writer.
    */
   @Test
-  public void putAfterCloseTest() throws Exception {
+  public void putAfterClose() throws Exception {
     mWriter.close();
     mThrown.expect(IllegalStateException.class);
     mWriter.put(KEY1, VALUE1);
@@ -62,7 +63,7 @@ public final class BaseKeyValuePartitionWriterTest {
    * writing to a canceled writer.
    */
   @Test
-  public void putAfterCancelTest() throws Exception {
+  public void putAfterCancel() throws Exception {
     mWriter.cancel();
     mThrown.expect(IllegalStateException.class);
     mWriter.put(KEY1, VALUE1);
@@ -74,7 +75,7 @@ public final class BaseKeyValuePartitionWriterTest {
    * previous cancel.
    */
   @Test
-  public void closeAfterCancelTest() throws Exception {
+  public void closeAfterCancel() throws Exception {
     mWriter.cancel();
     Assert.assertTrue(mOutStream.isClosed());
     Assert.assertTrue(mOutStream.isCanceled());
@@ -91,7 +92,7 @@ public final class BaseKeyValuePartitionWriterTest {
    * previous close.
    */
   @Test
-  public void closeAfterCloseTest() throws Exception {
+  public void closeAfterClose() throws Exception {
     // Expect the underline stream to be closed
     mWriter.close();
     Assert.assertTrue(mOutStream.isClosed());
@@ -107,7 +108,7 @@ public final class BaseKeyValuePartitionWriterTest {
    * Tests {@link BaseKeyValuePartitionWriter#put} and then {@link BaseKeyValuePartitionReader#get}.
    */
   @Test
-  public void putAndGetTest() throws Exception {
+  public void putAndGet() throws Exception {
     mWriter.put(KEY1, VALUE1);
     mWriter.put(KEY2, VALUE2);
     mWriter.close();
@@ -125,9 +126,9 @@ public final class BaseKeyValuePartitionWriterTest {
    * Tests {@link BaseKeyValuePartitionWriter#canPut} works.
    */
   @Test
-  public void canPutKeyValueTest() throws Exception {
+  public void canPutKeyValue() throws Exception {
     long size = mWriter.byteCount() + KEY1.length + VALUE1.length + 2 * Constants.BYTES_IN_INTEGER;
-    Configuration.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
+    Configuration.set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
     mWriter = new BaseKeyValuePartitionWriter(mOutStream);
     Assert.assertTrue(mWriter.canPut(KEY1, VALUE1));
     mWriter.put(KEY1, VALUE1);
@@ -139,7 +140,7 @@ public final class BaseKeyValuePartitionWriterTest {
    * Tests {@link BaseKeyValuePartitionWriter#keyCount()} works.
    */
   @Test
-  public void keyCountTest() throws Exception {
+  public void keyCount() throws Exception {
     Assert.assertEquals(0, mWriter.keyCount());
     mWriter.put(KEY1, VALUE1);
     Assert.assertEquals(1, mWriter.keyCount());
@@ -151,7 +152,7 @@ public final class BaseKeyValuePartitionWriterTest {
    * Tests {@link BaseKeyValuePartitionWriter#byteCount()} works.
    */
   @Test
-  public void byteCountTest() throws Exception {
+  public void byteCount() throws Exception {
     mWriter.put(KEY1, VALUE1);
     Assert.assertTrue(mWriter.byteCount() > 0);
   }

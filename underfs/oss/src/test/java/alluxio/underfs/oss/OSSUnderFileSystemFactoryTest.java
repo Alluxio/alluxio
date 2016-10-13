@@ -26,7 +26,7 @@ public class OSSUnderFileSystemFactoryTest {
    * Tests that the OSS UFS module correctly accepts paths that begin with oss://.
    */
   @Test
-  public void factoryTest() {
+  public void factory() {
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("oss://test-bucket/path");
 
     Assert.assertNotNull(

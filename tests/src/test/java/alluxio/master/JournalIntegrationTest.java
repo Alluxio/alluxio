@@ -12,10 +12,10 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -35,6 +35,7 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -44,12 +45,12 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,11 +59,13 @@ import java.util.Map;
  * Test master journal, including checkpoint and entry log. Most tests will test entry log first,
  * followed by the checkpoint.
  */
+@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2091")
 public class JournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, Constants.GB,
-          Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
+      new LocalAlluxioClusterResource.Builder()
+        .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB))
+        .build();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -75,7 +78,7 @@ public class JournalIntegrationTest {
    * Tests adding a block.
    */
   @Test
-  public void addBlockTest() throws Exception {
+  public void addBlock() throws Exception {
     AlluxioURI uri = new AlluxioURI("/xyz");
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
     FileOutStream os = mFileSystem.createFile(uri, options);
@@ -122,10 +125,10 @@ public class JournalIntegrationTest {
    * Tests flushing the journal multiple times, without writing any data.
    */
   @Test
-  public void multipleFlushTest() throws Exception {
+  public void multipleFlush() throws Exception {
     // Set the max log size to 0 to force a flush to write a new file.
-    String existingMax = Configuration.get(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
-    Configuration.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
+    String existingMax = Configuration.get(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
     try {
       String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
       ReadWriteJournal journal = new ReadWriteJournal(
@@ -142,7 +145,7 @@ public class JournalIntegrationTest {
       Assert.assertTrue(paths == null || paths.length == 0);
     } finally {
       // Reset the max log size.
-      Configuration.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, existingMax);
+      Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, existingMax);
     }
   }
 
@@ -150,8 +153,8 @@ public class JournalIntegrationTest {
    * Tests loading metadata.
    */
   @Test
-  public void loadMetadataTest() throws Exception {
-    String ufsRoot = PathUtils.concatPath(Configuration.get(Constants.UNDERFS_ADDRESS));
+  public void loadMetadata() throws Exception {
+    String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot);
     ufs.create(ufsRoot + "/xyz").close();
     mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
@@ -186,7 +189,7 @@ public class JournalIntegrationTest {
    * Tests completed edit log deletion.
    */
   @Test
-  public void completedEditLogDeletionTest() throws Exception {
+  public void completedEditLogDeletion() throws Exception {
     for (int i = 0; i < 124; i++) {
       mFileSystem.createFile(new AlluxioURI("/a" + i),
           CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64)).close();
@@ -207,7 +210,7 @@ public class JournalIntegrationTest {
    * Tests file and directory creation and deletion.
    */
   @Test
-  public void deleteTest() throws Exception {
+  public void delete() throws Exception {
     CreateDirectoryOptions recMkdir = CreateDirectoryOptions.defaults().setRecursive(true);
     DeleteOptions recDelete = DeleteOptions.defaults().setRecursive(true);
     for (int i = 0; i < 10; i++) {
@@ -247,7 +250,7 @@ public class JournalIntegrationTest {
   }
 
   @Test
-  public void emptyImageTest() throws Exception {
+  public void emptyImage() throws Exception {
     mLocalAlluxioCluster.stopFS();
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
@@ -261,7 +264,7 @@ public class JournalIntegrationTest {
    * Tests file and directory creation.
    */
   @Test
-  public void fileDirectoryTest() throws Exception {
+  public void fileDirectory() throws Exception {
     for (int i = 0; i < 10; i++) {
       mFileSystem.createDirectory(new AlluxioURI("/i" + i));
       for (int j = 0; j < 10; j++) {
@@ -294,7 +297,7 @@ public class JournalIntegrationTest {
    * Tests file creation.
    */
   @Test
-  public void fileTest() throws Exception {
+  public void file() throws Exception {
     CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes(64);
     AlluxioURI filePath = new AlluxioURI("/xyz");
     mFileSystem.createFile(filePath, option).close();
@@ -322,7 +325,7 @@ public class JournalIntegrationTest {
    * Tests journalling of inodes being pinned.
    */
   @Test
-  public void pinTest() throws Exception {
+  public void pin() throws Exception {
     SetAttributeOptions setPinned = SetAttributeOptions.defaults().setPinned(true);
     SetAttributeOptions setUnpinned = SetAttributeOptions.defaults().setPinned(false);
     AlluxioURI dirUri = new AlluxioURI("/myFolder");
@@ -371,7 +374,7 @@ public class JournalIntegrationTest {
    * Tests directory creation.
    */
   @Test
-  public void directoryTest() throws Exception {
+  public void directory() throws Exception {
     AlluxioURI directoryPath = new AlluxioURI("/xyz");
     mFileSystem.createDirectory(directoryPath);
     URIStatus status = mFileSystem.getStatus(directoryPath);
@@ -395,7 +398,7 @@ public class JournalIntegrationTest {
   }
 
   @Test
-  public void persistDirectoryLaterTest() throws Exception {
+  public void persistDirectoryLater() throws Exception {
     String[] directories = new String[] {
         "/d11", "/d11/d21", "/d11/d22",
         "/d12", "/d12/d21", "/d12/d22",
@@ -437,7 +440,7 @@ public class JournalIntegrationTest {
    * Tests files creation.
    */
   @Test
-  public void manyFileTest() throws Exception {
+  public void manyFile() throws Exception {
     for (int i = 0; i < 10; i++) {
       CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + 1) * 64);
       mFileSystem.createFile(new AlluxioURI("/a" + i), option).close();
@@ -481,7 +484,7 @@ public class JournalIntegrationTest {
     final FileSystemMaster fsMaster = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
 
     try {
-      CommonTestUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
+      CommonUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           try {
@@ -501,10 +504,10 @@ public class JournalIntegrationTest {
    * Tests reading multiple edit logs.
    */
   @Test
-  public void multiEditLogTest() throws Exception {
+  public void multiEditLog() throws Exception {
     for (int i = 0; i < 124; i++) {
       CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64);
-      mFileSystem.createFile(new AlluxioURI("/a" + i), op);
+      mFileSystem.createFile(new AlluxioURI("/a" + i), op).close();
     }
     mLocalAlluxioCluster.stopFS();
     multiEditLogTestUtil();
@@ -528,7 +531,7 @@ public class JournalIntegrationTest {
    * Tests file and directory creation, and rename.
    */
   @Test
-  public void renameTest() throws Exception {
+  public void rename() throws Exception {
     for (int i = 0; i < 10; i++) {
       mFileSystem.createDirectory(new AlluxioURI("/i" + i));
       for (int j = 0; j < 10; j++) {
@@ -560,42 +563,16 @@ public class JournalIntegrationTest {
     fsMaster.stop();
   }
 
-  private List<FileInfo> lsr(FileSystemMaster fsMaster, AlluxioURI uri)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    List<FileInfo> files = fsMaster.listStatus(uri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
-    List<FileInfo> ret = new ArrayList<>(files);
-    for (FileInfo file : files) {
-      ret.addAll(lsr(fsMaster, new AlluxioURI(file.getPath())));
-    }
-    return ret;
-  }
-
-  private void rawTableTestUtil(FileInfo fileInfo) throws Exception {
-    FileSystemMaster fsMaster = createFsMasterFromJournal();
-
-    long fileId = fsMaster.getFileId(mRootUri);
-    Assert.assertTrue(fileId != -1);
-    // "ls -r /" should return 11 FileInfos, one is table root "/xyz", the others are 10 columns.
-    Assert.assertEquals(11, lsr(fsMaster, mRootUri).size());
-
-    fileId = fsMaster.getFileId(new AlluxioURI("/xyz"));
-    Assert.assertTrue(fileId != -1);
-    Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fileId));
-
-    fsMaster.stop();
-  }
-
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
-      Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-      Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-      Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.FULL_CLASS_NAME})
-  public void setAclTest() throws Exception {
+      PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+      PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
+  public void setAcl() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/file");
 
     String user = "alluxio";
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, user);
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, user);
     CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes(64);
     mFileSystem.createFile(filePath, op).close();
 
