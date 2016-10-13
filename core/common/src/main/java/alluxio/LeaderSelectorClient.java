@@ -37,20 +37,21 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-/** The election path in Zookeeper. */
+  
+  /** The election path in Zookeeper. */
   private final String mElectionPath;
-/** The path of the leader in Zookeeper. */
+  /** The path of the leader in Zookeeper. */
   private final String mLeaderFolder;
-/** The LeaderSelector used to elect. */
+  /** The LeaderSelector used to elect. */
   private final LeaderSelector mLeaderSelector;
-/** The name of this master in Zookeeper. */
+  /** The name of this master in Zookeeper. */
   private final String mName;
-/** The address to Zookeeper. */
+  /** The address to Zookeeper. */
   private final String mZookeeperAddress;
 
-/** Whether this master is the leader master now. */
+  /** Whether this master is the leader master now. */
   private AtomicBoolean mIsLeader = new AtomicBoolean(false);
-/** The thread of the current master. */
+  /** The thread of the current master. */
   private volatile Thread mCurrentMasterThread = null;
 
   /**
@@ -58,7 +59,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
    *
    * @param zookeeperAddress the address to Zookeeper
    * @param electionPath the election path
-   * @param leaderPath the fold of the leader
+   * @param leaderPath the path of the leader
    * @param name the name
    */
   public LeaderSelectorClient(String zookeeperAddress, String electionPath, String leaderPath,
