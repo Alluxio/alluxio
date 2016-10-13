@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  
+
   /** The election path in Zookeeper. */
   private final String mElectionPath;
   /** The path of the leader in Zookeeper. */
