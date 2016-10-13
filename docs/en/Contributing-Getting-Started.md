@@ -33,7 +33,7 @@ If you do not have Java installed, download and install [the Java SDK](http://ww
 
 Alluxio uses Maven to manage the build process. If you do not have Maven already installed, you can
 [download Maven](https://maven.apache.org/download.cgi), and
-[install Maven](https://maven.apache.org/install.html). 
+[install Maven](https://maven.apache.org/install.html).
 
 ### Git
 
@@ -56,7 +56,17 @@ You will also need to know which [email addresses you have associated with your 
 The [Alluxio open source project uses JIRA](https://alluxio.atlassian.net/projects/ALLUXIO/issues)
 to track features, bugs, and issues.
 Please [create an Alluxio JIRA account](https://alluxio.atlassian.net/admin/users/sign-up) in
-order to open tickets, track tickets, and provide fixes for tickets.
+order to open tickets, track tickets, and provide fixes for tickets. If you are unable to create a
+JIRA account through the portal, please send a message to jira-admin@alluxio.org in the following
+format:
+
+```
+Subject: JIRA Account Request
+Body:
+	Email Address: example@example.com
+	Username: JohnS
+	Full Name: John Smith
+```
 
 ## Forking the Alluxio Repository
 
@@ -73,7 +83,7 @@ $ git clone https://github.com/YOUR-USERNAME/alluxio.git
 $ cd alluxio
 ```
 
-This will create the clone under the `alluxio/` directory. 
+This will create the clone under the `alluxio/` directory.
 
 In order to pull changes from the open source Alluxio code base into your clone, you should create a
 new remote that points to the Alluxio repository. In the directory of your newly created clone, run:
@@ -198,7 +208,7 @@ If you want more details, please visit [instructions on how to create commits](h
 ## Sending a Pull Request
 
 After you have finished all the changes to address the JIRA ticket, you are ready to submit a pull
-request to the Alluxio project! Here are [detailed instructions on sending a pull request](https://help.github.com/articles/using-pull-requests/), 
+request to the Alluxio project! Here are [detailed instructions on sending a pull request](https://help.github.com/articles/using-pull-requests/),
 but the following is a common way to do it.
 
 After you have created all necessary local commits, you can push all your commits to your repository
@@ -220,7 +230,7 @@ should be **master**. The head fork will be your fork, and the compare branch sh
 you want to submit the pull request for.
 
 For the title of the pull request, the title should be prefixed by the JIRA ticket name. Therefore,
-the title will look something like **[ALLUXIO-1234] Awesome Feature** (In the title, please replace 
+the title will look something like **[ALLUXIO-1234] Awesome Feature** (In the title, please replace
 "Awesome Feature" with something more informative regarding your request, e.g., "Fix format in error message"
 or "Improve java doc of method Foo").
 
