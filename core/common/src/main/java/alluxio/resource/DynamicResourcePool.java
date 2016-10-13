@@ -353,6 +353,9 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   /**
    * Releases the resource to the pool. It expects the resource to be released was acquired from
    * this pool.
+   * {@link DynamicResourcePool#release(Object)} and {@link DynamicResourcePool#acquire()} must be
+   * paired. Do not release the resource acquired multiple times. The behavior is undefined if
+   * that happens.
    *
    * @param resource the resource to release
    */
