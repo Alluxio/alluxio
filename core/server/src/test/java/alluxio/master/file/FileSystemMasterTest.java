@@ -281,7 +281,9 @@ public final class FileSystemMasterTest {
       // Expected case.
     }
   }
-
+  /**
+   * Tests the {@link FileSystemMaster#getFileId(AlluxioURI)} method.
+   */
   @Test
   public void getFileId() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
