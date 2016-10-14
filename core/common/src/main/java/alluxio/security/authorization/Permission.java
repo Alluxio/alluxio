@@ -128,6 +128,28 @@ public final class Permission {
   }
 
   /**
+   * Sets the {@link Mode}.
+   *
+   * @param mode the {@link Mode} to set
+   * @return the updated {@link Permission}
+   */
+  public Permission setMode(Mode mode) {
+    mMode = mode;
+    return this;
+  }
+
+  /**
+   * Sets the {@link Mode}.
+   *
+   * @param mode the {@link Mode} to set in short
+   * @return the updated {@link Permission}
+   */
+  public Permission setMode(short mode) {
+    mMode = new Mode(mode);
+    return this;
+  }
+
+  /**
    * Sets the owner based on the thrift transport and updates the group to the primary group of the
    * owner. If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
    * no-op.

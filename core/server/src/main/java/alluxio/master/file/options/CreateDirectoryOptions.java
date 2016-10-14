@@ -11,6 +11,7 @@
 
 package alluxio.master.file.options;
 
+import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateDirectoryTOptions;
 
@@ -47,7 +48,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mAllowExists = options.isAllowExists();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
-    mPermission = Permission.defaults().setOwnerFromThriftClient();
+    mPermission = Permission.defaults().setOwnerFromThriftClient().setMode(options.getMode());
   }
 
   private CreateDirectoryOptions() {

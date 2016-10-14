@@ -31,6 +31,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.Permission;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileBlockInfo;
 
@@ -485,7 +487,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     CreateDirectoryOptions options =
-        CreateDirectoryOptions.defaults().setRecursive(true).setAllowExists(true);
+        CreateDirectoryOptions.defaults().setRecursive(true).setAllowExists(true)
+            .setMode(new Mode(permission.toShort()));
     try {
       sFileSystem.createDirectory(uri, options);
       return true;
