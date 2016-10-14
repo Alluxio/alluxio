@@ -45,10 +45,5 @@
       <artifactId>alluxio-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
-      <dependency>
-          <groupId>org.mockito</groupId>
-          <artifactId>mockito-all</artifactId>
-          <version>RELEASE</version>
-      </dependency>
   </dependencies>
 </project>

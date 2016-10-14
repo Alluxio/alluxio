@@ -50,7 +50,7 @@ public final class KeyValueWorker extends AbstractWorker {
     mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(mBlockWorker);
   }
 
-  //@Override
+  @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
     services.put(Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
@@ -58,13 +58,13 @@ public final class KeyValueWorker extends AbstractWorker {
     return services;
   }
 
-  //@Override
+  @Override
   public void start() throws IOException {
     // No heartbeat thread to start
     // Thrift service is multiplexed with other services and will be started together with others
   }
 
-  //@Override
+  @Override
   public void stop() throws IOException {
     // No heartbeat thread to stop
     // Thrift service is multiplexed with other services and will be stopped together with others
