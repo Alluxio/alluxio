@@ -80,14 +80,11 @@ public class AlluxioMasterRestServiceHandlerTest {
     when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
     when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
         .thenReturn(mMaster);
-    when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
-    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
-        mMaster);
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
   }
 
   @Test
-  public void testGetConfiguration() {
+  public void getConfiguration() {
     Response response = mHandler.getConfiguration();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -97,7 +94,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetRpcAddress() {
+  public void getRpcAddress() {
     Response response = mHandler.getRpcAddress();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -107,7 +104,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetMetrics() {
+  public void getMetrics() {
     final int FILES_PINNED_TEST_VALUE = 100;
     String filesPinnedProperty =
         MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
@@ -130,23 +127,27 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertTrue("Entry must be a SortedMap!", (response.getEntity() instanceof SortedMap));
     SortedMap<String, Long> entry = (SortedMap<String, Long>) response.getEntity();
     assertFalse("Properties Map must be not empty!", (entry.isEmpty()));
-    assertTrue("Map must contains key " + filesPinnedProperty + "!",
+    assertTrue("Map must contain key " + filesPinnedProperty + "!",
         entry.containsKey(filesPinnedProperty));
     assertEquals(FILES_PINNED_TEST_VALUE, entry.get(filesPinnedProperty).longValue());
   }
 
   @Test
-  public void testGetStartTimeMs() {
+  public void getStartTimeMs() {
     Response response = mHandler.getStartTimeMs();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
     assertEquals(0L, entry.longValue());
+    when(mMaster.getStartTimeMs()).thenReturn(100L);
+    response = mHandler.getStartTimeMs();
+    entry = (Long) response.getEntity();
+    assertEquals(100L, entry.longValue());
   }
 
   @Test
-  public void testGetUptimeMs() {
+  public void getUptimeMs() {
     Response response = mHandler.getUptimeMs();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -156,7 +157,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetVersion() {
+  public void getVersion() {
     Response response = mHandler.getVersion();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -166,7 +167,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetCapacityBytes() {
+  public void getCapacityBytes() {
     Response response = mHandler.getCapacityBytes();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -176,7 +177,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetUsedBytes() {
+  public void getUsedBytes() {
     Response response = mHandler.getUsedBytes();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -186,7 +187,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetFreeBytes() {
+  public void getFreeBytes() {
     Response response = mHandler.getFreeBytes();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -196,7 +197,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetUfsCapacityBytes() {
+  public void getUfsCapacityBytes() {
     Response response = mHandler.getUfsCapacityBytes();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -206,7 +207,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetUfsUsedBytes() {
+  public void getUfsUsedBytes() {
     Response response = mHandler.getUfsUsedBytes();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -216,7 +217,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetUfsFreeBytes() {
+  public void getUfsFreeBytes() {
     Response response = mHandler.getUfsFreeBytes();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -226,7 +227,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetWorkerCount() {
+  public void getWorkerCount() {
     Response response = mHandler.getWorkerCount();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
@@ -236,7 +237,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void testGetWorkerInfoList() {
+  public void getWorkerInfoList() {
     Response response = mHandler.getWorkerInfoList();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
