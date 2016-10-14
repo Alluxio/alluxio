@@ -1,7 +1,13 @@
 /*
+<<<<<<< HEAD
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
  * "License"). You may not use this work except in compliance with the License, which is available
  * at www.apache.org/licenses/LICENSE-2.0
+=======
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+>>>>>>> f2c4e441a34dd4c05b60dec27eb344d4fb9f8e2a
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -39,16 +45,6 @@ import java.util.SortedMap;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
-
-import alluxio.web.MasterUIWebServer;
-import alluxio.RuntimeConstants;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.journal.Journal;
-import alluxio.wire.WorkerInfo;
-
-import org.junit.Test;
-import org.junit.Before;
-
 
 import javax.ws.rs.core.Response;
 import javax.servlet.ServletContext;
