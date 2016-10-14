@@ -23,7 +23,7 @@ For Mesos to run Alluxio, you must either make these ports available to Mesos fr
 
 When you launch the Mesos slave, you can specify the port resources for it to manage.
 
-```
+```bash
 $ /usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
 ```
 
@@ -31,7 +31,7 @@ $ /usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
 
 Alternately, you may specify the Alluxio ports in your `alluxio-site.properties` file like so:
 
-```
+```bash
 alluxio.master.port=31398
 alluxio.master.web.port=31399
 
