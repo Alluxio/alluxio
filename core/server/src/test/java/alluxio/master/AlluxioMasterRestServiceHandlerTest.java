@@ -68,8 +68,8 @@ public class AlluxioMasterRestServiceHandlerTest {
     mBlockMaster = new BlockMaster(journal);
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
     when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
-    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
-        .thenReturn(mMaster);
+    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
+        mMaster);
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
   }
 
@@ -130,6 +130,7 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
     assertEquals(0L, entry.longValue());
+
     when(mMaster.getStartTimeMs()).thenReturn(100L);
     response = mHandler.getStartTimeMs();
     entry = (Long) response.getEntity();
@@ -144,6 +145,11 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
     assertEquals(0L, entry.longValue());
+
+    when(mMaster.getUptimeMs()).thenReturn(100L);
+    response = mHandler.getUptimeMs();
+    entry = (Long) response.getEntity();
+    assertEquals(100L, entry.longValue());
   }
 
   @Test
