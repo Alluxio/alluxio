@@ -2493,22 +2493,10 @@ public final class FileSystemMaster extends AbstractMaster {
         Metrics.FILES_PERSISTED.inc();
       }
     }
-    boolean ownerGroupChanged = false;
-    boolean permissionChanged = false;
-    if (options.getOwner() != null) {
-      inode.setOwner(options.getOwner());
-      ownerGroupChanged = true;
-    }
-    if (options.getGroup() != null) {
-      inode.setGroup(options.getGroup());
-      ownerGroupChanged = true;
-    }
-    if (options.getMode() != Constants.INVALID_MODE) {
-      inode.setPermission(options.getMode());
-      permissionChanged = true;
-    }
+    boolean ownerGroupChanged = (options.getOwner() != null) || (options.getGroup() != null);
+    boolean modeChanged = (options.getMode() != Constants.INVALID_MODE);
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
-    if ((ownerGroupChanged || permissionChanged) && !replayed && inode.isPersisted()) {
+    if ((ownerGroupChanged || modeChanged) && !replayed && inode.isPersisted()) {
       if ((inode instanceof InodeFile) && !((InodeFile) inode).isCompleted()) {
         LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
@@ -2521,20 +2509,34 @@ public final class FileSystemMaster extends AbstractMaster {
           UnderFileSystem ufs = resolution.getUfs();
           if (ownerGroupChanged) {
             try {
-              ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
+              String owner = options.getOwner() != null ? options.getOwner() : inode.getOwner();
+              String group = options.getGroup() != null ? options.getGroup() : inode.getGroup();
+              ufs.setOwner(ufsUri, owner, group);
             } catch (IOException e) {
-              throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
+              throw new AccessControlException("Could not setOwner for UFS file " + ufsUri
+                  + " . Aborting the setAttribute operation in Alluxio.", e);
             }
           }
-          if (permissionChanged) {
+          if (modeChanged) {
             try {
-              ufs.setMode(ufsUri, inode.getMode());
+              ufs.setMode(ufsUri, options.getMode());
             } catch (IOException e) {
-              throw new AccessControlException("Could not setMode for UFS file " + ufsUri, e);
+              throw new AccessControlException("Could not setMode for UFS file " + ufsUri
+                  + " . Aborting the setAttribute operation in Alluxio.", e);
             }
           }
         }
       }
+    }
+    // Only commit the set permission to inode after the propagation to UFS succeeded.
+    if (options.getOwner() != null) {
+      inode.setOwner(options.getOwner());
+    }
+    if (options.getGroup() != null) {
+      inode.setGroup(options.getGroup());
+    }
+    if (modeChanged) {
+      inode.setPermission(options.getMode());
     }
     return persistedInodes;
   }
