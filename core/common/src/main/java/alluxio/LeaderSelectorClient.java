@@ -78,7 +78,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     mLeaderSelector = new LeaderSelector(getNewCuratorClient(), mElectionPath, this);
     mLeaderSelector.setId(name);
 
-    // for most cases you will want your instance to requeue when it relinquishes leadership
+    // For most cases you will want your instance to requeue when it relinquishes leadership.
     mLeaderSelector.autoRequeue();
   }
 
