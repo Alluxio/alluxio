@@ -32,7 +32,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.Mode;
-import alluxio.security.authorization.Permission;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileBlockInfo;
 
@@ -150,7 +149,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     // The file no longer exists at this point, so we can create it
-    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(blockSize);
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(blockSize)
+        .setMode(new Mode(permission.toShort()));
     try {
       FileOutStream outStream = sFileSystem.createFile(uri, options);
       return new FSDataOutputStream(outStream, mStatistics);
