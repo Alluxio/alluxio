@@ -6,8 +6,8 @@ group: Under Store
 priority: 1
 ---
 
-This guide describes how to configure Alluxio with
-[Swift](http://docs.openstack.org/developer/swift/) as the under storage system.
+This guide describes how to configure Alluxio with an under storage system
+supporting the [Swift](http://docs.openstack.org/developer/swift/).
 
 # Initial Setup
 
