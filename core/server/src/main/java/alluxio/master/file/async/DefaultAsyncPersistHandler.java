@@ -43,7 +43,7 @@ import java.util.Set;
  * contains all the blocks of a given file, and the handler returns the scheduled request whenever
  * the corresponding worker polls.
  */
-public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
+public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final FileSystemMasterView mFileSystemMasterView;
