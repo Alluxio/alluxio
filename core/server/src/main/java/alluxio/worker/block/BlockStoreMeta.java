@@ -27,7 +27,7 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class holds the meta data information of a block store.
+ * This class holds the metadata information of a block store.
  * <p>
  * TODO(bin): Use proto buf to represent this information.
  */
