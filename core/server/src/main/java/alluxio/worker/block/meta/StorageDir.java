@@ -45,9 +45,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mCapacityBytes;
-  /** A map from block id to block meta data. */
+  /** A map from block id to block metadata. */
   private Map<Long, BlockMeta> mBlockIdToBlockMap;
-  /** A map from block id to temp block meta data. */
+  /** A map from block id to temp block metadata. */
   private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
   /** A map from session id to the set of temp blocks created by this session. */
   private Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap;
@@ -72,7 +72,7 @@ public final class StorageDir {
   /**
    * Factory method to create {@link StorageDir}.
    *
-   * It will load meta data of existing committed blocks in the dirPath specified. Only files with
+   * It will load metadata of existing committed blocks in the dirPath specified. Only files with
    * directory depth 1 under dirPath and whose file name can be parsed into {@code long} will be
    * considered as existing committed blocks, these files will be preserved, others files or
    * directories will be deleted.
@@ -82,9 +82,9 @@ public final class StorageDir {
    * @param capacityBytes the initial capacity of this dir, can not be modified later
    * @param dirPath filesystem path of this dir for actual storage
    * @return the new created {@link StorageDir}
-   * @throws BlockAlreadyExistsException when meta data of existing committed blocks already exists
+   * @throws BlockAlreadyExistsException when metadata of existing committed blocks already exists
    * @throws IOException if the storage directory cannot be created with the appropriate permissions
-   * @throws WorkerOutOfSpaceException when meta data can not be added due to limited left space
+   * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
       String dirPath) throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
@@ -94,15 +94,15 @@ public final class StorageDir {
   }
 
   /**
-   * Initializes meta data for existing blocks in this {@link StorageDir}.
+   * Initializes metadata for existing blocks in this {@link StorageDir}.
    *
    * Only paths satisfying the contract defined in
    * {@link AbstractBlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
    * {dir}/{blockId}. other paths will be deleted.
    *
-   * @throws BlockAlreadyExistsException when meta data of existing committed blocks already exists
+   * @throws BlockAlreadyExistsException when metadata of existing committed blocks already exists
    * @throws IOException if the storage directory cannot be created with the appropriate permissions
-   * @throws WorkerOutOfSpaceException when meta data can not be added due to limited left space
+   * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
   private void initializeMeta() throws BlockAlreadyExistsException, IOException,
       WorkerOutOfSpaceException {
@@ -266,7 +266,7 @@ public final class StorageDir {
   /**
    * Adds the metadata of a new block into this storage dir.
    *
-   * @param blockMeta the meta data of the block
+   * @param blockMeta the metadata of the block
    * @throws BlockAlreadyExistsException if blockId already exists
    * @throws WorkerOutOfSpaceException when not enough space to hold block
    */
@@ -291,7 +291,7 @@ public final class StorageDir {
   /**
    * Adds the metadata of a new block into this storage dir.
    *
-   * @param tempBlockMeta the meta data of a temp block to add
+   * @param tempBlockMeta the metadata of a temp block to add
    * @throws BlockAlreadyExistsException if blockId already exists
    * @throws WorkerOutOfSpaceException when not enough space to hold block
    */
@@ -324,7 +324,7 @@ public final class StorageDir {
   /**
    * Removes a block from this storage dir.
    *
-   * @param blockMeta the meta data of the block
+   * @param blockMeta the metadata of the block
    * @throws BlockDoesNotExistException if no block is found
    */
   public void removeBlockMeta(BlockMeta blockMeta) throws BlockDoesNotExistException {
@@ -340,7 +340,7 @@ public final class StorageDir {
   /**
    * Removes a temp block from this storage dir.
    *
-   * @param tempBlockMeta the meta data of the temp block to remove
+   * @param tempBlockMeta the metadata of the temp block to remove
    * @throws BlockDoesNotExistException if no temp block is found
    */
   public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException {
@@ -366,7 +366,7 @@ public final class StorageDir {
   /**
    * Changes the size of a temp block.
    *
-   * @param tempBlockMeta the meta data of the temp block to resize
+   * @param tempBlockMeta the metadata of the temp block to resize
    * @param newSize the new size after change in bytes
    * @throws InvalidWorkerStateException when newSize is smaller than oldSize
    */
@@ -382,7 +382,7 @@ public final class StorageDir {
   }
 
   /**
-   * Cleans up the temp block meta data for each block id passed in.
+   * Cleans up the temp block metadata for each block id passed in.
    *
    * @param sessionId the id of the client associated with the temporary blocks
    * @param tempBlockIds the list of temporary blocks to clean up, non temporary blocks or
