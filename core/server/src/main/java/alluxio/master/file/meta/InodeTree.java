@@ -1116,10 +1116,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
       return mFound;
     }
 
-    Inode<?> getInode() {
-      return mInode;
-    }
-
     /**
      * @return the list of non-persisted inodes encountered during the traversal
      */
