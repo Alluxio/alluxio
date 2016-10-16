@@ -34,6 +34,7 @@ import alluxio.master.journal.JournalProtoUtils;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
@@ -552,10 +553,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // locked. This could improve performance. Further investigation is needed.
 
     // Fill in the ancestor directories that were missing.
+    // NOTE, we set the permission mode of missing directories to be the default rather than
+    // inheriting from options, because the final file to create may not have "execute" permission.
+    Permission missingDirPermission = new Permission(options.getPermission())
+        .setMode(Mode.getDefault());
     CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(false)
         .setPersisted(options.isPersisted())
-        .setPermission(options.getPermission());
+        .setPermission(missingDirPermission);
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir =
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),

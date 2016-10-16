@@ -20,11 +20,16 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -34,6 +39,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class CreateFileOptions {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private boolean mRecursive;
   private FileWriteLocationPolicy mLocationPolicy;
   private long mBlockSizeBytes;
@@ -175,7 +182,7 @@ public final class CreateFileOptions {
    */
   public OutStreamOptions toOutStreamOptions() {
     return OutStreamOptions.defaults().setBlockSizeBytes(mBlockSizeBytes)
-        .setLocationPolicy(mLocationPolicy).setTtl(mTtl).setWriteType(mWriteType);
+        .setLocationPolicy(mLocationPolicy).setMode(mMode).setTtl(mTtl).setWriteType(mWriteType);
   }
 
   @Override
