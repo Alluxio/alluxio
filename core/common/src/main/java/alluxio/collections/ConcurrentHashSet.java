@@ -104,9 +104,9 @@ public final class ConcurrentHashSet<T> extends AbstractSet<T> {
       return true;
     }
     // allow equality with any Set.
-	if(!(o instanceof ConcurrentHashSet)){
-	  return false;	
-	}
+    if (!(o instanceof ConcurrentHashSet)) {
+      return false;
+    }
     return mMap.keySet().equals(o);
   }
 
