@@ -135,9 +135,7 @@ public class BaseFileSystem implements FileSystem {
       // TODO(calvin): Make this more efficient
       masterClient.getStatus(path);
       return true;
-    } catch (FileDoesNotExistException e) {
-      return false;
-    } catch (InvalidPathException e) {
+    } catch (FileDoesNotExistException | InvalidPathException e) {
       return false;
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
