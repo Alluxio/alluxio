@@ -20,7 +20,6 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
-import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.CommonUtils;
 
@@ -28,8 +27,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
