@@ -553,14 +553,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // locked. This could improve performance. Further investigation is needed.
 
     // Fill in the ancestor directories that were missing.
-    // NOTE, we set the permission mode of missing directories to be the default rather than
-    // inheriting from options, because the final file to create may not have "execute" permission.
-    Permission missingDirPermission = new Permission(options.getPermission())
-        .setMode(Mode.getDefault());
     CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(false)
         .setPersisted(options.isPersisted())
-        .setPermission(missingDirPermission);
+        .setPermission(options.getPermission())
+        .setDefaultMode(options.isDefaultMode());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir =
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
