@@ -294,7 +294,7 @@ public final class FileSystemRenameIntegrationTest {
     Path dirA = new Path("/dirA");
     Path finalDst = new Path("/dirA/fileA");
 
-    create(sTFS, fileA);
+    //create(sTFS, fileA);
     create(sTFS, finalDst);
 
     Assert.assertFalse(sTFS.rename(fileA, dirA));

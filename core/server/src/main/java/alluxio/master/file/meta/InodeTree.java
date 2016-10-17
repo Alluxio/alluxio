@@ -552,11 +552,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // locked. This could improve performance. Further investigation is needed.
 
     // Fill in the ancestor directories that were missing.
+    // NOTE, we set the permission mode of missing ancestor directories to be the default rather
+    // than inheriting from the option of the final file to create, because it may not have
+    // "execute" permission.
     CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(false)
         .setPersisted(options.isPersisted())
         .setPermission(options.getPermission())
-        .setDefaultMode(options.isDefaultMode());
+        .setDefaultMode(true);
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir =
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
@@ -633,6 +636,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
       UnderFileSystem ufs = resolution.getUfs();
       // Persists only the last directory, recursively creating necessary parent directories. Even
       // if the directory already exists in the ufs, we mark it as persisted.
+      // NOTE, this also assumes the ufs creates the missing ancestor directories using the same
+      // permission as Alluxio uses which may not always be true.
+      // TODO(binfan): ensure the ancestor directories share the same permission as Alluxio
       Permission perm = new Permission(lastToPersistInode.getOwner(), lastToPersistInode.getGroup(),
           lastToPersistInode.getMode());
       MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(true).setPermission(perm);
