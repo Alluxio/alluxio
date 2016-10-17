@@ -42,7 +42,7 @@ public final class CreateFileOptions {
   private FileWriteLocationPolicy mLocationPolicy;
   private long mBlockSizeBytes;
   private long mTtl;
-  private Mode mMode;
+  private Mode mMode; // null if creating the file using system default mode
   private WriteType mWriteType;
 
   /**
@@ -64,7 +64,7 @@ public final class CreateFileOptions {
     }
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
-    mMode = Mode.getDefault();
+    mMode = null;
   }
 
   /**
@@ -222,10 +222,12 @@ public final class CreateFileOptions {
   public CreateFileTOptions toThrift() {
     CreateFileTOptions options = new CreateFileTOptions();
     options.setBlockSizeBytes(mBlockSizeBytes);
-    options.setMode(mMode.toShort());
     options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
     options.setRecursive(mRecursive);
     options.setTtl(mTtl);
+    if (mMode != null) {
+      options.setMode(mMode.toShort());
+    }
     return options;
   }
 }

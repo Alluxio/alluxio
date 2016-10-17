@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CreateDirectoryOptions {
   private boolean mAllowExists;
-  private Mode mMode;
+  private Mode mMode; // null if creating the dir using system default mode
   private boolean mRecursive;
   private UnderStorageType mUnderStorageType;
 
@@ -44,7 +44,7 @@ public final class CreateDirectoryOptions {
   private CreateDirectoryOptions() {
     mRecursive = false;
     mAllowExists = false;
-    mMode = Mode.getDefault();
+    mMode = null;
     WriteType defaultWriteType =
         Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mUnderStorageType = defaultWriteType.getUnderStorageType();
@@ -154,9 +154,11 @@ public final class CreateDirectoryOptions {
   public CreateDirectoryTOptions toThrift() {
     CreateDirectoryTOptions options = new CreateDirectoryTOptions();
     options.setAllowExists(mAllowExists);
-    options.setMode(mMode.toShort());
     options.setRecursive(mRecursive);
     options.setPersisted(mUnderStorageType.isSyncPersist());
+    if (mMode != null) {
+      options.setMode(mMode.toShort());
+    }
     return options;
   }
 }

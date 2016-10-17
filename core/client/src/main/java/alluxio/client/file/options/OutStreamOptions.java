@@ -176,7 +176,9 @@ public final class OutStreamOptions {
    * @return the updated options object
    */
   public OutStreamOptions setMode(Mode mode) {
-    mPermission.setMode(mode).applyFileUMask();
+    if (mode != null) {
+      mPermission.setMode(mode).applyFileUMask();
+    }
     return this;
   }
 

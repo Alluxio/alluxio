@@ -95,6 +95,25 @@ public final class FileSystemAclIntegrationTest {
     cleanup(sTFS);
   }
 
+  @Test
+  public void createFileWithPermission() throws Exception {
+    Path fileA = new Path("/createfile");
+    FsPermission permission = FsPermission.createImmutable((short) 0763);
+    sTFS.create(fileA, permission, false /* ignored */, 10 /* ignored */, (short) 1 /* ignored */,
+        512 /* ignored */, null /* ignored */);
+    FileStatus fs = sTFS.getFileStatus(fileA);
+    Assert.assertEquals(permission, fs.getPermission());
+  }
+
+  @Test
+  public void mkDirsWithPermission() throws Exception {
+    Path fileA = new Path("/createDir");
+    FsPermission permission = FsPermission.createImmutable((short) 0763);
+    sTFS.mkdirs(fileA, permission);
+    FileStatus fs = sTFS.getFileStatus(fileA);
+    Assert.assertEquals(permission, fs.getPermission());
+  }
+
   /**
    * Test for {@link FileSystem#setPermission(Path, org.apache.hadoop.fs.permission.FsPermission)}.
    * It will test changing the permission of file using TFS.
