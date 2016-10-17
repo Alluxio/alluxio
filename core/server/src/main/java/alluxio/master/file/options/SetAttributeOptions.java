@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for setting the attributes.
  */
 @NotThreadSafe
-public class SetAttributeOptions {
+public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
