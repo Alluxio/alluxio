@@ -67,7 +67,6 @@ public class AlluxioMasterRestServiceHandlerTest {
     Journal journal = mock(Journal.class);
     mBlockMaster = new BlockMaster(journal);
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
-    when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
     when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMaster);
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
@@ -85,12 +84,13 @@ public class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getRpcAddress() {
+    when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
     Response response = mHandler.getRpcAddress();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a String!", String.class, response.getEntity().getClass());
     String entry = (String) response.getEntity();
-    assertFalse("Properties Map must be not empty!", (entry.isEmpty()));
+    assertEquals("\"localhost/127.0.0.1:8080\"", entry);
   }
 
   @Test
@@ -115,40 +115,32 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertTrue("Entry must be a SortedMap!", (response.getEntity() instanceof SortedMap));
-    SortedMap<String, Long> entry = (SortedMap<String, Long>) response.getEntity();
-    assertFalse("Properties Map must be not empty!", (entry.isEmpty()));
+    SortedMap<String, Long> metricsMap = (SortedMap<String, Long>) response.getEntity();
+    assertFalse("Metrics Map must be not empty!", (metricsMap.isEmpty()));
     assertTrue("Map must contain key " + filesPinnedProperty + "!",
-        entry.containsKey(filesPinnedProperty));
-    assertEquals(FILES_PINNED_TEST_VALUE, entry.get(filesPinnedProperty).longValue());
+        metricsMap.containsKey(filesPinnedProperty));
+    assertEquals(FILES_PINNED_TEST_VALUE, metricsMap.get(filesPinnedProperty).longValue());
   }
 
   @Test
   public void getStartTimeMs() {
+    when(mMaster.getStartTimeMs()).thenReturn(100L);
     Response response = mHandler.getStartTimeMs();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
-    assertEquals(0L, entry.longValue());
-
-    when(mMaster.getStartTimeMs()).thenReturn(100L);
-    response = mHandler.getStartTimeMs();
-    entry = (Long) response.getEntity();
     assertEquals(100L, entry.longValue());
   }
 
   @Test
   public void getUptimeMs() {
+    when(mMaster.getUptimeMs()).thenReturn(100L);
     Response response = mHandler.getUptimeMs();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
-    assertEquals(0L, entry.longValue());
-
-    when(mMaster.getUptimeMs()).thenReturn(100L);
-    response = mHandler.getUptimeMs();
-    entry = (Long) response.getEntity();
     assertEquals(100L, entry.longValue());
   }
 
