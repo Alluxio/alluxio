@@ -11,27 +11,22 @@
 
 package alluxio.underfs.s3;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertArrayEquals;
-
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
 import static org.hamcrest.CoreMatchers.is;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
-
-import org.mockito.Mockito;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -69,15 +64,11 @@ public class S3InputStreamTest {
     mS3InputStream = new S3InputStream(BUCKET_NAME, OBJECT_KEY, mS3Service);
   }
 
-  @After
-  public void tearDown() {}
-
   /**
    * Test of close method, of class S3InputStream.
    */
   @Test
   public void close() throws IOException {
-    assertNotNull(mS3InputStream);
     mS3InputStream.close();
     verify(mInputStreamSpy).close();
 
@@ -91,7 +82,6 @@ public class S3InputStreamTest {
    */
   @Test
   public void read() throws IOException {
-    assertNotNull(mS3InputStream);
     assertEquals(1, mS3InputStream.read());
     assertEquals(2, mS3InputStream.read());
     assertEquals(3, mS3InputStream.read());
@@ -101,11 +91,10 @@ public class S3InputStreamTest {
    * Test of read method, of class S3InputStream.
    */
   @Test
-  public void readWithArgs() throws Exception {
-    assertNotNull(mS3InputStream);
+  public void readWithArgs() throws IOException {
     byte[] bytes = new byte[3];
-    int readedCount = mS3InputStream.read(bytes, 0, 3);
-    assertEquals(3, readedCount);
+    int readCount = mS3InputStream.read(bytes, 0, 3);
+    assertEquals(3, readCount);
     assertArrayEquals(new byte[] {1, 2, 3}, bytes);
   }
 
@@ -114,7 +103,6 @@ public class S3InputStreamTest {
    */
   @Test
   public void skip() throws IOException {
-    assertNotNull(mS3InputStream);
     assertEquals(1, mS3InputStream.read());
     mS3InputStream.skip(1);
     assertEquals(3, mS3InputStream.read());
