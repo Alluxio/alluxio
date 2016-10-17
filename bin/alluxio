@@ -294,7 +294,7 @@ function main {
     for thriftSrcPath in ${thriftSrcPaths[@]}; do
       rm -rf "${thriftSrcPath}/../main/java/alluxio/thrift"
       for srcFile in $(ls "${thriftSrcPath}"); do
-        thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members -out "${thriftSrcPath}/../main/java/." "${thriftSrcPath}/${srcFile}"
+        thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members,generated_annotations=undated -out "${thriftSrcPath}/../main/java/." "${thriftSrcPath}/${srcFile}"
       done
     done
   ;;
