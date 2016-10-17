@@ -121,8 +121,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   @SafeVarargs
   public IndexedSet(IndexDefinition<T> primaryIndexDefinition,
-      IndexDefinition<T>...
-      otherIndexDefinitions) {
+      IndexDefinition<T>... otherIndexDefinitions) {
     Iterable<IndexDefinition<T>> indexDefinitions =
         Iterables.concat(Arrays.asList(primaryIndexDefinition),
             Arrays.asList(otherIndexDefinitions));
