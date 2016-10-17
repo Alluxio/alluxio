@@ -95,7 +95,7 @@ public class CreateFileOptionsTest {
         .isPersisted());
     Assert.assertEquals(mDefaultBlockSizeBytes, thriftOptions.getBlockSizeBytes());
     Assert.assertEquals(Constants.NO_TTL, thriftOptions.getTtl());
-    Assert.assertEquals(Mode.getDefault().toShort(), thriftOptions.getMode());
+    Assert.assertFalse(thriftOptions.isSetMode());
   }
 
   @Test

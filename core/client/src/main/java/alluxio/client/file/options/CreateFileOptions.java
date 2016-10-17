@@ -25,8 +25,6 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -36,8 +34,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class CreateFileOptions {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private boolean mRecursive;
   private FileWriteLocationPolicy mLocationPolicy;
   private long mBlockSizeBytes;
