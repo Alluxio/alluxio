@@ -267,6 +267,9 @@ public final class FileSystemMasterTest {
     }
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#getPersistenceState(AlluxioURI)} method.
+   */
   @Test
   public void getPersistenceState() throws Exception {
     AlluxioURI rootUri = new AlluxioURI("/");
