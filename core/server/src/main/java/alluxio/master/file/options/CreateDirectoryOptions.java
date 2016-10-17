@@ -49,9 +49,8 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mRecursive = options.isRecursive();
     mPermission = Permission.defaults().setOwnerFromThriftClient();
     if (options.isSetMode()) {
+      mDefaultMode = false;
       mPermission.setMode(options.getMode());
-    } else {
-      mPermission.applyDirectoryUMask();
     }
   }
 

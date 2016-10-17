@@ -53,9 +53,8 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mTtl = options.getTtl();
     mPermission = Permission.defaults().setOwnerFromThriftClient();
     if (options.isSetMode()) {
+      mDefaultMode = false;
       mPermission.setMode(options.getMode());
-    } else {
-      mPermission.applyFileUMask();
     }
   }
 

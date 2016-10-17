@@ -227,10 +227,14 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public static InodeDirectory create(long id, long parentId, String name,
       CreateDirectoryOptions directoryOptions) {
+    Permission permission = new Permission(directoryOptions.getPermission());
+    if (directoryOptions.isDefaultMode()) {
+      permission.applyDirectoryUMask();
+    }
     return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
-        .setPermission(directoryOptions.getPermission())
+        .setPermission(permission)
         .setMountPoint(directoryOptions.isMountPoint());
   }
 

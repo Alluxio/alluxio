@@ -298,13 +298,17 @@ public final class InodeFile extends Inode<InodeFile> {
    */
   public static InodeFile create(long blockContainerId, long parentId, String name,
       long creationTimeMs, CreateFileOptions fileOptions) {
+    Permission permission = new Permission(fileOptions.getPermission());
+    if (fileOptions.isDefaultMode()) {
+      permission.applyFileUMask();
+    }
     return new InodeFile(blockContainerId)
         .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
         .setTtl(fileOptions.getTtl())
         .setParentId(parentId)
-        .setPermission(fileOptions.getPermission())
+        .setPermission(permission)
         .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
             PersistenceState.NOT_PERSISTED);
 
