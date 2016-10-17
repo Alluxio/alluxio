@@ -71,7 +71,6 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
   public boolean containsObject(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
     T res = mIndexMap.get(fieldValue);
-
     if (res == null) {
       return false;
     }

@@ -25,7 +25,7 @@ public enum PropertyKeyFormat {
       "alluxio.worker.tieredstore.level%d.reserved.ratio"),
   ;
 
-  private String mFormat;
+  private final String mFormat;
 
   /**
    * Constructs a property key format.

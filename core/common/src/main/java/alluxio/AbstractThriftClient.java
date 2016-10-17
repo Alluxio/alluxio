@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.exception.AlluxioException;
+import alluxio.network.connection.ThriftClientPool;
 import alluxio.retry.CountingRetry;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
@@ -162,6 +163,6 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
    * @param client the client to close
    */
   private void closeClient(C client) {
-    client.getOutputProtocol().getTransport().close();
+    ThriftClientPool.closeThriftClient(client);
   }
 }

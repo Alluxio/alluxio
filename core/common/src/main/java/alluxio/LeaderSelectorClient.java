@@ -38,13 +38,20 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** The election path in Zookeeper. */
   private final String mElectionPath;
+  /** The path of the leader in Zookeeper. */
   private final String mLeaderFolder;
+  /** The LeaderSelector used to elect. */
   private final LeaderSelector mLeaderSelector;
+  /** The name of this master in Zookeeper. */
   private final String mName;
+  /** The address to Zookeeper. */
   private final String mZookeeperAddress;
 
+  /** Whether this master is the leader master now. */
   private AtomicBoolean mIsLeader = new AtomicBoolean(false);
+  /** The thread of the current master. */
   private volatile Thread mCurrentMasterThread = null;
 
   /**
@@ -71,7 +78,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     mLeaderSelector = new LeaderSelector(getNewCuratorClient(), mElectionPath, this);
     mLeaderSelector.setId(name);
 
-    // for most cases you will want your instance to requeue when it relinquishes leadership
+    // For most cases you will want your instance to requeue when it relinquishes leadership.
     mLeaderSelector.autoRequeue();
   }
 

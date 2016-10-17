@@ -11,10 +11,16 @@
 
 package alluxio;
 
+import alluxio.security.LoginUser;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.util.SecurityUtils;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 import javax.ws.rs.core.Response;
 
@@ -32,6 +38,15 @@ public final class RestUtils {
    * @return the response object
    */
   public static <T> Response call(RestUtils.RestCallable<T> callable) {
+    try {
+      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
+        AuthenticatedClientUser.set(LoginUser.get().getName());
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to set AuthenticatedClientUser in REST service handler.", e);
+      return createErrorResponse(e.getMessage());
+    }
+
     try {
       return createResponse(callable.call());
     } catch (Exception e) {

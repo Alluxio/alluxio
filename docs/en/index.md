@@ -23,12 +23,12 @@ on top of Alluxio. Beyond performance, Alluxio bridges new workloads with data s
 storage systems. Users can run Alluxio using its standalone cluster mode, for example on Amazon EC2,
 Google Cloud, or launch Alluxio with Apache Mesos or Apache Yarn.
 
-Alluxio is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
-of Alluxio without any code changes. The project is open source
-([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)) and is deployed at
-multiple companies. It is one of the fastest growing open source projects. With less than three
+Alluxio is Hadoop compatible. Existing data analytics applications, such as Spark and MapReduce
+programs, can run on top of Alluxio without any code change. The project is open source under
+[Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE) and is deployed at
+many companies. It is one of the fastest growing open source projects. With three
 years of open source history, Alluxio has attracted more than
-[250 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 100
+[300 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 100
 institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [Google](www.google.com),
 [IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/),
@@ -37,6 +37,9 @@ institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.
 The project is the storage layer of the Berkeley Data Analytics Stack
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
+Today, Alluxio is deployed in production by 100s organizations, and runs on clusters that exceed
+1,000 nodes.
+
 
 [Downloads](http://alluxio.org/download/) |
 [User Guide](Getting-Started.html) |

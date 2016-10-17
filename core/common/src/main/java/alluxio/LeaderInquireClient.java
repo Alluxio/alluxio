@@ -71,8 +71,6 @@ public final class LeaderInquireClient {
   }
 
   /**
-   * Gets the address of the master.
-   *
    * @return the address of the master
    */
   public synchronized String getMasterAddress() {
