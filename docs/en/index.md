@@ -37,6 +37,9 @@ institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.
 The project is the storage layer of the Berkeley Data Analytics Stack
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
+Today, Alluxio is deployed in production by 100s organizations, and runs on clusters that exceed
+1,000 nodes.
+
 
 [Downloads](http://alluxio.org/download/) |
 [User Guide](Getting-Started.html) |
