@@ -23,10 +23,10 @@ on top of Alluxio. Beyond performance, Alluxio bridges new workloads with data s
 storage systems. Users can run Alluxio using its standalone cluster mode, for example on Amazon EC2,
 Google Cloud, or launch Alluxio with Apache Mesos or Apache Yarn.
 
-Alluxio is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
-of Alluxio without any code changes. The project is open source
-([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)) and is deployed at
-multiple companies. It is one of the fastest growing open source projects. With less than three
+Alluxio is Hadoop compatible. Existing data analytics applications, such as Spark and MapReduce
+programs, can run on top of Alluxio without any code change. The project is open source under
+[Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE) and is deployed at
+many companies. It is one of the fastest growing open source projects. With three
 years of open source history, Alluxio has attracted more than
 [300 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 100
 institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
