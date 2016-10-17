@@ -80,7 +80,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
-  /** Map from a block Id to whether it has been removed successfully. */
+  /** Map from a block ID to whether it has been removed successfully. */
   @GuardedBy("itself")
   private final Map<Long, Boolean> mRemovingBlockIdToFinished;
 
