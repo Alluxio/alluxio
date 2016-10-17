@@ -19,6 +19,7 @@ import alluxio.master.block.BlockId;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 
@@ -300,7 +301,7 @@ public final class InodeFile extends Inode<InodeFile> {
       long creationTimeMs, CreateFileOptions fileOptions) {
     Permission permission = new Permission(fileOptions.getPermission());
     if (fileOptions.isDefaultMode()) {
-      permission.applyFileUMask();
+      permission.setMode(Mode.getDefault()).applyFileUMask();
     }
     return new InodeFile(blockContainerId)
         .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
