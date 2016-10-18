@@ -26,6 +26,7 @@ import alluxio.underfs.swift.SwiftUnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -36,19 +37,18 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 /**
  * Integration tests for {@link FileSystem#setOwner(Path, String, String)} and
  * {@link FileSystem#setPermission(Path, org.apache.hadoop.fs.permission.FsPermission)}.
  */
-@Ignore
 public final class FileSystemAclIntegrationTest {
   /**
    * The exception expected to be thrown.
@@ -99,21 +99,31 @@ public final class FileSystemAclIntegrationTest {
 
   @Test
   public void createFileWithPermission() throws Exception {
-    Path fileA = new Path("/createfile");
-    FsPermission permission = FsPermission.createImmutable((short) 0763);
-    sTFS.create(fileA, permission, false /* ignored */, 10 /* ignored */, (short) 1 /* ignored */,
-        512 /* ignored */, null /* ignored */);
-    FileStatus fs = sTFS.getFileStatus(fileA);
-    Assert.assertEquals(permission, fs.getPermission());
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+    for (int value : permissionValues) {
+      Path file = new Path("/createfile" + value);
+      FsPermission permission = FsPermission.createImmutable((short) value);
+      FSDataOutputStream o = sTFS.create(file, permission, false /* ignored */, 10 /* ignored */,
+          (short) 1 /* ignored */, 512 /* ignored */, null /* ignored */);
+      o.writeBytes("Test Bytes");
+      o.close();
+      FileStatus fs = sTFS.getFileStatus(file);
+      Assert.assertEquals(permission, fs.getPermission());
+    }
   }
 
   @Test
-  public void mkDirsWithPermission() throws Exception {
-    Path fileA = new Path("/createDir");
-    FsPermission permission = FsPermission.createImmutable((short) 0763);
-    sTFS.mkdirs(fileA, permission);
-    FileStatus fs = sTFS.getFileStatus(fileA);
-    Assert.assertEquals(permission, fs.getPermission());
+  public void mkdirsWithPermission() throws Exception {
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+    for (int value : permissionValues) {
+      Path dir = new Path("/createDir" + value);
+      FsPermission permission = FsPermission.createImmutable((short) value);
+      sTFS.mkdirs(dir, permission);
+      FileStatus fs = sTFS.getFileStatus(dir);
+      Assert.assertEquals(permission, fs.getPermission());
+    }
   }
 
   /**
@@ -378,7 +388,7 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, dir)));
     Assert.assertEquals((int) dirMode,
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, dir)));
-    Assert.assertEquals((short) 0644,
+    Assert.assertEquals((short) parentMode,
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, dir.getParent())));
 
     short newMode = (short) 0755;
