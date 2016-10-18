@@ -78,8 +78,8 @@ public class JournalShutdownIntegrationTest {
         // expected since the master will shutdown at a certain time.
         while (true) {
           if (mOpType == 0) {
-            try (FileOutStream stream = mFileSystem
-                .createFile(new AlluxioURI(TEST_FILE_DIR + mSuccessNum))) {
+            try {
+              mFileSystem.createFile(new AlluxioURI(TEST_FILE_DIR + mSuccessNum)).close();
             } catch (IOException e) {
               break;
             }
