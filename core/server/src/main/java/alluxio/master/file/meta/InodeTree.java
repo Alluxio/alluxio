@@ -1026,7 +1026,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           // looking for has not been created in the meantime.
           lockList.unlockLast();
           lockList.lockWrite(current);
-          Inode recheckNext = ((InodeDirectory) current).getChild(pathComponents[i]);
+          Inode<?> recheckNext = ((InodeDirectory) current).getChild(pathComponents[i]);
           if (recheckNext != null) {
             // When releasing the lock and reacquiring the lock, another thread inserted the node we
             // are looking for. Use this existing next node.
