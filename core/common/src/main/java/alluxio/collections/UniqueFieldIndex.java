@@ -23,7 +23,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A class representing a unique index. A unique index is an index
  * where each index value only maps to one object.
  *
- * @param <T> type of objects in this {@link IndexedSet}
+ * @param <T> type of objects in this index
  */
 @ThreadSafe
 public class UniqueFieldIndex<T> implements FieldIndex<T> {
