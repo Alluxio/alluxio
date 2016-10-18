@@ -42,6 +42,9 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
   /** The zookeeper client that handles selecting the leader. */
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
+  /**
+   * Creates a {@link FaultTolerantAlluxioMaster}.
+   */
   public FaultTolerantAlluxioMaster() {
     Preconditions.checkArgument(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
 
