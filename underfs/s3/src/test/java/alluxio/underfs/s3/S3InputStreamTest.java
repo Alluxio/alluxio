@@ -20,9 +20,7 @@ import static org.mockito.Mockito.when;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -47,12 +45,6 @@ public class S3InputStreamTest {
 
   @Rule
   public ExpectedException mExceptionRule = ExpectedException.none();
-
-  @BeforeClass
-  public static void setUpClass() throws ServiceException {}
-
-  @AfterClass
-  public static void tearDownClass() {}
 
   @Before
   public void setUp() throws ServiceException {
