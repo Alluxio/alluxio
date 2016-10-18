@@ -135,12 +135,15 @@ public class FileOutStream extends AbstractOutStream {
           mUfsFileId =
               mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
                   CreateUfsFileOptions.defaults().setPermission(perm));
+          mUnderStorageOutputStream = mUnderOutStreamFactory
+              .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId);
         } catch (AlluxioException e) {
           mFileSystemWorkerClient.close();
           throw new IOException(e);
+        } catch (IOException e) {
+          mFileSystemWorkerClient.close();
+          throw e;
         }
-        mUnderStorageOutputStream = mUnderOutStreamFactory
-            .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId);
       } else {
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
