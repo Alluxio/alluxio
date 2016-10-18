@@ -18,7 +18,6 @@ import alluxio.Constants;
 import alluxio.SystemPropertyRule;
 import alluxio.client.block.BlockStoreContextTestUtils;
 import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
-import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
