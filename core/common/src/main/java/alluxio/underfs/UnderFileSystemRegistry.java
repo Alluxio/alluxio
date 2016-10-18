@@ -147,7 +147,8 @@ public final class UnderFileSystemRegistry {
       }
     }
 
-    LOG.warn("No Under File System Factory implementation supports the path {}", path);
+    LOG.warn("No Under File System Factory implementation supports the path {}. Please check if "
+        + "the under storage path is valid.", path);
     return null;
   }
 
