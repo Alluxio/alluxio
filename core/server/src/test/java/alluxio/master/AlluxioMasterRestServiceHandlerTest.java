@@ -33,11 +33,17 @@ import com.codahale.metrics.MetricSet;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
+
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.List;
 import java.util.SortedMap;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import javax.ws.rs.core.Response;
@@ -46,6 +52,8 @@ import javax.servlet.ServletContext;
 /**
  * Unit tests for {@link AlluxioMasterRestServiceHandler}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({BlockMaster.class})
 public class AlluxioMasterRestServiceHandlerTest {
 
   private AlluxioMaster mMaster;
@@ -65,7 +73,7 @@ public class AlluxioMasterRestServiceHandlerTest {
     mMaster = mock(AlluxioMaster.class);
     mContext = mock(ServletContext.class);
     Journal journal = mock(Journal.class);
-    mBlockMaster = new BlockMaster(journal);
+    mBlockMaster = PowerMockito.mock(BlockMaster.class);
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
     when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMaster);
@@ -156,32 +164,39 @@ public class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getCapacityBytes() {
+    when(mBlockMaster.getCapacityBytes()).thenReturn(100L);
+
     Response response = mHandler.getCapacityBytes();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
-    assertEquals(0L, entry.longValue());
+    assertEquals(100L, entry.longValue());
   }
 
   @Test
   public void getUsedBytes() {
+    when(mBlockMaster.getUsedBytes()).thenReturn(100L);
+
     Response response = mHandler.getUsedBytes();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
-    assertEquals(0L, entry.longValue());
+    assertEquals(100L, entry.longValue());
   }
 
   @Test
   public void getFreeBytes() {
+    when(mBlockMaster.getCapacityBytes()).thenReturn(200L);
+    when(mBlockMaster.getUsedBytes()).thenReturn(100L);
+
     Response response = mHandler.getFreeBytes();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
-    assertEquals(0L, entry.longValue());
+    assertEquals(100L, entry.longValue());
   }
 
   @Test
@@ -216,22 +231,31 @@ public class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getWorkerCount() {
+    when(mBlockMaster.getWorkerCount()).thenReturn(100);
+
     Response response = mHandler.getWorkerCount();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a Integer!", Integer.class, response.getEntity().getClass());
     Integer entry = (Integer) response.getEntity();
-    assertEquals(Integer.valueOf(0), entry);
+    assertEquals(Integer.valueOf(100), entry);
   }
 
   @Test
   public void getWorkerInfoList() {
+    List<WorkerInfo> mockList = new LinkedList<>();
+    WorkerInfo mockWorkerInfo = new WorkerInfo();
+    mockWorkerInfo.setId(100);
+    mockList.add(mockWorkerInfo);
+    when(mBlockMaster.getWorkerInfoList()).thenReturn(mockList);
+
     Response response = mHandler.getWorkerInfoList();
     assertNotNull("Response must be not null!", response);
     assertNotNull("Response must have a entry!", response.getEntity());
     assertTrue("Entry must be a List!", (response.getEntity() instanceof List));
     @SuppressWarnings("unchecked")
     List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
-    assertTrue(entry.isEmpty());
+    assertFalse(entry.isEmpty());
+    assertEquals(mockWorkerInfo.getId(), entry.get(0).getId());
   }
 }
