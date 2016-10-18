@@ -30,9 +30,9 @@ ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
 . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
 HOSTLIST=$(cat ${ALLUXIO_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
-ALLUXIO_TASK_LOG_DIR="${BIN//bin/}logs"
-mkdir -p "$ALLUXIO_TASK_LOG_DIR"
-ALLUXIO_TASK_LOG="$ALLUXIO_TASK_LOG_DIR/task.log"
+ALLUXIO_LOG_DIR="${BIN//bin/}logs"
+mkdir -p "$ALLUXIO_LOG_DIR"
+ALLUXIO_TASK_LOG="${ALLUXIO_LOG_DIR}/task.log"
 
 if [[ "$3" == "alluxio.worker.AlluxioWorker" ]]; then
   WORKER_ACTION_TYPE="WORKERS"
