@@ -552,10 +552,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // locked. This could improve performance. Further investigation is needed.
 
     // Fill in the ancestor directories that were missing.
+    // NOTE, we set the mode of missing ancestor directories to be the default value, rather
+    // than inheriting the option of the final file to create, because it may not have
+    // "execute" permission.
     CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(false)
         .setPersisted(options.isPersisted())
-        .setPermission(options.getPermission());
+        .setPermission(options.getPermission())
+        .setDefaultMode(true);
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir =
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
@@ -625,20 +629,19 @@ public final class InodeTree implements JournalCheckpointStreamable {
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
     }
 
-    if (toPersistDirectories.size() > 0) {
-      Inode<?> lastToPersistInode = toPersistDirectories.get(toPersistDirectories.size() - 1);
-      MountTable.Resolution resolution = mMountTable.resolve(getPath(lastToPersistInode));
+    // Persists all directories one by one rather than recursively creating necessary parent
+    // directories, because different ufs may have different semantics in the ACL permission of
+    // those recursively created directories. Even if the directory already exists in the ufs,
+    // we mark it as persisted.
+    for (Inode<?> inode : toPersistDirectories) {
+      MountTable.Resolution resolution = mMountTable.resolve(getPath(inode));
       String ufsUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
-      // Persists only the last directory, recursively creating necessary parent directories. Even
-      // if the directory already exists in the ufs, we mark it as persisted.
-      Permission perm = new Permission(lastToPersistInode.getOwner(), lastToPersistInode.getGroup(),
-          lastToPersistInode.getMode());
-      MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(true).setPermission(perm);
+      Permission permission = new Permission(inode.getOwner(), inode.getGroup(), inode.getMode());
+      MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(false)
+          .setPermission(permission);
       if (ufs.exists(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
-        for (Inode<?> inode : toPersistDirectories) {
-          inode.setPersistenceState(PersistenceState.PERSISTED);
-        }
+        inode.setPersistenceState(PersistenceState.PERSISTED);
       }
     }
 

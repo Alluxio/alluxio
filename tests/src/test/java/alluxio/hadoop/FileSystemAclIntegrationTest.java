@@ -26,6 +26,7 @@ import alluxio.underfs.swift.SwiftUnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -42,6 +43,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 /**
  * Integration tests for {@link FileSystem#setOwner(Path, String, String)} and
@@ -93,6 +95,35 @@ public final class FileSystemAclIntegrationTest {
   @After
   public void cleanupTFS() throws Exception {
     cleanup(sTFS);
+  }
+
+  @Test
+  public void createFileWithPermission() throws Exception {
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+    for (int value : permissionValues) {
+      Path file = new Path("/createfile" + value);
+      FsPermission permission = FsPermission.createImmutable((short) value);
+      FSDataOutputStream o = sTFS.create(file, permission, false /* ignored */, 10 /* ignored */,
+          (short) 1 /* ignored */, 512 /* ignored */, null /* ignored */);
+      o.writeBytes("Test Bytes");
+      o.close();
+      FileStatus fs = sTFS.getFileStatus(file);
+      Assert.assertEquals(permission, fs.getPermission());
+    }
+  }
+
+  @Test
+  public void mkdirsWithPermission() throws Exception {
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+    for (int value : permissionValues) {
+      Path dir = new Path("/createDir" + value);
+      FsPermission permission = FsPermission.createImmutable((short) value);
+      sTFS.mkdirs(dir, permission);
+      FileStatus fs = sTFS.getFileStatus(dir);
+      Assert.assertEquals(permission, fs.getPermission());
+    }
   }
 
   /**

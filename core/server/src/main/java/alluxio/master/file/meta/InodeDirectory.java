@@ -18,6 +18,7 @@ import alluxio.collections.UniqueFieldIndex;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 
@@ -227,7 +228,10 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public static InodeDirectory create(long id, long parentId, String name,
       CreateDirectoryOptions directoryOptions) {
-    Permission permission = new Permission(directoryOptions.getPermission()).applyDirectoryUMask();
+    Permission permission = new Permission(directoryOptions.getPermission());
+    if (directoryOptions.isDefaultMode()) {
+      permission.setMode(Mode.getDefault()).applyDirectoryUMask();
+    }
     return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
