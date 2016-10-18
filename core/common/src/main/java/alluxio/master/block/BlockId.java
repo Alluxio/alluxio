@@ -23,14 +23,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * </ul>
  */
 @ThreadSafe
-public final class BlockID {
+public final class BlockId {
 
-  private static final int CONTAINER_ID_BITS = 40;
-  private static final int SEQUENCE_NUMBER_BITS = 64 - CONTAINER_ID_BITS;
-  private static final long CONTAINER_ID_MASK = (1L << CONTAINER_ID_BITS) - 1;
+  private static final int CONTAINER_Id_BITS = 40;
+  private static final int SEQUENCE_NUMBER_BITS = 64 - CONTAINER_Id_BITS;
+  private static final long CONTAINER_Id_MASK = (1L << CONTAINER_Id_BITS) - 1;
   private static final long SEQUENCE_NUMBER_MASK = (1L << SEQUENCE_NUMBER_BITS) - 1;
 
-  private BlockID() {
+  private BlockId() {
     // prevent instantiation of a util class
   }
 
@@ -39,9 +39,9 @@ public final class BlockID {
    * @param sequenceNumber the sequence number to create the block ID with
    * @return the block ID constructed with the container ID and sequence number
    */
-  public static long createBlockID(long containerID, long sequenceNumber) {
+  public static long createBlockId(long containerId, long sequenceNumber) {
     // TODO(gene): Check for valid IDs here?
-    return ((containerID & CONTAINER_ID_MASK) << SEQUENCE_NUMBER_BITS)
+    return ((containerId & CONTAINER_Id_MASK) << SEQUENCE_NUMBER_BITS)
         | (sequenceNumber & SEQUENCE_NUMBER_MASK);
   }
 
@@ -49,16 +49,16 @@ public final class BlockID {
    * @param blockID the block ID to get the container ID for
    * @return the container ID of a specified block ID
    */
-  public static long getContainerID(long blockID) {
-    return (blockID >> SEQUENCE_NUMBER_BITS) & CONTAINER_ID_MASK;
+  public static long getContainerId(long blockId) {
+    return (blockId >> SEQUENCE_NUMBER_BITS) & CONTAINER_Id_MASK;
   }
 
   /**
    * @param blockID the block ID to get the sequence number for
    * @return the sequence number of the specified block ID
    */
-  public static long getSequenceNumber(long blockID) {
-    return blockID & SEQUENCE_NUMBER_MASK;
+  public static long getSequenceNumber(long blockId) {
+    return blockId & SEQUENCE_NUMBER_MASK;
   }
 
   /**
