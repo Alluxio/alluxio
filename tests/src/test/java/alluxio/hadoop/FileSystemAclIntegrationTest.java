@@ -388,7 +388,7 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, dir)));
     Assert.assertEquals((int) dirMode,
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, dir)));
-    Assert.assertEquals((short) parentMode,
+    Assert.assertEquals((int) parentMode,
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, dir.getParent())));
 
     short newMode = (short) 0755;
