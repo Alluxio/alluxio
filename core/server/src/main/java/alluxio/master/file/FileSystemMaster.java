@@ -854,6 +854,20 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  public boolean repair(AlluxioURI path) throws FileDoesNotExistException, InvalidPathException {
+    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
+      Inode inode = inodePath.getInode();
+      List<Inode> toRepair = getInconsistentInodes(inode, new ArrayList<Inode>());
+    }
+  }
+
+  private List<Inode> getInconsistentInodes(Inode inode, List<Inode> toRepair) {
+    if (inode.isFile()) {
+
+    }
+  }
+
   /**
    * @param entry the entry to use
    */
