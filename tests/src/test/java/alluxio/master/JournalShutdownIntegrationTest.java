@@ -16,7 +16,11 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.SystemPropertyRule;
+import alluxio.client.block.BlockStoreContextTestUtils;
+import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
@@ -74,8 +78,8 @@ public class JournalShutdownIntegrationTest {
         // expected since the master will shutdown at a certain time.
         while (true) {
           if (mOpType == 0) {
-            try {
-              mFileSystem.createFile(new AlluxioURI(TEST_FILE_DIR + mSuccessNum)).close();
+            try (FileOutStream stream = mFileSystem
+                .createFile(new AlluxioURI(TEST_FILE_DIR + mSuccessNum))) {
             } catch (IOException e) {
               break;
             }
@@ -113,6 +117,9 @@ public class JournalShutdownIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
+    RetryHandlingBlockWorkerClientTestUtils.reset();
+    FileSystemWorkerClientTestUtils.reset();
+    BlockStoreContextTestUtils.resetPool();
   }
 
   @Before
