@@ -26,6 +26,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class CreatePathOptions<T> {
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
+  // TODO(binfan): using Owner, Group and Mode three fields to replace Permission field
+  // (c.f. ALLUXIO-2393)
   protected Permission mPermission;
   protected boolean mPersisted;
   // TODO(peis): Rename this to mCreateAncestors.
