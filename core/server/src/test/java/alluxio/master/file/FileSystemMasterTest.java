@@ -304,29 +304,31 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(NESTED_FILE_URI.join("DNE")));
   }
-
+  /**
+   * Tests the {@link FileSystemMaster#getFileInfo(AlluxioURI)} method.
+   */
   @Test
   public void getFileInfo() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
     long fileId;
     FileInfo info;
 
-    fileId = mFileSystemMaster.getFileId(ROOT_URI);//get the ROOT_URI's id
+    fileId = mFileSystemMaster.getFileId(ROOT_URI);
     info = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(ROOT_URI.getPath(), info.getPath());
-    Assert.assertEquals(ROOT_URI.getPath(), mFileSystemMaster.getFileInfo(ROOT_URI).getPath());//to assert whether the two ways of getting the path are equal
+    Assert.assertEquals(ROOT_URI.getPath(), mFileSystemMaster.getFileInfo(ROOT_URI).getPath());
 
-    fileId = mFileSystemMaster.getFileId(NESTED_URI);//get the NESTED_URI's id
+    fileId = mFileSystemMaster.getFileId(NESTED_URI);
     info = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(NESTED_URI.getPath(), info.getPath());
-    Assert.assertEquals(NESTED_URI.getPath(), mFileSystemMaster.getFileInfo(NESTED_URI).getPath());//to assert whether the two ways of getting the path are equal
+    Assert.assertEquals(NESTED_URI.getPath(), mFileSystemMaster.getFileInfo(NESTED_URI).getPath());
 
 
-            fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);//get the NESTED_FILE_URI's id
+            fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
     info = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(NESTED_FILE_URI.getPath(), info.getPath());
     Assert.assertEquals(NESTED_FILE_URI.getPath(),
-        mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPath());//to assert whether the two ways of getting the path are equal
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPath());
 
     // Test non-existent id.
     try {
