@@ -25,9 +25,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockId {
 
-  private static final int CONTAINER_Id_BITS = 40;
-  private static final int SEQUENCE_NUMBER_BITS = 64 - CONTAINER_Id_BITS;
-  private static final long CONTAINER_Id_MASK = (1L << CONTAINER_Id_BITS) - 1;
+  private static final int CONTAINER_ID_BITS = 40;
+  private static final int SEQUENCE_NUMBER_BITS = 64 - CONTAINER_ID_BITS;
+  private static final long CONTAINER_ID_MASK = (1L << CONTAINER_ID_BITS) - 1;
   private static final long SEQUENCE_NUMBER_MASK = (1L << SEQUENCE_NUMBER_BITS) - 1;
 
   private BlockId() {
@@ -35,26 +35,26 @@ public final class BlockId {
   }
 
   /**
-   * @param containerID the container ID to create the block ID with
+   * @param containerId the container ID to create the block ID with
    * @param sequenceNumber the sequence number to create the block ID with
    * @return the block ID constructed with the container ID and sequence number
    */
   public static long createBlockId(long containerId, long sequenceNumber) {
     // TODO(gene): Check for valid IDs here?
-    return ((containerId & CONTAINER_Id_MASK) << SEQUENCE_NUMBER_BITS)
+    return ((containerId & CONTAINER_ID_MASK) << SEQUENCE_NUMBER_BITS)
         | (sequenceNumber & SEQUENCE_NUMBER_MASK);
   }
 
   /**
-   * @param blockID the block ID to get the container ID for
+   * @param blockId the block ID to get the container ID for
    * @return the container ID of a specified block ID
    */
   public static long getContainerId(long blockId) {
-    return (blockId >> SEQUENCE_NUMBER_BITS) & CONTAINER_Id_MASK;
+    return (blockId >> SEQUENCE_NUMBER_BITS) & CONTAINER_ID_MASK;
   }
 
   /**
-   * @param blockID the block ID to get the sequence number for
+   * @param blockId the block ID to get the sequence number for
    * @return the sequence number of the specified block ID
    */
   public static long getSequenceNumber(long blockId) {
