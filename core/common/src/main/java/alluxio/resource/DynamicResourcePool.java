@@ -55,11 +55,13 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param <T> the resource type
    */
   protected class ResourceInternal<T> {
-    // A unique ID used to distinguish the objects.
+    /** A unique ID used to distinguish the objects. */
     private int mIdentity = System.identityHashCode(this);
 
+    /** The resource. */
     private T mResource;
 
+    /** The last access time in ms. */
     private long mLastAccessTimeMs;
 
     /**
@@ -91,10 +93,19 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * Options to initialize a Dynamic resource pool.
    */
   public static final class Options {
+    /** The max capacity. */
     private int mMaxCapacity = 1024;
+
+    /** The min capacity. */
     private int mMinCapacity = 1;
+
+    /** The initial delay. */
     private long mInitialDelayMs = 100;
+
+    /** The gc interval. */
     private long mGcIntervalMs = 120 * Constants.SECOND_MS;
+
+    /** The gc executor. */
     private ScheduledExecutorService mGcExecutor;
 
     /**
@@ -194,7 +205,11 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
   private final ReentrantLock mLock = new ReentrantLock();
   private final Condition mNotEmpty = mLock.newCondition();
+
+  /** The max capacity. */
   private final int mMaxCapacity;
+
+  /** The min capacity. */
   private final int mMinCapacity;
 
   // Tracks the resources that are available ordered by lastAccessTime (the first one is
