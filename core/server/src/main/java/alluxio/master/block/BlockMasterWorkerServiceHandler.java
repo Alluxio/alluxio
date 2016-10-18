@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is a Thrift handler for block master RPCs invoked by an Alluxio worker.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
+public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
   private final BlockMaster mBlockMaster;
 
   /**
