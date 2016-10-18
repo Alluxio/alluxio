@@ -552,8 +552,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // locked. This could improve performance. Further investigation is needed.
 
     // Fill in the ancestor directories that were missing.
-    // NOTE, we set the permission mode of missing ancestor directories to be the default rather
-    // than inheriting from the option of the final file to create, because it may not have
+    // NOTE, we set the mode of missing ancestor directories to be the default value, rather
+    // than inheriting the option of the final file to create, because it may not have
     // "execute" permission.
     CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(false)
