@@ -41,3 +41,5 @@ dependency-reduced-pom.xml
 target/
 tests.log*
 **/nb-configuration*.xml
+/underfs/s3/nbproject/
+/underfs/oss/nbproject/
