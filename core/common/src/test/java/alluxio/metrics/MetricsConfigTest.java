@@ -62,7 +62,7 @@ public class MetricsConfigTest {
 
     Properties properties = config.getProperties();
 
-    Map<String, Properties> sinkProps = config.subProperties(properties, MetricsSystem.SINK_REGEX);
+    Map<String, Properties> sinkProps = MetricsConfig.subProperties(properties, MetricsSystem.SINK_REGEX);
     Assert.assertEquals(2, sinkProps.size());
     Assert.assertTrue(sinkProps.containsKey("console"));
     Assert.assertTrue(sinkProps.containsKey("jmx"));
