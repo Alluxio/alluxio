@@ -97,7 +97,7 @@ public class DataServerIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
     mBlockWorkerClient = BlockStoreContext.get()
-        .acquireWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress());
+        .createWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress());
     mBlockMasterClient = new RetryHandlingBlockMasterClient(
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
             mLocalAlluxioClusterResource.get().getMasterRpcPort()));
@@ -106,7 +106,7 @@ public class DataServerIntegrationTest {
   @After
   public final void after() throws Exception {
     mBlockMasterClient.close();
-    BlockStoreContext.get().releaseWorkerClient(mBlockWorkerClient);
+    mBlockWorkerClient.close();
   }
 
   /**

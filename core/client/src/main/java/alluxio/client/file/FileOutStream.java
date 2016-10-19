@@ -39,6 +39,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,6 +119,7 @@ public class FileOutStream extends AbstractOutStream {
     mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
+
     if (mUnderStorageType.isSyncPersist()) {
       // Get the ufs path from the master.
       FileSystemMasterClient client = mContext.acquireMasterClient();
@@ -187,8 +189,8 @@ public class FileOutStream extends AbstractOutStream {
     CompleteFileOptions options = CompleteFileOptions.defaults();
     if (mUnderStorageType.isSyncPersist()) {
       if (mUfsDelegation) {
-        mUnderStorageOutputStream.close();
         try {
+          mUnderStorageOutputStream.close();
           if (mCanceled) {
             mFileSystemWorkerClient.cancelUfsFile(mUfsFileId, CancelUfsFileOptions.defaults());
           } else {
@@ -383,6 +385,7 @@ public class FileOutStream extends AbstractOutStream {
       mContext.releaseMasterClient(masterClient);
     }
   }
+
 
   /**
    * Class that contains metrics about FileOutStream.
