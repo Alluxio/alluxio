@@ -1074,11 +1074,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
     private final boolean mFound;
 
     /**
-     * The found inode when the traversal succeeds; otherwise the last path component navigated.
-     */
-    private final Inode<?> mInode;
-
-    /**
      * The list of non-persisted inodes encountered during the traversal.
      */
     private final List<Inode<?>> mNonPersisted;
@@ -1105,7 +1100,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
     private TraversalResult(boolean found, List<Inode<?>> nonPersisted,
         List<Inode<?>> inodes, InodeLockList lockList) {
       mFound = found;
-      mInode = inodes.get(inodes.size() - 1);
       mNonPersisted = nonPersisted;
       mInodes = inodes;
       mLockList = lockList;
@@ -1113,10 +1107,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     boolean isFound() {
       return mFound;
-    }
-
-    Inode<?> getInode() {
-      return mInode;
     }
 
     /**

@@ -103,8 +103,7 @@ public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void setTtlNegativeTest() throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 1);
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage("TTL value must be >= 0");
     mFsShell.run("setTtl", "/testFile", "-1");
+    Assert.assertTrue(mOutput.toString().contains("TTL value must be >= 0"));
   }
 }

@@ -314,7 +314,6 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     try {
       return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC));
     } catch (TTransportException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }

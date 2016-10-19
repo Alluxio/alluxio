@@ -99,8 +99,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Gets the name of the leader.
-   *
    * @return the leader name
    */
   public String getName() {
