@@ -18,11 +18,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
 import alluxio.metrics.MetricsSystem;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.wire.WorkerInfo;
 import alluxio.web.MasterUIWebServer;
 
@@ -39,6 +47,9 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.SortedMap;
 import java.net.InetSocketAddress;
@@ -55,6 +66,10 @@ import javax.servlet.ServletContext;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMaster.class})
 public class AlluxioMasterRestServiceHandlerTest {
+
+  private static final long UFS_SPACE_TOTAL = 100L;
+  private static final long UFS_SPACE_USED = 100L;
+  private static final long UFS_SPACE_FREE = 100L;
 
   private AlluxioMaster mMaster;
   private ServletContext mContext;
@@ -77,6 +92,10 @@ public class AlluxioMasterRestServiceHandlerTest {
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
     when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMaster);
+
+    Configuration.set(PropertyKey.UNDERFS_ADDRESS, "test://test");
+    UnderFileSystemRegistry.register(new UnderFileSystemFactoryMock());
+
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
   }
 
@@ -206,7 +225,7 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
-    assertEquals(0L, entry.longValue());
+    assertEquals(UFS_SPACE_TOTAL, entry.longValue());
   }
 
   @Test
@@ -216,7 +235,7 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
-    assertEquals(0L, entry.longValue());
+    assertEquals(UFS_SPACE_USED, entry.longValue());
   }
 
   @Test
@@ -226,7 +245,7 @@ public class AlluxioMasterRestServiceHandlerTest {
     assertNotNull("Response must have a entry!", response.getEntity());
     assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
     Long entry = (Long) response.getEntity();
-    assertEquals(0L, entry.longValue());
+    assertEquals(UFS_SPACE_FREE, entry.longValue());
   }
 
   @Test
@@ -257,5 +276,169 @@ public class AlluxioMasterRestServiceHandlerTest {
     List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
     assertFalse(entry.isEmpty());
     assertEquals(mockWorkerInfo.getId(), entry.get(0).getId());
+  }
+
+  public static class UnderFileSystemFactoryMock implements UnderFileSystemFactory {
+
+    @Override
+    public UnderFileSystem create(String path, Object ufsConf) {
+      return new UnderFileSystemMock(new AlluxioURI(path));
+    }
+
+    @Override
+    public boolean supportsPath(String path) {
+      return path.startsWith("test");
+    }
+  }
+
+  public static class UnderFileSystemMock extends UnderFileSystem {
+
+    protected UnderFileSystemMock(AlluxioURI uri) {
+      super(uri);
+    }
+
+    @Override
+    public String getUnderFSType() {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void connectFromMaster(String hostname) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void connectFromWorker(String hostname) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void close() throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public OutputStream create(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public OutputStream create(String path, CreateOptions options) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean delete(String path, boolean recursive) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean exists(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public long getBlockSizeByte(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Object getConf() {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public List<String> getFileLocations(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public List<String> getFileLocations(String path, long offset) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public long getFileSize(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public long getModificationTimeMs(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public long getSpace(String path, SpaceType type) throws IOException {
+      long result = -1;
+      if (type.equals(UnderFileSystem.SpaceType.SPACE_TOTAL)) {
+        result = UFS_SPACE_TOTAL;
+      } else if (type.equals(UnderFileSystem.SpaceType.SPACE_FREE)) {
+        result = UFS_SPACE_FREE;
+      } else if (type.equals(UnderFileSystem.SpaceType.SPACE_USED)) {
+        result = UFS_SPACE_USED;
+      }
+      return result;
+    }
+
+    @Override
+    public boolean isFile(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public String[] list(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean mkdirs(String path, boolean createParent) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public InputStream open(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean rename(String src, String dst) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void setConf(Object conf) {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void setOwner(String path, String owner, String group) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void setMode(String path, short mode) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public String getOwner(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public String getGroup(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public short getMode(String path) throws IOException {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
   }
 }
