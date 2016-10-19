@@ -71,14 +71,14 @@ public class OSSInputStreamTest {
   }
 
   @Test
-  public void read() throws IOException {
+  public void readInt() throws IOException {
     assertEquals(1, mOssInputStream.read());
     assertEquals(2, mOssInputStream.read());
     assertEquals(3, mOssInputStream.read());
   }
 
   @Test
-  public void readWithArgs() throws IOException {
+  public void readByteArray() throws IOException {
     byte[] bytes = new byte[3];
     int readCount = mOssInputStream.read(bytes, 0, 3);
     assertEquals(3, readCount);
