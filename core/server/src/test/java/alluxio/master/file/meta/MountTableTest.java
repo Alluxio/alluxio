@@ -20,7 +20,7 @@ import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.Before
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Unit tests for {@link MountTable}.
  */
-public class MountTableTest {
+public final class MountTableTest {
   private MountTable mMountTable;
   private final MountOptions mDefaultOptions = MountOptions.defaults();
 
