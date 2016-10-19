@@ -39,6 +39,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -102,8 +103,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /** Mount table manages the file system mount points. */
   private final MountTable mMountTable;
 
-  @SuppressWarnings("unchecked")
-  /** use UniqueFieldIndex directly for Id index rather than using IndexedSet */
+  /** Use UniqueFieldIndex directly for ID index rather than using IndexedSet. */
   private final FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<>(ID_INDEX);
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
@@ -408,7 +408,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /**
    * Appends components of the path from a given inode.
    *
-   * @param inode the inode to compute the path for
+   * @param inode the {@link Inode} to compute the path for
    * @param builder a {@link StringBuilder} that is updated with the path components
    * @throws FileDoesNotExistException if an inode in the path does not exist
    */
@@ -654,15 +654,18 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param inodePath the path to the file
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
+   * @param ttlAction action to perform after TTL expiry
    * @return the file id
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the path does not exist
    */
-  public long reinitializeFile(LockedInodePath inodePath, long blockSizeBytes, long ttl)
+  public long reinitializeFile(LockedInodePath inodePath, long blockSizeBytes, long ttl,
+      TtlAction ttlAction)
       throws InvalidPathException, FileDoesNotExistException {
     InodeFile file = inodePath.getInodeFile();
     file.setBlockSizeBytes(blockSizeBytes);
     file.setTtl(ttl);
+    file.setTtlAction(ttlAction);
     return file.getId();
   }
 
@@ -1023,7 +1026,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           // looking for has not been created in the meantime.
           lockList.unlockLast();
           lockList.lockWrite(current);
-          Inode recheckNext = ((InodeDirectory) current).getChild(pathComponents[i]);
+          Inode<?> recheckNext = ((InodeDirectory) current).getChild(pathComponents[i]);
           if (recheckNext != null) {
             // When releasing the lock and reacquiring the lock, another thread inserted the node we
             // are looking for. Use this existing next node.
@@ -1069,15 +1072,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   private static final class TraversalResult {
     private final boolean mFound;
-    /**
-     * When the path is not found in a traversal, the index of the first path component that
-     * couldn't be found.
-     */
-    private final int mNonexistentIndex;
-    /**
-     * The found inode when the traversal succeeds; otherwise the last path component navigated.
-     */
-    private final Inode<?> mInode;
 
     /**
      * The list of non-persisted inodes encountered during the traversal.
@@ -1095,19 +1089,17 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // TODO(gpang): consider a builder paradigm to iteratively build the traversal result.
     static TraversalResult createFoundResult(List<Inode<?>> nonPersisted, List<Inode<?>> inodes,
         InodeLockList lockList) {
-      return new TraversalResult(true, -1, nonPersisted, inodes, lockList);
+      return new TraversalResult(true, nonPersisted, inodes, lockList);
     }
 
     static TraversalResult createNotFoundResult(int index, List<Inode<?>> nonPersisted,
         List<Inode<?>> inodes, InodeLockList lockList) {
-      return new TraversalResult(false, index, nonPersisted, inodes, lockList);
+      return new TraversalResult(false, nonPersisted, inodes, lockList);
     }
 
-    private TraversalResult(boolean found, int index, List<Inode<?>> nonPersisted,
+    private TraversalResult(boolean found, List<Inode<?>> nonPersisted,
         List<Inode<?>> inodes, InodeLockList lockList) {
       mFound = found;
-      mNonexistentIndex = index;
-      mInode = inodes.get(inodes.size() - 1);
       mNonPersisted = nonPersisted;
       mInodes = inodes;
       mLockList = lockList;
@@ -1115,17 +1107,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     boolean isFound() {
       return mFound;
-    }
-
-    int getNonexistentPathIndex() {
-      if (mFound) {
-        throw new UnsupportedOperationException("The traversal is successful");
-      }
-      return mNonexistentIndex;
-    }
-
-    Inode<?> getInode() {
-      return mInode;
     }
 
     /**

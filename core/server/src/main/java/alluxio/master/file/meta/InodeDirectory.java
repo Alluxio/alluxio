@@ -42,7 +42,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   };
 
   /** Use UniqueFieldIndex directly for name index rather than using IndexedSet. */
-  private FieldIndex<Inode<?>> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
+  private final FieldIndex<Inode<?>> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
 
   private boolean mMountPoint;
 

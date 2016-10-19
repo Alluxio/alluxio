@@ -34,9 +34,9 @@ public class EvictorTestUtils {
    * Whether blocks in the {@link EvictionPlan} are in the same {@link StorageDir}.
    *
    * @param plan the eviction plan
-   * @param meta the meta data manager
+   * @param meta the metadata manager
    * @return true if blocks are in the same dir otherwise false
-   * @throws BlockDoesNotExistException if fail to get meta data of a block
+   * @throws BlockDoesNotExistException if fail to get metadata of a block
    */
   public static boolean blocksInTheSameDir(EvictionPlan plan, BlockMetadataManager meta)
       throws BlockDoesNotExistException {
@@ -69,12 +69,12 @@ public class EvictorTestUtils {
    *
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
-   * @param metaManager the meta data manager
+   * @param metaManager the metadata manager
    * @return true if and only if the plan is not null and both
    *         {@link #blocksInTheSameDir(EvictionPlan, BlockMetadataManager)} and
    *         {@link #requestSpaceSatisfied(long, EvictionPlan, BlockMetadataManager)} are true,
    *         otherwise false
-   * @throws alluxio.exception.BlockDoesNotExistException when fail to get meta data of a block
+   * @throws alluxio.exception.BlockDoesNotExistException when fail to get metadata of a block
    */
   public static boolean validNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws BlockDoesNotExistException {
@@ -94,7 +94,7 @@ public class EvictorTestUtils {
    *
    * @param bytesToBeAvailable requested bytes to be available after eviction
    * @param plan the eviction plan, should not be empty
-   * @param metaManager the meta data manager
+   * @param metaManager the metadata manager
    * @return true if the above requirements are satisfied, otherwise false
    * @throws BlockDoesNotExistException if a block for which metadata cannot be found is encountered
    */
@@ -178,7 +178,7 @@ public class EvictorTestUtils {
    *
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
-   * @param metaManager the meta data manager
+   * @param metaManager the metadata manager
    * @throws Exception when fail
    */
   public static void assertEvictionPlanValid(long bytesToBeAvailable, EvictionPlan plan,
@@ -196,7 +196,7 @@ public class EvictorTestUtils {
    * @param plan the eviction plan, should not be null
    * @param meta the metadata manager
    * @return true if the request can be satisfied otherwise false
-   * @throws alluxio.exception.BlockDoesNotExistException if can not get meta data of a block
+   * @throws alluxio.exception.BlockDoesNotExistException if can not get metadata of a block
    */
   public static boolean requestSpaceSatisfied(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager meta) throws BlockDoesNotExistException {

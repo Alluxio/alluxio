@@ -15,6 +15,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Configurations properties constants. Please check and update Configuration-Settings.md file when
  * you change or add Alluxio configuration properties.
@@ -321,6 +323,7 @@ public enum PropertyKey {
    * A nested class to hold named string constants for their corresponding enum values.
    * Used for setting configuration in integration tests.
    */
+  @ThreadSafe
   public static final class Name {
     public static final String CONF_DIR = "alluxio.conf.dir";
     public static final String DEBUG = "alluxio.debug";

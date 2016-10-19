@@ -133,7 +133,7 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to lock a block which not exists.
+   * Tests that an exception is thrown when trying to lock a block which doesn't exist.
    */
   @Test
   public void lockNonExistingBlock() throws Exception {
@@ -145,7 +145,7 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to unlock a block which not exists.
+   * Tests that an exception is thrown when trying to unlock a block which doesn't exist.
    */
   @Test
   public void unlockNonExistingLock() throws Exception {

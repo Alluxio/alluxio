@@ -89,7 +89,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that caching a block successfully persists the block if the block exists
   @Test
   public void cacheBlock() throws Exception {
-    mFileSystem.createFile(new AlluxioURI("/testFile"));
+    mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
@@ -118,7 +118,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that cancelling a block will remove the temporary file
   @Test
   public void cancelBlock() throws Exception {
-    mFileSystem.createFile(new AlluxioURI("/testFile"));
+    mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
@@ -172,7 +172,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that lock block returns error on failure
   @Test
   public void lockBlockFailure() throws Exception {
-    mFileSystem.createFile(new AlluxioURI("/testFile"));
+    mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 

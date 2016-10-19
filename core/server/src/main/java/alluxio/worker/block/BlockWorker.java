@@ -189,7 +189,7 @@ public interface BlockWorker extends Worker {
   BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Gets the meta data of a specific block from local storage.
+   * Gets the metadata of a specific block from local storage.
    * <p>
    * Unlike {@link #getVolatileBlockMeta(long)}, this method requires the lock id returned by a
    * previously acquired {@link #lockBlock(long, long)}.

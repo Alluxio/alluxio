@@ -285,8 +285,7 @@ main() {
       run_safe
       ;;
     workers)
-      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}" \
-       "${ALLUXIO_MASTER_HOSTNAME}"
+      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}"
       ;;
     restart_worker)
       restart_worker

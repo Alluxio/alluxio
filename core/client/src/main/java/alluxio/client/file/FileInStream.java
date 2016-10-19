@@ -631,7 +631,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * Reads the remaining of the current block.
-   * 
+   *
    * @throws IOException if read or cache write fails
    */
   private void readCurrentBlockToEnd() throws IOException {

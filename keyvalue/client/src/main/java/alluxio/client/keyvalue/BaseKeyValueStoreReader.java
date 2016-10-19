@@ -84,7 +84,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
       } else if (key.compareTo(partition.bufferForKeyLimit()) > 0) {
         left = middle + 1;
       } else {
-        // The key is either in this partition or not in the kv store
+        // The key is either in this partition or not in the key-value store
         long blockId = partition.getBlockId();
         try (KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId)) {
           return reader.get(key);

@@ -104,6 +104,7 @@ public final class KeyValuePartitionIntegrationTest {
     Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mKeyValuePartitionReader.get(KEY2));
     Assert.assertNull(mKeyValuePartitionReader.get("NoSuchKey".getBytes()));
+    mKeyValuePartitionReader.close();
   }
 
   /**
@@ -136,7 +137,9 @@ public final class KeyValuePartitionIntegrationTest {
   public void emptyPartitionIterator() throws Exception {
     // Creates an empty partition.
     KeyValuePartitionWriter.Factory.create(mPartitionUri).close();
-    Assert.assertFalse(KeyValuePartitionReader.Factory.create(mPartitionUri).iterator().hasNext());
+    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
+    Assert.assertFalse(mKeyValuePartitionReader.iterator().hasNext());
+    mKeyValuePartitionReader.close();
   }
 
   /**
@@ -161,6 +164,7 @@ public final class KeyValuePartitionIntegrationTest {
     while (iterator.hasNext()) {
       iteratedPairs.add(iterator.next());
     }
+    mKeyValuePartitionReader.close();
     Assert.assertEquals(pairs.size(), iteratedPairs.size());
 
     // Sort both pairs and iteratedPairs, then compare them.

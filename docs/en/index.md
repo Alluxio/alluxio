@@ -18,16 +18,17 @@ uses Alluxio to improve speedup the throughput of their data analytics pipeline
 [30 times](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf). Barclays makes the
 impossible possible with Alluxio to accelerate jobs from
 [hours to seconds](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon).
-Beyond performance, Alluxio bridges new workloads with data stored in
-traditional storage systems. Users can run Alluxio using its standalone cluster mode, for example on
-Amazon EC2, Google Cloud, or launch Alluxio with Apache Mesos or Apache Yarn.
+Qunar performs [real-time data analytics](http://www.alluxio.com/2016/07/qunar-performs-real-time-data-analytics-up-to-300x-faster-with-alluxio/)
+on top of Alluxio. Beyond performance, Alluxio bridges new workloads with data stored in traditional
+storage systems. Users can run Alluxio using its standalone cluster mode, for example on Amazon EC2,
+Google Cloud, or launch Alluxio with Apache Mesos or Apache Yarn.
 
-Alluxio is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
-of Alluxio without any code changes. The project is open source
-([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)) and is deployed at
-multiple companies. It is one of the fastest growing open source projects. With less than three
+Alluxio is Hadoop compatible. Existing data analytics applications, such as Spark and MapReduce
+programs, can run on top of Alluxio without any code change. The project is open source under
+[Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE) and is deployed at
+many companies. It is one of the fastest growing open source projects. With three
 years of open source history, Alluxio has attracted more than
-[250 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 100
+[350 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 100
 institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [Google](www.google.com),
 [IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/),
@@ -36,6 +37,9 @@ institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.
 The project is the storage layer of the Berkeley Data Analytics Stack
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
+Today, Alluxio is deployed in production by 100s organizations, and runs on clusters that exceed
+1,000 nodes.
+
 
 [Downloads](http://alluxio.org/download/) |
 [User Guide](Getting-Started.html) |
@@ -43,6 +47,7 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 [Meetup Group](https://www.meetup.com/Alluxio/) |
 [Issue Tracking](https://alluxio.atlassian.net/browse/ALLUXIO) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
+[Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
 [Powered By](Powered-By-Alluxio.html) |
 [Github](https://github.com/alluxio/alluxio/) |
 [Releases](http://alluxio.org/releases/)

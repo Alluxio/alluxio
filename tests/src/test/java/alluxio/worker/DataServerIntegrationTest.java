@@ -106,6 +106,7 @@ public class DataServerIntegrationTest {
   @After
   public final void after() throws Exception {
     mBlockMasterClient.close();
+    BlockStoreContext.get().releaseWorkerClient(mBlockWorkerClient);
   }
 
   /**

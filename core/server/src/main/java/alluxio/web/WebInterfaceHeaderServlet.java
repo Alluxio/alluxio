@@ -53,7 +53,9 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
     if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       masterHostName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
     } else {
-      masterHostName = NetworkAddressUtils.getMasterAddressFromZK().getHostName();
+      masterHostName = NetworkAddressUtils
+          .getMasterAddressFromZK(Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH))
+          .getHostName();
     }
     request.setAttribute("masterHost", masterHostName);
     request.setAttribute("masterPort", masterWebPort);

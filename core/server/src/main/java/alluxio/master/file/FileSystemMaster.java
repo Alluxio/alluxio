@@ -32,6 +32,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
+import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.async.AsyncPersistHandler;
@@ -100,6 +101,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
+import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
@@ -829,21 +831,20 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param path the path to the file
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
+   * @param ttlAction action to take after Ttl expiry
    * @return the file id
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the path does not exist
    */
   // Used by lineage master
-  public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, FileDoesNotExistException {
+  public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl,
+      TtlAction ttlAction) throws InvalidPathException, FileDoesNotExistException {
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
-      long id = mInodeTree.reinitializeFile(inodePath, blockSizeBytes, ttl);
+      long id = mInodeTree.reinitializeFile(inodePath, blockSizeBytes, ttl, ttlAction);
       ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder()
-          .setPath(path.getPath())
-          .setBlockSizeBytes(blockSizeBytes)
-          .setTtl(ttl)
-          .build();
+          .setPath(path.getPath()).setBlockSizeBytes(blockSizeBytes).setTtl(ttl)
+          .setTtlAction(ProtobufUtils.toProtobuf(ttlAction)).build();
       flushCounter = appendJournalEntry(
           JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
       return id;
@@ -857,9 +858,10 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param entry the entry to use
    */
   private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
-    try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(new AlluxioURI(entry.getPath()), InodeTree.LockMode.WRITE)) {
-      mInodeTree.reinitializeFile(inodePath, entry.getBlockSizeBytes(), entry.getTtl());
+    try (LockedInodePath inodePath =
+        mInodeTree.lockFullInodePath(new AlluxioURI(entry.getPath()), InodeTree.LockMode.WRITE)) {
+      mInodeTree.reinitializeFile(inodePath, entry.getBlockSizeBytes(), entry.getTtl(),
+          ProtobufUtils.fromProtobuf(entry.getTtlAction()));
     } catch (InvalidPathException | FileDoesNotExistException e) {
       throw new RuntimeException(e);
     }
@@ -1987,7 +1989,7 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         return loadMetadataAndJournal(inodePath, options);
       } catch (Exception e) {
-        // NOTE, this may be expected when client tries to get info (e.g. exisits()) for a file
+        // NOTE, this may be expected when client tries to get info (e.g. exists()) for a file
         // existing neither in Alluxio nor UFS.
         LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri());
       }
@@ -2346,7 +2348,9 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     if (options.getTtl() != null) {
       builder.setTtl(options.getTtl());
+      builder.setTtlAction(ProtobufUtils.toProtobuf(options.getTtlAction()));
     }
+
     if (options.getPersisted() != null) {
       builder.setPersisted(options.getPersisted());
     }
@@ -2470,7 +2474,9 @@ public final class FileSystemMaster extends AbstractMaster {
         file.setTtl(ttl);
         mTtlBuckets.insert(file);
         file.setLastModificationTimeMs(opTimeMs);
+        file.setTtlAction(options.getTtlAction());
       }
+
     }
     if (options.getPersisted() != null) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
@@ -2487,22 +2493,10 @@ public final class FileSystemMaster extends AbstractMaster {
         Metrics.FILES_PERSISTED.inc();
       }
     }
-    boolean ownerGroupChanged = false;
-    boolean permissionChanged = false;
-    if (options.getOwner() != null) {
-      inode.setOwner(options.getOwner());
-      ownerGroupChanged = true;
-    }
-    if (options.getGroup() != null) {
-      inode.setGroup(options.getGroup());
-      ownerGroupChanged = true;
-    }
-    if (options.getMode() != Constants.INVALID_MODE) {
-      inode.setPermission(options.getMode());
-      permissionChanged = true;
-    }
+    boolean ownerGroupChanged = (options.getOwner() != null) || (options.getGroup() != null);
+    boolean modeChanged = (options.getMode() != Constants.INVALID_MODE);
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
-    if ((ownerGroupChanged || permissionChanged) && !replayed && inode.isPersisted()) {
+    if ((ownerGroupChanged || modeChanged) && !replayed && inode.isPersisted()) {
       if ((inode instanceof InodeFile) && !((InodeFile) inode).isCompleted()) {
         LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
@@ -2515,20 +2509,34 @@ public final class FileSystemMaster extends AbstractMaster {
           UnderFileSystem ufs = resolution.getUfs();
           if (ownerGroupChanged) {
             try {
-              ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
+              String owner = options.getOwner() != null ? options.getOwner() : inode.getOwner();
+              String group = options.getGroup() != null ? options.getGroup() : inode.getGroup();
+              ufs.setOwner(ufsUri, owner, group);
             } catch (IOException e) {
-              throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
+              throw new AccessControlException("Could not setOwner for UFS file " + ufsUri
+                  + " . Aborting the setAttribute operation in Alluxio.", e);
             }
           }
-          if (permissionChanged) {
+          if (modeChanged) {
             try {
-              ufs.setMode(ufsUri, inode.getMode());
+              ufs.setMode(ufsUri, options.getMode());
             } catch (IOException e) {
-              throw new AccessControlException("Could not setMode for UFS file " + ufsUri, e);
+              throw new AccessControlException("Could not setMode for UFS file " + ufsUri
+                  + " . Aborting the setAttribute operation in Alluxio.", e);
             }
           }
         }
       }
+    }
+    // Only commit the set permission to inode after the propagation to UFS succeeded.
+    if (options.getOwner() != null) {
+      inode.setOwner(options.getOwner());
+    }
+    if (options.getGroup() != null) {
+      inode.setGroup(options.getGroup());
+    }
+    if (modeChanged) {
+      inode.setPermission(options.getMode());
     }
     return persistedInodes;
   }
@@ -2547,6 +2555,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     if (entry.hasTtl()) {
       options.setTtl(entry.getTtl());
+      options.setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()));
     }
     if (entry.hasPersisted()) {
       options.setPersisted(entry.getPersisted());
@@ -2599,9 +2608,24 @@ public final class FileSystemMaster extends AbstractMaster {
           }
           if (path != null) {
             try {
-              // public delete method will lock the path, and check WRITE permission required at
-              // parent of file
-              delete(path, false);
+              TtlAction ttlAction = file.getTtlAction();
+              LOG.debug("File {} is expired. Performing action {}", file.getName(), ttlAction);
+              switch (ttlAction) {
+                case FREE:
+                  free(path, false);
+                  // Reset state
+                  file.setTtl(Constants.NO_TTL);
+                  file.setTtlAction(TtlAction.DELETE);
+                  mTtlBuckets.remove(file);
+                  break;
+                case DELETE:// Default if not set is DELETE
+                  // public delete method will lock the path, and check WRITE permission required at
+                  // parent of file
+                  delete(path, false);
+                  break;
+                default:
+                  LOG.error("Unknown TtlAction.");
+              }
             } catch (Exception e) {
               LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
                   e.toString());

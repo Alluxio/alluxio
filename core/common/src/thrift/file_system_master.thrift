@@ -18,6 +18,7 @@ struct CreateFileTOptions {
   2: optional bool persisted
   3: optional bool recursive
   4: optional i64 ttl
+  5: optional common.TTtlAction ttlAction
 }
 
 struct MountTOptions {
@@ -72,6 +73,7 @@ struct FileInfo {
   21: string persistenceState
   22: bool mountPoint
   23: list<FileBlockInfo> fileBlockInfos
+  24: common.TTtlAction ttlAction
 }
 
 struct FileSystemCommand {
@@ -96,6 +98,7 @@ struct SetAttributeTOptions {
   5: optional string group
   6: optional i16 mode
   7: optional bool recursive
+  8: optional common.TTtlAction ttlAction
 }
 
 union FileSystemCommandOptions {
@@ -185,7 +188,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
    * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
   i64 loadMetadata( /** the path of the under file system */ 1: string ufsPath,
-      /** whether to load meta data recursively */ 2: bool recursive)
+      /** whether to load metadata recursively */ 2: bool recursive)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**

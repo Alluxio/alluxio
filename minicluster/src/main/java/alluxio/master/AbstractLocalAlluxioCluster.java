@@ -17,7 +17,10 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
+import alluxio.client.block.BlockStoreContextTestUtils;
+import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -77,6 +80,8 @@ public abstract class AbstractLocalAlluxioCluster {
   public void start() throws IOException, ConnectionFailedException {
     // Disable HDFS client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
+    resetClientPools();
 
     setupTest();
     startMaster();
@@ -328,6 +333,15 @@ public abstract class AbstractLocalAlluxioCluster {
   protected void reset() {
     ClientTestUtils.resetClient();
     GroupMappingServiceTestUtils.resetCache();
+  }
+
+  /**
+   * Resets the client pools to the original state.
+   */
+  protected void resetClientPools() {
+    RetryHandlingBlockWorkerClientTestUtils.reset();
+    FileSystemWorkerClientTestUtils.reset();
+    BlockStoreContextTestUtils.resetPool();
   }
 
   /**
