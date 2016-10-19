@@ -118,7 +118,6 @@ public class FileOutStream extends AbstractOutStream {
     mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
-
     if (mUnderStorageType.isSyncPersist()) {
       // Get the ufs path from the master.
       FileSystemMasterClient client = mContext.acquireMasterClient();
