@@ -58,8 +58,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
 
     mCloser = Closer.create();
     try {
-      mBlockWorkerClient = mContext.createWorkerClient(workerNetAddress);
-      mCloser.register(mBlockWorkerClient);
+      mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(workerNetAddress));
       LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
       if (result == null) {
         throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
