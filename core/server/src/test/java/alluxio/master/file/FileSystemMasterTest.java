@@ -324,7 +324,6 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(NESTED_URI.getPath(), info.getPath());
     Assert.assertEquals(NESTED_URI.getPath(), mFileSystemMaster.getFileInfo(NESTED_URI).getPath());
 
-
     fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
     info = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(NESTED_FILE_URI.getPath(), info.getPath());
