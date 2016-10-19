@@ -67,7 +67,7 @@ public final class AlluxioBlockStoreTest {
 
     BlockStoreContext blockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     // Mock block store context to return our mock clients
-    Mockito.when(blockStoreContext.acquireWorkerClient(Mockito.any(WorkerNetAddress.class)))
+    Mockito.when(blockStoreContext.createWorkerClient(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(mBlockWorkerClient);
     Mockito.when(blockStoreContext.acquireMasterClientResource()).thenReturn(
         new DummyCloseableResource<>(mMasterClient));
