@@ -254,8 +254,6 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * Returns the {@link InetSocketAddress} of the remote.
-   *
    * @return the {@link InetSocketAddress} of the remote
    */
   protected synchronized InetSocketAddress getAddress() {

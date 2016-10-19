@@ -60,9 +60,6 @@ public abstract class AbstractMasterClient extends AbstractClient {
   }
 
   /**
-   * Returns the {@link InetSocketAddress} of the master. If zookeeper is used, this will consult
-   * the zookeeper instance for the master address.
-   *
    * @return the {@link InetSocketAddress} of the master
    */
   @Override
