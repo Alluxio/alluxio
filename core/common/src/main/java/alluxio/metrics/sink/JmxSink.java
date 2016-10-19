@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A sink which listens for new metrics and exposes them as namespaces MBeans.
  */
 @ThreadSafe
-public class JmxSink implements Sink {
+public final class JmxSink implements Sink {
   private JmxReporter mReporter;
 
   /**
