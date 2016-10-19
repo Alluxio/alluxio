@@ -18,6 +18,7 @@ import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
+import com.google.common.io.Closer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -32,6 +33,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class RemoteBlockInStream extends BufferedBlockInStream {
+  /** Used to manage closeable resources. */
+  private final Closer mCloser;
   /** The address of the worker to read the data from. */
   private final WorkerNetAddress mWorkerNetAddress;
   /** mWorkerNetAddress converted to an InetSocketAddress. */
@@ -61,16 +64,18 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
         new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
 
     mContext = context;
-    mBlockWorkerClient = mContext.acquireWorkerClient(workerNetAddress);
+    mCloser = Closer.create();
 
     try {
+      mBlockWorkerClient = mContext.createWorkerClient(workerNetAddress);
+      mCloser.register(mBlockWorkerClient);
       LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
       if (result == null) {
         throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
       }
       mLockId = result.getLockId();
     } catch (IOException e) {
-      mContext.releaseWorkerClient(mBlockWorkerClient);
+      mCloser.close();
       throw e;
     }
   }
@@ -93,9 +98,9 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     try {
       mBlockWorkerClient.unlockBlock(mBlockId);
     } finally {
-      mContext.releaseWorkerClient(mBlockWorkerClient);
+      mClosed = true;
+      mCloser.close();
     }
-    mClosed = true;
   }
 
   @Override

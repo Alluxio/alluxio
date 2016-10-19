@@ -80,7 +80,7 @@ public class FileSystemWorkerClient
   /** Address of the rpc server on the worker. */
   private final InetSocketAddress mWorkerRpcServerAddress;
 
-  private ScheduledFuture<?> mHeartbeat = null;
+  private final ScheduledFuture<?> mHeartbeat;
 
   /**
    * Constructor for a client that communicates with the {@link FileSystemWorkerClientService}.
