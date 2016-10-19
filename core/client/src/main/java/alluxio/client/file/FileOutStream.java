@@ -39,7 +39,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -385,7 +384,6 @@ public class FileOutStream extends AbstractOutStream {
       mContext.releaseMasterClient(masterClient);
     }
   }
-
 
   /**
    * Class that contains metrics about FileOutStream.
