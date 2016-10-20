@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A class representing a non-unique index. A non-unique index is
  * an index where an index value can map to one or more objects.
  *
- * @param <T> type of objects in this {@link IndexedSet}
+ * @param <T> type of objects in this index
  */
 @ThreadSafe
 public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
