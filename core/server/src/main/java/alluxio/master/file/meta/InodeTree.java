@@ -1145,10 +1145,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     private final List<Inode<?>> mPersisted;
 
     /**
-     * Constructs the results of modified and created inodes when creating a path.
+     * Constructs the results of modified, created, and persisted inodes when creating a path.
      *
      * @param modified a list of modified inodes
      * @param created a list of created inodes
+     * @param persisted a list of persisted inodes
      */
     CreatePathResult(List<Inode<?>> modified, List<Inode<?>> created, List<Inode<?>> persisted) {
       mModified = Preconditions.checkNotNull(modified);
