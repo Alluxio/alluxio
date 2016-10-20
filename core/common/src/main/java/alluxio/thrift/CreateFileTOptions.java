@@ -42,7 +42,8 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private static final org.apache.thrift.protocol.TField PERSISTED_FIELD_DESC = new org.apache.thrift.protocol.TField("persisted", org.apache.thrift.protocol.TType.BOOL, (short)2);
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)3);
   private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)4);
-  private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)5);
+  private static final org.apache.thrift.protocol.TField MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("mode", org.apache.thrift.protocol.TType.I16, (short)5);
+  private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -54,6 +55,7 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private boolean persisted; // optional
   private boolean recursive; // optional
   private long ttl; // optional
+  private short mode; // optional
   private alluxio.thrift.TTtlAction ttlAction; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -62,11 +64,12 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     PERSISTED((short)2, "persisted"),
     RECURSIVE((short)3, "recursive"),
     TTL((short)4, "ttl"),
+    MODE((short)5, "mode"),
     /**
      * 
      * @see alluxio.thrift.TTtlAction
      */
-    TTL_ACTION((short)5, "ttlAction");
+    TTL_ACTION((short)6, "ttlAction");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -89,7 +92,9 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
           return RECURSIVE;
         case 4: // TTL
           return TTL;
-        case 5: // TTL_ACTION
+        case 5: // MODE
+          return MODE;
+        case 6: // TTL_ACTION
           return TTL_ACTION;
         default:
           return null;
@@ -135,8 +140,9 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
   private static final int __PERSISTED_ISSET_ID = 1;
   private static final int __RECURSIVE_ISSET_ID = 2;
   private static final int __TTL_ISSET_ID = 3;
+  private static final int __MODE_ISSET_ID = 4;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE_BYTES,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL,_Fields.TTL_ACTION};
+  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE_BYTES,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL,_Fields.MODE,_Fields.TTL_ACTION};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -148,6 +154,8 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.TTL, new org.apache.thrift.meta_data.FieldMetaData("ttl", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.MODE, new org.apache.thrift.meta_data.FieldMetaData("mode", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I16)));
     tmpMap.put(_Fields.TTL_ACTION, new org.apache.thrift.meta_data.FieldMetaData("ttlAction", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -166,6 +174,7 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     this.persisted = other.persisted;
     this.recursive = other.recursive;
     this.ttl = other.ttl;
+    this.mode = other.mode;
     if (other.isSetTtlAction()) {
       this.ttlAction = other.ttlAction;
     }
@@ -185,6 +194,8 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     this.recursive = false;
     setTtlIsSet(false);
     this.ttl = 0;
+    setModeIsSet(false);
+    this.mode = 0;
     this.ttlAction = null;
   }
 
@@ -280,6 +291,29 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TTL_ISSET_ID, value);
   }
 
+  public short getMode() {
+    return this.mode;
+  }
+
+  public CreateFileTOptions setMode(short mode) {
+    this.mode = mode;
+    setModeIsSet(true);
+    return this;
+  }
+
+  public void unsetMode() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MODE_ISSET_ID);
+  }
+
+  /** Returns true if field mode is set (has been assigned a value) and false otherwise */
+  public boolean isSetMode() {
+    return EncodingUtils.testBit(__isset_bitfield, __MODE_ISSET_ID);
+  }
+
+  public void setModeIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MODE_ISSET_ID, value);
+  }
+
   /**
    * 
    * @see alluxio.thrift.TTtlAction
@@ -346,6 +380,14 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       }
       break;
 
+    case MODE:
+      if (value == null) {
+        unsetMode();
+      } else {
+        setMode((Short)value);
+      }
+      break;
+
     case TTL_ACTION:
       if (value == null) {
         unsetTtlAction();
@@ -371,6 +413,9 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     case TTL:
       return getTtl();
 
+    case MODE:
+      return getMode();
+
     case TTL_ACTION:
       return getTtlAction();
 
@@ -393,6 +438,8 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       return isSetRecursive();
     case TTL:
       return isSetTtl();
+    case MODE:
+      return isSetMode();
     case TTL_ACTION:
       return isSetTtlAction();
     }
@@ -448,6 +495,15 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         return false;
     }
 
+    boolean this_present_mode = true && this.isSetMode();
+    boolean that_present_mode = true && that.isSetMode();
+    if (this_present_mode || that_present_mode) {
+      if (!(this_present_mode && that_present_mode))
+        return false;
+      if (this.mode != that.mode)
+        return false;
+    }
+
     boolean this_present_ttlAction = true && this.isSetTtlAction();
     boolean that_present_ttlAction = true && that.isSetTtlAction();
     if (this_present_ttlAction || that_present_ttlAction) {
@@ -483,6 +539,11 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     list.add(present_ttl);
     if (present_ttl)
       list.add(ttl);
+
+    boolean present_mode = true && (isSetMode());
+    list.add(present_mode);
+    if (present_mode)
+      list.add(mode);
 
     boolean present_ttlAction = true && (isSetTtlAction());
     list.add(present_ttlAction);
@@ -540,6 +601,16 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetMode()).compareTo(other.isSetMode());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMode()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mode, other.mode);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetTtlAction()).compareTo(other.isSetTtlAction());
     if (lastComparison != 0) {
       return lastComparison;
@@ -591,6 +662,12 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       if (!first) sb.append(", ");
       sb.append("ttl:");
       sb.append(this.ttl);
+      first = false;
+    }
+    if (isSetMode()) {
+      if (!first) sb.append(", ");
+      sb.append("mode:");
+      sb.append(this.mode);
       first = false;
     }
     if (isSetTtlAction()) {
@@ -680,7 +757,15 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 5: // TTL_ACTION
+          case 5: // MODE
+            if (schemeField.type == org.apache.thrift.protocol.TType.I16) {
+              struct.mode = iprot.readI16();
+              struct.setModeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // TTL_ACTION
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
               struct.setTtlActionIsSet(true);
@@ -723,6 +808,11 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         oprot.writeI64(struct.ttl);
         oprot.writeFieldEnd();
       }
+      if (struct.isSetMode()) {
+        oprot.writeFieldBegin(MODE_FIELD_DESC);
+        oprot.writeI16(struct.mode);
+        oprot.writeFieldEnd();
+      }
       if (struct.ttlAction != null) {
         if (struct.isSetTtlAction()) {
           oprot.writeFieldBegin(TTL_ACTION_FIELD_DESC);
@@ -760,10 +850,13 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       if (struct.isSetTtl()) {
         optionals.set(3);
       }
-      if (struct.isSetTtlAction()) {
+      if (struct.isSetMode()) {
         optionals.set(4);
       }
-      oprot.writeBitSet(optionals, 5);
+      if (struct.isSetTtlAction()) {
+        optionals.set(5);
+      }
+      oprot.writeBitSet(optionals, 6);
       if (struct.isSetBlockSizeBytes()) {
         oprot.writeI64(struct.blockSizeBytes);
       }
@@ -776,6 +869,9 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
       if (struct.isSetTtl()) {
         oprot.writeI64(struct.ttl);
       }
+      if (struct.isSetMode()) {
+        oprot.writeI16(struct.mode);
+      }
       if (struct.isSetTtlAction()) {
         oprot.writeI32(struct.ttlAction.getValue());
       }
@@ -784,7 +880,7 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, CreateFileTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(5);
+      BitSet incoming = iprot.readBitSet(6);
       if (incoming.get(0)) {
         struct.blockSizeBytes = iprot.readI64();
         struct.setBlockSizeBytesIsSet(true);
@@ -802,6 +898,10 @@ public class CreateFileTOptions implements org.apache.thrift.TBase<CreateFileTOp
         struct.setTtlIsSet(true);
       }
       if (incoming.get(4)) {
+        struct.mode = iprot.readI16();
+        struct.setModeIsSet(true);
+      }
+      if (incoming.get(5)) {
         struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
         struct.setTtlActionIsSet(true);
       }

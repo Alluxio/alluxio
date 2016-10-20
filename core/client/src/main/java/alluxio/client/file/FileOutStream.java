@@ -187,8 +187,8 @@ public class FileOutStream extends AbstractOutStream {
     CompleteFileOptions options = CompleteFileOptions.defaults();
     if (mUnderStorageType.isSyncPersist()) {
       if (mUfsDelegation) {
-        mUnderStorageOutputStream.close();
         try {
+          mUnderStorageOutputStream.close();
           if (mCanceled) {
             mFileSystemWorkerClient.cancelUfsFile(mUfsFileId, CancelUfsFileOptions.defaults());
           } else {

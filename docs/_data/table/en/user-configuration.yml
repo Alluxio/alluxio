@@ -1,9 +1,8 @@
 alluxio.user.block.master.client.threads:
   The number of threads used by a block master client pool to talk to the block master.
 alluxio.user.block.worker.client.threads:
-  The number of threads used by a block worker client pool to talk to a remote block worker. It
-  determines the maximum number of Thrift connections between an Alluxio client and an Alluxio
-  worker.
+  The number of threads used by a block worker client pool for heartbeating to a worker. Increase
+  this value if worker failures affect client connections to healthy workers.
 alluxio.user.block.worker.client.pool.size.max:
   The maximum number of block worker clients cached in the block worker client pool.
 alluxio.user.block.worker.client.pool.gc.threshold.ms:
