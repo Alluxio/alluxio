@@ -144,7 +144,7 @@ public final class DynamicResourcePoolTest {
    * Tests the logic that invalid resource won't be acquired.
    */
   @Test
-  public void UnHealhyResource() throws Exception {
+  public void UnhealhyResource() throws Exception {
     TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions());
     Resource resource = pool.acquire();
     Assert.assertEquals(0, resource.mInteger.intValue());
