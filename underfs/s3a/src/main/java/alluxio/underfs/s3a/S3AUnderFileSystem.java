@@ -374,7 +374,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     if (isFolder(path)) {
       return true;
     }
-    if (exists(path)) {
+    if (isFile(path)) {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
