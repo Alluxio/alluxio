@@ -62,8 +62,7 @@ public class FileSystemWorkerClient
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
-      Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_THREADS),
-      ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
+      5, ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
   private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("file-worker-heartbeat-cancel-%d", true));
 
