@@ -855,8 +855,17 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
-  public List<AlluxioURI> fsck(AlluxioURI path) throws FileDoesNotExistException,
-      InvalidPathException {
+  /**
+   * Checks the consistency of the subtree under the path
+   *
+   * @param path the subtree root to check
+   * @return a list of paths in Alluxio which are not consistent with the under storage
+   * @throws FileDoesNotExistException if the path does not exist
+   * @throws InvalidPathException if the path is invalid
+   * @throws IOException if an error occurs interacting with the under storage
+   */
+  public List<AlluxioURI> fsck(AlluxioURI path)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
     Stack<LockedInodePath> pathsToCheck = new Stack<>();
     try {
@@ -885,6 +894,9 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Check if a path is consistent between Alluxio and the underlying storage.
+   *
+   * A path without a backing under storage is always consistent
+   *
    * A not persisted path is considered consistent if:
    *   1. It does not shadow an object in the underlying storage.
    *
@@ -898,13 +910,33 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if the path is not well formed
    */
   private boolean checkConsistency(LockedInodePath path)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     Inode inode = path.getInode();
     MountTable.Resolution resolution = mMountTable.resolve(path.getUri());
-    if (!inode.isPersisted()) {
-
+    UnderFileSystem ufs = resolution.getUfs();
+    String ufsPath = resolution.getUri().getPath();
+    if (ufs == null) {
+      return true;
     }
-    return false;
+    if (!inode.isPersisted()) {
+      return !ufs.exists(ufsPath);
+    }
+    if (inode.isDirectory()) {
+      InodeDirectory directory = (InodeDirectory) inode;
+      return ufs.exists(ufsPath)
+          && !ufs.isFile(ufsPath)
+          && ufs.getGroup(ufsPath).equals(directory.getGroup())
+          && ufs.getOwner(ufsPath).equals(directory.getOwner())
+          && ufs.getMode(ufsPath) == directory.getMode();
+    } else {
+      InodeFile file = (InodeFile) inode;
+      return ufs.exists(ufsPath)
+          && ufs.isFile(ufsPath)
+          && ufs.getFileSize(ufsPath) == file.getLength()
+          && ufs.getGroup(ufsPath).equals(file.getGroup())
+          && ufs.getOwner(ufsPath).equals(file.getOwner())
+          && ufs.getMode(ufsPath) == file.getMode();
+    }
   }
 
   /**
