@@ -317,7 +317,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Locks existing inodes on the specified path, in the specified {@link LockMode}. The target
    * inode must exist.
    *
-   * @param path the path to lock
+   * @param path the {@link AlluxioURI} path to lock
    * @param lockMode the {@link LockMode} to lock the inodes with
    * @return the {@link LockedInodePath} representing the locked path of inodes
    * @throws InvalidPathException if the path is invalid
