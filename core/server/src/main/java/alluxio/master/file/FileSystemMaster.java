@@ -855,47 +855,55 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
-  public List<AlluxioURI> fsck(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException {
-    List<AlluxioURI> inconsistentURIs = new ArrayList<>();
-    Stack<Inode> inodesToCheck = new Stack<>();
-
-    // Lock on the subtree root is held this entire method
-    try (LockedInodePath rootPath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
-      inodesToCheck.push(rootPath.getInode());
-      while (!inodesToCheck.empty()) {
-        Inode currentInode = inodesToCheck.pop();
-        // Lock on children inodes are released after they are checked
-        currentInode.lockRead();
-        try {
-          if (currentInode.isFile()) {
-            if (!checkFileConsistency((InodeFile) currentInode)) {
-              // Root path and inode should already be locked
-              inconsistentURIs.add(mInodeTree.getPath(currentInode));
-            }
-          } else if (currentInode.isDirectory()) {
-            InodeDirectory inodeDirectory = (InodeDirectory) currentInode;
-            if (!checkDirectoryConsistency(inodeDirectory)) {
-              // Root path and inode should already be locked
-              inconsistentURIs.add(mInodeTree.getPath(currentInode));
-            }
-            for (Inode child : inodeDirectory.getChildren()) {
-              inodesToCheck.push(child);
+  public List<AlluxioURI> fsck(AlluxioURI path) throws FileDoesNotExistException,
+      InvalidPathException {
+    List<AlluxioURI> inconsistentUris = new ArrayList<>();
+    Stack<LockedInodePath> pathsToCheck = new Stack<>();
+    try {
+      pathsToCheck.push(mInodeTree.lockInodePath(path, InodeTree.LockMode.READ));
+      while (!pathsToCheck.empty()) {
+        try (LockedInodePath currentPath = pathsToCheck.pop()) {
+          Inode currentInode = currentPath.getInode();
+          if (!checkConsistency(currentPath)) {
+            inconsistentUris.add(currentPath.getUri());
+          }
+          if (currentInode.isDirectory()) {
+            for (Inode child : ((InodeDirectory) currentInode).getChildren()) {
+              pathsToCheck
+                  .push(mInodeTree.lockFullInodePath(child.getId(), InodeTree.LockMode.READ));
             }
           }
-        } finally {
-          currentInode.unlockRead();
         }
       }
+    } finally {
+      while (!pathsToCheck.empty()) {
+        pathsToCheck.pop().close();
+      }
     }
-    return inconsistentURIs;
+    return inconsistentUris;
   }
 
-  private boolean checkDirectoryConsistency(InodeDirectory inode) {
-    return false;
-  }
+  /**
+   * Check if a path is consistent between Alluxio and the underlying storage.
+   * A not persisted path is considered consistent if:
+   *   1. It does not shadow an object in the underlying storage.
+   *
+   * A persisted path is considered consistent if:
+   *   1. An equivalent object exists for the its under storage path
+   *   2. The metadata of the Alluxio and under storage object are equal
+   *
+   * @param path the path to check
+   * @return true if the path is consistent, false otherwise
+   * @throws FileDoesNotExistException if the path cannot be found in the Alluxio inode tree
+   * @throws InvalidPathException if the path is not well formed
+   */
+  private boolean checkConsistency(LockedInodePath path)
+      throws FileDoesNotExistException, InvalidPathException {
+    Inode inode = path.getInode();
+    MountTable.Resolution resolution = mMountTable.resolve(path.getUri());
+    if (!inode.isPersisted()) {
 
-  private boolean checkFileConsistency(InodeFile inode) {
+    }
     return false;
   }
 
