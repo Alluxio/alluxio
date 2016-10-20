@@ -33,7 +33,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class LeaderInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static HashMap<String, LeaderInquireClient> sCreatedClients = new HashMap<>();
+  /** Map from key spliced by the address for Zookeeper and the path of leader to the created clientsCreatedClients. */
+  private static HashMap<String, LeadersCreatedClientsInquireClient> sCreatedClients = new HashMap<>();
 
   /**
    * Gets the client.
