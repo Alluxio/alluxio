@@ -304,7 +304,7 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(NESTED_FILE_URI.join("DNE")));
   }
-  
+ 
   /**
    * Tests the {@link FileSystemMaster#getFileInfo(AlluxioURI)} method.
    */
