@@ -11,6 +11,7 @@ struct CreateDirectoryTOptions {
   1: optional bool persisted
   2: optional bool recursive
   3: optional bool allowExists
+  4: optional i16 mode
 }
 
 struct CreateFileTOptions {
@@ -18,7 +19,12 @@ struct CreateFileTOptions {
   2: optional bool persisted
   3: optional bool recursive
   4: optional i64 ttl
+<<<<<<< HEAD
   5: optional common.TTtlAction ttlAction
+||||||| merged common ancestors
+=======
+  5: optional i16 mode
+>>>>>>> upstream/branch-1.3
 }
 
 struct MountTOptions {

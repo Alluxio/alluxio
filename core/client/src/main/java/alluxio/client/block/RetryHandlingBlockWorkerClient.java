@@ -71,7 +71,7 @@ public final class RetryHandlingBlockWorkerClient
   private final WorkerNetAddress mWorkerNetAddress;
   private final InetSocketAddress mRpcAddress;
 
-  private ScheduledFuture<?> mHeartbeat = null;
+  private final ScheduledFuture<?> mHeartbeat;
 
   /**
    * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session ID is
@@ -114,6 +114,8 @@ public final class RetryHandlingBlockWorkerClient
           Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
 
       NUM_ACTIVE_SESSIONS.incrementAndGet();
+    } else {
+      mHeartbeat = null;
     }
   }
 
