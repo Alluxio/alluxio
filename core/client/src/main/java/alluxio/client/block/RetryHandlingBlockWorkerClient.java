@@ -60,7 +60,8 @@ public final class RetryHandlingBlockWorkerClient
     extends AbstractThriftClient<BlockWorkerClientService.Client> implements BlockWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
-      5, ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+      Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
+      ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
   private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
 
