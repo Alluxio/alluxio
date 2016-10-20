@@ -35,7 +35,7 @@ MOPT (Mount Option) is one of:
            \tNotice: this will format the existing RamFS.
   NoMount  \tDo not mount the configured RamFS.
            \tNotice: Use NoMount (Linux only) to use tmpFS to avoid sudo requirement.
-  SudoMount is assumed if MOPT is specified.
+  SudoMount is assumed if MOPT is not specified.
 
 -f  format Journal, UnderFS Data and Workers Folder on master
 -N  do not try to kill prior running masters and/or workers in all or local
