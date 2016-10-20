@@ -41,7 +41,6 @@ import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
 import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
@@ -72,7 +71,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -144,7 +142,7 @@ public class FileOutStreamTest {
     // Set up out streams. When they are created, add them to outStreamMap
     final Map<Long, TestBufferedBlockOutStream> outStreamMap = new HashMap<>();
     when(mBlockStore.getOutStream(anyLong(), eq(BLOCK_LENGTH),
-        any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
+        any(OutStreamOptions.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
           @Override
           public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
             Long blockId = invocation.getArgumentAt(0, Long.class);
@@ -316,7 +314,7 @@ public class FileOutStreamTest {
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
     BufferedBlockOutStream stream = mock(BufferedBlockOutStream.class);
-    when(mBlockStore.getOutStream(anyInt(), anyLong(), any(WorkerNetAddress.class)))
+    when(mBlockStore.getOutStream(anyInt(), anyLong(), any(OutStreamOptions.class)))
         .thenReturn(stream);
     mTestStream = createTestStream(FILE_NAME, options);
 
@@ -338,7 +336,7 @@ public class FileOutStreamTest {
   @Test
   public void cacheWriteExceptionSyncPersist() throws IOException {
     BufferedBlockOutStream stream = mock(BufferedBlockOutStream.class);
-    when(mBlockStore.getOutStream(anyLong(), anyLong(), any(WorkerNetAddress.class)))
+    when(mBlockStore.getOutStream(anyLong(), anyLong(), any(OutStreamOptions.class)))
         .thenReturn(stream);
 
     when(stream.remaining()).thenReturn(BLOCK_LENGTH);
@@ -417,42 +415,6 @@ public class FileOutStreamTest {
     mTestStream.close();
     verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFileOptions.class));
     verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME));
-  }
-
-  @Test
-  public void useLocationPolicy() throws IOException {
-    OutStreamOptions options = OutStreamOptions.defaults().setWriteType(WriteType.MUST_CACHE)
-        .setLocationPolicy(new FileWriteLocationPolicy() {
-          @Override
-          public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
-              long blockSizeBytes) {
-            throw new RuntimeException("policy threw exception");
-          }
-        });
-    mTestStream = createTestStream(FILE_NAME, options);
-    try {
-      mTestStream.write(5);
-      Assert.fail("An exception should have been thrown");
-    } catch (Exception e) {
-      Assert.assertEquals("policy threw exception", e.getMessage());
-    }
-  }
-
-  /**
-   * Tests that the correct exception message is produced when the location policy is not specified.
-   */
-  @Test
-  public void missingLocationPolicy() throws IOException {
-    OutStreamOptions options =
-        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
-    try {
-      mTestStream = createTestStream(FILE_NAME, options);
-      Assert.fail("missing location policy should fail");
-    } catch (NullPointerException e) {
-      Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED.toString(),
-          e.getMessage());
-    }
   }
 
   /**

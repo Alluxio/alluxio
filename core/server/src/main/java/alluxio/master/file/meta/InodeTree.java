@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -609,8 +610,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
         if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
         }
-      }
-      if (options instanceof CreateFileOptions) {
+        lastInode.setPinned(currentInodeDirectory.isPinned());
+      } else if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
         lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
             currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
@@ -620,8 +621,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());
         }
+        lastInode.setPinned(currentInodeDirectory.isPinned());
       }
-      lastInode.setPinned(currentInodeDirectory.isPinned());
 
       createdInodes.add(lastInode);
       mInodes.add(lastInode);
@@ -755,10 +756,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     inode.setLastModificationTimeMs(opTimeMs);
 
     if (inode.isFile()) {
-      if (inode.isPinned()) {
-        mPinnedInodeFileIds.add(inode.getId());
+      InodeFile inodeFile = (InodeFile) inode;
+      if (inodeFile.isPinned()) {
+        mPinnedInodeFileIds.add(inodeFile.getId());
       } else {
-        mPinnedInodeFileIds.remove(inode.getId());
+        mPinnedInodeFileIds.remove(inodeFile.getId());
       }
     } else {
       assert inode instanceof InodeDirectory;

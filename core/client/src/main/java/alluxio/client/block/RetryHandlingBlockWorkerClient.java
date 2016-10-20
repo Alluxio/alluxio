@@ -228,6 +228,18 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
+  public void removeBlock(final long blockId) throws IOException, AlluxioException {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
+      @Override
+      public Void call(BlockWorkerClientService.Client client)
+          throws AlluxioTException, TException {
+        client.removeBlock(blockId);
+        return null;
+      }
+    });
+  }
+
+  @Override
   public String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
     try {
