@@ -320,17 +320,10 @@ public final class InodeFile extends Inode<InodeFile> {
    */
   public static InodeFile create(long blockContainerId, long parentId, String name,
       long creationTimeMs, CreateFileOptions fileOptions) {
-<<<<<<< HEAD
-    Permission permission = new Permission(fileOptions.getPermission()).applyFileUMask();
-
-||||||| merged common ancestors
-    Permission permission = new Permission(fileOptions.getPermission()).applyFileUMask();
-=======
     Permission permission = new Permission(fileOptions.getPermission());
     if (fileOptions.isDefaultMode()) {
       permission.setMode(Mode.getDefault()).applyFileUMask();
     }
->>>>>>> upstream/branch-1.3
     return new InodeFile(blockContainerId)
         .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)

@@ -99,12 +99,8 @@ public class CreateFileOptionsTest {
         .isPersisted());
     Assert.assertEquals(mDefaultBlockSizeBytes, thriftOptions.getBlockSizeBytes());
     Assert.assertEquals(Constants.NO_TTL, thriftOptions.getTtl());
-<<<<<<< HEAD
     Assert.assertEquals(alluxio.thrift.TTtlAction.Delete, thriftOptions.getTtlAction());
-||||||| merged common ancestors
-=======
     Assert.assertFalse(thriftOptions.isSetMode());
->>>>>>> upstream/branch-1.3
   }
 
   @Test

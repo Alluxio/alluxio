@@ -40,12 +40,8 @@ public final class CreateFileOptions {
   private FileWriteLocationPolicy mLocationPolicy;
   private long mBlockSizeBytes;
   private long mTtl;
-<<<<<<< HEAD
   private TtlAction mTtlAction;
-||||||| merged common ancestors
-=======
   private Mode mMode; // null if creating the file using system default mode
->>>>>>> upstream/branch-1.3
   private WriteType mWriteType;
 
   /**
@@ -67,12 +63,8 @@ public final class CreateFileOptions {
     }
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
-<<<<<<< HEAD
     mTtlAction = TtlAction.DELETE;
-||||||| merged common ancestors
-=======
     mMode = null;
->>>>>>> upstream/branch-1.3
   }
 
   /**
@@ -105,7 +97,6 @@ public final class CreateFileOptions {
   }
 
   /**
-<<<<<<< HEAD
    * @return the {@link TtlAction}
    */
   public TtlAction getTtlAction() {
@@ -113,8 +104,6 @@ public final class CreateFileOptions {
   }
 
   /**
-||||||| merged common ancestors
-=======
    * @return the mode of the file to create
    */
   public Mode getMode() {
@@ -122,7 +111,6 @@ public final class CreateFileOptions {
   }
 
   /**
->>>>>>> upstream/branch-1.3
    * @return the under storage type
    */
   public UnderStorageType getUnderStorageType() {
@@ -206,20 +194,13 @@ public final class CreateFileOptions {
    * @return representation of this object in the form of {@link OutStreamOptions}
    */
   public OutStreamOptions toOutStreamOptions() {
-<<<<<<< HEAD
     return OutStreamOptions.defaults()
         .setBlockSizeBytes(mBlockSizeBytes)
         .setLocationPolicy(mLocationPolicy)
+        .setMode(mMode)
         .setTtl(mTtl)
         .setTtlAction(mTtlAction)
         .setWriteType(mWriteType);
-||||||| merged common ancestors
-    return OutStreamOptions.defaults().setBlockSizeBytes(mBlockSizeBytes)
-        .setLocationPolicy(mLocationPolicy).setTtl(mTtl).setWriteType(mWriteType);
-=======
-    return OutStreamOptions.defaults().setBlockSizeBytes(mBlockSizeBytes)
-        .setLocationPolicy(mLocationPolicy).setMode(mMode).setTtl(mTtl).setWriteType(mWriteType);
->>>>>>> upstream/branch-1.3
   }
 
   @Override
@@ -242,14 +223,8 @@ public final class CreateFileOptions {
 
   @Override
   public int hashCode() {
-<<<<<<< HEAD
-    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mTtlAction,
+    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl, mTtlAction,
         mWriteType);
-||||||| merged common ancestors
-    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mWriteType);
-=======
-    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl, mWriteType);
->>>>>>> upstream/branch-1.3
   }
 
   @Override
@@ -274,14 +249,10 @@ public final class CreateFileOptions {
     options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
     options.setRecursive(mRecursive);
     options.setTtl(mTtl);
-<<<<<<< HEAD
     options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
-||||||| merged common ancestors
-=======
     if (mMode != null) {
       options.setMode(mMode.toShort());
     }
->>>>>>> upstream/branch-1.3
     return options;
   }
 }

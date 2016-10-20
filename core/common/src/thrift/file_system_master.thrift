@@ -19,12 +19,8 @@ struct CreateFileTOptions {
   2: optional bool persisted
   3: optional bool recursive
   4: optional i64 ttl
-<<<<<<< HEAD
-  5: optional common.TTtlAction ttlAction
-||||||| merged common ancestors
-=======
   5: optional i16 mode
->>>>>>> upstream/branch-1.3
+  6: optional common.TTtlAction ttlAction
 }
 
 struct MountTOptions {
