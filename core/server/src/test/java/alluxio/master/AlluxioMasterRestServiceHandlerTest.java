@@ -13,11 +13,13 @@ package alluxio.master;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -67,6 +69,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   private static final long UFS_SPACE_TOTAL = 100L;
   private static final long UFS_SPACE_USED = 100L;
   private static final long UFS_SPACE_FREE = 100L;
+  private static final String TEST_PATH = "test://test";
 
   private AlluxioMaster mMaster;
   private ServletContext mContext;
@@ -74,26 +77,39 @@ public class AlluxioMasterRestServiceHandlerTest {
   private AlluxioMasterRestServiceHandler mHandler;
 
   @BeforeClass
-  public static void setUpClass() {
+  public static void setUpClass() throws Exception {
     String filesPinnedProperty =
         MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
   }
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     mMaster = mock(AlluxioMaster.class);
     mContext = mock(ServletContext.class);
     mBlockMaster = PowerMockito.mock(BlockMaster.class);
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
-    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
-        .thenReturn(mMaster);
-
-    Configuration.set(PropertyKey.UNDERFS_ADDRESS, "test://test");
-
-    UnderFileSystemRegistry.register(new UnderFileSystemFactoryMock());
-
+    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
+        mMaster);
+    registerFileSystemMock();
     mHandler = new AlluxioMasterRestServiceHandler(mContext);
+  }
+
+  private void registerFileSystemMock() throws IOException {
+    Configuration.set(PropertyKey.UNDERFS_ADDRESS, TEST_PATH);
+    UnderFileSystemFactory underFileSystemFactoryMock = mock(UnderFileSystemFactory.class);
+    when(underFileSystemFactoryMock.supportsPath(anyString())).thenReturn(Boolean.FALSE);
+    when(underFileSystemFactoryMock.supportsPath(TEST_PATH)).thenReturn(Boolean.TRUE);
+    UnderFileSystem underFileSystemMock = mock(UnderFileSystem.class);
+    when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_FREE)).thenReturn(
+        UFS_SPACE_FREE);
+    when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_TOTAL))
+        .thenReturn(UFS_SPACE_TOTAL);
+    when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
+        UFS_SPACE_USED);
+    when(underFileSystemFactoryMock.create(eq(TEST_PATH), anyObject())).thenReturn(
+        underFileSystemMock);
+    UnderFileSystemRegistry.register(underFileSystemFactoryMock);
   }
 
   @After
@@ -278,29 +294,5 @@ public class AlluxioMasterRestServiceHandlerTest {
     List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
     assertFalse(entry.isEmpty());
     assertEquals(mockWorkerInfo.getId(), entry.get(0).getId());
-  }
-
-  public static class UnderFileSystemFactoryMock implements UnderFileSystemFactory {
-
-    @Override
-    public UnderFileSystem create(String path, Object ufsConf) {
-      UnderFileSystem underFileSystemMock = mock(UnderFileSystem.class);
-      try {
-        when(underFileSystemMock.getSpace(path, UnderFileSystem.SpaceType.SPACE_FREE))
-            .thenReturn(UFS_SPACE_FREE);
-        when(underFileSystemMock.getSpace(path, UnderFileSystem.SpaceType.SPACE_TOTAL))
-            .thenReturn(UFS_SPACE_TOTAL);
-        when(underFileSystemMock.getSpace(path, UnderFileSystem.SpaceType.SPACE_USED))
-            .thenReturn(UFS_SPACE_USED);
-      } catch (IOException ioe) {
-        fail("Cannot create Mock!");
-      }
-      return underFileSystemMock;
-    }
-
-    @Override
-    public boolean supportsPath(String path) {
-      return path.startsWith("test");
-    }
   }
 }
