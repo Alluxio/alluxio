@@ -84,7 +84,7 @@ public final class BlockMetadataManager {
   /**
    * Aborts a temp block.
    *
-   * @param tempBlockMeta the meta data of the temp block to add
+   * @param tempBlockMeta the metadata of the temp block to add
    * @throws BlockDoesNotExistException when block can not be found
    */
   public void abortTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException {
@@ -95,7 +95,7 @@ public final class BlockMetadataManager {
   /**
    * Adds a temp block.
    *
-   * @param tempBlockMeta the meta data of the temp block to add
+   * @param tempBlockMeta the metadata of the temp block to add
    * @throws WorkerOutOfSpaceException when no more space left to hold the block
    * @throws BlockAlreadyExistsException when the block already exists
    */
@@ -108,7 +108,7 @@ public final class BlockMetadataManager {
   /**
    * Commits a temp block.
    *
-   * @param tempBlockMeta the meta data of the temp block to commit
+   * @param tempBlockMeta the metadata of the temp block to commit
    * @throws WorkerOutOfSpaceException when no more space left to hold the block
    * @throws BlockAlreadyExistsException when the block already exists in committed blocks
    * @throws BlockDoesNotExistException when temp block can not be found
@@ -128,7 +128,7 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Cleans up the meta data of the given temp block ids.
+   * Cleans up the metadata of the given temp block ids.
    *
    * @param sessionId the id of the client associated with the temp blocks
    * @param tempBlockIds the list of temporary block ids to be cleaned up, non temporary block ids
@@ -207,7 +207,7 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Gets a summary of the meta data.
+   * Gets a summary of the metadata.
    *
    * @return the metadata of this block store
    */
@@ -216,7 +216,7 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Gets a full summary of block store meta data. This is an expensive operation.
+   * Gets a full summary of block store metadata. This is an expensive operation.
    *
    * @return the full metadata of this block store
    */
@@ -350,7 +350,7 @@ public final class BlockMetadataManager {
   /**
    * Moves an existing block to another location currently hold by a temp block.
    *
-   * @param blockMeta the meta data of the block to move
+   * @param blockMeta the metadata of the block to move
    * @param tempBlockMeta a placeholder in the destination directory
    * @return the new block metadata if success, absent otherwise
    * @throws BlockDoesNotExistException when the block to move is not found
@@ -374,7 +374,7 @@ public final class BlockMetadataManager {
    * Moves the metadata of an existing block to another location or throws IOExceptions. Throws an
    * {@link IllegalArgumentException} if the newLocation is not in the tiered storage.
    *
-   * @param blockMeta the meta data of the block to move
+   * @param blockMeta the metadata of the block to move
    * @param newLocation new location of the block
    * @return the new block metadata if success, absent otherwise
    * @throws BlockDoesNotExistException when the block to move is not found
@@ -426,7 +426,7 @@ public final class BlockMetadataManager {
   /**
    * Removes the metadata of a specific block.
    *
-   * @param block the meta data of the block to remove
+   * @param block the metadata of the block to remove
    * @throws BlockDoesNotExistException when block is not found
    */
   public void removeBlockMeta(BlockMeta block) throws BlockDoesNotExistException {
