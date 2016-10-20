@@ -123,6 +123,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -854,18 +855,48 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
-  public boolean repair(AlluxioURI path) throws FileDoesNotExistException, InvalidPathException {
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
-      Inode inode = inodePath.getInode();
-      List<Inode> toRepair = getInconsistentInodes(inode, new ArrayList<Inode>());
+  public List<AlluxioURI> fsck(AlluxioURI path)
+      throws FileDoesNotExistException, InvalidPathException {
+    List<AlluxioURI> inconsistentURIs = new ArrayList<>();
+    Stack<Inode> inodesToCheck = new Stack<>();
+
+    // Lock on the subtree root is held this entire method
+    try (LockedInodePath rootPath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
+      inodesToCheck.push(rootPath.getInode());
+      while (!inodesToCheck.empty()) {
+        Inode currentInode = inodesToCheck.pop();
+        // Lock on children inodes are released after they are checked
+        currentInode.lockRead();
+        try {
+          if (currentInode.isFile()) {
+            if (!checkFileConsistency((InodeFile) currentInode)) {
+              // Root path and inode should already be locked
+              inconsistentURIs.add(mInodeTree.getPath(currentInode));
+            }
+          } else if (currentInode.isDirectory()) {
+            InodeDirectory inodeDirectory = (InodeDirectory) currentInode;
+            if (!checkDirectoryConsistency(inodeDirectory)) {
+              // Root path and inode should already be locked
+              inconsistentURIs.add(mInodeTree.getPath(currentInode));
+            }
+            for (Inode child : inodeDirectory.getChildren()) {
+              inodesToCheck.push(child);
+            }
+          }
+        } finally {
+          currentInode.unlockRead();
+        }
+      }
     }
+    return inconsistentURIs;
   }
 
-  private List<Inode> getInconsistentInodes(Inode inode, List<Inode> toRepair) {
-    if (inode.isFile()) {
+  private boolean checkDirectoryConsistency(InodeDirectory inode) {
+    return false;
+  }
 
-    }
+  private boolean checkFileConsistency(InodeFile inode) {
+    return false;
   }
 
   /**
