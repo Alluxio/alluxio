@@ -7,7 +7,7 @@ priority: 1
 ---
 
 This guide describes how to configure Alluxio with an under storage system
-supporting the [Swift](http://docs.openstack.org/developer/swift/).
+supporting the [Swift API](http://docs.openstack.org/developer/swift/).
 
 # Initial Setup
 
