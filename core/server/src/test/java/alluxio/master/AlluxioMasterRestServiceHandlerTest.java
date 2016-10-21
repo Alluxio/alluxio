@@ -13,7 +13,6 @@ package alluxio.master;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.junit.Assert.assertNotNull;
@@ -67,8 +66,8 @@ import javax.servlet.ServletContext;
 public class AlluxioMasterRestServiceHandlerTest {
 
   private static final long UFS_SPACE_TOTAL = 100L;
-  private static final long UFS_SPACE_USED = 100L;
-  private static final long UFS_SPACE_FREE = 100L;
+  private static final long UFS_SPACE_USED = 200L;
+  private static final long UFS_SPACE_FREE = 300L;
   private static final String TEST_PATH = "test://test";
 
   private AlluxioMaster mMaster;
@@ -98,7 +97,6 @@ public class AlluxioMasterRestServiceHandlerTest {
   private void registerFileSystemMock() throws IOException {
     Configuration.set(PropertyKey.UNDERFS_ADDRESS, TEST_PATH);
     UnderFileSystemFactory underFileSystemFactoryMock = mock(UnderFileSystemFactory.class);
-    when(underFileSystemFactoryMock.supportsPath(anyString())).thenReturn(Boolean.FALSE);
     when(underFileSystemFactoryMock.supportsPath(TEST_PATH)).thenReturn(Boolean.TRUE);
     UnderFileSystem underFileSystemMock = mock(UnderFileSystem.class);
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_FREE)).thenReturn(
