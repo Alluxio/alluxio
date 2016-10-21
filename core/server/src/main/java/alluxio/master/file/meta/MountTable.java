@@ -57,7 +57,7 @@ public final class MountTable implements JournalCheckpointStreamable {
 
   /** Maps from Alluxio path string, to {@link MountInfo}. */
   @GuardedBy("mLock")
-  private Map<String, MountInfo> mMountTable;
+  private final Map<String, MountInfo> mMountTable;
 
   /**
    * Creates a new instance of {@link MountTable}.
