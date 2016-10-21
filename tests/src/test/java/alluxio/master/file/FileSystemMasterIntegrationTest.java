@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileSystem;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -34,6 +36,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
@@ -52,6 +55,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -381,6 +385,78 @@ public class FileSystemMasterIntegrationTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     mFsMaster.delete(new AlluxioURI("/"), true);
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#fsck(AlluxioURI)} method when all files are consistent.
+   */
+  @Test
+  public void fsckConsistent() throws Exception {
+    FileSystem fs = FileSystem.Factory.get();
+    alluxio.client.file.options.CreateDirectoryOptions dirOptions =
+        alluxio.client.file.options.CreateDirectoryOptions.defaults().setWriteType(
+            WriteType.CACHE_THROUGH);
+    alluxio.client.file.options.CreateFileOptions fileOptions =
+        alluxio.client.file.options.CreateFileOptions.defaults().setWriteType(
+            WriteType.CACHE_THROUGH);
+
+    fs.createDirectory(new AlluxioURI("/1"), dirOptions);
+    fs.createFile(new AlluxioURI("/1/2"), fileOptions).close();
+    Assert.assertEquals(new ArrayList<AlluxioURI>(), mFsMaster.fsck(new AlluxioURI("/")));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#fsck(AlluxioURI)} method when no files are consistent.
+   */
+  @Test
+  public void fsckInconsistent() throws Exception {
+    FileSystem fs = FileSystem.Factory.get();
+    alluxio.client.file.options.CreateDirectoryOptions dirOptions =
+        alluxio.client.file.options.CreateDirectoryOptions.defaults().setWriteType(
+            WriteType.CACHE_THROUGH);
+    alluxio.client.file.options.CreateFileOptions fileOptions =
+        alluxio.client.file.options.CreateFileOptions.defaults().setWriteType(
+            WriteType.CACHE_THROUGH);
+
+    AlluxioURI directory = new AlluxioURI("/1");
+    AlluxioURI file = new AlluxioURI("/1/2");
+    fs.createDirectory(directory, dirOptions);
+    fs.createFile(file, fileOptions).close();
+    String ufsDirectory = fs.getStatus(directory).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
+    ufs.delete(ufsDirectory, true);
+    List<AlluxioURI> expected = new ArrayList<>();
+    expected.add(directory);
+    expected.add(file);
+    Collections.sort(expected);
+    List<AlluxioURI> result = mFsMaster.fsck(new AlluxioURI("/"));
+    Collections.sort(result);
+    Assert.assertEquals(expected, result);
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#fsck(AlluxioURI)} method when some files are consistent.
+   */
+  @Test
+  public void fsckPartiallyInconsistent() throws Exception {
+    FileSystem fs = FileSystem.Factory.get();
+    alluxio.client.file.options.CreateDirectoryOptions dirOptions =
+        alluxio.client.file.options.CreateDirectoryOptions.defaults().setWriteType(
+            WriteType.CACHE_THROUGH);
+    alluxio.client.file.options.CreateFileOptions fileOptions =
+        alluxio.client.file.options.CreateFileOptions.defaults().setWriteType(
+            WriteType.CACHE_THROUGH);
+
+    AlluxioURI directory = new AlluxioURI("/1");
+    AlluxioURI file = new AlluxioURI("/1/2");
+    fs.createDirectory(directory, dirOptions);
+    fs.createFile(file, fileOptions).close();
+    String ufsFile = fs.getStatus(file).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.get(ufsFile);
+    ufs.delete(ufsFile, true);
+    List<AlluxioURI> expected = new ArrayList<>();
+    expected.add(file);
+    Assert.assertEquals(expected, mFsMaster.fsck(new AlluxioURI("/")));
   }
 
   @Test
