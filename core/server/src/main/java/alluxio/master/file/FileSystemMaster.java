@@ -922,20 +922,14 @@ public final class FileSystemMaster extends AbstractMaster {
       return !ufs.exists(ufsPath);
     }
     if (inode.isDirectory()) {
-      InodeDirectory directory = (InodeDirectory) inode;
-      return ufs.exists(ufsPath)
-          && !ufs.isFile(ufsPath)
-          && ufs.getGroup(ufsPath).equals(directory.getGroup())
-          && ufs.getOwner(ufsPath).equals(directory.getOwner())
-          && ufs.getMode(ufsPath) == directory.getMode();
+      boolean res = ufs.exists(ufsPath)
+          && !ufs.isFile(ufsPath);
+      return res;
     } else {
       InodeFile file = (InodeFile) inode;
       return ufs.exists(ufsPath)
           && ufs.isFile(ufsPath)
-          && ufs.getFileSize(ufsPath) == file.getLength()
-          && ufs.getGroup(ufsPath).equals(file.getGroup())
-          && ufs.getOwner(ufsPath).equals(file.getOwner())
-          && ufs.getMode(ufsPath) == file.getMode();
+          && ufs.getFileSize(ufsPath) == file.getLength();
     }
   }
 
