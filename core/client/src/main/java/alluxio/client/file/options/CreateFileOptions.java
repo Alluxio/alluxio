@@ -223,8 +223,8 @@ public final class CreateFileOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl, mTtlAction,
-        mWriteType);
+    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl,
+        mTtlAction, mWriteType);
   }
 
   @Override

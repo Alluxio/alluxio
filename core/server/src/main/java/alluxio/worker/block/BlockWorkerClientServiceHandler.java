@@ -167,6 +167,26 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   /**
+   * Used to remove a block in Alluxio storage. Worker will delete the block file and
+   * reclaim space allocated to the block.
+   *
+   * @param blockId the id of the block to be removed
+   * @throws AlluxioTException if an Alluxio error occurs
+   * @throws ThriftIOException if an I/O error occurs
+   */
+  @Override
+  public void removeBlock(final long blockId)
+      throws AlluxioTException, ThriftIOException {
+    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+      @Override
+      public Void call() throws AlluxioException, IOException {
+        mWorker.removeBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId);
+        return null;
+      }
+    });
+  }
+
+  /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
    * storage directory which fits the initial block size by some allocation strategy. If there is
    * not enough space on Alluxio storage {@link alluxio.exception.WorkerOutOfSpaceException} will be

@@ -32,7 +32,7 @@ public interface BlockWorkerClient extends Closeable {
   /**
    * Updates the latest block access time on the worker.
    *
-   * @param blockId The id of the block
+   * @param blockId the ID of the block
    * @throws IOException if an I/O error occurs
    */
   void accessBlock(final long blockId) throws IOException;
@@ -40,7 +40,7 @@ public interface BlockWorkerClient extends Closeable {
   /**
    * Notifies the worker the block is cached.
    *
-   * @param blockId The id of the block
+   * @param blockId the ID of the block
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
@@ -49,7 +49,7 @@ public interface BlockWorkerClient extends Closeable {
   /**
    * Notifies worker that the block has been cancelled.
    *
-   * @param blockId The ID of the block to be cancelled
+   * @param blockId the ID of the block to be cancelled
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
@@ -61,7 +61,7 @@ public interface BlockWorkerClient extends Closeable {
   InetSocketAddress getDataServerAddress();
 
   /**
-   * @return the id of the session
+   * @return the ID of the session
    */
   long getSessionId();
 
@@ -69,7 +69,7 @@ public interface BlockWorkerClient extends Closeable {
    * Locks the block, therefore, the worker will not evict the block from the memory until it is
    * unlocked.
    *
-   * @param blockId The id of the block
+   * @param blockId the ID of the block
    * @return the path of the block file locked
    * @throws IOException if a non-Alluxio exception occurs
    */
@@ -78,7 +78,7 @@ public interface BlockWorkerClient extends Closeable {
   /**
    * Promotes block back to the top StorageTier.
    *
-   * @param blockId The id of the block that will be promoted
+   * @param blockId the ID of the block that will be promoted
    * @return true if succeed, false otherwise
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
@@ -86,10 +86,19 @@ public interface BlockWorkerClient extends Closeable {
   boolean promoteBlock(final long blockId) throws IOException, AlluxioException;
 
   /**
+   * Removes a block from the internal storage of this worker.
+   *
+   * @param blockId the ID of the block that will be removed
+   * @throws IOException if an I/O error occurs
+   * @throws AlluxioException if an Alluxio error occurs
+   */
+  void removeBlock(final long blockId) throws IOException, AlluxioException;
+
+  /**
    * Gets temporary path for the block from the worker.
    *
-   * @param blockId The id of the block
-   * @param initialBytes The initial size bytes allocated for the block
+   * @param blockId the ID of the block
+   * @param initialBytes the initial size bytes allocated for the block
    * @return the temporary path of the block
    * @throws IOException if a non-Alluxio exception occurs
    */
@@ -98,8 +107,8 @@ public interface BlockWorkerClient extends Closeable {
   /**
    * Requests space for some block from worker.
    *
-   * @param blockId The id of the block
-   * @param requestBytes The requested space size, in bytes
+   * @param blockId the ID of the block
+   * @param requestBytes the requested space size, in bytes
    * @return true if space was successfully allocated, false if the worker is unable to allocate
    *         space due to space exhaustion
    * @throws IOException if an exception occurs
@@ -109,7 +118,7 @@ public interface BlockWorkerClient extends Closeable {
   /**
    * Unlocks the block.
    *
-   * @param blockId The id of the block
+   * @param blockId the ID of the block
    * @return true if success, false otherwise
    * @throws IOException if an I/O error occurs
    */
