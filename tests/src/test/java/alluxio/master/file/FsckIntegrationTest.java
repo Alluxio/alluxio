@@ -56,7 +56,7 @@ public class FsckIntegrationTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#fsck(alluxio.AlluxioURI)} method when all files are consistent.
+   * Tests the {@link FileSystemMaster#fsck(AlluxioURI)} method when all files are consistent.
    */
   @Test
   public void fsckConsistent() throws Exception {

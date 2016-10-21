@@ -856,7 +856,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Checks the consistency of the subtree under the path
+   * Checks the consistency of the subtree under the path.
    *
    * @param path the subtree root to check
    * @return a list of paths in Alluxio which are not consistent with the under storage
@@ -895,14 +895,14 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Check if a path is consistent between Alluxio and the underlying storage.
    *
-   * A path without a backing under storage is always consistent
+   * A path without a backing under storage is always consistent.
    *
    * A not persisted path is considered consistent if:
    *   1. It does not shadow an object in the underlying storage.
    *
    * A persisted path is considered consistent if:
-   *   1. An equivalent object exists for the its under storage path
-   *   2. The metadata of the Alluxio and under storage object are equal
+   *   1. An equivalent object exists for the its under storage path.
+   *   2. The metadata of the Alluxio and under storage object are equal.
    *
    * @param path the path to check
    * @return true if the path is consistent, false otherwise
@@ -922,9 +922,8 @@ public final class FileSystemMaster extends AbstractMaster {
       return !ufs.exists(ufsPath);
     }
     if (inode.isDirectory()) {
-      boolean res = ufs.exists(ufsPath)
+      return ufs.exists(ufsPath)
           && !ufs.isFile(ufsPath);
-      return res;
     } else {
       InodeFile file = (InodeFile) inode;
       return ufs.exists(ufsPath)
