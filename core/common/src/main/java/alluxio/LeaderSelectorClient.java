@@ -106,8 +106,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Gets the participants.
-   *
    * @return the list of participants
    */
   public List<String> getParticipants() {
