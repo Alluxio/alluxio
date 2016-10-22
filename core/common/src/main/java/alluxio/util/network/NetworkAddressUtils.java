@@ -397,7 +397,6 @@ public final class NetworkAddressUtils {
       sLocalIP = address.getHostAddress();
       return sLocalIP;
     } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
