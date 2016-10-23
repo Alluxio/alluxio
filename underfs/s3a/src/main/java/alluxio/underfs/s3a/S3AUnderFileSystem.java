@@ -85,7 +85,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example s3a://my-bucket-name/. */
   private final String mBucketPrefix;
 
-  /** Transfer Manager for efficient I/O to s3. */
+  /** Transfer Manager for efficient I/O to S3. */
   private final TransferManager mManager;
 
   /** The name of the account owner. */
@@ -186,7 +186,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    * @param bucketPrefix prefix of the bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
-   * @param transferManager Transfer Manager for efficient I/O to s3
+   * @param transferManager Transfer Manager for efficient I/O to S3
    */
   protected S3AUnderFileSystem(AlluxioURI uri,
       AmazonS3Client amazonS3Client,
@@ -809,13 +809,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the s3 bucket prefix or the preceding path separator from the key if it is present. For
+   * Strips the S3 bucket prefix or the preceding path separator from the key if it is present. For
    * example, for input key s3a://my-bucket-name/my-path/file, the output would be my-path/file. If
    * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
    * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
    *
    * @param key the key to strip
-   * @return the key without the s3 bucket prefix
+   * @return the key without the S3 bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
     String stripedKey = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
