@@ -31,6 +31,7 @@ public interface RemoteBlockReader extends Closeable {
    * The factory for the {@link RemoteBlockReader}.
    */
   class Factory {
+    static RemoteBlockReader sReader = null;
 
     private Factory() {} // prevent instantiation
 
@@ -47,6 +48,25 @@ public interface RemoteBlockReader extends Closeable {
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
+    }
+
+    /**
+     * Factory for {@link RemoteBlockReader}. Creates a new instance if it not already exists.
+     *
+     * @return a new instance of {@link RemoteBlockReader} if it not already exists
+     */
+    public static RemoteBlockReader createIfNotExist() {
+      if (sReader == null) {
+        try {
+          sReader = CommonUtils.createNewClassInstance(
+              Configuration.<RemoteBlockReader>getClass(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS),
+              null, null);
+        } catch (Exception e) {
+          throw Throwables.propagate(e);
+        }
+      }
+
+      return sReader;
     }
   }
 
