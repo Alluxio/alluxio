@@ -150,7 +150,6 @@ public class OSSOutputStreamTest {
     BufferedInputStream inputStream = PowerMockito.mock(BufferedInputStream.class);
     PowerMockito.whenNew(BufferedInputStream.class)
             .withArguments(Mockito.any(FileInputStream.class)).thenReturn(inputStream);
-    ObjectMetadata objMeta = new ObjectMetadata();
     PowerMockito
             .when(mOssClient.putObject(Mockito.anyString(), Mockito.anyString(),
                     Mockito.any(InputStream.class), Mockito.any(ObjectMetadata.class)))
