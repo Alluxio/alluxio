@@ -337,7 +337,6 @@ public final class BaseFileSystemTest {
   @Test
   public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    URIStatus status = new URIStatus(new FileInfo());
     Mockito.when(mFileSystemMasterClient.getStatus(file)).thenThrow(EXCEPTION);
     OpenFileOptions openOptions = OpenFileOptions.defaults();
     try {
