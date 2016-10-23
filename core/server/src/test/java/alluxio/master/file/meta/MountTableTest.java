@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Unit tests for {@link MountTable}.
  */
-public class MountTableTest {
+public final class MountTableTest {
   private MountTable mMountTable;
   private final MountOptions mDefaultOptions = MountOptions.defaults();
 

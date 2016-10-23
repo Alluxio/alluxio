@@ -14,10 +14,10 @@ package alluxio.master.block;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class provides a set of methods related to block Ids. Each block Id is a value of long with
+ * This class provides a set of methods related to block IDs. Each block ID is a value of long with
  * the following two parts:
  * <ul>
- * <li>The most significant 5 bytes (40 bits) represent the container Id of this block and</li>
+ * <li>The most significant 5 bytes (40 bits) represent the container ID of this block and</li>
  * <li>The least significant 3 bytes (24 bits) represent the sequence number of this block in the
  * container.</li>
  * </ul>
@@ -35,34 +35,34 @@ public final class BlockId {
   }
 
   /**
-   * @param containerId the container id to create the block id with
-   * @param sequenceNumber the sequence number to create the block id with
-   * @return the block id constructed with the container id and sequence number
+   * @param containerId the container ID to create the block ID with
+   * @param sequenceNumber the sequence number to create the block ID with
+   * @return the block ID constructed with the container ID and sequence number
    */
   public static long createBlockId(long containerId, long sequenceNumber) {
-    // TODO(gene): Check for valid ids here?
+    // TODO(gene): Check for valid IDs here?
     return ((containerId & CONTAINER_ID_MASK) << SEQUENCE_NUMBER_BITS)
         | (sequenceNumber & SEQUENCE_NUMBER_MASK);
   }
 
   /**
-   * @param blockId the block id to get the container id for
-   * @return the container id of a specified block id
+   * @param blockId the block ID to get the container ID for
+   * @return the container ID of a specified block ID
    */
   public static long getContainerId(long blockId) {
     return (blockId >> SEQUENCE_NUMBER_BITS) & CONTAINER_ID_MASK;
   }
 
   /**
-   * @param blockId the block id to get the sequence number for
-   * @return the sequence number of the specified block id
+   * @param blockId the block ID to get the sequence number for
+   * @return the sequence number of the specified block ID
    */
   public static long getSequenceNumber(long blockId) {
     return blockId & SEQUENCE_NUMBER_MASK;
   }
 
   /**
-   * @return the maximum possible sequence number for block ids
+   * @return the maximum possible sequence number for block IDs
    */
   public static long getMaxSequenceNumber() {
     return SEQUENCE_NUMBER_MASK;

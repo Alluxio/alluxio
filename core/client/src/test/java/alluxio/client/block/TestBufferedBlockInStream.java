@@ -11,13 +11,11 @@
 
 package alluxio.client.block;
 
-import alluxio.util.io.BufferUtils;
-
 import java.io.IOException;
 
 /**
- * Test class for mocking {@link BufferedBlockInStream}. The stream will read in increasing bytes
- * from `start` to `start + blockSize`.
+ * Mock of {@link BufferedBlockInStream} to creates a BlockInStream on a single block. The
+ * data of this stream will be read from the give byte array.
  */
 public class TestBufferedBlockInStream extends BufferedBlockInStream {
   private final byte[] mData;
@@ -26,12 +24,11 @@ public class TestBufferedBlockInStream extends BufferedBlockInStream {
    * Constructs a new {@link TestBufferedBlockInStream} to be used in tests.
    *
    * @param blockId the id of the block
-   * @param start the position to start to read
-   * @param blockSize the size of the block in bytes
+   * @param data data to read
    */
-  public TestBufferedBlockInStream(long blockId, int start, long blockSize) {
-    super(blockId, blockSize);
-    mData = BufferUtils.getIncreasingByteArray(start, (int) blockSize);
+  public TestBufferedBlockInStream(long blockId, byte[] data) {
+    super(blockId, data.length);
+    mData = data;
   }
 
   @Override

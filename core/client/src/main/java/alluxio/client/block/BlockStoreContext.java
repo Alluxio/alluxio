@@ -155,28 +155,17 @@ public final class BlockStoreContext {
   }
 
   /**
-   * Obtains a client for a worker with the given address.
+   * Creates a client for a worker with the given address.
    *
    * @param address the address of the worker to get a client to
    * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
    * @throws IOException if it fails to create a client for a given hostname (e.g. no Alluxio
    *         worker is available for the given worker RPC address)
    */
-  public BlockWorkerClient acquireWorkerClient(WorkerNetAddress address) throws IOException {
+  public BlockWorkerClient createWorkerClient(WorkerNetAddress address) throws IOException {
     Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     long clientId = IdUtils.getRandomNonNegativeLong();
     return new RetryHandlingBlockWorkerClient(address, clientId);
-  }
-
-  /**
-   * Releases the {@link BlockWorkerClient} by directly closing it.
-   *
-   * @param blockWorkerClient the worker client to release, the client should not be accessed after
-   *        this method is called
-   */
-  public void releaseWorkerClient(BlockWorkerClient blockWorkerClient) {
-    Preconditions.checkNotNull(blockWorkerClient);
-    blockWorkerClient.close();
   }
 
   /**

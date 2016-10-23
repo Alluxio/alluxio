@@ -60,7 +60,7 @@ interface BlockStore {
 
   /**
    * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
-   * location named after the the session id) to store its data. This method only creates the meta
+   * location named after session id) to store its data. This method only creates meta
    * data but adds NO data to this temporary location. The location can be a location with specific
    * tier and dir, or {@link BlockStoreLocation#anyTier()}, or
    * {@link BlockStoreLocation#anyDirInTier(String)}.

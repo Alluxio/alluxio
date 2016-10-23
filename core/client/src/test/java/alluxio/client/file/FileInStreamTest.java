@@ -106,8 +106,9 @@ public class FileInStreamTest {
         @Override
         public BufferedBlockInStream answer(InvocationOnMock invocation) throws Throwable {
           long i = (Long) invocation.getArguments()[0];
-          return new TestBufferedBlockInStream(i, (int) (i * BLOCK_LENGTH),
-              getBlockLength((int) i));
+          byte[] input = BufferUtils.getIncreasingByteArray((int) (i * BLOCK_LENGTH),
+              (int) getBlockLength((int) i));
+          return new TestBufferedBlockInStream(i, input);
         }
       });
       Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),

@@ -99,8 +99,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Gets the name of the leader.
-   *
    * @return the leader name
    */
   public String getName() {
@@ -108,8 +106,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Gets the participants.
-   *
    * @return the list of participants
    */
   public List<String> getParticipants() {
@@ -136,8 +132,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Sets the current master thread.
-   *
    * @param currentMasterThread the thread to use as the master thread
    */
   public void setCurrentMasterThread(Thread currentMasterThread) {

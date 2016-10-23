@@ -644,7 +644,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * If the path passed to this filesystem is not an URI path, then add oss prefix.
+   * Adds oss prefix if the given path is not a URI path.
    *
    * @param path the path to process
    * @return the path with oss prefix

@@ -232,6 +232,18 @@ public final class CommonUtils {
   }
 
   /**
+   * Waits indefinitely for a condition to be satisfied.
+   *
+   * @param description a description of what causes condition to evaluation to true
+   * @param condition the condition to wait on
+   */
+  public static void waitFor(String description, Function<Void, Boolean> condition) {
+    while (!condition.apply(null)) {
+      CommonUtils.sleepMs(20);
+    }
+  }
+
+  /**
    * Gets the primary group name of a user.
    *
    * @param userName Alluxio user name
