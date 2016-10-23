@@ -7,7 +7,7 @@ priority: 2
 ---
 
 This guide describes how to run [Apache Hive](http://hive.apache.org/) with Alluxio, so
-that you can easily store Hive tables into Alluxio at various storage level.
+that you can easily store Hive tables in Alluxio's tiered storage.
 
 # Prerequisites
 
@@ -23,7 +23,7 @@ Please [Download Hive](http://hive.apache.org/downloads.html).
 Apache Hive allows you to use Alluxio through a generic file system wrapper for the Hadoop file system.
 Therefore, the configuration of Alluxio is done mostly in Hive and its under computing frameworks.
 
-#### Set property in `hive-site.xml`
+#### Configure `hive-site.xml`
 
 You need to add the following property to `hive-site.xml` in your Hive installation `conf` directory
 
@@ -34,10 +34,10 @@ You need to add the following property to `hive-site.xml` in your Hive installat
 </property>
 ```
 
-#### Set the rest properties in Apache Hadoop MapReduce
+#### Configure Hadoop MapReduce
 
-If you run Hive on Apache Hadoop MapReduce, Hive can read configirations from Hadoop configuration files. In addition,
-Hive's Hadoop jobs will store its immediate results on Alluxio.
+If you run Hive on Hadoop MapReduce, Hive can read configirations from Hadoop configuration files. In addition,
+Hive's Hadoop jobs will store its intermediate results in Alluxio.
 
 You need to add the following properties to `core-site.xml` file in Hadoop:
 
@@ -62,8 +62,8 @@ Distributing the Alluxio Client Jar in Hadoop MapReduce:
 
 - You must place the client jar
 `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
-(located in the `/<PATH_TO_ALLUXIO>/core/client/target/` directory), in the `$HADOOP_HOME/lib`
-(may be `$HADOOP_HOME/share/hadoop/common/lib` for different versions of Hadoop) directory of every
+(located in the `/<PATH_TO_ALLUXIO>/core/client/target/` directory), in the `$HADOOP_HOME/share/hadoop/common/lib`
+(may be `$HADOOP_HOME/lib` for different versions of Hadoop) directory of every
 MapReduce node, and restart all of the NodeManagers.
 
 # Distribute the Alluxio Client jar
