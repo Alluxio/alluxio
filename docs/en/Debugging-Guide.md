@@ -59,12 +59,12 @@ bucket, without the `s3://`, `s3a://`, or `s3n://` prefix.
 
 ## Usage FAQ
 
-#### Q: Why I see exceptions like "No FileSystem for scheme: alluxio"
+#### Q: Why do I see exceptions like "No FileSystem for scheme: alluxio"?
 
-A: This error message is seen when your applications (e.g., MapReduce, Spark and etc) tried to access
-Alluxio as an HDFS-compatible data service, but the `alluxio://` scheme is not configured yet and thus not recognized by the
+A: This error message is seen when your applications (e.g., MapReduce, Spark) try to access
+Alluxio as an HDFS-compatible file system, but the `alluxio://` scheme is not recognized by the
 application. Please make sure your HDFS configuration file `core-site.xml` (in your default hadoop
-installation or `spark/conf/` if you customize this file for Spark) has the following content:
+installation or `spark/conf/` if you customize this file for Spark) has the following property:
 
 ```xml
 <configuration>
@@ -75,30 +75,33 @@ installation or `spark/conf/` if you customize this file for Spark) has the foll
 </configuration>
 ```
 
-#### Q: Why I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"
+#### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"?
 
-A: This error message is seen when your applications (e.g., MapReduce, Spark and etc) tried to access
-Alluxio as an HDFS-compatible data service, the `alluxio://` scheme has been
+A: This error message is seen when your applications (e.g., MapReduce, Spark) try to access
+Alluxio as an HDFS-compatible file system, the `alluxio://` scheme has been
 configured correctly but the Alluxio client jar is not found on the classpath of your application.
+Depending on the computation frameworks, users usually need to add the Alluxio
+client jar to their class path of the framework through environment variables or
+properties on all nodes running this framework. Here are some examples:
 
-- For MapReduce users, you can append the client jar to `$HADOOP_CLASSPATH`
+- For MapReduce jobs, you can append the client jar to `$HADOOP_CLASSPATH`:
 
 ```bash
 $ export HADOOP_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${HADOOP_CLASSPATH}
 ```
 
-- For Spark users, either expanding `$SPARK_CLASSPATH` by
+- For Spark jobs, you can append the client jar to `$SPARK_CLASSPATH`:
 
 ```bash
 $ export SPARK_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${SPARK_CLASSPATH}
 ```
 
-Alternatively, add the following lines to `spark/conf/spark-defaults.conf`
+Alternatively, add the following lines to `spark/conf/spark-defaults.conf` to
 
 ```bash
-spark.driver.extraClassPath /pathToAlluxio/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
+spark.driver.extraClassPath /<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
 spark.executor.extraClassPath
-/pathToAlluxio/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
+/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
 ```
 
 #### Q: I'm seeing error messages like "Frame size (67108864) larger than max length (16777216)". What is wrong?
