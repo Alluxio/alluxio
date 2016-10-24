@@ -11,9 +11,12 @@
 
 package alluxio;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * System constants that are determined during runtime.
  */
+@ThreadSafe
 public final class RuntimeConstants {
   static {
     VERSION = Configuration.get(PropertyKey.VERSION);
