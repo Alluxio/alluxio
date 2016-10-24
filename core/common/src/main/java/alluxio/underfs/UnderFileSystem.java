@@ -127,9 +127,8 @@ public abstract class UnderFileSystem {
      * @return the UFS instance
      */
     UnderFileSystem get(String path, Object ufsConf) {
-      UnderFileSystem cachedFs = null;
       Key key = new Key(new AlluxioURI(path));
-      cachedFs = mUnderFileSystemMap.get(key);
+      UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
         return cachedFs;
       }
