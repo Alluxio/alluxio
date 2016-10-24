@@ -68,9 +68,8 @@ public final class LsCommand extends WithWildCardPathCommand {
           FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTimeMs),
           memoryState, path);
     } else {
-      return String.format(Constants.LS_FORMAT_NO_ACL,
-          FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTimeMs),
-          memoryState, path);
+      return String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(size),
+          CommandUtils.convertMsToDate(createTimeMs), memoryState, path);
     }
   }
 
