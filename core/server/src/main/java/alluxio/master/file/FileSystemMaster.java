@@ -52,6 +52,7 @@ import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -614,7 +615,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if the path is invalid
    * @throws IOException if an error occurs interacting with the under storage
    */
-  public List<AlluxioURI> checkConsistency(AlluxioURI path)
+  public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
     Stack<LockedInodePath> pathsToCheck = new Stack<>();

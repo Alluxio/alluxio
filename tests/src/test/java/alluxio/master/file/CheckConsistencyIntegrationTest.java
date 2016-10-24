@@ -17,6 +17,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.underfs.UnderFileSystem;
 
 import org.junit.Assert;
@@ -29,7 +30,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Integration test for {@link FileSystemMaster#checkConsistency(AlluxioURI)}
+ * Integration test for
+ * {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)}
  */
 public class CheckConsistencyIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
@@ -56,15 +58,18 @@ public class CheckConsistencyIntegrationTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI)} method when all files are consistent.
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when all files are consistent.
    */
   @Test
   public void consistent() throws Exception {
-    Assert.assertEquals(new ArrayList<AlluxioURI>(), mFileSystemMaster.checkConsistency(new AlluxioURI("/")));
+    Assert.assertEquals(new ArrayList<AlluxioURI>(), mFileSystemMaster.checkConsistency(
+        new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI)} method when no files are consistent.
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when no files are consistent.
    */
   @Test
   public void inconsistent() throws Exception {
@@ -75,13 +80,15 @@ public class CheckConsistencyIntegrationTest {
     expected.add(DIRECTORY);
     expected.add(FILE);
     Collections.sort(expected);
-    List<AlluxioURI> result = mFileSystemMaster.checkConsistency(new AlluxioURI("/"));
+    List<AlluxioURI> result =
+        mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
     Collections.sort(result);
     Assert.assertEquals(expected, result);
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI)} method when some files are consistent.
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when some files are consistent.
    */
   @Test
   public void partiallyInconsistent() throws Exception {
@@ -90,6 +97,7 @@ public class CheckConsistencyIntegrationTest {
     ufs.delete(ufsFile, true);
     List<AlluxioURI> expected = new ArrayList<>();
     expected.add(FILE);
-    Assert.assertEquals(expected, mFileSystemMaster.checkConsistency(new AlluxioURI("/")));
+    Assert.assertEquals(expected, mFileSystemMaster
+        .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
   }
 }
