@@ -25,8 +25,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -55,12 +53,10 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param inMemory whether the file is in memory
    * @param path path of the file or folder
    * @return the formatted string according to acl and isFolder
-   * @throws UnsupportedEncodingException when the given encoding for the format string is not
-   *                                      supported
    */
   public static String formatLsString(boolean acl, boolean isFolder, String permission,
       String userName, String groupName, long size, long createTimeMs, boolean inMemory,
-      String path) throws UnsupportedEncodingException {
+      String path) {
     String memoryState;
     if (isFolder) {
       memoryState = STATE_FOLDER;
@@ -68,13 +64,13 @@ public final class LsCommand extends WithWildCardPathCommand {
       memoryState = inMemory ? STATE_FILE_IN_MEMORY : STATE_FILE_NOT_IN_MEMORY;
     }
     if (acl) {
-      return URLDecoder.decode(String.format(Constants.LS_FORMAT, permission, userName, groupName,
+      return String.format(Constants.LS_FORMAT, permission, userName, groupName,
           FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTimeMs),
-          memoryState, path), "UTF-8");
+          memoryState, path);
     } else {
-      return URLDecoder.decode(String.format(Constants.LS_FORMAT_NO_ACL,
+      return String.format(Constants.LS_FORMAT_NO_ACL,
           FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTimeMs),
-          memoryState, path), "UTF-8");
+          memoryState, path);
     }
   }
 

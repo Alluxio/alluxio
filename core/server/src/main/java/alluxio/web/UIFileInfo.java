@@ -22,8 +22,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -182,11 +180,9 @@ public final class UIFileInfo {
 
   /**
    * @return the absolute path
-   * @throws UnsupportedEncodingException when the given encoding for the format string is not
-   *                                      supported
    */
-  public String getAbsolutePath() throws UnsupportedEncodingException {
-    return URLDecoder.decode(mAbsolutePath, "UTF-8");
+  public String getAbsolutePath() {
+    return mAbsolutePath;
   }
 
   /**
@@ -284,14 +280,12 @@ public final class UIFileInfo {
 
   /**
    * @return the file name
-   * @throws UnsupportedEncodingException when the given encoding for the format string is not
-   *                                      supported
    */
-  public String getName() throws UnsupportedEncodingException {
+  public String getName() {
     if (AlluxioURI.SEPARATOR.equals(mAbsolutePath)) {
       return "root";
     } else {
-      return URLDecoder.decode(mName, "UTF-8");
+      return mName;
     }
   }
 
