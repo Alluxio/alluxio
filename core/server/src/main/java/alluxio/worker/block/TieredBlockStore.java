@@ -11,7 +11,9 @@
 
 package alluxio.worker.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.collections.Pair;
@@ -80,8 +82,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  // TODO(bin): Change maxRetry to be configurable.
-  private static final int MAX_RETRIES = 3;
+  private static final int MAX_RETRIES =
+          Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
