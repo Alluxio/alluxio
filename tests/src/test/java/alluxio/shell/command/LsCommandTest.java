@@ -262,9 +262,8 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
     URIStatus file = mFileSystem.getStatus(new AlluxioURI(fileName));
     mFsShell.run("ls", "/");
-    String expected =
-        getLsNoAclResultStr("/localhost%2C61764%2C1476207067267..meta.1476207073442.meta",
-        file.getCreationTimeMs(), 10, LsCommand.STATE_FILE_IN_MEMORY);
+    String expected = getLsNoAclResultStr(fileName, file.getCreationTimeMs(), 10,
+        LsCommand.STATE_FILE_IN_MEMORY);
     Assert.assertEquals(expected, mOutput.toString());
   }
 }
