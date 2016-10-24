@@ -56,6 +56,10 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mTtl = options.getTtl();
     mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
     mPermission = Permission.defaults().setOwnerFromThriftClient();
+    if (options.isSetMode()) {
+      mDefaultMode = false;
+      mPermission.setMode(options.getMode());
+    }
   }
 
   private CreateFileOptions() {

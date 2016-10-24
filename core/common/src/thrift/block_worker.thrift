@@ -51,6 +51,12 @@ service BlockWorkerClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
+   * Used to remove a block from an Alluxio worker.
+   **/
+  void removeBlock( /** the id of the block being removed */ 1: i64 blockId)
+    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+
+  /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
    * storage directory which fits the initial block size by some allocation strategy, and the
    * temporary file path of the block file will be returned. if there is no enough space on Alluxio

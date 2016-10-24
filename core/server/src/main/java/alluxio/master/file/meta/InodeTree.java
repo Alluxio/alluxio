@@ -317,7 +317,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Locks existing inodes on the specified path, in the specified {@link LockMode}. The target
    * inode must exist.
    *
-   * @param path the path to lock
+   * @param path the {@link AlluxioURI} path to lock
    * @param lockMode the {@link LockMode} to lock the inodes with
    * @return the {@link LockedInodePath} representing the locked path of inodes
    * @throws InvalidPathException if the path is invalid
@@ -552,10 +552,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // locked. This could improve performance. Further investigation is needed.
 
     // Fill in the ancestor directories that were missing.
+    // NOTE, we set the mode of missing ancestor directories to be the default value, rather
+    // than inheriting the option of the final file to create, because it may not have
+    // "execute" permission.
     CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(false)
         .setPersisted(options.isPersisted())
-        .setPermission(options.getPermission());
+        .setPermission(options.getPermission())
+        .setDefaultMode(true);
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir =
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
@@ -605,8 +609,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
         if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
         }
-      }
-      if (options instanceof CreateFileOptions) {
+        lastInode.setPinned(currentInodeDirectory.isPinned());
+      } else if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
         lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
             currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
@@ -616,8 +620,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());
         }
+        lastInode.setPinned(currentInodeDirectory.isPinned());
       }
-      lastInode.setPinned(currentInodeDirectory.isPinned());
 
       createdInodes.add(lastInode);
       mInodes.add(lastInode);
@@ -625,20 +629,19 @@ public final class InodeTree implements JournalCheckpointStreamable {
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
     }
 
-    if (toPersistDirectories.size() > 0) {
-      Inode<?> lastToPersistInode = toPersistDirectories.get(toPersistDirectories.size() - 1);
-      MountTable.Resolution resolution = mMountTable.resolve(getPath(lastToPersistInode));
+    // Persists all directories one by one rather than recursively creating necessary parent
+    // directories, because different ufs may have different semantics in the ACL permission of
+    // those recursively created directories. Even if the directory already exists in the ufs,
+    // we mark it as persisted.
+    for (Inode<?> inode : toPersistDirectories) {
+      MountTable.Resolution resolution = mMountTable.resolve(getPath(inode));
       String ufsUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
-      // Persists only the last directory, recursively creating necessary parent directories. Even
-      // if the directory already exists in the ufs, we mark it as persisted.
-      Permission perm = new Permission(lastToPersistInode.getOwner(), lastToPersistInode.getGroup(),
-          lastToPersistInode.getMode());
-      MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(true).setPermission(perm);
+      Permission permission = new Permission(inode.getOwner(), inode.getGroup(), inode.getMode());
+      MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(false)
+          .setPermission(permission);
       if (ufs.exists(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
-        for (Inode<?> inode : toPersistDirectories) {
-          inode.setPersistenceState(PersistenceState.PERSISTED);
-        }
+        inode.setPersistenceState(PersistenceState.PERSISTED);
       }
     }
 
@@ -752,10 +755,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     inode.setLastModificationTimeMs(opTimeMs);
 
     if (inode.isFile()) {
-      if (inode.isPinned()) {
-        mPinnedInodeFileIds.add(inode.getId());
+      InodeFile inodeFile = (InodeFile) inode;
+      if (inodeFile.isPinned()) {
+        mPinnedInodeFileIds.add(inodeFile.getId());
       } else {
-        mPinnedInodeFileIds.remove(inode.getId());
+        mPinnedInodeFileIds.remove(inodeFile.getId());
       }
     } else {
       assert inode instanceof InodeDirectory;
@@ -1145,10 +1149,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     private final List<Inode<?>> mPersisted;
 
     /**
-     * Constructs the results of modified and created inodes when creating a path.
+     * Constructs the results of modified, created, and persisted inodes when creating a path.
      *
      * @param modified a list of modified inodes
      * @param created a list of created inodes
+     * @param persisted a list of persisted inodes
      */
     CreatePathResult(List<Inode<?>> modified, List<Inode<?>> created, List<Inode<?>> persisted) {
       mModified = Preconditions.checkNotNull(modified);

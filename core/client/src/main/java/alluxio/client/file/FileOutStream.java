@@ -25,7 +25,6 @@ import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
 import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -35,7 +34,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -68,6 +66,7 @@ public class FileOutStream extends AbstractOutStream {
   private final FileSystemContext mContext;
   private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
+  private final OutStreamOptions mOptions;
   private final long mNonce;
   /** Whether this stream should delegate operations to the ufs to a worker. */
   private final boolean mUfsDelegation;
@@ -77,7 +76,6 @@ public class FileOutStream extends AbstractOutStream {
   private final Long mUfsFileId;
 
   private String mUfsPath;
-  private FileWriteLocationPolicy mLocationPolicy;
 
   protected boolean mCanceled;
   protected boolean mClosed;
@@ -114,6 +112,7 @@ public class FileOutStream extends AbstractOutStream {
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
+    mOptions = options;
     mContext = context;
     mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
@@ -165,8 +164,6 @@ public class FileOutStream extends AbstractOutStream {
     mCanceled = false;
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     mBytesWritten = 0;
-    mLocationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
-        PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
   }
 
   @Override
@@ -187,8 +184,8 @@ public class FileOutStream extends AbstractOutStream {
     CompleteFileOptions options = CompleteFileOptions.defaults();
     if (mUnderStorageType.isSyncPersist()) {
       if (mUfsDelegation) {
-        mUnderStorageOutputStream.close();
         try {
+          mUnderStorageOutputStream.close();
           if (mCanceled) {
             mFileSystemWorkerClient.cancelUfsFile(mUfsFileId, CancelUfsFileOptions.defaults());
           } else {
@@ -333,15 +330,9 @@ public class FileOutStream extends AbstractOutStream {
     }
 
     if (mAlluxioStorageType.isStore()) {
-      try {
-        WorkerNetAddress address = mLocationPolicy
-            .getWorkerForNextBlock(mContext.getAlluxioBlockStore().getWorkerInfoList(), mBlockSize);
-        mCurrentBlockOutStream =
-            mContext.getAlluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
-        mShouldCacheCurrentBlock = true;
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      }
+      mCurrentBlockOutStream =
+          mContext.getAlluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, mOptions);
+      mShouldCacheCurrentBlock = true;
     }
   }
 
