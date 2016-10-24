@@ -606,6 +606,83 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * Checks the consistency of the subtree under the path.
+   *
+   * @param path the subtree root to check
+   * @return a list of paths in Alluxio which are not consistent with the under storage
+   * @throws FileDoesNotExistException if the path does not exist
+   * @throws InvalidPathException if the path is invalid
+   * @throws IOException if an error occurs interacting with the under storage
+   */
+  public List<AlluxioURI> checkConsistency(AlluxioURI path)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
+    List<AlluxioURI> inconsistentUris = new ArrayList<>();
+    Stack<LockedInodePath> pathsToCheck = new Stack<>();
+    try {
+      pathsToCheck.push(mInodeTree.lockInodePath(path, InodeTree.LockMode.READ));
+      while (!pathsToCheck.empty()) {
+        try (LockedInodePath currentPath = pathsToCheck.pop()) {
+          Inode currentInode = currentPath.getInode();
+          if (!checkConsistencyInternal(currentPath)) {
+            inconsistentUris.add(currentPath.getUri());
+          }
+          if (currentInode.isDirectory()) {
+            for (Inode child : ((InodeDirectory) currentInode).getChildren()) {
+              pathsToCheck
+                  .push(mInodeTree.lockFullInodePath(child.getId(), InodeTree.LockMode.READ));
+            }
+          }
+        }
+      }
+    } finally {
+      while (!pathsToCheck.empty()) {
+        pathsToCheck.pop().close();
+      }
+    }
+    return inconsistentUris;
+  }
+
+  /**
+   * Check if a path is consistent between Alluxio and the underlying storage.
+   *
+   * A path without a backing under storage is always consistent.
+   *
+   * A not persisted path is considered consistent if:
+   *   1. It does not shadow an object in the underlying storage.
+   *
+   * A persisted path is considered consistent if:
+   *   1. An equivalent object exists for the its under storage path.
+   *   2. The metadata of the Alluxio and under storage object are equal.
+   *
+   * @param path the path to check
+   * @return true if the path is consistent, false otherwise
+   * @throws FileDoesNotExistException if the path cannot be found in the Alluxio inode tree
+   * @throws InvalidPathException if the path is not well formed
+   */
+  private boolean checkConsistencyInternal(LockedInodePath path)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
+    Inode inode = path.getInode();
+    MountTable.Resolution resolution = mMountTable.resolve(path.getUri());
+    UnderFileSystem ufs = resolution.getUfs();
+    String ufsPath = resolution.getUri().getPath();
+    if (ufs == null) {
+      return true;
+    }
+    if (!inode.isPersisted()) {
+      return !ufs.exists(ufsPath);
+    }
+    if (inode.isDirectory()) {
+      return ufs.exists(ufsPath)
+          && !ufs.isFile(ufsPath);
+    } else {
+      InodeFile file = (InodeFile) inode;
+      return ufs.exists(ufsPath)
+          && ufs.isFile(ufsPath)
+          && ufs.getFileSize(ufsPath) == file.getLength();
+    }
+  }
+
+  /**
    * Completes a file. After a file is completed, it cannot be written to.
    * <p>
    * This operation requires users to have {@link Mode.Bits#WRITE} permission on the path.
@@ -852,83 +929,6 @@ public final class FileSystemMaster extends AbstractMaster {
     } finally {
       // finally runs after resources are closed (unlocked).
       waitForJournalFlush(flushCounter);
-    }
-  }
-
-  /**
-   * Checks the consistency of the subtree under the path.
-   *
-   * @param path the subtree root to check
-   * @return a list of paths in Alluxio which are not consistent with the under storage
-   * @throws FileDoesNotExistException if the path does not exist
-   * @throws InvalidPathException if the path is invalid
-   * @throws IOException if an error occurs interacting with the under storage
-   */
-  public List<AlluxioURI> fsck(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
-    List<AlluxioURI> inconsistentUris = new ArrayList<>();
-    Stack<LockedInodePath> pathsToCheck = new Stack<>();
-    try {
-      pathsToCheck.push(mInodeTree.lockInodePath(path, InodeTree.LockMode.READ));
-      while (!pathsToCheck.empty()) {
-        try (LockedInodePath currentPath = pathsToCheck.pop()) {
-          Inode currentInode = currentPath.getInode();
-          if (!checkConsistency(currentPath)) {
-            inconsistentUris.add(currentPath.getUri());
-          }
-          if (currentInode.isDirectory()) {
-            for (Inode child : ((InodeDirectory) currentInode).getChildren()) {
-              pathsToCheck
-                  .push(mInodeTree.lockFullInodePath(child.getId(), InodeTree.LockMode.READ));
-            }
-          }
-        }
-      }
-    } finally {
-      while (!pathsToCheck.empty()) {
-        pathsToCheck.pop().close();
-      }
-    }
-    return inconsistentUris;
-  }
-
-  /**
-   * Check if a path is consistent between Alluxio and the underlying storage.
-   *
-   * A path without a backing under storage is always consistent.
-   *
-   * A not persisted path is considered consistent if:
-   *   1. It does not shadow an object in the underlying storage.
-   *
-   * A persisted path is considered consistent if:
-   *   1. An equivalent object exists for the its under storage path.
-   *   2. The metadata of the Alluxio and under storage object are equal.
-   *
-   * @param path the path to check
-   * @return true if the path is consistent, false otherwise
-   * @throws FileDoesNotExistException if the path cannot be found in the Alluxio inode tree
-   * @throws InvalidPathException if the path is not well formed
-   */
-  private boolean checkConsistency(LockedInodePath path)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
-    Inode inode = path.getInode();
-    MountTable.Resolution resolution = mMountTable.resolve(path.getUri());
-    UnderFileSystem ufs = resolution.getUfs();
-    String ufsPath = resolution.getUri().getPath();
-    if (ufs == null) {
-      return true;
-    }
-    if (!inode.isPersisted()) {
-      return !ufs.exists(ufsPath);
-    }
-    if (inode.isDirectory()) {
-      return ufs.exists(ufsPath)
-          && !ufs.isFile(ufsPath);
-    } else {
-      InodeFile file = (InodeFile) inode;
-      return ufs.exists(ufsPath)
-          && ufs.isFile(ufsPath)
-          && ufs.getFileSize(ufsPath) == file.getLength();
     }
   }
 

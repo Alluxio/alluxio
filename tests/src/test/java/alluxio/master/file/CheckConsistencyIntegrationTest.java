@@ -29,9 +29,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Integration test for the fsck command.
+ * Integration test for {@link FileSystemMaster#checkConsistency(AlluxioURI)}
  */
-public class FsckIntegrationTest {
+public class CheckConsistencyIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
 
@@ -56,18 +56,18 @@ public class FsckIntegrationTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#fsck(AlluxioURI)} method when all files are consistent.
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI)} method when all files are consistent.
    */
   @Test
-  public void fsckConsistent() throws Exception {
-    Assert.assertEquals(new ArrayList<AlluxioURI>(), mFileSystemMaster.fsck(new AlluxioURI("/")));
+  public void consistent() throws Exception {
+    Assert.assertEquals(new ArrayList<AlluxioURI>(), mFileSystemMaster.checkConsistency(new AlluxioURI("/")));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#fsck(AlluxioURI)} method when no files are consistent.
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI)} method when no files are consistent.
    */
   @Test
-  public void fsckInconsistent() throws Exception {
+  public void inconsistent() throws Exception {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
     ufs.delete(ufsDirectory, true);
@@ -75,21 +75,21 @@ public class FsckIntegrationTest {
     expected.add(DIRECTORY);
     expected.add(FILE);
     Collections.sort(expected);
-    List<AlluxioURI> result = mFileSystemMaster.fsck(new AlluxioURI("/"));
+    List<AlluxioURI> result = mFileSystemMaster.checkConsistency(new AlluxioURI("/"));
     Collections.sort(result);
     Assert.assertEquals(expected, result);
   }
 
   /**
-   * Tests the {@link FileSystemMaster#fsck(AlluxioURI)} method when some files are consistent.
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI)} method when some files are consistent.
    */
   @Test
-  public void fsckPartiallyInconsistent() throws Exception {
+  public void partiallyInconsistent() throws Exception {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.get(ufsFile);
     ufs.delete(ufsFile, true);
     List<AlluxioURI> expected = new ArrayList<>();
     expected.add(FILE);
-    Assert.assertEquals(expected, mFileSystemMaster.fsck(new AlluxioURI("/")));
+    Assert.assertEquals(expected, mFileSystemMaster.checkConsistency(new AlluxioURI("/")));
   }
 }
