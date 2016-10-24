@@ -189,8 +189,6 @@ public class AlluxioURITest {
     AlluxioURI uri2 = new AlluxioURI(uri1.toString());
     Assert.assertEquals(queryMap, uri1.getQueryMap());
     Assert.assertEquals(uri1.getQueryMap(), uri2.getQueryMap());
-    Map<String, String> m1 = uri1.getQueryMap();
-    Map<String, String> m2 = uri2.getQueryMap();
   }
 
   /**

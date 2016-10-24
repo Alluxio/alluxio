@@ -42,7 +42,7 @@ public class GCSUnderStorageCluster extends UnderFileSystemCluster {
     super(baseDir);
     mGCSBucket =
         PathUtils.concatPath(System.getProperty(INTEGRATION_GCS_BUCKET), UUID.randomUUID());
-    Preconditions.checkState(mGCSBucket != null && mGCSBucket != "",
+    Preconditions.checkState(mGCSBucket != null && !mGCSBucket.equals(""),
         PreconditionMessage.GCS_BUCKET_MUST_BE_SET.toString(), INTEGRATION_GCS_BUCKET);
     mBaseDir = PathUtils.concatPath(mGCSBucket, UUID.randomUUID());
     mStarted = false;

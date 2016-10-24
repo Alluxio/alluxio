@@ -127,7 +127,7 @@ public class AllocatorTestBase {
       StorageTier pTier = pDir.getParentTier();
 
       Assert.assertTrue(pDir.getDirIndex() == dirIndex);
-      Assert.assertTrue(pTier.getTierAlias() == tierAlias);
+      Assert.assertEquals(tierAlias, pTier.getTierAlias());
 
       //update the dir meta info
       pDir.addBlockMeta(new BlockMeta(mTestBlockId, blockSize, pDir));
