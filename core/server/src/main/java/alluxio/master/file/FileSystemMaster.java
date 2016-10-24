@@ -610,6 +610,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * Checks the consistency of the subtree under the path.
    *
    * @param path the subtree root to check
+   * @param options the options to use for the checkConsistency command
    * @return a list of paths in Alluxio which are not consistent with the under storage
    * @throws FileDoesNotExistException if the path does not exist
    * @throws InvalidPathException if the path is invalid

@@ -31,7 +31,7 @@ import java.util.List;
 
 /**
  * Integration test for
- * {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)}
+ * {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)}.
  */
 public class CheckConsistencyIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");

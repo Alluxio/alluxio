@@ -11,6 +11,8 @@
 
 package alluxio.master.file.options;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -21,6 +23,7 @@ public final class CheckConsistencyOptions {
   /**
    * @return the default {@link CompleteFileOptions}
    */
+  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static CheckConsistencyOptions defaults() {
     return new CheckConsistencyOptions();
   }
