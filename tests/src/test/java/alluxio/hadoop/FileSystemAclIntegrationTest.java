@@ -143,7 +143,7 @@ public final class FileSystemAclIntegrationTest {
       // permission option 0777.
       Assert.assertEquals((short) 0777, fs.getPermission().toShort());
     } else {
-      // Default permission should be 0644
+      // Default permission should be 0644.
       Assert.assertEquals((short) 0644, fs.getPermission().toShort());
     }
 
