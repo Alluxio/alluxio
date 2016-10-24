@@ -77,6 +77,8 @@ alluxio.worker.port:
 alluxio.worker.session.timeout.ms:
   Timeout (in milliseconds) between worker and client connection indicating a lost session
   connection.
+alluxio.worker.tieredstore.retry:
+  The number of retries that the worker to process blocks.
 alluxio.worker.tieredstore.block.locks:
   Total number of block locks for an Alluxio block worker. Larger value leads to finer locking
   granularity, but uses more space.
