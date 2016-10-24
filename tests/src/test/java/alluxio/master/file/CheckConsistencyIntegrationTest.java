@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,6 +77,7 @@ public class CheckConsistencyIntegrationTest {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
     ufs.delete(ufsDirectory, true);
+
     List<AlluxioURI> expected = new ArrayList<>();
     expected.add(DIRECTORY);
     expected.add(FILE);
@@ -95,6 +97,90 @@ public class CheckConsistencyIntegrationTest {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.get(ufsFile);
     ufs.delete(ufsFile, true);
+    List<AlluxioURI> expected = new ArrayList<>();
+    expected.add(FILE);
+    Assert.assertEquals(expected, mFileSystemMaster
+        .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when some files are consistent in a larger inode tree.
+   */
+  @Test
+  public void largeTree() throws Exception {
+    CreateDirectoryOptions dirOptions =
+        CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    CreateFileOptions fileOptions =
+        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    AlluxioURI nestedDir = DIRECTORY.join("/dir2");
+    AlluxioURI topLevelFile = new AlluxioURI("/file");
+    AlluxioURI thirdLevelFile = nestedDir.join("/file");
+    mFileSystem.createDirectory(nestedDir, dirOptions);
+    mFileSystem.createFile(topLevelFile, fileOptions).close();
+    mFileSystem.createFile(thirdLevelFile, fileOptions).close();
+    String ufsDirectory = mFileSystem.getStatus(nestedDir).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
+    ufs.delete(ufsDirectory, true);
+
+    List<AlluxioURI> expected = new ArrayList<>();
+    expected.add(nestedDir);
+    expected.add(thirdLevelFile);
+    Collections.sort(expected);
+    List<AlluxioURI> result =
+        mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+    Collections.sort(result);
+    Assert.assertEquals(expected, result);
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when a file is not the correct size.
+   */
+  @Test
+  public void incorrectFileSize() throws Exception {
+    String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.get(ufsFile);
+    ufs.delete(ufsFile, true);
+    OutputStream out = ufs.create(ufsFile);
+    out.write(1);
+    out.close();
+    List<AlluxioURI> expected = new ArrayList<>();
+    expected.add(FILE);
+    Assert.assertEquals(expected, mFileSystemMaster
+        .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when a directory does not exist as a directory in the under storage.
+   */
+  @Test
+  public void notADirectory() throws Exception {
+    String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
+    ufs.delete(ufsDirectory, true);
+    ufs.create(ufsDirectory).close();
+    List<AlluxioURI> expected = new ArrayList<>();
+    expected.add(DIRECTORY);
+    expected.add(FILE);
+    Collections.sort(expected);
+    List<AlluxioURI> result =
+        mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+    Collections.sort(result);
+    Assert.assertEquals(expected, result);
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when a file does not exist as a file in the under storage.
+   */
+  @Test
+  public void notAFile() throws Exception {
+    String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.get(ufsFile);
+    ufs.delete(ufsFile, true);
+    ufs.mkdirs(ufsFile, true);
     List<AlluxioURI> expected = new ArrayList<>();
     expected.add(FILE);
     Assert.assertEquals(expected, mFileSystemMaster
