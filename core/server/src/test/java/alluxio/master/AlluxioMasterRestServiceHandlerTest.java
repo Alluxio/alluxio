@@ -68,8 +68,6 @@ import javax.servlet.ServletContext;
 /**
  * Unit tests for {@link AlluxioMasterRestServiceHandler}.
  */
-// @RunWith(PowerMockRunner.class)
-// @PrepareOnlyThisForTest({BlockMaster.class})
 public class AlluxioMasterRestServiceHandlerTest {
   private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(80).setDataPort(81).setWebPort(82);
@@ -118,7 +116,6 @@ public class AlluxioMasterRestServiceHandlerTest {
         new BlockMaster(blockJournal, mClock,
             ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mBlockMaster.start(true);
-    // mBlockMaster = PowerMockito.mock(BlockMaster.class);
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
     when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMaster);
