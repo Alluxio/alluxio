@@ -190,6 +190,7 @@ public enum PropertyKey {
   WORKER_RPC_PORT(Name.WORKER_RPC_PORT, 29998),
   WORKER_SESSION_TIMEOUT_MS(Name.WORKER_SESSION_TIMEOUT_MS, 60000),
   WORKER_TIERED_STORE_BLOCK_LOCKS(Name.WORKER_TIERED_STORE_BLOCK_LOCKS, 1000),
+  WORKER_TIERED_STORE_BLOCK_PARALLEL(Name.WORKER_TIERED_STORE_BLOCK_PARALLEL, 1000),
   WORKER_TIERED_STORE_LEVEL0_ALIAS(Name.WORKER_TIERED_STORE_LEVEL0_ALIAS, "MEM"),
   WORKER_TIERED_STORE_LEVEL0_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, "/mnt/ramdisk"),
   WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
@@ -560,6 +561,8 @@ public enum PropertyKey {
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
         "alluxio.worker.tieredstore.block.locks";
+    public static final String WORKER_TIERED_STORE_BLOCK_PARALLEL =
+        "alluxio.worker.tieredstore.block.parallel";
     public static final String WORKER_TIERED_STORE_LEVEL0_ALIAS =
         "alluxio.worker.tieredstore.level0.alias";
     public static final String WORKER_TIERED_STORE_LEVEL0_DIRS_PATH =
