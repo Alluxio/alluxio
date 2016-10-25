@@ -122,7 +122,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     }
   }
 
-  /*
+  /**
    * @return true if the client is the leader, false otherwise
    */
   public boolean isLeader() {
