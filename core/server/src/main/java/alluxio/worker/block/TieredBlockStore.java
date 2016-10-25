@@ -83,7 +83,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_RETRIES =
-          Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+          Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
