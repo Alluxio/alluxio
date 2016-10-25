@@ -36,7 +36,7 @@ public class RemoteBlockReaderTest {
   public void createFromMockClass() {
     RemoteBlockReader mock = Mockito.mock(RemoteBlockReader.class);
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS, mock.getClass().getName());
-    Assert.assertTrue(RemoteBlockReader.Factory.create().getClass().equals(mock.getClass()));
+    Assert.assertEquals(mock.getClass(), RemoteBlockReader.Factory.create().getClass());
   }
 
   @Test
@@ -50,8 +50,7 @@ public class RemoteBlockReaderTest {
   public void createIfNotExistFromMockClass() {
     RemoteBlockReader mock = Mockito.mock(RemoteBlockReader.class);
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS, mock.getClass().getName());
-    Assert.assertTrue(RemoteBlockReader.Factory.createIfNotExist().getClass()
-        .equals(mock.getClass()));
+    Assert.assertEquals(mock.getClass(), RemoteBlockReader.Factory.createIfNotExist().getClass());
   }
 
   @Test
@@ -66,11 +65,9 @@ public class RemoteBlockReaderTest {
     Assert.assertNull(RemoteBlockReader.Factory.sReader);
 
     RemoteBlockReader reader = RemoteBlockReader.Factory.createIfNotExist();
-
-    Assert.assertTrue(reader.equals(RemoteBlockReader.Factory.sReader));
+    Assert.assertEquals(reader, RemoteBlockReader.Factory.sReader);
 
     RemoteBlockReader reader1 = RemoteBlockReader.Factory.createIfNotExist();
-
     Assert.assertTrue(reader1 == reader);
   }
 }
