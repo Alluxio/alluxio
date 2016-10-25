@@ -189,7 +189,6 @@ public enum PropertyKey {
   WORKER_PRINCIPAL(Name.WORKER_PRINCIPAL, null),
   WORKER_RPC_PORT(Name.WORKER_RPC_PORT, 29998),
   WORKER_SESSION_TIMEOUT_MS(Name.WORKER_SESSION_TIMEOUT_MS, 60000),
-  WORKER_TIERED_STORE_RETRY(Name.WORKER_TIERED_STORE_RETRY, 3),
   WORKER_TIERED_STORE_BLOCK_LOCKS(Name.WORKER_TIERED_STORE_BLOCK_LOCKS, 1000),
   WORKER_TIERED_STORE_LEVEL0_ALIAS(Name.WORKER_TIERED_STORE_LEVEL0_ALIAS, "MEM"),
   WORKER_TIERED_STORE_LEVEL0_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, "/mnt/ramdisk"),
@@ -207,6 +206,7 @@ public enum PropertyKey {
   WORKER_TIERED_STORE_LEVELS(Name.WORKER_TIERED_STORE_LEVELS, 1),
   WORKER_TIERED_STORE_RESERVER_ENABLED(Name.WORKER_TIERED_STORE_RESERVER_ENABLED, false),
   WORKER_TIERED_STORE_RESERVER_INTERVAL_MS(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, 1000),
+  WORKER_TIERED_STORE_RETRY(Name.WORKER_TIERED_STORE_RETRY, 3),
   WORKER_WEB_BIND_HOST(Name.WORKER_WEB_BIND_HOST, "0.0.0.0"),
   WORKER_WEB_HOSTNAME(Name.WORKER_WEB_HOSTNAME, null),
   WORKER_WEB_PORT(Name.WORKER_WEB_PORT, 30000),
@@ -559,7 +559,6 @@ public enum PropertyKey {
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
-    public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
         "alluxio.worker.tieredstore.block.locks";
     public static final String WORKER_TIERED_STORE_LEVEL0_ALIAS =
@@ -591,6 +590,7 @@ public enum PropertyKey {
         "alluxio.worker.tieredstore.reserver.enabled";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval.ms";
+    public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
