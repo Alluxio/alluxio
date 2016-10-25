@@ -414,7 +414,6 @@ public class AlluxioMaster implements Server {
       mBlockMaster.stop();
       mFileSystemMaster.stop();
     } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
