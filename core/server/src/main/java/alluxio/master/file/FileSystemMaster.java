@@ -297,8 +297,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (innerEntry instanceof InodeFileEntry) {
       try {
         mInodeTree.addInodeFromJournal(entry);
-        // Add the file to TTL buckets if applicable. The insert automatically rejects files without
-        // a TTL set.
+        // Add the file to TTL buckets, the insert automatically rejects files without a TTL set.
         InodeFile file = InodeFile.fromJournalEntry((InodeFileEntry) innerEntry);
         mTtlBuckets.insert(file);
       } catch (AccessControlException e) {
