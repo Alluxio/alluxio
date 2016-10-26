@@ -44,7 +44,6 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
     return path != null && isHadoopUnderFS(path);
   }
 
-
 /**
    * Determines if the given path is on a Hadoop under file system
    *
