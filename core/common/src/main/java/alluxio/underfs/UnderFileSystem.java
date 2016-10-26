@@ -339,7 +339,7 @@ public abstract class UnderFileSystem {
   /**
    * Creates a file in the under file system with the indicated name. This operation is expected
    * to be atomic. Implementations should make sure that the path appears to exist only after a
-   * successful close.
+   * successful close and that contents are written in its entirety or not at all.
    *
    * @param path the file name
    * @return A {@code OutputStream} object
