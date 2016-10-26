@@ -130,7 +130,6 @@ public final class AlluxioShell implements Closeable {
   }
 
   /**
-   *
    * Handles the specified shell command request, displaying usage if the command format is invalid.
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred
