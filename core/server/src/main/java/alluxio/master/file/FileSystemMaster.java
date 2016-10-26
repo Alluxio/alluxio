@@ -294,7 +294,18 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     Message innerEntry = JournalProtoUtils.unwrap(entry);
-    if (innerEntry instanceof InodeFileEntry || innerEntry instanceof InodeDirectoryEntry) {
+    if (innerEntry instanceof InodeFileEntry) {
+      try {
+        mInodeTree.addInodeFromJournal(entry);
+        // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
+        InodeFileEntry inodeFileEntry = (InodeFileEntry) innerEntry;
+        if (inodeFileEntry.hasTtl()) {
+          mTtlBuckets.insert(InodeFile.fromJournalEntry(inodeFileEntry));
+        }
+      } catch (AccessControlException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (innerEntry instanceof InodeDirectoryEntry) {
       try {
         mInodeTree.addInodeFromJournal(entry);
       } catch (AccessControlException e) {
