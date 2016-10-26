@@ -32,7 +32,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.util.IdUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
