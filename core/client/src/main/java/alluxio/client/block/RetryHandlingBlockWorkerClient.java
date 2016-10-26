@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.client.WriteTier;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -23,6 +24,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.ThriftIOException;
+import alluxio.thrift.TTierPolicy;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
@@ -63,10 +65,11 @@ public final class RetryHandlingBlockWorkerClient
       ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
   private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
-
   private final BlockWorkerThriftClientPool mClientPool;
   private final BlockWorkerThriftClientPool mClientHeartbeatPool;
-
+  private static final WriteTier CLIENT_WRITE_TIER_POLICY =
+      alluxio.Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT, WriteTier.class);
+  private static final TTierPolicy TIERPOLICY = WriteTier.toThrift(CLIENT_WRITE_TIER_POLICY);
   // Tracks the number of active heartbeat close requests.
   private static final AtomicInteger NUM_ACTIVE_SESSIONS = new AtomicInteger(0);
 
@@ -255,7 +258,7 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public String call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
-              return client.requestBlockLocation(getSessionId(), blockId, initialBytes);
+              return client.requestBlockLocation(getSessionId(), blockId, initialBytes, TIERPOLICY);
             }
           });
     } catch (WorkerOutOfSpaceException e) {

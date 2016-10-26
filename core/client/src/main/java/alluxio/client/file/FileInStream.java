@@ -499,7 +499,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * Update {@link #mCurrentBlockInStream} to be in-sync with mPos's block. The new block
-   * stream created with be at position 0.
+   * stream created with {@link UnderStoreBlockInStream#mPos} at position 0.
    * This function is only called in {@link #updateStreams()}.
    *
    * @param blockId cached result of {@link #getCurrentBlockId()}
