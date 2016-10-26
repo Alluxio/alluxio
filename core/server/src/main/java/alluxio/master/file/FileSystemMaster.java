@@ -124,7 +124,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -619,26 +618,19 @@ public final class FileSystemMaster extends AbstractMaster {
   public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
-    Stack<LockedInodePath> pathsToCheck = new Stack<>();
-    try {
-      pathsToCheck.push(mInodeTree.lockInodePath(path, InodeTree.LockMode.READ));
-      while (!pathsToCheck.empty()) {
-        try (LockedInodePath currentPath = pathsToCheck.pop()) {
-          if (!checkConsistencyInternal(currentPath)) {
-            inconsistentUris.add(currentPath.getUri());
-          }
-          Inode currentInode = currentPath.getInode();
-          if (currentInode.isDirectory()) {
-            for (Inode child : ((InodeDirectory) currentInode).getChildren()) {
-              pathsToCheck
-                  .push(mInodeTree.lockFullInodePath(child.getId(), InodeTree.LockMode.READ));
-            }
-          }
+    try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
+        InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
+      HashMap<Long, AlluxioURI> directoryPaths = new HashMap<>();
+      directoryPaths.put(parent.getInode().getId(), parent.getUri());
+      for (Inode child : children.getInodes()) {
+        AlluxioURI parentPath = directoryPaths.get(child.getParentId());
+        AlluxioURI currentPath = parentPath.join(child.getName());
+        if (!checkConsistencyInternal(child, currentPath)) {
+          inconsistentUris.add(currentPath);
         }
-      }
-    } finally {
-      while (!pathsToCheck.empty()) {
-        pathsToCheck.pop().close();
+        if (child.isDirectory()) {
+          directoryPaths.put(child.getId(), currentPath);
+        }
       }
     }
     return inconsistentUris;
@@ -656,15 +648,15 @@ public final class FileSystemMaster extends AbstractMaster {
    *   1. An equivalent object exists for its under storage path.
    *   2. The metadata of the Alluxio and under storage object are equal.
    *
-   * @param path the path to check
+   * @param inode the inode to check
+   * @param path the current path associated with the inode
    * @return true if the path is consistent, false otherwise
    * @throws FileDoesNotExistException if the path cannot be found in the Alluxio inode tree
    * @throws InvalidPathException if the path is not well formed
    */
-  private boolean checkConsistencyInternal(LockedInodePath path)
+  private boolean checkConsistencyInternal(Inode inode, AlluxioURI path)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    Inode inode = path.getInode();
-    MountTable.Resolution resolution = mMountTable.resolve(path.getUri());
+    MountTable.Resolution resolution = mMountTable.resolve(path);
     UnderFileSystem ufs = resolution.getUfs();
     String ufsPath = resolution.getUri().getPath();
     if (ufs == null) {
