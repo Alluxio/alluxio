@@ -33,7 +33,6 @@ import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.IdUtils;
-import alluxio.util.io.PathUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -144,11 +143,9 @@ public class FileOutStream extends AbstractOutStream {
           throw e;
         }
       } else {
-        String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-        UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
-        // TODO(jiri): Implement collection of temporary files left behind by dead clients.
+        UnderFileSystem ufs = UnderFileSystem.get(mUfsPath);
         CreateOptions createOptions = new CreateOptions().setPermission(options.getPermission());
-        mUnderStorageOutputStream = ufs.create(tmpPath, createOptions);
+        mUnderStorageOutputStream = ufs.create(mUfsPath, createOptions);
 
         // Set delegation related vars to null as we are not using worker delegation for ufs ops
         mFileSystemWorkerClient = null;
@@ -200,19 +197,14 @@ public class FileOutStream extends AbstractOutStream {
           mFileSystemWorkerClient.close();
         }
       } else {
-        String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-        UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
+        UnderFileSystem ufs = UnderFileSystem.get(mUfsPath);
         if (mCanceled) {
           // TODO(yupeng): Handle this special case in under storage integrations.
           mUnderStorageOutputStream.close();
-          ufs.delete(tmpPath, false);
+          ufs.delete(mUfsPath, false);
         } else {
           mUnderStorageOutputStream.flush();
           mUnderStorageOutputStream.close();
-          if (!ufs.rename(tmpPath, mUfsPath)) { // Failed to commit file
-            ufs.delete(tmpPath, false);
-            throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
-          }
           options.setUfsLength(ufs.getFileSize(mUfsPath));
         }
       }

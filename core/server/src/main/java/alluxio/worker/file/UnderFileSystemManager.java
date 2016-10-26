@@ -247,8 +247,6 @@ public final class UnderFileSystemManager {
     private final OutputStream mStream;
     /** String form of the final uri to write to in the under file system. */
     private final String mUri;
-    /** String form of the temporary uri to write to in the under file system. */
-    private final String mTemporaryUri;
     /** The permission for the file. */
     private final Permission mPermission;
 
@@ -268,12 +266,11 @@ public final class UnderFileSystemManager {
       mSessionId = sessionId;
       mAgentId = agentId;
       mUri = Preconditions.checkNotNull(ufsUri).toString();
-      mTemporaryUri = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mUri);
       mPermission = perm;
       UnderFileSystem ufs = UnderFileSystem.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-      mStream = ufs.create(mTemporaryUri, new CreateOptions().setPermission(mPermission));
+      mStream = ufs.create(mUri, new CreateOptions().setPermission(mPermission));
     }
 
     /**
@@ -285,7 +282,7 @@ public final class UnderFileSystemManager {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mUri);
       // TODO(calvin): Log a warning if the delete fails
-      ufs.delete(mTemporaryUri, false);
+      ufs.delete(mUri, false);
     }
 
     /**
@@ -299,18 +296,6 @@ public final class UnderFileSystemManager {
     private long complete(Permission perm) throws IOException {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mUri);
-      if (ufs.rename(mTemporaryUri, mUri)) {
-        if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
-          try {
-            ufs.setOwner(mUri, perm.getOwner(), perm.getGroup());
-          } catch (Exception e) {
-            LOG.warn("Failed to update the ufs ownership, default values will be used. " + e);
-          }
-        }
-        // TODO(chaomin): consider setMode of the ufs file.
-      } else {
-        ufs.delete(mTemporaryUri, false);
-      }
       return ufs.getFileSize(mUri);
     }
 
