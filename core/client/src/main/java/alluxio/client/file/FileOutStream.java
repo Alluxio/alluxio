@@ -66,7 +66,6 @@ public class FileOutStream extends AbstractOutStream {
   private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
-  private final long mNonce;
   /** Whether this stream should delegate operations to the ufs to a worker. */
   private final boolean mUfsDelegation;
   /** The client to a file system worker, null if mUfsDelegation is false. */
@@ -107,7 +106,6 @@ public class FileOutStream extends AbstractOutStream {
   public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context,
       UnderFileSystemFileOutStream.Factory underOutStreamFactory) throws IOException {
     mUri = Preconditions.checkNotNull(path);
-    mNonce = IdUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
