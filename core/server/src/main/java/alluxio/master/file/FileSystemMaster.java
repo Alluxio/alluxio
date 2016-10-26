@@ -609,8 +609,8 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Checks the consistency of the subtree under the path.
    *
-   * @param path the subtree root to check
-   * @param options the options to use for the checkConsistency command
+   * @param path the root of the subtree to check
+   * @param options the options to use for the checkConsistency method
    * @return a list of paths in Alluxio which are not consistent with the under storage
    * @throws FileDoesNotExistException if the path does not exist
    * @throws InvalidPathException if the path is invalid
@@ -624,10 +624,10 @@ public final class FileSystemMaster extends AbstractMaster {
       pathsToCheck.push(mInodeTree.lockInodePath(path, InodeTree.LockMode.READ));
       while (!pathsToCheck.empty()) {
         try (LockedInodePath currentPath = pathsToCheck.pop()) {
-          Inode currentInode = currentPath.getInode();
           if (!checkConsistencyInternal(currentPath)) {
             inconsistentUris.add(currentPath.getUri());
           }
+          Inode currentInode = currentPath.getInode();
           if (currentInode.isDirectory()) {
             for (Inode child : ((InodeDirectory) currentInode).getChildren()) {
               pathsToCheck
@@ -653,7 +653,7 @@ public final class FileSystemMaster extends AbstractMaster {
    *   1. It does not shadow an object in the underlying storage.
    *
    * A persisted path is considered consistent if:
-   *   1. An equivalent object exists for the its under storage path.
+   *   1. An equivalent object exists for its under storage path.
    *   2. The metadata of the Alluxio and under storage object are equal.
    *
    * @param path the path to check
@@ -673,6 +673,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (!inode.isPersisted()) {
       return !ufs.exists(ufsPath);
     }
+    // TODO(calvin): Evaluate which other metadata fields should be validated.
     if (inode.isDirectory()) {
       return ufs.exists(ufsPath)
           && !ufs.isFile(ufsPath);

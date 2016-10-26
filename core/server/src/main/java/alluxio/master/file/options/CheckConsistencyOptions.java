@@ -28,5 +28,5 @@ public final class CheckConsistencyOptions {
     return new CheckConsistencyOptions();
   }
 
-  private CheckConsistencyOptions() {}
+  private CheckConsistencyOptions() {} // prevent instantiation
 }
