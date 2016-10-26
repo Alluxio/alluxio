@@ -112,11 +112,11 @@ $ ./bin/alluxio fs ls /
 
 ```bash
 $ ./bin/alluxio fs cat /LICENSE
-Apache License
-Version 2.0, January 2004
-http://www.apache.org/licenses/
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
 
-TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 ...
 ```
 
@@ -302,6 +302,7 @@ Alluxio可以部署在很多不同的环境下。
 * [Alluxio使用Swift](Configuring-Alluxio-with-Swift.html)
 * [Alluxio使用GlusterFS](Configuring-Alluxio-with-GlusterFS.html)
 * [Alluxio使用HDFS](Configuring-Alluxio-with-HDFS.html)
+* [Alluxio使用MapR-FS](Configuring-Alluxio-with-MapR-FS.html)
 * [Alluxio使用Secure HDFS](Configuring-Alluxio-with-secure-HDFS.html)
 * [Alluxio使用OSS](Configuring-Alluxio-with-OSS.html)
 * [Alluxio使用NFS](Configuring-Alluxio-with-NFS.html)
