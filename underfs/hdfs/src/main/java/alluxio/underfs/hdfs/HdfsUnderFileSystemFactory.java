@@ -41,26 +41,15 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
 
   @Override
   public boolean supportsPath(String path) {
-    return path != null && isHadoopUnderFS(path);
-  }
-
-/**
-   * Determines if the given path is on a Hadoop under file system
-   *
-   * To decide if a path should use the hadoop implementation, we check
-   * {@link String#startsWith(String)} to see if the configured schemas are found.
-   *
-   * @param path the path in under filesystem
-   * @return true if the given path is on a Hadoop under file system, false otherwise
-   */
-  public static boolean isHadoopUnderFS(final String path) {
-    // TODO(hy): In Hadoop 2.x this can be replaced with the simpler call to
-    // FileSystem.getFileSystemClass() without any need for having users explicitly declare the file
-    // system schemes to treat as being HDFS. However as long as pre 2.x versions of Hadoop are
-    // supported this is not an option and we have to continue to use this method.
-    for (final String prefix : Configuration.getList(PropertyKey.UNDERFS_HDFS_PREFIXES, ",")) {
-      if (path.startsWith(prefix)) {
-        return true;
+    if (path != null) {
+      // TODO(hy): In Hadoop 2.x this can be replaced with the simpler call to
+      // FileSystem.getFileSystemClass() without any need for having users explicitly declare the file
+      // system schemes to treat as being HDFS. However as long as pre 2.x versions of Hadoop are
+      // supported this is not an option and we have to continue to use this method.
+      for (final String prefix : Configuration.getList(PropertyKey.UNDERFS_HDFS_PREFIXES, ",")) {
+        if (path.startsWith(prefix)) {
+          return true;
+        }
       }
     }
     return false;
