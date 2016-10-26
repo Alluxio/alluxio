@@ -345,7 +345,9 @@ public abstract class UnderFileSystem {
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path) throws IOException;
+  public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
 
   /**
    * Creates a file in the under file system with the specified

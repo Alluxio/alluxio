@@ -129,11 +129,6 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public FSDataOutputStream create(String path) throws IOException {
-    return create(path, new CreateOptions());
-  }
-
-  @Override
   public FSDataOutputStream create(String path, CreateOptions options)
       throws IOException {
     IOException te = null;
