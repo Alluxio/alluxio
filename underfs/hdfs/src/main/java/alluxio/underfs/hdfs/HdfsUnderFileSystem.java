@@ -18,9 +18,12 @@ import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
+import alluxio.underfs.AtomicOutputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.IdUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -129,7 +133,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public FSDataOutputStream create(String path, CreateOptions options)
+  public OutputStream create(String path, CreateOptions options)
       throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
@@ -138,8 +142,10 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       try {
         LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
-        return FileSystem.create(mFileSystem, new Path(path),
+        String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
+        FSDataOutputStream fsStream = FileSystem.create(mFileSystem, new Path(temporaryPath),
             new FsPermission(perm.getMode().toShort()));
+        return new AtomicOutputStream(path, temporaryPath, fsStream, this);
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
