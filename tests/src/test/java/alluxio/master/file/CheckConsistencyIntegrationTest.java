@@ -20,6 +20,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.underfs.UnderFileSystem;
 
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -78,12 +79,10 @@ public class CheckConsistencyIntegrationTest {
     UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
     ufs.delete(ufsDirectory, true);
 
-    List<AlluxioURI> expected = new ArrayList<>();
-    expected.add(DIRECTORY);
-    expected.add(FILE);
-    Collections.sort(expected);
+    List<AlluxioURI> expected = Lists.newArrayList(FILE, DIRECTORY);
     List<AlluxioURI> result =
         mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+    Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
   }
@@ -97,8 +96,7 @@ public class CheckConsistencyIntegrationTest {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.get(ufsFile);
     ufs.delete(ufsFile, true);
-    List<AlluxioURI> expected = new ArrayList<>();
-    expected.add(FILE);
+    List<AlluxioURI> expected = Lists.newArrayList(FILE);
     Assert.assertEquals(expected, mFileSystemMaster
         .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
   }
@@ -123,12 +121,10 @@ public class CheckConsistencyIntegrationTest {
     UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
     ufs.delete(ufsDirectory, true);
 
-    List<AlluxioURI> expected = new ArrayList<>();
-    expected.add(nestedDir);
-    expected.add(thirdLevelFile);
-    Collections.sort(expected);
+    List<AlluxioURI> expected = Lists.newArrayList(nestedDir, thirdLevelFile);
     List<AlluxioURI> result =
         mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+    Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
   }
@@ -145,8 +141,7 @@ public class CheckConsistencyIntegrationTest {
     OutputStream out = ufs.create(ufsFile);
     out.write(1);
     out.close();
-    List<AlluxioURI> expected = new ArrayList<>();
-    expected.add(FILE);
+    List<AlluxioURI> expected = Lists.newArrayList(FILE);
     Assert.assertEquals(expected, mFileSystemMaster
         .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
   }
@@ -161,12 +156,10 @@ public class CheckConsistencyIntegrationTest {
     UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
     ufs.delete(ufsDirectory, true);
     ufs.create(ufsDirectory).close();
-    List<AlluxioURI> expected = new ArrayList<>();
-    expected.add(DIRECTORY);
-    expected.add(FILE);
-    Collections.sort(expected);
+    List<AlluxioURI> expected = Lists.newArrayList(DIRECTORY, FILE);
     List<AlluxioURI> result =
         mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+    Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
   }
@@ -181,8 +174,7 @@ public class CheckConsistencyIntegrationTest {
     UnderFileSystem ufs = UnderFileSystem.get(ufsFile);
     ufs.delete(ufsFile, true);
     ufs.mkdirs(ufsFile, true);
-    List<AlluxioURI> expected = new ArrayList<>();
-    expected.add(FILE);
+    List<AlluxioURI> expected = Lists.newArrayList(FILE);
     Assert.assertEquals(expected, mFileSystemMaster
         .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
   }
