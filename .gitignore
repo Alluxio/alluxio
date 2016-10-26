@@ -1,4 +1,6 @@
 **/alluxio-site.properties
+**/nb-configuration*.xml
+**/nbproject/
 *.iml
 *.pyc
 *.swo
@@ -40,4 +42,3 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
-**/nb-configuration*.xml
