@@ -212,6 +212,13 @@ public enum PropertyKey {
   WORKER_WEB_PORT(Name.WORKER_WEB_PORT, 30000),
 
   //
+  // Proxy related properties
+  //
+  PROXY_WEB_BIND_HOST(Name.PROXY_WEB_BIND_HOST, "0.0.0.0"),
+  PROXY_WEB_HOSTNAME(Name.PROXY_WEB_HOSTNAME, null),
+  PROXY_WEB_PORT(Name.PROXY_WEB_PORT, 39998),
+
+  //
   // User related properties
   //
   USER_BLOCK_MASTER_CLIENT_THREADS(Name.USER_BLOCK_MASTER_CLIENT_THREADS, 10),
@@ -594,6 +601,13 @@ public enum PropertyKey {
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
+
+    //
+    // Proxy related properties
+    //
+    public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
+    public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
+    public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
 
     //
     // User related properties

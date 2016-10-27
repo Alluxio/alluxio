@@ -95,6 +95,13 @@ public final class NetworkAddressUtils {
     WORKER_WEB("Alluxio Worker Web service", PropertyKey.WORKER_WEB_HOSTNAME,
         PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_WEB_PORT,
         Constants.DEFAULT_WORKER_WEB_PORT),
+
+    /**
+     * Proxy web service (Jetty).
+     */
+    PROXY_WEB("Alluxio Proxy Web service", PropertyKey.PROXY_WEB_HOSTNAME,
+        PropertyKey.PROXY_WEB_BIND_HOST, PropertyKey.PROXY_WEB_PORT,
+        Constants.DEFAULT_PROXY_WEB_PORT),
     ;
 
     // service name
