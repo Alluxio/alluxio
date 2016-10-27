@@ -99,6 +99,7 @@ public final class Constants {
   public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 1;
+  public static final long FILE_SYSTEM_CLIENT_SERVICE_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
@@ -116,6 +117,7 @@ public final class Constants {
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
+  public static final String FILE_SYSTEM_CLIENT_SERVICE_NAME = "FileSystemClient";
 
   public static final String REST_API_PREFIX = "/v1/api";
 
