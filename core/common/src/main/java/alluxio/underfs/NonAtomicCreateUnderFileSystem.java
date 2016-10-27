@@ -49,7 +49,7 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
   /**
    * Complete create operation by renaming temporary path to permanent.
    *
-   * @throws IOException
+   * @throws IOException when rename fails
    */
   public void completeCreate() throws IOException {
     if (!rename(mTemporaryPath, mPermanentPath)) {
@@ -64,8 +64,9 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
    * @param path temporary path
    * @param options the options for create
    * @return a non atomic output stream
-   * @throws IOException
+   * @throws IOException when create fails
    */
-  public abstract OutputStream createNonAtomic(String path, CreateOptions options) throws IOException;
+  public abstract OutputStream createNonAtomic(String path, CreateOptions options)
+      throws IOException;
 
 }
