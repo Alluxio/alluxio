@@ -620,6 +620,9 @@ public final class FileSystemMaster extends AbstractMaster {
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
     try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
         InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
+      if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
+        inconsistentUris.add(parent.getUri());
+      }
       for (Inode child : children.getInodes()) {
         AlluxioURI currentPath = mInodeTree.getPath(child);
         if (!checkConsistencyInternal(child, currentPath)) {
