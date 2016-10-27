@@ -142,7 +142,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       try {
         LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
-        String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
+        String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(),
+            path);
         FSDataOutputStream fsStream = FileSystem.create(mFileSystem, new Path(temporaryPath),
             new FsPermission(perm.getMode().toShort()));
         return new AtomicOutputStream(path, temporaryPath, fsStream, this);

@@ -15,8 +15,8 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/*
- * An {@link AtomicOutputStream} writes to a temporary file and renames on close
+/**
+ * An {@link AtomicOutputStream} writes to a temporary file and renames on close.
  */
 public class AtomicOutputStream extends FilterOutputStream {
 
@@ -24,7 +24,7 @@ public class AtomicOutputStream extends FilterOutputStream {
   private String mTemporaryPath;
   private UnderFileSystem mUfs;
 
-  /*
+  /**
    * Constructs a new {@link AtomicOutputStream}.
    *
    * @param permanentPath the final path
