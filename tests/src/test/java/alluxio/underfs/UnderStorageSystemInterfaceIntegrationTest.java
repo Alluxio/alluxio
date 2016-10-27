@@ -22,6 +22,9 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.Permission;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
@@ -65,6 +68,21 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
     Assert.assertTrue(mUfs.exists(testFile));
+  }
+
+  /**
+   * Tests that an empty file can be created with correct permission.
+   */
+  @Test
+  public void createEmptyWithPermission() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    String user = "User";
+    String group = "Group";
+    Permission perm = new Permission(user, group, Mode.createFullAccess());
+    createEmptyFileWithPermission(testFile, perm);
+    Assert.assertTrue(mUfs.exists(testFile));
+    Assert.assertEquals(user, mUfs.getOwner(testFile));
+    Assert.assertEquals(group, mUfs.getGroup(testFile));
   }
 
   /**
@@ -461,6 +479,13 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   private void createEmptyFile(String path) throws IOException {
     OutputStream o = mUfs.create(path);
+    o.close();
+  }
+
+  private void createEmptyFileWithPermission(String path, Permission perm) throws IOException {
+    CreateOptions options = new CreateOptions();
+    options.setPermission(perm);
+    OutputStream o = mUfs.create(path, options);
     o.close();
   }
 
