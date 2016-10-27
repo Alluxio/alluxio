@@ -606,7 +606,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Checks the consistency of the subtree under the path.
+   * Checks the consistency of the files and directories in the subtree under the path.
    *
    * @param path the root of the subtree to check
    * @param options the options to use for the checkConsistency method
@@ -620,16 +620,10 @@ public final class FileSystemMaster extends AbstractMaster {
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
     try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
         InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
-      HashMap<Long, AlluxioURI> directoryPaths = new HashMap<>();
-      directoryPaths.put(parent.getInode().getId(), parent.getUri());
       for (Inode child : children.getInodes()) {
-        AlluxioURI parentPath = directoryPaths.get(child.getParentId());
-        AlluxioURI currentPath = parentPath.join(child.getName());
+        AlluxioURI currentPath = mInodeTree.getPath(child);
         if (!checkConsistencyInternal(child, currentPath)) {
           inconsistentUris.add(currentPath);
-        }
-        if (child.isDirectory()) {
-          directoryPaths.put(child.getId(), currentPath);
         }
       }
     }
