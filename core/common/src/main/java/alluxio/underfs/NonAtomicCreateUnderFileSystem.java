@@ -30,8 +30,6 @@ import java.io.OutputStream;
 public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
 
   private final long mNonce;
-  private String mTemporaryPath;
-  private String mPermanentPath;
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -47,24 +45,26 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    mPermanentPath = path;
-    mTemporaryPath = PathUtils.temporaryFileName(mNonce, path);
+    String temporaryPath = PathUtils.temporaryFileName(mNonce, path);
 
-    return new AtomicFileOutputStream(createNonAtomic(mTemporaryPath, options), this);
+    return new AtomicFileOutputStream(path, temporaryPath,
+        createNonAtomic(temporaryPath, options), this);
   }
 
   /**
    * Complete create operation by renaming temporary path to permanent.
    *
+   * @param temporaryPath path a create writes to
+   * @param permanentPath final path after rename
    * @throws IOException when rename fails
    */
-  public void completeCreate() throws IOException {
-    if (!rename(mTemporaryPath, mPermanentPath)) {
-      if (!delete(mTemporaryPath, false)) {
-        LOG.error("Failed to delete temporary file {}", mTemporaryPath);
+  public void completeCreate(String temporaryPath, String permanentPath) throws IOException {
+    if (!rename(temporaryPath, permanentPath)) {
+      if (!delete(temporaryPath, false)) {
+        LOG.error("Failed to delete temporary file {}", temporaryPath);
       }
       throw new IOException(
-          ExceptionMessage.FAILED_UFS_RENAME.getMessage(mTemporaryPath, mPermanentPath));
+          ExceptionMessage.FAILED_UFS_RENAME.getMessage(temporaryPath, permanentPath));
     }
   }
 

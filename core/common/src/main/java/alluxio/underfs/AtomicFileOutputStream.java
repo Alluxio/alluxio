@@ -15,29 +15,44 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * An {@link AtomicFileOutputStream} writes to a temporary file and renames on close.
  */
+@NotThreadSafe
 public class AtomicFileOutputStream extends FilterOutputStream {
 
+  private String mTemporaryPath;
+  private String mPermanentPath;
+  private boolean mClosed = false;
   private NonAtomicCreateUnderFileSystem mUfs;
 
   /**
    * Constructs a new {@link AtomicFileOutputStream}.
    *
+   * @param permanentPath the final path of the file
+   * @param temporaryPath the temporary path to write to
    * @param out the wrapped {@link OutputStream}
    * @param ufs the calling {@link NonAtomicCreateUnderFileSystem}
    */
-  public AtomicFileOutputStream(OutputStream out, NonAtomicCreateUnderFileSystem ufs) {
+  public AtomicFileOutputStream(String permanentPath, String temporaryPath, OutputStream out,
+                                NonAtomicCreateUnderFileSystem ufs) {
     super(out);
 
+    mPermanentPath = permanentPath;
+    mTemporaryPath = temporaryPath;
     mUfs = ufs;
   }
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
     out.close();
-    mUfs.completeCreate();
+    mUfs.completeCreate(mTemporaryPath, mPermanentPath);
+    mClosed = true;
   }
 }
 
