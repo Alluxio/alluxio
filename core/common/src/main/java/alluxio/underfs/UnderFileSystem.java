@@ -277,13 +277,17 @@ public abstract class UnderFileSystem {
   public abstract void close() throws IOException;
 
   /**
-   * Creates a file in the under file system with the indicated name.
+   * Creates a file in the under file system with the indicated name. This operation is expected
+   * to be atomic. Implementations should make sure that the path appears to exist only after a
+   * successful close and that contents are written in its entirety or not at all.
    *
    * @param path the file name
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path) throws IOException;
+  public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
 
   /**
    * Creates a file in the under file system with the specified

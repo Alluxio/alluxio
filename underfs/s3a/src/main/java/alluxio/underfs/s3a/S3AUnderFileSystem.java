@@ -224,11 +224,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path) throws IOException {
-    return create(path, new CreateOptions());
-  }
-
-  @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
       // Return the direct stream if the user has enabled direct writes

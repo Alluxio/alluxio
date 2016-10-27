@@ -168,11 +168,6 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path) throws IOException {
-    return create(path, new CreateOptions());
-  }
-
-  @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
       return new GCSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);

@@ -209,11 +209,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path) throws IOException {
-    return create(path, new CreateOptions());
-  }
-
-  @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
 
