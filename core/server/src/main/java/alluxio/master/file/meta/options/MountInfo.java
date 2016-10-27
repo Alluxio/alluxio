@@ -40,7 +40,7 @@ public final class MountInfo {
   }
 
   /**
-   * @return the {@link AlluxioURI} of ufs path
+   * @return the {@link AlluxioURI} of the ufs path
    */
   public AlluxioURI getUfsUri() {
     return mUfsUri;
