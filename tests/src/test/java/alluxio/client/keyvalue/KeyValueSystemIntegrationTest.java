@@ -24,10 +24,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -41,11 +43,12 @@ import java.util.List;
 /**
  * Integration tests for {@link KeyValueSystem}.
  */
+@Ignore("TODO(Bin): Clear the resources when done with tests. Run the following two tests together "
+    + "KeyValuePartitionIntegrationTest,KeyValueSystemIntegrationTest to reproduce.")
 public final class KeyValueSystemIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final String BASE_KEY = "base_key";
   private static final String BASE_VALUE = "base_value";
-  private static final int BASE_KEY_VALUE_NUMBER = 100;
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
@@ -61,9 +64,12 @@ public final class KeyValueSystemIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE)
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, Constants.GB)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           /* ensure key-value service is turned on */
-          .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true");
+          .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true")
+          .build();
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -73,6 +79,13 @@ public final class KeyValueSystemIntegrationTest {
   @Before
   public void before() throws Exception {
     mStoreUri = new AlluxioURI(PathUtils.uniqPath());
+  }
+
+  @After
+  public void after() throws Exception {
+    mWriter = null;
+    mReader = null;
+    mStoreUri = null;
   }
 
   /**
@@ -250,13 +263,20 @@ public final class KeyValueSystemIntegrationTest {
 
     Configuration
         .set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
-    mWriter = sKeyValueSystem.createStore(mStoreUri);
-    byte[] key = BufferUtils.getIncreasingByteArray(0, keyLength);
-    byte[] value = BufferUtils.getIncreasingByteArray(0, valueLength);
+    try {
+      mWriter = sKeyValueSystem.createStore(mStoreUri);
+      byte[] key = BufferUtils.getIncreasingByteArray(0, keyLength);
+      byte[] value = BufferUtils.getIncreasingByteArray(0, valueLength);
 
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.KEY_VALUE_TOO_LARGE.getMessage(keyLength, valueLength));
-    mWriter.put(key, value);
+      mThrown.expect(IOException.class);
+      mThrown
+          .expectMessage(ExceptionMessage.KEY_VALUE_TOO_LARGE.getMessage(keyLength, valueLength));
+      mWriter.put(key, value);
+    } finally {
+      if (mWriter != null) {
+        mWriter.close();
+      }
+    }
   }
 
   /**
@@ -265,14 +285,20 @@ public final class KeyValueSystemIntegrationTest {
    */
   @Test
   public void putKeyAlreadyExists() throws Exception {
-    mWriter = sKeyValueSystem.createStore(mStoreUri);
-    mWriter.put(KEY1, VALUE1);
+    try {
+      mWriter = sKeyValueSystem.createStore(mStoreUri);
+      mWriter.put(KEY1, VALUE1);
 
-    byte[] copyOfKey1 = Arrays.copyOf(KEY1, KEY1.length);
+      byte[] copyOfKey1 = Arrays.copyOf(KEY1, KEY1.length);
 
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.KEY_ALREADY_EXISTS.getMessage());
-    mWriter.put(copyOfKey1, VALUE2);
+      mThrown.expect(IOException.class);
+      mThrown.expectMessage(ExceptionMessage.KEY_ALREADY_EXISTS.getMessage());
+      mWriter.put(copyOfKey1, VALUE2);
+    } finally {
+      if (mWriter != null) {
+        mWriter.close();
+      }
+    }
   }
 
   /**

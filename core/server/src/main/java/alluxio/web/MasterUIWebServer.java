@@ -14,7 +14,6 @@ package alluxio.web;
 import alluxio.Constants;
 import alluxio.master.AlluxioMaster;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -37,13 +36,13 @@ public final class MasterUIWebServer extends UIWebServer {
   /**
    * Creates a new instance of {@link MasterUIWebServer}.
    *
-   * @param service the service type
+   * @param serviceName the service name
    * @param address the service address
    * @param master the Alluxio master
    */
-  public MasterUIWebServer(ServiceType service, InetSocketAddress address,
+  public MasterUIWebServer(String serviceName, InetSocketAddress address,
       final AlluxioMaster master) {
-    super(service, address);
+    super(serviceName, address);
     Preconditions.checkNotNull(master, "Alluxio master cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
@@ -63,8 +62,8 @@ public final class MasterUIWebServer extends UIWebServer {
         "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()),
         "/header");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet(
-        master.getMasterMetricsSystem())), "/metricsui");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet()),
+        "/metricsui");
 
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.master", "alluxio.master.block",

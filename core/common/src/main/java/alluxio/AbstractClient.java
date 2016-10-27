@@ -41,6 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * The base class for clients.
  */
+// TODO(peis): Consolidate this to ThriftClientPool.
 @ThreadSafe
 public abstract class AbstractClient implements Client {
 
@@ -194,6 +195,14 @@ public abstract class AbstractClient implements Client {
       } catch (TTransportException e) {
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to " + getServiceName() + " "
             + mMode + " @ " + mAddress + " : " + e.getMessage());
+        if (e.getCause() instanceof java.net.SocketTimeoutException) {
+          // Do not retry if socket timeout.
+          String message = "Thrift transport open times out. Please check whether the "
+              + "authentication types match between client and server. Note that NOSASL client "
+              + "is not able to connect to servers with SIMPLE security mode.";
+          throw new IOException(message, e);
+        }
+        // TODO(peis): Consider closing the connection here as well.
         if (!retry.attemptRetry()) {
           break;
         }
@@ -220,8 +229,6 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * Returns the connected status of the client.
-   *
    * @return true if this client is connected to the remote
    */
   public synchronized boolean isConnected() {
@@ -247,8 +254,6 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * Returns the {@link InetSocketAddress} of the remote.
-   *
    * @return the {@link InetSocketAddress} of the remote
    */
   protected synchronized InetSocketAddress getAddress() {
@@ -314,7 +319,7 @@ public abstract class AbstractClient implements Client {
         throw Throwables.propagate(AlluxioException.fromThrift(e));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mConnected = false;
+        disconnect();
       }
     }
     throw new IOException("Failed after " + retry + " retries.");
@@ -345,7 +350,7 @@ public abstract class AbstractClient implements Client {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mConnected = false;
+        disconnect();
       }
     }
     throw new IOException("Failed after " + retry + " retries.");

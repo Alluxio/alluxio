@@ -20,12 +20,12 @@ import com.codahale.metrics.graphite.GraphiteReporter;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A sink which publishes metric values to a Graphite server.
  */
-@NotThreadSafe
+@ThreadSafe
 public class GraphiteSink implements Sink {
   private static final int GRAPHITE_DEFAULT_PERIOD = 10;
   private static final String GRAPHITE_DEFAULT_UNIT = "SECONDS";
@@ -66,31 +66,6 @@ public class GraphiteSink implements Sink {
     MetricsSystem.checkMinimalPollingPeriod(getPollUnit(), getPollPeriod());
   }
 
-  /**
-   * Gets the polling period.
-   *
-   * @return the polling period set by properties. If it is not set, a default value 10 is
-   *         returned.
-   */
-  public int getPollPeriod() {
-    String period = mProperties.getProperty(GRAPHITE_KEY_PERIOD);
-    return period != null ? Integer.parseInt(period) : GRAPHITE_DEFAULT_PERIOD;
-  }
-
-  /**
-   * Gets the polling time unit.
-   *
-   * @return the polling time unit set by properties, If it is not set, a default value SECONDS is
-   *         returned.
-   */
-  public TimeUnit getPollUnit() {
-    String unit = mProperties.getProperty(GRAPHITE_KEY_UNIT);
-    if (unit == null) {
-      unit = GRAPHITE_DEFAULT_UNIT;
-    }
-    return TimeUnit.valueOf(unit.toUpperCase());
-  }
-
   @Override
   public void start() {
     mReporter.start(getPollPeriod(), getPollUnit());
@@ -104,5 +79,30 @@ public class GraphiteSink implements Sink {
   @Override
   public void report() {
     mReporter.report();
+  }
+
+  /**
+   * Gets the polling period.
+   *
+   * @return the polling period set by properties. If it is not set, a default value 10 is
+   *         returned.
+   */
+  private int getPollPeriod() {
+    String period = mProperties.getProperty(GRAPHITE_KEY_PERIOD);
+    return period != null ? Integer.parseInt(period) : GRAPHITE_DEFAULT_PERIOD;
+  }
+
+  /**
+   * Gets the polling time unit.
+   *
+   * @return the polling time unit set by properties, If it is not set, a default value SECONDS is
+   *         returned.
+   */
+  private TimeUnit getPollUnit() {
+    String unit = mProperties.getProperty(GRAPHITE_KEY_UNIT);
+    if (unit == null) {
+      unit = GRAPHITE_DEFAULT_UNIT;
+    }
+    return TimeUnit.valueOf(unit.toUpperCase());
   }
 }

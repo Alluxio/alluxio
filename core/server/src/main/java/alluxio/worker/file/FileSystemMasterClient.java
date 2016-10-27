@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.wire.FileInfo;
@@ -109,13 +110,13 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @param persistedFiles the files which have been persisted since the last heartbeat
    * @return the command for file system worker
    * @throws IOException if file persistence fails
-   * @throws ConnectionFailedException if network connection failed
+   * @throws AlluxioException if an error occurs on Alluxio master
    */
   public synchronized FileSystemCommand heartbeat(final long workerId,
-      final List<Long> persistedFiles) throws ConnectionFailedException, IOException {
-    return retryRPC(new RpcCallable<FileSystemCommand>() {
+      final List<Long> persistedFiles) throws IOException, AlluxioException {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<FileSystemCommand>() {
       @Override
-      public FileSystemCommand call() throws TException {
+      public FileSystemCommand call() throws AlluxioTException, TException {
         return mClient.heartbeat(workerId, persistedFiles);
       }
     });

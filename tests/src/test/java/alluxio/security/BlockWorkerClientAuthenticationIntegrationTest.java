@@ -17,8 +17,8 @@ import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.RetryHandlingBlockWorkerClient;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
-import alluxio.worker.ClientMetrics;
 
+import org.apache.thrift.transport.TTransportException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,8 +27,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Tests RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
@@ -38,27 +36,25 @@ import java.util.concurrent.Executors;
 public final class BlockWorkerClientAuthenticationIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
-  private ExecutorService mExecutorService;
+      new LocalAlluxioClusterResource.Builder().build();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
-    mExecutorService = Executors.newFixedThreadPool(2);
     clearLoginUser();
   }
 
   @After
   public void after() throws Exception {
     clearLoginUser();
-    mExecutorService.shutdownNow();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
   public void noAuthenticationOpenClose() throws Exception {
     authenticationOperationTest();
   }
@@ -87,19 +83,24 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnect() throws Exception {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("Failed to connect to the worker");
+    boolean failedToConnect = false;
+
+    // Using no-alluxio as loginUser to connect to Worker, the IOException will be thrown
+    LoginUserTestUtils.resetLoginUser("no-alluxio");
 
     try (BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(), mExecutorService,
-        1 /* fake session id */, true, new ClientMetrics())) {
-      Assert.assertFalse(blockWorkerClient.isConnected());
-      // Using no-alluxio as loginUser to connect to Worker, the IOException will be thrown
-      LoginUserTestUtils.resetLoginUser("no-alluxio");
-      blockWorkerClient.connect();
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake
+        session id */)) {
+      // Just to supress the "Empty try block" warning in CheckStyle.
+      failedToConnect = false;
+    } catch (IOException e) {
+      if (e.getCause() instanceof TTransportException) {
+        failedToConnect = true;
+      }
     } finally {
       ClientTestUtils.resetClient();
     }
+    Assert.assertTrue(failedToConnect);
   }
 
   /**
@@ -107,12 +108,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest() throws Exception {
     RetryHandlingBlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(),
-        mExecutorService, 1 /* fake session id */, true, new ClientMetrics());
-
-    Assert.assertFalse(blockWorkerClient.isConnected());
-    blockWorkerClient.connect();
-    Assert.assertTrue(blockWorkerClient.isConnected());
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake session id */);
 
     blockWorkerClient.close();
   }

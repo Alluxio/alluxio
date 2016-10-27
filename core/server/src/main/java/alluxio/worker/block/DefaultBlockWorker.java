@@ -24,6 +24,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
@@ -35,14 +36,14 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.SessionCleanupCallback;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import com.codahale.metrics.Gauge;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -50,12 +51,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker.
@@ -95,6 +97,54 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private Sessions mSessions;
   /** Block Store manager. */
   private BlockStore mBlockStore;
+  private WorkerNetAddress mAddress;
+  /**
+   * The worker ID for this worker. This is initialized in {@link #init(WorkerNetAddress)} and may
+   * be updated by the block sync thread if the master requests re-registration.
+   */
+  private AtomicReference<Long> mWorkerId;
+
+  /**
+   * Constructs a default block worker.
+   *
+   * @param workerId a reference for the id of this worker
+   *
+   * @throws IOException if an IO exception occurs
+   */
+  public DefaultBlockWorker(AtomicReference<Long> workerId) throws IOException {
+    this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+        new Sessions(), new TieredBlockStore(), workerId);
+  }
+
+  /**
+   * Constructs a default block worker.
+   *
+   * @param blockMasterClient a client for talking to the block master
+   * @param fileSystemMasterClient a client for talking to the file system master
+   * @param sessions an object for tracking and cleaning up client sessions
+   * @param blockStore an Alluxio block store
+   * @param workerId a reference for the id of this worker
+   * @throws IOException if an IO exception occurs
+   */
+  public DefaultBlockWorker(BlockMasterClient blockMasterClient,
+      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
+      AtomicReference<Long> workerId) throws IOException {
+    super(Executors.newFixedThreadPool(4,
+        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
+    mBlockMasterClient = blockMasterClient;
+    mFileSystemMasterClient = fileSystemMasterClient;
+    mHeartbeatReporter = new BlockHeartbeatReporter();
+    mMetricsReporter = new BlockMetricsReporter();
+    mSessions = sessions;
+    mBlockStore = blockStore;
+    mWorkerId = workerId;
+
+    mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
+    mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
+
+    Metrics.registerGauges(this);
+  }
 
   @Override
   public BlockStore getBlockStore() {
@@ -106,40 +156,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     return new BlockWorkerClientServiceHandler(this);
   }
 
-  /**
-   * Constructs a default block worker.
-   *
-   * @throws IOException if an IO exception occurs
-   */
-  public DefaultBlockWorker() throws IOException {
-    this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new Sessions(), new TieredBlockStore());
-  }
-
-  /**
-   * Constructs a default block worker.
-   *
-   * @param blockMasterClient a client for talking to the block master
-   * @param fileSystemMasterClient a client for talking to the file system master
-   * @param sessions an object for tracking and cleaning up client sessions
-   * @param blockStore an Alluxio block store
-   * @throws IOException if an IO exception occurs
-   */
-  public DefaultBlockWorker(BlockMasterClient blockMasterClient,
-      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore)
-          throws IOException {
-    super(Executors.newFixedThreadPool(4,
-        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    mBlockMasterClient = blockMasterClient;
-    mFileSystemMasterClient = fileSystemMasterClient;
-    mHeartbeatReporter = new BlockHeartbeatReporter();
-    mMetricsReporter = new BlockMetricsReporter(WorkerContext.getWorkerSource());
-    mSessions = sessions;
-    mBlockStore = blockStore;
-
-    mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
-    mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
+  @Override
+  public void init(WorkerNetAddress workerAddress) {
+    mAddress = workerAddress;
+    try {
+      mWorkerId.set(mBlockMasterClient.getId(workerAddress));
+    } catch (Exception e) {
+      LOG.error("Failed to get a worker id from block master", e);
+      throw Throwables.propagate(e);
+    }
   }
 
   @Override
@@ -158,22 +183,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void start() throws IOException {
-    WorkerNetAddress netAddress;
-    try {
-      netAddress = new WorkerNetAddress()
-          .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
-          .setRpcPort(Configuration.getInt(PropertyKey.WORKER_RPC_PORT))
-          .setDataPort(Configuration.getInt(PropertyKey.WORKER_DATA_PORT))
-          .setWebPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT));
-
-      WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, netAddress);
-    } catch (ConnectionFailedException e) {
-      LOG.error("Failed to get a worker id from block master", e);
-      throw Throwables.propagate(e);
-    }
+    Preconditions.checkNotNull(mWorkerId, "mWorkerId");
+    Preconditions.checkNotNull(mAddress, "mAddress");
 
     // Setup BlockMasterSync
-    mBlockMasterSync = new BlockMasterSync(this, netAddress, mBlockMasterClient);
+    mBlockMasterSync = new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClient);
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
@@ -259,8 +273,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
-      mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
-          loc.tierAlias(), blockId, length);
+      mBlockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
+          length);
     } catch (AlluxioTException | IOException | ConnectionFailedException e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
@@ -393,9 +407,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void sessionHeartbeat(long sessionId, List<Long> metrics) {
+  public void sessionHeartbeat(long sessionId) {
     mSessions.sessionHeartbeat(sessionId);
-    mMetricsReporter.updateClientMetrics(metrics);
   }
 
   @Override
@@ -426,5 +439,60 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
     LOG.debug("Created new file block, block path: {}", blockPath);
+  }
+
+  /**
+   * This class contains some metrics related to the block worker.
+   * This class is public because the metric names are referenced in
+   * {@link alluxio.web.WebInterfaceWorkerMetricsServlet}.
+   */
+  @ThreadSafe
+  public static final class Metrics {
+    public static final String CAPACITY_TOTAL = "CapacityTotal";
+    public static final String CAPACITY_USED = "CapacityUsed";
+    public static final String CAPACITY_FREE = "CapacityFree";
+    public static final String BLOCKS_CACHED = "BlocksCached";
+
+    /**
+     * Registers metric gauges.
+     *
+     * @param blockWorker the block worker handle
+     */
+    public static void registerGauges(final BlockWorker blockWorker) {
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_TOTAL),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return blockWorker.getStoreMeta().getCapacityBytes();
+            }
+          });
+
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_USED),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return blockWorker.getStoreMeta().getUsedBytes();
+            }
+          });
+
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(CAPACITY_FREE),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              return blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
+                  .getUsedBytes();
+            }
+          });
+
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(BLOCKS_CACHED),
+          new Gauge<Integer>() {
+            @Override
+            public Integer getValue() {
+              return blockWorker.getStoreMetaFull().getNumberOfBlocks();
+            }
+          });
+    }
+
+    private Metrics() {} // prevent instantiation
   }
 }

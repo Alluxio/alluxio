@@ -66,24 +66,4 @@ public class GetMasterWorkerAddressTest {
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
-
-  /**
-   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType)} method for
-   * a worker node.
-   */
-  @Test
-  public void getWorkerAddress() {
-    // port only
-    Configuration.set(PropertyKey.WORKER_RPC_PORT, "10001");
-    String defaultHostname = NetworkAddressUtils.getLocalHostName();
-    int defaultPort = Constants.DEFAULT_WORKER_PORT;
-    InetSocketAddress workerAddress =
-        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC);
-    Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
-    ConfigurationTestUtils.resetConfiguration();
-
-    // all default
-    workerAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC);
-    Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);
-  }
 }

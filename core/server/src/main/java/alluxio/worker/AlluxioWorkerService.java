@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Server;
-import alluxio.metrics.MetricsSystem;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
 
@@ -22,26 +22,6 @@ import java.net.InetSocketAddress;
  * A worker in the Alluxio system.
  */
 public interface AlluxioWorkerService extends Server {
-
-  /**
-   * Factory for acquiring an AlluxioWorker.
-   */
-  class Factory {
-    private static AlluxioWorkerService sAlluxioWorker;
-
-    /**
-     * @return the default Alluxio worker
-     */
-    public static synchronized AlluxioWorkerService get() {
-      if (sAlluxioWorker == null) {
-        sAlluxioWorker = new DefaultAlluxioWorker();
-      }
-      return sAlluxioWorker;
-    }
-
-    private Factory() {} // Not intended for instantiation
-  }
-
   /**
    * @return the block worker for this Alluxio worker
    */
@@ -88,12 +68,12 @@ public interface AlluxioWorkerService extends Server {
   InetSocketAddress getRpcAddress();
 
   /**
-   * @return the worker metric system reference
-   */
-  MetricsSystem getWorkerMetricsSystem();
-
-  /**
    * Waits until the worker is ready to server requests.
    */
   void waitForReady();
+
+  /**
+   * @return the connect information for this worker
+   */
+  WorkerNetAddress getAddress();
 }

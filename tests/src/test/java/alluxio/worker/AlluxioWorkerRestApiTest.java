@@ -19,8 +19,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.util.CommonUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,7 +53,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
         new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_RPC_ADDRESS),
             NO_PARAMS, HttpMethod.GET, null).call();
     Assert.assertTrue(
-        result.contains(String.valueOf(NetworkAddressUtils.getPort(ServiceType.WORKER_RPC))));
+        result.contains(Integer.toString(mResource.get().getWorkerAddress().getRpcPort())));
   }
 
   @Test
@@ -96,9 +94,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
     Map<String, Long> metrics = new ObjectMapper().readValue(result,
         new TypeReference<Map<String, Long>>() {});
 
-    String blocksAccessedMetricName = MetricsSystem
-        .buildSourceRegistryName(MetricsSystem.WORKER_INSTANCE, WorkerContext.getWorkerSource())
-        + "." + WorkerSource.BLOCKS_ACCESSED;
+    String blocksAccessedMetricName = MetricsSystem.getWorkerMetricName("BlocksAccessed");
     Assert.assertTrue(metrics.get(blocksAccessedMetricName) >= 0);
   }
 

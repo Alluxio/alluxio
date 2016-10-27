@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
 
@@ -24,7 +25,6 @@ import org.powermock.reflect.Whitebox;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Util methods for writing integration tests.
@@ -55,7 +55,7 @@ public final class IntegrationTestUtils {
 
     try (FileSystemMasterClient client = new FileSystemMasterClient(
         localAlluxioClusterResource.get().getMaster().getAddress())) {
-      CommonTestUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
+      CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           try {
@@ -91,13 +91,12 @@ public final class IntegrationTestUtils {
    */
   public static void waitForBlocksToBeFreed(final BlockWorker bw, final Long... blockIds) {
     try {
-      // Schedule 1st heartbeat from worker.
-      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
-      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+      // Execute 1st heartbeat from worker.
+      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
       // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
       // removed from master in the next heartbeat.
-      CommonTestUtils.waitFor("blocks to be removed", new Function<Void, Boolean>() {
+      CommonUtils.waitFor("blocks to be removed", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           BlockHeartbeatReporter reporter = Whitebox.getInternalState(bw, "mHeartbeatReporter");
@@ -106,12 +105,8 @@ public final class IntegrationTestUtils {
         }
       }, 100 * Constants.SECOND_MS);
 
-      // Schedule 2nd heartbeat from worker.
-      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
-      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-      // Ensure the 2nd heartbeat is finished.
-      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
+      // Execute 2nd heartbeat from worker.
+      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);

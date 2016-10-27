@@ -28,7 +28,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utilty class for using Alluxio with Hadoop.
+ * Utility class for using Alluxio with Hadoop.
  */
 @ThreadSafe
 public final class HadoopUtils {

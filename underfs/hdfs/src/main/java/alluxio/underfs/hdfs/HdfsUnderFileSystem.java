@@ -88,8 +88,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.HDFS;
+  public String getUnderFSType() {
+    return "hdfs";
   }
 
   /**

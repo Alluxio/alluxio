@@ -13,7 +13,6 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
@@ -41,12 +40,12 @@ import java.io.IOException;
  * Integration tests on Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
 public final class FileSystemIntegrationTest {
-  private static final int WORKER_CAPACITY_BYTES = 2 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB)
-          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES))
+          .build();
   private FileSystem mFileSystem = null;
   private CreateFileOptions mWriteBoth;
 
@@ -80,7 +79,7 @@ public final class FileSystemIntegrationTest {
     mFileSystem.createFile(uri, mWriteBoth).close();
     Assert.assertNotNull(mFileSystem.getStatus(uri));
     try {
-      mFileSystem.createFile(uri, mWriteBoth);
+      mFileSystem.createFile(uri, mWriteBoth).close();
     } catch (AlluxioException e) {
       Assert.assertTrue(e instanceof FileAlreadyExistsException);
     }
@@ -90,7 +89,7 @@ public final class FileSystemIntegrationTest {
   public void createFileWithInvalidPathException() throws Exception {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_INVALID.getMessage("root/testFile1"));
-    mFileSystem.createFile(new AlluxioURI("root/testFile1"), mWriteBoth);
+    mFileSystem.createFile(new AlluxioURI("root/testFile1"), mWriteBoth).close();
   }
 
   @Test

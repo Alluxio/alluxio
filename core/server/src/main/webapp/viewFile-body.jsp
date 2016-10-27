@@ -89,7 +89,7 @@
                 <% Iterator<String> iterator = masterBlockInfo.getLocations().iterator(); %>
                 <% while (iterator.hasNext()) { %>
                     <% String location = iterator.next(); %>
-                    <a href="http://<%= location %>:<%= request.getAttribute("workerWebPort") %>"><%= location %></a>
+                    <%= location %>
                     <% if(iterator.hasNext()) { %>
                       ,
                     <% } %>

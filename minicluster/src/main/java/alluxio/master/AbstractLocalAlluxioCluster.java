@@ -17,7 +17,10 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
+import alluxio.client.block.BlockStoreContextTestUtils;
+import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -31,7 +34,6 @@ import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.DefaultAlluxioWorker;
 
 import com.google.common.base.Joiner;
-import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,29 +51,24 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractLocalAlluxioCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
-  private static final long CLUSTER_READY_TIMEOUT_MS = 60000;
-  private static final String ELLIPSIS = "…";
   private static final Random RANDOM_GENERATOR = new Random();
+  private static final int DEFAULT_BLOCK_SIZE_BYTES = Constants.KB;
+  private static final long DEFAULT_WORKER_MEMORY_BYTES = 100 * Constants.MB;
 
-  protected long mWorkerCapacityBytes;
-  protected int mUserBlockSize;
+  protected List<AlluxioWorkerService> mWorkers;
 
-  protected AlluxioWorkerService mWorker;
   protected UnderFileSystemCluster mUfsCluster;
 
   protected String mWorkDirectory;
   protected String mHostname;
 
-  protected Thread mWorkerThread;
+  private int mNumWorkers;
 
   /**
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param userBlockSize the block size for a user
+   * @param numWorkers the number of workers to run
    */
-  public AbstractLocalAlluxioCluster(long workerCapacityBytes, int userBlockSize) {
-    mWorkerCapacityBytes = workerCapacityBytes;
-    mUserBlockSize = userBlockSize;
+  public AbstractLocalAlluxioCluster(int numWorkers) {
+    mNumWorkers = numWorkers;
   }
 
   /**
@@ -84,11 +81,15 @@ public abstract class AbstractLocalAlluxioCluster {
     // Disable HDFS client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
+    resetClientPools();
+
     setupTest();
     startMaster();
     getMaster().getInternalMaster().waitForReady();
-    startWorker();
-    mWorker.waitForReady();
+    startWorkers();
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.waitForReady();
+    }
 
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
@@ -102,12 +103,12 @@ public abstract class AbstractLocalAlluxioCluster {
   protected abstract void startMaster() throws IOException;
 
   /**
-   * Configures and starts a worker.
+   * Configures and starts the workers.
    *
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
-  protected abstract void startWorker() throws IOException, ConnectionFailedException;
+  protected abstract void startWorkers() throws IOException, ConnectionFailedException;
 
   /**
    * Sets up corresponding directories for tests.
@@ -204,7 +205,8 @@ public abstract class AbstractLocalAlluxioCluster {
 
     Configuration.set(PropertyKey.TEST_MODE, "true");
     Configuration.set(PropertyKey.WORK_DIR, mWorkDirectory);
-    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT,
+        Integer.toString(DEFAULT_BLOCK_SIZE_BYTES));
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
     Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(0));
@@ -237,7 +239,7 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
     Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(0));
     Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(DEFAULT_WORKER_MEMORY_BYTES));
     Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
@@ -258,9 +260,6 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(
         PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(0),
         ramdiskPath);
-    Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(0),
-        Long.toString(mWorkerCapacityBytes));
 
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {
@@ -285,30 +284,34 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Runs a worker.
+   * Runs workers.
    *
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
-  protected void runWorker() throws IOException, ConnectionFailedException {
-    mWorker = new DefaultAlluxioWorker();
-    Whitebox.setInternalState(AlluxioWorkerService.Factory.class, "sAlluxioWorker", mWorker);
+  protected void runWorkers() throws IOException, ConnectionFailedException {
+    mWorkers = new ArrayList<>();
+    for (int i = 0; i < mNumWorkers; i++) {
+      mWorkers.add(new DefaultAlluxioWorker());
+    }
 
-    Runnable runWorker = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          mWorker.start();
+    for (final AlluxioWorkerService worker : mWorkers) {
+      Runnable runWorker = new Runnable() {
+        @Override
+        public void run() {
+          try {
+            worker.start();
 
-        } catch (Exception e) {
-          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
-          LOG.error("Start worker error", e);
-          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+          } catch (Exception e) {
+            // Log the exception as the RuntimeException will be caught and handled silently by
+            // JUnit
+            LOG.error("Start worker error", e);
+            throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+          }
         }
-      }
-    };
-    mWorkerThread = new Thread(runWorker);
-    mWorkerThread.start();
+      };
+      new Thread(runWorker).start();
+    }
   }
 
   /**
@@ -330,6 +333,15 @@ public abstract class AbstractLocalAlluxioCluster {
   protected void reset() {
     ClientTestUtils.resetClient();
     GroupMappingServiceTestUtils.resetCache();
+  }
+
+  /**
+   * Resets the client pools to the original state.
+   */
+  protected void resetClientPools() {
+    RetryHandlingBlockWorkerClientTestUtils.reset();
+    FileSystemWorkerClientTestUtils.reset();
+    BlockStoreContextTestUtils.resetPool();
   }
 
   /**

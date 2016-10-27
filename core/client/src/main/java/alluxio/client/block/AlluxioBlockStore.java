@@ -13,9 +13,12 @@ package alluxio.client.block;
 
 import alluxio.Constants;
 import alluxio.client.ClientContext;
+import alluxio.client.file.options.OutStreamOptions;
+import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PreconditionMessage;
 import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
@@ -23,6 +26,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +39,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.
- * An instance of this class can be obtained via {@link AlluxioBlockStore#get()}. The methods in
- * this class are completely opaque to user input.
+ * An instance of this class can be obtained via {@link AlluxioBlockStore} constructors. The methods
+ * in this class are completely opaque to user input.
  */
 @ThreadSafe
 public final class AlluxioBlockStore {
@@ -193,6 +197,31 @@ public final class AlluxioBlockStore {
   }
 
   /**
+   * Gets a stream to write data to a block based on the options. The stream can only be backed by
+   * Alluxio storage.
+   *
+   * @param blockId the block to write
+   * @param blockSize the standard block size to write, or -1 if the block already exists (and this
+   *        stream is just storing the block in Alluxio again)
+   * @param options the output stream option
+   * @return a {@link BufferedBlockOutStream} which can be used to write data to the block in a
+   *         streaming fashion
+   * @throws IOException if the block cannot be written
+   */
+  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, OutStreamOptions options)
+      throws IOException {
+    WorkerNetAddress address;
+    FileWriteLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
+        PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
+    try {
+      address = locationPolicy.getWorkerForNextBlock(getWorkerInfoList(), blockSize);
+    } catch (AlluxioException e) {
+      throw new IOException(e);
+    }
+    return getOutStream(blockId, blockSize, address);
+  }
+
+  /**
    * Gets the total capacity of Alluxio's BlockStore.
    *
    * @return the capacity in bytes
@@ -244,14 +273,14 @@ public final class AlluxioBlockStore {
     }
     // Get the first worker address for now, as this will likely be the location being read from
     // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
-    WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-    BlockWorkerClient blockWorkerClient = mContext.acquireWorkerClient(workerAddr);
+    BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
+        info.getLocations().get(0).getWorkerAddress(), null  /* no session */);
     try {
       blockWorkerClient.promoteBlock(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
-      mContext.releaseWorkerClient(blockWorkerClient);
+      blockWorkerClient.close();
     }
   }
 }

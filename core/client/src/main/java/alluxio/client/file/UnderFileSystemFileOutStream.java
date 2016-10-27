@@ -13,7 +13,7 @@ package alluxio.client.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.netty.NettyUnderFileSystemFileWriter;
+import alluxio.client.UnderFileSystemFileWriter;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -37,7 +37,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
   /** Java heap buffer to buffer writes before flushing them to the worker. */
   private final ByteBuffer mBuffer;
   /** Writer to the worker, currently only implemented through Netty. */
-  private final NettyUnderFileSystemFileWriter mWriter;
+  private final UnderFileSystemFileWriter mWriter;
   /** Address of the worker to write to. */
   private final InetSocketAddress mAddress;
   /** Worker file id referencing the file to write to. */
@@ -73,7 +73,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
      * @param ufsFileId the file ID of the ufs fild to write to
      * @return a new {@link UnderFileSystemFileOutStream}
      */
-    public UnderFileSystemFileOutStream create(InetSocketAddress address, long ufsFileId) {
+    public OutputStream create(InetSocketAddress address, long ufsFileId) {
       return new UnderFileSystemFileOutStream(address, ufsFileId);
     }
   }
@@ -88,7 +88,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
     mBuffer = allocateBuffer();
     mAddress = address;
     mUfsFileId = ufsFileId;
-    mWriter = new NettyUnderFileSystemFileWriter();
+    mWriter = UnderFileSystemFileWriter.Factory.create();
     mFlushedBytes = 0;
     mWrittenBytes = 0;
     mClosed = false;

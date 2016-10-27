@@ -17,7 +17,6 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 
 import com.google.common.base.Preconditions;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
@@ -32,7 +31,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This handles all the messages received by the client channel.
  */
-@ChannelHandler.Sharable
 @NotThreadSafe
 public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -47,6 +45,13 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
      * @param response the RPC response
      */
     void onResponseReceived(RPCResponse response);
+
+    /**
+     * This method will be called when an exception is caught on the client.
+     *
+     * @param cause the cause
+     */
+    void onExceptionCaught(Throwable cause);
   }
 
   private final Set<ResponseListener> mListeners;
@@ -90,11 +95,12 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
     LOG.warn("Exception thrown while processing request", cause);
-    ctx.close();
+    for (ResponseListener listener : mListeners) {
+      listener.onExceptionCaught(cause);
+    }
   }
 
-  private void handleResponse(final RPCResponse resp)
-      throws IOException {
+  private void handleResponse(final RPCResponse resp) {
     for (ResponseListener listener : mListeners) {
       listener.onResponseReceived(resp);
     }

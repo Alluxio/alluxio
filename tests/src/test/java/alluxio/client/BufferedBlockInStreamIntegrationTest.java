@@ -39,7 +39,7 @@ public final class BufferedBlockInStreamIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private static FileSystem sFileSystem;
   private static CreateFileOptions sWriteBoth;
   private static CreateFileOptions sWriteAlluxio;

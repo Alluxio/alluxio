@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.thrift.SetAttributeTOptions;
+import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,6 +30,7 @@ public class SetAttributeOptionsTest {
     Assert.assertFalse(options.hasPersisted());
     Assert.assertFalse(options.hasPinned());
     Assert.assertFalse(options.hasTtl());
+    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     Assert.assertFalse(options.hasOwner());
     Assert.assertFalse(options.hasGroup());
     Assert.assertFalse(options.hasMode());
@@ -56,6 +58,7 @@ public class SetAttributeOptionsTest {
     options.setPersisted(persisted);
     options.setPinned(pinned);
     options.setTtl(ttl);
+    options.setTtlAction(TtlAction.FREE);
     options.setOwner(owner);
     options.setGroup(group);
     options.setMode(permission);
@@ -67,6 +70,7 @@ public class SetAttributeOptionsTest {
     Assert.assertEquals(pinned, options.getPinned());
     Assert.assertTrue(options.hasTtl());
     Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
     Assert.assertTrue(options.hasOwner());
     Assert.assertEquals(owner, options.getOwner());
     Assert.assertTrue(options.hasGroup());
@@ -97,11 +101,34 @@ public class SetAttributeOptionsTest {
     Assert.assertTrue(thriftOptions.isSetPinned());
     Assert.assertEquals(pinned, thriftOptions.isPinned());
     Assert.assertTrue(thriftOptions.isSetTtl());
+    Assert.assertEquals(alluxio.thrift.TTtlAction.Delete, thriftOptions.getTtlAction());
     Assert.assertEquals(ttl, thriftOptions.getTtl());
   }
 
   @Test
   public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(SetAttributeOptions.class);
+  }
+
+  @Test
+  public void setOwnerToEmptyShouldFail() throws Exception {
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    try {
+      options.setOwner("");
+      Assert.fail("Expected setOwner to fail with empty owner field");
+    } catch (IllegalArgumentException e) {
+      // Expected
+    }
+  }
+
+  @Test
+  public void setGroupToEmptyShouldFail() throws Exception {
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    try {
+      options.setGroup("");
+      Assert.fail("Expected setGroup to fail with empty group field");
+    } catch (IllegalArgumentException e) {
+      // Expected
+    }
   }
 }

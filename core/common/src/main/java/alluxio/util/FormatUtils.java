@@ -73,17 +73,30 @@ public final class FormatUtils {
 
   /**
    * Parses a byte array into a space separated hex string where each byte is represented in the
-   * format {@code 0x%02X}.
+   * format {@code 0x%02x}.
    *
    * @param bytes the byte array to be transformed
    * @return the string representation of the byte array
    */
   public static String byteArrayToHexString(byte[] bytes) {
+    return byteArrayToHexString(bytes, "0x", " ");
+  }
+
+  /**
+   * Parses a byte array into a hex string where each byte is represented in the
+   * format {@code %02x}.
+   *
+   * @param bytes the byte array to be transformed
+   * @param prefix the prefix to use
+   * @param separator the separator to use
+   * @return the string representation of the byte array
+   */
+  public static String byteArrayToHexString(byte[] bytes, String prefix, String separator) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < bytes.length; i++) {
-      sb.append(String.format("0x%02X", bytes[i]));
+      sb.append(String.format("%s%02x", prefix, bytes[i]));
       if (i != bytes.length - 1) {
-        sb.append(" ");
+        sb.append(separator);
       }
     }
     return sb.toString();

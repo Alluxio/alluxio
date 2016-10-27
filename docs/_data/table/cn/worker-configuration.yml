@@ -77,6 +77,8 @@ alluxio.worker.tieredstore.reserver.enabled:
   是否启用层次化存储空间预留服务。
 alluxio.worker.tieredstore.reserver.interval.ms:
   空间预留服务运行的时间间隔（单位：毫秒），该服务为每个存储层预留一定比例的空间。
+alluxio.worker.tieredstore.retry:
+  worker在处理每个存储层block操作时的最大重试次数。
 alluxio.worker.web.bind.host:
   Alluxio worker web服务绑定的主机名，参考See <a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.worker.web.hostname:

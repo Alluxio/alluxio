@@ -29,7 +29,7 @@ public final class MkdirCommandTest extends AbstractAlluxioShellTest {
   public void mkdir() throws IOException, AlluxioException {
     String qualifiedPath =
         "alluxio://" + mLocalAlluxioCluster.getHostname() + ":" + mLocalAlluxioCluster
-            .getMasterPort() + "/root/testFile1";
+            .getMasterRpcPort() + "/root/testFile1";
     mFsShell.run("mkdir", qualifiedPath);
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
     Assert.assertNotNull(status);

@@ -26,6 +26,7 @@ import alluxio.underfs.swift.SwiftUnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -42,6 +43,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 /**
  * Integration tests for {@link FileSystem#setOwner(Path, String, String)} and
@@ -57,9 +59,10 @@ public final class FileSystemAclIntegrationTest {
   private static final int BLOCK_SIZE = 1024;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(100 * Constants.MB, BLOCK_SIZE)
+      new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName())
-          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
+          .build();
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;
   private static org.apache.hadoop.fs.FileSystem sTFS;
@@ -94,6 +97,35 @@ public final class FileSystemAclIntegrationTest {
     cleanup(sTFS);
   }
 
+  @Test
+  public void createFileWithPermission() throws Exception {
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+    for (int value : permissionValues) {
+      Path file = new Path("/createfile" + value);
+      FsPermission permission = FsPermission.createImmutable((short) value);
+      FSDataOutputStream o = sTFS.create(file, permission, false /* ignored */, 10 /* ignored */,
+          (short) 1 /* ignored */, 512 /* ignored */, null /* ignored */);
+      o.writeBytes("Test Bytes");
+      o.close();
+      FileStatus fs = sTFS.getFileStatus(file);
+      Assert.assertEquals(permission, fs.getPermission());
+    }
+  }
+
+  @Test
+  public void mkdirsWithPermission() throws Exception {
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+    for (int value : permissionValues) {
+      Path dir = new Path("/createDir" + value);
+      FsPermission permission = FsPermission.createImmutable((short) value);
+      sTFS.mkdirs(dir, permission);
+      FileStatus fs = sTFS.getFileStatus(dir);
+      Assert.assertEquals(permission, fs.getPermission());
+    }
+  }
+
   /**
    * Test for {@link FileSystem#setPermission(Path, org.apache.hadoop.fs.permission.FsPermission)}.
    * It will test changing the permission of file using TFS.
@@ -105,16 +137,16 @@ public final class FileSystemAclIntegrationTest {
     create(sTFS, fileA);
     FileStatus fs = sTFS.getFileStatus(fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
-    // Default permission should be 0644
-    Assert.assertEquals((short) 0644, fs.getPermission().toShort());
 
-    if (CommonUtils.isUfsObjectStorage(sUfsRoot)) {
-      // For object storage ufs, setMode is not supported.
-      mThrown.expect(IOException.class);
-      mThrown.expectMessage("setOwner/setMode is not supported to object storage UFS via Alluxio.");
-      sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
-      return;
+    if (sUfs instanceof HdfsUnderFileSystem && HadoopClientTestUtils.isHadoop1x()) {
+      // If the UFS is hadoop 1.0, the org.apache.hadoop.fs.FileSystem.create uses default
+      // permission option 0777.
+      Assert.assertEquals((short) 0777, fs.getPermission().toShort());
+    } else {
+      // Default permission should be 0644.
+      Assert.assertEquals((short) 0644, fs.getPermission().toShort());
     }
+
     sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
     Assert.assertEquals((short) 0755, sTFS.getFileStatus(fileA).getPermission().toShort());
   }
@@ -475,9 +507,9 @@ public final class FileSystemAclIntegrationTest {
     final String newGroup = "new-group1";
     create(sTFS, fileA);
 
-    // chown to Alluxio file which is persisted in OSS is not allowed.
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("setOwner/setMode is not supported to object storage UFS via Alluxio.");
+    // Set owner to Alluxio files that are persisted in UFS will NOT propagate to underlying object.
     sTFS.setOwner(fileA, newOwner, newGroup);
+    Assert.assertNotEquals(newOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertNotEquals(newGroup, sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
   }
 }

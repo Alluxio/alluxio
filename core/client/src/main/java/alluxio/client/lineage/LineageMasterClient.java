@@ -22,6 +22,7 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.LineageMasterClientService;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import org.apache.thrift.TException;
 
@@ -118,17 +119,20 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @param path the path to the file
    * @param blockSizeBytes the size of the block in bytes
    * @param ttl the time to live for the file
+   * @param ttlAction Action to take after Ttl expiry
    * @return the value of the lineage creation result
    * @throws IOException if a non-Alluxio exception occurs
    * @throws LineageDoesNotExistException if the file does not exist
    * @throws AlluxioException if an Alluxio exception occurs
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
-      final long ttl) throws IOException, LineageDoesNotExistException, AlluxioException {
+      final long ttl, final TtlAction ttlAction)
+      throws IOException, LineageDoesNotExistException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
-        return mClient.reinitializeFile(path, blockSizeBytes, ttl);
+        return mClient.reinitializeFile(path, blockSizeBytes, ttl,
+            ThriftUtils.toThrift(ttlAction));
       }
     });
   }

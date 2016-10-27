@@ -19,6 +19,7 @@ import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +27,7 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Tests for the {@link ClientHandler} class.
@@ -91,12 +93,22 @@ public class ClientHandlerTest {
   }
 
   /**
-   * Makes sure that the {@link ChannelHandlerContext} is closed.
+   * Makes sure that the exceptions in the handler is handled properly.
    */
   @Test
   public void exceptionCaughtClosesContext() throws Exception {
-    mHandler.exceptionCaught(mContext, new Throwable());
+    SingleResponseListener singleResponseListener = new SingleResponseListener();
+    mHandler.addListener(singleResponseListener);
+    mHandler.exceptionCaught(mContext, new IOException());
 
-    Mockito.verify(mContext).close();
+    boolean exceptionCaught = false;
+    try {
+      singleResponseListener.get();
+    } catch (ExecutionException e) {
+      if (e.getCause() instanceof IOException) {
+        exceptionCaught = true;
+      }
+    }
+    Assert.assertTrue(exceptionCaught);
   }
 }

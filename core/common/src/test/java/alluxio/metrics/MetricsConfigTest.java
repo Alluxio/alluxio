@@ -21,7 +21,7 @@ import java.util.Properties;
 /**
  * Unit tests for {@link MetricsConfig}.
  */
-public class MetricsConfigTest {
+public final class MetricsConfigTest {
   private Properties mMetricsProps;
 
   /**
@@ -30,12 +30,10 @@ public class MetricsConfigTest {
   @Before
   public final void before() {
     mMetricsProps = new Properties();
-    mMetricsProps.setProperty("*.sink.console.class", "alluxio.metrics.sink.ConsoleSink");
-    mMetricsProps.setProperty("*.sink.console.period", "15");
-    mMetricsProps.setProperty("*.source.jvm.class", "alluxio.metrics.source.JvmSource");
-    mMetricsProps.setProperty("master.sink.console.period", "20");
-    mMetricsProps.setProperty("master.sink.console.unit", "minutes");
-    mMetricsProps.setProperty("master.sink.jmx.class", "alluxio.metrics.sink.JmxSink");
+    mMetricsProps.setProperty("sink.console.class", "alluxio.metrics.sink.ConsoleSink");
+    mMetricsProps.setProperty("sink.console.period", "15");
+    mMetricsProps.setProperty("*.sink.console.unit", "minutes");
+    mMetricsProps.setProperty("sink.jmx.class", "alluxio.metrics.sink.JmxSink");
   }
 
   /**
@@ -46,29 +44,13 @@ public class MetricsConfigTest {
   public void setPropertiesTest() {
     MetricsConfig config = new MetricsConfig(mMetricsProps);
 
-    Properties masterProp = config.getInstanceProperties("master");
-    Assert.assertEquals(7, masterProp.size());
+    Properties masterProp = config.getProperties();
+    Assert.assertEquals(4, masterProp.size());
     Assert.assertEquals("alluxio.metrics.sink.ConsoleSink",
         masterProp.getProperty("sink.console.class"));
-    Assert.assertEquals("20", masterProp.getProperty("sink.console.period"));
+    Assert.assertEquals("15", masterProp.getProperty("sink.console.period"));
     Assert.assertEquals("minutes", masterProp.getProperty("sink.console.unit"));
-    Assert.assertEquals("alluxio.metrics.source.JvmSource",
-        masterProp.getProperty("source.jvm.class"));
     Assert.assertEquals("alluxio.metrics.sink.JmxSink", masterProp.getProperty("sink.jmx.class"));
-    Assert.assertEquals("alluxio.metrics.sink.MetricsServlet",
-        masterProp.getProperty("sink.servlet.class"));
-    Assert.assertEquals("/metrics/json", masterProp.getProperty("sink.servlet.path"));
-
-    Properties workerProp = config.getInstanceProperties("worker");
-    Assert.assertEquals(5, workerProp.size());
-    Assert.assertEquals("alluxio.metrics.sink.ConsoleSink",
-        workerProp.getProperty("sink.console.class"));
-    Assert.assertEquals("15", workerProp.getProperty("sink.console.period"));
-    Assert.assertEquals("alluxio.metrics.source.JvmSource",
-        workerProp.getProperty("source.jvm.class"));
-    Assert.assertEquals("alluxio.metrics.sink.MetricsServlet",
-        workerProp.getProperty("sink.servlet.class"));
-    Assert.assertEquals("/metrics/json", workerProp.getProperty("sink.servlet.path"));
   }
 
   /**
@@ -78,25 +60,13 @@ public class MetricsConfigTest {
   public void subPropertiesTest() {
     MetricsConfig config = new MetricsConfig(mMetricsProps);
 
-    Map<String, Properties> propertyCategories = config.getPropertyCategories();
-    Assert.assertEquals(3, propertyCategories.size());
+    Properties properties = config.getProperties();
 
-    Properties masterProp = config.getInstanceProperties("master");
-    Map<String, Properties> sourceProps =
-        config.subProperties(masterProp, MetricsSystem.SOURCE_REGEX);
-    Assert.assertEquals(1, sourceProps.size());
-    Assert.assertEquals("alluxio.metrics.source.JvmSource",
-        sourceProps.get("jvm").getProperty("class"));
-
-    Map<String, Properties> sinkProps = config.subProperties(masterProp, MetricsSystem.SINK_REGEX);
-    Assert.assertEquals(3, sinkProps.size());
-    Assert.assertTrue(sinkProps.containsKey("servlet"));
+    Map<String, Properties> sinkProps =
+        MetricsConfig.subProperties(properties, MetricsSystem.SINK_REGEX);
+    Assert.assertEquals(2, sinkProps.size());
     Assert.assertTrue(sinkProps.containsKey("console"));
     Assert.assertTrue(sinkProps.containsKey("jmx"));
-
-    Properties servletProp = sinkProps.get("servlet");
-    Assert.assertEquals(2, servletProp.size());
-    Assert.assertEquals("alluxio.metrics.sink.MetricsServlet", servletProp.getProperty("class"));
 
     Properties consoleProp = sinkProps.get("console");
     Assert.assertEquals(3, consoleProp.size());

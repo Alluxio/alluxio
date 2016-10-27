@@ -21,8 +21,6 @@ import alluxio.underfs.UnderFileSystemFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.jets3t.service.ServiceException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -34,7 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Constructs a new {@link S3UnderFileSystemFactory}.
@@ -49,13 +46,11 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
       try {
         return S3UnderFileSystem.createInstance(new AlluxioURI(path));
       } catch (ServiceException e) {
-        LOG.error("Failed to create S3UnderFileSystem.", e);
         throw Throwables.propagate(e);
       }
     }
 
     String err = "AWS Credentials not available, cannot create S3 Under File System.";
-    LOG.error(err);
     throw Throwables.propagate(new IOException(err));
   }
 

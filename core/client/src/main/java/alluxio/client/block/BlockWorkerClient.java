@@ -11,20 +11,18 @@
 
 package alluxio.client.block;
 
-import alluxio.Client;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.ClientMetrics;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
  * Interface for an Alluxio block worker client.
  */
-public interface BlockWorkerClient extends Client {
+public interface BlockWorkerClient extends Closeable {
 
   /**
    * @return the address of the worker
@@ -34,16 +32,15 @@ public interface BlockWorkerClient extends Client {
   /**
    * Updates the latest block access time on the worker.
    *
-   * @param blockId The id of the block
-   * @throws ConnectionFailedException if network connection failed
+   * @param blockId the ID of the block
    * @throws IOException if an I/O error occurs
    */
-  void accessBlock(final long blockId) throws ConnectionFailedException, IOException;
+  void accessBlock(final long blockId) throws IOException;
 
   /**
    * Notifies the worker the block is cached.
    *
-   * @param blockId The id of the block
+   * @param blockId the ID of the block
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
@@ -52,20 +49,11 @@ public interface BlockWorkerClient extends Client {
   /**
    * Notifies worker that the block has been cancelled.
    *
-   * @param blockId The Id of the block to be cancelled
+   * @param blockId the ID of the block to be cancelled
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
   void cancelBlock(final long blockId) throws IOException, AlluxioException;
-
-  /**
-   * Updates the session id of the client, starting a new session. The previous session's held
-   * resources should have already been freed, and will be automatically freed after the timeout is
-   * exceeded.
-   *
-   * @param newSessionId the new id that represents the new session
-   */
-  void createNewSession(long newSessionId);
 
   /**
    * @return the address of the worker's data server
@@ -73,37 +61,24 @@ public interface BlockWorkerClient extends Client {
   InetSocketAddress getDataServerAddress();
 
   /**
-   * @return the id of the session
+   * @return the ID of the session
    */
   long getSessionId();
-
-  /**
-   * @return true if the worker is local, false otherwise
-   */
-  boolean isLocal();
 
   /**
    * Locks the block, therefore, the worker will not evict the block from the memory until it is
    * unlocked.
    *
-   * @param blockId The id of the block
+   * @param blockId the ID of the block
    * @return the path of the block file locked
    * @throws IOException if a non-Alluxio exception occurs
    */
   LockBlockResult lockBlock(final long blockId) throws IOException;
 
   /**
-   * Connects to the worker.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
-   */
-  // TODO(jiezhou): Consider merging the connect logic in this method into the super class.
-  void connect() throws IOException;
-
-  /**
    * Promotes block back to the top StorageTier.
    *
-   * @param blockId The id of the block that will be promoted
+   * @param blockId the ID of the block that will be promoted
    * @return true if succeed, false otherwise
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
@@ -111,10 +86,19 @@ public interface BlockWorkerClient extends Client {
   boolean promoteBlock(final long blockId) throws IOException, AlluxioException;
 
   /**
+   * Removes a block from the internal storage of this worker.
+   *
+   * @param blockId the ID of the block that will be removed
+   * @throws IOException if an I/O error occurs
+   * @throws AlluxioException if an Alluxio error occurs
+   */
+  void removeBlock(final long blockId) throws IOException, AlluxioException;
+
+  /**
    * Gets temporary path for the block from the worker.
    *
-   * @param blockId The id of the block
-   * @param initialBytes The initial size bytes allocated for the block
+   * @param blockId the ID of the block
+   * @param initialBytes the initial size bytes allocated for the block
    * @return the temporary path of the block
    * @throws IOException if a non-Alluxio exception occurs
    */
@@ -123,8 +107,8 @@ public interface BlockWorkerClient extends Client {
   /**
    * Requests space for some block from worker.
    *
-   * @param blockId The id of the block
-   * @param requestBytes The requested space size, in bytes
+   * @param blockId the ID of the block
+   * @param requestBytes the requested space size, in bytes
    * @return true if space was successfully allocated, false if the worker is unable to allocate
    *         space due to space exhaustion
    * @throws IOException if an exception occurs
@@ -134,32 +118,24 @@ public interface BlockWorkerClient extends Client {
   /**
    * Unlocks the block.
    *
-   * @param blockId The id of the block
+   * @param blockId the ID of the block
    * @return true if success, false otherwise
-   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  boolean unlockBlock(final long blockId) throws ConnectionFailedException, IOException;
+  boolean unlockBlock(final long blockId) throws IOException;
 
   /**
    * Sends a session heartbeat to the worker. This renews the client's lease on resources such as
-   * locks and temporary files and updates the worker's metrics.
+   * locks and temporary files.
    *
-   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
+   * @throws InterruptedException if this thread is interrupted
    */
-  void sessionHeartbeat() throws ConnectionFailedException, IOException;
+  void sessionHeartbeat() throws IOException, InterruptedException;
 
   /**
-   * Called only by {@link BlockWorkerClientHeartbeatExecutor}, encapsulates
-   * {@link #sessionHeartbeat()} in order to cancel and cleanup the heartbeating thread in case of
-   * failures.
+   * Closes the client.
    */
-  void periodicHeartbeat();
-
-  /**
-   * Gets the client metrics of the worker.
-   * @return the metrics of the worker
-   */
-  ClientMetrics getClientMetrics();
+  @Override
+  void close();
 }

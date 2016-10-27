@@ -16,13 +16,15 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * A rule for modifying Alluxio configuration during a test suite.
  */
-public class ConfigurationRule implements TestRule {
+public final class ConfigurationRule implements TestRule {
   private final Map<PropertyKey, String> mKeyValuePairs;
 
   /**
@@ -38,10 +40,15 @@ public class ConfigurationRule implements TestRule {
       @Override
       public void evaluate() throws Throwable {
         Map<PropertyKey, String> originalValues = new HashMap<>();
+        Set<PropertyKey> originalNullKeys = new HashSet<>();
         for (Entry<PropertyKey, String> entry : mKeyValuePairs.entrySet()) {
           PropertyKey key = entry.getKey();
           String value = entry.getValue();
-          originalValues.put(key, Configuration.get(key));
+          if (Configuration.containsKey(key)) {
+            originalValues.put(key, Configuration.get(key));
+          } else {
+            originalNullKeys.add(key);
+          }
           Configuration.set(key, value);
         }
         try {
@@ -49,6 +56,9 @@ public class ConfigurationRule implements TestRule {
         } finally {
           for (Entry<PropertyKey, String> entry : originalValues.entrySet()) {
             Configuration.set(entry.getKey(), entry.getValue());
+          }
+          for (PropertyKey key : originalNullKeys) {
+            Configuration.unset(key);
           }
         }
       }

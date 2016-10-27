@@ -17,20 +17,24 @@ import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.CommonUtils;
 import alluxio.web.MasterUIWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
+import com.qmino.miredot.annotations.ReturnType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -53,7 +57,6 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioMasterRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   public static final String SERVICE_PREFIX = "master";
   public static final String GET_INFO = "info";
 
@@ -81,18 +84,24 @@ public final class AlluxioMasterRestServiceHandler {
   @GET
   @Path(GET_INFO)
   public Response getInfo() {
-    try {
-      AlluxioMasterInfo result =
-          new AlluxioMasterInfo().setCapacity(getCapacity()).setConfiguration(getConfiguration())
-              .setMetrics(getMetrics()).setRpcAddress(mMaster.getMasterAddress().toString())
-              .setStartTimeMs(mMaster.getStartTimeMs()).setTierCapacity(getTierCapacity())
-              .setUfsCapacity(getUfsCapacity()).setUptimeMs(mMaster.getUptimeMs())
-              .setVersion(RuntimeConstants.VERSION).setWorkers(mBlockMaster.getWorkerInfoList());
-      return RestUtils.createResponse(result);
-    } catch (IOException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
+    return RestUtils.call(new RestUtils.RestCallable<AlluxioMasterInfo>() {
+      @Override
+      public AlluxioMasterInfo call() throws Exception {
+        AlluxioMasterInfo result =
+            new AlluxioMasterInfo()
+                .setCapacity(getCapacity())
+                .setConfiguration(getConfiguration())
+                .setMetrics(getMetrics())
+                .setRpcAddress(mMaster.getMasterAddress().toString())
+                .setStartTimeMs(mMaster.getStartTimeMs())
+                .setTierCapacity(getTierCapacity())
+                .setUfsCapacity(getUfsCapacity())
+                .setUptimeMs(mMaster.getUptimeMs())
+                .setVersion(RuntimeConstants.VERSION)
+                .setWorkers(mBlockMaster.getWorkerInfoList());
+        return result;
+      }
+    });
   }
 
   private Capacity getCapacity() {
@@ -113,19 +122,17 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Map<String, Long> getMetrics() {
-    MetricRegistry metricRegistry = mMaster.getMasterMetricsSystem().getMetricRegistry();
+    MetricRegistry metricRegistry = MetricsSystem.METRIC_REGISTRY;
 
     // Get all counters.
     Map<String, Counter> counters = metricRegistry.getCounters();
-
-    // Only the gauge for pinned files is retrieved here, other gauges are statistics of free/used
+    // Only the gauge for pinned files is retrieved here, other gauges are statistics of
+    // free/used
     // spaces, those statistics can be gotten via other REST apis.
-    String filesPinnedProperty = CommonUtils.argsToString(".", MetricsSystem
-        .buildSourceRegistryName(MetricsSystem.MASTER_INSTANCE,
-            mMaster.getMasterContext().getMasterSource()), MasterSource.FILES_PINNED);
-    @SuppressWarnings("unchecked")
-    Gauge<Integer> filesPinned =
-        (Gauge<Integer>) metricRegistry.getGauges().get(filesPinnedProperty);
+    String filesPinnedProperty =
+        MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
+    @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
+        (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.
     SortedMap<String, Long> metrics = new TreeMap<>();
@@ -133,7 +140,6 @@ public final class AlluxioMasterRestServiceHandler {
       metrics.put(counter.getKey(), counter.getValue().getCount());
     }
     metrics.put(filesPinnedProperty, filesPinned.getValue().longValue());
-
     return metrics;
   }
 

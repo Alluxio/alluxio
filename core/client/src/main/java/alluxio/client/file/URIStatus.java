@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.annotation.PublicApi;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 
@@ -138,6 +139,13 @@ public class URIStatus {
    */
   public long getTtl() {
     return mInfo.getTtl();
+  }
+
+  /**
+   * @return the action to perform on ttl expiry
+   */
+  public TtlAction getTtlAction() {
+    return mInfo.getTtlAction();
   }
 
   /**

@@ -13,6 +13,9 @@ package alluxio;
 
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.metrics.MetricsSystem;
+import alluxio.security.LoginUserTestUtils;
+import alluxio.security.authentication.AuthenticatedClientUser;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -22,8 +25,9 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -72,20 +76,17 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** Default block size in bytes. */
   public static final int DEFAULT_USER_BLOCK_SIZE = Constants.KB;
 
-  /** The capacity of the worker in bytes. */
-  private final long mWorkerCapacityBytes;
-  /** Block size for a user. */
-  private final int mUserBlockSize;
+  /** Number of Alluxio workers in the cluster. */
+  private final int mNumWorkers;
+
   /**
    * If true (default), we start the cluster before running a test method. Otherwise, the method
    * must start the cluster explicitly.
    */
   private final boolean mStartCluster;
 
-  /** Configuration keys for the {@link Configuration} object used in the cluster. */
-  private final List<PropertyKey> mConfKeys = new ArrayList<>();
-  /** Configuration values for the {@link Configuration} object used in the cluster. */
-  private final List<String> mConfValues = new ArrayList<>();
+  /** Configuration values for the cluster. */
+  private final Map<PropertyKey, String> mConfiguration = new HashMap<>();
 
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
@@ -93,27 +94,16 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /**
    * Creates a new instance.
    *
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param userBlockSize the block size for a user
    * @param startCluster whether or not to start the cluster before the test method starts
+   * @param numWorkers the number of Alluxio workers to launch
+   * @param configuration configuration for configuring the cluster
    */
-  public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-      boolean startCluster) {
-    mWorkerCapacityBytes = workerCapacityBytes;
-    mUserBlockSize = userBlockSize;
+  private LocalAlluxioClusterResource(boolean startCluster, int numWorkers,
+      Map<PropertyKey, String> configuration) {
     mStartCluster = startCluster;
-  }
-
-  /**
-   * Creates a new {@link LocalAlluxioClusterResource} with default configuration.
-   */
-  // TODO(andrew) Go through our integration tests and see how many can use this constructor.
-  public LocalAlluxioClusterResource() {
-    this(DEFAULT_WORKER_CAPACITY_BYTES, DEFAULT_USER_BLOCK_SIZE);
-  }
-
-  public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize) {
-    this(workerCapacityBytes, userBlockSize, true);
+    mNumWorkers = numWorkers;
+    mConfiguration.putAll(configuration);
+    MetricsSystem.resetAllCounters();
   }
 
   /**
@@ -131,8 +121,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @return the cluster resource
    */
   public LocalAlluxioClusterResource setProperty(PropertyKey key, Object value) {
-    mConfKeys.add(key);
-    mConfValues.add(value.toString());
+    mConfiguration.put(key, value.toString());
     return this;
   }
 
@@ -140,11 +129,13 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * Explicitly starts the {@link LocalAlluxioCluster}.
    */
   public void start() throws IOException, AlluxioException {
+    AuthenticatedClientUser.remove();
+    LoginUserTestUtils.resetLoginUser();
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration();
     // Overwrite the test configuration with test specific parameters
-    for (int i = 0; i < mConfKeys.size(); i++) {
-      Configuration.set(mConfKeys.get(i), mConfValues.get(i));
+    for (Entry<PropertyKey, String> entry : mConfiguration.entrySet()) {
+      Configuration.set(entry.getKey(), entry.getValue());
     }
     // Start the cluster
     mLocalAlluxioCluster.start();
@@ -152,7 +143,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
 
   @Override
   public Statement apply(final Statement statement, Description description) {
-    mLocalAlluxioCluster = new LocalAlluxioCluster(mWorkerCapacityBytes, mUserBlockSize);
+    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
     try {
       boolean startCluster = mStartCluster;
       Annotation configAnnotation = description.getAnnotation(Config.class);
@@ -160,7 +151,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
         Config config = (Config) configAnnotation;
         // Override the configuration parameters with any configuration params
         for (int i = 0; i < config.confParams().length; i += 2) {
-          setProperty(PropertyKey.fromString(config.confParams()[i]), config.confParams()[i + 1]);
+          mConfiguration.put(PropertyKey.fromString(config.confParams()[i]),
+              config.confParams()[i + 1]);
         }
         // Override startCluster
         startCluster = config.startCluster();
@@ -181,6 +173,61 @@ public final class LocalAlluxioClusterResource implements TestRule {
         }
       }
     };
+  }
+
+  /**
+   * Builder for a {@link LocalAlluxioClusterResource}.
+   */
+  public static class Builder {
+    private long mWorkerCapacityBytes;
+    private int mUserBlockSize;
+    private boolean mStartCluster;
+    private int mNumWorkers;
+    private Map<PropertyKey, String> mConfiguration;
+
+    /**
+     * Constructs the builder with default values.
+     */
+    public Builder() {
+      mWorkerCapacityBytes = DEFAULT_WORKER_CAPACITY_BYTES;
+      mUserBlockSize = DEFAULT_USER_BLOCK_SIZE;
+      mStartCluster = true;
+      mNumWorkers = 1;
+      mConfiguration = new HashMap<>();
+    }
+
+    /**
+     * @param startCluster whether to start the cluster at the start of the test
+     */
+    public Builder setStartCluster(boolean startCluster) {
+      mStartCluster = startCluster;
+      return this;
+    }
+
+    /**
+     * @param numWorkers the number of workers to run in the cluster
+     */
+    public Builder setNumWorkers(int numWorkers) {
+      mNumWorkers = numWorkers;
+      return this;
+    }
+
+    /**
+     * @param key the property key to set for the cluster
+     * @param value the value to set it to
+     */
+    public Builder setProperty(PropertyKey key, Object value) {
+      mConfiguration.put(key, value.toString());
+      return this;
+    }
+
+    /**
+     * @return a {@link LocalAlluxioClusterResource} for the current builder values
+     */
+    public LocalAlluxioClusterResource build() {
+      return new LocalAlluxioClusterResource(mStartCluster,
+          mNumWorkers, mConfiguration);
+    }
   }
 
   /**

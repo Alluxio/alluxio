@@ -45,7 +45,7 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
 
-    AlluxioWorkerService worker = AlluxioWorkerService.Factory.get();
+    AlluxioWorkerService worker = new DefaultAlluxioWorker();
     try {
       worker.start();
     } catch (Exception e) {

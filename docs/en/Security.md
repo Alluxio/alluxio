@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Security (alpha)
+title: Security
 nickname: Security
 group: Features
 priority: 1
@@ -18,8 +18,8 @@ encryption.
 POSIX permission model is used in Alluxio to assign permissions and
 control access rights.
 
-By default Alluxio runs in non-secure mode in which no authentication and authorization are
-required.
+By default Alluxio runs in SIMPLE secure mode in which a simple authentication is required.
+SIMPLE indicates that server trusts whoever the client claims to be.
 See [Security specific configuration](Configuration-Settings.html#security-configuration) to
 enable and use security features.
 
@@ -30,7 +30,7 @@ and the server side (such as master) should build an authenticated connection fo
 If authentication succeeds, the connection will be built. If fails,
 the connection can not be built and an exception will be thrown to client.
 
-Three authentication modes are supported: NOSASL (default mode), SIMPLE, and CUSTOM.
+Three authentication modes are supported: NOSASL, SIMPLE (default mode), and CUSTOM.
 
 ## User Accounts
 
@@ -113,7 +113,9 @@ For example, the output of the shell command `ls -R` when authorization is enabl
 When user is determined, the list of groups is determined by a group mapping service, configured by
 'alluxio.security.group.mapping.class'. The default implementation is 'alluxio.security.group
 .provider.ShellBasedUnixGroupsMapping', which executes the 'groups' shell
-command to fetch the group memberships of a given user.
+command to fetch the group memberships of a given user. There is a caching mechanism for user group
+mapping, the mapping data will be cached for 60 seconds by default, this value can be configured by
+'alluxio.security.group.mapping.cache.timeout.ms', if the value is '0', the cached will be disabled.
 
 Property 'alluxio.security.authorization.permission.supergroup' defines a super group. Any users
 belong to this group are also super users.
@@ -135,6 +137,12 @@ The owner, group, and permissions can be changed by two ways:
 
 The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.
+
+# Encryption
+
+Service level encryption is not supported yet, user could encrypt sensitive data at application
+level, or enable encryption feature at under file system, e.g. HDFS transparent encryption, Linux
+disk encryption.
 
 # Deployment
 

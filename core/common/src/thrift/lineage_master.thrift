@@ -47,7 +47,7 @@ service LineageMasterClientService extends common.AlluxioService {
   /**
    * Returns a list of existing lineages.
    */
-  list<LineageInfo> getLineageInfoList()
+  list<LineageInfo> getLineageInfoList() throws (1: exception.AlluxioTException e)
 
   /**
    * Reinitializes a file. Returns the id of the reinitialized file when the
@@ -55,7 +55,8 @@ service LineageMasterClientService extends common.AlluxioService {
    */
   i64 reinitializeFile( /** the path of the file */ 1: string path,
       /** block size in bytes */ 2: i64 blockSizeBytes,
-      /** time to live */ 3: i64 ttl)
+      /** time to live */ 3: i64 ttl,
+      /** expiry action */ 4: common.TTtlAction ttlAction)
     throws (1: exception.AlluxioTException e)
 
   /**

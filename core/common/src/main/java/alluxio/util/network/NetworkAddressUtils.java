@@ -324,7 +324,6 @@ public final class NetworkAddressUtils {
       sLocalHost = InetAddress.getByName(getLocalIpAddress(timeoutMs)).getCanonicalHostName();
       return sLocalHost;
     } catch (UnknownHostException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
@@ -398,7 +397,6 @@ public final class NetworkAddressUtils {
       sLocalIP = address.getHostAddress();
       return sLocalIP;
     } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
@@ -583,16 +581,14 @@ public final class NetworkAddressUtils {
 
   /**
    * Get the active master address from zookeeper for the fault tolerant Alluxio masters.
-   * The zookeeper path is specified by the config: {@link PropertyKey#ZOOKEEPER_LEADER_PATH}.
    *
+   * @param zkLeaderPath the Zookeeper path containing the leader master address
    * @return InetSocketAddress the active master address retrieved from zookeeper
    */
-  public static InetSocketAddress getMasterAddressFromZK() {
+  public static InetSocketAddress getMasterAddressFromZK(String zkLeaderPath) {
     Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
-    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_LEADER_PATH));
     LeaderInquireClient leaderInquireClient = LeaderInquireClient
-        .getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
-            Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+        .getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS), zkLeaderPath);
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);

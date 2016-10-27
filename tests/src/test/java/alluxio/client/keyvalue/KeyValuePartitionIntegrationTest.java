@@ -66,9 +66,12 @@ public final class KeyValuePartitionIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE)
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, Constants.GB)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           /* ensure key-value service is turned on */
-          .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true");
+          .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true")
+          .build();
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -101,6 +104,7 @@ public final class KeyValuePartitionIntegrationTest {
     Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mKeyValuePartitionReader.get(KEY2));
     Assert.assertNull(mKeyValuePartitionReader.get("NoSuchKey".getBytes()));
+    mKeyValuePartitionReader.close();
   }
 
   /**
@@ -133,7 +137,9 @@ public final class KeyValuePartitionIntegrationTest {
   public void emptyPartitionIterator() throws Exception {
     // Creates an empty partition.
     KeyValuePartitionWriter.Factory.create(mPartitionUri).close();
-    Assert.assertFalse(KeyValuePartitionReader.Factory.create(mPartitionUri).iterator().hasNext());
+    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
+    Assert.assertFalse(mKeyValuePartitionReader.iterator().hasNext());
+    mKeyValuePartitionReader.close();
   }
 
   /**
@@ -158,6 +164,7 @@ public final class KeyValuePartitionIntegrationTest {
     while (iterator.hasNext()) {
       iteratedPairs.add(iterator.next());
     }
+    mKeyValuePartitionReader.close();
     Assert.assertEquals(pairs.size(), iteratedPairs.size());
 
     // Sort both pairs and iteratedPairs, then compare them.

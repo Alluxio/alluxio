@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCBlockWriteRequest;
@@ -29,6 +30,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -89,14 +91,14 @@ final class BlockDataServerHandler {
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
       buffer = getDataBuffer(req, reader, readLength);
+      Metrics.BYTES_READ_REMOTE.inc(buffer.getLength());
       RPCBlockReadResponse resp =
           new RPCBlockReadResponse(blockId, offset, readLength, buffer, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
       future.addListener(new ReleasableResourceChannelListener(buffer));
       mWorker.accessBlock(sessionId, blockId);
-      LOG.info("Preparation for responding to remote block request for: {} done.", blockId);
+      LOG.debug("Preparation for responding to remote block request for: {} done.", blockId);
     } catch (Exception e) {
       LOG.error("Exception reading block {}", blockId, e);
       RPCBlockReadResponse resp;
@@ -150,10 +152,10 @@ final class BlockDataServerHandler {
       writer = mWorker.getTempBlockWriterRemote(sessionId, blockId);
       writer.append(buffer);
 
+      Metrics.BYTES_WRITTEN_REMOTE.inc(data.getLength());
       RPCBlockWriteResponse resp =
           new RPCBlockWriteResponse(sessionId, blockId, offset, length, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(writer));
     } catch (Exception e) {
       LOG.error("Error writing remote block : {}", e.getMessage(), e);
@@ -216,5 +218,16 @@ final class BlockDataServerHandler {
         reader.close();
         throw new IllegalArgumentException("Only FileChannel is supported!");
     }
+  }
+
+  /**
+   * Class that contains metrics for BlockDataServerHandler.
+   */
+  private static final class Metrics {
+    private static final Counter BYTES_READ_REMOTE = MetricsSystem.workerCounter("BytesReadRemote");
+    private static final Counter BYTES_WRITTEN_REMOTE =
+        MetricsSystem.workerCounter("BytesWrittenRemote");
+
+    private Metrics() {} // prevent instantiation
   }
 }

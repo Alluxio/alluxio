@@ -27,44 +27,44 @@
             <tbody>
               <tr>
                 <th>Directories Created</th>
-                <th><%= request.getAttribute("master.DirectoriesCreated") %></th>
+                <th><%= request.getAttribute("DirectoriesCreated") %></th>
                 <th>File Block Infos Got</th>
-                <th><%= request.getAttribute("master.FileBlockInfosGot") %></th>
+                <th><%= request.getAttribute("FileBlockInfosGot") %></th>
               </tr>
               <tr>
                 <th>File Infos Got</th>
-                <th><%= request.getAttribute("master.FileInfosGot") %></th>
+                <th><%= request.getAttribute("FileInfosGot") %></th>
                 <th>Files Completed</th>
-                <th><%= request.getAttribute("master.FilesCompleted") %></th>
+                <th><%= request.getAttribute("FilesCompleted") %></th>
               </tr>
               <tr>
                 <th>Files Created</th>
-                <th><%= request.getAttribute("master.FilesCreated") %></th>
+                <th><%= request.getAttribute("FilesCreated") %></th>
                 <th>Files Freed</th>
-                <th><%= request.getAttribute("master.FilesFreed") %>
+                <th><%= request.getAttribute("FilesFreed") %>
                 </th>
               </tr>
               <tr>
                 <th>Files Persisted</th>
-                <th><%= request.getAttribute("master.FilesPersisted") %></th>
+                <th><%= request.getAttribute("FilesPersisted") %></th>
                 <th>Files Pinned</th>
-                <th><%= request.getAttribute("master.FilesPinned") %></th>
+                <th><%= request.getAttribute("FilesPinned") %></th>
               </tr>
               <tr>
                 <th>New Blocks Got</th>
-                <th><%= request.getAttribute("master.NewBlocksGot") %></th>
+                <th><%= request.getAttribute("NewBlocksGot") %></th>
                 <th>Paths Deleted</th>
-                <th><%= request.getAttribute("master.PathsDeleted") %></th>
+                <th><%= request.getAttribute("PathsDeleted") %></th>
               </tr>
               <tr>
                 <th>Paths Mounted</th>
-                <th><%= request.getAttribute("master.PathsMounted") %></th>
+                <th><%= request.getAttribute("PathsMounted") %></th>
                 <th>Paths Renamed</th>
-                <th><%= request.getAttribute("master.PathsRenamed") %></th>
+                <th><%= request.getAttribute("PathsRenamed") %></th>
               </tr>
               <tr>
                 <th>Paths Unmounted</th>
-                <th><%= request.getAttribute("master.PathsUnmounted") %></th>
+                <th><%= request.getAttribute("PathsUnmounted") %></th>
                 <th></th>
                 <th></th>
               </tr>
@@ -89,39 +89,39 @@
             <tbody>
               <tr>
                 <th>CompleteFile Operations</th>
-                <th><%= request.getAttribute("master.CompleteFileOps") %></th>
+                <th><%= request.getAttribute("CompleteFileOps") %></th>
                 <th>CreateDirectory Operations</th>
-                <th><%= request.getAttribute("master.CreateDirectoryOps") %></th>
+                <th><%= request.getAttribute("CreateDirectoryOps") %></th>
               </tr>
               <tr>
                 <th>CreateFile Operations</th>
-                <th><%= request.getAttribute("master.CreateFileOps") %></th>
+                <th><%= request.getAttribute("CreateFileOps") %></th>
                 <th>DeletePath Operations</th>
-                <th><%= request.getAttribute("master.DeletePathOps") %></th>
+                <th><%= request.getAttribute("DeletePathOps") %></th>
               </tr>
               <tr>
                 <th>FreeFile Operations</th>
-                <th><%= request.getAttribute("master.FreeFileOps") %></th>
+                <th><%= request.getAttribute("FreeFileOps") %></th>
                 <th>GetFileBlockInfo Operations</th>
-                <th><%= request.getAttribute("master.GetFileBlockInfoOps") %></th>
+                <th><%= request.getAttribute("GetFileBlockInfoOps") %></th>
               </tr>
               <tr>
                 <th>GetFileInfo Operations</th>
-                <th><%= request.getAttribute("master.GetFileInfoOps") %></th>
+                <th><%= request.getAttribute("GetFileInfoOps") %></th>
                 <th>GetNewBlock Operations</th>
-                <th><%= request.getAttribute("master.GetNewBlockOps") %></th>
+                <th><%= request.getAttribute("GetNewBlockOps") %></th>
               </tr>
               <tr>
                 <th>Mount Operations</th>
-                <th><%= request.getAttribute("master.MountOps") %></th>
+                <th><%= request.getAttribute("MountOps") %></th>
                 <th>RenamePath Operations</th>
-                <th><%= request.getAttribute("master.RenamePathOps") %></th>
+                <th><%= request.getAttribute("RenamePathOps") %></th>
               </tr>
               <tr>
                 <th>SetAttribute Operations</th>
-                <th><%= request.getAttribute("master.SetAttributeOps") %></th>
+                <th><%= request.getAttribute("SetAttributeOps") %></th>
                 <th>Unmount Operations</th>
-                <th><%= request.getAttribute("master.UnmountOps") %></th>
+                <th><%= request.getAttribute("UnmountOps") %></th>
               </tr>
             </tbody>
           </table>

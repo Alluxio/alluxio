@@ -26,11 +26,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class CreatePathOptions<T> {
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
+  // TODO(binfan): using Owner, Group and Mode three fields to replace Permission field
+  // (c.f. ALLUXIO-2393)
   protected Permission mPermission;
   protected boolean mPersisted;
   // TODO(peis): Rename this to mCreateAncestors.
   protected boolean mRecursive;
   protected boolean mMetadataLoad;
+  protected boolean mDefaultMode;
 
   protected CreatePathOptions() {
     mMountPoint = false;
@@ -39,6 +42,7 @@ public abstract class CreatePathOptions<T> {
     mPersisted = false;
     mRecursive = false;
     mMetadataLoad = false;
+    mDefaultMode = true;
   }
 
   protected abstract T getThis();
@@ -84,6 +88,13 @@ public abstract class CreatePathOptions<T> {
    */
   public boolean isMetadataLoad() {
     return mMetadataLoad;
+  }
+
+  /**
+   * @return the defaultMode flag; if true, the create path uses the default permission mode
+   */
+  public boolean isDefaultMode() {
+    return mDefaultMode;
   }
 
   /**
@@ -144,6 +155,15 @@ public abstract class CreatePathOptions<T> {
     return getThis();
   }
 
+  /**
+   * @param defaultMode the flag value to use; if true, the create path uses default permission mode
+   * @return the updated options object
+   */
+  public T setDefaultMode(boolean defaultMode) {
+    mDefaultMode = defaultMode;
+    return getThis();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -157,12 +177,14 @@ public abstract class CreatePathOptions<T> {
         && Objects.equal(mPermission, that.mPermission)
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mRecursive, that.mRecursive)
-        && Objects.equal(mMetadataLoad, that.mMetadataLoad);
+        && Objects.equal(mMetadataLoad, that.mMetadataLoad)
+        && Objects.equal(mDefaultMode, that.mDefaultMode);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mMountPoint, mPermission, mPersisted, mRecursive, mMetadataLoad);
+    return Objects.hashCode(mMountPoint, mPermission, mPersisted, mRecursive, mMetadataLoad,
+        mDefaultMode);
   }
 
   protected Objects.ToStringHelper toStringHelper() {
@@ -172,6 +194,7 @@ public abstract class CreatePathOptions<T> {
         .add("permissionStatus", mPermission)
         .add("persisted", mPersisted)
         .add("recursive", mRecursive)
-        .add("metadataLoad", mMetadataLoad);
+        .add("metadataLoad", mMetadataLoad)
+        .add("defaultMode", mDefaultMode);
   }
 }

@@ -41,7 +41,7 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   public S3UnderStorageCluster(String baseDir) {
     super(baseDir);
     mS3Bucket = PathUtils.concatPath(System.getProperty(INTEGRATION_S3_BUCKET), UUID.randomUUID());
-    Preconditions.checkState(mS3Bucket != null && mS3Bucket != "",
+    Preconditions.checkState(mS3Bucket != null && !mS3Bucket.equals(""),
         PreconditionMessage.S3_BUCKET_MUST_BE_SET.toString(), INTEGRATION_S3_BUCKET);
     mBaseDir = PathUtils.concatPath(mS3Bucket, UUID.randomUUID());
     mStarted = false;

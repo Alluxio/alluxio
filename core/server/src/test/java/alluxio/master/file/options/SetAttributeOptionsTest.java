@@ -12,6 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,6 +32,7 @@ public class SetAttributeOptionsTest {
 
     Assert.assertNull(options.getPinned());
     Assert.assertNull(options.getTtl());
+    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     Assert.assertNull(options.getPersisted());
   }
 
@@ -44,18 +46,39 @@ public class SetAttributeOptionsTest {
     Long ttl = random.nextLong();
     Boolean persisted = random.nextBoolean();
 
-    SetAttributeOptions options = SetAttributeOptions.defaults()
-        .setPinned(pinned)
-        .setTtl(ttl)
-        .setPersisted(persisted);
+    SetAttributeOptions options = SetAttributeOptions.defaults().setPinned(pinned).setTtl(ttl)
+        .setTtlAction(TtlAction.FREE).setPersisted(persisted);
 
     Assert.assertEquals(pinned, options.getPinned());
     Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
     Assert.assertEquals(persisted, options.getPersisted());
   }
 
   @Test
   public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(SetAttributeOptions.class, "mOperationTimeMs");
+  }
+
+  @Test
+  public void setOwnerToEmptyShouldFail() throws Exception {
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    try {
+      options.setOwner("");
+      Assert.fail("Expected setOwner to fail with empty owner field");
+    } catch (IllegalArgumentException e) {
+      // Expected
+    }
+  }
+
+  @Test
+  public void setGroupToEmptyShouldFail() throws Exception {
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    try {
+      options.setGroup("");
+      Assert.fail("Expected setGroup to fail with empty group field");
+    } catch (IllegalArgumentException e) {
+      // Expected
+    }
   }
 }

@@ -32,8 +32,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class Inode<T> implements JournalEntryRepresentable {
   protected long mCreationTimeMs;
   private boolean mDeleted;
-  protected boolean mDirectory;
-  protected long mId;
+  protected final boolean mDirectory;
+  protected final long mId;
   private long mLastModificationTimeMs;
   private String mName;
   private long mParentId;

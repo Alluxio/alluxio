@@ -17,6 +17,8 @@ import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.ConfigurationRule;
+import alluxio.PropertyKey;
 import alluxio.client.netty.ClientHandler;
 import alluxio.client.netty.NettyClient;
 import alluxio.client.netty.SingleResponseListener;
@@ -35,11 +37,13 @@ import alluxio.worker.block.io.MockBlockWriter;
 import alluxio.worker.file.FileSystemWorker;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -56,6 +60,10 @@ public final class NettyDataServerTest {
   private NettyDataServer mNettyDataServer;
   private BlockWorker mBlockWorker;
   private FileSystemWorker mFileSystemWorker;
+
+  @Rule
+  public ConfigurationRule mRule = new ConfigurationRule(ImmutableMap.of(
+      PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0"));
 
   @Before
   public void before() {
@@ -238,13 +246,12 @@ public final class NettyDataServerTest {
   private RPCResponse request(RPCRequest rpcBlockWriteRequest) throws Exception {
     InetSocketAddress address =
         new InetSocketAddress(mNettyDataServer.getBindHost(), mNettyDataServer.getPort());
-    ClientHandler handler = new ClientHandler();
-    Bootstrap clientBootstrap = NettyClient.createClientBootstrap(handler);
+    Bootstrap clientBootstrap = NettyClient.createClientBootstrap();
     ChannelFuture f = clientBootstrap.connect(address).sync();
     Channel channel = f.channel();
     try {
       SingleResponseListener listener = new SingleResponseListener();
-      handler.addListener(listener);
+      channel.pipeline().get(ClientHandler.class).addListener(listener);
       channel.writeAndFlush(rpcBlockWriteRequest);
       return listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
     } finally {

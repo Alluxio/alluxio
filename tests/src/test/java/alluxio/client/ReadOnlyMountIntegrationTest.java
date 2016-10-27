@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
@@ -44,7 +45,7 @@ public class ReadOnlyMountIntegrationTest {
   private static final String SUB_FILE_PATH = PathUtils.concatPath(SUB_DIR_PATH, "subfile");
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private FileSystem mFileSystem = null;
 
   private String mAlternateUfsRoot;
@@ -264,11 +265,15 @@ public class ReadOnlyMountIntegrationTest {
   public void openFile() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
     mFileSystem.loadMetadata(fileUri);
-    Assert.assertNotNull(mFileSystem.openFile(fileUri));
+    FileInStream inStream = mFileSystem.openFile(fileUri);
+    Assert.assertNotNull(inStream);
+    inStream.close();
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
     mFileSystem.loadMetadata(fileUri, LoadMetadataOptions.defaults().setRecursive(true));
-    Assert.assertNotNull(mFileSystem.openFile(fileUri));
+    inStream = mFileSystem.openFile(fileUri);
+    Assert.assertNotNull(inStream);
+    inStream.close();
   }
 
   /**

@@ -59,9 +59,6 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   /** Value used to indicate folder structure in GCS. */
   private static final String PATH_SEPARATOR = "/";
 
-  /** Length of each list request in GCS. */
-  private static final long LISTING_LENGTH = 1000L;
-
   private static final byte[] DIR_HASH;
 
   /** Jets3t GCS client. */
@@ -152,8 +149,8 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.GCS;
+  public String getUnderFSType() {
+    return "gcs";
   }
 
   @Override

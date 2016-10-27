@@ -12,10 +12,8 @@
 package alluxio.examples;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
-import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
@@ -24,6 +22,11 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -44,7 +47,8 @@ import java.util.concurrent.Callable;
  * </p>
  */
 public final class BasicNonByteBufferOperations implements Callable<Boolean> {
-  private final AlluxioURI mMasterLocation;
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final AlluxioURI mFilePath;
   private final ReadType mReadType;
   private final WriteType mWriteType;
@@ -52,16 +56,14 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private final int mLength;
 
   /**
-   * @param masterLocation the location of the master
    * @param filePath the path for the files
    * @param readType the {@link ReadType}
    * @param writeType the {@link WriteType}
    * @param deleteIfExists delete files if they already exist
    * @param length the number of files
    */
-  public BasicNonByteBufferOperations(AlluxioURI masterLocation, AlluxioURI filePath, ReadType
-      readType, WriteType writeType, boolean deleteIfExists, int length) {
-    mMasterLocation = masterLocation;
+  public BasicNonByteBufferOperations(AlluxioURI filePath, ReadType readType, WriteType writeType,
+      boolean deleteIfExists, int length) {
     mFilePath = filePath;
     mWriteType = writeType;
     mReadType = readType;
@@ -71,9 +73,6 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, mMasterLocation.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
-    ClientContext.init();
     FileSystem alluxioClient = FileSystem.Factory.get();
     write(alluxioClient);
     return read(alluxioClient);
@@ -81,12 +80,14 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private void write(FileSystem alluxioClient) throws IOException, AlluxioException {
     FileOutStream fileOutStream = createFile(alluxioClient, mFilePath, mDeleteIfExists);
+    long startTimeMs = CommonUtils.getCurrentMs();
     try (DataOutputStream os = new DataOutputStream(fileOutStream)) {
       os.writeInt(mLength);
       for (int i = 0; i < mLength; i++) {
         os.writeInt(i);
       }
     }
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "writeFile to file " + mFilePath));
   }
 
   private FileOutStream createFile(FileSystem fileSystem, AlluxioURI filePath,
@@ -106,15 +107,18 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
-
+    boolean pass = true;
+    long startTimeMs = CommonUtils.getCurrentMs();
     try (DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options))) {
       int length = input.readInt();
       for (int i = 0; i < length; i++) {
         if (input.readInt() != i) {
-          return false;
+          pass = false;
+          break;
         }
       }
     }
-    return true;
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "readFile file " + mFilePath));
+    return pass;
   }
 }

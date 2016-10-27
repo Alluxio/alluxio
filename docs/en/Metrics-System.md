@@ -21,6 +21,7 @@ following instances are currently supported:
 
 * Master: The Alluxio standalone master process.
 * Worker: The Alluxio standalone worker process.
+* Client: The Alluxio clients.
 
 Each instance can report to zero or more sinks.
 
@@ -30,17 +31,13 @@ Each instance can report to zero or more sinks.
 * GraphiteSink: Sends metrics to a Graphite server.
 * MetricsServlet: Adds a servlet in Web UI to serve metrics data as JSON data.
 
-Some metrics like `BytesReadLocal` rely on data collected from client heartbeat. To get the accurate
-metrics data, the client is expected to properly close the `AlluxioFileSystem` client after using
-it.
-
 # Configuration
 The metrics system is configured via a configuration file that Alluxio expects to be present at
 `$ALLUXIO_HOME/conf/metrics.properties`. A custom file location can be specified via the
 `alluxio.metrics.conf.file` configuration property. Alluxio provides a metrics.properties.template
 under the conf directory which includes all configurable properties. By default, MetricsServlet
-is enabled and you can send HTTP request "/metrics/json" to get a snapshot of all the registered
-metrics in JSON format.
+is enabled in Alluxio master and workers and you can send HTTP request "/metrics/json" to get a
+snapshot of all the registered metrics in JSON format.
 
 # Supported Metrics
 
@@ -107,16 +104,23 @@ The following shows the details of the available metrics.
 ### Logical Operations
 
 * BlocksAccessed: Total number of the blocks accessed.
-* BlocksCached: Total number of blocks cached.
 * BlocksCanceled: Total number of blocks canceled.
 * BlocksDeleted: Total number of blocks deleted.
 * BlocksEvicted: Total number of blocks evicted.
 * BlocksPromoted: Total number of blocks promoted.
-* BlocksReadLocal: Total number of blocks read locally from the worker.
-* BlocksReadRemote: Total number of blocks read remotely from the worker.
-* BlocksWrittenLocal: Total number of blocks written to the worker locally.
-* BytesReadLocal: Total number of bytes read locally from the worker.
-* BytesReadRemote: Total number of bytes read remotely from the worker.
-* BytesReadUfs: Total number of bytes read from under file system on the worker.
-* BytesWrittenLocal: Total number of bytes written to the worker locally.
-* BytesWrittenUfs: Total number of bytes written to under file system on the worker.
+* NettyBlockRead: Total number of netty block read request to the worker.
+* NettyBlockReadFailures: Total number of netty block read request failed on the worker.
+* NettyBlockWrite: Total number of netty block write request to the worker.
+* NettyBlockWriteFailures: Total number of netty block write request failed on the worker.
+
+## Client
+
+### General
+* NettyConnectionsOpen: Total number of netty connections to the Alluxio workers open on the client.
+
+### Logical Operations
+
+* BytesReadRemote: Total number of bytes read remotely from on the client.
+* BytesWrittenRemote: Total number of bytes written remotely on the client.
+* BytesReadUfs: Total number of bytes read from under file system on the client.
+* BytesWrittenUfs: Total number of bytes written to under file system on the client.

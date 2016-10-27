@@ -40,3 +40,7 @@ screenshot_hbase_shell_output:
   ../img/screenshot_hbase_shell_output.png
 screenshot_hbase_hadoop_output:
   ../img/screenshot_hbase_hadoop_output.png
+screenshot_hive_table_in_alluxio:
+  ../img/screenshot_hive_table_in_alluxio.png
+screenshot_hive_query_result:
+  ../img/screenshot_hive_query_result.png

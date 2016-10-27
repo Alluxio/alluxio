@@ -37,7 +37,7 @@ import javax.security.sasl.AuthenticationException;
 public final class MasterClientAuthenticationIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -54,7 +54,8 @@ public final class MasterClientAuthenticationIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
   public void noAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-nosasl");
   }

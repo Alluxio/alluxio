@@ -15,6 +15,8 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.exception.PreconditionMessage;
 import alluxio.thrift.SetAttributeTOptions;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -30,6 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;
+  private TtlAction mTtlAction;
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
@@ -46,6 +49,7 @@ public final class SetAttributeOptions {
   private SetAttributeOptions() {
     mPinned = null;
     mTtl = null;
+    mTtlAction = TtlAction.DELETE;
     mPersisted = null;
     mOwner = null;
     mGroup = null;
@@ -83,6 +87,13 @@ public final class SetAttributeOptions {
   public long getTtl() {
     Preconditions.checkState(hasTtl(), PreconditionMessage.MUST_SET_TTL);
     return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
   }
 
   /**
@@ -176,6 +187,15 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @param ttlAction the {@link TtlAction} to use
+   * @return the updated options object
+   */
+  public SetAttributeOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
+    return this;
+  }
+
+  /**
    * @param persisted the persisted flag value to use; it specifies whether the file has been
    *        persisted in the under file system or not.
    * @return the updated options object
@@ -188,8 +208,12 @@ public final class SetAttributeOptions {
   /**
    * @param owner to be set as the owner of a path
    * @return the updated options object
+   * @throws IllegalArgumentException if the owner is set to empty
    */
-  public SetAttributeOptions setOwner(String owner) {
+  public SetAttributeOptions setOwner(String owner) throws IllegalArgumentException {
+    if (owner != null && owner.isEmpty()) {
+      throw new IllegalArgumentException("It is not allowed to set owner to empty.");
+    }
     mOwner = owner;
     return this;
   }
@@ -197,8 +221,12 @@ public final class SetAttributeOptions {
   /**
    * @param group to be set as the group of a path
    * @return the updated options object
+   * @throws IllegalArgumentException if the group is set to empty
    */
-  public SetAttributeOptions setGroup(String group) {
+  public SetAttributeOptions setGroup(String group) throws IllegalArgumentException {
+    if (group != null && group.isEmpty()) {
+      throw new IllegalArgumentException("It is not allowed to set group to empty");
+    }
     mGroup = group;
     return this;
   }
@@ -233,7 +261,9 @@ public final class SetAttributeOptions {
     }
     if (mTtl != null) {
       options.setTtl(mTtl);
+      options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
     }
+
     if (mPersisted != null) {
       options.setPersisted(mPersisted);
     }
@@ -261,6 +291,7 @@ public final class SetAttributeOptions {
     SetAttributeOptions that = (SetAttributeOptions) o;
     return Objects.equal(mPinned, that.mPinned)
         && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
@@ -270,7 +301,8 @@ public final class SetAttributeOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mMode, mRecursive);
+    return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner,
+        mGroup, mMode, mRecursive);
   }
 
   @Override
@@ -278,6 +310,7 @@ public final class SetAttributeOptions {
     return Objects.toStringHelper(this)
         .add("pinned", mPinned)
         .add("ttl", mTtl)
+        .add("ttlAction", mTtlAction)
         .add("persisted", mPersisted)
         .add("owner", mOwner)
         .add("group", mGroup)

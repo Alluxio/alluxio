@@ -10,10 +10,10 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
+
+source "${SCRIPT_DIR}/alluxio-env-mesos.sh"
 source "${SCRIPT_DIR}/common.sh"
-ALLUXIO_WORKER_JAVA_OPTS="${ALLUXIO_WORKER_JAVA_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 
 echo Mount ramdisk on worker

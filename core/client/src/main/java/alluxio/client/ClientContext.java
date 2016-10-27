@@ -13,26 +13,20 @@ package alluxio.client;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.util.ThreadFactoryUtils;
-import alluxio.worker.ClientMetrics;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.base.Preconditions;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A shared context in each client JVM. It provides common functionality such as the Alluxio
  * configuration and master address.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class ClientContext {
-  private static ExecutorService sBlockClientExecutorService;
-  private static ExecutorService sFileClientExecutorService;
-  private static ClientMetrics sClientMetrics;
   private static InetSocketAddress sMasterAddress;
 
   static {
@@ -48,32 +42,12 @@ public final class ClientContext {
    * This method requires that configuration has been initialized.
    */
   public static void init() {
-    // If this is a re-initialization, we must shut down the previous executors.
-    if (sBlockClientExecutorService != null) {
-      sBlockClientExecutorService.shutdownNow();
-    }
-    sBlockClientExecutorService = Executors
-        .newFixedThreadPool(Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
-            ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-    if (sFileClientExecutorService != null) {
-      sFileClientExecutorService.shutdownNow();
-    }
-    sFileClientExecutorService = Executors
-        .newFixedThreadPool(Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_THREADS),
-            ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
-    sClientMetrics = new ClientMetrics();
-
     String masterHostname =
         Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
-  }
 
-  /**
-   * @return the {@link ClientMetrics} for this client
-   */
-  public static ClientMetrics getClientMetrics() {
-    return sClientMetrics;
+    MetricsSystem.startSinks();
   }
 
   /**
@@ -81,20 +55,6 @@ public final class ClientContext {
    */
   public static InetSocketAddress getMasterAddress() {
     return sMasterAddress;
-  }
-
-  /**
-   * @return the executor service for block clients
-   */
-  public static ExecutorService getBlockClientExecutorService() {
-    return sBlockClientExecutorService;
-  }
-
-  /**
-   * @return the executor service for file clients
-   */
-  public static ExecutorService getFileClientExecutorService() {
-    return sFileClientExecutorService;
   }
 
   private ClientContext() {} // prevent instantiation

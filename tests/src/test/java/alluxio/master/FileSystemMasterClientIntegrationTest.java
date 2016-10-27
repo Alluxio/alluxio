@@ -32,7 +32,7 @@ import java.io.IOException;
 public final class FileSystemMasterClientIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
 
   @Test
   public void openClose() throws AlluxioException, IOException {

@@ -187,11 +187,21 @@ public final class Configuration {
    * @param key the key to set
    * @param value the value for the key
    */
-  public static void set(PropertyKey key, String value) {
+  public static void set(PropertyKey key, Object value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    PROPERTIES.put(key.toString(), value);
+    PROPERTIES.put(key.toString(), value.toString());
     checkUserFileBufferBytes();
+  }
+
+  /**
+   * Unsets the value for the appropriate key in the {@link Properties}.
+   *
+   * @param key the key to unset
+   */
+  public static void unset(PropertyKey key) {
+    Preconditions.checkNotNull(key);
+    PROPERTIES.remove(key.toString());
   }
 
   /**

@@ -20,8 +20,10 @@ import java.io.Closeable;
 public interface HeartbeatExecutor extends Closeable {
   /**
    * Implements the heartbeat logic.
+   *
+   * @throws InterruptedException if the thread is interrupted
    */
-  void heartbeat();
+  void heartbeat() throws InterruptedException;
 
   /**
    * Cleans up any resources used by the heartbeat executor.

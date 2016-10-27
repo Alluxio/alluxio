@@ -12,7 +12,6 @@
 package alluxio.worker.file;
 
 import alluxio.thrift.FileSystemCommand;
-import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -24,6 +23,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Tests {@link FileWorkerMasterSyncExecutor}.
@@ -39,8 +39,8 @@ public final class FileWorkerMasterSyncExecutorTest {
   public void before() {
     mFileDataManager = Mockito.mock(FileDataManager.class);
     mFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
-    mFileWorkerMasterSyncExecutor =
-        new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterClient);
+    mFileWorkerMasterSyncExecutor = new FileWorkerMasterSyncExecutor(mFileDataManager,
+        mFileSystemMasterClient, new AtomicReference<>(10L));
   }
 
   /**
@@ -52,7 +52,7 @@ public final class FileWorkerMasterSyncExecutorTest {
     List<Long> persistedFiles = Lists.newArrayList(1L);
     Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
     // first time fails, second time passes
-    Mockito.when(mFileSystemMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles))
+    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
         .thenThrow(new IOException("failure"));
     mFileWorkerMasterSyncExecutor.heartbeat();
     Mockito.verify(mFileDataManager, Mockito.never()).clearPersistedFiles(persistedFiles);
@@ -67,7 +67,7 @@ public final class FileWorkerMasterSyncExecutorTest {
     List<Long> persistedFiles = Lists.newArrayList(1L);
     Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
     // first time fails, second time passes
-    Mockito.when(mFileSystemMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles))
+    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
         .thenReturn(new FileSystemCommand());
     mFileWorkerMasterSyncExecutor.heartbeat();
     Mockito.verify(mFileDataManager).clearPersistedFiles(persistedFiles);

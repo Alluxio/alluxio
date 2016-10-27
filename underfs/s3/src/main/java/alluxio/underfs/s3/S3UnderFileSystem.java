@@ -61,9 +61,6 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   /** Value used to indicate folder structure in S3. */
   private static final String PATH_SEPARATOR = "/";
 
-  /** Length of each list request in S3. */
-  private static final long LISTING_LENGTH = 1000L;
-
   private static final byte[] DIR_HASH;
 
   /** Jets3t S3 client. */
@@ -194,8 +191,8 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.S3;
+  public String getUnderFSType() {
+    return "s3";
   }
 
   @Override

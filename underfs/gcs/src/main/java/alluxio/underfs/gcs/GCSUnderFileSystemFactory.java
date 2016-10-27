@@ -55,7 +55,6 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
     }
 
     String err = "Google Credentials not available, cannot create GCS Under File System.";
-    LOG.error(err);
     throw Throwables.propagate(new IOException(err));
   }
 

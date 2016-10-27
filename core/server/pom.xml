@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-server</artifactId>
   <packaging>jar</packaging>
@@ -64,7 +64,6 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.5</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -79,6 +78,16 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
+      <!--
+          Newer versions of hadoop-client include the old javax.servlet:servlet-api jar.
+          This is excluded to prevent conflicts with the newer javax.servlet:javax.servlet-api jar.
+      -->
+      <exclusions>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>

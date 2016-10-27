@@ -11,7 +11,9 @@
 
 package alluxio.worker.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.collections.Pair;
@@ -80,8 +82,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  // TODO(bin): Change maxRetry to be configurable.
-  private static final int MAX_RETRIES = 3;
+  private static final int MAX_RETRIES =
+          Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
@@ -96,10 +98,10 @@ public final class TieredBlockStore implements BlockStore {
   /** Lock to guard metadata operations. */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
 
-  /** ReadLock provided by {@link #mMetadataReadLock} to guard metadata read operations. */
+  /** ReadLock provided by {@link #mMetadataLock} to guard metadata read operations. */
   private final Lock mMetadataReadLock = mMetadataLock.readLock();
 
-  /** WriteLock provided by {@link #mMetadataReadLock} to guard metadata write operations. */
+  /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
   /** Association between storage tier aliases and ordinals. */

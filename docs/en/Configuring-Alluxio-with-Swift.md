@@ -6,8 +6,8 @@ group: Under Store
 priority: 1
 ---
 
-This guide describes how to configure Alluxio with
-[Swift](http://docs.openstack.org/developer/swift/) as the under storage system.
+This guide describes how to configure Alluxio with an under storage system
+supporting the [Swift API](http://docs.openstack.org/developer/swift/).
 
 # Initial Setup
 
@@ -91,6 +91,14 @@ In case of failures, logs located under `tests/target/logs`. You may also activa
 
 # Swift Access Control
 
-The Swift crendentials specified in Alluxio (`fs.swift.user`, `fs.swift.tenant` and `fs.swift.password`) represents a Swift user. Swift service backend checks the user permission to the container. When Alluxio security is enabled, Alluxio loads the container ACL to Alluxio permission on the first time when the metadata is loaded to Alluxio namespace. It checks the container READ/WRITE ACL to see if the Swift user or "*" is in the access control list. If necessary, you can customize the Swift container ACL checking in `SwiftUnderFileSystem.java`. Swift user permission to the container is mapped to Alluxio permission to mounted directories and files.
+If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object storage.
 
-In addition, chown/chgrp/chmod are not allowed to Alluxio directories and files which are persisted to underlying Swift object store.
+The Swift credentials specified in Alluxio (`fs.swift.user`, `fs.swift.tenant` and `fs.swift.password`) represents a Swift user. Swift service backend checks the user permission to the container.
+If the given Swift user does not have the right access permission to the specified container, a permission denied error will be thrown.
+When Alluxio security is enabled, Alluxio loads the container ACL to Alluxio permission on the first time when the metadata is loaded to Alluxio namespace.
+
+### Mount point sharing
+If you want to share the Swift mount point with other users in Alluxio namespace, you can enable `alluxio.underfs.object.store.mount.shared.publicly`.
+
+### Permission change
+In addition, chown/chgrp/chmod to Alluxio directories and files do NOT propagate to the underlying Swift containers nor objects.

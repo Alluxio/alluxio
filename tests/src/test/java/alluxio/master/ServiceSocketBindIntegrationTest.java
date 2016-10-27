@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
@@ -20,6 +19,7 @@ import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -37,7 +37,7 @@ import java.nio.channels.SocketChannel;
 public class ServiceSocketBindIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(100, Constants.GB, false);
+      new LocalAlluxioClusterResource.Builder().setStartCluster(false).build();
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private BlockMasterClient mBlockMasterClient;
   private HttpURLConnection mMasterWebService;
@@ -57,16 +57,16 @@ public class ServiceSocketBindIntegrationTest {
     // connect Master RPC service
     mBlockMasterClient = new RetryHandlingBlockMasterClient(
         new InetSocketAddress(mLocalAlluxioCluster.getHostname(),
-            mLocalAlluxioCluster.getMasterPort()));
+            mLocalAlluxioCluster.getMasterRpcPort()));
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
-    mBlockWorkerClient = BlockStoreContext.get().acquireLocalWorkerClient();
-    mBlockWorkerClient.connect();
+    WorkerNetAddress workerAddress = mLocalAlluxioCluster.getWorkerAddress();
+    mBlockWorkerClient = BlockStoreContext.get().createWorkerClient(workerAddress);
 
     // connect Worker data service
     mWorkerDataService = SocketChannel
-        .open(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_DATA));
+        .open(new InetSocketAddress(workerAddress.getHost(), workerAddress.getDataPort()));
 
     // connect Master Web service
     InetSocketAddress masterWebAddr =
@@ -78,7 +78,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker Web service
     InetSocketAddress workerWebAddr =
-        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB);
+        new InetSocketAddress(workerAddress.getHost(), workerAddress.getWebPort());
     mWorkerWebService =
         (HttpURLConnection) new URL("http://" + workerWebAddr.getAddress().getHostAddress() + ":"
             + workerWebAddr.getPort() + "/css/custom.min.css").openConnection();
@@ -96,13 +96,17 @@ public class ServiceSocketBindIntegrationTest {
   @Test
   public void listenEmpty() throws Exception {
     startCluster("");
-    connectServices();
+    boolean allConnected = true;
+    try {
+      connectServices();
+    } catch (Exception e) {
+      allConnected = false;
+    }
+
+    Assert.assertTrue(allConnected);
 
     // test Master RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
-
-    // test Worker RPC service connectivity (application layer)
-    Assert.assertTrue(mBlockWorkerClient.isConnected());
 
     // test Worker data service connectivity (application layer)
     Assert.assertTrue(mWorkerDataService.isConnected());
@@ -119,13 +123,17 @@ public class ServiceSocketBindIntegrationTest {
   @Test
   public void listenSameAddress() throws Exception {
     startCluster(NetworkAddressUtils.getLocalHostName(100));
-    connectServices();
+    boolean allConnected = true;
+    try {
+      connectServices();
+    } catch (Exception e) {
+      allConnected = false;
+    }
+
+    Assert.assertTrue(allConnected);
 
     // test Master RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
-
-    // test Worker RPC service connectivity (application layer)
-    Assert.assertTrue(mBlockWorkerClient.isConnected());
 
     // test Worker data service connectivity (application layer)
     Assert.assertTrue(mWorkerDataService.isConnected());
@@ -157,11 +165,13 @@ public class ServiceSocketBindIntegrationTest {
     // Connect to Worker RPC service on loopback, while Worker is listening on local hostname.
     try {
       mBlockWorkerClient =
-          BlockStoreContext.get().acquireWorkerClient(mLocalAlluxioCluster.getWorkerAddress());
+          BlockStoreContext.get().createWorkerClient(mLocalAlluxioCluster.getWorkerAddress());
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
     } catch (Exception e) {
       // This is expected, since Work RPC service is NOT listening on loopback.
+    } finally {
+      mBlockWorkerClient.close();
     }
 
     // connect Worker data service on loopback, while Worker is listening on local hostname.

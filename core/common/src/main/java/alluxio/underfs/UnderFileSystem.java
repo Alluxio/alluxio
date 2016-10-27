@@ -59,6 +59,14 @@ public abstract class UnderFileSystem {
    */
   private boolean mProvidesStorage = true;
 
+  /** Maximum length for a single listing query. */
+  private static final int MAX_LISTING_LENGTH = 1000;
+
+  /** Length of each list request. */
+  protected static final int LISTING_LENGTH =
+      Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > MAX_LISTING_LENGTH
+          ? MAX_LISTING_LENGTH : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
+
   private static final Cache UFS_CACHE = new Cache();
 
   /**
@@ -119,9 +127,8 @@ public abstract class UnderFileSystem {
      * @return the UFS instance
      */
     UnderFileSystem get(String path, Object ufsConf) {
-      UnderFileSystem cachedFs = null;
       Key key = new Key(new AlluxioURI(path));
-      cachedFs = mUnderFileSystemMap.get(key);
+      UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
         return cachedFs;
       }
@@ -200,36 +207,13 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Type of under filesystem, to be used by {@link #getUnderFSType()} to determine which concrete
-   * under filesystem implementation is being used. New types of under filesystem should be added
-   * below and returned by the implementation of {@link #getUnderFSType()}.
+   * Returns the name of the under filesystem implementation.
+   *
+   * The name should be lowercase and not include any spaces, e.g. "hdfs", "s3".
+   *
+   * @return name of the under filesystem implementation
    */
-  public enum UnderFSType {
-    LOCAL("local"),
-    HDFS("hdfs"),
-    S3("s3"),
-    GLUSTERFS("glusterfs"),
-    SWIFT("swift"),
-    OSS("oss"),
-    GCS("gcs"),
-    ;
-
-    private String mType;
-
-    UnderFSType(String type) {
-      mType = type;
-    }
-
-    @Override
-    public String toString() {
-      return mType;
-    }
-  }
-
-  /**
-   * @return type of concrete under filesystem implementation
-   */
-  public abstract UnderFSType getUnderFSType();
+  public abstract String getUnderFSType();
 
   /**
    * Determines if the given path is on a Hadoop under file system

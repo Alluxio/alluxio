@@ -13,7 +13,6 @@ package alluxio.client.concurrent;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
@@ -41,7 +40,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE);
+      new LocalAlluxioClusterResource.Builder().build();
   private static FileSystem sFileSystem = null;
   private static CreateFileOptions sWriteAlluxio;
 
@@ -76,10 +75,8 @@ public final class FileInStreamConcurrencyIntegrationTest {
 
     @Override
     public void run() {
-      try {
-        FileInStream stream = sFileSystem.openFile(mUri);
+      try (FileInStream stream = sFileSystem.openFile(mUri)) {
         stream.read();
-        stream.close();
       } catch (Exception e) {
         Throwables.propagate(e);
       }

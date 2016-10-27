@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.worker.AlluxioWorkerService;
 
 import com.google.common.base.Throwables;
 import org.apache.curator.test.TestingServer;
@@ -40,12 +41,20 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   private final List<LocalAlluxioMaster> mMasters = new ArrayList<>();
 
   /**
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param masters the number of the master
-   * @param userBlockSize the block size for a user
+   * Runs a multi master local Alluxio cluster with a single worker.
+   *
+   * @param masters the number masters to run
    */
-  public MultiMasterLocalAlluxioCluster(long workerCapacityBytes, int masters, int userBlockSize) {
-    super(workerCapacityBytes, userBlockSize);
+  public MultiMasterLocalAlluxioCluster(int masters) {
+    this(masters, 1);
+  }
+
+  /**
+   * @param masters the number of masters to run
+   * @param numWorkers the number of workers to run
+   */
+  public MultiMasterLocalAlluxioCluster(int masters, int numWorkers) {
+    super(numWorkers);
     mNumOfMasters = masters;
 
     try {
@@ -155,9 +164,9 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void startWorker() throws IOException, ConnectionFailedException {
+  protected void startWorkers() throws IOException, ConnectionFailedException {
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
-    runWorker();
+    runWorkers();
   }
 
   @Override
@@ -200,7 +209,9 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
   @Override
   public void stopFS() throws Exception {
-    mWorker.stop();
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
     for (int k = 0; k < mNumOfMasters; k++) {
       // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
       mMasters.get(k).kill();

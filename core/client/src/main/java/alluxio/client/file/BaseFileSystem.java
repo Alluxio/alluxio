@@ -135,9 +135,7 @@ public class BaseFileSystem implements FileSystem {
       // TODO(calvin): Make this more efficient
       masterClient.getStatus(path);
       return true;
-    } catch (FileDoesNotExistException e) {
-      return false;
-    } catch (InvalidPathException e) {
+    } catch (FileDoesNotExistException | InvalidPathException e) {
       return false;
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
@@ -232,18 +230,19 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void mount(AlluxioURI src, AlluxioURI dst) throws IOException, AlluxioException {
-    mount(src, dst, MountOptions.defaults());
+  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath)
+      throws IOException, AlluxioException {
+    mount(alluxioPath, ufsPath, MountOptions.defaults());
   }
 
   @Override
-  public void mount(AlluxioURI src, AlluxioURI dst, MountOptions options)
+  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this fail on the master side
-      masterClient.mount(src, dst, options);
-      LOG.info("Mount " + src.getPath() + " to " + dst.getPath());
+      masterClient.mount(alluxioPath, ufsPath, options);
+      LOG.info("Mount " + ufsPath.toString() + " to " + alluxioPath.getPath());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }

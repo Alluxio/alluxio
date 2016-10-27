@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
@@ -36,6 +35,7 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -63,8 +63,9 @@ import java.util.Map;
 public class JournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, Constants.GB)
-        .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
+      new LocalAlluxioClusterResource.Builder()
+        .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB))
+        .build();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -483,7 +484,7 @@ public class JournalIntegrationTest {
     final FileSystemMaster fsMaster = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
 
     try {
-      CommonTestUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
+      CommonUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           try {
@@ -506,7 +507,7 @@ public class JournalIntegrationTest {
   public void multiEditLog() throws Exception {
     for (int i = 0; i < 124; i++) {
       CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64);
-      mFileSystem.createFile(new AlluxioURI("/a" + i), op);
+      mFileSystem.createFile(new AlluxioURI("/a" + i), op).close();
     }
     mLocalAlluxioCluster.stopFS();
     multiEditLogTestUtil();

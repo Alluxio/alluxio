@@ -49,10 +49,11 @@ public abstract class AbstractFileOutStreamIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES)
+      new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES))
           .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS,
-              IntegrationTestConstants.NETTY_DATA_SERVER);
+              IntegrationTestConstants.NETTY_DATA_SERVER)
+          .build();
 
   protected FileSystem mFileSystem = null;
 

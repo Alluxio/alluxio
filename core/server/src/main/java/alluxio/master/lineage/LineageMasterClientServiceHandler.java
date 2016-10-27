@@ -24,6 +24,7 @@ import alluxio.thrift.CommandLineJobInfo;
 import alluxio.thrift.LineageInfo;
 import alluxio.thrift.LineageMasterClientService;
 import alluxio.thrift.ThriftIOException;
+import alluxio.thrift.TTtlAction;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
@@ -57,23 +58,22 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   }
 
   @Override
-  public long createLineage(List<String> inputFiles, List<String> outputFiles,
-      CommandLineJobInfo jobInfo) throws AlluxioTException, ThriftIOException {
-    // deserialization
-    final List<AlluxioURI> inputFilesUri = new ArrayList<>();
-    for (String inputFile : inputFiles) {
-      inputFilesUri.add(new AlluxioURI(inputFile));
-    }
-    final List<AlluxioURI> outputFilesUri = new ArrayList<>();
-    for (String outputFile : outputFiles) {
-      outputFilesUri.add(new AlluxioURI(outputFile));
-    }
-
-    final CommandLineJob job =
-        new CommandLineJob(jobInfo.getCommand(), new JobConf(jobInfo.getConf().getOutputFile()));
+  public long createLineage(final List<String> inputFiles, final List<String> outputFiles,
+      final CommandLineJobInfo jobInfo) throws AlluxioTException, ThriftIOException {
     return RpcUtils.call(new RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
+        // deserialization
+        List<AlluxioURI> inputFilesUri = new ArrayList<>();
+        for (String inputFile : inputFiles) {
+          inputFilesUri.add(new AlluxioURI(inputFile));
+        }
+        List<AlluxioURI> outputFilesUri = new ArrayList<>();
+        for (String outputFile : outputFiles) {
+          outputFilesUri.add(new AlluxioURI(outputFile));
+        }
+        CommandLineJob job = new CommandLineJob(jobInfo.getCommand(),
+            new JobConf(jobInfo.getConf().getOutputFile()));
         return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
       }
     });
@@ -91,12 +91,14 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   }
 
   @Override
-  public long reinitializeFile(final String path, final long blockSizeBytes, final long ttl)
+  public long reinitializeFile(final String path, final long blockSizeBytes, final long ttl,
+      final TTtlAction ttlAction)
       throws AlluxioTException {
     return RpcUtils.call(new RpcCallable<Long>() {
       @Override
       public Long call() throws AlluxioException {
-        return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
+        return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl,
+            ThriftUtils.fromThrift(ttlAction));
       }
     });
   }

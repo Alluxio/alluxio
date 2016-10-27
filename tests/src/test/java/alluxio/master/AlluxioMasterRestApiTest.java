@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.util.network.NetworkAddressUtils;
@@ -41,6 +42,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getWebLocalPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
+
+    MetricsSystem.resetAllCounters();
   }
 
   private AlluxioMasterInfo getInfo() throws Exception {

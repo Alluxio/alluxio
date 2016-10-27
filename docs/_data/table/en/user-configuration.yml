@@ -1,9 +1,12 @@
 alluxio.user.block.master.client.threads:
   The number of threads used by a block master client pool to talk to the block master.
 alluxio.user.block.worker.client.threads:
-  The number of threads used by a block worker client pool to talk to a remote block worker. It
-  determines the maximum number of Thrift connections between an Alluxio client and an Alluxio
-  worker.
+  The number of threads used by a block worker client pool for heartbeating to a worker. Increase
+  this value if worker failures affect client connections to healthy workers.
+alluxio.user.block.worker.client.pool.size.max:
+  The maximum number of block worker clients cached in the block worker client pool.
+alluxio.user.block.worker.client.pool.gc.threshold.ms:
+  A block worker client is closed if it has been idle for more than this threshold.
 alluxio.user.block.remote.read.buffer.size.bytes:
   The size of the file buffer to read data from remote Alluxio worker.
 alluxio.user.block.remote.reader.class:
@@ -53,10 +56,17 @@ alluxio.user.network.netty.timeout.ms:
   wait for a response from the data server.
 alluxio.user.network.netty.worker.threads:
   How many threads to use for remote block worker client to read from remote block workers.
+alluxio.user.network.netty.channel.pool.size.max:
+  The maximum number of netty channels cached in the netty channel pool.
+alluxio.user.network.netty.channel.pool.gc.threshold.ms:
+  A netty channel is closed if it has been idle for more than this threshold.
+alluxio.user.network.netty.channel.pool.disabled:
+  Disable netty channel pool. This should be turned on if the client version is >= 1.3.0 but server version is <= 1.2.x.
 alluxio.user.ufs.delegation.enabled:
-  Flag for delegating ufs data operations to the worker. Set this to false to use client to directly
-  communicate with the ufs. Setting this to true is currently experimental and may have an impact
-  on performance for certain workloads.
+  Flag for delegating ufs data operations to the worker, enabled by default. When enabled, the
+  client does not require any under storage libraries. Set this to false to use the client to
+  directly communicate with the ufs, which requires the client to have the necessary under storage
+  system libraries.
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
   Size of the read buffer when reading from the ufs through the Alluxio worker. Each read request
   will fetch at least this many bytes. This property has no effect if the delegation flag is turned
@@ -65,3 +75,11 @@ alluxio.user.ufs.delegation.write.buffer.size.bytes:
   Size of the write buffer when writing to the ufs through the Alluxio worker. Each write request
   will write at least this many bytes, unless the write is at the end of the file. This property
   has no effect if the delegation flag is turned off.
+alluxio.user.ufs.file.reader.class:
+  Selects networking stack to run the client with for reading from under file system through a
+  worker's data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileReader`
+  (remote read using netty) is valid.
+alluxio.user.ufs.file.writer.class:
+  Selects networking stack to run the client with for writing to under file system through a
+  worker's data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileWriter`
+  (remote write using netty) is valid.

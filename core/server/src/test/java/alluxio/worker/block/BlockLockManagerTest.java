@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMetadataManager.class)
-public class BlockLockManagerTest {
+public final class BlockLockManagerTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
 

@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A class representing a non-unique index. A non-unique index is
  * an index where an index value can map to one or more objects.
  *
- * @param <T> type of objects in this {@link IndexedSet}
+ * @param <T> type of objects in this index
  */
 @ThreadSafe
 public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
@@ -42,7 +42,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public void add(T object) {
+  public boolean add(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
 
     ConcurrentHashSet<T> objSet;
@@ -64,6 +64,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
         break;
       }
     }
+    return true;
   }
 
   @Override
@@ -103,7 +104,6 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
     if (set == null) {
       return false;
     }
-
     return set.contains(object);
   }
 
@@ -140,7 +140,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
    */
   private class NonUniqueFieldIndexIterator implements Iterator<T> {
     /**
-     * Iterator of {@link NonUniqueFieldIndex#mIndexMap}. This Iterator keeps track of the
+     * Iterator of {@link NonUniqueFieldIndex#mIndexMap}. This iterator keeps track of the
      * inner set which is under iteration.
      */
     private final Iterator<ConcurrentHashSet<T>> mIndexIterator;

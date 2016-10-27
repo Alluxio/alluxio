@@ -290,4 +290,20 @@ public class ConfigurationTest {
     Assert.assertEquals(1073741824,
         (int) Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES));
   }
+
+  @Test
+  public void unset() {
+    Assert.assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test");
+    Assert.assertTrue(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    Configuration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
+    Assert.assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+  }
+
+  @Test
+  public void unsetDefaultValue() {
+    Assert.assertTrue(Configuration.containsKey(PropertyKey.USER_FILE_BUFFER_BYTES));
+    Configuration.unset(PropertyKey.USER_FILE_BUFFER_BYTES);
+    Assert.assertFalse(Configuration.containsKey(PropertyKey.USER_FILE_BUFFER_BYTES));
+  }
 }
