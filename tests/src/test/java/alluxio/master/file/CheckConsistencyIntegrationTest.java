@@ -178,4 +178,18 @@ public class CheckConsistencyIntegrationTest {
     Assert.assertEquals(expected, mFileSystemMaster
         .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
   }
+
+  /**
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when running on a file that is inconsistent.
+   */
+  @Test
+  public void inconsistentFile() throws Exception {
+    String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.get(ufsFile);
+    ufs.delete(ufsFile, true);
+    List<AlluxioURI> expected = Lists.newArrayList(FILE);
+    Assert.assertEquals(expected, mFileSystemMaster
+        .checkConsistency(FILE, CheckConsistencyOptions.defaults()));
+  }
 }
