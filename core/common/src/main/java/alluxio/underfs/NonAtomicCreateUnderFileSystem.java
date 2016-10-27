@@ -14,7 +14,9 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.NonAtomicCreateOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
@@ -47,18 +49,19 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path, CreateOptions options) throws IOException {
     String temporaryPath = PathUtils.temporaryFileName(mNonce, path);
 
-    return new AtomicFileOutputStream(path, temporaryPath,
-        createNonAtomic(temporaryPath, options), this);
+    return new NonAtomicFileOutputStream(createNonAtomic(temporaryPath, options), this,
+        new NonAtomicCreateOptions(temporaryPath, path, options));
   }
 
   /**
    * Complete create operation by renaming temporary path to permanent.
    *
-   * @param temporaryPath path a create writes to
-   * @param permanentPath final path after rename
+   * @param options information to complete create
    * @throws IOException when rename fails
    */
-  public void completeCreate(String temporaryPath, String permanentPath) throws IOException {
+  public void completeCreate(NonAtomicCreateOptions options) throws IOException {
+    String temporaryPath = options.getTemporaryPath();
+    String permanentPath = options.getPermanentPath();
     if (!rename(temporaryPath, permanentPath)) {
       if (!delete(temporaryPath, false)) {
         LOG.error("Failed to delete temporary file {}", temporaryPath);
@@ -66,6 +69,9 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
       throw new IOException(
           ExceptionMessage.FAILED_UFS_RENAME.getMessage(temporaryPath, permanentPath));
     }
+    // Rename does not preserve permissions
+    Permission perm = options.getCreateOptions().getPermission();
+    setOwner(permanentPath, perm.getOwner(), perm.getGroup());
   }
 
   /**

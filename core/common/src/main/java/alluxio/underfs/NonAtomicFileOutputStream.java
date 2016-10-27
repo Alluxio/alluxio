@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import alluxio.underfs.options.NonAtomicCreateOptions;
+
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,30 +20,27 @@ import java.io.OutputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * An {@link AtomicFileOutputStream} writes to a temporary file and renames on close.
+ * An {@link NonAtomicFileOutputStream} writes to a temporary file and renames on close.
  */
 @NotThreadSafe
-public class AtomicFileOutputStream extends FilterOutputStream {
+public class NonAtomicFileOutputStream extends FilterOutputStream {
 
-  private String mTemporaryPath;
-  private String mPermanentPath;
-  private boolean mClosed = false;
   private NonAtomicCreateUnderFileSystem mUfs;
+  private NonAtomicCreateOptions mParams;
+  private boolean mClosed = false;
 
   /**
-   * Constructs a new {@link AtomicFileOutputStream}.
+   * Constructs a new {@link NonAtomicFileOutputStream}.
    *
-   * @param permanentPath the final path of the file
-   * @param temporaryPath the temporary path to write to
    * @param out the wrapped {@link OutputStream}
    * @param ufs the calling {@link NonAtomicCreateUnderFileSystem}
+   * @param params options to complete create
    */
-  public AtomicFileOutputStream(String permanentPath, String temporaryPath, OutputStream out,
-                                NonAtomicCreateUnderFileSystem ufs) {
+  public NonAtomicFileOutputStream(OutputStream out, NonAtomicCreateUnderFileSystem ufs,
+                                   NonAtomicCreateOptions params) {
     super(out);
 
-    mPermanentPath = permanentPath;
-    mTemporaryPath = temporaryPath;
+    mParams = params;
     mUfs = ufs;
   }
 
@@ -51,7 +50,7 @@ public class AtomicFileOutputStream extends FilterOutputStream {
       return;
     }
     out.close();
-    mUfs.completeCreate(mTemporaryPath, mPermanentPath);
+    mUfs.completeCreate(mParams);
     mClosed = true;
   }
 }
