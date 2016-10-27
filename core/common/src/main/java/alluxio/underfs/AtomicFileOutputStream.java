@@ -20,35 +20,24 @@ import java.io.OutputStream;
  */
 public class AtomicFileOutputStream extends FilterOutputStream {
 
-  private String mPermanentPath;
-  private String mTemporaryPath;
-  private UnderFileSystem mUfs;
+  private NonAtomicCreateUnderFileSystem mUfs;
 
   /**
    * Constructs a new {@link AtomicFileOutputStream}.
    *
-   * @param permanentPath the final path
-   * @param temporaryPath the path being written to
    * @param out the wrapped {@link OutputStream}
-   * @param ufs the {@link UnderFileSystem} whose rename is invoked
+   * @param ufs the calling {@link NonAtomicCreateUnderFileSystem}
    */
-  public AtomicFileOutputStream(String permanentPath, String temporaryPath, OutputStream out,
-                                UnderFileSystem ufs) {
+  public AtomicFileOutputStream(OutputStream out, NonAtomicCreateUnderFileSystem ufs) {
     super(out);
 
-    mPermanentPath = permanentPath;
-    mTemporaryPath = temporaryPath;
     mUfs = ufs;
   }
 
   @Override
   public void close() throws IOException {
     out.close();
-
-    if (!mUfs.rename(mTemporaryPath, mPermanentPath)) {
-      mUfs.delete(mTemporaryPath, false);
-      throw new IOException("Failed to rename " + mTemporaryPath + "to " + mPermanentPath);
-    }
+    mUfs.completeCreate();
   }
 }
 

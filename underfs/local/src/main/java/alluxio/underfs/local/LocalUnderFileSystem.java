@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.AtomicFileOutputStream;
+import alluxio.underfs.NonAtomicCreateUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -49,7 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * </p>
  */
 @ThreadSafe
-public class LocalUnderFileSystem extends UnderFileSystem {
+public class LocalUnderFileSystem extends NonAtomicCreateUnderFileSystem {
 
   /**
    * Constructs a new {@link LocalUnderFileSystem}.
@@ -69,13 +70,11 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   public void close() throws IOException {}
 
   @Override
-  public OutputStream create(String path, CreateOptions options) throws IOException {
+  public OutputStream createNonAtomic(String path, CreateOptions options) throws IOException {
     path = stripPath(path);
-    String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
-    FileOutputStream fsStream = new FileOutputStream(temporaryPath);
-    OutputStream stream = new AtomicFileOutputStream(path, temporaryPath, fsStream, this);
+    OutputStream stream = new FileOutputStream(path);
     try {
-      setMode(temporaryPath, options.getPermission().getMode().toShort());
+      setMode(path, options.getPermission().getMode().toShort());
     } catch (IOException e) {
       stream.close();
       throw e;
