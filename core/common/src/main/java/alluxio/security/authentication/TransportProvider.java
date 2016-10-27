@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
@@ -31,23 +31,27 @@ public interface TransportProvider {
    * Factory for {@code TransportProvider}.
    */
   class Factory {
+
+    // prevent instantiation
+    private Factory() {}
+
     /**
      * Creates a new instance of {@code TransportProvider} based on authentication type. For
      * {@link AuthType#NOSASL}, return an instance of {@link NoSaslTransportProvider}; for
      * {@link AuthType#SIMPLE} or {@link AuthType#CUSTOM}, return an instance of
      * {@link PlainSaslTransportProvider}.
      *
-     * @param conf Alluxio configuration
      * @return the generated {@link TransportProvider}
      */
-    public static TransportProvider create(Configuration conf) {
-      AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    public static TransportProvider create() {
+      AuthType authType =
+          Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       switch (authType) {
         case NOSASL:
-          return new NoSaslTransportProvider(conf);
+          return new NoSaslTransportProvider();
         case SIMPLE: // intended to fall through
         case CUSTOM:
-          return new PlainSaslTransportProvider(conf);
+          return new PlainSaslTransportProvider();
         case KERBEROS:
           throw new UnsupportedOperationException(
               "getClientTransport: Kerberos is not supported currently.");
@@ -81,5 +85,4 @@ public interface TransportProvider {
    * @throws SaslException if building a TransportFactory fails
    */
   TTransportFactory getServerTransportFactory() throws SaslException;
-
 }

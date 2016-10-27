@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -24,11 +24,12 @@ import java.io.IOException;
 /**
  * Tests for mkdir command.
  */
-public class MkdirCommandTest extends AbstractAlluxioShellTest {
+public final class MkdirCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void mkdirTest() throws IOException, AlluxioException {
-    String qualifiedPath = "alluxio://" + mLocalAlluxioCluster.getMasterHostname() + ":"
-        + mLocalAlluxioCluster.getMasterPort() + "/root/testFile1";
+  public void mkdir() throws IOException, AlluxioException {
+    String qualifiedPath =
+        "alluxio://" + mLocalAlluxioCluster.getHostname() + ":" + mLocalAlluxioCluster
+            .getMasterRpcPort() + "/root/testFile1";
     mFsShell.run("mkdir", qualifiedPath);
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
     Assert.assertNotNull(status);
@@ -38,7 +39,7 @@ public class MkdirCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void mkdirComplexPathTest() throws IOException, AlluxioException {
+  public void mkdirComplexPath() throws IOException, AlluxioException {
     mFsShell.run("mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
     URIStatus status =
         mFileSystem.getStatus(new AlluxioURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
@@ -49,18 +50,18 @@ public class MkdirCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void mkdirExistingTest() throws IOException {
+  public void mkdirExisting() throws IOException {
     Assert.assertEquals(0, mFsShell.run("mkdir", "/testFile1"));
     Assert.assertEquals(-1, mFsShell.run("mkdir", "/testFile1"));
   }
 
   @Test
-  public void mkdirInvalidPathTest() throws IOException {
+  public void mkdirInvalidPath() throws IOException {
     Assert.assertEquals(-1, mFsShell.run("mkdir", "/test File Invalid Path"));
   }
 
   @Test
-  public void mkdirMultiPathTest() throws IOException, AlluxioException {
+  public void mkdirMultiPath() throws IOException, AlluxioException {
     String path1 = "/testDir1";
     String path2 = "/testDir2";
     String path3 = "/testDir2/testDir2.1";
@@ -81,7 +82,7 @@ public class MkdirCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void mkdirShortPathTest() throws IOException, AlluxioException {
+  public void mkdirShortPath() throws IOException, AlluxioException {
     mFsShell.run("mkdir", "/root/testFile1");
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
     Assert.assertNotNull(status);

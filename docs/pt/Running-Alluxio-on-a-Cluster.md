@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio Standalone em um Cluster
 nickname: Alluxio Standalone em um Cluster
-group: User Guide
+group: Deploying Alluxio
 priority: 2
 ---
 
@@ -13,7 +13,7 @@ Primeiro, baixe o arquivo `tar` do Alluxio e o extraia.
 {% include Running-Alluxio-on-a-Cluster/download-extract-Alluxio-tar.md %}
 
 No diretório `alluxio/conf`, copie `alluxio-env.sh.template` para `alluxio-env.sh`. Tenha certeza 
-que `JAVA_HOME` aponta para uma instalação válida do `Java 7`. Atualize o `ALLUXIO_MASTER_ADDRESS` 
+que `JAVA_HOME` aponta para uma instalação válida do `Java 7`. Atualize o `ALLUXIO_MASTER_HOSTNAME`
 para o `hostname` da máquina que você deseja ser o Alluxio `Master`. Adicione o endereço de `IP` de 
 todos os `Workers Nodes` no arquivo `alluxio/conf/workers`. Finalmente, sincronize todas as 
 informações para os servidores `workers`. Você pode executar
@@ -35,12 +35,12 @@ também cheque o diretório de log `alluxio/logs` ou execute um programa de test
 **Nota**: Se você estiver utilizando o `EC2`, tenha certeza que as definições de segurança de grupo 
 no servidor `master` permite conexões de entrada na porta `web UI` do Alluxio.
 
-## Utilizando o argumento bootstrap-conf para o script bin/alluxio
+## Utilizando o argumento bootstrapConf para o script bin/alluxio
 
 O `script` do Alluxio também contém uma lógica para criar uma configuração básica para um `cluster`. 
 Se você executar:
 
-{% include Running-Alluxio-on-a-Cluster/bootstrap-conf.md %}
+{% include Running-Alluxio-on-a-Cluster/bootstrapConf.md %}
 
 e não possuir nenhum arquivo `alluxio/conf/alluxio-env.sh`, então o `script` irá criar um arquivo com 
 as definições apropriadas para um `cluster` com um nó `master` executando no `<alluxio_master_hostname>`.

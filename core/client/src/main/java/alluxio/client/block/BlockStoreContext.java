@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,33 +11,39 @@
 
 package alluxio.client.block;
 
-import alluxio.Constants;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
+import alluxio.metrics.MetricsSystem;
+import alluxio.network.connection.NettyChannelPool;
 import alluxio.resource.CloseableResource;
+import alluxio.thrift.BlockWorkerClientService;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.ClientMetrics;
 
+import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A shared context in each client JVM for common block master client functionality such as a pool
+ * A shared context for each master for common block master client functionality such as a pool
  * of master clients and a pool of local worker clients. Any remote clients will be created and
  * destroyed on a per use basis.
  * <p/>
@@ -49,42 +55,66 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@link BlockStoreContext}.
  */
 @ThreadSafe
-public enum BlockStoreContext {
-  INSTANCE;
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+public final class BlockStoreContext {
   private BlockMasterClientPool mBlockMasterClientPool;
 
+  // The following maps never shrink in the current implementation because its
+  // size is limited by the number of Alluxio workers in the cluster. This simplifies the
+  // concurrent access to them.
+  private static final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
+      BLOCK_WORKER_THRIFT_CLIENT_POOL = new ConcurrentHashMapV8<>();
+  private static final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
+      BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL = new ConcurrentHashMapV8<>();
+  private static final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
+      NETTY_CHANNEL_POOL_MAP = new ConcurrentHashMapV8<>();
+
   /**
-   * A map from the worker's address to its client pool. Guarded by
-   * {@link #initializeLocalBlockWorkerClientPool()} for client acquisition. There is no guard for
-   * releasing client, and client can be released anytime.
+   * Only one context will be kept for each master address.
    */
-  private final Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
+  private static final Map<InetSocketAddress, BlockStoreContext> CACHED_CONTEXTS =
       new ConcurrentHashMap<>();
 
-  private boolean mLocalBlockWorkerClientPoolInitialized = false;
+  /**
+   * Indicates whether there is any Alluxio worker running in the local machine. This is initialized
+   * lazily.
+   */
+  @GuardedBy("this")
+  private Boolean mHasLocalWorker;
+
+  static {
+    Metrics.initializeGauges();
+  }
 
   /**
    * Creates a new block store context.
    */
-  BlockStoreContext() {
-    reset();
+  private BlockStoreContext(InetSocketAddress masterAddress) {
+    mBlockMasterClientPool = new BlockMasterClientPool(masterAddress);
   }
 
   /**
-   * Initializes {@link #mLocalBlockWorkerClientPoolMap}. This method is supposed be called in a
-   * lazy manner.
+   * Gets a context with the specified master address from the cache if it's created before.
+   * Otherwise creates a new one and puts it in the cache.
+   *
+   * @param masterAddress the master's address
+   * @return the context created or cached before
    */
-  private synchronized void initializeLocalBlockWorkerClientPool() {
-    if (!mLocalBlockWorkerClientPoolInitialized) {
-      for (WorkerNetAddress localWorkerAddress : getWorkerAddresses(
-          NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
-        mLocalBlockWorkerClientPoolMap.put(localWorkerAddress,
-            new BlockWorkerClientPool(localWorkerAddress));
-      }
-      mLocalBlockWorkerClientPoolInitialized = true;
+  public static synchronized BlockStoreContext get(InetSocketAddress masterAddress) {
+    BlockStoreContext context = CACHED_CONTEXTS.get(masterAddress);
+    if (context == null) {
+      context = new BlockStoreContext(masterAddress);
+      CACHED_CONTEXTS.put(masterAddress, context);
     }
+    return context;
+  }
+
+  /**
+   * Gets a context using the master address got from config.
+   *
+   * @return the context created or cached before
+   */
+  public static synchronized BlockStoreContext get() {
+    return get(ClientContext.getMasterAddress());
   }
 
   /**
@@ -92,7 +122,7 @@ public enum BlockStoreContext {
    * addresses, if the hostname is an empty string.
    *
    * @param hostname hostname of the worker to query, empty string denotes any worker
-   * @return List of {@link WorkerNetAddress} of hostname
+   * @return a list of {@link WorkerNetAddress} with the given hostname
    */
   private List<WorkerNetAddress> getWorkerAddresses(String hostname) {
     List<WorkerNetAddress> addresses = new ArrayList<>();
@@ -125,121 +155,198 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Obtains a client for a worker with the given address.
+   * Creates a client for a worker with the given address.
    *
    * @param address the address of the worker to get a client to
-   * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
-   * @throws IOException if no Alluxio worker is available for the given hostname
+   * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
+   * @throws IOException if it fails to create a client for a given hostname (e.g. no Alluxio
+   *         worker is available for the given worker RPC address)
    */
-  public BlockWorkerClient acquireWorkerClient(WorkerNetAddress address) throws IOException {
-    BlockWorkerClient client;
-    if (address == null) {
-      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-    }
-    if (address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
-      client = acquireLocalWorkerClient(address);
-      if (client == null) {
-        throw new IOException(
-            ExceptionMessage.NO_WORKER_AVAILABLE_ON_ADDRESS.getMessage(address));
-      }
-    } else {
-      client = acquireRemoteWorkerClient(address);
-    }
-    return client;
-  }
-
-  /**
-   * Obtains a worker client on the local worker in the system. For testing only.
-   *
-   * @return a {@link BlockWorkerClient} to a worker in the Alluxio system or null if failed
-   */
-  public BlockWorkerClient acquireLocalWorkerClient() {
-    initializeLocalBlockWorkerClientPool();
-    if (mLocalBlockWorkerClientPoolMap.isEmpty()) {
-      return null;
-    }
-    // return any local worker
-    return mLocalBlockWorkerClientPoolMap.values().iterator().next().acquire();
-  }
-
-  /**
-   * Obtains a worker client for the given local worker address.
-   *
-   * @param address worker address
-   *
-   * @return a {@link BlockWorkerClient} to the given worker address or null if no such worker can
-   *         be found
-   */
-  public BlockWorkerClient acquireLocalWorkerClient(WorkerNetAddress address) {
-    initializeLocalBlockWorkerClientPool();
-    if (!mLocalBlockWorkerClientPoolMap.containsKey(address)) {
-      return null;
-    }
-    return mLocalBlockWorkerClientPoolMap.get(address).acquire();
-  }
-
-  /**
-   * Obtains a client for a remote based on the given network address. Illegal argument exception is
-   * thrown if the hostname is the local hostname. Runtime exception is thrown if the client cannot
-   * be created with a connection to the hostname.
-   *
-   * @param address the address of the worker
-   * @return a worker client with a connection to the specified hostname
-   */
-  private BlockWorkerClient acquireRemoteWorkerClient(WorkerNetAddress address) {
-    // If we couldn't find a worker, crash.
-    if (address == null) {
-      // TODO(calvin): Better exception usage.
-      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-    }
-    Preconditions.checkArgument(
-        !address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
-        PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
+  public BlockWorkerClient createWorkerClient(WorkerNetAddress address) throws IOException {
+    Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     long clientId = IdUtils.getRandomNonNegativeLong();
-    return new BlockWorkerClient(address, ClientContext.getExecutorService(),
-        ClientContext.getConf(), clientId, false, new ClientMetrics());
+    return new RetryHandlingBlockWorkerClient(address, clientId);
   }
 
   /**
-   * Releases the {@link BlockWorkerClient} back to the client pool, or destroys it if it was a
-   * remote client.
+   * Acquires a netty channel from the channel pools. If there is no available client instance
+   * available in the pool, it tries to create a new one. And an exception is thrown if it fails to
+   * create a new one.
    *
-   * @param blockWorkerClient the worker client to release, the client should not be accessed after
-   *        this method is called
+   * @param address the network address of the channel
+   * @param bootstrapBuilder the bootstrap builder that creates a new bootstrap upon called
+   * @return the acquired netty channel
+   * @throws IOException if it fails to create a new client instance mostly because it fails to
+   *         connect to remote worker
    */
-  public void releaseWorkerClient(BlockWorkerClient blockWorkerClient) {
-    // If the client is local and the pool exists, release the client to the pool, otherwise just
-    // close the client.
-    if (blockWorkerClient.isLocal()) {
-      // Return local worker client to its resource pool.
-      WorkerNetAddress address = blockWorkerClient.getWorkerNetAddress();
-      if (!mLocalBlockWorkerClientPoolMap.containsKey(address)) {
-        LOG.error("The client to worker at {} to release is no longer registered in the context.",
-            address);
-        blockWorkerClient.close();
-      } else {
-        mLocalBlockWorkerClientPoolMap.get(address).release(blockWorkerClient);
+  public static Channel acquireNettyChannel(final InetSocketAddress address,
+      final Callable<Bootstrap> bootstrapBuilder) throws IOException {
+    if (!NETTY_CHANNEL_POOL_MAP.containsKey(address)) {
+      Callable<Bootstrap> bootstrapBuilderClone = new Callable<Bootstrap>() {
+        @Override
+        public Bootstrap call() throws Exception {
+          Bootstrap bs = bootstrapBuilder.call();
+          bs.remoteAddress(address);
+          return bs;
+        }
+      };
+      NettyChannelPool pool = new NettyChannelPool(
+          bootstrapBuilderClone,
+          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
+          Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
+      if (NETTY_CHANNEL_POOL_MAP.putIfAbsent(address, pool) != null) {
+        // This can happen if this function is called concurrently.
+        pool.close();
       }
-    } else {
-      // Destroy remote worker client.
-      blockWorkerClient.close();
+    }
+    try {
+      return NETTY_CHANNEL_POOL_MAP.get(address).acquire();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
     }
   }
 
   /**
-   * Re-initializes the {@link BlockStoreContext}. This method should only be used in
-   * {@link ClientContext}.
+   * Releases a netty channel to the channel pools.
+   *
+   * @param address the network address of the channel
+   * @param channel the channel to release
    */
-  @SuppressFBWarnings
-  public void reset() {
-    if (mBlockMasterClientPool != null) {
-      mBlockMasterClientPool.close();
+  public static void releaseNettyChannel(InetSocketAddress address, Channel channel) {
+    Preconditions.checkArgument(NETTY_CHANNEL_POOL_MAP.containsKey(address));
+    NETTY_CHANNEL_POOL_MAP.get(address).release(channel);
+  }
+
+  /**
+   * Acquires a block worker thrift client from the block worker thrift client pools. If there is
+   * no available client instance available in the pool, it tries to create a new one. And an
+   * exception is thrown if it fails to create a new one.
+   *
+   * @param address the address of the block worker
+   * @return the block worker thrift client
+   * @throws IOException if it fails to create a new client instance mostly because it fails to
+   *         connect to remote worker
+   */
+  public static BlockWorkerClientService.Client acquireBlockWorkerThriftClient(
+      final InetSocketAddress address) throws IOException {
+    if (!BLOCK_WORKER_THRIFT_CLIENT_POOL.containsKey(address)) {
+      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(address,
+          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
+          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
+      if (BLOCK_WORKER_THRIFT_CLIENT_POOL.putIfAbsent(address, pool) != null) {
+        pool.close();
+      }
     }
-    for (BlockWorkerClientPool pool : mLocalBlockWorkerClientPoolMap.values()) {
-      pool.close();
+    try {
+      return BLOCK_WORKER_THRIFT_CLIENT_POOL.get(address).acquire();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
     }
-    mLocalBlockWorkerClientPoolMap.clear();
-    mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    mLocalBlockWorkerClientPoolInitialized = false;
+  }
+
+  /**
+   * Releases the block worker thrift client to the pool.
+   *
+   * @param address the network address of the block worker thrift client
+   * @param client the block worker thrift client
+   */
+  public static void releaseBlockWorkerThriftClient(InetSocketAddress address,
+      BlockWorkerClientService.Client client) {
+    Preconditions.checkArgument(BLOCK_WORKER_THRIFT_CLIENT_POOL.containsKey(address));
+    BLOCK_WORKER_THRIFT_CLIENT_POOL.get(address).release(client);
+  }
+
+  /**
+   * Acquires a block worker thrift client from the block worker thrift client pools dedicated for
+   * heartbeat. If there is no available client instance available in the pool, it tries to create
+   * a new one. And an exception is thrown if it fails to create a new one.
+   *
+   * @param address the address of the block worker
+   * @return the block worker thrift client
+   * @throws IOException if it fails to create a new client instance mostly because it fails to
+   *         connect to remote worker
+   * @throws InterruptedException if this thread is interrupted
+   */
+  public static BlockWorkerClientService.Client acquireBlockWorkerThriftClientHeartbeat(
+      final InetSocketAddress address) throws IOException, InterruptedException {
+    if (!BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.containsKey(address)) {
+      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(address,
+          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
+          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
+      if (BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.putIfAbsent(address, pool) != null) {
+        pool.close();
+      }
+    }
+    return BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.get(address).acquire();
+  }
+
+  /**
+   * Releases the block worker thrift client to the heartbeat pool.
+   *
+   * @param address the network address of the block worker thrift client
+   * @param client the block worker thrift client
+   */
+  public static void releaseBlockWorkerThriftClientHeartbeat(InetSocketAddress address,
+      BlockWorkerClientService.Client client) {
+    Preconditions.checkArgument(BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.containsKey(address));
+    BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.get(address).release(client);
+  }
+
+  /**
+   * @return if there is a local worker running the same machine
+   */
+  public synchronized boolean hasLocalWorker() {
+    if (mHasLocalWorker == null) {
+      mHasLocalWorker = !getWorkerAddresses(NetworkAddressUtils.getLocalHostName()).isEmpty();
+    }
+    return mHasLocalWorker;
+  }
+
+  /**
+   * Class that contains metrics about BlockStoreContext.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static void initializeGauges() {
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClientMetricName("NettyConnectionsOpen"),
+          new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              long ret = 0;
+              for (NettyChannelPool pool : NETTY_CHANNEL_POOL_MAP.values()) {
+                ret += pool.size();
+              }
+              return ret;
+            }
+          });
+      MetricsSystem
+          .registerGaugeIfAbsent(MetricsSystem.getClientMetricName("BlockWorkerClientsOpen"),
+              new Gauge<Long>() {
+                @Override
+                public Long getValue() {
+                  long ret = 0;
+                  for (BlockWorkerThriftClientPool pool : BLOCK_WORKER_THRIFT_CLIENT_POOL
+                      .values()) {
+                    ret += pool.size();
+                  }
+                  return ret;
+                }
+              });
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getClientMetricName("BlockWorkerHeartbeatClientsOpen"), new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+              long ret = 0;
+              for (BlockWorkerThriftClientPool pool : BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL
+                  .values()) {
+                ret += pool.size();
+              }
+              return ret;
+            }
+          });
+    }
+
+    private Metrics() {} // prevent instantiation
   }
 }
+

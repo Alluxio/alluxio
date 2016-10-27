@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,21 +14,21 @@ package alluxio.examples.keyvalue;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
+import alluxio.cli.CliUtils;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.examples.Utils;
 import alluxio.util.io.BufferUtils;
 
-import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -40,11 +40,10 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final int mPartitionLength = Constants.MB;
-  private final int mValueLength = mPartitionLength / 2;
   private final int mNumKeyValuePairs = 10;
 
   private AlluxioURI mStoreUri;
-  private Map<ByteBuffer, ByteBuffer> mKeyValuePairs = Maps.newHashMap();
+  private Map<ByteBuffer, ByteBuffer> mKeyValuePairs = new HashMap<>();
 
   /**
    * @param storeUri URI of the key-value store to write to, should not exist before
@@ -56,9 +55,9 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    Configuration conf = ClientContext.getConf();
-    conf.set(Constants.KEY_VALUE_ENABLED, String.valueOf(true));
-    conf.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
+    Configuration.set(PropertyKey.KEY_VALUE_ENABLED, String.valueOf(true));
+    Configuration
+        .set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
 
     KeyValueSystem kvs = KeyValueSystem.Factory.create();
 
@@ -80,7 +79,8 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
       // Keys are 0, 1, 2, etc.
       byte[] key = ByteBuffer.allocate(4).putInt(i).array();
       // Values are byte arrays of length {@link #mValueLength}.
-      byte[] value = BufferUtils.getIncreasingByteArray(mValueLength);
+      int valueLength = mPartitionLength / 2;
+      byte[] value = BufferUtils.getIncreasingByteArray(valueLength);
       writer.put(key, value);
       mKeyValuePairs.put(ByteBuffer.wrap(key), ByteBuffer.wrap(value));
     }
@@ -127,11 +127,20 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
-      System.out.println("Usage: java -cp " + Version.ALLUXIO_JAR + " "
+      System.out.println("Usage: java -cp " + RuntimeConstants.ALLUXIO_JAR + " "
           + KeyValueStoreOperations.class.getName() + " <key-value store URI>");
       System.exit(-1);
     }
 
-    Utils.runExample(new KeyValueStoreOperations(new AlluxioURI(args[0])));
+    if (!Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED)) {
+      System.out.println("Alluxio key value service is disabled. To run this test, please set "
+          + PropertyKey.KEY_VALUE_ENABLED + " to be true and restart the cluster.");
+      System.exit(-1);
+    }
+
+    // TODO(binfan): the "run and exit" pattern shows up repeatedly in the code base and it might
+    // make sense to add a utility function for it to CliUtils
+    boolean result = CliUtils.runExample(new KeyValueStoreOperations(new AlluxioURI(args[0])));
+    System.exit(result ? 0 : 1);
   }
 }

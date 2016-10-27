@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -16,16 +16,20 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Unit tests for {@link MountTable}.
  */
-public class MountTableTest {
+public final class MountTableTest {
   private MountTable mMountTable;
   private final MountOptions mDefaultOptions = MountOptions.defaults();
 
@@ -39,11 +43,9 @@ public class MountTableTest {
 
   /**
    * Tests the different methods of the {@link MountTable} class with a path.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
-  public void pathTest() throws Exception {
+  public void path() throws Exception {
     // Test add()
     mMountTable.add(new AlluxioURI("/mnt/foo"), new AlluxioURI("/foo"), mDefaultOptions);
     mMountTable.add(new AlluxioURI("/mnt/bar"), new AlluxioURI("/bar"), mDefaultOptions);
@@ -107,12 +109,10 @@ public class MountTableTest {
   }
 
   /**
-   * Tests the different methods of the {@link MountTable} class with an URI.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
+   * Tests the different methods of the {@link MountTable} class with a URI.
    */
   @Test
-  public void uriTest() throws Exception {
+  public void uri() throws Exception {
     // Test add()
     mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/foo"),
         new AlluxioURI("file://localhost:5678/foo"), mDefaultOptions);
@@ -182,11 +182,9 @@ public class MountTableTest {
 
   /**
    * Tests check of readonly mount points.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
-  public void readOnlyMountTest() throws Exception {
+  public void readOnlyMount() throws Exception {
     MountOptions options = MountOptions.defaults().setReadOnly(true);
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
@@ -215,11 +213,9 @@ public class MountTableTest {
 
   /**
    * Tests check of writable mount points.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
-  public void writableMountTest() throws Exception {
+  public void writableMount() throws Exception {
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
     mMountTable
@@ -238,5 +234,25 @@ public class MountTableTest {
     } catch (AccessControlException e) {
       Assert.fail("Default mount point should be writable.");
     }
+  }
+
+  /**
+   * Tests the method for getting a copy of the current mount table.
+   */
+  @Test
+  public void getMountTable() throws Exception {
+    Map<String, MountInfo> mountTable = new HashMap<>(2);
+    mountTable.put("/mnt/foo", new MountInfo(new AlluxioURI("hdfs://localhost:5678/foo"),
+        MountOptions.defaults()));
+    mountTable.put("/mnt/bar", new MountInfo(new AlluxioURI("hdfs://localhost:5678/bar"),
+        MountOptions.defaults()));
+
+    for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
+      MountInfo mountInfo = mountPoint.getValue();
+      mMountTable.add(new AlluxioURI("alluxio://localhost:1234" + mountPoint.getKey()),
+          mountInfo.getUfsUri(), mountInfo.getOptions());
+    }
+
+    Assert.assertEquals(mountTable, mMountTable.getMountTable());
   }
 }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -10,6 +10,8 @@
  */
 
 package alluxio.master.block.meta;
+
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -46,5 +48,31 @@ public final class MasterBlockLocation {
    */
   public String getTierAlias() {
     return mTierAlias;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MasterBlockLocation)) {
+      return false;
+    }
+    MasterBlockLocation that = (MasterBlockLocation) o;
+    return Objects.equal(mWorkerId, that.mWorkerId)
+        && Objects.equal(mTierAlias, that.mTierAlias);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mWorkerId, mTierAlias);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("workerId", mWorkerId)
+        .add("tierAlias", mTierAlias)
+        .toString();
   }
 }

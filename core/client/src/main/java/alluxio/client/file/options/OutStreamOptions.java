@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,16 +13,21 @@ package alluxio.client.file.options;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
-import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.Permission;
 import alluxio.util.CommonUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -34,8 +39,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class OutStreamOptions {
   private long mBlockSizeBytes;
   private long mTtl;
+  private TtlAction mTtlAction;
   private FileWriteLocationPolicy mLocationPolicy;
   private WriteType mWriteType;
+  private Permission mPermission;
 
   /**
    * @return the default {@link OutStreamOptions}
@@ -45,18 +52,25 @@ public final class OutStreamOptions {
   }
 
   private OutStreamOptions() {
-    Configuration conf = ClientContext.getConf();
-    mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
+    mTtlAction = TtlAction.DELETE;
+
     try {
-      mLocationPolicy =
-          CommonUtils.createNewClassInstance(ClientContext.getConf()
-              .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
-              new Class[] {}, new Object[] {});
+      mLocationPolicy = CommonUtils.createNewClassInstance(
+          Configuration.<FileWriteLocationPolicy>getClass(
+              PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
-    mWriteType = conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    mPermission = Permission.defaults();
+    try {
+      // Set user and group from user login module, and apply default file UMask.
+      mPermission.applyFileUMask().setOwnerFromLoginModule();
+    } catch (IOException e) {
+      // Fall through to system property approach
+    }
   }
 
   /**
@@ -89,10 +103,24 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
+  }
+
+  /**
    * @return the under storage type
    */
   public UnderStorageType getUnderStorageType() {
     return mWriteType.getUnderStorageType();
+  }
+
+  /**
+   * @return the permission
+   */
+  public Permission getPermission() {
+    return mPermission;
   }
 
   /**
@@ -120,6 +148,15 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @param ttlAction the {@link TtlAction} to use
+   * @return the updated options object
+   */
+  public OutStreamOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
+    return this;
+  }
+
+  /**
    * @param locationPolicy the file write location policy
    * @return the updated options object
    */
@@ -141,11 +178,62 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the name : value pairs for all the fields
+   * Sets the {@link Permission}.
+   *
+   * @param perm the permission
+   * @return the updated options object
    */
+  // TODO(binfan): remove or deprecate this method
+  public OutStreamOptions setPermission(Permission perm) {
+    mPermission = perm;
+    return this;
+  }
+
+  /**
+   * Sets the mode in {@link Permission}.
+   *
+   * @param mode the permission
+   * @return the updated options object
+   */
+  public OutStreamOptions setMode(Mode mode) {
+    if (mode != null) {
+      mPermission.setMode(mode);
+    }
+    return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof OutStreamOptions)) {
+      return false;
+    }
+    OutStreamOptions that = (OutStreamOptions) o;
+    return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlAction, that.mTtlAction)
+        && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mWriteType, that.mWriteType)
+        && Objects.equal(mPermission, that.mPermission);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mBlockSizeBytes, mTtl, mTtlAction, mLocationPolicy, mWriteType,
+        mPermission);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
-        .add("locationPolicy", mLocationPolicy).add("writeType", mWriteType).toString();
+    return Objects.toStringHelper(this)
+        .add("blockSizeBytes", mBlockSizeBytes)
+        .add("ttl", mTtl)
+        .add("mTtlAction", mTtlAction)
+        .add("locationPolicy", mLocationPolicy)
+        .add("writeType", mWriteType)
+        .add("permission", mPermission)
+        .toString();
   }
 }

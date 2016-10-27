@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,6 +12,7 @@
 package alluxio.hadoop;
 
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 
@@ -34,9 +35,12 @@ public class FileSystemStatisticsTest {
 
   private static final int BLOCK_SIZE = 128;
   private static final int FILE_LEN = BLOCK_SIZE * 2 + 1;
+
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(10000, BLOCK_SIZE);
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
+          .build();
   private static org.apache.hadoop.fs.FileSystem.Statistics sStatistics;
   private static org.apache.hadoop.fs.FileSystem sTFS;
 
@@ -49,7 +53,7 @@ public class FileSystemStatisticsTest {
     FileSystemTestUtils.createByteFile(alluxioFS, "/testFile-read", WriteType.CACHE_THROUGH,
         FILE_LEN);
 
-    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     sStatistics = org.apache.hadoop.fs.FileSystem.getStatistics(uri.getScheme(), sTFS.getClass());
   }
@@ -58,7 +62,7 @@ public class FileSystemStatisticsTest {
    * Test the number of bytes read.
    */
   @Test
-  public void bytesReadStatisticsTest() throws Exception {
+  public void bytesReadStatistics() throws Exception {
     long originStat = sStatistics.getBytesRead();
     InputStream is = sTFS.open(new Path("/testFile-read"));
     while (is.read() != -1) {
@@ -71,7 +75,7 @@ public class FileSystemStatisticsTest {
    * Test the number of bytes written.
    */
   @Test
-  public void bytesWrittenStatisticsTest() throws Exception {
+  public void bytesWrittenStatistics() throws Exception {
     long originStat = sStatistics.getBytesWritten();
     OutputStream os = sTFS.create(new Path("/testFile-write"));
     for (int i = 0; i < FILE_LEN; i++) {
@@ -85,7 +89,7 @@ public class FileSystemStatisticsTest {
    * Test the number of read/write operations.
    */
   @Test
-  public void readWriteOperationsStatisticsTest() throws Exception {
+  public void readWriteOperationsStatistics() throws Exception {
     int exceptedReadOps = sStatistics.getReadOps();
     int exceptedWriteOps = sStatistics.getWriteOps();
 
@@ -100,10 +104,14 @@ public class FileSystemStatisticsTest {
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
+    // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+    // FileSystem.getDefaultBlockSize(new Path("/testFile-create")) will be the new one.
     sTFS.getDefaultBlockSize();
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
+    // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+    // FileSystem.geDefaultReplication(new Path("/testFile-create")) will be the new one.
     sTFS.getDefaultReplication();
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());

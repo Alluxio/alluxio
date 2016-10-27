@@ -4,18 +4,31 @@
 - name: set alluxio/conf/workers
   script: set_workers.sh
 
-- name: set ALLUXIO_MASTER_ADDRESS in alluxio-env.sh
+- name: set ALLUXIO_MASTER_HOSTNAME in alluxio-env.sh
   script: set_master_address.sh
+  when: not alluxio_version_lessthan_1_1
+
+- name: set ALLUXIO_MASTER_HOSTNAME in alluxio-env.sh for releases older than 1.1.0
+  script: set_master_address_old.sh
+  when: alluxio_version_lessthan_1_1
 
 - name: set ufs related info in alluxio-env.sh
   script: roles/ufs_{{ ufs }}/files/config_alluxio.sh
   environment:
+    ALLUXIO_VERSION_LESSTHAN_1_1: "{{ alluxio_version_lessthan_1_1 }}"
     S3_BUCKET: "{{ s3_bucket }}"
     S3_ID: "{{ s3_id }}"
     S3_KEY: "{{ s3_key }}"
     GCS_BUCKET: "{{ gcs_bucket }}"
     GCS_ID: "{{ gcs_id }}"
     GCS_KEY: "{{ gcs_key }}"
+    SWIFT_CONTAINER: "{{ swift_container }}"
+    SWIFT_USER: "{{ swift_user }}"
+    SWIFT_TENANT: "{{ swift_tenant }}"
+    SWIFT_PASSWORD: "{{ swift_password }}"
+    SWIFT_AUTH_URL: "{{ swift_auth_url }}"
+    SWIFT_USE_PUBLIC_URL: "{{ swift_use_public_url }}"
+    SWIFT_AUTH_METHOD: "{{ swift_auth_method }}"
 
 - name: Source the bashrc file
   shell: source ~/.bashrc
@@ -37,12 +50,21 @@
     dest=/alluxio/conf/alluxio-env.sh
     regexp='^export ALLUXIO_WORKER_MEMORY_SIZE=.*'
     replace='export ALLUXIO_WORKER_MEMORY_SIZE={{ alluxio_memory }}'
+  when: alluxio_version_lessthan_1_1
+
+- name: set worker memory in alluxio-env.sh
+  replace: >
+    dest=/alluxio/conf/alluxio-env.sh
+    regexp='^ALLUXIO_WORKER_MEMORY_SIZE=.*'
+    replace='ALLUXIO_WORKER_MEMORY_SIZE={{ alluxio_memory }}'
+  when: not alluxio_version_lessthan_1_1
 
 - name: let alluxio ssh to workers in parallel when start
   replace: >
     dest=/alluxio/conf/alluxio-env.sh
     regexp='ALLUXIO_SSH_FOREGROUND="yes"'
     replace='ALLUXIO_SSH_FOREGROUND=""'
+  when: alluxio_version_lessthan_1_1
 
 - name: set ALLUXIO_JAR in libexec/alluxio-config.sh
   script: alluxio_jar.sh

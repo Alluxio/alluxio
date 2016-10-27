@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,6 +12,9 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.clock.Clock;
+import alluxio.exception.PreconditionMessage;
+import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
@@ -20,7 +23,7 @@ import alluxio.master.journal.JournalTailerThread;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -28,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -44,13 +46,9 @@ public abstract class AbstractMaster implements Master {
 
   private static final long SHUTDOWN_TIMEOUT_MS = 10000;
 
-  /** The number of threads to use when creating the {@link ExecutorService}. */
-  private final int mNumThreads;
-
-  /**
-   * The executor used for running maintenance threads for the master. It is created in
-   * {@link #start(boolean)} and destroyed in {@link #stop}.
-   */
+  /** A factory for creating executor services when they are needed. */
+  private ExecutorServiceFactory mExecutorServiceFactory = null;
+  /** The executor used for running maintenance threads for the master. */
   private ExecutorService mExecutorService = null;
   /** A handler to the journal for this master. */
   private Journal mJournal;
@@ -60,14 +58,23 @@ public abstract class AbstractMaster implements Master {
   private JournalTailerThread mStandbyJournalTailer = null;
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
+  /** The {@link AsyncJournalWriter} for async journal writes. */
+  private AsyncJournalWriter mAsyncJournalWriter = null;
+
+  /** The clock to use for determining the time. */
+  protected final Clock mClock;
 
   /**
    * @param journal the journal to use for tracking master operations
-   * @param numThreads the number of threads to use in the Master's {@link ExecutorService}
+   * @param clock the Clock to use for determining the time
+   * @param executorServiceFactory a factory for creating the executor service to use for
+   *        running maintenance threads
    */
-  protected AbstractMaster(Journal journal, int numThreads) {
+  protected AbstractMaster(Journal journal, Clock clock,
+      ExecutorServiceFactory executorServiceFactory) {
     mJournal = Preconditions.checkNotNull(journal);
-    mNumThreads = numThreads;
+    mClock = Preconditions.checkNotNull(clock);
+    mExecutorServiceFactory = Preconditions.checkNotNull(executorServiceFactory);
   }
 
   @Override
@@ -84,12 +91,9 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public void start(boolean isLeader) throws IOException {
+    Preconditions.checkState(mExecutorService == null);
+    mExecutorService = mExecutorServiceFactory.create();
     mIsLeader = isLeader;
-    if (mExecutorService == null) {
-      // mExecutorService starts as null and is reset to null when Master is stopped.
-      mExecutorService = Executors.newFixedThreadPool(mNumThreads,
-          ThreadFactoryUtils.build(this.getClass().getSimpleName() + "-%d", true));
-    }
     LOG.info("{}: Starting {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
       Preconditions.checkState(mJournal instanceof ReadWriteJournal);
@@ -148,6 +152,8 @@ public abstract class AbstractMaster implements Master {
           mJournalWriter.getCheckpointOutputStream(latestSequenceNumber);
       streamToJournalCheckpoint(checkpointStream);
       checkpointStream.close();
+
+      mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
     } else {
       // This master is in standby mode. Start the journal tailer thread. Since the master is in
       // standby mode, its RPC server is NOT serving. Therefore, the only thread modifying the
@@ -172,19 +178,22 @@ public abstract class AbstractMaster implements Master {
         mStandbyJournalTailer.shutdownAndJoin();
       }
     }
+    // Shut down the executor service, interrupting any running threads.
     if (mExecutorService != null) {
-      // Shut down the executor service, interrupting any running threads.
-      mExecutorService.shutdownNow();
-      String awaitFailureMessage =
-          "waiting for {} executor service to shut down. Daemons may still be running";
       try {
-        if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-          LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+        mExecutorService.shutdownNow();
+        String awaitFailureMessage =
+            "waiting for {} executor service to shut down. Daemons may still be running";
+        try {
+          if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+          }
+        } catch (InterruptedException e) {
+          LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
         }
-      } catch (InterruptedException e) {
-        LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
+      } finally {
+        mExecutorService = null;
       }
-      mExecutorService = null;
     }
   }
 
@@ -214,6 +223,30 @@ public abstract class AbstractMaster implements Master {
     Preconditions.checkNotNull(mJournalWriter, "Cannot flush journal: journal writer is null.");
     try {
       mJournalWriter.getEntryOutputStream().flush();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected long appendJournalEntry(JournalEntry entry) {
+    Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
+    return mAsyncJournalWriter.appendEntry(entry);
+  }
+
+  /**
+   * Waits for the flush counter to be flushed to the journal. If the counter is
+   * {@link AsyncJournalWriter#INVALID_FLUSH_COUNTER}, this is a noop.
+   *
+   * @param counter the flush counter
+   */
+  protected void waitForJournalFlush(long counter) {
+    if (counter == AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
+      // Check this before the precondition.
+      return;
+    }
+    Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
+    try {
+      mAsyncJournalWriter.flush(counter);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -30,11 +30,22 @@ import java.io.IOException;
  * key-value store with a different URI.
  */
 public final class CloneStoreMapReduce {
+
+  /**
+   * Constructs a new {@link CloneStoreMapReduce}.
+   */
+  public CloneStoreMapReduce() {}
+
   /**
    * The mapper emits all key-value pairs it receives to reducers.
    */
   public static class CloneStoreMapper
       extends Mapper<BytesWritable, BytesWritable, BytesWritable, BytesWritable> {
+
+    /**
+     * Constructs a new {@link CloneStoreMapper}.
+     */
+    public CloneStoreMapper() {}
 
     @Override
     public void map(BytesWritable key, BytesWritable value, Context context)
@@ -48,6 +59,11 @@ public final class CloneStoreMapReduce {
    */
   public static class CloneStoreReducer
       extends Reducer<BytesWritable, BytesWritable, BytesWritable, BytesWritable> {
+
+    /**
+     * Constructs a new {@link CloneStoreReducer}.
+     */
+    public CloneStoreReducer() {}
 
     @Override
     public void reduce(BytesWritable key, Iterable<BytesWritable> values, Context context)

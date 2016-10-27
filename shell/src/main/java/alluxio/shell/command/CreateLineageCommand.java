@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,18 +13,18 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
+import alluxio.client.lineage.LineageContext;
 import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -36,11 +36,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CreateLineageCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public CreateLineageCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public CreateLineageCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -64,17 +63,17 @@ public final class CreateLineageCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioLineage tl = AlluxioLineage.get();
+    AlluxioLineage tl = AlluxioLineage.get(LineageContext.INSTANCE);
     // TODO(yupeng) more validation
-    List<AlluxioURI> inputFiles = Lists.newArrayList();
+    List<AlluxioURI> inputFiles = new ArrayList<>();
     if (!args[0].equals("noInput")) {
       for (String path : args[0].split(",")) {
         inputFiles.add(new AlluxioURI(path));
       }
     }
-    List<AlluxioURI> outputFiles = Lists.newArrayList();
+    List<AlluxioURI> outputFiles = new ArrayList<>();
     for (String path : args[1].split(",")) {
       outputFiles.add(new AlluxioURI(path));
     }
@@ -83,17 +82,12 @@ public final class CreateLineageCommand extends AbstractShellCommand {
       cmd += args[i] + " ";
     }
 
-    String outputPath = ClientContext.getConf().get(Constants.MASTER_LINEAGE_RECOMPUTE_LOG_PATH);
+    String outputPath = Configuration.get(PropertyKey.MASTER_LINEAGE_RECOMPUTE_LOG_PATH);
     if (outputPath == null) {
       throw new IOException("recompute output log is not configured");
     }
     CommandLineJob job = new CommandLineJob(cmd, new JobConf(outputPath));
-    long lineageId;
-    try {
-      lineageId = tl.createLineage(inputFiles, outputFiles, job);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    long lineageId = tl.createLineage(inputFiles, outputFiles, job);
     System.out.println("Lineage " + lineageId + " has been created.");
   }
 

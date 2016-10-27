@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,14 +11,14 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.worker.WorkerContext;
+import alluxio.worker.AlluxioWorkerService;
 
 import com.google.common.base.Throwables;
 import org.apache.curator.test.TestingServer;
@@ -38,19 +38,27 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
 
-  private final List<LocalAlluxioMaster> mMasters = new ArrayList<LocalAlluxioMaster>();
+  private final List<LocalAlluxioMaster> mMasters = new ArrayList<>();
 
   /**
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param masters the number of the master
-   * @param userBlockSize the block size for a user
+   * Runs a multi master local Alluxio cluster with a single worker.
+   *
+   * @param masters the number masters to run
    */
-  public MultiMasterLocalAlluxioCluster(long workerCapacityBytes, int masters, int userBlockSize) {
-    super(workerCapacityBytes, userBlockSize);
+  public MultiMasterLocalAlluxioCluster(int masters) {
+    this(masters, 1);
+  }
+
+  /**
+   * @param masters the number of masters to run
+   * @param numWorkers the number of workers to run
+   */
+  public MultiMasterLocalAlluxioCluster(int masters, int numWorkers) {
+    super(numWorkers);
     mNumOfMasters = masters;
 
     try {
-      mCuratorServer = new TestingServer();
+      mCuratorServer = new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
       LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
     } catch (Exception e) {
       throw Throwables.propagate(e);
@@ -66,12 +74,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @return the URI of the master
    */
   public String getUri() {
-    return new StringBuilder()
-        .append(Constants.HEADER_FT)
-        .append(mHostname)
-        .append(":")
-        .append(getMaster().getRPCLocalPort())
-        .toString();
+    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRPCLocalPort();
   }
 
   @Override
@@ -142,7 +145,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, mMasterConf);
+    UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.exists(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -150,7 +153,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, mMasterConf);
+    UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.exists(path)) {
       ufs.delete(path, true);
@@ -161,40 +164,31 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void startWorker(Configuration conf) throws IOException, ConnectionFailedException {
-    mWorkerConf = WorkerContext.getConf();
-    mWorkerConf.merge(conf);
-
-    mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
-
-    runWorker();
-    // The client context should reflect the updates to the conf.
-    ClientContext.getConf().merge(conf);
-    ClientTestUtils.reinitializeClientContext();
+  protected void startWorkers() throws IOException, ConnectionFailedException {
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
+    runWorkers();
   }
 
   @Override
-  protected void startMaster(Configuration conf) throws IOException {
-    mMasterConf = conf;
-    mMasterConf.set(Constants.ZOOKEEPER_ENABLED, "true");
-    mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
-    mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
-    MasterContext.reset(mMasterConf);
+  protected void startMaster() throws IOException {
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
+    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
+    Configuration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/election");
+    Configuration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/leader");
 
     for (int k = 0; k < mNumOfMasters; k++) {
-      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mHome);
+      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory);
       master.start();
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
           master.getAddress());
       mMasters.add(master);
       // Each master should generate a new port for binding
-      mMasterConf.set(Constants.MASTER_RPC_PORT, "0");
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, "0");
     }
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
     // sets UNDERFS_ADDRESS.
-    mkdir(mMasterConf.get(Constants.UNDERFS_ADDRESS));
+    mkdir(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
 
     LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");
@@ -210,14 +204,16 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     // Use first master port
-    mMasterConf.set(Constants.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
   }
 
   @Override
   public void stopFS() throws Exception {
-    mWorker.stop();
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
     for (int k = 0; k < mNumOfMasters; k++) {
-      // Use kill() instead of stop(), because stop() does not work well in multi-master mode.
+      // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
       mMasters.get(k).kill();
     }
     LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());

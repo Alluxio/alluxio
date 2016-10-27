@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -26,7 +26,7 @@ public final class BlockIdTest {
    * block with the maximum sequence number.
    */
   @Test
-  public void createBlockIdWithMaxSequenceNumberTest() {
+  public void createBlockIdWithMaxSequenceNumber() {
     Assert.assertEquals(33554431L, BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()));
     Assert.assertEquals(MAX_SEQUENCE_NUMBER,
         BlockId.createBlockId(0, BlockId.getMaxSequenceNumber()));
@@ -37,7 +37,7 @@ public final class BlockIdTest {
    * Tests the {@link BlockId#createBlockId(long, long)} method.
    */
   @Test
-  public void createBlockIdTest() {
+  public void createBlockId() {
     Assert.assertEquals(16797216L, BlockId.createBlockId(1, 20000L));
     Assert.assertEquals(20000L, BlockId.createBlockId(0, 20000L));
     Assert.assertEquals(2071248101952L, BlockId.createBlockId(123456, 123456L));
@@ -48,7 +48,7 @@ public final class BlockIdTest {
    * methods.
    */
   @Test
-  public void getContainerIdAndSequenceNumberTest() {
+  public void getContainerIdAndSequenceNumber() {
     Assert.assertEquals(1L, BlockId.getContainerId(33554431L));
     Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getSequenceNumber(33554431L));
     Assert.assertEquals(255L, BlockId.getContainerId(4294967295L));
@@ -61,7 +61,7 @@ public final class BlockIdTest {
    * Tests the {@link BlockId#getMaxSequenceNumber()} method.
    */
   @Test
-  public void getMaxSequenceNumberTest() {
+  public void getMaxSequenceNumber() {
     Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getMaxSequenceNumber());
   }
 }

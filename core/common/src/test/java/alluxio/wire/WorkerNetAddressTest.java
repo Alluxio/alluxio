@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -22,7 +22,7 @@ import java.util.Random;
 public class WorkerNetAddressTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     WorkerNetAddress workerNetAddress = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     WorkerNetAddress other =
@@ -31,7 +31,7 @@ public class WorkerNetAddressTest {
   }
 
   @Test
-  public void thriftTest() {
+  public void thrift() {
     WorkerNetAddress workerNetAddress = createRandom();
     WorkerNetAddress other = ThriftUtils.fromThrift(ThriftUtils.toThrift(workerNetAddress));
     checkEquality(workerNetAddress, other);

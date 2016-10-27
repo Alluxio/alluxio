@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,30 +14,35 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
-import alluxio.Version;
+import alluxio.PropertyKey;
+import alluxio.RestUtils;
+import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
+import alluxio.web.MasterUIWebServer;
+import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
 import com.qmino.miredot.annotations.ReturnType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -49,8 +54,6 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioMasterRestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final String ALLUXIO_CONF_PREFIX = "alluxio";
-
   public static final String SERVICE_PREFIX = "master";
   public static final String GET_RPC_ADDRESS = "rpc_address";
   public static final String GET_CONFIGURATION = "configuration";
@@ -69,11 +72,22 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String GET_WORKER_COUNT = "worker_count";
   public static final String GET_WORKER_INFO_LIST = "worker_info_list";
 
-  private final AlluxioMaster mMaster = AlluxioMaster.get();
-  private final BlockMaster mBlockMaster = mMaster.getBlockMaster();
-  private final Configuration mMasterConf = MasterContext.getConf();
-  private final String mUfsRoot = mMasterConf.get(Constants.UNDERFS_ADDRESS);
-  private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot, mMasterConf);
+  private final AlluxioMaster mMaster;
+  private final BlockMaster mBlockMaster;
+  private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+  private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot);
+
+  /**
+   * Constructs a new {@link AlluxioMasterRestServiceHandler}.
+   *
+   * @param context context for the servlet
+   */
+  public AlluxioMasterRestServiceHandler(@Context ServletContext context) {
+    // Poor man's dependency injection through the Jersey application scope.
+    mMaster =
+        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mBlockMaster = mMaster.getBlockMaster();
+  }
 
   /**
    * @summary get the configuration map, the keys are ordered alphabetically.
@@ -81,17 +95,22 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CONFIGURATION)
-  @ReturnType("java.util.SortedMap<String, String>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   public Response getConfiguration() {
-    Set<Map.Entry<Object, Object>> properties = mMasterConf.getInternalProperties().entrySet();
-    SortedMap<String, String> configuration = new TreeMap<>();
-    for (Map.Entry<Object, Object> entry : properties) {
-      String key = entry.getKey().toString();
-      if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
-        configuration.put(key, (String) entry.getValue());
+    return RestUtils.call(new RestUtils.RestCallable<Map<String, String>>() {
+      @Override
+      public Map<String, String> call() throws Exception {
+        Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
+        SortedMap<String, String> configuration = new TreeMap<>();
+        for (Map.Entry<String, String> entry : properties) {
+          String key = entry.getKey();
+          if (PropertyKey.isValid(key)) {
+            configuration.put(key, entry.getValue());
+          }
+        }
+        return configuration;
       }
-    }
-    return Response.ok(configuration).build();
+    });
   }
 
   /**
@@ -102,8 +121,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_RPC_ADDRESS)
   @ReturnType("java.lang.String")
   public Response getRpcAddress() {
-    // Need to encode the string as JSON because Jackson will not do it automatically.
-    return Response.ok(FormatUtils.encodeJson(mMaster.getMasterAddress().toString())).build();
+    return RestUtils.call(new RestUtils.RestCallable<String>() {
+      @Override
+      public String call() throws Exception {
+        return mMaster.getMasterAddress().toString();
+      }
+    });
   }
 
   /**
@@ -112,29 +135,32 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_METRICS)
-  @ReturnType("java.util.SortedMap<String, Long>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getMetrics() {
-    MetricRegistry metricRegistry = mMaster.getMasterMetricsSystem().getMetricRegistry();
+    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
+      @Override
+      public Map<String, Long> call() throws Exception {
+        // Get all counters.
+        Map<String, Counter> counters = MetricsSystem.METRIC_REGISTRY.getCounters();
 
-    // Get all counters.
-    Map<String, Counter> counters = metricRegistry.getCounters();
+        // Only the gauge for pinned files is retrieved here, other gauges are statistics of
+        // free/used
+        // spaces, those statistics can be gotten via other REST apis.
+        String filesPinnedProperty =
+            MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
+        @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
+            (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 
-    // Only the gauge for pinned files is retrieved here, other gauges are statistics of free/used
-    // spaces, those statistics can be gotten via other REST apis.
-    String filesPinnedProperty = CommonUtils.argsToString(".",
-        MasterContext.getMasterSource().getName(), MasterSource.FILES_PINNED);
-    @SuppressWarnings("unchecked")
-    Gauge<Integer> filesPinned =
-        (Gauge<Integer>) metricRegistry.getGauges().get(filesPinnedProperty);
+        // Get values of the counters and gauges and put them into a metrics map.
+        SortedMap<String, Long> metrics = new TreeMap<>();
+        for (Map.Entry<String, Counter> counter : counters.entrySet()) {
+          metrics.put(counter.getKey(), counter.getValue().getCount());
+        }
+        metrics.put(filesPinnedProperty, filesPinned.getValue().longValue());
 
-    // Get values of the counters and gauges and put them into a metrics map.
-    SortedMap<String, Long> metrics = new TreeMap<>();
-    for (Map.Entry<String, Counter> counter : counters.entrySet()) {
-      metrics.put(counter.getKey(), counter.getValue().getCount());
-    }
-    metrics.put(filesPinnedProperty, filesPinned.getValue().longValue());
-
-    return Response.ok(metrics).build();
+        return metrics;
+      }
+    });
   }
 
   /**
@@ -145,7 +171,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_START_TIME_MS)
   @ReturnType("java.lang.Long")
   public Response getStartTimeMs() {
-    return Response.ok(mMaster.getStartTimeMs()).build();
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return mMaster.getStartTimeMs();
+      }
+    });
   }
 
   /**
@@ -156,7 +187,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_UPTIME_MS)
   @ReturnType("java.lang.Long")
   public Response getUptimeMs() {
-    return Response.ok(mMaster.getUptimeMs()).build();
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return mMaster.getUptimeMs();
+      }
+    });
   }
 
   /**
@@ -167,8 +203,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_VERSION)
   @ReturnType("java.lang.String")
   public Response getVersion() {
-    // Need to encode the string as JSON because Jackson will not do it automatically.
-    return Response.ok(FormatUtils.encodeJson(Version.VERSION)).build();
+    return RestUtils.call(new RestUtils.RestCallable<String>() {
+      @Override
+      public String call() throws Exception {
+        return RuntimeConstants.VERSION;
+      }
+    });
   }
 
   /**
@@ -179,7 +219,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_CAPACITY_BYTES)
   @ReturnType("java.lang.Long")
   public Response getCapacityBytes() {
-    return Response.ok(mBlockMaster.getCapacityBytes()).build();
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return mBlockMaster.getCapacityBytes();
+      }
+    });
   }
 
   /**
@@ -190,7 +235,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_USED_BYTES)
   @ReturnType("java.lang.Long")
   public Response getUsedBytes() {
-    return Response.ok(mBlockMaster.getUsedBytes()).build();
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return mBlockMaster.getUsedBytes();
+      }
+    });
   }
 
   /**
@@ -201,7 +251,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_FREE_BYTES)
   @ReturnType("java.lang.Long")
   public Response getFreeBytes() {
-    return Response.ok(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()).build();
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes();
+      }
+    });
   }
 
   /**
@@ -212,12 +267,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_UFS_CAPACITY_BYTES)
   @ReturnType("java.lang.Long")
   public Response getUfsCapacityBytes() {
-    try {
-      return Response.ok(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL)).build();
-    } catch (IOException e) {
-      LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
-    }
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL);
+      }
+    });
   }
 
   /**
@@ -228,12 +283,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_UFS_USED_BYTES)
   @ReturnType("java.lang.Long")
   public Response getUfsUsedBytes() {
-    try {
-      return Response.ok(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED)).build();
-    } catch (IOException e) {
-      LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
-    }
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED);
+      }
+    });
   }
 
   /**
@@ -244,17 +299,17 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_UFS_FREE_BYTES)
   @ReturnType("java.lang.Long")
   public Response getUfsFreeBytes() {
-    try {
-      return Response.ok(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_FREE)).build();
-    } catch (IOException e) {
-      LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
-    }
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_FREE);
+      }
+    });
   }
 
   private Comparator<String> getTierAliasComparator() {
     return new Comparator<String>() {
-      private MasterStorageTierAssoc mTierAssoc = new MasterStorageTierAssoc(mMasterConf);
+      private MasterStorageTierAssoc mTierAssoc = new MasterStorageTierAssoc();
 
       @Override
       public int compare(String tier1, String tier2) {
@@ -278,13 +333,18 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<String, Long>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getCapacityBytesOnTiers() {
-    SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-    for (Map.Entry<String, Long> tierBytes : mBlockMaster.getTotalBytesOnTiers().entrySet()) {
-      capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-    }
-    return Response.ok(capacityBytesOnTiers).build();
+    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
+      @Override
+      public Map<String, Long> call() throws Exception {
+        SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
+        for (Map.Entry<String, Long> tierBytes : mBlockMaster.getTotalBytesOnTiers().entrySet()) {
+          capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
+        }
+        return capacityBytesOnTiers;
+      }
+    });
   }
 
   /**
@@ -294,13 +354,18 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<String, Long>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getUsedBytesOnTiers() {
-    SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-    for (Map.Entry<String, Long> tierBytes : mBlockMaster.getUsedBytesOnTiers().entrySet()) {
-      usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-    }
-    return Response.ok(usedBytesOnTiers).build();
+    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
+      @Override
+      public Map<String, Long> call() throws Exception {
+        SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
+        for (Map.Entry<String, Long> tierBytes : mBlockMaster.getUsedBytesOnTiers().entrySet()) {
+          usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
+        }
+        return usedBytesOnTiers;
+      }
+    });
   }
 
   /**
@@ -311,7 +376,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_WORKER_COUNT)
   @ReturnType("java.lang.Integer")
   public Response getWorkerCount() {
-    return Response.ok(mBlockMaster.getWorkerCount()).build();
+    return RestUtils.call(new RestUtils.RestCallable<Integer>() {
+      @Override
+      public Integer call() throws Exception {
+        return mBlockMaster.getWorkerCount();
+      }
+    });
   }
 
   /**
@@ -322,6 +392,11 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_WORKER_INFO_LIST)
   @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   public Response getWorkerInfoList() {
-    return Response.ok(mBlockMaster.getWorkerInfoList()).build();
+    return RestUtils.call(new RestUtils.RestCallable<List<WorkerInfo>>() {
+      @Override
+      public List<WorkerInfo> call() throws Exception {
+        return mBlockMaster.getWorkerInfoList();
+      }
+    });
   }
 }

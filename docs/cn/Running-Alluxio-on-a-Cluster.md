@@ -2,7 +2,7 @@
 layout: global
 title: 在集群上独立运行Alluxio
 nickname: 在集群上独立运行Alluxio
-group: User Guide
+group: Deploying Alluxio
 priority: 2
 ---
 
@@ -12,7 +12,7 @@ priority: 2
 
 {% include Running-Alluxio-on-a-Cluster/download-extract-Alluxio-tar.md %}
 
-在`alluxio/conf`目录下，将`alluxio-env.sh.template`拷贝到`alluxio-env.sh`。确保`JAVA_HOME`指向有效的Java 7安装路径。将`ALLUXIO_MASTER_ADDRESS`更新为运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`alluxio/conf/workers`文件。最后，同步worker节点的所有信息。可使用
+在`alluxio/conf`目录下，将`alluxio-env.sh.template`拷贝到`alluxio-env.sh`。确保`JAVA_HOME`指向有效的Java 7安装路径。将`ALLUXIO_MASTER_HOSTNAME`更新为运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`alluxio/conf/workers`文件。最后，同步worker节点的所有信息。可使用
 
 {% include Running-Alluxio-on-a-Cluster/sync-info.md %}
 
@@ -28,11 +28,11 @@ priority: 2
 
 **提示**: 如果使用EC2，确保master节点的安全组设置中允许Alluxio web UI端口上的连接。
 
-## 使用bootstrap-conf参数的bin/alluxio脚本
+## 使用bootstrapConf参数的bin/alluxio脚本
 
 Alluxio脚本包含创建集群基本配置的选项。运行：
 
-{% include Running-Alluxio-on-a-Cluster/bootstrap-conf.md %}
+{% include Running-Alluxio-on-a-Cluster/bootstrapConf.md %}
 
 并且`alluxio/conf/alluxio-env.sh`文件不存在的话，脚本会创建一个包含集群正确设置的`alluxio/conf/alluxio-env.sh`文件，集群的master节点运行在`<alluxio_master_hostname>`。
 

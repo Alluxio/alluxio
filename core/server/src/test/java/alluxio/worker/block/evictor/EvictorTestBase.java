@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,7 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -54,7 +54,6 @@ public class EvictorTestBase {
    * @param bytes length of the block in bytes
    * @param tierLevel tier level for the block in the tiered storage
    * @param dirIndex directory index in tierLevel for the block in the tiered storage
-   * @throws Exception when anything goes wrong, should not happen in unit tests
    */
   protected void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIndex)
       throws Exception {
@@ -68,7 +67,6 @@ public class EvictorTestBase {
    * {@link TieredBlockStoreTestUtils#defaultMetadataManagerView(String)}.
    *
    * @param evictorClassName class name of the specific evictor to be tested
-   * @throws Exception when anything goes wrong, should not happen in unit tests
    */
   protected void init(String evictorClassName) throws Exception {
     File tempFolder = mTestFolder.newFolder();
@@ -76,10 +74,9 @@ public class EvictorTestBase {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_EVICTOR_CLASS, evictorClassName);
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(conf, mManagerView);
-    mEvictor = Evictor.Factory.create(conf, mManagerView, mAllocator);
+    Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(mManagerView);
+    mEvictor = Evictor.Factory.create(mManagerView, mAllocator);
   }
 }

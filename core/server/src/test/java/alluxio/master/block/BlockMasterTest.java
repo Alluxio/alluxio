@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,26 +11,25 @@
 
 package alluxio.master.block;
 
-import alluxio.collections.IndexedSet;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockInfoException;
+import alluxio.Constants;
+import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.block.meta.MasterBlockInfo;
-import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Iterables;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,16 +38,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 
 /**
  * Unit tests for {@link alluxio.master.block.BlockMaster}.
@@ -59,8 +55,12 @@ public class BlockMasterTest {
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(83).setDataPort(84).setWebPort(85);
 
+  private static final List<Long> NO_BLOCKS = ImmutableList.of();
+  private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
+
   private BlockMaster mMaster;
-  private PrivateAccess mPrivateAccess;
+  private ManualClock mClock;
+  private ExecutorService mExecutorService;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -76,374 +76,207 @@ public class BlockMasterTest {
 
   /**
    * Sets up the dependencies before a test runs.
-   *
-   * @throws Exception if the test folder cannot be created or the master fails to start
    */
   @Before
   public void before() throws Exception {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    mMaster = new BlockMaster(blockJournal);
+    mClock = new ManualClock();
+    mExecutorService =
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
+    mMaster = new BlockMaster(blockJournal, mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mMaster.start(true);
-    mPrivateAccess = new PrivateAccess(mMaster);
   }
 
   /**
    * Stops the master after a test ran.
-   *
-   * @throws Exception if the master fails to stop
    */
   @After
   public void after() throws Exception {
     mMaster.stop();
   }
 
-  /**
-   * Tests the different different byte methods of the {@link BlockMaster}.
-   *
-   * @throws Exception if adding a worker fails
-   */
   @Test
-  public void countBytesTest() throws Exception {
-    Assert.assertEquals(0L, mMaster.getCapacityBytes());
-    Assert.assertEquals(0L, mMaster.getUsedBytes());
-    Assert.assertEquals(ImmutableMap.of(), mMaster.getTotalBytesOnTiers());
-    Assert.assertEquals(ImmutableMap.of(), mMaster.getUsedBytesOnTiers());
+  public void countBytes() throws Exception {
+    // Register two workers
     long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = mMaster.getWorkerId(NET_ADDRESS_2);
-    addWorker(mMaster, worker1, Arrays.asList("MEM", "SSD", "HDD"),
-        ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD", 30L),
-        ImmutableMap.of("MEM", 20L, "SSD", 50L, "HDD", 10L));
-    Assert.assertEquals(330L, mMaster.getCapacityBytes());
-    Assert.assertEquals(80L, mMaster.getUsedBytes());
-    Assert.assertEquals(ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD", 30L),
+    List<String> tiers = Arrays.asList("MEM", "SSD");
+    Map<String, Long> worker1TotalBytesOnTiers = ImmutableMap.of("MEM", 10L, "SSD", 20L);
+    Map<String, Long> worker2TotalBytesOnTiers = ImmutableMap.of("MEM", 1000L, "SSD", 2000L);
+    Map<String, Long> worker1UsedBytesOnTiers = ImmutableMap.of("MEM", 1L, "SSD", 2L);
+    Map<String, Long> worker2UsedBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L);
+    mMaster.workerRegister(worker1, tiers, worker1TotalBytesOnTiers, worker1UsedBytesOnTiers,
+        NO_BLOCKS_ON_TIERS);
+    mMaster.workerRegister(worker2, tiers, worker2TotalBytesOnTiers, worker2UsedBytesOnTiers,
+        NO_BLOCKS_ON_TIERS);
+
+    // Check that byte counts are summed correctly.
+    Assert.assertEquals(3030, mMaster.getCapacityBytes());
+    Assert.assertEquals(303L, mMaster.getUsedBytes());
+    Assert.assertEquals(ImmutableMap.of("MEM", 1010L, "SSD", 2020L),
         mMaster.getTotalBytesOnTiers());
-    Assert.assertEquals(ImmutableMap.of("MEM", 20L, "SSD", 50L, "HDD", 10L),
-        mMaster.getUsedBytesOnTiers());
-    addWorker(mMaster, worker2, Arrays.asList("MEM"), ImmutableMap.of("MEM", 500L),
-        ImmutableMap.of("MEM", 300L));
-    Assert.assertEquals(830L, mMaster.getCapacityBytes());
-    Assert.assertEquals(380L, mMaster.getUsedBytes());
-    Assert.assertEquals(ImmutableMap.of("MEM", 600L, "SSD", 200L, "HDD", 30L),
-        mMaster.getTotalBytesOnTiers());
-    Assert.assertEquals(ImmutableMap.of("MEM", 320L, "SSD", 50L, "HDD", 10L),
+    Assert.assertEquals(ImmutableMap.of("MEM", 101L, "SSD", 202L),
         mMaster.getUsedBytesOnTiers());
   }
 
-  /**
-   * Tests the {@link BlockMaster#getLostWorkersInfo()} method.
-   */
   @Test
-  public void getLostWorkersInfoTest() {
-    MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(1, NET_ADDRESS_1);
-    MasterWorkerInfo workerInfo2 = new MasterWorkerInfo(2, NET_ADDRESS_2);
-    mPrivateAccess.addLostWorker(workerInfo1);
-    Assert.assertEquals(ImmutableSet.of(workerInfo1.generateClientWorkerInfo()),
-        mMaster.getLostWorkersInfo());
-    mPrivateAccess.addLostWorker(workerInfo2);
-
-    final Set<WorkerInfo> expected = ImmutableSet.of(workerInfo1.generateClientWorkerInfo(),
-        workerInfo2.generateClientWorkerInfo());
-
-    Assert.assertEquals(expected, mMaster.getLostWorkersInfo());
-  }
-
-  /**
-   * Tests that after {@link PrivateAccess#addLostWorker(MasterWorkerInfo)} a worker can be
-   * registered via {@link BlockMaster#workerRegister(long, List, Map, Map, Map)}.
-   *
-   * @throws Exception if registering a worker fails
-   */
-  @Test
-  public void registerLostWorkerTest() throws Exception {
-    final WorkerNetAddress na = NET_ADDRESS_1;
-    final long expectedId = 1;
-    final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
-
-    workerInfo1.addBlock(1L);
-    mPrivateAccess.addLostWorker(workerInfo1);
-    final long workerId = mMaster.getWorkerId(na);
-    Assert.assertEquals(expectedId, workerId);
-
-    final List<Long> blocks = ImmutableList.of(42L);
-    mMaster.workerRegister(workerId, Arrays.asList("MEM"), ImmutableMap.of("MEM", 1024L),
-        ImmutableMap.of("MEM", 1024L), ImmutableMap.of("MEM", blocks));
-
-    final Set<Long> expectedBlocks = ImmutableSet.of(42L);
-    final Set<Long> actualBlocks = workerInfo1.getBlocks();
-
-    Assert.assertEquals("The master should reflect the blocks declared at registration",
-        expectedBlocks, actualBlocks);
-  }
-
-  /**
-   * Tests the {@link BlockMaster#removeBlocks(List, boolean)} method.
-   *
-   * @throws Exception if registering a worker fails
-   */
-  @Test
-  public void removeBlocksTest() throws Exception {
+  public void detectLostWorkers() throws Exception {
+    // Register a worker.
     long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
-    long worker2 = mMaster.getWorkerId(NET_ADDRESS_1);
-    MasterWorkerInfo workerInfo1 = mPrivateAccess.getWorkerById(worker1);
-    MasterWorkerInfo workerInfo2 = mPrivateAccess.getWorkerById(worker2);
-    List<Long> workerBlocks = Arrays.asList(1L, 2L, 3L);
-    HashMap<String, List<Long>> noBlocksInTiers = Maps.newHashMap();
+    mMaster.workerRegister(worker1,
+        ImmutableList.of("MEM"),
+        ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 10L),
+        NO_BLOCKS_ON_TIERS);
+
+    // Advance the block master's clock by an hour so that worker appears lost.
+    mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+
+    // Make sure the worker is detected as lost.
+    Set<WorkerInfo> info = mMaster.getLostWorkersInfo();
+    Assert.assertEquals(worker1, Iterables.getOnlyElement(info).getId());
+  }
+
+  @Test
+  public void workerReregisterRemembersLostWorker() throws Exception {
+    // Register a worker.
+    long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+    mMaster.workerRegister(worker1,
+        ImmutableList.of("MEM"),
+        ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 10L),
+        NO_BLOCKS_ON_TIERS);
+
+    // Advance the block master's clock by an hour so that the worker appears lost.
+    mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+
+    // Reregister the worker using its original worker id.
+    mMaster.getWorkerId(NET_ADDRESS_1);
+    mMaster.workerRegister(worker1,
+        ImmutableList.of("MEM"),
+        ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 10L),
+        NO_BLOCKS_ON_TIERS);
+
+    // Check that there are no longer any lost workers and there is a live worker.
+    Assert.assertEquals(1, mMaster.getWorkerCount());
+    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
+  }
+
+  @Test
+  public void removeBlockTellsWorkersToRemoveTheBlock() throws Exception {
+    // Create a worker with a block.
+    long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+    long blockId = 1L;
     mMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), noBlocksInTiers);
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS);
+    mMaster.commitBlock(worker1, 50L, "MEM", blockId, 20L);
+
+    // Remove the block
+    mMaster.removeBlocks(Arrays.asList(1L), /*delete=*/false);
+
+    // Check that the worker heartbeat tells the worker to remove the block.
+    Map<String, Long> memUsage = ImmutableMap.of("MEM", 0L);
+    Command heartBeat = mMaster.workerHeartbeat(worker1, memUsage, NO_BLOCKS, NO_BLOCKS_ON_TIERS);
+    Assert.assertEquals(ImmutableList.of(1L), heartBeat.getData());
+  }
+
+  @Test
+  public void workerHeartbeatUpdatesMemoryCount() throws Exception {
+    // Create a worker.
+    long worker = mMaster.getWorkerId(NET_ADDRESS_1);
+    Map<String, Long> initialUsedBytesOnTiers = ImmutableMap.of("MEM", 50L);
+    mMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+        initialUsedBytesOnTiers, NO_BLOCKS_ON_TIERS);
+
+    // Update used bytes with a worker heartbeat.
+    Map<String, Long> newUsedBytesOnTiers = ImmutableMap.of("MEM", 50L);
+    mMaster.workerHeartbeat(worker, newUsedBytesOnTiers, NO_BLOCKS, NO_BLOCKS_ON_TIERS);
+
+    WorkerInfo workerInfo = Iterables.getOnlyElement(mMaster.getWorkerInfoList());
+    Assert.assertEquals(50, workerInfo.getUsedBytes());
+  }
+
+  @Test
+  public void workerHeartbeatUpdatesRemovedBlocks() throws Exception {
+    // Create a worker.
+    long worker = mMaster.getWorkerId(NET_ADDRESS_1);
+    mMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS);
+    long blockId = 1L;
+    mMaster.commitBlock(worker, 50L, "MEM", blockId, 20L);
+
+    // Indicate that blockId is removed on the worker.
+    mMaster.workerHeartbeat(worker, ImmutableMap.of("MEM", 0L), ImmutableList.of(blockId),
+        NO_BLOCKS_ON_TIERS);
+    Assert.assertTrue(mMaster.getBlockInfo(blockId).getLocations().isEmpty());
+  }
+
+  @Test
+  public void workerHeartbeatUpdatesAddedBlocks() throws Exception {
+    // Create two workers.
+    long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+    mMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS);
+    long worker2 = mMaster.getWorkerId(NET_ADDRESS_2);
     mMaster.workerRegister(worker2, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), noBlocksInTiers);
-    mMaster.commitBlock(worker1, 1L, "MEM", 1L, 1L);
-    mMaster.commitBlock(worker1, 2L, "MEM", 2L, 1L);
-    mMaster.commitBlock(worker1, 3L, "MEM", 3L, 1L);
-    mMaster.commitBlock(worker2, 1L, "MEM", 1L, 1L);
-    mMaster.commitBlock(worker2, 2L, "MEM", 2L, 1L);
-    mMaster.commitBlock(worker2, 3L, "MEM", 3L, 1L);
-    mMaster.removeBlocks(workerBlocks, false /* delete */);
-    Assert.assertEquals(1L, mMaster.getBlockInfo(1L).getBlockId());
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS);
 
-    // Test removeBlocks with delete
-    mMaster.removeBlocks(workerBlocks, true /* delete */);
+    // Commit blockId to worker1.
+    long blockId = 1L;
+    mMaster.commitBlock(worker1, 50L, "MEM", blockId, 20L);
 
-    // Update the heartbeat of removedBlockIds received from worker 1
-    Command heartBeat1 = mMaster.workerHeartbeat(worker1,
-        ImmutableMap.of("MEM", 20L, "SSD", 30L, "HDD", 50L),
-        ImmutableList.of(1L, 2L, 3L), ImmutableMap.<String, List<Long>>of());
-    // Verify removedBlockIds have been removed from ToRemoveBlocks on worker 1
-    Assert.assertFalse(workerInfo1.getToRemoveBlocks().contains(1L));
-    Assert.assertFalse(workerInfo1.getToRemoveBlocks().contains(2L));
-    Assert.assertFalse(workerInfo1.getToRemoveBlocks().contains(3L));
-    // Verify the muted Free command on worker1
-    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat1);
+    // Send a heartbeat from worker2 saying that it's added blockId.
+    List<Long> addedBlocks = ImmutableList.of(blockId);
+    mMaster.workerHeartbeat(worker2, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
+        ImmutableMap.of("MEM", addedBlocks));
 
-    // Update the heartbeat of removedBlockIds received from worker 2
-    Command heartBeat2 = mMaster.workerHeartbeat(worker2,
-        ImmutableMap.of("MEM", 30L, "SSD", 50L, "HDD", 60L),
-        ImmutableList.of(1L, 2L, 3L), ImmutableMap.<String, List<Long>>of());
-    // Verify removedBlockIds have been removed from ToRemoveBlocks on worker2
-    Assert.assertFalse(workerInfo2.getToRemoveBlocks().contains(1L));
-    Assert.assertFalse(workerInfo2.getToRemoveBlocks().contains(2L));
-    Assert.assertFalse(workerInfo2.getToRemoveBlocks().contains(3L));
-    // Verify the muted Free command on worker2
-    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
-
-    mThrown.expect(BlockInfoException.class);
-    mMaster.getBlockInfo(1L);
-    Assert.assertFalse(mMaster.getLostBlocks().contains(1L));
-    Assert.assertFalse(mMaster.getLostBlocks().contains(2L));
-    Assert.assertFalse(mMaster.getLostBlocks().contains(3L));
+    // The block now has two locations.
+    Assert.assertEquals(2, mMaster.getBlockInfo(blockId).getLocations().size());
   }
 
-  /**
-   * Tests the {@link BlockMaster#workerHeartbeat(long, Map, List, Map)} method where the master
-   * tells the worker to remove a block.
-   *
-   * @throws Exception if adding a worker fails
-   */
   @Test
-  public void workerHeartbeatTest() throws Exception {
-    long workerId = mMaster.getWorkerId(NET_ADDRESS_1);
-
-    MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
-    final Map<String, Long> USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 125L);
-    final List<Long> INITIAL_BLOCKS = ImmutableList.of(1L, 2L);
-    addWorker(mMaster, workerId, Arrays.asList("MEM"), ImmutableMap.of("MEM", 500L),
-        USED_BYTES_ON_TIERS);
-    for (Long block : INITIAL_BLOCKS) {
-      mMaster.commitBlock(workerId, USED_BYTES_ON_TIERS.get("MEM"), "MEM", block, 100L);
-    }
-
-    // test heartbeat removing a block
-    Assert.assertEquals(ImmutableSet.copyOf(INITIAL_BLOCKS), workerInfo.getBlocks());
-    final long REMOVED_BLOCK = INITIAL_BLOCKS.get(0);
-    Command heartBeat1 = mMaster.workerHeartbeat(workerId, USED_BYTES_ON_TIERS,
-        ImmutableList.of(REMOVED_BLOCK), ImmutableMap.<String, List<Long>>of());
-    Set<Long> expectedBlocks =
-        Sets.difference(ImmutableSet.copyOf(INITIAL_BLOCKS), ImmutableSet.of(REMOVED_BLOCK));
-    // block is removed from worker info
-    Assert.assertEquals(expectedBlocks, workerInfo.getBlocks());
-    // worker is removed from block info
-    Assert.assertEquals(ImmutableSet.of(),
-        mPrivateAccess.getMasterBlockInfo(REMOVED_BLOCK).getWorkers());
-    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat1);
-
-    // test heartbeat adding back the block
-    List<Long> readdedBlocks = ImmutableList.of(REMOVED_BLOCK);
-    Command heartBeat2 = mMaster.workerHeartbeat(workerId, USED_BYTES_ON_TIERS,
-        ImmutableList.<Long>of(), ImmutableMap.of("MEM", readdedBlocks));
-    // block is restored to worker info
-    Assert.assertEquals(ImmutableSet.copyOf(INITIAL_BLOCKS), workerInfo.getBlocks());
-    // worker is restored to block info
-    Assert.assertEquals(ImmutableSet.of(workerId),
-        mPrivateAccess.getMasterBlockInfo(REMOVED_BLOCK).getWorkers());
-    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
-
-    // test heartbeat where the master tells the worker to remove a block
-    final long BLOCK_TO_FREE = INITIAL_BLOCKS.get(1);
-    workerInfo.updateToRemovedBlock(true, BLOCK_TO_FREE);
-    Command heartBeat3 = mMaster.workerHeartbeat(workerId, USED_BYTES_ON_TIERS,
-        ImmutableList.<Long>of(), ImmutableMap.<String, List<Long>>of());
-    Assert.assertEquals(new Command(CommandType.Free, ImmutableList.<Long>of(BLOCK_TO_FREE)),
-        heartBeat3);
-  }
-
-  /**
-   * Tests the {@link BlockMaster#workerHeartbeat(long, Map, List, Map)} method.
-   *
-   * @throws Exception if adding a worker fails
-   */
-  @Test
-  public void heartbeatStatusTest() throws Exception {
-    long workerId = mMaster.getWorkerId(NET_ADDRESS_1);
-
-    MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
-    final Map<String, Long> INITIAL_USED_BYTES_ON_TIERS =
-        ImmutableMap.of("MEM", 25L, "SSD", 50L, "HDD", 125L);
-    addWorker(mMaster, workerId, Arrays.asList("MEM", "SSD", "HDD"),
-        ImmutableMap.of("MEM", 50L, "SSD", 100L, "HDD", 500L), INITIAL_USED_BYTES_ON_TIERS);
-
-    long lastUpdatedTime1 = workerInfo.getLastUpdatedTimeMs();
-    Thread.sleep(1); // sleep for 1ms so that lastUpdatedTimeMs is guaranteed to change
-    final Map<String, Long> NEW_USED_BYTES_ON_TIERS =
-        ImmutableMap.of("MEM", 50L, "SSD", 100L, "HDD", 500L);
-    // test simple heartbeat letting the master know that more bytes are being used
-    Command heartBeat = mMaster.workerHeartbeat(workerId, NEW_USED_BYTES_ON_TIERS,
-        ImmutableList.<Long>of(), ImmutableMap.<String, List<Long>>of());
-    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat);
-    // updates the number of used bytes on the worker
-    Assert.assertEquals(NEW_USED_BYTES_ON_TIERS, workerInfo.getUsedBytesOnTiers());
-    // updates the workers last updated time
-    Assert.assertNotEquals(lastUpdatedTime1, workerInfo.getLastUpdatedTimeMs());
-  }
-
-  /**
-   * Tests the {@link BlockMaster#workerHeartbeat(long, Map, List, Map)} with an unknown worker.
-   */
-  @Test
-  public void unknownHeartbeatTest() {
+  public void unknownWorkerHeartbeatTriggersRegisterRequest() {
     Command heartBeat = mMaster.workerHeartbeat(0, null, null, null);
     Assert.assertEquals(new Command(CommandType.Register, ImmutableList.<Long>of()), heartBeat);
   }
 
-  /**
-   * Tests the {@link HeartbeatContext#MASTER_LOST_WORKER_DETECTION} to detect a lost worker.
-   *
-   * @throws Exception if waiting for the detector fails
-   */
   @Test
-  public void detectLostWorkerTest() throws Exception {
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 5, TimeUnit.SECONDS);
-
-    // Get a new worker id.
-    long workerId = mMaster.getWorkerId(NET_ADDRESS_1);
-    MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
-    Assert.assertNotNull(workerInfo);
-
-    // Run the lost worker detector.
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
-        TimeUnit.SECONDS));
-
-    // No workers should be considered lost.
-    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
-    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
-
-    // Set the last updated time for the worker to be definitely too old, so it is considered lost.
-    // TODO(andrew): Create a src/test PublicAccess to MasterWorkerInfo internals and replace this
-    Whitebox.setInternalState(workerInfo, "mLastUpdatedTimeMs", 0);
-
-    // Run the lost worker detector.
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
-        TimeUnit.SECONDS));
-
-    // There should be a lost worker.
-    Assert.assertEquals(1, mMaster.getLostWorkersInfo().size());
-    Assert.assertNull(mPrivateAccess.getWorkerById(workerId));
-
-    // Get the worker id again, simulating the lost worker re-registering.
-    workerId = mMaster.getWorkerId(NET_ADDRESS_1);
-    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
-
-    // Run the lost worker detector.
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
-        TimeUnit.SECONDS));
-
-    // No workers should be considered lost.
-    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
-    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
-  }
-
-  /**
-   * Tests the {@link BlockMaster#stop()} method.
-   *
-   * @throws Exception if stopping the master fails
-   */
-  @Test
-  public void stopTest() throws Exception {
-    ExecutorService service =
-        (ExecutorService) Whitebox.getInternalState(mMaster, "mExecutorService");
-    Future<?> lostWorkerThread =
-        (Future<?>) Whitebox.getInternalState(mMaster, "mLostWorkerDetectionService");
-    Assert.assertFalse(lostWorkerThread.isDone());
-    Assert.assertFalse(service.isShutdown());
+  public void stopTerminatesExecutorService() throws Exception {
     mMaster.stop();
-    Assert.assertTrue(lostWorkerThread.isDone());
-    Assert.assertTrue(service.isShutdown());
+    Assert.assertTrue(mExecutorService.isTerminated());
   }
 
-  private void addWorker(BlockMaster master, long workerId, List<String> storageTierAliases,
-      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers)
-          throws AlluxioException {
-    master.workerRegister(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-        Maps.<String, List<Long>>newHashMap());
+  @Test
+  public void getJournalDirectory() {
+    Assert.assertEquals("/base/BlockMaster", BlockMaster.getJournalDirectory("/base"));
   }
 
-  /** Private access to {@link BlockMaster} internals. */
-  private class PrivateAccess {
-    private final Map<Long, MasterBlockInfo> mBlocks;
-    private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex;
-    private final IndexedSet<MasterWorkerInfo> mLostWorkers;
-    private final IndexedSet<MasterWorkerInfo> mWorkers;
+  @Test
+  public void getBlockInfo() throws Exception {
+    // Create a worker with a block.
+    long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+    long blockId = 1L;
+    long blockLength = 20L;
+    mMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS);
+    mMaster.commitBlock(worker1, 50L, "MEM", blockId, blockLength);
 
-    PrivateAccess(BlockMaster blockMaster) {
-      mBlocks = Whitebox.getInternalState(mMaster, "mBlocks");
-      mIdIndex = Whitebox.getInternalState(mMaster, "mIdIndex");
-      mLostWorkers = Whitebox.getInternalState(mMaster, "mLostWorkers");
-      mWorkers = Whitebox.getInternalState(mMaster, "mWorkers");
-    }
-
-    /**
-     * @param worker a {@link MasterWorkerInfo} to add to the list of lost workers
-     */
-    private void addLostWorker(MasterWorkerInfo worker) {
-      synchronized (mWorkers) {
-        mLostWorkers.add(worker);
-      }
-    }
-
-    /**
-     * Looks up the {@link MasterWorkerInfo} for a given worker id.
-     *
-     * @param workerId the worker id to look up
-     * @return the {@link MasterWorkerInfo} for the given workerId
-     */
-    private MasterWorkerInfo getWorkerById(long workerId) {
-      synchronized (mWorkers) {
-        return mWorkers.getFirstByField(mIdIndex, workerId);
-      }
-    }
-
-    /**
-     * Looks up the {@link MasterBlockInfo} for the given block id.
-     *
-     * @param blockId the block id
-     * @return the {@link MasterBlockInfo}
-     */
-    public MasterBlockInfo getMasterBlockInfo(long blockId) {
-      synchronized (mBlocks) {
-        return mBlocks.get(blockId);
-      }
-    }
+    BlockLocation blockLocation = new BlockLocation()
+        .setTierAlias("MEM")
+        .setWorkerAddress(NET_ADDRESS_1)
+        .setWorkerId(worker1);
+    BlockInfo expectedBlockInfo = new BlockInfo()
+        .setBlockId(1L)
+        .setLength(20L)
+        .setLocations(ImmutableList.of(blockLocation));
+    Assert.assertEquals(expectedBlockInfo, mMaster.getBlockInfo(blockId));
   }
 }

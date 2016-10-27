@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -84,15 +84,12 @@ public final class FileSystemTestUtils {
    */
   public static void createByteFile(FileSystem fs, AlluxioURI fileURI,
       CreateFileOptions options, int len) throws IOException {
-    try {
-      FileOutStream os = fs.createFile(fileURI, options);
-
+    try (FileOutStream os = fs.createFile(fileURI, options)) {
       byte[] arr = new byte[len];
       for (int k = 0; k < len; k++) {
         arr[k] = (byte) k;
       }
       os.write(arr);
-      os.close();
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
@@ -126,7 +123,7 @@ public final class FileSystemTestUtils {
   public static List<String> listFiles(FileSystem fs, String path) throws IOException {
     try {
       List<URIStatus> statuses = fs.listStatus(new AlluxioURI(path));
-      List<String> res = new ArrayList<String>();
+      List<String> res = new ArrayList<>();
       for (URIStatus status : statuses) {
         res.add(status.getPath());
         if (status.isFolder()) {

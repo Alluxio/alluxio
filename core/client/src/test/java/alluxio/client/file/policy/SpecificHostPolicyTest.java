@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -15,10 +15,10 @@ import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,9 +31,9 @@ public final class SpecificHostPolicyTest {
    * Tests that the correct worker is returned when using the policy.
    */
   @Test
-  public void policyTest() {
+  public void policy() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker2");
-    List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
+    List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
@@ -47,9 +47,9 @@ public final class SpecificHostPolicyTest {
    * worker list.
    */
   @Test
-  public void noMatchingHostTest() {
+  public void noMatchingHost() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker3");
-    List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
+    List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")

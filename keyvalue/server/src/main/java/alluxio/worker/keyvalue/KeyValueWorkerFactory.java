@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,9 +11,10 @@
 
 package alluxio.worker.keyvalue;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.worker.Worker;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.block.BlockWorker;
 
@@ -31,9 +32,14 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class KeyValueWorkerFactory implements WorkerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Constructs a new {@link KeyValueWorkerFactory}.
+   */
+  public KeyValueWorkerFactory() {}
+
   @Override
   public KeyValueWorker create(List<? extends Worker> workers) {
-    if (!WorkerContext.getConf().getBoolean(Constants.KEY_VALUE_ENABLED)) {
+    if (!Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED)) {
       return null;
     }
     LOG.info("Creating {} ", KeyValueWorker.class.getName());

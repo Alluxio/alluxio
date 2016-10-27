@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,8 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -102,7 +101,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     checkIfClosed();
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
     if (len == 0) {
       return 0;
     } else if (remaining() == 0) { // End of block
@@ -110,7 +109,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     }
 
     int toRead = (int) Math.min(len, remaining());
-    if (mBufferIsValid && mBuffer.remaining() > toRead) { // data is fully contained in the buffer
+    if (mBufferIsValid && mBuffer.remaining() >= toRead) { // data is fully contained in the buffer
       mBuffer.get(b, off, toRead);
       mPos += toRead;
       mBlockIsRead = true;
@@ -142,9 +141,9 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   @Override
   public void seek(long pos) throws IOException {
     checkIfClosed();
-    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
-    Preconditions.checkArgument(pos <= mBlockSize, PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK,
-        mBlockSize);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
+    Preconditions.checkArgument(pos <= mBlockSize,
+        PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), mBlockSize);
     mBufferIsValid = false;
     mPos = pos;
   }
@@ -206,9 +205,8 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    * @return a heap buffer of user configured size
    */
   private ByteBuffer allocateBuffer() {
-    Configuration conf = ClientContext.getConf();
     return ByteBuffer.allocate(
-        (int) conf.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES));
+        (int) Configuration.getBytes(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES));
   }
 
   /**

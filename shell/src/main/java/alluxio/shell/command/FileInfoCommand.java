@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,11 +12,11 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.InvalidPathException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -30,12 +30,15 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class FileInfoCommand extends WithWildCardPathCommand {
 
+  /** The block store client. */
+  private final AlluxioBlockStore mBlockStore;
+
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public FileInfoCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public FileInfoCommand(FileSystem fs) {
+    super(fs);
+    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override
@@ -44,22 +47,17 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
     if (status.isFolder()) {
-      throw new IOException(path + " is a directory path so does not have file blocks.");
+      throw new InvalidPathException(path + " is a directory path so does not have file blocks.");
     }
 
     System.out.println(status);
     System.out.println("Containing the following blocks: ");
     for (long blockId : status.getBlockIds()) {
-      System.out.println(AlluxioBlockStore.get().getInfo(blockId));
+      System.out.println(mBlockStore.getInfo(blockId));
     }
   }
 

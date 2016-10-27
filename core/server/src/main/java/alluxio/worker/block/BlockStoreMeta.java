@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -16,7 +16,6 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +27,7 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class holds the meta data information of a block store.
+ * This class holds the metadata information of a block store.
  * <p>
  * TODO(bin): Use proto buf to represent this information.
  */
@@ -38,54 +37,48 @@ public final class BlockStoreMeta {
   // {@link BlockStoreMeta} instance.
 
   /** Mapping from storage tier alias to capacity bytes. */
-  private final Map<String, Long> mCapacityBytesOnTiers = new HashMap<String, Long>();
+  private final Map<String, Long> mCapacityBytesOnTiers = new HashMap<>();
 
   /** Mapping from storage tier alias to used bytes. */
-  private final Map<String, Long> mUsedBytesOnTiers = new HashMap<String, Long>();
+  private final Map<String, Long> mUsedBytesOnTiers = new HashMap<>();
 
   /** Mapping from storage tier alias to capacity bytes. */
-  private final Map<String, List<Long>> mBlockIdsOnTiers = new HashMap<String, List<Long>>();
+  private final Map<String, List<Long>> mBlockIdsOnTiers;
 
   /** Mapping from storage dir tier and path to total capacity. */
-  private final Map<Pair<String, String>, Long> mCapacityBytesOnDirs =
-      new HashMap<Pair<String, String>, Long>();
+  private final Map<Pair<String, String>, Long> mCapacityBytesOnDirs = new HashMap<>();
 
   /** Mapping from storage dir tier and path to used bytes. */
-  private final Map<Pair<String, String>, Long> mUsedBytesOnDirs =
-      new HashMap<Pair<String, String>, Long>();
+  private final Map<Pair<String, String>, Long> mUsedBytesOnDirs = new HashMap<>();
 
   /**
-   * Creates a new instance of {@link BlockStoreMeta}.
+   * Factory method to return a BlockStoreMeta instance without blockIds.
    *
-   * @param manager a block metadata manager handle
+   * @param manager the BlockMetadataManager
+   * @return BlockStoreMeta instance
    */
-  public BlockStoreMeta(BlockMetadataManager manager) {
-    Preconditions.checkNotNull(manager);
-    for (StorageTier tier : manager.getTiers()) {
-      Long capacityBytes = mCapacityBytesOnTiers.get(tier.getTierAlias());
-      Long usedBytes = mUsedBytesOnTiers.get(tier.getTierAlias());
-      mCapacityBytesOnTiers.put(tier.getTierAlias(), (capacityBytes == null ? 0L : capacityBytes)
-          + tier.getCapacityBytes());
-      mUsedBytesOnTiers.put(
-          tier.getTierAlias(),
-          (usedBytes == null ? 0L : usedBytes)
-              + (tier.getCapacityBytes() - tier.getAvailableBytes()));
-      List<Long> blockIdsOnTier = new ArrayList<Long>();
-      for (StorageDir dir : tier.getStorageDirs()) {
-        blockIdsOnTier.addAll(dir.getBlockIds());
-        Pair<String, String> dirKey =
-            new Pair<String, String>(tier.getTierAlias(), dir.getDirPath());
-        mCapacityBytesOnDirs.put(dirKey, dir.getCapacityBytes());
-        mUsedBytesOnDirs.put(dirKey, dir.getCapacityBytes() - dir.getAvailableBytes());
-      }
-      mBlockIdsOnTiers.put(tier.getTierAlias(), blockIdsOnTier);
-    }
+  public static BlockStoreMeta getBlockStoreMeta(BlockMetadataManager manager) {
+    return new BlockStoreMeta(manager, false);
   }
 
   /**
+   * Factory method to return a BlockStoreMeta instance with blockIds.
+   *
+   * @param manager the BlockMetadata Manager
+   * @return BlockStoreMeta instance
+   */
+  public static BlockStoreMeta getBlockStoreMetaFull(BlockMetadataManager manager) {
+    return new BlockStoreMeta(manager, true);
+  }
+
+  /**
+   * Note: This is only available in {@link BlockStoreMeta#getBlockStoreMetaFull}.
+   *
    * @return A mapping from storage tier alias to blocks
    */
   public Map<String, List<Long>> getBlockList() {
+    Preconditions.checkNotNull(mBlockIdsOnTiers);
+
     return mBlockIdsOnTiers;
   }
 
@@ -118,7 +111,7 @@ public final class BlockStoreMeta {
    * @return a mapping from tier aliases to directory paths in that tier
    */
   public Map<String, List<String>> getDirectoryPathsOnTiers() {
-    Map<String, List<String>> pathsOnTiers = Maps.newHashMap();
+    Map<String, List<String>> pathsOnTiers = new HashMap<>();
     for (Pair<String, String> tierPath : mCapacityBytesOnDirs.keySet()) {
       String tier = tierPath.getFirst();
       if (pathsOnTiers.get(tier) == null) {
@@ -130,9 +123,13 @@ public final class BlockStoreMeta {
   }
 
   /**
+   * Note: This is only available in {@link BlockStoreMeta#getBlockStoreMetaFull}.
+   *
    * @return the number of blocks
    */
   public int getNumberOfBlocks() {
+    Preconditions.checkNotNull(mBlockIdsOnTiers);
+
     int numberOfBlocks = 0;
     for (List<Long> blockIds : mBlockIdsOnTiers.values()) {
       numberOfBlocks += blockIds.size();
@@ -163,5 +160,47 @@ public final class BlockStoreMeta {
    */
   public Map<Pair<String, String>, Long> getUsedBytesOnDirs() {
     return mUsedBytesOnDirs;
+  }
+
+  /**
+   * Creates a new instance of {@link BlockStoreMeta}.
+   *
+   * @param manager a block metadata manager handle
+   */
+  private BlockStoreMeta(BlockMetadataManager manager, boolean shouldIncludeBlockIds) {
+    Preconditions.checkNotNull(manager);
+    for (StorageTier tier : manager.getTiers()) {
+      Long capacityBytes = mCapacityBytesOnTiers.get(tier.getTierAlias());
+      Long usedBytes = mUsedBytesOnTiers.get(tier.getTierAlias());
+      mCapacityBytesOnTiers.put(tier.getTierAlias(),
+          (capacityBytes == null ? 0L : capacityBytes) + tier.getCapacityBytes());
+      mUsedBytesOnTiers.put(tier.getTierAlias(),
+          (usedBytes == null ? 0L : usedBytes) + (tier.getCapacityBytes() - tier
+              .getAvailableBytes()));
+      for (StorageDir dir : tier.getStorageDirs()) {
+        Pair<String, String> dirKey =
+            new Pair<>(tier.getTierAlias(), dir.getDirPath());
+        mCapacityBytesOnDirs.put(dirKey, dir.getCapacityBytes());
+        mUsedBytesOnDirs.put(dirKey, dir.getCapacityBytes() - dir.getAvailableBytes());
+      }
+    }
+
+    if (shouldIncludeBlockIds) {
+      mBlockIdsOnTiers = new HashMap<>();
+      for (StorageTier tier : manager.getTiers()) {
+        for (StorageDir dir : tier.getStorageDirs()) {
+          List<Long> blockIds;
+          if (mBlockIdsOnTiers.containsKey(tier.getTierAlias())) {
+            blockIds = mBlockIdsOnTiers.get(tier.getTierAlias());
+          } else {
+            blockIds = new ArrayList<>();
+            mBlockIdsOnTiers.put(tier.getTierAlias(), blockIds);
+          }
+          blockIds.addAll(dir.getBlockIds());
+        }
+      }
+    } else {
+      mBlockIdsOnTiers = null;
+    }
   }
 }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,8 +13,7 @@ package alluxio.web;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
-import alluxio.worker.WorkerContext;
+import alluxio.PropertyKey;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,7 +37,6 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   private static final long serialVersionUID = 6589358568781503724L;
 
-  private final transient Configuration mConfiguration;
   private final String mBrowseJsp;
   private final String mViewJsp;
   private static final FilenameFilter LOG_FILE_FILTER = new FilenameFilter() {
@@ -54,7 +52,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * @param isMasterServlet whether this is a master servlet
    */
   public WebInterfaceBrowseLogsServlet(boolean isMasterServlet) {
-    mConfiguration = isMasterServlet ? MasterContext.getConf() : WorkerContext.getConf();
     String prefix = isMasterServlet ? "/" : "/worker/";
     mBrowseJsp = prefix + "browse.jsp";
     mViewJsp = prefix + "viewFile.jsp";
@@ -70,9 +67,8 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    */
   private void displayLocalFile(File file, HttpServletRequest request, long offset)
       throws IOException {
-    String fileData = null;
-    InputStream is = new FileInputStream(file);
-    try {
+    String fileData;
+    try (InputStream is = new FileInputStream(file)) {
       long fileSize = file.length();
       int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
       byte[] data = new byte[len];
@@ -93,8 +89,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
           fileData = WebUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
         }
       }
-    } finally {
-      is.close();
     }
     request.setAttribute("fileData", fileData);
   }
@@ -112,7 +106,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
+    request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
     request.setAttribute("invalidPathError", "");
     request.setAttribute("viewingOffset", 0);
     request.setAttribute("downloadLogFile", 1);
@@ -120,14 +114,14 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("currentPath", "");
     request.setAttribute("showPermissions", false);
 
-    String logsPath = mConfiguration.get(Constants.LOGS_DIR);
+    String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
     File logsDir = new File(logsPath);
     String requestFile = request.getParameter("path");
 
     if (requestFile == null || requestFile.isEmpty()) {
       // List all log files in the log/ directory.
 
-      List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>();
+      List<UIFileInfo> fileInfos = new ArrayList<>();
       File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
       if (logFiles != null) {
         for (File logFile : logFiles) {

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,11 +12,14 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
@@ -29,12 +32,18 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class SetTtlCommand extends AbstractShellCommand {
 
+  private static final String TTL_ACTION = "action";
+
+  private static final Option TTL_ACTION_OPTION = Option.builder(TTL_ACTION).required(false)
+      .numberOfArgs(1).desc("Action to take after Ttl expiry").build();
+
+  private TtlAction mAction = TtlAction.DELETE;
+
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public SetTtlCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public SetTtlCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -48,23 +57,45 @@ public final class SetTtlCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  protected Options getOptions() {
+    return new Options().addOption(TTL_ACTION_OPTION);
+  }
+
+  @Override
+  public CommandLine parseAndValidateArgs(String... args) {
+
+    CommandLine cmd = super.parseAndValidateArgs(args);
+    try {
+      String operation = cmd.getOptionValue(TTL_ACTION);
+      if (operation != null) {
+        mAction = TtlAction.valueOf(operation.toUpperCase());
+      }
+    } catch (Exception e) {
+      System.err.println("action should be delete OR free");
+      cmd = null;
+    }
+    return cmd;
+  }
+
+  @Override
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     long ttlMs = Long.parseLong(args[1]);
     Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
     AlluxioURI path = new AlluxioURI(args[0]);
-    CommandUtils.setTtl(mFileSystem, path, ttlMs);
+    CommandUtils.setTtl(mFileSystem, path, ttlMs, mAction);
     System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs
-        + " milliseconds.");
+        + " milliseconds, with expiry action set to " + mAction);
   }
 
   @Override
   public String getUsage() {
-    return "setTtl <path> <time to live(in milliseconds)>";
+    return "setTtl [-action delete|free] <path> <time to live(in milliseconds)>";
   }
 
   @Override
   public String getDescription() {
-    return "Sets a new TTL value for the file at path.";
+    return "Sets a new TTL value for the file at path, "
+        + "performing an action, delete(Default)/free after Ttl expiry.";
   }
 }

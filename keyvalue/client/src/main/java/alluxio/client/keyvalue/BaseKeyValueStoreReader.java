@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
@@ -37,7 +36,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 class BaseKeyValueStoreReader implements KeyValueStoreReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final Configuration mConf = ClientContext.getConf();
   private final InetSocketAddress mMasterAddress = ClientContext.getMasterAddress();
   private final KeyValueMasterClient mMasterClient;
 
@@ -54,7 +52,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   BaseKeyValueStoreReader(AlluxioURI uri) throws IOException, AlluxioException {
     // TODO(binfan): use a thread pool to manage the client.
     LOG.info("Create KeyValueStoreReader for {}", uri);
-    mMasterClient = new KeyValueMasterClient(mMasterAddress, mConf);
+    mMasterClient = new KeyValueMasterClient(mMasterAddress);
     mPartitions = mMasterClient.getPartitionInfo(uri);
     mMasterClient.close();
   }
@@ -86,14 +84,10 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
       } else if (key.compareTo(partition.bufferForKeyLimit()) > 0) {
         left = middle + 1;
       } else {
-        // The key is either in this partition or not in the kv store
+        // The key is either in this partition or not in the key-value store
         long blockId = partition.getBlockId();
-        KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId);
-        try {
-          ByteBuffer value = reader.get(key);
-          return value;
-        } finally {
-          reader.close();
+        try (KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId)) {
+          return reader.get(key);
         }
       }
     }
@@ -108,12 +102,8 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   @Override
   public int size() throws IOException, AlluxioException {
     int totalSize = 0;
-    // TODO(cc): Put size into PartitionInfo.
     for (PartitionInfo partition : mPartitions) {
-      KeyValuePartitionReader partitionReader =
-          KeyValuePartitionReader.Factory.create(partition.getBlockId());
-      totalSize += partitionReader.size();
-      partitionReader.close();
+      totalSize += partition.getKeyCount();
     }
     return totalSize;
   }

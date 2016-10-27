@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,6 +12,7 @@
 package alluxio.job;
 
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.wire.CommandLineJobInfo;
 import alluxio.wire.JobConfInfo;
 
@@ -33,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A job that wraps a programmed run by command line. This job's caller should ensure the execution
  * environment are identical on master and at the client side.
  */
+@PublicApi
 @ThreadSafe
 public class CommandLineJob extends Job {
   private static final long serialVersionUID = 1655996721855899996L;
@@ -99,10 +101,7 @@ public class CommandLineJob extends Job {
 
       p.waitFor();
       LOG.info("Exec {} output to {} done.", mCommand, outputPath);
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-      return false;
-    } catch (InterruptedException e) {
+    } catch (IOException | InterruptedException e) {
       LOG.error(e.getMessage());
       return false;
     }

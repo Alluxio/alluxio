@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -17,10 +17,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,7 +31,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#parametersToString(Object...)} method.
    */
   @Test
-  public void parametersToStringTest() {
+  public void parametersToString() {
     class TestCase {
       String mExpected;
       Object[] mInput;
@@ -44,7 +42,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("()", null));
     testCases.add(new TestCase("(null)", new Object[] {null}));
     testCases.add(new TestCase("()", new Object[] {""}));
@@ -65,7 +63,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#byteBufferToString(ByteBuffer)} method.
    */
   @Test
-  public void byteBufferToStringTest() {
+  public void byteBufferToString() {
     class TestCase {
       String mExpected;
       ByteBuffer mInput;
@@ -76,7 +74,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {})));
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0})));
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0, 0})));
@@ -96,17 +94,19 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#byteArrayToHexString(byte[])} method.
    */
   @Test
-  public void byteArrayToHexStringTest() {
+  public void byteArrayToHexString() {
     Assert.assertEquals("", FormatUtils.byteArrayToHexString(new byte[0]));
     Assert.assertEquals("0x01", FormatUtils.byteArrayToHexString(new byte[]{1}));
-    Assert.assertEquals("0x01 0xAC", FormatUtils.byteArrayToHexString(new byte[]{1, (byte) 0xAC}));
+    Assert.assertEquals("0x01 0xac", FormatUtils.byteArrayToHexString(new byte[]{1, (byte) 0xac}));
+    Assert.assertEquals("01ac",
+        FormatUtils.byteArrayToHexString(new byte[] {1, (byte) 0xac}, "", ""));
   }
 
   /**
    * Tests the {@link FormatUtils#formatTimeTakenMs(long, String)} method.
    */
   @Test
-  public void formatTimeTakenMsTest() {
+  public void formatTimeTakenMs() {
     class TestCase {
       Pattern mExpected;
       String mInputMessage;
@@ -117,7 +117,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("^Task A took (.*) ms.$", "Task A"));
     testCases.add(new TestCase("^Task B took (.*) ms.$", "Task B"));
 
@@ -136,7 +136,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#formatTimeTakenNs(long, String)} method.
    */
   @Test
-  public void formatTimeTakenNsTest() {
+  public void formatTimeTakenNs() {
     class TestCase {
       Pattern mExpected;
       String mInputMessage;
@@ -147,7 +147,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("^Task A took (.*) ns.$", "Task A"));
     testCases.add(new TestCase("^Task B took (.*) ns.$", "Task B"));
 
@@ -166,7 +166,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#getSizeFromBytes(long)} method.
    */
   @Test
-  public void getSizeFromBytesTest() {
+  public void getSizeFromBytes() {
     class TestCase {
       String mExpected;
       long mInput;
@@ -177,7 +177,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("4.00B", 1L << 2));
     testCases.add(new TestCase("8.00B", 1L << 3));
     testCases.add(new TestCase("4096.00B", 1L << 12));
@@ -201,7 +201,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#parseSpaceSize(String)} method.
    */
   @Test
-  public void parseSpaceSizeTest() {
+  public void parseSpaceSize() {
     long max = 10240;
     for (long k = 0; k < max; k++) {
       Assert.assertEquals(k / 10, FormatUtils.parseSpaceSize(k / 10.0 + "b"));
@@ -242,35 +242,19 @@ public class FormatUtilsTest {
   }
 
   /**
-   * Tests the {@link FormatUtils#formatPermission(short, boolean)} method.
+   * Tests the {@link FormatUtils#formatMode(short, boolean)} method.
    */
   @Test
-  public void formatPermissionTest() {
-    Assert.assertEquals("-rw-rw-rw-", FormatUtils.formatPermission((short) 0666, false));
-    Assert.assertEquals("drw-rw-rw-", FormatUtils.formatPermission((short) 0666, true));
-    Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatPermission((short) 0777, false));
-    Assert.assertEquals("drwxrwxrwx", FormatUtils.formatPermission((short) 0777, true));
-    Assert.assertEquals("-r--r--r--", FormatUtils.formatPermission((short) 0444, false));
-    Assert.assertEquals("dr--r--r--", FormatUtils.formatPermission((short) 0444, true));
-    Assert.assertEquals("-r-xr-xr-x", FormatUtils.formatPermission((short) 0555, false));
-    Assert.assertEquals("dr-xr-xr-x", FormatUtils.formatPermission((short) 0555, true));
-    Assert.assertEquals("-rwxr-xr--", FormatUtils.formatPermission((short) 0754, false));
-    Assert.assertEquals("drwxr-xr--", FormatUtils.formatPermission((short) 0754, true));
-  }
-
-  /**
-   * Tests the {@link FormatUtils#encodeJson(String)} method.
-   */
-  @Test
-  public void encodeJsonTest() {
-    Set<String> escapedChars = new HashSet<>();
-    escapedChars.add("\"");
-    escapedChars.add("/");
-    escapedChars.add("\\");
-    for (char i = 32; i < 128; i++) {
-      String s = String.valueOf(i);
-      Assert.assertEquals("\"" + (escapedChars.contains(s) ? "\\" : "") + s + "\"",
-          FormatUtils.encodeJson(s));
-    }
+  public void formatPermission() {
+    Assert.assertEquals("-rw-rw-rw-", FormatUtils.formatMode((short) 0666, false));
+    Assert.assertEquals("drw-rw-rw-", FormatUtils.formatMode((short) 0666, true));
+    Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatMode((short) 0777, false));
+    Assert.assertEquals("drwxrwxrwx", FormatUtils.formatMode((short) 0777, true));
+    Assert.assertEquals("-r--r--r--", FormatUtils.formatMode((short) 0444, false));
+    Assert.assertEquals("dr--r--r--", FormatUtils.formatMode((short) 0444, true));
+    Assert.assertEquals("-r-xr-xr-x", FormatUtils.formatMode((short) 0555, false));
+    Assert.assertEquals("dr-xr-xr-x", FormatUtils.formatMode((short) 0555, true));
+    Assert.assertEquals("-rwxr-xr--", FormatUtils.formatMode((short) 0754, false));
+    Assert.assertEquals("drwxr-xr--", FormatUtils.formatMode((short) 0754, true));
   }
 }

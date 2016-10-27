@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -63,7 +63,7 @@ public final class MasterWorkerInfoTest {
    * Tests the {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set)} method.
    */
   @Test
-  public void registerTest() {
+  public void register() {
     Assert.assertEquals(NEW_BLOCKS, mInfo.getBlocks());
     Assert.assertEquals(TOTAL_BYTES_ON_TIERS, mInfo.getTotalBytesOnTiers());
     Assert.assertEquals(Constants.KB * 6L, mInfo.getCapacityBytes());
@@ -75,7 +75,7 @@ public final class MasterWorkerInfoTest {
    * Tests the {@link MasterWorkerInfo#getFreeBytesOnTiers()} method.
    */
   @Test
-  public void getFreeBytesOnTiersTest() {
+  public void getFreeBytesOnTiers() {
     Assert.assertEquals(ImmutableMap.of("MEM", Constants.KB * 2L, "SSD", Constants.KB * 2L),
         mInfo.getFreeBytesOnTiers());
   }
@@ -85,7 +85,7 @@ public final class MasterWorkerInfoTest {
    * {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set)} works.
    */
   @Test
-  public void registerAgainTest() {
+  public void registerAgain() {
     Set<Long> newBlocks = Sets.newHashSet(3L);
     Set<Long> removedBlocks = mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES,
         TOTAL_BYTES_ON_TIERS, USED_BYTES_ON_TIERS, newBlocks);
@@ -99,7 +99,7 @@ public final class MasterWorkerInfoTest {
    * different number of tiers.
    */
   @Test
-  public void registerWithDifferentNumberOfTiersTest() {
+  public void registerWithDifferentNumberOfTiers() {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("totalBytesOnTiers and usedBytesOnTiers should have the same number of"
         + " tiers as storageTierAliases, but storageTierAliases has 2 tiers, while"
@@ -113,7 +113,7 @@ public final class MasterWorkerInfoTest {
    * Tests the {@link MasterWorkerInfo#getBlocks()} method.
    */
   @Test
-  public void blockOperationTest() {
+  public void blockOperation() {
     // add existing block
     mInfo.addBlock(1L);
     Assert.assertEquals(NEW_BLOCKS, mInfo.getBlocks());
@@ -129,7 +129,7 @@ public final class MasterWorkerInfoTest {
    * Tests the {@link MasterWorkerInfo#generateClientWorkerInfo()} method.
    */
   @Test
-  public void workerInfoGenerationTest() {
+  public void workerInfoGeneration() {
     WorkerInfo workerInfo = mInfo.generateClientWorkerInfo();
     Assert.assertEquals(mInfo.getId(), workerInfo.getId());
     Assert.assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
@@ -143,7 +143,7 @@ public final class MasterWorkerInfoTest {
    * Tests the {@link MasterWorkerInfo#updateToRemovedBlock(boolean, long)} method.
    */
   @Test
-  public void updateToRemovedBlockTest() {
+  public void updateToRemovedBlock() {
     // remove a non-existing block
     mInfo.updateToRemovedBlock(true, 10L);
     Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
@@ -163,7 +163,7 @@ public final class MasterWorkerInfoTest {
    * Tests the {@link MasterWorkerInfo#updateUsedBytes(Map)} method.
    */
   @Test
-  public void updateUsedBytesTest() {
+  public void updateUsedBytes() {
     Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
     Map<String, Long> usedBytesOnTiers =
         ImmutableMap.of("MEM", Constants.KB * 2L, "SSD", Constants.KB * 1L);
@@ -176,7 +176,7 @@ public final class MasterWorkerInfoTest {
    * Tests the {@link MasterWorkerInfo#updateUsedBytes(String, long)} method.
    */
   @Test
-  public void updateUsedBytesInTierTest() {
+  public void updateUsedBytesInTier() {
     Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
     mInfo.updateUsedBytes("MEM", Constants.KB * 2L);
     Assert.assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());

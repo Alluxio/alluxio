@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.User;
 import alluxio.util.SecurityUtils;
@@ -35,26 +34,30 @@ public final class AuthenticatedClientUser {
   /**
    * A {@link ThreadLocal} variable to maintain the client user along with a specific thread.
    */
-  private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<User>();
+  private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<>();
+
+  /**
+   * Constructs a new {@link AuthenticatedClientUser}.
+   */
+  public AuthenticatedClientUser() {}
 
   /**
    * Creates a {@link User} and sets it to the {@link ThreadLocal} variable.
    *
    * @param userName the name of the client user
    */
-  public static synchronized void set(String userName) {
+  public static void set(String userName) {
     sUserThreadLocal.set(new User(userName));
   }
 
   /**
    * Gets the {@link User} from the {@link ThreadLocal} variable.
    *
-   * @param conf the runtime configuration of Alluxio Master
    * @return the client user
    * @throws IOException if authentication is not enabled
    */
-  public static synchronized User get(Configuration conf) throws IOException {
-    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+  public static User get() throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled()) {
       throw new IOException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
     }
     return sUserThreadLocal.get();

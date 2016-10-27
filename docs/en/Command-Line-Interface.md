@@ -65,6 +65,14 @@ output:
 
 {% include Command-Line-Interface/cat.md %}
 
+## checksum
+The `checksum` command outputs the md5 value of a file in Alluxio.
+
+For example, `checksum` can be used to verify the content of a file stored in Alluxio
+matches the content stored in an UnderFS or local filesystem:
+
+{% include Command-Line-Interface/checksum.md %}
+
 ## chgrp
 The `chgrp` command changes the group of the file or directory in Alluxio. Alluxio supports file
 authorization with Posix file permission. Group is an authorizable entity in Posix file permission
@@ -141,6 +149,16 @@ data files and their total size for any date, month, or year.
 
 {% include Command-Line-Interface/count.md %}
 
+## cp
+The `cp` command copies a file or directory in the Alluxio filesystem.
+
+If the `-R` option is used and the source designates a directory, cp copies the entire subtree at
+source to the destination.
+
+For example, `cp` can be used to copy files between Under file systems.
+
+{% include Command-Line-Interface/cp.md %}
+
 ## du
 The `du` command outputs the size of a file. If a directory is specified, it will output the
 aggregate size of all files in the directory and its children directories.
@@ -187,6 +205,11 @@ For example, `getUsedBytes` can be used to monitor the health of your cluster.
 
 {% include Command-Line-Interface/getUsedBytes.md %}
 
+## leader
+The `leader` command prints the current Alluxio leader master host name.
+
+{% include Command-Line-Interface/leader.md %}
+
 ## load
 The `load` command moves data from the under storage system into Alluxio storage. If there is a
 Alluxio worker on the machine this command is run from, the data will be loaded to that worker.
@@ -199,6 +222,9 @@ For example, `load` can be used to prefetch data for analytics jobs.
 {% include Command-Line-Interface/load.md %}
 
 ## loadMetadata
+The `loadMetadata` command is deprecated since Alluxio version 1.1.
+Please use `alluxio fs ls <path>` command instead.
+
 The `loadMetadata` command queries the under storage system for any file or directory matching the
 given path and then creates a mirror of the file in Alluxio backed by that file. Only the metadata,
 such as the file name and size are loaded this way and no data transfer occurs.
@@ -226,9 +252,19 @@ information for that specific file.
 Adding `-R` option also recursively lists child directories, displaying the entire subtree starting
 from the input path.
 
+The `ls` command will also load the metadata for any file or directory from the under storage system to Alluxio namespace, if
+it does not exist in Alluxio yet. `ls` queries the under storage system for any file or directory matching the given path and
+then creates a mirror of the file in Alluxio backed by that file. Only the metadata, such as the file name and size are
+loaded this way and no data transfer occurs.
+
+Adding `-f` option forces loading metadata for immediate children in a directory. By default, it loads metadata only
+at the first time at which a directory is listed.
+
 For example, `ls` can be used to browse the file system.
 
 {% include Command-Line-Interface/ls.md %}
+
+`ls` loads the metadata for immedidate children of a directory.
 
 ## mkdir
 The `mkdir` command creates a new directory in Alluxio space. It is recursive and will create any
@@ -302,12 +338,14 @@ For example, `rm` can be used to remove temporary files which are no longer need
 {% include Command-Line-Interface/rm2.md %}
 
 ## setTtl
-The `setTtl` command sets the time-to-live of a file, in milliseconds. The file will automatically
-be deleted once the current time is greater than the TTL + creation time of the file. This delete
-will affect both Alluxio and the under storage system.
+The `setTtl` command sets the time-to-live of a file, in milliseconds. Action parameter will
+indicate the action to perform once the current time is greater than the TTL + creation time of the file.
+Action `delete` (default) will delete file from both Alluxio and the under storage system, whereas action
+`free` will just free the file from Alluxio.
 
-For example, `setTtl` can be used to clean up files the administrator knows are unnecessary after a
-period of time.
+For example, `setTtl` with action `delete` can be used to clean up files the administrator knows are
+unnecessary after a period of time, or can be used to just remove the contents from Alluxio to make room
+for more space in Alluxio.
 
 {% include Command-Line-Interface/setTtl.md %}
 

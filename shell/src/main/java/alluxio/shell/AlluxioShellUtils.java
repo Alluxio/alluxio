@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,6 +14,8 @@ package alluxio.shell;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.cli.AlluxioShell;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -35,18 +37,20 @@ import javax.annotation.concurrent.ThreadSafe;
  * Class for convenience methods used by {@link AlluxioShell}.
  */
 @ThreadSafe
-public class AlluxioShellUtils {
+public final class AlluxioShellUtils {
+
+  private AlluxioShellUtils() {} // prevent instantiation
+
   /**
    * Removes {@link Constants#HEADER} / {@link Constants#HEADER_FT} and hostname:port information
    * from a path, leaving only the local file path.
    *
    * @param path the path to obtain the local path from
-   * @param configuration the instance of {@link Configuration} to be used
-   * @return The local path in string format
+   * @return the local path in string format
    * @throws IOException if the given path is not valid
    */
-  public static String getFilePath(String path, Configuration configuration) throws IOException {
-    path = validatePath(path, configuration);
+  public static String getFilePath(String path) throws IOException {
+    path = validatePath(path);
     if (path.startsWith(Constants.HEADER)) {
       path = path.substring(Constants.HEADER.length());
     } else if (path.startsWith(Constants.HEADER_FT)) {
@@ -60,13 +64,12 @@ public class AlluxioShellUtils {
    * {@link Constants#HEADER_FT} and a hostname:port specified.
    *
    * @param path the path to be verified
-   * @param configuration the instance of {@link Configuration} to be used
    * @return the verified path in a form like alluxio://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
    *         alluxio.master.hostname and alluxio.master.port, respectively.
    * @throws IOException if the given path is not valid
    */
-  public static String validatePath(String path, Configuration configuration) throws IOException {
+  public static String validatePath(String path) throws IOException {
     if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
       if (!path.contains(":")) {
         throw new IOException("Invalid Path: " + path + ". Use " + Constants.HEADER
@@ -75,9 +78,9 @@ public class AlluxioShellUtils {
         return path;
       }
     } else {
-      String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, configuration);
-      int port =  configuration.getInt(Constants.MASTER_RPC_PORT);
-      if (configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
+      String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
+      int port =  Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
+      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }
       return PathUtils.concatPath(Constants.HEADER + hostname + ":" + port, path);
@@ -126,8 +129,8 @@ public class AlluxioShellUtils {
    */
   private static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI,
       AlluxioURI parentDir) throws IOException {
-    List<AlluxioURI> res = new LinkedList<AlluxioURI>();
-    List<URIStatus> statuses = null;
+    List<AlluxioURI> res = new LinkedList<>();
+    List<URIStatus> statuses;
     try {
       statuses = alluxioClient.listStatus(parentDir);
     } catch (AlluxioException e) {
@@ -163,7 +166,7 @@ public class AlluxioShellUtils {
   public static List<File> getFiles(String inputPath) {
     File file = new File(inputPath);
     if (!inputPath.contains("*")) {
-      List<File> res = new LinkedList<File>();
+      List<File> res = new LinkedList<>();
       if (file.exists()) {
         res.add(file);
       }
@@ -184,13 +187,17 @@ public class AlluxioShellUtils {
    * @return a list of files that matches the input path in the parent directory
    */
   private static List<File> getFiles(String inputPath, String parent) {
-    List<File> res = new LinkedList<File>();
+    List<File> res = new LinkedList<>();
     File pFile = new File(parent);
     if (!pFile.exists() || !pFile.isDirectory()) {
       return res;
     }
     if (pFile.isDirectory() && pFile.canRead()) {
-      for (File file : pFile.listFiles()) {
+      File[] fileList = pFile.listFiles();
+      if (fileList == null) {
+        return res;
+      }
+      for (File file : fileList) {
         if (match(file.getPath(), inputPath)) { // if it matches
           res.add(file);
         } else {

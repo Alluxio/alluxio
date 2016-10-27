@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,15 +13,11 @@ package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -33,42 +29,29 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
   /**
-   * Cache mapping {@code Path}s to existing {@link UnderFileSystem} instances. The paths should be
-   * normalized to root paths because only their schemes and authorities are needed to identify
-   * which {@link FileSystem} they belong to.
+   * Constructs a new {@link HdfsUnderFileSystemFactory}.
    */
-  private Map<Path, HdfsUnderFileSystem> mHdfsUfsCache = Maps.newHashMap();
+  public HdfsUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Configuration configuration, Object conf) {
-    Preconditions.checkArgument(path != null, "path may not be null");
+  public UnderFileSystem create(String path, Object conf) {
+    Preconditions.checkNotNull(path);
+    return new HdfsUnderFileSystem(new AlluxioURI(path), conf);
+  }
 
-    // Normalize the path to just its root. This is all that's needed to identify which FileSystem
-    // the Path belongs to.
-    Path rootPath = getRoot(new Path(path));
-    synchronized (mHdfsUfsCache) {
-      if (!mHdfsUfsCache.containsKey(rootPath)) {
-        mHdfsUfsCache
-            .put(rootPath, new HdfsUnderFileSystem(new AlluxioURI(path), configuration, conf));
+  @Override
+  public boolean supportsPath(String path) {
+    if (path != null) {
+      // TODO(hy): In Hadoop 2.x this can be replaced with the simpler call to
+      // FileSystem.getFileSystemClass() without any need for having users explicitly declare the
+      // file system schemes to treat as being HDFS. However as long as pre 2.x versions of Hadoop
+      // are supported this is not an option and we have to continue to use this method.
+      for (final String prefix : Configuration.getList(PropertyKey.UNDERFS_HDFS_PREFIXES, ",")) {
+        if (path.startsWith(prefix)) {
+          return true;
+        }
       }
-      return mHdfsUfsCache.get(rootPath);
     }
-  }
-
-  private static Path getRoot(Path path) {
-    Path currPath = path;
-    while (currPath.getParent() != null) {
-      currPath = currPath.getParent();
-    }
-    return currPath;
-  }
-
-  @Override
-  public boolean supportsPath(String path, Configuration conf) {
-    if (path == null) {
-      return false;
-    }
-
-    return UnderFileSystem.isHadoopUnderFS(path, conf);
+    return false;
   }
 }

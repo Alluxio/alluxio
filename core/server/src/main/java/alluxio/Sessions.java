@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -10,8 +10,6 @@
  */
 
 package alluxio;
-
-import alluxio.worker.WorkerContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@code Sessions} represents and manages all sessions contacting a worker.
  */
 @ThreadSafe
-public class Sessions {
+public final class Sessions {
   public static final int DATASERVER_SESSION_ID = -1;
   public static final int CHECKPOINT_SESSION_ID = -2;
   public static final int MIGRATE_DATA_SESSION_ID = -3;
@@ -45,7 +43,7 @@ public class Sessions {
    * Creates a new instance of {@link Sessions}.
    */
   public Sessions() {
-    mSessions = new HashMap<Long, SessionInfo>();
+    mSessions = new HashMap<>();
   }
 
   /**
@@ -55,7 +53,7 @@ public class Sessions {
    */
   public List<Long> getTimedOutSessions() {
     LOG.debug("Worker is checking all sessions' status for timeouts.");
-    List<Long> ret = new ArrayList<Long>();
+    List<Long> ret = new ArrayList<>();
     synchronized (mSessions) {
       for (Entry<Long, SessionInfo> entry : mSessions.entrySet()) {
         if (entry.getValue().timeout()) {
@@ -71,8 +69,8 @@ public class Sessions {
    *
    * @param sessionId the id of the session to be removed
    */
-  public synchronized void removeSession(long sessionId) {
-    LOG.info("Cleaning up session {}", sessionId);
+  public void removeSession(long sessionId) {
+    LOG.debug("Cleaning up session {}", sessionId);
     synchronized (mSessions) {
       mSessions.remove(sessionId);
     }
@@ -88,8 +86,7 @@ public class Sessions {
       if (mSessions.containsKey(sessionId)) {
         mSessions.get(sessionId).heartbeat();
       } else {
-        Configuration conf = WorkerContext.getConf();
-        int sessionTimeoutMs = conf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
+        int sessionTimeoutMs = Configuration.getInt(PropertyKey.WORKER_SESSION_TIMEOUT_MS);
         mSessions.put(sessionId, new SessionInfo(sessionId, sessionTimeoutMs));
       }
     }

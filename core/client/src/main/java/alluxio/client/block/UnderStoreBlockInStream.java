@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,14 +11,19 @@
 
 package alluxio.client.block;
 
-import alluxio.client.ClientContext;
+import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.exception.PreconditionMessage;
+import alluxio.metrics.MetricsSystem;
+
+import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class provides a streaming API to read a fixed chunk from a file in the under storage
@@ -28,13 +33,19 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UnderStoreBlockInStream extends BlockInStream {
+  /**
+   * The block size of the file. See {@link #getLength()} for more length information.
+   */
+  private final long mFileBlockSize;
   /** The start of this block. This is the absolute position within the UFS file. */
   private final long mInitPos;
-  /** The length of the block. */
-  private final long mLength;
-  /** The UFS path for this block. */
-  private final String mUfsPath;
-
+  /** The factory to use to create under storage input streams. */
+  private final UnderStoreStreamFactory mUnderStoreStreamFactory;
+  /**
+   * The length of this current block. This may be {@link Constants#UNKNOWN_SIZE}, and may be
+   * updated to a valid length. See {@link #getLength()} for more length information.
+   */
+  private long mLength;
   /**
    * The current position for this block stream. This is the position within this block, and not
    * the absolute position within the UFS file.
@@ -44,22 +55,47 @@ public final class UnderStoreBlockInStream extends BlockInStream {
   private InputStream mUnderStoreStream;
 
   /**
-   * Creates a new under storage file input stream.
+   * A factory which can create an input stream to under storage.
+   */
+  public interface UnderStoreStreamFactory extends AutoCloseable {
+    /**
+     * @return an input stream to under storage
+     * @throws IOException if an IO exception occurs
+     */
+    InputStream create() throws IOException;
+
+    /**
+     * Closes the factory, releasing any resources it was holding.
+     *
+     * @throws IOException if an IO exception occurs
+     */
+    void close() throws IOException;
+  }
+
+  /**
+   * Creates an under store block in stream which will read from the streams created by the given
+   * {@link UnderStoreStreamFactory}. The stream will be set to the beginning of the block.
    *
    * @param initPos the initial position
-   * @param length the length
-   * @param ufsPath the under file system path
-   * @throws IOException if an I/O error occurs
+   * @param length the length of this current block (allowed to be {@link Constants#UNKNOWN_SIZE})
+   * @param fileBlockSize the block size for the file
+   * @param underStoreStreamFactory a factory for getting input streams from the under storage; the
+   *        constructed {@link UnderStoreBlockInStream} is responsible for closing it
+   *
+   * @throws IOException if an IO exception occurs while creating the under storage input stream
    */
-  public UnderStoreBlockInStream(long initPos, long length, String ufsPath) throws IOException {
+  public UnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
+      UnderStoreStreamFactory underStoreStreamFactory) throws IOException {
     mInitPos = initPos;
     mLength = length;
-    mUfsPath = ufsPath;
+    mFileBlockSize = fileBlockSize;
+    mUnderStoreStreamFactory = underStoreStreamFactory;
     setUnderStoreStream(0);
   }
 
   @Override
   public void close() throws IOException {
+    mUnderStoreStreamFactory.close();
     mUnderStoreStream.close();
   }
 
@@ -69,9 +105,16 @@ public final class UnderStoreBlockInStream extends BlockInStream {
       return -1;
     }
     int data = mUnderStoreStream.read();
-    if (data != -1) {
+    if (data == -1) {
+      if (mLength == Constants.UNKNOWN_SIZE) {
+        // End of stream. Compute the length.
+        mLength = mPos;
+      }
+    } else {
+      // Read a valid byte, update the position.
       mPos++;
     }
+    Metrics.BYTES_READ_UFS.inc();
     return data;
   }
 
@@ -86,15 +129,24 @@ public final class UnderStoreBlockInStream extends BlockInStream {
       return -1;
     }
     int bytesRead = mUnderStoreStream.read(b, off, len);
-    if (bytesRead != -1) {
+    if (bytesRead == -1) {
+      if (mLength == Constants.UNKNOWN_SIZE) {
+        // End of stream. Compute the length.
+        mLength = mPos;
+      }
+    } else {
+      // Read valid data, update the position.
       mPos += bytesRead;
+    }
+    if (bytesRead > 0) {
+      Metrics.BYTES_READ_UFS.inc(bytesRead);
     }
     return bytesRead;
   }
 
   @Override
   public long remaining() {
-    return mLength - mPos;
+    return getLength() - mPos;
   }
 
   @Override
@@ -116,9 +168,9 @@ public final class UnderStoreBlockInStream extends BlockInStream {
       return 0;
     }
     // Cannot skip beyond boundary
-    long toSkip = Math.min(mLength - mPos, n);
+    long toSkip = Math.min(getLength() - mPos, n);
     long skipped = mUnderStoreStream.skip(toSkip);
-    if (toSkip != skipped) {
+    if (mLength != Constants.UNKNOWN_SIZE && toSkip != skipped) {
       throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(toSkip));
     }
     mPos += skipped;
@@ -137,16 +189,43 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     if (mUnderStoreStream != null) {
       mUnderStoreStream.close();
     }
-    if (pos < 0 || pos > mLength) {
-      throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(pos));
-    }
-    UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, ClientContext.getConf());
-    mUnderStoreStream = ufs.open(mUfsPath);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
+    Preconditions.checkArgument(pos <= mLength,
+        PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), pos);
+    mUnderStoreStream = mUnderStoreStreamFactory.create();
+    long streamStart = mInitPos + pos;
     // The stream is at the beginning of the file, so skip to the correct absolute position.
-    if (mInitPos + pos != mUnderStoreStream.skip(mInitPos + pos)) {
+    if (streamStart != 0 && streamStart != mUnderStoreStream.skip(streamStart)) {
+      mUnderStoreStream.close();
       throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
     }
     // Set the current block position to the specified block position.
     mPos = pos;
+  }
+
+  /**
+   * Returns the length of the current UFS block. This method handles the situation when the UFS
+   * file has an unknown length. If the UFS file has an unknown length, the length returned will
+   * be the file block size. If the block is completely read, the length will be updated to the
+   * correct block size.
+   *
+   * @return the length of this current block
+   */
+  private long getLength() {
+    if (mLength != Constants.UNKNOWN_SIZE) {
+      return mLength;
+    }
+    // The length is unknown. Use the max block size until the computed length is known.
+    return mFileBlockSize;
+  }
+
+  /**
+   * Class that contains metrics about {@link UnderStoreBlockInStream}.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter BYTES_READ_UFS = MetricsSystem.clientCounter("BytesReadUfs");
+
+    private Metrics() {} // prevent instantiation
   }
 }

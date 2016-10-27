@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -27,7 +27,7 @@ public final class PrefixListTest {
    * items correctly.
    */
   @Test
-  public void emptyPrefixTest() {
+  public void emptyPrefix() {
     PrefixList prefixList = new PrefixList(ImmutableList.of(""));
     Assert.assertTrue(prefixList.inList("a"));
 
@@ -38,7 +38,7 @@ public final class PrefixListTest {
    * Tests that the {@link PrefixList#PrefixList(List)} constructor constructs items correctly.
    */
   @Test
-  public void prefixListTest() {
+  public void prefixList() {
     PrefixList prefixList = new PrefixList(ImmutableList.of("test", "apple", "sun"));
     Assert.assertTrue(prefixList.inList("test"));
     Assert.assertTrue(prefixList.inList("apple"));

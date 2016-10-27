@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.client.lineage;
 
 import alluxio.AbstractMasterClient;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
@@ -23,6 +22,7 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.LineageMasterClientService;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import org.apache.thrift.TException;
 
@@ -47,10 +47,9 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * Creates a new lineage master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public LineageMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public LineageMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override
@@ -120,17 +119,20 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @param path the path to the file
    * @param blockSizeBytes the size of the block in bytes
    * @param ttl the time to live for the file
+   * @param ttlAction Action to take after Ttl expiry
    * @return the value of the lineage creation result
    * @throws IOException if a non-Alluxio exception occurs
    * @throws LineageDoesNotExistException if the file does not exist
    * @throws AlluxioException if an Alluxio exception occurs
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
-      final long ttl) throws IOException, LineageDoesNotExistException, AlluxioException {
+      final long ttl, final TtlAction ttlAction)
+      throws IOException, LineageDoesNotExistException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
-        return mClient.reinitializeFile(path, blockSizeBytes, ttl);
+        return mClient.reinitializeFile(path, blockSizeBytes, ttl,
+            ThriftUtils.toThrift(ttlAction));
       }
     });
   }
@@ -147,7 +149,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws TException {
-        List<LineageInfo> result = new ArrayList<LineageInfo>();
+        List<LineageInfo> result = new ArrayList<>();
         for (alluxio.thrift.LineageInfo lineageInfo : mClient.getLineageInfoList()) {
           result.add(ThriftUtils.fromThrift(lineageInfo));
         }

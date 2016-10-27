@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,9 +11,9 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
+import alluxio.client.lineage.LineageContext;
 import alluxio.wire.LineageInfo;
 
 import org.apache.commons.cli.CommandLine;
@@ -32,11 +32,10 @@ public final class ListLineagesCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to list all the lineages.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public ListLineagesCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public ListLineagesCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -51,7 +50,7 @@ public final class ListLineagesCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    AlluxioLineage tl = AlluxioLineage.get();
+    AlluxioLineage tl = AlluxioLineage.get(LineageContext.INSTANCE);
     List<LineageInfo> infos = tl.getLineageInfoList();
     for (LineageInfo info : infos) {
       System.out.println(info);

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.thrift.TTtlAction;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -18,6 +20,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ThriftUtils {
+
+  private ThriftUtils() {} // prevent instantiation
 
   /**
    * Converts a thrift type to a wire type.
@@ -120,6 +124,17 @@ public final class ThriftUtils {
   }
 
   /**
+   * Converts thrift type to wire type.
+   *
+   * @param tTtlAction {@link TTtlAction}
+   * @return {@link TtlAction} equivalent
+   */
+  public static TtlAction fromThrift(TTtlAction tTtlAction) {
+
+    return TtlAction.fromThrift(tTtlAction);
+  }
+
+  /**
    * Converts a wire type to a thrift type.
    *
    * @param blockInfo the wire representation of a block descriptor
@@ -217,6 +232,16 @@ public final class ThriftUtils {
    */
   public static alluxio.thrift.WorkerNetAddress toThrift(WorkerNetAddress workerNetAddress) {
     return workerNetAddress.toThrift();
+  }
+
+  /**
+   * Converts wire type to thrift type.
+   *
+   * @param ttlAction {@link TtlAction}
+   * @return {@link TTtlAction} equivalent
+   */
+  public static TTtlAction toThrift(TtlAction ttlAction) {
+    return TtlAction.toThrift(ttlAction);
   }
 }
 

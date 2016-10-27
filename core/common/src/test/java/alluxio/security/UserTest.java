@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -28,24 +28,28 @@ public final class UserTest {
    * framework.
    */
   @Test
-  public void usedInSecurityContextTest() {
-    // add new users into Subject
+  public void usedInSecurityContext() {
+    // Add new users into Subject.
     Subject subject = new Subject();
     subject.getPrincipals().add(new User("realUser"));
     subject.getPrincipals().add(new User("proxyUser"));
 
-    // fetch added users
+    // Fetch added users.
     Set<User> users = subject.getPrincipals(User.class);
 
-    // verification
+    // Verification.
     Assert.assertEquals(2, users.size());
+
+    // Test equals.
+    Assert.assertTrue(users.contains(new User("realUser")));
+    Assert.assertFalse(users.contains(new User("noExistingUser")));
   }
 
   /**
    * This test verifies that full realm format is valid as {@link User} name.
    */
   @Test
-  public void realmAsUserNameTest() {
+  public void realmAsUserName() {
     // Add new users into Subject.
     Subject subject = new Subject();
     subject.getPrincipals().add(new User("admin/admin@EXAMPLE.com"));

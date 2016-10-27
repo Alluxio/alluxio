@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,18 +13,18 @@ package alluxio.wire;
 
 import alluxio.util.CommonUtils;
 
-import com.google.common.collect.Lists;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class FileInfoTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     FileInfo fileInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     FileInfo other = mapper.readValue(mapper.writeValueAsBytes(fileInfo), FileInfo.class);
@@ -32,7 +32,7 @@ public class FileInfoTest {
   }
 
   @Test
-  public void thriftTest() {
+  public void thrift() {
     FileInfo fileInfo = createRandom();
     FileInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(fileInfo));
     checkEquality(fileInfo, other);
@@ -55,11 +55,13 @@ public class FileInfoTest {
     Assert.assertEquals(a.getInMemoryPercentage(), b.getInMemoryPercentage());
     Assert.assertEquals(a.getLastModificationTimeMs(), b.getLastModificationTimeMs());
     Assert.assertEquals(a.getTtl(), b.getTtl());
-    Assert.assertEquals(a.getUserName(), b.getUserName());
-    Assert.assertEquals(a.getGroupName(), b.getGroupName());
-    Assert.assertEquals(a.getPermission(), b.getPermission());
+    Assert.assertEquals(a.getTtlAction(), b.getTtlAction());
+    Assert.assertEquals(a.getOwner(), b.getOwner());
+    Assert.assertEquals(a.getGroup(), b.getGroup());
+    Assert.assertEquals(a.getMode(), b.getMode());
     Assert.assertEquals(a.getPersistenceState(), b.getPersistenceState());
     Assert.assertEquals(a.isMountPoint(), b.isMountPoint());
+    Assert.assertEquals(a.getFileBlockInfos(), b.getFileBlockInfos());
     Assert.assertEquals(a, b);
   }
 
@@ -79,7 +81,7 @@ public class FileInfoTest {
     boolean pinned = random.nextBoolean();
     boolean cacheable = random.nextBoolean();
     boolean persisted = random.nextBoolean();
-    List<Long> blockIds = Lists.newArrayList();
+    List<Long> blockIds = new ArrayList<>();
     long numBlockIds = random.nextInt(10);
     for (int i = 0; i < numBlockIds; i++) {
       blockIds.add(random.nextLong());
@@ -92,6 +94,11 @@ public class FileInfoTest {
     int permission = random.nextInt();
     String persistenceState = CommonUtils.randomString(random.nextInt(10));
     boolean mountPoint = random.nextBoolean();
+    List<FileBlockInfo> fileBlocksInfos = new ArrayList<>();
+    long numFileBlockInfos = random.nextInt(10);
+    for (int i = 0; i < numFileBlockInfos; i++) {
+      fileBlocksInfos.add(FileBlockInfoTest.createRandom());
+    }
 
     result.setFileId(fileId);
     result.setName(name);
@@ -109,11 +116,13 @@ public class FileInfoTest {
     result.setInMemoryPercentage(inMemoryPercentage);
     result.setLastModificationTimeMs(lastModificationTimeMs);
     result.setTtl(ttl);
-    result.setUserName(userName);
-    result.setGroupName(groupName);
-    result.setPermission(permission);
+    result.setTtlAction(TtlAction.DELETE);
+    result.setOwner(userName);
+    result.setGroup(groupName);
+    result.setMode(permission);
     result.setPersistenceState(persistenceState);
     result.setMountPoint(mountPoint);
+    result.setFileBlockInfos(fileBlocksInfos);
 
     return result;
   }

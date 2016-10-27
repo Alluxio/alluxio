@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -30,7 +30,6 @@ import java.nio.channels.ReadableByteChannel;
 public class LocalFileBlockReaderTest {
   private static final long TEST_BLOCK_SIZE = 1024;
   private LocalFileBlockReader mReader;
-  private String mTestFilePath;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -42,24 +41,20 @@ public class LocalFileBlockReaderTest {
 
   /**
    * Sets up the file path and file block reader before a test runs.
-   *
-   * @throws Exception if one of the file operations fails
    */
   @Before
   public void before() throws Exception {
-    mTestFilePath = mFolder.newFile().getAbsolutePath();
+    String testFilePath = mFolder.newFile().getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE);
-    BufferUtils.writeBufferToFile(mTestFilePath, buffer);
-    mReader = new LocalFileBlockReader(mTestFilePath);
+    BufferUtils.writeBufferToFile(testFilePath, buffer);
+    mReader = new LocalFileBlockReader(testFilePath);
   }
 
   /**
    * Test for the {@link LocalFileBlockReader#getChannel()} method.
-   *
-   * @throws Exception if bytes cannot be read from the channel
    */
   @Test
-  public void getChannelTest() throws Exception {
+  public void getChannel() throws Exception {
     ReadableByteChannel channel = mReader.getChannel();
     Assert.assertNotNull(channel);
     ByteBuffer buffer = ByteBuffer.allocate((int) TEST_BLOCK_SIZE);
@@ -72,17 +67,15 @@ public class LocalFileBlockReaderTest {
    * Test for the {@link LocalFileBlockReader#getLength()} method.
    */
   @Test
-  public void getLengthTest() {
+  public void getLength() {
     Assert.assertEquals(TEST_BLOCK_SIZE, mReader.getLength());
   }
 
   /**
    * Tests that an exception is thrown if the read exceeds the file length limit.
-   *
-   * @throws Exception if the data from the block cannot be read
    */
   @Test
-  public void readWithInvalidArgumentTest() throws Exception {
+  public void readWithInvalidArgument() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("exceeding fileSize");
     mReader.read(TEST_BLOCK_SIZE - 1, 2);
@@ -90,11 +83,9 @@ public class LocalFileBlockReaderTest {
 
   /**
    * Test for the {@link LocalFileBlockReader#read(long, long)} method.
-   *
-   * @throws Exception if the buffer cannot be read from the reader
    */
   @Test
-  public void readTest() throws Exception {
+  public void read() throws Exception {
     ByteBuffer buffer;
 
     // Read 1/4 block by setting the length to be 1/4 of the block size.
@@ -114,12 +105,9 @@ public class LocalFileBlockReaderTest {
   /**
    * Tests that a {@link ClosedChannelException} is thrown when trying to read from a reader after
    * closing it.
-   *
-   * @throws Exception if either the block cannot be read from the reader or closing the reader
-   *                   fails
    */
   @Test
-  public void closeTest() throws Exception {
+  public void close() throws Exception {
     mThrown.expect(ClosedChannelException.class);
     mReader.close();
     mReader.read(0, TEST_BLOCK_SIZE);

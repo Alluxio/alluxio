@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -19,6 +19,7 @@ import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +27,7 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Tests for the {@link ClientHandler} class.
@@ -54,7 +56,7 @@ public class ClientHandlerTest {
    * Makes sure that a {@link NullPointerException} is thrown if a listener is added which is null.
    */
   @Test
-  public void addListenerTest() {
+  public void addListener() {
     mThrown.expect(NullPointerException.class);
 
     mHandler.addListener(null);
@@ -62,11 +64,9 @@ public class ClientHandlerTest {
 
   /**
    * Makes sure that the response is received as expected.
-   *
-   * @throws IOException when reading from the channel fails
    */
   @Test
-  public void channelRead0ResponseReceivedTest() throws IOException {
+  public void channelRead0ResponseReceived() throws IOException {
     final ClientHandler.ResponseListener listener =
         Mockito.mock(ClientHandler.ResponseListener.class);
     final DataBuffer buffer = Mockito.mock(DataBuffer.class);
@@ -82,11 +82,9 @@ public class ClientHandlerTest {
   /**
    * Makes sure that an {@link IllegalArgumentException} is thrown when the message is
    * not a {@link alluxio.network.protocol.RPCResponse}.
-   *
-   * @throws IOException when reading from the channel fails
    */
   @Test
-  public void channelRead0ThrowsExceptionTest() throws IOException {
+  public void channelRead0ThrowsException() throws IOException {
     final RPCMessage message = new RPCBlockReadRequest(0, 0, 0, 0, 0);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.NO_RPC_HANDLER.getMessage(message.getType()));
@@ -95,14 +93,22 @@ public class ClientHandlerTest {
   }
 
   /**
-   * Makes sure that the {@link ChannelHandlerContext} is closed.
-   *
-   * @throws Exception when the exception cannot be caught
+   * Makes sure that the exceptions in the handler is handled properly.
    */
   @Test
-  public void exceptionCaughtClosesContextTest() throws Exception {
-    mHandler.exceptionCaught(mContext, new Throwable());
+  public void exceptionCaughtClosesContext() throws Exception {
+    SingleResponseListener singleResponseListener = new SingleResponseListener();
+    mHandler.addListener(singleResponseListener);
+    mHandler.exceptionCaught(mContext, new IOException());
 
-    Mockito.verify(mContext).close();
+    boolean exceptionCaught = false;
+    try {
+      singleResponseListener.get();
+    } catch (ExecutionException e) {
+      if (e.getCause() instanceof IOException) {
+        exceptionCaught = true;
+      }
+    }
+    Assert.assertTrue(exceptionCaught);
   }
 }

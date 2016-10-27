@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -10,6 +10,8 @@
  */
 
 package alluxio.exception;
+
+import alluxio.AlluxioURI;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -59,5 +61,14 @@ public class FileDoesNotExistException extends AlluxioException {
    */
   public FileDoesNotExistException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
+  }
+
+  /**
+   * Constructs a new exception stating that the given path does not exist.
+   *
+   * @param path the path which does not exist
+   */
+  public FileDoesNotExistException(AlluxioURI path) {
+    this(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
   }
 }

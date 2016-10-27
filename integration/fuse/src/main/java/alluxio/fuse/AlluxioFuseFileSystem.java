@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -17,6 +17,7 @@ import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -28,7 +29,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Maps;
 import jnr.constants.platform.OpenFlags;
 import jnr.ffi.Pointer;
 import jnr.ffi.types.mode_t;
@@ -45,6 +45,7 @@ import ru.serce.jnrfuse.struct.FuseFileInfo;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,7 +62,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final long[] UID_AND_GID = AlluxioFuseUtils.getUidAndGid();
 
-  private final Configuration mConfiguration;
   private final FileSystem mFileSystem;
   // base path within Alluxio namespace that is used for FUSE operations
   // For example, if alluxio-fuse is mounted in /mnt/alluxio and mAlluxioRootPath
@@ -76,16 +76,21 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private final Map<Long, OpenFileEntry> mOpenFiles;
   private long mNextOpenFileId;
 
-  AlluxioFuseFileSystem(Configuration conf, FileSystem fs, AlluxioFuseOptions opts) {
+  /**
+   * Creates a new instance of {@link AlluxioFuseFileSystem}.
+   *
+   * @param fs Alluxio file system
+   * @param opts options
+   */
+  AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts) {
     super();
-    mConfiguration = conf;
     mFileSystem = fs;
-    mAlluxioMaster = mConfiguration.get(Constants.MASTER_ADDRESS);
+    mAlluxioMaster = Configuration.get(PropertyKey.MASTER_ADDRESS);
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mNextOpenFileId = 0L;
-    mOpenFiles = Maps.newHashMap();
+    mOpenFiles = new HashMap<>();
 
-    final int maxCachedPaths = mConfiguration.getInt(Constants.FUSE_CACHED_PATHS_MAX);
+    final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -166,7 +171,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int flush(String path, FuseFileInfo fi) {
     LOG.trace("flush({})", path);
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.get(fd);
     }
@@ -204,7 +209,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       final URIStatus status = mFileSystem.getStatus(turi);
       stat.st_size.set(status.getLength());
 
-      final long ctime = status.getLastModificationTimeMs();
       final long ctime_sec = status.getLastModificationTimeMs() / 1000;
       //keeps only the "residual" nanoseconds not caputred in
       // citme_sec
@@ -214,8 +218,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      // TODO(andreareale): understand how to map FileInfo#getUserName()
-      // and FileInfo#getGroupName() to UIDs and GIDs of the node
+      // TODO(andreareale): understand how to map FileInfo#getOwner()
+      // and FileInfo#getGroup() to UIDs and GIDs of the node
       // where alluxio-fuse is mounted.
       // While this is not done, just use uid and gid of the user
       // running alluxio-fuse.
@@ -255,7 +259,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public String getFSName() {
-    return mConfiguration.get(Constants.FUSE_FS_NAME);
+    return Configuration.get(PropertyKey.FUSE_FS_NAME);
   }
 
   /**
@@ -380,7 +384,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("read({}, {}, {})", path, size, offset);
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.get(fd);
     }
@@ -488,7 +492,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int release(String path, FuseFileInfo fi) {
     LOG.trace("release({})", path);
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.remove(fd);
       if (oe == null) {
@@ -588,7 +592,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("write({}, {}, {})", path, size, offset);
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.get(fd);
     }
@@ -665,6 +669,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
    */
   private class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
+
+    /**
+     * Constructs a new {@link PathCacheLoader}.
+     */
+    public PathCacheLoader() {}
+
     @Override
     public AlluxioURI load(String fusePath) {
       // fusePath is guaranteed to always be an absolute path (i.e., starts

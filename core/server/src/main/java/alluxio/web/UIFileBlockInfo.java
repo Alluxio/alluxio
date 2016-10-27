@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,10 +13,9 @@ package alluxio.web;
 
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
+import com.google.common.net.HostAndPort;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,8 +29,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class UIFileBlockInfo {
-  private final List<String> mLocations = new ArrayList<String>();
-  private final Set<String> mTierAliases = new HashSet<String>();
+  private final List<String> mLocations = new ArrayList<>();
+  private final Set<String> mTierAliases = new HashSet<>();
   private final long mId;
   private final long mBlockLength;
   private final long mLastAccessTimeMs;
@@ -69,14 +68,14 @@ public final class UIFileBlockInfo {
   }
 
   private void addLocations(FileBlockInfo fileBlockInfo) {
-    Set<String> locations = Sets.newHashSet();
+    Set<String> locations = new HashSet<>();
     // add alluxio locations
     for (BlockLocation location : fileBlockInfo.getBlockInfo().getLocations()) {
       locations.add(location.getWorkerAddress().getHost());
     }
     // add underFS locations
-    for (WorkerNetAddress address : fileBlockInfo.getUfsLocations()) {
-      locations.add(address.getHost());
+    for (String location : fileBlockInfo.getUfsLocations()) {
+      locations.add(HostAndPort.fromString(location).getHostText());
     }
     mLocations.addAll(locations);
   }

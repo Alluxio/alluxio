@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,24 +14,29 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
+import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 /**
@@ -43,46 +48,64 @@ public abstract class UIWebServer {
 
   protected final WebAppContext mWebAppContext;
   private final Server mServer;
-  private final ServiceType mService;
-  private final Configuration mConfiguration;
+  private final String mServiceName;
   private InetSocketAddress mAddress;
+  private final ServerConnector mServerConnector;
 
   /**
    * Creates a new instance of {@link UIWebServer}. It pairs URLs with servlets and sets the webapp
    * folder.
    *
-   * @param service name of the web service
+   * @param serviceName name of the web service
    * @param address address of the server
-   * @param conf Alluxio configuration
    */
-  public UIWebServer(ServiceType service, InetSocketAddress address, Configuration conf) {
-    Preconditions.checkNotNull(service, "Service type cannot be null");
+  public UIWebServer(String serviceName, InetSocketAddress address) {
+    Preconditions.checkNotNull(serviceName, "Service name cannot be null");
     Preconditions.checkNotNull(address, "Server address cannot be null");
-    Preconditions.checkNotNull(conf, "Configuration cannot be null");
 
     mAddress = address;
-    mService = service;
-    mConfiguration = conf;
+    mServiceName = serviceName;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = mConfiguration.getInt(Constants.WEB_THREAD_COUNT);
-
-    mServer = new Server();
-    SelectChannelConnector connector = new SelectChannelConnector();
-    connector.setHost(address.getHostName());
-    connector.setPort(address.getPort());
-    connector.setAcceptors(webThreadCount);
-    mServer.setConnectors(new Connector[] {connector});
+    int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
 
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
     threadPool.setMaxThreads(webThreadCount * 2 + 100);
-    mServer.setThreadPool(threadPool);
+
+    mServer = new Server(threadPool);
+
+    mServerConnector = new ServerConnector(mServer);
+    mServerConnector.setPort(mAddress.getPort());
+    mServerConnector.setHost(mAddress.getAddress().getHostAddress());
+
+    mServer.addConnector(mServerConnector);
+
+    // Open the connector here so we can resolve the port if we are selecting a free port.
+    try {
+      mServerConnector.open();
+    } catch (IOException e) {
+      Throwables.propagate(e);
+    }
+
+    System.setProperty("org.apache.jasper.compiler.disablejsr199", "false");
 
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
-    File warPath = new File(mConfiguration.get(Constants.WEB_RESOURCES));
+    File warPath = new File(Configuration.get(PropertyKey.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
+
+    mWebAppContext.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
+
+    // Set the ContainerIncludeJarPattern so that jetty examines these
+    // container-path jars for tlds, web-fragments etc.
+    // If you omit the jar that contains the jstl .tlds, the jsp engine will
+    // scan for them instead.
+    mWebAppContext.setAttribute(
+        "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
+        ".*/[^/]*servlet-api-[^/]*\\.jar$|.*/javax.servlet.jsp.jstl-.*\\.jar$"
+         + "|.*/[^/]*taglibs.*\\.jar$");
+
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mWebAppContext, new DefaultHandler()});
     mServer.setHandler(handlers);
@@ -100,6 +123,14 @@ public abstract class UIWebServer {
       handlers.addHandler(h);
     }
     mServer.setHandler(handlers);
+  }
+
+  private List<ContainerInitializer> jspInitializers() {
+    JettyJasperInitializer sci = new JettyJasperInitializer();
+    ContainerInitializer initializer = new ContainerInitializer(sci, null);
+    List<ContainerInitializer> initializers = new ArrayList<ContainerInitializer>();
+    initializers.add(initializer);
+    return initializers;
   }
 
   /**
@@ -122,7 +153,7 @@ public abstract class UIWebServer {
    * @return the bind host
    */
   public String getBindHost() {
-    String bindHost = mServer.getServer().getConnectors()[0].getHost();
+    String bindHost = mServerConnector.getHost();
     return bindHost == null ? "0.0.0.0" : bindHost;
   }
 
@@ -132,7 +163,7 @@ public abstract class UIWebServer {
    * @return the local port
    */
   public int getLocalPort() {
-    return mServer.getServer().getConnectors()[0].getLocalPort();
+    return mServerConnector.getLocalPort();
   }
 
   /**
@@ -143,7 +174,7 @@ public abstract class UIWebServer {
   public void shutdownWebServer() throws Exception {
     // close all connectors and release all binding ports
     for (Connector connector : mServer.getConnectors()) {
-      connector.close();
+      connector.stop();
     }
 
     mServer.stop();
@@ -154,16 +185,8 @@ public abstract class UIWebServer {
    */
   public void startWebServer() {
     try {
-      mServer.getConnectors()[0].close();
-      mServer.getConnectors()[0].open();
       mServer.start();
-      if (mAddress.getPort() == 0) {
-        int webPort = mServer.getConnectors()[0].getLocalPort();
-        mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
-        // reset web service port
-        mConfiguration.set(mService.getPortKey(), Integer.toString(webPort));
-      }
-      LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
+      LOG.info("{} started @ {}", mServiceName, mAddress);
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

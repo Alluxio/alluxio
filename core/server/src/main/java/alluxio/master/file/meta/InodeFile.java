@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -15,30 +15,29 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
+import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.authorization.FileSystemPermission;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Alluxio file system's file representation in the file system master.
+ * Alluxio file system's file representation in the file system master. The inode must be locked
+ * ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class InodeFile extends Inode<InodeFile> {
-  /** This default umask is used to calculate file permission from directory permission. */
-  private static final FileSystemPermission UMASK =
-      new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
-
   private List<Long> mBlocks;
   private long mBlockContainerId;
   private long mBlockSizeBytes;
@@ -46,28 +45,23 @@ public final class InodeFile extends Inode<InodeFile> {
   private boolean mCompleted;
   private long mLength;
   private long mTtl;
+  private TtlAction mTtlAction;
 
   /**
    * Creates a new instance of {@link InodeFile}.
    *
-   * @param id the block container id to use
+   * @param blockContainerId the block container id to use
    */
-  public InodeFile(long id) {
-    super(0);
-    mBlocks = new ArrayList<Long>(3);
-    mBlockContainerId = id;
+  private InodeFile(long blockContainerId) {
+    super(BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), false);
+    mBlocks = new ArrayList<>(1);
+    mBlockContainerId = blockContainerId;
     mBlockSizeBytes = 0;
     mCacheable = false;
     mCompleted = false;
-    mDirectory = false;
-    mId = BlockId.createBlockId(mBlockContainerId, BlockId.getMaxSequenceNumber());
     mLength = 0;
     mTtl = Constants.NO_TTL;
-  }
-
-  private InodeFile(long id, long creationTimeMs) {
-    this(id);
-    mCreationTimeMs = creationTimeMs;
+    mTtlAction = TtlAction.DELETE;
   }
 
   @Override
@@ -76,7 +70,7 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   @Override
-  public synchronized FileInfo generateClientFileInfo(String path) {
+  public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
     // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
     // block master
@@ -94,9 +88,10 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setBlockIds(getBlockIds());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(mTtl);
-    ret.setUserName(getUserName());
-    ret.setGroupName(getGroupName());
-    ret.setPermission(getPermission());
+    ret.setTtlAction(mTtlAction);
+    ret.setOwner(getOwner());
+    ret.setGroup(getGroup());
+    ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
     return ret;
@@ -105,8 +100,8 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * Resets the file inode.
    */
-  public synchronized void reset() {
-    mBlocks = Lists.newArrayList();
+  public void reset() {
+    mBlocks = new ArrayList<>();
     mLength = 0;
     mCompleted = false;
     mCacheable = false;
@@ -115,28 +110,28 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * @return a duplication of all the block ids of the file
    */
-  public synchronized List<Long> getBlockIds() {
-    return new ArrayList<Long>(mBlocks);
+  public List<Long> getBlockIds() {
+    return new ArrayList<>(mBlocks);
   }
 
   /**
    * @return the block size in bytes
    */
-  public synchronized long getBlockSizeBytes() {
+  public long getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
 
   /**
    * @return the length of the file in bytes. This is not accurate before the file is closed
    */
-  public synchronized long getLength() {
+  public long getLength() {
     return mLength;
   }
 
   /**
    * @return the id of a new block of the file
    */
-  public synchronized long getNewBlockId() {
+  public long getNewBlockId() {
     long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
     // TODO(gene): Check for max block sequence number, and sanity check the sequence number.
     // TODO(gene): Check isComplete?
@@ -153,7 +148,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the block id for the index
    * @throws BlockInfoException if the index of the block is out of range
    */
-  public synchronized long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
+  public long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException(
           "blockIndex " + blockIndex + " is out of range. File blocks: " + mBlocks.size());
@@ -164,14 +159,14 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * @return true if the file is cacheable, false otherwise
    */
-  public synchronized boolean isCacheable() {
+  public boolean isCacheable() {
     return mCacheable;
   }
 
   /**
    * @return true if the file is complete, false otherwise
    */
-  public synchronized boolean isCompleted() {
+  public boolean isCompleted() {
     return mCompleted;
   }
 
@@ -179,7 +174,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param blockSizeBytes the block size to use
    * @return the updated object
    */
-  public synchronized InodeFile setBlockSizeBytes(long blockSizeBytes) {
+  public InodeFile setBlockSizeBytes(long blockSizeBytes) {
     Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
     mBlockSizeBytes = blockSizeBytes;
     return getThis();
@@ -189,8 +184,8 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param blockIds the id's of the block
    * @return the updated object
    */
-  public synchronized InodeFile setBlockIds(List<Long> blockIds) {
-    mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
+  public InodeFile setBlockIds(List<Long> blockIds) {
+    mBlocks = new ArrayList<>(Preconditions.checkNotNull(blockIds));
     return getThis();
   }
 
@@ -198,7 +193,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param cacheable the cacheable flag value to use
    * @return the updated object
    */
-  public synchronized InodeFile setCacheable(boolean cacheable) {
+  public InodeFile setCacheable(boolean cacheable) {
     // TODO(gene). This related logic is not complete right. Fix this.
     mCacheable = cacheable;
     return getThis();
@@ -208,7 +203,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param completed the complete flag value to use
    * @return the updated object
    */
-  public synchronized InodeFile setCompleted(boolean completed) {
+  public InodeFile setCompleted(boolean completed) {
     mCompleted = completed;
     return getThis();
   }
@@ -217,45 +212,55 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param length the length to use
    * @return the updated object
    */
-  public synchronized InodeFile setLength(long length) {
+  public InodeFile setLength(long length) {
     mLength = length;
     return getThis();
-  }
-
-  @Override
-  public InodeFile setPermissionStatus(PermissionStatus permissionStatus) {
-    Preconditions.checkNotNull(permissionStatus, "Permission status is not set");
-    return super.setPermissionStatus(permissionStatus.applyUMask(UMASK));
   }
 
   /**
    * @param ttl the TTL to use, in milliseconds
    * @return the updated object
    */
-  public synchronized InodeFile setTtl(long ttl) {
+  public InodeFile setTtl(long ttl) {
     mTtl = ttl;
     return getThis();
   }
 
   /**
-   * Completes the file. Cannot set the length if the file is already completed or the length is
-   * negative.
+   * @param ttlAction the {@link TtlAction} to use
+   * @return the updated options object
+   */
+  public InodeFile setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
+    return getThis();
+  }
+
+  /**
+   * Completes the file. Cannot set the length if the file is already completed. However, an unknown
+   * file size, {@link Constants#UNKNOWN_SIZE}, is valid. Cannot complete an already complete file,
+   * unless the completed length was previously {@link Constants#UNKNOWN_SIZE}.
    *
-   * @param length The new length of the file, cannot be negative
+   * @param length The new length of the file, cannot be negative, but can be
+   *               {@link Constants#UNKNOWN_SIZE}
    * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    */
-  public synchronized void complete(long length)
+  public void complete(long length)
       throws InvalidFileSizeException, FileAlreadyCompletedException {
-    if (mCompleted) {
+    if (mCompleted && mLength != Constants.UNKNOWN_SIZE) {
       throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
     }
-    if (length < 0) {
+    if (length < 0 && length != Constants.UNKNOWN_SIZE) {
       throw new InvalidFileSizeException("File " + getName() + " cannot have negative length.");
     }
     mCompleted = true;
     mLength = length;
     mBlocks.clear();
+    if (length == Constants.UNKNOWN_SIZE) {
+      // TODO(gpang): allow unknown files to be multiple blocks.
+      // If the length of the file is unknown, only allow 1 block to the file.
+      length = mBlockSizeBytes;
+    }
     while (length > 0) {
       long blockSize = Math.min(length, mBlockSizeBytes);
       getNewBlockId();
@@ -264,10 +269,16 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   @Override
-  public synchronized String toString() {
-    return toStringHelper().add("blocks", mBlocks).add("blockContainerId", mBlockContainerId)
-        .add("blockSizeBytes", mBlockSizeBytes).add("cacheable", mCacheable)
-        .add("completed", mCompleted).add("length", mLength).add("ttl", mTtl).toString();
+  public String toString() {
+    return toStringHelper()
+        .add("blocks", mBlocks)
+        .add("blockContainerId", mBlockContainerId)
+        .add("blockSizeBytes", mBlockSizeBytes)
+        .add("cacheable", mCacheable)
+        .add("completed", mCompleted)
+        .add("length", mLength)
+        .add("ttl", mTtl)
+        .add("ttlAction", mTtlAction).toString();
   }
 
   /**
@@ -277,52 +288,90 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
-    PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
-        entry.getGroupName(), (short) entry.getPermission());
-    InodeFile inode =
-        new InodeFile(BlockId.getContainerId(entry.getId()), entry.getCreationTimeMs())
-            .setName(entry.getName())
-            .setBlockIds(entry.getBlocksList())
-            .setBlockSizeBytes(entry.getBlockSizeBytes())
-            .setCacheable(entry.getCacheable())
-            .setCompleted(entry.getCompleted())
-            .setLastModificationTimeMs(entry.getLastModificationTimeMs())
-            .setLength(entry.getLength())
-            .setParentId(entry.getParentId())
-            .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
-            .setPinned(entry.getPinned())
-            .setTtl(entry.getTtl())
-            .setPermissionStatus(permissionStatus);
-    return inode;
+    Permission permission =
+        new Permission(entry.getOwner(), entry.getGroup(), (short) entry.getMode());
+
+    return new InodeFile(BlockId.getContainerId(entry.getId()))
+        .setName(entry.getName())
+        .setBlockIds(entry.getBlocksList())
+        .setBlockSizeBytes(entry.getBlockSizeBytes())
+        .setCacheable(entry.getCacheable())
+        .setCompleted(entry.getCompleted())
+        .setCreationTimeMs(entry.getCreationTimeMs())
+        .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+        .setLength(entry.getLength())
+        .setParentId(entry.getParentId())
+        .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
+        .setPinned(entry.getPinned())
+        .setTtl(entry.getTtl())
+        .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
+        .setPermission(permission);
+  }
+
+  /**
+   * Creates an {@link InodeFile}.
+   *
+   * @param blockContainerId block container id of this inode
+   * @param parentId id of the parent of this inode
+   * @param name name of this inode
+   * @param creationTimeMs the creation time for this inode
+   * @param fileOptions options to create this file
+   * @return the {@link InodeFile} representation
+   */
+  public static InodeFile create(long blockContainerId, long parentId, String name,
+      long creationTimeMs, CreateFileOptions fileOptions) {
+    Permission permission = new Permission(fileOptions.getPermission());
+    if (fileOptions.isDefaultMode()) {
+      permission.setMode(Mode.getDefault()).applyFileUMask();
+    }
+    return new InodeFile(blockContainerId)
+        .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
+        .setCreationTimeMs(creationTimeMs)
+        .setName(name)
+        .setTtl(fileOptions.getTtl())
+        .setTtlAction(fileOptions.getTtlAction())
+        .setParentId(parentId)
+        .setPermission(permission)
+        .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED
+            : PersistenceState.NOT_PERSISTED);
+
   }
 
   @Override
-  public synchronized JournalEntry toJournalEntry() {
+  public JournalEntry toJournalEntry() {
     InodeFileEntry inodeFile = InodeFileEntry.newBuilder()
+        .addAllBlocks(getBlockIds())
+        .setBlockSizeBytes(getBlockSizeBytes())
+        .setCacheable(isCacheable())
+        .setCompleted(isCompleted())
         .setCreationTimeMs(getCreationTimeMs())
+        .setGroup(getGroup())
         .setId(getId())
+        .setLastModificationTimeMs(getLastModificationTimeMs())
+        .setLength(getLength())
+        .setMode(getMode())
         .setName(getName())
+        .setOwner(getOwner())
         .setParentId(getParentId())
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
-        .setLastModificationTimeMs(getLastModificationTimeMs())
-        .setBlockSizeBytes(getBlockSizeBytes())
-        .setLength(getLength())
-        .setCompleted(isCompleted())
-        .setCacheable(isCacheable())
-        .addAllBlocks(mBlocks)
-        .setTtl(mTtl)
-        .setUserName(getUserName())
-        .setGroupName(getGroupName())
-        .setPermission(getPermission())
-        .build();
+        .setTtl(getTtl())
+        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction())).build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 
   /**
    * @return the ttl of the file
    */
-  public synchronized long getTtl() {
+  public long getTtl() {
     return mTtl;
   }
+
+  /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
+  }
+
 }

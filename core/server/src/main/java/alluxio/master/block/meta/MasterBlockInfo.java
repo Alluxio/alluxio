@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,11 @@
 
 package alluxio.master.block.meta;
 
+import alluxio.Constants;
+
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,14 +27,20 @@ import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The metadata for an Alluxio block, managed by the block master.
+ * The metadata for an Alluxio block, managed by the block master. This class is not thread safe,
+ * so external locking is required.
  */
 @NotThreadSafe
 public final class MasterBlockInfo {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** The id of the block. */
   private final long mBlockId;
-  /** The length of the block in bytes. */
-  private final long mLength;
+  /**
+   * The length of the block in bytes. This can be updated if it was previously unknown,
+   * {@link Constants#UNKNOWN_SIZE}
+   */
+  private long mLength;
 
   /** Maps from the worker id to the tier alias the block is on. */
   private final Map<Long, String> mWorkerIdToAlias;
@@ -46,7 +56,7 @@ public final class MasterBlockInfo {
     mBlockId = blockId;
     mLength = length;
 
-    mWorkerIdToAlias = new HashMap<Long, String>();
+    mWorkerIdToAlias = new HashMap<>();
   }
 
   /**
@@ -54,6 +64,20 @@ public final class MasterBlockInfo {
    */
   public long getLength() {
     return mLength;
+  }
+
+  /**
+   * Updates the length, if and only if the length was previously unknown.
+   *
+   * @param length the updated length
+   */
+  public synchronized void updateLength(long length) {
+    if (mLength == Constants.UNKNOWN_SIZE) {
+      mLength = length;
+    } else if (mLength != length) {
+      LOG.warn("Attempting to update block length ({}) to a different length ({}).", mLength,
+          length);
+    }
   }
 
   /**
@@ -66,10 +90,10 @@ public final class MasterBlockInfo {
   /**
    * Adds a location of the block. It means that the worker has the block in one of its tiers.
    *
-   * @param workerId The id of the worker
-   * @param tierAlias The alias of the storage tier that this block is on
+   * @param workerId the id of the worker
+   * @param tierAlias the alias of the storage tier that this block is on
    */
-  public synchronized void addWorker(long workerId, String tierAlias) {
+  public void addWorker(long workerId, String tierAlias) {
     mWorkerIdToAlias.put(workerId, tierAlias);
   }
 
@@ -97,13 +121,12 @@ public final class MasterBlockInfo {
   }
 
   /**
-   * Gets the locations of the block, which are the workers' net address who has the data of the
-   * block in its tiered storage.
+   * Gets the net addresses for all workers which have the block's data in their tiered storage.
    *
-   * @return the net addresses of the locations
+   * @return the net addresses of the workers
    */
-  public synchronized List<MasterBlockLocation> getBlockLocations() {
-    List<MasterBlockLocation> ret = new ArrayList<MasterBlockLocation>(mWorkerIdToAlias.size());
+  public List<MasterBlockLocation> getBlockLocations() {
+    List<MasterBlockLocation> ret = new ArrayList<>(mWorkerIdToAlias.size());
     for (Map.Entry<Long, String> entry : mWorkerIdToAlias.entrySet()) {
       ret.add(new MasterBlockLocation(entry.getKey(), entry.getValue()));
     }
@@ -114,7 +137,7 @@ public final class MasterBlockInfo {
    * @param targetTierAlias the tier alias to target
    * @return true if the block is in the given tier
    */
-  public synchronized boolean isInTier(String targetTierAlias) {
+  public boolean isInTier(String targetTierAlias) {
     for (String tierAlias : mWorkerIdToAlias.values()) {
       if (tierAlias.equals(targetTierAlias)) {
         return true;
@@ -124,7 +147,7 @@ public final class MasterBlockInfo {
   }
 
   @Override
-  public synchronized String toString() {
+  public String toString() {
     return Objects.toStringHelper(this).add("blockId", mBlockId).add("length", mLength).toString();
   }
 }

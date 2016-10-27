@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,15 +11,15 @@
 
 package alluxio.worker.file;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.exception.ConnectionFailedException;
+import alluxio.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.PersistFile;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.BlockMasterSync;
 
 import com.google.common.base.Preconditions;
@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -55,19 +56,23 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private final FileSystemMasterClient mMasterClient;
   /** The thread pool to persist file. */
   private final ExecutorService mPersistFileService;
+  /** This worker's id. May be updated by other threads if worker re-registration occurs. */
+  private final AtomicReference<Long> mWorkerId;
 
   /**
    * Creates a new instance of {@link FileWorkerMasterSyncExecutor}.
    *
    * @param fileDataManager a {@link FileDataManager} handle
    * @param masterClient a {@link FileSystemMasterClient}
+   * @param workerId a reference to the id for this worker
    */
   public FileWorkerMasterSyncExecutor(FileDataManager fileDataManager,
-      FileSystemMasterClient masterClient) {
-    mFileDataManager = Preconditions.checkNotNull(fileDataManager);
-    mMasterClient = Preconditions.checkNotNull(masterClient);
+      FileSystemMasterClient masterClient, AtomicReference<Long> workerId) {
+    mFileDataManager = Preconditions.checkNotNull(fileDataManager, "fileDataManager");
+    mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
+    mWorkerId = Preconditions.checkNotNull(workerId, "workerId");
     mPersistFileService = Executors.newFixedThreadPool(
-        WorkerContext.getConf().getInt(Constants.WORKER_FILE_PERSIST_POOL_SIZE),
+        Configuration.getInt(PropertyKey.WORKER_FILE_PERSIST_POOL_SIZE),
         ThreadFactoryUtils.build("persist-file-service-%d", true));
   }
 
@@ -78,13 +83,10 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
       LOG.info("files {} persisted", persistedFiles);
     }
 
-    FileSystemCommand command = null;
+    FileSystemCommand command;
     try {
-      command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles);
-    } catch (IOException e) {
-      LOG.error("Failed to heartbeat to master", e);
-      return;
-    } catch (ConnectionFailedException e) {
+      command = mMasterClient.heartbeat(mWorkerId.get(), persistedFiles);
+    } catch (IOException | AlluxioException e) {
       LOG.error("Failed to heartbeat to master", e);
       return;
     }
@@ -103,19 +105,9 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     for (PersistFile persistFile : command.getCommandOptions().getPersistOptions()
             .getPersistFiles()) {
-      long fileId = persistFile.getFileId();
-      if (mFileDataManager.needPersistence(fileId)) {
-        // lock all the blocks of the file to prevent eviction
-        try {
-          mFileDataManager.lockBlocks(fileId, persistFile.getBlockIds());
-        } catch (IOException e) {
-          LOG.error("Failed to lock the blocks for file {}", fileId, e);
-        }
-
-        // enqueue the persist request
-        mPersistFileService
-            .execute(new FilePersister(mFileDataManager, fileId, persistFile.getBlockIds()));
-      }
+      // Enqueue the persist request.
+      mPersistFileService.execute(
+          new FilePersister(mFileDataManager, persistFile.getFileId(), persistFile.getBlockIds()));
     }
   }
 
@@ -147,11 +139,19 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     @Override
     public void run() {
-      try {
+      if (mFileDataManager.needPersistence(mFileId)) {
+        // lock all the blocks of the file to prevent eviction
+        try {
+          mFileDataManager.lockBlocks(mFileId, mBlockIds);
+        } catch (IOException e) {
+          LOG.error("Failed to lock the blocks for file {}", mFileId, e);
+        }
         LOG.info("persist file {} of blocks {}", mFileId, mBlockIds);
-        mFileDataManager.persistFile(mFileId, mBlockIds);
-      } catch (IOException e) {
-        LOG.error("Failed to persist file {}", mFileId, e);
+        try {
+          mFileDataManager.persistFile(mFileId, mBlockIds);
+        } catch (IOException e) {
+          LOG.error("Failed to persist file {}", mFileId, e);
+        }
       }
     }
   }

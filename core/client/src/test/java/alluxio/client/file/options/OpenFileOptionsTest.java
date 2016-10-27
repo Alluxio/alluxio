@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,8 +11,9 @@
 
 package alluxio.client.file.options;
 
-import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.CommonTestUtils;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
@@ -25,10 +26,10 @@ import org.junit.Test;
  */
 public class OpenFileOptionsTest {
   private final ReadType mDefaultReadType =
-      ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+      Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
 
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     OpenFileOptions options = OpenFileOptions.defaults();
     Assert.assertEquals(mDefaultReadType.getAlluxioStorageType(), options.getAlluxioStorageType());
   }
@@ -37,7 +38,7 @@ public class OpenFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
     ReadType readType = ReadType.NO_CACHE;
 
@@ -53,11 +54,16 @@ public class OpenFileOptionsTest {
    * Tests conversion to {@link InStreamOptions}.
    */
   @Test
-  public void toInStreamOptionsTest() {
+  public void toInStreamOptions() {
     OpenFileOptions options = OpenFileOptions.defaults();
     InStreamOptions inStreamOptions = options.toInStreamOptions();
     Assert.assertEquals(options.getAlluxioStorageType(),
         inStreamOptions.getAlluxioStorageType());
     Assert.assertEquals(options.getLocationPolicy(), inStreamOptions.getLocationPolicy());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(OpenFileOptions.class);
   }
 }

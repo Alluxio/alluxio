@@ -12,6 +12,10 @@ priority: 4
 
 要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
+如果,你还没有这么做,那么通过`bootstrapConf`命令来创建你的配置文件,比如,你在本机上运行Alluxio,`ALLUXIO_MASTER_HOSTNAME`应该被动设置为`localhost`
+
+{% include Configuring-Alluxio-with-OSS/bootstrapConf.md %}
+
 然后，如果你还没有配置文件，可以由template文件创建配置文件：
 
 {% include Common-Commands/copy-alluxio-env.md %}
@@ -28,7 +32,7 @@ priority: 4
 
 {% include Configuring-Alluxio-with-OSS/oss-access.md %}
 
-其中，`<OSS_ACCESS_KEY_ID>`和`<OSS_SECRET_ACCESS_KEY>`是你实际的[Aliyun keys](https://ak-console.aliyun.com/#/accesskey)，或者其他包含证书的环境变量，你可以从[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region)获取你的`<OSS_ENDPOINT>`。
+其中, `fs.oss.accessKeyId `和`fs.oss.accessKeySecret`分别对应于阿里云[AccessKeys管理界面](https://ak-console.aliyun.com/#/accesskey)中实际的`Access Key ID`和`Access Key Secret`，`fs.oss.endpoint`则是Bucket概述中所说的Bucket所在的范围，其可能的取值有`oss-us-west-1.aliyuncs.com `，`oss-cn-shanghai.aliyuncs.com`等。
 
 如果你不太确定如何更改`conf/alluxio-env.sh`，有另外一个方法提供这些配置。可以在`conf/`目录下创建一个`alluxio-site.properties`文件，并在其中添加：
 

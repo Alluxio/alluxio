@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -19,10 +19,9 @@ import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.proto.journal.Lineage.LineageEntry;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,9 +50,9 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public LineageStore(LineageIdGenerator lineageIdGenerator) {
     mLineageIdGenerator = lineageIdGenerator;
-    mLineageDAG = new DirectedAcyclicGraph<Lineage>();
-    mOutputFileIndex = Maps.newHashMap();
-    mIdIndex = Maps.newHashMap();
+    mLineageDAG = new DirectedAcyclicGraph<>();
+    mOutputFileIndex = new HashMap<>();
+    mIdIndex = new HashMap<>();
   }
 
   /**
@@ -83,7 +82,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
   }
 
   private void createLineageInternal(Lineage lineage) {
-    List<Lineage> parentLineages = Lists.newArrayList();
+    List<Lineage> parentLineages = new ArrayList<>();
     for (long inputFile : lineage.getInputFiles()) {
       if (mOutputFileIndex.containsKey(inputFile)) {
         parentLineages.add(mOutputFileIndex.get(inputFile));

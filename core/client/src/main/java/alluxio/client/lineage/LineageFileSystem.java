@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -30,19 +31,22 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @PublicApi
 @ThreadSafe
-public class LineageFileSystem extends BaseFileSystem {
+public final class LineageFileSystem extends BaseFileSystem {
   private LineageContext mLineageContext;
 
   /**
+   * @param fileSystemContext file system context
+   * @param lineageContext lineage context
    * @return the current lineage file system for Alluxio
    */
-  public static synchronized LineageFileSystem get() {
-    return new LineageFileSystem();
+  public static synchronized LineageFileSystem get(FileSystemContext fileSystemContext,
+      LineageContext lineageContext) {
+    return new LineageFileSystem(fileSystemContext, lineageContext);
   }
 
-  protected LineageFileSystem() {
-    super();
-    mLineageContext = LineageContext.INSTANCE;
+  private LineageFileSystem(FileSystemContext fileSystemContext, LineageContext lineageContext) {
+    super(fileSystemContext);
+    mLineageContext = lineageContext;
   }
 
   /**
@@ -61,7 +65,7 @@ public class LineageFileSystem extends BaseFileSystem {
     LineageMasterClient masterClient = mLineageContext.acquireMasterClient();
     try {
       return masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
-          options.getTtl());
+          options.getTtl(), options.getTtlAction());
     } finally {
       mLineageContext.releaseMasterClient(masterClient);
     }
@@ -90,7 +94,7 @@ public class LineageFileSystem extends BaseFileSystem {
     if (fileId == -1) {
       return new DummyFileOutputStream(path, options.toOutStreamOptions());
     }
-    return new LineageFileOutStream(path, options.toOutStreamOptions());
+    return new LineageFileOutStream(mFileSystemContext, path, options.toOutStreamOptions());
   }
 
   /**

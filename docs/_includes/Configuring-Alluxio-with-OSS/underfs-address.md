@@ -1,1 +1,3 @@
-    export ALLUXIO_UNDERFS_ADDRESS=oss://OSS_BUCKET/OSS_DIRECTORY/
+```bash
+alluxio.underfs.address=oss://OSS_BUCKET/OSS_DIRECTORY/
+```

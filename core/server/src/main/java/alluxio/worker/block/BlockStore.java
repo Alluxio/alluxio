@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -59,8 +59,8 @@ interface BlockStore {
   void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Creates the meta data of a new block and assigns a temporary path (e.g., a subdir of the final
-   * location named after the the session id) to store its data. This method only creates the meta
+   * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
+   * location named after session id) to store its data. This method only creates meta
    * data but adds NO data to this temporary location. The location can be a location with specific
    * tier and dir, or {@link BlockStoreLocation#anyTier()}, or
    * {@link BlockStoreLocation#anyDirInTier(String)}.
@@ -95,7 +95,7 @@ interface BlockStore {
   BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Gets the meta data of a specific block from local storage.
+   * Gets the metadata of a specific block from local storage.
    * <p>
    * This method requires the lock id returned by a previously acquired
    * {@link #lockBlock(long, long)}.
@@ -130,7 +130,7 @@ interface BlockStore {
       WorkerOutOfSpaceException;
 
   /**
-   * Aborts a temporary block. The meta data of this block will not be added, its data will be
+   * Aborts a temporary block. The metadata of this block will not be added, its data will be
    * deleted and the space will be reclaimed. Since a temp block is "private" to the writer, this
    * requires no previously acquired lock.
    *
@@ -267,12 +267,21 @@ interface BlockStore {
   void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will be
+   * Gets the metadata of the entire store in a snapshot. There is no guarantee the state will be
    * consistent with the snapshot after this method is called.
+   * This function should be cheap since it is called for every block.
    *
-   * @return store meta data
+   * @return store metadata
    */
   BlockStoreMeta getBlockStoreMeta();
+
+  /**
+   * Similar as {@link BlockStoreMeta#getBlockStoreMeta} except that this includes more information
+   * about the block store (e.g. blockId list). This is an expensive operation.
+   *
+   * @return full store metadata
+   */
+  BlockStoreMeta getBlockStoreMetaFull();
 
   /**
    * Checks if the storage has a given block.

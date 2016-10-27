@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -35,7 +35,7 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
   private static final long INVALID_BLOCK_ID = -1;
 
   /** The block store client. */
-  private AlluxioBlockStore mBlockStore;
+  private final AlluxioBlockStore mBlockStore;
   // TODO(cc): Use the concept of partition ID in the future.
   /** The ID of the block represented by this split. */
   private long mBlockId;
@@ -45,7 +45,7 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
    * de-serializing {@link KeyValueInputSplit}.
    */
   public KeyValueInputSplit() {
-    mBlockStore = AlluxioBlockStore.get();
+    mBlockStore = new AlluxioBlockStore();
     mBlockId = INVALID_BLOCK_ID;
   }
 
@@ -55,7 +55,7 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
    * @param partitionInfo the partition info
    */
   public KeyValueInputSplit(PartitionInfo partitionInfo) {
-    mBlockStore = AlluxioBlockStore.get();
+    mBlockStore = new AlluxioBlockStore();
     mBlockId = partitionInfo.getBlockId();
   }
 
@@ -86,7 +86,6 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
 
   @Override
   public void readFields(DataInput dataInput) throws IOException {
-    mBlockStore = AlluxioBlockStore.get();
     mBlockId = dataInput.readLong();
   }
 

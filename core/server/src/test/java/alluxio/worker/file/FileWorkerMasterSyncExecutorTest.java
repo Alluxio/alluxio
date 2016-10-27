@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.worker.file;
 
 import alluxio.thrift.FileSystemCommand;
-import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -24,6 +23,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Tests {@link FileWorkerMasterSyncExecutor}.
@@ -39,8 +39,8 @@ public final class FileWorkerMasterSyncExecutorTest {
   public void before() {
     mFileDataManager = Mockito.mock(FileDataManager.class);
     mFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
-    mFileWorkerMasterSyncExecutor =
-        new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterClient);
+    mFileWorkerMasterSyncExecutor = new FileWorkerMasterSyncExecutor(mFileDataManager,
+        mFileSystemMasterClient, new AtomicReference<>(10L));
   }
 
   /**
@@ -48,26 +48,26 @@ public final class FileWorkerMasterSyncExecutorTest {
    * of {@link FileSystemMasterClient} fails.
    */
   @Test
-  public void heartbeatFailureTest() throws Exception {
+  public void heartbeatFailure() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
     Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
     // first time fails, second time passes
-    Mockito.when(mFileSystemMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles))
+    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
         .thenThrow(new IOException("failure"));
     mFileWorkerMasterSyncExecutor.heartbeat();
     Mockito.verify(mFileDataManager, Mockito.never()).clearPersistedFiles(persistedFiles);
   }
 
   /**
-   * Verifies {@link FileDataManager.#clearPersistedFiles(java.util.List)} is called when the
+   * Verifies {@link FileDataManager#clearPersistedFiles(java.util.List)} is called when the
    * heartbeat is successful.
    */
   @Test
-  public void heartbeatTest() throws Exception {
+  public void heartbeat() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
     Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
     // first time fails, second time passes
-    Mockito.when(mFileSystemMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles))
+    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
         .thenReturn(new FileSystemCommand());
     mFileWorkerMasterSyncExecutor.heartbeat();
     Mockito.verify(mFileDataManager).clearPersistedFiles(persistedFiles);

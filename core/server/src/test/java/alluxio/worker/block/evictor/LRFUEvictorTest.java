@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,8 +12,7 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.worker.WorkerContext;
+import alluxio.PropertyKey;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreEventListener;
@@ -49,7 +48,6 @@ public class LRFUEvictorTest {
   private BlockMetadataManager mMetaManager;
   private BlockMetadataManagerView mManagerView;
   private Evictor mEvictor;
-  private Allocator mAllocator;
 
   private double mStepFactor;
   private double mAttenuationFactor;
@@ -60,8 +58,6 @@ public class LRFUEvictorTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public final void before() throws Exception {
@@ -70,14 +66,13 @@ public class LRFUEvictorTest {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
-    Configuration conf = WorkerContext.getConf();
-    conf.set(Constants.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(conf, mManagerView);
-    mStepFactor = conf.getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+    Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mManagerView);
+    mStepFactor = Configuration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
-        conf.getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
-    mEvictor = Evictor.Factory.create(conf, mManagerView, mAllocator);
+        Configuration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+    mEvictor = Evictor.Factory.create(mManagerView, allocator);
   }
 
   private void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIdx)
@@ -101,8 +96,7 @@ public class LRFUEvictorTest {
    * @return the sorted CRF of all blocks
    */
   private List<Map.Entry<Long, Double>> getSortedCRF(Map<Long, Double> crfMap) {
-    List<Map.Entry<Long, Double>> sortedCRF =
-        new ArrayList<Map.Entry<Long, Double>>(crfMap.entrySet());
+    List<Map.Entry<Long, Double>> sortedCRF = new ArrayList<>(crfMap.entrySet());
     Collections.sort(sortedCRF, new Comparator<Map.Entry<Long, Double>>() {
       @Override
       public int compare(Entry<Long, Double> o1, Entry<Long, Double> o2) {
@@ -121,14 +115,12 @@ public class LRFUEvictorTest {
 
   /**
    * Tests that the eviction in the bottom tier works.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
-  public void evictInBottomTierTest() throws Exception {
+  public void evictInBottomTier() throws Exception {
     int bottomTierOrdinal = TieredBlockStoreTestUtils
         .TIER_ORDINAL[TieredBlockStoreTestUtils.TIER_ORDINAL.length - 1];
-    Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
+    Map<Long, Double> blockIdToCRF = new HashMap<>();
     // capacity increases with index
     long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[bottomTierOrdinal];
     int nDir = bottomTierDirCapacity.length;
@@ -179,8 +171,6 @@ public class LRFUEvictorTest {
   /**
    * Tests the cascading eviction with the first tier filled and the second tier empty resulting in
    * no eviction.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void cascadingEvictionTest1() throws Exception {
@@ -190,7 +180,7 @@ public class LRFUEvictorTest {
     int firstTierOrdinal = TieredBlockStoreTestUtils.TIER_ORDINAL[0];
     long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0];
     int nDir = firstTierDirCapacity.length;
-    Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
+    Map<Long, Double> blockIdToCRF = new HashMap<>();
     for (int i = 0; i < nDir; i++) {
       cache(SESSION_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierOrdinal, i);
       // update CRF of blocks when blocks are committed
@@ -237,8 +227,6 @@ public class LRFUEvictorTest {
   /**
    * Tests the cascading eviction with the first and second tier filled resulting in blocks in the
    * second tier are evicted.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void cascadingEvictionTest2() throws Exception {
@@ -251,7 +239,7 @@ public class LRFUEvictorTest {
     for (int tierOrdinal : TieredBlockStoreTestUtils.TIER_ORDINAL) {
       totalBlocks += TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierOrdinal].length;
     }
-    Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
+    Map<Long, Double> blockIdToCRF = new HashMap<>();
     for (int tierOrdinal : TieredBlockStoreTestUtils.TIER_ORDINAL) {
       long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierOrdinal];
       for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx++) {
@@ -281,9 +269,9 @@ public class LRFUEvictorTest {
 
     List<Map.Entry<Long, Double>> blockCRF = getSortedCRF(blockIdToCRF);
     // sorted blocks in the first tier
-    List<Long> blocksInFirstTier = new ArrayList<Long>();
+    List<Long> blocksInFirstTier = new ArrayList<>();
     // sorted blocks in the second tier
-    List<Long> blocksInSecondTier = new ArrayList<Long>();
+    List<Long> blocksInSecondTier = new ArrayList<>();
     for (int i = 0; i < blockCRF.size(); i++) {
       long block = blockCRF.get(i).getKey();
       if (block - BLOCK_ID < TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0].length) {

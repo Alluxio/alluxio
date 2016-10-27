@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,16 +11,23 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+
+import java.io.Serializable;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The location of a block.
  */
+@PublicApi
 @NotThreadSafe
-public final class BlockLocation {
+public final class BlockLocation implements Serializable {
+  private static final long serialVersionUID = 9017017197104411532L;
+
   private long mWorkerId;
   private WorkerNetAddress mWorkerAddress = new WorkerNetAddress();
   private String mTierAlias = "";

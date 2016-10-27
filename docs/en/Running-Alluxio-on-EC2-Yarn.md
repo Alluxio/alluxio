@@ -2,7 +2,7 @@
 layout: global
 title: Running Alluxio with YARN on EC2
 nickname: Alluxio on EC2 with YARN
-group: User Guide
+group: Deploying Alluxio
 priority: 5
 ---
 
@@ -57,8 +57,8 @@ key file so that only you can read it:
 
 {% include Running-Alluxio-on-EC2-Yarn/generate-key-pair.md %}
 
-In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
-name and `Key_Path` to the path to the pem key.
+Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml`, then
+set the value of `Keypair` to your keypair name and `Key_Path` to the path to the pem key.
 
 By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
@@ -123,24 +123,22 @@ but it makes the build run significantly faster.
 To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
 worker), one can refer to [Configuration settings](Configuration-Settings.html) for more
 information. To ensure your configuration can be read by both the ApplicationMaster and Alluxio
-master/workers, put `alluxio-site.properties` under `${ALLUXIO_HOME}/conf` on each EC2 machine.
+master/workers, put `alluxio-site.properties` under `~/.alluxio/` on each EC2 machine.
 
 # Start Alluxio
 
-Use script `integration/bin/alluxio-yarn.sh` to start Alluxio. This script requires three arguments:
-1. A path pointing to `${ALLUXIO_HOME}` on each machine so YARN NodeManager can access Alluxio
-scripts and binaries to launch masters and workers. With our EC2 setup, this path is `/alluxio`.
-2. The total number of Alluxio workers to start.
-3. A HDFS path to distribute the binaries for Alluxio ApplicationMaster.
+Use script `integration/bin/alluxio-yarn.sh` to start Alluxio. This script takes three arguments:
+
+1. The total number of Alluxio workers to start. (required)
+2. An HDFS path to distribute the binaries for Alluxio ApplicationMaster. (required)
+3. The Yarn name for the node on which to run the Alluxio Master (optional, defaults to `ALLUXIO_MASTER_HOSTNAME`)
 
 For example, here we launch an Alluxio cluster with 3 worker nodes, where an HDFS temp directory is
-`hdfs://AlluxioMaster:9000/tmp/` and each YARN container can access Alluxio in `/alluxio`
+`hdfs://AlluxioMaster:9000/tmp/` and the master hostname is `AlluxioMaster`
 
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
 
-This script will first upload the binaries with YARN client and ApplicationMaster to the HDFS path
-specified, then inform YARN to run the client binary jar. The script will keep running with
-ApplicationMaster status reported. You can also check `http://AlluxioMaster:8088` in the browser to
+This script will launch an Alluxio Application Master on Yarn, which will then request containers for the Alluxio master and workers. You can also check `http://AlluxioMaster:8088` in the browser to
 access the Web UIs and watch the status of the Alluxio job as well as the application ID.
 
 The output of the above script may produce output like the following:
@@ -150,16 +148,11 @@ The output of the above script may produce output like the following:
 From the output, we know the application ID to run Alluxio is
 **`application_1445469376652_0002`**. This application ID is needed to kill the application.
 
-NOTE: currently Alluxio YARN framework does not guarantee to start the Alluxio master on the
-AlluxioMaster machine; use the YARN Web UI to read the logs of this YARN application. The log
-of this application records which machine is used to launch an Alluxio master container like:
-
-{% include Running-Alluxio-on-EC2-Yarn/log-Alluxio-master.md %}
 
 # Test Alluxio
 
 When you know the IP of Alluxio master container, you can modify the `conf/alluxio-env.sh` to set
- up environment variable `ALLUXIO_MASTER_ADDRESS` on each EC2 machine:
+ up environment variable `ALLUXIO_MASTER_HOSTNAME` on each EC2 machine:
 
 {% include Running-Alluxio-on-EC2-Yarn/environment-variable.md %}
 
@@ -168,7 +161,7 @@ You can run tests against Alluxio to check its health:
 {% include Running-Alluxio-on-EC2-Yarn/runTests.md %}
 
 After the tests finish, visit Alluxio web UI at `http://ALLUXIO_MASTER_IP:19999` again. Click
-`Browse File System` in the navigation bar, and you should see the files written to Alluxio by the above
+`Browse` in the navigation bar, and you should see the files written to Alluxio by the above
 tests.
 
 

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -17,13 +17,11 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.BufferUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -65,8 +63,6 @@ public final class StorageDirTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public void before() throws Exception {
@@ -85,14 +81,6 @@ public final class StorageDirTest {
         new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
   }
 
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
-  }
-
   private StorageDir newStorageDir(File testDir) throws Exception {
     return StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY,
         testDir.getAbsolutePath());
@@ -107,11 +95,9 @@ public final class StorageDirTest {
 
   /**
    * Tests that a new storage directory has metadata for a created block.
-   *
-   * @throws Exception if creating a new storage directory or block file fails
    */
   @Test
-  public void initializeMetaNoExceptionTest() throws Exception {
+  public void initializeMetaNoException() throws Exception {
     File testDir = mFolder.newFolder();
 
     int nBlock = 10;
@@ -146,11 +132,9 @@ public final class StorageDirTest {
   /**
    * Tests that the metadata of the files and directory is empty when creating an inappropriate
    * file.
-   *
-   * @throws Exception if creating a new storage directory or block file fails
    */
   @Test
-  public void initializeMetaDeleteInappropriateFileTest() throws Exception {
+  public void initializeMetaDeleteInappropriateFile() throws Exception {
     File testDir = mFolder.newFolder();
 
     newBlockFile(testDir, "block", 1);
@@ -162,11 +146,9 @@ public final class StorageDirTest {
   /**
    * Tests that the metadata of the files and directory is empty when creating an inappropriate
    * directory.
-   *
-   * @throws Exception if creating a new storage directory or block file fails
    */
   @Test
-  public void initializeMetaDeleteInappropriateDirTest() throws Exception {
+  public void initializeMetaDeleteInappropriateDir() throws Exception {
     File testDir = mFolder.newFolder();
 
     File newDir = new File(testDir, "dir");
@@ -180,11 +162,9 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to initialize a block that is larger than the
    * capacity.
-   *
-   * @throws Exception if creating a new storage directory or block file fails
    */
   @Test
-  public void initializeMetaBlockLargerThanCapacityTest() throws Exception {
+  public void initializeMetaBlockLargerThanCapacity() throws Exception {
     File testDir = mFolder.newFolder();
 
     newBlockFile(testDir, String.valueOf(TEST_BLOCK_ID), Ints.checkedCast(TEST_DIR_CAPACITY + 1));
@@ -203,11 +183,9 @@ public final class StorageDirTest {
   /**
    * Tests the {@link StorageDir#getCapacityBytes()}, the {@link StorageDir#getAvailableBytes()} and
    * the {@link StorageDir#getCommittedBytes()} methods.
-   *
-   * @throws Exception if adding or removing the metadata of a block fails
    */
   @Test
-  public void getBytesTest() throws Exception {
+  public void getBytes() throws Exception {
     // Initial state
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getCapacityBytes());
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getAvailableBytes());
@@ -243,7 +221,7 @@ public final class StorageDirTest {
    * Tests the {@link StorageDir#getDirPath()} method.
    */
   @Test
-  public void getDirPathTest() {
+  public void getDirPath() {
     Assert.assertEquals(mTestDirPath, mDir.getDirPath());
   }
 
@@ -251,7 +229,7 @@ public final class StorageDirTest {
    * Tests the {@link StorageDir#getParentTier()} method.
    */
   @Test
-  public void getParentTierTest() {
+  public void getParentTier() {
     Assert.assertEquals(mTier, mDir.getParentTier());
   }
 
@@ -259,17 +237,15 @@ public final class StorageDirTest {
    * Tests the {@link StorageDir#getDirIndex()} method.
    */
   @Test
-  public void getDirIndexTest() {
+  public void getDirIndex() {
     Assert.assertEquals(TEST_DIR_INDEX, mDir.getDirIndex());
   }
 
   /**
    * Tests the {@link StorageDir#getBlockIds()} method.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
-  public void getBlockIdsTest() throws Exception {
+  public void getBlockIds() throws Exception {
     long blockId1 = TEST_BLOCK_ID + 1;
     long blockId2 = TEST_BLOCK_ID + 2;
 
@@ -279,16 +255,14 @@ public final class StorageDirTest {
     mDir.addBlockMeta(blockMeta2);
 
     List<Long> actual = mDir.getBlockIds();
-    Assert.assertEquals(Sets.newHashSet(blockId1, blockId2), new HashSet<Long>(actual));
+    Assert.assertEquals(Sets.newHashSet(blockId1, blockId2), new HashSet<>(actual));
   }
 
   /**
    * Tests the {@link StorageDir#getBlocks()} method.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
-  public void getBlocksTest() throws Exception {
+  public void getBlocks() throws Exception {
     long blockId1 = TEST_BLOCK_ID + 1;
     long blockId2 = TEST_BLOCK_ID + 2;
 
@@ -298,16 +272,14 @@ public final class StorageDirTest {
     mDir.addBlockMeta(blockMeta2);
 
     List<BlockMeta> actual = mDir.getBlocks();
-    Assert.assertEquals(Sets.newHashSet(blockMeta1, blockMeta2), new HashSet<BlockMeta>(actual));
+    Assert.assertEquals(Sets.newHashSet(blockMeta1, blockMeta2), new HashSet<>(actual));
   }
 
   /**
    * Tests that an exception is thrown when trying to add metadata of a block that is too big.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
-  public void addBlockMetaTooBigTest() throws Exception {
+  public void addBlockMetaTooBig() throws Exception {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
     BlockMeta bigBlockMeta = new BlockMeta(TEST_BLOCK_ID, bigBlockSize, mDir);
     String alias = bigBlockMeta.getBlockLocation().tierAlias();
@@ -319,11 +291,9 @@ public final class StorageDirTest {
 
   /**
    * Tests that an exception is thrown when trying to add metadata of a block that already exists.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
-  public void addBlockMetaExistingTest() throws Exception {
+  public void addBlockMetaExisting() throws Exception {
     mThrown.expect(BlockAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(TEST_BLOCK_ID, "MEM"));
     mDir.addBlockMeta(mBlockMeta);
@@ -334,11 +304,9 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to remove the metadata of a block which does not
    * exist.
-   *
-   * @throws Exception if removing the metadata of the block fails
    */
   @Test
-  public void removeBlockMetaNotExistingTest() throws Exception {
+  public void removeBlockMetaNotExisting() throws Exception {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
     mDir.removeBlockMeta(mBlockMeta);
@@ -347,11 +315,9 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to get the metadata of a block which does not
    * exist.
-   *
-   * @throws Exception if getting the metadata of the block fails
    */
   @Test
-  public void getBlockMetaNotExistingTest() throws Exception {
+  public void getBlockMetaNotExisting() throws Exception {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
     mDir.getBlockMeta(TEST_BLOCK_ID);
@@ -360,11 +326,9 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to add the metadata of a temporary block which is
    * too big.
-   *
-   * @throws Exception if adding the metadata of the tempoary block fails
    */
   @Test
-  public void addTempBlockMetaTooBigTest() throws Exception {
+  public void addTempBlockMetaTooBig() throws Exception {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
     TempBlockMeta bigTempBlockMeta =
         new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, bigBlockSize, mDir);
@@ -378,11 +342,9 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to add the metadata of a termpoary block which
    * already exists.
-   *
-   * @throws Exception if adding the metadata of the temporary block fails
    */
   @Test
-  public void addTempBlockMetaExistingTest() throws Exception {
+  public void addTempBlockMetaExisting() throws Exception {
     mThrown.expect(BlockAlreadyExistsException.class);
     mThrown
         .expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(TEST_TEMP_BLOCK_ID, "MEM"));
@@ -395,11 +357,9 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to remove the metadata of a tempoary block which
    * does not exist.
-   *
-   * @throws Exception if removing the metadata of the temporary block fails
    */
   @Test
-  public void removeTempBlockMetaNotExistingTest() throws Exception {
+  public void removeTempBlockMetaNotExisting() throws Exception {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
     mDir.removeTempBlockMeta(mTempBlockMeta);
@@ -408,11 +368,9 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to remove the metadata of a temporary block which
    * is not owned.
-   *
-   * @throws Exception if adding or removing the metadata of a temporary block fails
    */
   @Test
-  public void removeTempBlockMetaNotOwnerTest() throws Exception {
+  public void removeTempBlockMetaNotOwner() throws Exception {
     final long wrongSessionId = TEST_SESSION_ID + 1;
     String alias = "MEM";
     mThrown.expect(BlockDoesNotExistException.class);
@@ -427,11 +385,9 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to get the metadata of a temporary block that
    * does not exist.
-   *
-   * @throws Exception if getting the metadata of the block fails
    */
   @Test
-  public void getTempBlockMetaNotExistingTest() throws Exception {
+  public void getTempBlockMetaNotExisting() throws Exception {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
     mDir.getBlockMeta(TEST_TEMP_BLOCK_ID);
@@ -440,11 +396,9 @@ public final class StorageDirTest {
   /**
    * Tests the {@link StorageDir#addBlockMeta(BlockMeta)} and the
    * {@link StorageDir#removeBlockMeta(BlockMeta)} methods.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
-  public void blockMetaTest() throws Exception {
+  public void blockMeta() throws Exception {
     Assert.assertFalse(mDir.hasBlockMeta(TEST_BLOCK_ID));
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getAvailableBytes());
 
@@ -461,11 +415,9 @@ public final class StorageDirTest {
   /**
    * Tests the {@link StorageDir#addTempBlockMeta(TempBlockMeta)} and the
    * {@link StorageDir#removeTempBlockMeta(TempBlockMeta)} methods.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
-  public void tempBlockMetaTest() throws Exception {
+  public void tempBlockMeta() throws Exception {
     Assert.assertFalse(mDir.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getAvailableBytes());
 
@@ -481,11 +433,9 @@ public final class StorageDirTest {
 
   /**
    * Tests the {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
-  public void resizeTempBlockMetaTest() throws Exception {
+  public void resizeTempBlockMeta() throws Exception {
     mDir.addTempBlockMeta(mTempBlockMeta);
     Assert.assertEquals(TEST_DIR_CAPACITY - TEST_TEMP_BLOCK_SIZE, mDir.getAvailableBytes());
     final long newSize = TEST_TEMP_BLOCK_SIZE + 10;
@@ -496,11 +446,9 @@ public final class StorageDirTest {
   /**
    * Tests that an {@link InvalidWorkerStateException} is thrown when trying to shrink a block via
    * the {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
-  public void resizeTempBlockMetaInvalidStateExceptionTest() throws Exception {
+  public void resizeTempBlockMetaInvalidStateException() throws Exception {
     mDir.addTempBlockMeta(mTempBlockMeta);
     final long newSize = TEST_TEMP_BLOCK_SIZE - 10;
     try {
@@ -516,11 +464,9 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to resize a temporary block via the
    * {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method without no available bytes.
-   *
-   * @throws Exception if an operation on the metadata of the temporary block fails
    */
   @Test
-  public void resizeTempBlockMetaNoAvailableBytesTest() throws Exception {
+  public void resizeTempBlockMetaNoAvailableBytes() throws Exception {
     mDir.addTempBlockMeta(mTempBlockMeta);
     // resize the temp block size to the dir capacity, which is the limit
     mDir.resizeTempBlockMeta(mTempBlockMeta, TEST_DIR_CAPACITY);
@@ -533,11 +479,9 @@ public final class StorageDirTest {
 
   /**
    * Tests the {@link StorageDir#cleanupSessionTempBlocks(long, List)} method.
-   *
-   * @throws Exception if adding metadata of a block fails
    */
   @Test
-  public void cleanupSessionTest() throws Exception {
+  public void cleanupSession() throws Exception {
     // TODO(bin): Also test claimed space.
     // Create blocks under TEST_SESSION_ID
     mDir.addBlockMeta(mBlockMeta);
@@ -560,12 +504,12 @@ public final class StorageDirTest {
 
     // Check the temporary blocks belonging to TEST_SESSION_ID
     List<TempBlockMeta> actual = mDir.getSessionTempBlocks(TEST_SESSION_ID);
-    List<Long> actualBlockIds = new ArrayList<Long>(actual.size());
+    List<Long> actualBlockIds = new ArrayList<>(actual.size());
     for (TempBlockMeta tempBlockMeta : actual) {
       actualBlockIds.add(tempBlockMeta.getBlockId());
     }
     Assert.assertEquals(Sets.newHashSet(tempBlockMeta1, tempBlockMeta2),
-        new HashSet<TempBlockMeta>(actual));
+        new HashSet<>(actual));
     Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId1));
     Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId2));
 
@@ -583,7 +527,7 @@ public final class StorageDirTest {
    * Tests the {@link StorageDir#toBlockStoreLocation()} method.
    */
   @Test
-  public void toBlockStoreLocationTest() {
+  public void toBlockStoreLocation() {
     StorageTier tier = mDir.getParentTier();
     Assert.assertEquals(new BlockStoreLocation(tier.getTierAlias(), mDir.getDirIndex()),
         mDir.toBlockStoreLocation());

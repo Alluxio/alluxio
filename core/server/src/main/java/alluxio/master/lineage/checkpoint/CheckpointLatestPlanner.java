@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -21,6 +21,8 @@ import alluxio.master.lineage.meta.LineageStoreView;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -65,7 +67,7 @@ public final class CheckpointLatestPlanner implements CheckpointPlanner {
       }
     }
 
-    return toCheckpoint == null ? new CheckpointPlan(Lists.<Long>newArrayList())
+    return toCheckpoint == null ? new CheckpointPlan(new ArrayList<Long>())
         : new CheckpointPlan(Lists.newArrayList(toCheckpoint.getId()));
   }
 }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,7 @@
 package alluxio.underfs.glusterfs;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
@@ -27,29 +27,24 @@ import org.junit.Test;
  * Unit tests for {@link GlusterFSUnderFileSystem}.
  */
 public class GlusterFSUnderFileSystemFactoryTest {
-  private UnderFileSystem mGfs = null;
   private String mMount = null;
   private String mVolume = null;
-  private Configuration mConfiguration;
 
   /**
    * Sets the volume and the mount directory before a test runs.
    */
   @Before
   public final void before() {
-    mConfiguration = new Configuration();
-    if (mConfiguration.containsKey(Constants.UNDERFS_GLUSTERFS_MR_DIR)) {
-      mMount = mConfiguration.get(Constants.UNDERFS_GLUSTERFS_MR_DIR);
+    if (Configuration.containsKey(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR)) {
+      mMount = Configuration.get(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR);
     }
-    if (mConfiguration.containsKey(Constants.UNDERFS_GLUSTERFS_VOLUMES)) {
-      mVolume = mConfiguration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES);
+    if (Configuration.containsKey(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES)) {
+      mVolume = Configuration.get(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES);
     }
   }
 
   /**
    * Tests the {@link UnderFileSystem#create(String)} method.
-   *
-   * @throws Exception when the creation fails
    */
   @Test
   public void createGlusterFS() throws Exception {
@@ -58,22 +53,22 @@ public class GlusterFSUnderFileSystemFactoryTest {
     Assume.assumeTrue(!StringUtils.isEmpty(mMount));
     Assume.assumeTrue(!StringUtils.isEmpty(mVolume));
 
-    mGfs = UnderFileSystem.get("glusterfs:///", mConfiguration);
-    Assert.assertNotNull(mGfs.create("alluxio_test"));
+    UnderFileSystem gfs = UnderFileSystem.get("glusterfs:///");
+    Assert.assertNotNull(gfs.create("alluxio_test"));
   }
 
   /**
-   * Tests the {@link UnderFileSystemRegistry#find(String, Configuration)} method.
+   * Tests the {@link UnderFileSystemRegistry#find(String)} method.
    */
   @Test
-  public void factoryTest() {
+  public void factory() {
     UnderFileSystemFactory factory =
-        UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mConfiguration);
+        UnderFileSystemRegistry.find("glusterfs://localhost/test/path");
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for Gluster FS paths when using this module",
         factory);
 
-    factory = UnderFileSystemRegistry.find("alluxio://localhost/test/path", mConfiguration);
+    factory = UnderFileSystemRegistry.find("alluxio://localhost/test/path");
     Assert.assertNull("A UnderFileSystemFactory should not exist for unsupported paths when using"
         + " this module.", factory);
   }

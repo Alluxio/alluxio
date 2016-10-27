@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -24,7 +24,7 @@ public final class ByteIOUtilsTest {
    * Tests {@link ByteIOUtils#writeByte} and {@link ByteIOUtils#readByte}.
    */
   @Test
-  public void readWriteByteTest() {
+  public void readWriteByte() {
     long[] values = new long[] {0, 1, 2, 0x7f, 0xff};
     for (long i : values) {
       byte v = (byte) i;
@@ -37,7 +37,7 @@ public final class ByteIOUtilsTest {
    * Tests {@link ByteIOUtils#writeShort} and {@link ByteIOUtils#readShort}.
    */
   @Test
-  public void readWriteShortTest() {
+  public void readWriteShort() {
     long[] values = new long[] {0, 1, 2, 0x7f, 0xff, 0xffff};
     for (long i : values) {
       short v = (short) i;
@@ -52,7 +52,7 @@ public final class ByteIOUtilsTest {
    * Tests {@link ByteIOUtils#writeInt} and {@link ByteIOUtils#readInt}.
    */
   @Test
-  public void readWriteIntTest() {
+  public void readWriteInt() {
     long[] values = new long[] {0, 1, 2, 0x7f, 0xff, 0xffff, 0xffffff, 0xffffffff};
     for (long i : values) {
       int v = (int) i;
@@ -67,7 +67,7 @@ public final class ByteIOUtilsTest {
    * Tests {@link ByteIOUtils#writeLong} and {@link ByteIOUtils#readLong}.
    */
   @Test
-  public void readWriteLongTest() {
+  public void readWriteLong() {
     long[] values =
         new long[] {0, 1, 2, 0x7f, 0xff, 0xffff, 0xffffff, 0xffffffff, 0xffffffffffL,
             0xffffffffffffL, 0xffffffffffffffL, 0xffffffffffffffffL};

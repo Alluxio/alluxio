@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,6 +13,9 @@ package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +33,11 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
   private boolean mInitialized = false;
 
   /**
+   * Constructs a new {@link RoundRobinPolicy}.
+   */
+  public RoundRobinPolicy() {}
+
+  /**
    * The policy uses the first fetch of worker info list as the base, and visits each of them in a
    * round-robin manner in the subsequent calls. The policy doesn't assume the list of worker info
    * in the subsequent calls has the same order from the first, and it will skip the workers that
@@ -40,10 +48,10 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
    * @return the address of the worker to write to
    */
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     if (!mInitialized) {
-      mWorkerInfoList = workerInfoList;
+      mWorkerInfoList = Lists.newArrayList(workerInfoList);
       Collections.shuffle(mWorkerInfoList);
       mIndex = 0;
       mInitialized = true;
@@ -66,7 +74,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
    * @param address the address to look for
    * @return the worker info in the list that matches the host name, null if not found
    */
-  private BlockWorkerInfo findBlockWorkerInfo(List<BlockWorkerInfo> workerInfoList,
+  private BlockWorkerInfo findBlockWorkerInfo(Iterable<BlockWorkerInfo> workerInfoList,
       WorkerNetAddress address) {
     for (BlockWorkerInfo info : workerInfoList) {
       if (info.getNetAddress().equals(address)) {
@@ -74,5 +82,33 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof RoundRobinPolicy)) {
+      return false;
+    }
+    RoundRobinPolicy that = (RoundRobinPolicy) o;
+    return Objects.equal(mWorkerInfoList, that.mWorkerInfoList)
+        && Objects.equal(mIndex, that.mIndex)
+        && Objects.equal(mInitialized, that.mInitialized);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mWorkerInfoList, mIndex, mInitialized);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("workerInfoList", mWorkerInfoList)
+        .add("index", mIndex)
+        .add("initialized", mInitialized)
+        .toString();
   }
 }

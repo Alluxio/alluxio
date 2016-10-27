@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,13 +11,18 @@
 
 package alluxio.network.protocol.databuffer;
 
+import alluxio.util.io.BufferUtils;
+
 import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
 
 import java.nio.ByteBuffer;
 
 /**
- * A DataBuffer with the underlying data being a {@link ByteBuffer}.
+ * A DataBuffer with the underlying data being a {@link ByteBuffer}. If the backing ByteBuffer is
+ * a direct ByteBuffer, {@link #release()} should only be called when all references to the
+ * object are finished with it. For this reason, it is not recommended to share objects of this
+ * class unless reference counting is implemented by the users of this class.
  */
 public final class DataByteBuffer implements DataBuffer {
   private final ByteBuffer mBuffer;
@@ -52,6 +57,8 @@ public final class DataByteBuffer implements DataBuffer {
 
   @Override
   public void release() {
-    // Nothing we need to release explicitly, let GC take care of all objects.
+    if (mBuffer.isDirect()) {
+      BufferUtils.cleanDirectBuffer(mBuffer);
+    }
   }
 }

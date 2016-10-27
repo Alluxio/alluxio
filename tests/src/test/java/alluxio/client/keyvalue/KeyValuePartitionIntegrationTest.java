@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,8 +14,8 @@ package alluxio.client.keyvalue;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;
@@ -25,7 +25,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -67,9 +66,12 @@ public final class KeyValuePartitionIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE,
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, Constants.GB)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           /* ensure key-value service is turned on */
-          Constants.KEY_VALUE_ENABLED, "true");
+          .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true")
+          .build();
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -89,12 +91,9 @@ public final class KeyValuePartitionIntegrationTest {
    * Tests a {@link KeyValuePartitionWriter} can create a partition, write key-value pairs and
    * close. Meanwhile the {@link KeyValuePartitionReader} can open this saved partition and find
    * keys store by the writer.
-   *
-   * @throws IOException if unexpected non-Alluxio error happens
-   * @throws AlluxioException if unexpected Alluxio error happens
    */
   @Test
-  public void readerWriterTest() throws IOException, AlluxioException {
+  public void readerWriter() throws Exception {
     mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
     mKeyValuePartitionWriter.put(KEY1, VALUE1);
     mKeyValuePartitionWriter.put(KEY2, VALUE2);
@@ -105,13 +104,14 @@ public final class KeyValuePartitionIntegrationTest {
     Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mKeyValuePartitionReader.get(KEY2));
     Assert.assertNull(mKeyValuePartitionReader.get("NoSuchKey".getBytes()));
+    mKeyValuePartitionReader.close();
   }
 
   /**
    * Tests that {@link KeyValuePartitionReader#size()} is correct when a new reader is created.
    */
   @Test
-  public void sizeTest() throws Exception {
+  public void size() throws Exception {
     byte[][] keys = new byte[][]{KEY1, KEY2};
     byte[][] values = new byte[][]{VALUE1, VALUE2};
     for (int size = 0; size <= 2; size++) {
@@ -134,10 +134,12 @@ public final class KeyValuePartitionIntegrationTest {
    * partition has no elements to be iterated.
    */
   @Test
-  public void emptyPartitionIteratorTest() throws Exception {
+  public void emptyPartitionIterator() throws Exception {
     // Creates an empty partition.
     KeyValuePartitionWriter.Factory.create(mPartitionUri).close();
-    Assert.assertFalse(KeyValuePartitionReader.Factory.create(mPartitionUri).iterator().hasNext());
+    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
+    Assert.assertFalse(mKeyValuePartitionReader.iterator().hasNext());
+    mKeyValuePartitionReader.close();
   }
 
   /**
@@ -147,7 +149,7 @@ public final class KeyValuePartitionIntegrationTest {
    * iterated.
    */
   @Test
-  public void noOrderIteratorTest() throws Exception {
+  public void noOrderIterator() throws Exception {
     List<KeyValuePair> pairs = genKeyValuePairs(BASE_KEY_VALUE_NUMBER);
     List<KeyValuePair> iteratedPairs = Lists.newArrayListWithExpectedSize(pairs.size());
 
@@ -162,6 +164,7 @@ public final class KeyValuePartitionIntegrationTest {
     while (iterator.hasNext()) {
       iteratedPairs.add(iterator.next());
     }
+    mKeyValuePartitionReader.close();
     Assert.assertEquals(pairs.size(), iteratedPairs.size());
 
     // Sort both pairs and iteratedPairs, then compare them.

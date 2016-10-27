@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,25 +12,23 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 
 import org.junit.Test;
 
 /**
  * Unit tests for {@link RoundRobinAllocator}.
  */
-public class RoundRobinAllocatorTest extends BaseAllocatorTest {
+public class RoundRobinAllocatorTest extends AllocatorTestBase {
 
   /**
    * Tests that blocks are allocated in a round robin fashion.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
-  public void allocateBlockTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(conf, getManagerView());
+  public void allocateBlock() throws Exception {
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(getManagerView());
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
@@ -220,5 +218,6 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 700   <--- alloc
     //  2               └─── 0
     //
+    ConfigurationTestUtils.resetConfiguration();
   }
 }

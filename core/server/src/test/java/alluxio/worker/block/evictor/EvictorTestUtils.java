@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -34,16 +34,16 @@ public class EvictorTestUtils {
    * Whether blocks in the {@link EvictionPlan} are in the same {@link StorageDir}.
    *
    * @param plan the eviction plan
-   * @param meta the meta data manager
+   * @param meta the metadata manager
    * @return true if blocks are in the same dir otherwise false
-   * @throws BlockDoesNotExistException if fail to get meta data of a block
+   * @throws BlockDoesNotExistException if fail to get metadata of a block
    */
   public static boolean blocksInTheSameDir(EvictionPlan plan, BlockMetadataManager meta)
       throws BlockDoesNotExistException {
     Preconditions.checkNotNull(plan);
 
     StorageDir dir = null;
-    List<Long> blockIds = new ArrayList<Long>();
+    List<Long> blockIds = new ArrayList<>();
     for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
       blockIds.add(evict.getFirst());
     }
@@ -69,12 +69,12 @@ public class EvictorTestUtils {
    *
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
-   * @param metaManager the meta data manager
+   * @param metaManager the metadata manager
    * @return true if and only if the plan is not null and both
    *         {@link #blocksInTheSameDir(EvictionPlan, BlockMetadataManager)} and
    *         {@link #requestSpaceSatisfied(long, EvictionPlan, BlockMetadataManager)} are true,
    *         otherwise false
-   * @throws alluxio.exception.BlockDoesNotExistException when fail to get meta data of a block
+   * @throws alluxio.exception.BlockDoesNotExistException when fail to get metadata of a block
    */
   public static boolean validNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws BlockDoesNotExistException {
@@ -94,7 +94,7 @@ public class EvictorTestUtils {
    *
    * @param bytesToBeAvailable requested bytes to be available after eviction
    * @param plan the eviction plan, should not be empty
-   * @param metaManager the meta data manager
+   * @param metaManager the metadata manager
    * @return true if the above requirements are satisfied, otherwise false
    * @throws BlockDoesNotExistException if a block for which metadata cannot be found is encountered
    */
@@ -106,7 +106,7 @@ public class EvictorTestUtils {
 
     // Map from dir to a pair of bytes to be available in this dir and bytes to move into this dir
     // after the plan taking action
-    Map<StorageDir, Pair<Long, Long>> spaceInfoInDir = new HashMap<StorageDir, Pair<Long, Long>>();
+    Map<StorageDir, Pair<Long, Long>> spaceInfoInDir = new HashMap<>();
 
     for (Pair<Long, BlockStoreLocation> blockInfo : plan.toEvict()) {
       BlockMeta block = metaManager.getBlockMeta(blockInfo.getFirst());
@@ -115,8 +115,7 @@ public class EvictorTestUtils {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(dir);
         spaceInfo.setFirst(spaceInfo.getFirst() + block.getBlockSize());
       } else {
-        spaceInfoInDir.put(dir, new Pair<Long, Long>(
-            dir.getAvailableBytes() + block.getBlockSize(), 0L));
+        spaceInfoInDir.put(dir, new Pair<>(dir.getAvailableBytes() + block.getBlockSize(), 0L));
       }
     }
 
@@ -131,15 +130,14 @@ public class EvictorTestUtils {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(srcDir);
         spaceInfo.setFirst(spaceInfo.getFirst() + blockSize);
       } else {
-        spaceInfoInDir
-            .put(srcDir, new Pair<Long, Long>(srcDir.getAvailableBytes() + blockSize, 0L));
+        spaceInfoInDir.put(srcDir, new Pair<>(srcDir.getAvailableBytes() + blockSize, 0L));
       }
 
       if (spaceInfoInDir.containsKey(destDir)) {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(destDir);
         spaceInfo.setSecond(spaceInfo.getSecond() + blockSize);
       } else {
-        spaceInfoInDir.put(destDir, new Pair<Long, Long>(destDir.getAvailableBytes(), blockSize));
+        spaceInfoInDir.put(destDir, new Pair<>(destDir.getAvailableBytes(), blockSize));
       }
     }
 
@@ -180,7 +178,7 @@ public class EvictorTestUtils {
    *
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
-   * @param metaManager the meta data manager
+   * @param metaManager the metadata manager
    * @throws Exception when fail
    */
   public static void assertEvictionPlanValid(long bytesToBeAvailable, EvictionPlan plan,
@@ -198,13 +196,13 @@ public class EvictorTestUtils {
    * @param plan the eviction plan, should not be null
    * @param meta the metadata manager
    * @return true if the request can be satisfied otherwise false
-   * @throws alluxio.exception.BlockDoesNotExistException if can not get meta data of a block
+   * @throws alluxio.exception.BlockDoesNotExistException if can not get metadata of a block
    */
   public static boolean requestSpaceSatisfied(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager meta) throws BlockDoesNotExistException {
     Preconditions.checkNotNull(plan);
 
-    List<Long> blockIds = new ArrayList<Long>();
+    List<Long> blockIds = new ArrayList<>();
     for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
       blockIds.add(evict.getFirst());
     }

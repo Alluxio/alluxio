@@ -19,16 +19,6 @@ struct BlockLocation {
   3: string tierAlias
 }
 
-/**
-* Contains the information of a block in a file. In addition to the BlockInfo, it includes the
-* offset in the file, and the under file system locations of the block replicas.
-*/
-struct FileBlockInfo {
-  1: BlockInfo blockInfo
-  2: i64 offset
-  3: list<WorkerNetAddress> ufsLocations
-}
-
 enum CommandType {
   Unknown = 0,
   Nothing = 1,
@@ -36,6 +26,11 @@ enum CommandType {
   Free = 3,     // Ask the worker to free files.
   Delete = 4,   // Ask the worker to delete files.
   Persist = 5,  // Ask the worker to persist a file for lineage
+}
+
+enum TTtlAction {
+  Delete = 0, // Delete the file after TTL expires.
+  Free = 1,   // Free the file after TTL expires.
 }
 
 struct Command {

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,6 +11,7 @@
 
 package alluxio.heartbeat;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,9 +38,10 @@ public final class HeartbeatContext {
   public static final String WORKER_CLIENT = "Worker Client";
   public static final String WORKER_FILESYSTEM_MASTER_SYNC = "Worker FileSystemMaster Sync";
   public static final String WORKER_PIN_LIST_SYNC = "Worker Pin List Sync";
+  public static final String WORKER_SPACE_RESERVER = "Worker Space Reserver";
 
   static {
-    sTimerClasses = new HashMap<String, Class<? extends HeartbeatTimer>>();
+    sTimerClasses = new HashMap<>();
     sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_FILE_RECOMPUTATION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_FILES_DETECTION, SLEEPING_TIMER_CLASS);
@@ -49,9 +51,17 @@ public final class HeartbeatContext {
     sTimerClasses.put(WORKER_BLOCK_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_PIN_LIST_SYNC, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(WORKER_SPACE_RESERVER, SLEEPING_TIMER_CLASS);
   }
 
   private HeartbeatContext() {} // to prevent initialization
+
+  /**
+   * @return the mapping from executor thread names to timer classes
+   */
+  public static synchronized Map<String, Class<? extends HeartbeatTimer>> getTimerClasses() {
+    return Collections.unmodifiableMap(sTimerClasses);
+  }
 
   /**
    * @param name a name of a heartbeat executor thread
@@ -72,6 +82,10 @@ public final class HeartbeatContext {
   @SuppressWarnings("unused")
   private static synchronized void setTimerClass(String name,
       Class<? extends HeartbeatTimer> timerClass) {
-    sTimerClasses.put(name, timerClass);
+    if (timerClass == null) {
+      sTimerClasses.remove(name);
+    } else {
+      sTimerClasses.put(name, timerClass);
+    }
   }
 }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,7 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
@@ -34,19 +34,20 @@ public interface Evictor {
    */
   @ThreadSafe
   class Factory {
+
+    private Factory() {} // prevent instantiation
+
     /**
      * Factory for {@link Evictor}.
      *
-     * @param conf {@link Configuration} to determine the {@link Evictor} type
      * @param view {@link BlockMetadataManagerView} to pass to {@link Evictor}
      * @param allocator an allocation policy
      * @return the generated {@link Evictor}
      */
-    public static Evictor create(Configuration conf, BlockMetadataManagerView view,
-                                 Allocator allocator) {
+    public static Evictor create(BlockMetadataManagerView view, Allocator allocator) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<Evictor>getClass(Constants.WORKER_EVICTOR_CLASS),
+            Configuration.<Evictor>getClass(PropertyKey.WORKER_EVICTOR_CLASS),
             new Class[]{BlockMetadataManagerView.class, Allocator.class},
             new Object[]{view, allocator});
       } catch (Exception e) {

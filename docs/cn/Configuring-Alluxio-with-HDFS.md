@@ -26,15 +26,22 @@ priority: 3
 
 # 配置Alluxio
 
-要运行Alluxio二进制包，一定要先创建配置文件，从template文件创建一个配置文件：
+要运行Alluxio二进制包，一定要先创建配置文件，你可以使用`bootstrapConf` 命令来创建自己的配置文件。
+举个例子，假如你正在本地运行Alluxio，那么就应该把`ALLUXIO_MASTER_HOSTNAME`设置为`localhost`
+
+{% include Configuring-Alluxio-with-HDFS/bootstrapConf.md %}
+
+另外你也可以从template文件创建一个配置文件然后手动修改它的内容：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-接着修改`alluxio-env.sh`文件，将底层存储系统的地址设置为HDFS namenode的地址（例如，若你的HDFS namenode是在本地默认端口运行，则该地址为`hdfs://localhost:9000`）。
+接着修改`conf/alluxio-site.properties`文件，将底层存储系统的地址设置为HDFS namenode的地址以及你想挂载到Alluxio根目录下的HDFS目录。例如，若你的HDFS namenode是在本地默认端口运行，并且HDFS的根目录已经被映射到Alluxio根目录，则该地址为`hdfs://localhost:9000`；若只有`/alluxio/data`这一个HDFS目录被映射到Alluxio根目录，则该地址为`hdfs://localhost:9000/alluxio/data`。
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
 # 使用HDFS在本地运行Alluxio
+
+在开始本步骤之前，请确保HDFS集群已经启动运行并且映射到Alluxio根目录下的HDFS目录已经存在。
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
@@ -46,7 +53,7 @@ priority: 3
 
 {% include Common-Commands/runTests.md %}
 
-运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/alluxio/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST`。
+运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/default_tests_files/BasicFile_STORE_SYNC_PERSIST`。
 
 运行以下命令停止Alluxio：
 

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,7 @@
 package alluxio.worker.block;
 
 /**
- * A listener interface for receiving meta data mutation events of {@link BlockStore}. All the
+ * A listener interface for receiving metadata mutation events of {@link BlockStore}. All the
  * callback methods are triggered only after the actual event has been completed successfully.
  * <p>
  * All methods may be called concurrently, thus listener implementation needs to ensure

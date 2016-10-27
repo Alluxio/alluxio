@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,8 +13,8 @@ package alluxio.master.journal;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.master.MasterContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
 
@@ -77,9 +77,8 @@ public final class JournalWriter {
     mJournalDirectory = mJournal.getDirectory();
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
-    Configuration conf = MasterContext.getConf();
-    mUfs = UnderFileSystem.get(mJournalDirectory, conf);
-    mMaxLogSize = conf.getBytes(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+    mUfs = UnderFileSystem.get(mJournalDirectory);
+    mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
   }
 
   /**
@@ -349,7 +348,8 @@ public final class JournalWriter {
 
     @Override
     public synchronized void flush() throws IOException {
-      if (mIsClosed) {
+      if (mIsClosed || mDataOutputStream.size() == 0) {
+        // There is nothing to flush.
         return;
       }
       mDataOutputStream.flush();
@@ -360,9 +360,8 @@ public final class JournalWriter {
         // {@link FSDataOutputStream#sync} to actually flush data to HDFS.
         ((FSDataOutputStream) mRawOutputStream).sync();
       }
-      boolean overSize = mDataOutputStream.size() > mMaxLogSize;
-      if (overSize || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.S3
-          || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.OSS) {
+      boolean overSize = mDataOutputStream.size() >= mMaxLogSize;
+      if (overSize || !mUfs.supportsFlush()) {
         // (1) The log file is oversize, needs to be rotated. Or
         // (2) Underfs is S3 or OSS, flush on S3OutputStream/OSSOutputStream will only flush to
         // local temporary file,

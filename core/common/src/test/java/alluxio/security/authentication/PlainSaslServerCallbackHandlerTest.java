@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,8 +12,10 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +32,6 @@ import javax.security.sasl.AuthorizeCallback;
  * Tests the {@link PlainSaslServerCallbackHandler} class.
  */
 public class PlainSaslServerCallbackHandlerTest {
-  private Configuration mConf;
   private CallbackHandler mPlainServerCBHandler;
 
   /**
@@ -46,11 +47,16 @@ public class PlainSaslServerCallbackHandlerTest {
    */
   @Before
   public void before() throws Exception {
-    mConf = new Configuration();
-    mConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         NameMatchAuthenticationProvider.class.getName());
     mPlainServerCBHandler = new PlainSaslServerCallbackHandler(
-        AuthenticationProvider.Factory.create(AuthType.CUSTOM, mConf));
+        AuthenticationProvider.Factory.create(AuthType.CUSTOM));
+  }
+
+  @After
+  public void after() {
+    AuthenticatedClientUser.remove();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -59,7 +65,7 @@ public class PlainSaslServerCallbackHandlerTest {
    * @throws Exception thrown if the handler fails
    */
   @Test
-  public void authenticateNameMatchTest() throws Exception {
+  public void authenticateNameMatch() throws Exception {
     String authenticateId = "alluxio-1";
     NameCallback ncb = new NameCallback(" authentication id: ");
     ncb.setName(authenticateId);
@@ -76,7 +82,7 @@ public class PlainSaslServerCallbackHandlerTest {
    * Tests that the authentication callbacks do not match.
    */
   @Test
-  public void authenticateNameNotMatchTest() throws Exception {
+  public void authenticateNameNotMatch() throws Exception {
     mThrown.expect(AuthenticationException.class);
     mThrown.expectMessage("Only allow the user starting with alluxio");
 
@@ -96,7 +102,7 @@ public class PlainSaslServerCallbackHandlerTest {
    * Tests that the incorrect password should fail the authentication.
    */
   @Test
-  public void authenticateCorrectPasswordTest() throws Exception {
+  public void authenticateCorrectPassword() throws Exception {
     mThrown.expect(AuthenticationException.class);
     mThrown.expectMessage("Wrong password");
 

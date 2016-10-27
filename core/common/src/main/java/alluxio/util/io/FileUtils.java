@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,14 +14,28 @@ package alluxio.util.io;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.InvalidPathException;
-import alluxio.util.ShellUtils;
 
-import com.google.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.attribute.UserPrincipal;
+import java.nio.file.attribute.UserPrincipalLookupService;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -29,31 +43,111 @@ import javax.annotation.concurrent.ThreadSafe;
  * Provides utility methods for working with files and directories.
  *
  * By convention, methods take file path strings as parameters.
+ *
+ * TODO(peis): Move everything to nio.
  */
 @ThreadSafe
 public final class FileUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Changes local file's permission.
+   * Changes the local file's group.
    *
-   * @param filePath that will change permission
-   * @param perms the permission, e.g. "775"
-   * @throws IOException when fails to change permission
+   * @param path that will change owner
+   * @param group the new group
+   * @throws IOException if the group is unable to be changed
    */
-  public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    // TODO(cc): Switch to java's Files.setPosixFilePermissions() when Java 6 support is dropped.
-    ShellUtils.execCommand(ShellUtils.getSetPermissionCommand(perms, filePath));
+  public static void changeLocalFileGroup(String path, String group) throws IOException {
+    UserPrincipalLookupService lookupService =
+        FileSystems.getDefault().getUserPrincipalLookupService();
+    PosixFileAttributeView view =
+        Files.getFileAttributeView(Paths.get(path), PosixFileAttributeView.class,
+            LinkOption.NOFOLLOW_LINKS);
+    GroupPrincipal groupPrincipal = lookupService.lookupPrincipalByGroupName(group);
+    view.setGroup(groupPrincipal);
   }
 
   /**
-   * Changes local file's permission to be 777.
+   * Changes local file's permission.
    *
    * @param filePath that will change permission
-   * @throws IOException when fails to change file's permission to 777
+   * @param perms the permission, e.g. "rwxr--r--"
+   * @throws IOException when fails to change permission
+   */
+  public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
+    Files.setPosixFilePermissions(Paths.get(filePath), PosixFilePermissions.fromString(perms));
+  }
+
+  /**
+   * Changes local file's permission to be "rwxrwxrwx".
+   *
+   * @param filePath that will change permission
+   * @throws IOException when fails to change file's permission to "rwxrwxrwx"
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
-    changeLocalFilePermission(filePath, "777");
+    changeLocalFilePermission(filePath, "rwxrwxrwx");
+  }
+
+  /**
+   * Gets local file's owner.
+   *
+   * @param filePath the file path
+   * @return the owner of the local file
+   * @throws IOException when fails to get the owner
+   */
+  public static String getLocalFileOwner(String filePath) throws IOException {
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
+    return attr.owner().getName();
+  }
+
+  /**
+   * Gets local file's group.
+   *
+   * @param filePath the file path
+   * @return the group of the local file
+   * @throws IOException when fails to get the group
+   */
+  public static String getLocalFileGroup(String filePath) throws IOException {
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
+    return attr.group().getName();
+  }
+
+  /**
+   * Gets local file's permission mode.
+   *
+   * @param filePath the file path
+   * @return the file mode in short, e.g. 0777
+   * @throws IOException when fails to get the permission
+   */
+  public static short getLocalFileMode(String filePath) throws IOException {
+    Set<PosixFilePermission> permission =
+        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class).permissions();
+    // Translate posix file permissions to short mode.
+    int mode = 0;
+    for (PosixFilePermission action : PosixFilePermission.values()) {
+      mode = mode << 1;
+      mode += permission.contains(action) ? 1 : 0;
+    }
+    return (short) mode;
+  }
+
+  /**
+   * Changes the local file's user.
+   *
+   * @param path that will change owner
+   * @param user the new user
+   * @throws IOException if the group is unable to be changed
+   */
+  public static void changeLocalFileUser(String path, String user) throws IOException {
+    UserPrincipalLookupService lookupService =
+        FileSystems.getDefault().getUserPrincipalLookupService();
+    PosixFileAttributeView view =
+        Files.getFileAttributeView(Paths.get(path), PosixFileAttributeView.class,
+            LinkOption.NOFOLLOW_LINKS);
+    UserPrincipal userPrincipal = lookupService.lookupPrincipalByName(user);
+    view.setOwner(userPrincipal);
   }
 
   /**
@@ -75,6 +169,7 @@ public final class FileUtils {
       // Support for sticky bit is platform specific. Check if the path starts with "/" and if so,
       // assume that the host supports the chmod command.
       if (dir.startsWith(AlluxioURI.SEPARATOR)) {
+        // TODO(peis): This is very slow. Consider removing this.
         Runtime.getRuntime().exec("chmod +t " + dir);
       }
     } catch (IOException e) {
@@ -113,7 +208,50 @@ public final class FileUtils {
    * @throws IOException when fails to move
    */
   public static void move(String srcPath, String dstPath) throws IOException {
-    Files.move(new File(srcPath), new File(dstPath));
+    com.google.common.io.Files.move(new File(srcPath), new File(dstPath));
+  }
+
+  /**
+   * Deletes the file or directory.
+   *
+   * Current implementation uses {@link java.io.File#delete()}, may change if there is a better
+   * solution.
+   *
+   * @param path pathname string of file or directory
+   * @throws IOException when fails to delete
+   */
+  public static void delete(String path) throws IOException {
+    File file = new File(path);
+    if (!file.delete()) {
+      throw new IOException("Failed to delete " + path);
+    }
+  }
+
+  /**
+   * Deletes a path recursively.
+   *
+   * @param path pathname to be deleted
+   * @throws IOException when fails to delete
+   */
+  public static void deletePathRecursively(String path) throws IOException {
+    Path root = Paths.get(path);
+    Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        Files.delete(file);
+        return FileVisitResult.CONTINUE;
+      }
+
+      @Override
+      public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+        if (e == null) {
+          Files.delete(dir);
+          return FileVisitResult.CONTINUE;
+        } else {
+          throw e;
+        }
+      }
+    });
   }
 
   /**
@@ -127,16 +265,20 @@ public final class FileUtils {
    */
   public static void createStorageDirPath(String path) throws IOException {
     File dir = new File(path);
-    String absolutePath = dir.getAbsolutePath();
-    if (!dir.exists()) {
-      if (dir.mkdirs()) {
-        changeLocalFileToFullPermission(absolutePath);
-        setLocalDirStickyBit(absolutePath);
-        LOG.info("Folder {} was created!", path);
-      } else {
-        throw new IOException("Failed to create folder " + path);
-      }
+    if (dir.exists()) {
+      return;
     }
+    if (!dir.mkdirs()) {
+      if (dir.exists()) {
+        // This dir has been created concurrently.
+        return;
+      }
+      throw new IOException("Failed to create folder " + path);
+    }
+    String absolutePath = dir.getAbsolutePath();
+    changeLocalFileToFullPermission(absolutePath);
+    setLocalDirStickyBit(absolutePath);
+    LOG.info("Folder {} was created!", path);
   }
 
   /**
@@ -147,7 +289,7 @@ public final class FileUtils {
    */
   public static void createFile(String filePath) throws IOException {
     File file = new File(filePath);
-    Files.createParentDirs(file);
+    com.google.common.io.Files.createParentDirs(file);
     if (!file.createNewFile()) {
       throw new IOException("File already exists " + filePath);
     }

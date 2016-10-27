@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -15,8 +15,9 @@ import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -24,16 +25,18 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The lineage descriptor.
  */
-@NotThreadSafe
 @PublicApi
-public final class LineageInfo {
+@NotThreadSafe
+public final class LineageInfo implements Serializable {
+  private static final long serialVersionUID = -6407439859190160616L;
+
   private long mId;
-  private List<String> mInputFiles = Lists.newArrayList();
-  private List<String> mOutputFiles = Lists.newArrayList();
+  private ArrayList<String> mInputFiles = new ArrayList<>();
+  private ArrayList<String> mOutputFiles = new ArrayList<>();
   private CommandLineJobInfo mJob = new CommandLineJobInfo();
   private long mCreationTimeMs;
-  private List<Long> mParents = Lists.newArrayList();
-  private List<Long> mChildren = Lists.newArrayList();
+  private ArrayList<Long> mParents = new ArrayList<>();
+  private ArrayList<Long> mChildren = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link LineageInfo}.
@@ -47,12 +50,12 @@ public final class LineageInfo {
    */
   protected LineageInfo(alluxio.thrift.LineageInfo lineageInfo) {
     mId = lineageInfo.getId();
-    mInputFiles = lineageInfo.getInputFiles();
-    mOutputFiles = lineageInfo.getOutputFiles();
+    mInputFiles = new ArrayList<>(lineageInfo.getInputFiles());
+    mOutputFiles = new ArrayList<>(lineageInfo.getOutputFiles());
     mJob = new CommandLineJobInfo(lineageInfo.getJob());
     mCreationTimeMs = lineageInfo.getCreationTimeMs();
-    mParents = lineageInfo.getParents();
-    mChildren = lineageInfo.getChildren();
+    mParents = new ArrayList<>(lineageInfo.getParents());
+    mChildren = new ArrayList<>(lineageInfo.getChildren());
   }
 
   /**
@@ -119,7 +122,7 @@ public final class LineageInfo {
    */
   public LineageInfo setInputFiles(List<String> inputFiles) {
     Preconditions.checkNotNull(inputFiles);
-    mInputFiles = inputFiles;
+    mInputFiles = new ArrayList<>(inputFiles);
     return this;
   }
 
@@ -129,7 +132,7 @@ public final class LineageInfo {
    */
   public LineageInfo setOutputFiles(List<String> outputFiles) {
     Preconditions.checkNotNull(outputFiles);
-    mOutputFiles = outputFiles;
+    mOutputFiles = new ArrayList<>(outputFiles);
     return this;
   }
 
@@ -158,7 +161,7 @@ public final class LineageInfo {
    */
   public LineageInfo setParents(List<Long> parents) {
     Preconditions.checkNotNull(parents);
-    mParents = parents;
+    mParents = new ArrayList<>(parents);
     return this;
   }
 
@@ -168,7 +171,7 @@ public final class LineageInfo {
    */
   public LineageInfo setChildren(List<Long> children) {
     Preconditions.checkNotNull(children);
-    mChildren = children;
+    mChildren = new ArrayList<>(children);
     return this;
   }
 

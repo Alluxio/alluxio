@@ -2,7 +2,7 @@
 layout: global
 title: 在EC2上使用YARN运行Alluxio
 nickname: 在EC2上使用YARN运行Alluxio
-group: User Guide
+group: Deploying Alluxio
 priority: 5
 ---
 
@@ -103,24 +103,21 @@ Hadoop Web UI的默认端口为**50070**。
 
 定制Alluxio master和worker的特定属性(例如，每个worker建立分层存储)，参考
 [配置设置](Configuration-Settings.html)获取更多信息。为了确保你的配置可以被ApplicationMaster和
-Alluxio master/worker读取,将`${ALLUXIO_HOME}/conf`下的`alluxio-site.properties`放在每一台EC2机器上。
+Alluxio master/worker读取,将`~/.alluxio/`下的`alluxio-site.properties`放在每一台EC2机器上。
 
 # 启动Alluxio
 
-使用`integration/bin/alluxio-yarn.sh`脚本启动Alluxio。该脚本需要3个参数：
-1. 每台机器上指向`${ALLUXIO_HOME}`的路径。以便YARN NodeManager可以访问Alluxio脚本和可执行文件启动master
-和worker。在我们创建的EC2上，该路径为`/alluxio`。
-2. 需要启动的Alluxio worker的总数。
-3. 分布存储Alluxio ApplicationMaster可执行文件的HDFS路径。
+使用`integration/bin/alluxio-yarn.sh`脚本启动Alluxio。该脚本有3个参数：
+1. 需要启动的Alluxio worker的总数。(必填项)
+2. 分布存储Alluxio ApplicationMaster可执行文件的HDFS路径。(必填项)
+3. 运行Alluxio Master的节点的YARN的名称。（选填项，默认为`ALLUXIO_MASTER_HOSTNAME`）
 
-举例而言，启动3个worker节点的Alluxio集群，HDFS临时目录是`hdfs://AlluxioMaster:9000/tmp/`并且每个YARN容
-器可以在`/alluxio`目录下访问Alluxio:
+
+举例而言，启动3个worker节点的Alluxio集群，HDFS临时目录是`hdfs://AlluxioMaster:9000/tmp/`
 
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
 
-脚本先上传YARN client和ApplicationMaster的可执行文件到指定的HDFS路径，再通知YARN运行client二进制jar。脚
-本一直运行并报告ApplicationMaster的状态。也可以在浏览器中查看`http://AlluxioMaster:8088`访问Web UI观察
-Alluxio作业的状态和应用ID。
+该脚本会在YARN上启动Application Master，后面会继续为Alluxio master和workers申请运行的容器。脚本一直运行并报告ApplicationMaster的状态。也可以在浏览器中查看`http://AlluxioMaster:8088`访问Web UI观察Alluxio作业的状态和应用ID。
 
 以上脚本会产生如下的输出：
 
@@ -128,14 +125,9 @@ Alluxio作业的状态和应用ID。
 
 从输出中，我们得知运行Alluxio的应用ID是**`application_1445469376652_0002`**。应用ID可以用来杀死该应用。
 
-提示：当前的Alluxio YARN框架不保证在AlluxioMaster机器上启动Alluxio。使用YARN web UI读取YARN应用的日志。
-应用的日志会记录哪台机器启动了Alluxio master容器，如下所示：
-
-{% include Running-Alluxio-on-EC2-Yarn/log-Alluxio-master.md %}
-
 # 测试Alluxio
 
-知道Alluxio master容器的IP后，可以修改`conf/alluxio-env.sh`在每台EC2机器上建立`ALLUXIO_MASTER_ADDRESS`环境变量：
+知道Alluxio master容器的IP后，可以修改`conf/alluxio-env.sh`在每台EC2机器上建立`ALLUXIO_MASTER_HOSTNAME`环境变量：
 
 {% include Running-Alluxio-on-EC2-Yarn/environment-variable.md %}
 
@@ -143,7 +135,7 @@ Alluxio作业的状态和应用ID。
 
 {% include Running-Alluxio-on-EC2-Yarn/runTests.md %}
 
-在所有测试完成后，再次访问Alluxio的web UI `http://{MASTER_IP}:19999`，在导航栏中点击`Browse File System`，可以看到测试过程中写入到Alluxio的文件。
+在所有测试完成后，再次访问Alluxio的web UI `http://{MASTER_IP}:19999`，在导航栏中点击`Browse`，可以看到测试过程中写入到Alluxio的文件。
 
 
 # 停止Alluxio

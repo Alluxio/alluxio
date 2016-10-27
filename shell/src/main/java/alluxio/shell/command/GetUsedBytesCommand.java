@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 
@@ -27,14 +26,17 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class GetUsedBytesCommand extends AbstractShellCommand {
 
+  /** The block store client. */
+  private final AlluxioBlockStore mBlockStore;
+
   /**
    * Constructs a new instance to get the number of bytes used in the {@link FileSystem}.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public GetUsedBytesCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public GetUsedBytesCommand(FileSystem fs) {
+    super(fs);
+    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override
@@ -49,7 +51,7 @@ public final class GetUsedBytesCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    long usedBytes = AlluxioBlockStore.get().getUsedBytes();
+    long usedBytes = mBlockStore.getUsedBytes();
     System.out.println("Used Bytes: " + usedBytes);
   }
 

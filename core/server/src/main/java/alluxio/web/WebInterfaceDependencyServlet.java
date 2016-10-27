@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -49,8 +49,8 @@ public final class WebInterfaceDependencyServlet extends HttpServlet {
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("filePath", request.getParameter("filePath"));
     request.setAttribute("error", "");
-    List<String> parentFileNames = new ArrayList<String>();
-    List<String> childrenFileNames = new ArrayList<String>();
+    List<String> parentFileNames = new ArrayList<>();
+    List<String> childrenFileNames = new ArrayList<>();
     Collections.sort(parentFileNames);
     Collections.sort(childrenFileNames);
     request.setAttribute("parentFileNames", parentFileNames);
@@ -60,6 +60,5 @@ public final class WebInterfaceDependencyServlet extends HttpServlet {
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    return;
   }
 }

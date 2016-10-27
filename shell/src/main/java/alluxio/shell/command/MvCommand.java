@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 
@@ -29,11 +28,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MvCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public MvCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public MvCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -47,16 +45,13 @@ public final class MvCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
-    try {
-      mFileSystem.rename(srcPath, dstPath);
-      System.out.println("Renamed " + srcPath + " to " + dstPath);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+
+    mFileSystem.rename(srcPath, dstPath);
+    System.out.println("Renamed " + srcPath + " to " + dstPath);
   }
 
   @Override

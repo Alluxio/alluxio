@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,20 +12,21 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.exception.AlluxioException;
+import alluxio.RestUtils;
 import alluxio.master.AlluxioMaster;
-import alluxio.util.FormatUtils;
+import alluxio.web.MasterUIWebServer;
+import alluxio.wire.BlockInfo;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -36,14 +37,24 @@ import javax.ws.rs.core.Response;
 @Path(BlockMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class BlockMasterClientRestServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   public static final String SERVICE_PREFIX = "master/block";
   public static final String SERVICE_NAME = "service_name";
   public static final String SERVICE_VERSION = "service_version";
   public static final String GET_BLOCK_INFO = "block_info";
 
-  private final BlockMaster mBlockMaster = AlluxioMaster.get().getBlockMaster();
+  private final BlockMaster mBlockMaster;
+
+  /**
+   * Constructs a new {@link BlockMasterClientRestServiceHandler}.
+   *
+   * @param context context for the servlet
+   */
+  public BlockMasterClientRestServiceHandler(@Context ServletContext context) {
+    // Poor man's dependency injection through the Jersey application scope.
+    AlluxioMaster master =
+        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mBlockMaster = master.getBlockMaster();
+  }
 
   /**
    * @summary get the service name
@@ -53,8 +64,12 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    // Need to encode the string as JSON because Jackson will not do it automatically.
-    return Response.ok(FormatUtils.encodeJson(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME)).build();
+    return RestUtils.call(new RestUtils.RestCallable<String>() {
+      @Override
+      public String call() throws Exception {
+        return Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME;
+      }
+    });
   }
 
   /**
@@ -65,7 +80,12 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION).build();
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION;
+      }
+    });
   }
 
   /**
@@ -76,13 +96,13 @@ public final class BlockMasterClientRestServiceHandler {
   @GET
   @Path(GET_BLOCK_INFO)
   @ReturnType("alluxio.wire.BlockInfo")
-  public Response getBlockInfo(@QueryParam("blockId") Long blockId) {
-    try {
-      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
-      return Response.ok(mBlockMaster.getBlockInfo(blockId)).build();
-    } catch (AlluxioException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
-    }
+  public Response getBlockInfo(@QueryParam("blockId") final Long blockId) {
+    return RestUtils.call(new RestUtils.RestCallable<BlockInfo>() {
+      @Override
+      public BlockInfo call() throws Exception {
+        Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+        return mBlockMaster.getBlockInfo(blockId);
+      }
+    });
   }
 }

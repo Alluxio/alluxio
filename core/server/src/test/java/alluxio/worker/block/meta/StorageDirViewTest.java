@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,15 +11,12 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,6 +25,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -42,7 +40,6 @@ public class StorageDirViewTest {
   private static final long TEST_BLOCK_SIZE = 20;
   private StorageDir mTestDir;
   private StorageDirView mTestDirView;
-  private StorageTier mTestTier;
   private StorageTierView mTestTierView;
   private BlockMetadataManagerView mMetaManagerView;
 
@@ -52,8 +49,6 @@ public class StorageDirViewTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public void before() throws Exception {
@@ -61,27 +56,19 @@ public class StorageDirViewTest {
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView =
-        Mockito.spy(new BlockMetadataManagerView(metaManager, Sets.<Long>newHashSet(), Sets
-            .<Long>newHashSet()));
-    mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
-    mTestDir = mTestTier.getDir(TEST_DIR);
-    mTestTierView = new StorageTierView(mTestTier, mMetaManagerView);
+        Mockito.spy(new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
+          new HashSet<Long>()));
+    StorageTier testTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
+    mTestDir = testTier.getDir(TEST_DIR);
+    mTestTierView = new StorageTierView(testTier, mMetaManagerView);
     mTestDirView = new StorageDirView(mTestDir, mTestTierView, mMetaManagerView);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**
    * Tests the {@link StorageDirView#getDirViewIndex()} method.
    */
   @Test
-  public void getDirViewIndexTest() {
+  public void getDirViewIndex() {
     Assert.assertEquals(mTestDir.getDirIndex(), mTestDirView.getDirViewIndex());
   }
 
@@ -89,7 +76,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#getParentTierView()} method.
    */
   @Test
-  public void getParentTierViewTest() {
+  public void getParentTierView() {
     Assert.assertEquals(mTestTierView, mTestDirView.getParentTierView());
   }
 
@@ -97,7 +84,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#toBlockStoreLocation()} method.
    */
   @Test
-  public void toBlockStoreLocationTest() {
+  public void toBlockStoreLocation() {
     Assert.assertEquals(mTestDir.toBlockStoreLocation(), mTestDirView.toBlockStoreLocation());
   }
 
@@ -105,7 +92,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#getCapacityBytes()} method.
    */
   @Test
-  public void getCapacityBytesTest() {
+  public void getCapacityBytes() {
     Assert.assertEquals(mTestDir.getCapacityBytes(), mTestDirView.getCapacityBytes());
   }
 
@@ -113,7 +100,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#getAvailableBytes()} method.
    */
   @Test
-  public void getAvailableBytesTest() {
+  public void getAvailableBytes() {
     Assert.assertEquals(mTestDir.getAvailableBytes(), mTestDirView.getAvailableBytes());
   }
 
@@ -121,17 +108,15 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#getCommittedBytes()} method.
    */
   @Test
-  public void getCommittedBytesTest() {
+  public void getCommittedBytes() {
     Assert.assertEquals(mTestDir.getCommittedBytes(), mTestDirView.getCommittedBytes());
   }
 
   /**
    * Tests the {@link StorageDirView#getEvictableBlocks()} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
-  public void getEvictableBlocksTest() throws Exception {
+  public void getEvictableBlocks() throws Exception {
     // When test dir is empty, expect no block to be evictable
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
@@ -167,7 +152,7 @@ public class StorageDirViewTest {
    * Tests the {@link StorageDirView#createTempBlockMeta(long, long, long)} method.
    */
   @Test
-  public void createTempBlockMetaTest() {
+  public void createTempBlockMeta() {
     TempBlockMeta tempBlockMeta =
         mTestDirView.createTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE);
     Assert.assertEquals(TEST_SESSION_ID, tempBlockMeta.getSessionId());

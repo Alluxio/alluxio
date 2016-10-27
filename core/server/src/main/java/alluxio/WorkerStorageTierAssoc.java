@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -20,14 +20,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class WorkerStorageTierAssoc extends StorageTierAssoc {
+
   /**
    * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link Configuration}.
-   *
-   * @param conf Alluxio configuration
    */
-  public WorkerStorageTierAssoc(Configuration conf) {
-    super(conf, Constants.WORKER_TIERED_STORE_LEVELS,
-        Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+  public WorkerStorageTierAssoc() {
+    super(PropertyKey.WORKER_TIERED_STORE_LEVELS,
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }
 
   /**

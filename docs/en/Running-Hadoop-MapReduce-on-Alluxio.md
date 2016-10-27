@@ -15,7 +15,7 @@ The prerequisite for this part is that you have [Java](Java-Setup.html). We also
 have set up Alluxio and Hadoop in accordance to these guides
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 In order to run some simple map-reduce examples, we also recommend you download the
-[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1),
+[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1) based on your hadoop version,
 or if you are using Hadoop 1, this [examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1).
 
 # Compiling the Alluxio Client
@@ -49,12 +49,17 @@ This will allow your MapReduce jobs to use Alluxio for their input and output fi
 using HDFS as the under storage system for Alluxio, it may be necessary to add these properties to
 the `hdfs-site.xml` file as well.
 
-In order for the Alluxio client jar to be available to the JobClient, you can modify
-`HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
+In order for the Alluxio client jar to be available to the JobClient, you must modify
+`$HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-hadoop.md %}
 
 This allows the code that creates and submits the Job to use URIs with Alluxio scheme.
+
+NOTE: adding Alluxio client jar to `HADOOP_CLASSPATH` is required. Starting from Alluxio 1.3.0
+release in which security is enabled by default, if the `HADOOP_CLASSPATH` does not include Alluxio
+client jar, running mapreduce on Alluxio might result in "Failed to login: No Alluxio User is
+found." error.
 
 # Distributing the Alluxio Client Jar
 
@@ -87,18 +92,28 @@ MapReduce node, and then restart all of the TaskTrackers. One caveat of this app
 jars must be installed again for each update to a new release. On the other hand, when the jar is
 already on every node, then the `-libjars` command line option is not needed.
 
+## Avoiding Conflicting Client Dependencies
+
+It may be the case that the under storage library you are using will have dependency conflicts with
+Hadoop. For example using the S3A client to talk to S3 requires higher versions of several libraries
+included in Hadoop. You can resolve this conflict by enabling ufs delegation,
+`alluxio.user.ufs.delegation.enabled=true`, which delegates client operations to the under storage
+through Alluxio servers. See [Configuration Settings](Configuration-Settings.html) for how to modify
+the Alluxio configuration. Alternatively you can manually resolve the conflicts when generating the
+MapReduce classpath and/or jars, keeping only the highest versions of each dependency.
+
 # Running Hadoop wordcount with Alluxio Locally
 
 First, compile Alluxio with the appropriate Hadoop version:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/compile-Alluxio-Hadoop-test.md %}
 
-For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by running:
+For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by running (depends on the hadoop version, you might need to replace `./bin` with `./sbin`.):
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/start-cluster.md %}
 
 Configure Alluxio to use the local HDFS cluster as its under storage system. You can do this by
-modifying `conf/alluxio-env.sh` to include:
+modifying `conf/alluxio-site.properties` to include:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-Alluxio.md %}
 

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -49,7 +49,7 @@ public class ResourcePoolTest {
     @Override
     protected Integer createNewResource() {
       mPort++;
-      return Integer.valueOf(mPort);
+      return mPort;
     }
   }
 
@@ -57,7 +57,7 @@ public class ResourcePoolTest {
    * Tests the normal acquiration of resource pools.
    */
   @Test
-  public void resourcePoolNormalTest() {
+  public void resourcePoolNormal() {
     TestResourcePool testPool = new TestResourcePool(2);
     int resource1 = testPool.acquire();
     testPool.release(resource1);
@@ -67,11 +67,9 @@ public class ResourcePoolTest {
 
   /**
    * Tests that an exception is thrown if the resource pool is used more than its size can take.
-   *
-   * @throws InterruptedException when the queue starts to poll
    */
   @Test
-  public void resourcePoolBlockingTest() throws InterruptedException {
+  public void resourcePoolBlocking() throws InterruptedException {
     mThrown.expect(RuntimeException.class);
     final int POOL_SIZE = 2;
     @SuppressWarnings("unchecked")

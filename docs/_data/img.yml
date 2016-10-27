@@ -32,3 +32,15 @@ screenshot_masterMetrics:
   ../img/screenshot_masterMetrics.png
 screenshot_workerMetrics:
   ../img/screenshot_workerMetrics.png
+screenshot_start_hbase_webui:
+  ../img/screenshot_start_hbase_webui.png
+screenshot_start_hbase_alluxio_webui:
+  ../img/screenshot_start_hbase_alluxio_webui.png
+screenshot_hbase_shell_output:
+  ../img/screenshot_hbase_shell_output.png
+screenshot_hbase_hadoop_output:
+  ../img/screenshot_hbase_hadoop_output.png
+screenshot_hive_table_in_alluxio:
+  ../img/screenshot_hive_table_in_alluxio.png
+screenshot_hive_query_result:
+  ../img/screenshot_hive_query_result.png

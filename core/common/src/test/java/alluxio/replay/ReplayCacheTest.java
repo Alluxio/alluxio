@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -45,8 +45,6 @@ public final class ReplayCacheTest {
 
   /**
    * Tests that the {@link ReplayCallable} is only called when the key doesn't exist in the cache.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testCaching1() throws Exception {
@@ -65,8 +63,6 @@ public final class ReplayCacheTest {
   /**
    * Tests that the {@link ReplayCallableThrowsIOException} is only called when the key doesn't
    * exist in the cache.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testCaching2() throws Exception {
@@ -84,8 +80,6 @@ public final class ReplayCacheTest {
 
   /**
    * Tests that old keys are evicted when the configured maximum size is exceeded.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testSizeEviction() throws Exception {
@@ -101,8 +95,6 @@ public final class ReplayCacheTest {
 
   /**
    * Tests that keys are evicted after the configured timeout.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testTimeEviction() throws Exception {
@@ -118,8 +110,6 @@ public final class ReplayCacheTest {
   /**
    * Tests for {@link ReplayCallable}s that {@link AlluxioException}s are properly re-thrown as
    * {@link AlluxioTException}s.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testAlluxioExceptionRethrow1() throws Exception {
@@ -128,15 +118,13 @@ public final class ReplayCacheTest {
       Assert.fail("Should have thrown AlluxioTException");
     } catch (AlluxioTException e) {
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
-      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getType());
+      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getClassName());
     }
   }
 
   /**
    * Tests for {@link ReplayCallableThrowsIOException}s that {@link AlluxioException}s are properly
    * rethrown as {@link AlluxioTException}s.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testAlluxioExceptionRethrow2() throws Exception {
@@ -146,15 +134,13 @@ public final class ReplayCacheTest {
       Assert.fail("Should have thrown AlluxioTException");
     } catch (AlluxioTException e) {
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
-      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getType());
+      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getClassName());
     }
   }
 
   /**
    * Tests for {@link ReplayCallableThrowsIOException}s that {@link IOException}s are correctly
    * re-thrown as {@link ThriftIOException}s.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testIOExceptionRethrow() throws Exception {
@@ -168,8 +154,6 @@ public final class ReplayCacheTest {
 
   /**
    * Tests for {@link ReplayCallable}s that {@link RuntimeException}s are correctly propagated.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testRuntimeExceptionPropagated1() throws Exception {
@@ -185,8 +169,6 @@ public final class ReplayCacheTest {
   /**
    * Tests for {@link ReplayCallableThrowsIOException}s that {@link RuntimeException}s are correctly
    * propagated.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testRuntimeExceptionPropagated2() throws Exception {

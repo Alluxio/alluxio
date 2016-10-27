@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,16 +12,18 @@
 package alluxio.worker;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -45,7 +47,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for {@link BlockWorkerClientServiceHandler}.
@@ -53,7 +54,6 @@ import java.util.concurrent.TimeUnit;
 public class BlockServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10 * Constants.MB;
   private static final long SESSION_ID = 1L;
-  private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
@@ -61,26 +61,24 @@ public class BlockServiceHandlerIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
-          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB)
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
+          .build();
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;
-  private Configuration mMasterConfiguration;
-  private Configuration mWorkerConfiguration;
   private BlockMasterClient mBlockMasterClient;
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
-    mWorkerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
     mBlockWorkerServiceHandler =
         mLocalAlluxioClusterResource.get().getWorker().getBlockWorker().getWorkerServiceHandler();
 
-    mBlockMasterClient = new BlockMasterClient(
-        new InetSocketAddress(mLocalAlluxioClusterResource.get().getMasterHostname(),
-            mLocalAlluxioClusterResource.get().getMasterPort()),
-        mWorkerConfiguration);
+    mBlockMasterClient = new RetryHandlingBlockMasterClient(
+        new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
+            mLocalAlluxioClusterResource.get().getMasterRpcPort()));
   }
 
   @After
@@ -90,8 +88,8 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that caching a block successfully persists the block if the block exists
   @Test
-  public void cacheBlockTest() throws Exception {
-    mFileSystem.createFile(new AlluxioURI("/testFile"));
+  public void cacheBlock() throws Exception {
+    mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
@@ -119,8 +117,8 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that cancelling a block will remove the temporary file
   @Test
-  public void cancelBlockTest() throws Exception {
-    mFileSystem.createFile(new AlluxioURI("/testFile"));
+  public void cancelBlock() throws Exception {
+    mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
@@ -135,13 +133,13 @@ public class BlockServiceHandlerIntegrationTest {
     Assert.assertFalse(new File(filename).exists());
 
     // The master should not have recorded any used space after the block is cancelled
-    waitForHeartbeat();
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     Assert.assertEquals(0, mBlockMasterClient.getUsedBytes());
   }
 
   // Tests that lock block returns the correct path
   @Test
-  public void lockBlockTest() throws Exception {
+  public void lockBlock() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
 
     CreateFileOptions options =
@@ -160,7 +158,7 @@ public class BlockServiceHandlerIntegrationTest {
     // The local path should exist
     Assert.assertNotNull(localPath);
 
-    UnderFileSystem ufs = UnderFileSystem.get(localPath, mMasterConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(localPath);
     byte[] data = new byte[blockSize];
     int bytesRead = ufs.open(localPath).read(data);
 
@@ -173,8 +171,8 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that lock block returns error on failure
   @Test
-  public void lockBlockFailureTest() throws Exception {
-    mFileSystem.createFile(new AlluxioURI("/testFile"));
+  public void lockBlockFailure() throws Exception {
+    mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 
@@ -191,7 +189,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that files are evicted when there is not enough space in the worker.
   @Test
-  public void evictionTest() throws Exception {
+  public void eviction() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     AlluxioURI file1 = new AlluxioURI("/file1");
     FileSystemTestUtils.createByteFile(mFileSystem, file1, WriteType.MUST_CACHE, blockSize);
@@ -212,7 +210,7 @@ public class BlockServiceHandlerIntegrationTest {
     AlluxioURI file3 = new AlluxioURI("/file3");
     FileSystemTestUtils.createByteFile(mFileSystem, file3, WriteType.MUST_CACHE, blockSize);
 
-    waitForHeartbeat();
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     fileInfo1 = mFileSystem.getStatus(file1);
     fileInfo2 = mFileSystem.getStatus(file2);
@@ -226,7 +224,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that space will be allocated when possible
   @Test
-  public void requestSpaceTest() throws Exception {
+  public void requestSpace() throws Exception {
     final long blockId1 = 12345L;
     final long blockId2 = 12346L;
     final int chunkSize = (int) WORKER_CAPACITY_BYTES / 10;
@@ -243,7 +241,13 @@ public class BlockServiceHandlerIntegrationTest {
     Assert.assertFalse(result);
 
     // Request for space on a nonexistent block should fail
-    Assert.assertFalse(mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize));
+    try {
+      mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize);
+      Assert.fail();
+    } catch (AlluxioTException e) {
+      Assert.assertEquals(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(blockId2),
+          e.getMessage());
+    }
 
     // Request for impossible initial space should fail
     Exception exception = null;
@@ -258,7 +262,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that multiple users cannot request a combined space greater than worker space
   @Test
-  public void totalOverCapacityRequestSpaceTest() throws Exception {
+  public void totalOverCapacityRequestSpace() throws Exception {
     final int chunkSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long userId1 = SESSION_ID;
     final long userId2 = SESSION_ID + 1;
@@ -281,20 +285,10 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
-    UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(filename);
     ufs.mkdirs(PathUtils.getParent(filename), true);
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(len), 0, len);
     out.close();
-  }
-
-  // Waits for a worker heartbeat to master to be processed
-  private void waitForHeartbeat() throws InterruptedException {
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    // Wait for the next heartbeat to be ready to guarantee that the previous heartbeat has finished
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
   }
 }

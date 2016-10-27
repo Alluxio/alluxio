@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 
 import com.google.common.base.Preconditions;
@@ -71,10 +70,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UnderFileSystemRegistry {
 
-  private static final List<UnderFileSystemFactory> FACTORIES =
-      new CopyOnWriteArrayList<UnderFileSystemFactory>();
+  private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static boolean sInit = false;
+
+  // prevent instantiation
+  private UnderFileSystemRegistry() {}
 
   static {
     // Call the actual initializer which is a synchronized method for thread safety purposes
@@ -95,23 +96,22 @@ public final class UnderFileSystemRegistry {
    * {@link IllegalArgumentException} is thrown if there is no under file system for the given path
    * or if no under file system could successfully be created.
    *
-   * @param path Path
-   * @param configuration Alluxio Configuration
-   * @param ufsConf Optional configuration object for the UFS, may be null
-   * @return Client for the under file system
+   * @param path path
+   * @param ufsConf optional configuration object for the UFS, may be null
+   * @return client for the under file system
    */
-  public static UnderFileSystem create(String path, Configuration configuration, Object ufsConf) {
+  public static UnderFileSystem create(String path, Object ufsConf) {
     // Try to obtain the appropriate factory
-    List<UnderFileSystemFactory> factories = findAll(path, configuration);
+    List<UnderFileSystemFactory> factories = findAll(path);
     if (factories.isEmpty()) {
       throw new IllegalArgumentException("No Under File System Factory found for: " + path);
     }
 
-    List<Throwable> errors = new ArrayList<Throwable>();
+    List<Throwable> errors = new ArrayList<>();
     for (UnderFileSystemFactory factory : factories) {
       try {
         // Use the factory to create the actual client for the Under File System
-        return factory.create(path, configuration, ufsConf);
+        return factory.create(path, ufsConf);
       } catch (Exception e) {
         errors.add(e);
       }
@@ -133,38 +133,37 @@ public final class UnderFileSystemRegistry {
   /**
    * Finds the first Under File System factory that supports the given path.
    *
-   * @param path Path
-   * @param configuration Alluxio configuration
-   * @return Factory if available, null otherwise
+   * @param path path
+   * @return factory if available, null otherwise
    */
-  public static UnderFileSystemFactory find(String path, Configuration configuration) {
+  public static UnderFileSystemFactory find(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     for (UnderFileSystemFactory factory : FACTORIES) {
-      if (factory.supportsPath(path, configuration)) {
+      if (factory.supportsPath(path)) {
         LOG.debug("Selected Under File System Factory implementation {} for path {}",
             factory.getClass(), path);
         return factory;
       }
     }
 
-    LOG.warn("No Under File System Factory implementation supports the path {}", path);
+    LOG.warn("No Under File System Factory implementation supports the path {}. Please check if "
+        + "the under storage path is valid.", path);
     return null;
   }
 
   /**
    * Finds all the Under File System factories that support the given path.
    *
-   * @param path Path
-   * @param configuration Alluxio Configuration
-   * @return List of factories that support the given path which may be an empty list
+   * @param path path
+   * @return list of factories that support the given path which may be an empty list
    */
-  public static List<UnderFileSystemFactory> findAll(String path, Configuration configuration) {
+  public static List<UnderFileSystemFactory> findAll(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    List<UnderFileSystemFactory> eligibleFactories = new ArrayList<UnderFileSystemFactory>();
+    List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
     for (UnderFileSystemFactory factory : FACTORIES) {
-      if (factory.supportsPath(path, configuration)) {
+      if (factory.supportsPath(path)) {
         LOG.debug("Under File System Factory implementation {} is eligible for path {}",
             factory.getClass(), path);
         eligibleFactories.add(factory);
@@ -201,11 +200,11 @@ public final class UnderFileSystemRegistry {
    * Factories are registered at the start of the factories list so they can override the existing
    * automatically discovered factories. Generally if you use the {@link ServiceLoader} mechanism
    * properly it should be unnecessary to call this, however since ServiceLoader discovery order
-   * may be susceptible to class loader behavioural differences there may be rare cases when you
+   * may be susceptible to class loader behavioral differences there may be rare cases when you
    * need to manually register the desired factory.
    * </p>
    *
-   * @param factory Factory to register
+   * @param factory factory to register
    */
   public static void register(UnderFileSystemFactory factory) {
     if (factory == null) {
@@ -240,7 +239,7 @@ public final class UnderFileSystemRegistry {
   /**
    * Unregisters an existing factory.
    *
-   * @param factory Factory to unregister
+   * @param factory factory to unregister
    */
   public static void unregister(UnderFileSystemFactory factory) {
     if (factory == null) {

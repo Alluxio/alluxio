@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -39,7 +39,7 @@ public final class BufferedBlockInStreamIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private static FileSystem sFileSystem;
   private static CreateFileOptions sWriteBoth;
   private static CreateFileOptions sWriteAlluxio;
@@ -49,9 +49,9 @@ public final class BufferedBlockInStreamIntegrationTest {
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
-    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
-    sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
+    sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    sWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    sWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
     sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
@@ -64,7 +64,7 @@ public final class BufferedBlockInStreamIntegrationTest {
   }
 
   private static List<CreateFileOptions> getOptionSet() {
-    List<CreateFileOptions> ret = new ArrayList<CreateFileOptions>(3);
+    List<CreateFileOptions> ret = new ArrayList<>(3);
     ret.add(sWriteBoth);
     ret.add(sWriteAlluxio);
     ret.add(sWriteUnderStore);
@@ -151,7 +151,7 @@ public final class BufferedBlockInStreamIntegrationTest {
    * Tests {@link alluxio.client.block.BufferedBlockInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws IOException, AlluxioException {
+  public void skip() throws IOException, AlluxioException {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());

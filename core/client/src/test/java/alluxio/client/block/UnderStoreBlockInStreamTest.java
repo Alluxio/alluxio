@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,8 +11,13 @@
 
 package alluxio.client.block;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
+import alluxio.client.util.ClientTestUtils;
 import alluxio.util.io.BufferUtils;
 
+import com.google.common.base.Throwables;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -20,8 +25,11 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Tests for the {@link UnderStoreBlockInStream} class.
@@ -49,28 +57,34 @@ public class UnderStoreBlockInStreamTest {
     // Create a file of 2 block sizes.
     os.write(BufferUtils.getIncreasingByteArray((int) FILE_LENGTH));
     os.close();
-    mBlockStream = new UnderStoreBlockInStream(0, BLOCK_LENGTH, file.getAbsolutePath());
-    mEOFBlockStream =
-        new UnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, file.getAbsolutePath());
+    mBlockStream = new UnderStoreBlockInStream(0, BLOCK_LENGTH, BLOCK_LENGTH,
+        new FileUnderStoreStreamFactory(file));
+    mEOFBlockStream = new UnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
+        new FileUnderStoreStreamFactory(file));
+  }
+
+  /**
+   * Reset the client context.
+   */
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+    ClientTestUtils.resetClient();
   }
 
   /**
    * Verifies the byte-by-byte read returns the correct data, for the first block in the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
-  public void singleByteReadTest() throws IOException {
+  public void singleByteRead() throws IOException {
     singleByteReadInternal(mBlockStream, 0);
   }
 
   /**
    * Verifies the byte-by-byte read returns the correct data, for the last block in the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
-  public void singleByteReadEOFTest() throws IOException {
+  public void singleByteReadEOF() throws IOException {
     singleByteReadInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 
@@ -96,21 +110,17 @@ public class UnderStoreBlockInStreamTest {
 
   /**
    * Tests that array read methods read the correct data, for the first block of the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
-  public void arrayReadTest() throws IOException {
+  public void arrayRead() throws IOException {
     arrayReadInternal(mBlockStream, 0);
   }
 
   /**
    * Tests that array read methods read the correct data, for the last block of the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
-  public void arrayReadEOFTest() throws IOException {
+  public void arrayReadEOF() throws IOException {
     arrayReadInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 
@@ -129,7 +139,7 @@ public class UnderStoreBlockInStreamTest {
 
     // Read first 10 bytes
     Assert.assertEquals(size, inStream.read(readBytes));
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex + 0, size, readBytes));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex, size, readBytes));
     remaining -= size;
     Assert.assertEquals(remaining, inStream.remaining());
 
@@ -148,21 +158,17 @@ public class UnderStoreBlockInStreamTest {
 
   /**
    * Tests the array read when completely reading the first block of the file.
-   *
-   * @throws Exception when reading from the stream fails
    */
   @Test
-  public void arrayFullReadTest() throws IOException {
+  public void arrayFullRead() throws IOException {
     arrayFullReadInternal(mBlockStream, 0);
   }
 
   /**
    * Tests the array read when completely reading the last block of the file.
-   *
-   * @throws Exception when reading from the stream fails
    */
   @Test
-  public void arrayFullReadEOFTest() throws IOException {
+  public void arrayFullReadEOF() throws IOException {
     arrayFullReadInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 
@@ -181,7 +187,7 @@ public class UnderStoreBlockInStreamTest {
     // Fully read the block.
     Assert.assertEquals(size, inStream.read(readBytes));
     Assert.assertEquals(0, inStream.remaining());
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex + 0, size, readBytes));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex, size, readBytes));
 
     // Next read should return -1, and not real data.
     Assert.assertEquals(-1, inStream.read(readBytes));
@@ -190,21 +196,17 @@ public class UnderStoreBlockInStreamTest {
 
   /**
    * Tests the {@link UnderStoreBlockInStream#skip(long)} method for the first block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
-  public void skipTest() throws IOException {
+  public void skip() throws IOException {
     skipInternal(mBlockStream, 0);
   }
 
   /**
    * Tests the {@link UnderStoreBlockInStream#skip(long)} method for the last block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
-  public void skipEOFTest() throws IOException {
+  public void skipEOF() throws IOException {
     skipInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 
@@ -244,21 +246,17 @@ public class UnderStoreBlockInStreamTest {
 
   /**
    * Tests the {@link UnderStoreBlockInStream#seek(long)} method for the first block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
-  public void seekTest() throws Exception {
+  public void seek() throws Exception {
     seekInternal(mBlockStream, 0);
   }
 
   /**
    * Tests the {@link UnderStoreBlockInStream#seek(long)} method for the last block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
-  public void seekEOFTest() throws IOException {
+  public void seekEOF() throws IOException {
     seekInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 
@@ -287,5 +285,30 @@ public class UnderStoreBlockInStreamTest {
     inStream.seek(BLOCK_LENGTH);
     Assert.assertEquals(-1, inStream.read());
     Assert.assertEquals(0, inStream.remaining());
+  }
+
+  /**
+   * {@link UnderStoreStreamFactory} which creates streams to a specified file.
+   */
+  private final class FileUnderStoreStreamFactory implements UnderStoreStreamFactory {
+    private final File mFile;
+
+    private FileUnderStoreStreamFactory(File file) {
+      mFile = file;
+    }
+
+    @Override
+    public InputStream create() {
+      try {
+        return new FileInputStream(mFile);
+      } catch (FileNotFoundException e) {
+        throw Throwables.propagate(e);
+      }
+    }
+
+    @Override
+    public void close() {
+      // nothing to close
+    }
   }
 }

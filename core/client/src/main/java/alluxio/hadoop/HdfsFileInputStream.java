@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,8 +14,7 @@ package alluxio.hadoop;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
-import alluxio.client.ReadType;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -77,8 +76,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   public HdfsFileInputStream(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf,
       int bufferSize, org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
     LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, conf, bufferSize, stats);
-    Configuration configuration = ClientContext.getConf();
-    long bufferBytes = configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    long bufferBytes = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
     FileSystem fs = FileSystem.Factory.get();
@@ -88,8 +86,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     try {
       mFileInfo = fs.getStatus(uri);
       mHdfsPath = new Path(mFileInfo.getUfsPath());
-      mAlluxioFileInputStream =
-          fs.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.CACHE));
+      mAlluxioFileInputStream = fs.openFile(uri, OpenFileOptions.defaults());
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(
           ExceptionMessage.HDFS_FILE_NOT_FOUND.getMessage(mHdfsPath, uri));
@@ -98,15 +95,12 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
   }
 
-  /**
-   * This method is not supported in {@link HdfsFileInputStream}.
-   *
-   * @return N/A
-   * @throws IOException always
-   */
   @Override
   public int available() throws IOException {
-    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
+    if (mClosed) {
+      throw new IOException("Cannot query available bytes from a closed stream.");
+    }
+    return (int) mAlluxioFileInputStream.remaining();
   }
 
   @Override
@@ -160,9 +154,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException("Cannot read from a closed stream.");
     }
     if (mAlluxioFileInputStream != null) {
-      int ret = 0;
       try {
-        ret = mAlluxioFileInputStream.read();
+        int ret = mAlluxioFileInputStream.read();
         if (mStatistics != null && ret != -1) {
           mStatistics.incrementBytesRead(1);
         }
@@ -189,9 +182,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException("Cannot read from a closed stream.");
     }
     if (mAlluxioFileInputStream != null) {
-      int ret = 0;
       try {
-        ret = mAlluxioFileInputStream.read(buffer, offset, length);
+        int ret = mAlluxioFileInputStream.read(buffer, offset, length);
         if (mStatistics != null && ret != -1) {
           mStatistics.incrementBytesRead(ret);
         }

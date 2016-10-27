@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,79 +12,69 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.master.AlluxioMaster;
-import alluxio.rest.TestCaseFactory;
+import alluxio.rest.RestApiTest;
+import alluxio.rest.TestCase;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockInfoTest;
+import alluxio.worker.block.BlockWorker;
 
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Iterables;
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
+import java.io.FileOutputStream;
+import java.util.HashMap;
 import java.util.Map;
+
+import javax.ws.rs.HttpMethod;
 
 /**
  * Test cases for {@link BlockMasterClientRestServiceHandler}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(BlockMaster.class)
-@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1888")
-public class BlockMasterClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
-  private BlockMaster mBlockMaster;
-
-  @Rule
-  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
+public final class BlockMasterClientRestApiTest extends RestApiTest {
 
   @Before
   public void before() throws Exception {
-    AlluxioMaster alluxioMaster = mResource.get().getMaster().getInternalMaster();
-    mBlockMaster = PowerMockito.mock(BlockMaster.class);
-    // Replace the block master created by LocalAlluxioClusterResource with a mock.
-    BlockMaster blockMaster = Whitebox.getInternalState(alluxioMaster, "mBlockMaster");
-    blockMaster.stop();
-    Whitebox.setInternalState(alluxioMaster, "mBlockMaster", mBlockMaster);
-  }
-
-  private String getEndpoint(String suffix) {
-    return BlockMasterClientRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
+    mHostname = mResource.get().getHostname();
+    mPort = mResource.get().getMaster().getWebLocalPort();
+    mServicePrefix = BlockMasterClientRestServiceHandler.SERVICE_PREFIX;
   }
 
   @Test
-  public void serviceNameTest() throws Exception {
-    TestCaseFactory
-        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_NAME), NO_PARAMS,
-            "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME, mResource).run();
+  public void serviceName() throws Exception {
+    new TestCase(mHostname, mPort, getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_NAME),
+        NO_PARAMS, HttpMethod.GET, Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).run();
   }
 
   @Test
-  public void serviceVersionTest() throws Exception {
-    TestCaseFactory
-        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_VERSION),
-            NO_PARAMS, "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION, mResource).run();
+  public void serviceVersion() throws Exception {
+    new TestCase(mHostname, mPort, getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_VERSION),
+        NO_PARAMS, HttpMethod.GET, Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION).run();
   }
 
   @Test
-  public void getBlockInfoTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
-    params.put("blockId", "1");
+  public void getBlockInfo() throws Exception {
+    long sessionId = 1;
+    long blockId = 2;
+    String tierAlias = "MEM";
+    long initialBytes = 3;
 
-    BlockInfo blockInfo = BlockInfoTest.createRandom();
-    Mockito.doReturn(blockInfo).when(mBlockMaster).getBlockInfo(Mockito.anyLong());
+    BlockWorker blockWorker = mResource.get().getWorker().getBlockWorker();
+    String file = blockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes);
+    FileOutputStream outStream = new FileOutputStream(file);
+    outStream.write("abc".getBytes());
+    outStream.close();
+    blockWorker.commitBlock(sessionId, blockId);
 
-    TestCaseFactory
-        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO), params,
-            "GET", blockInfo, mResource).run();
-
-    Mockito.verify(mBlockMaster).getBlockInfo(Mockito.anyLong());
+    Map<String, String> params = new HashMap<>();
+    params.put("blockId", Long.toString(blockId));
+    String response = new TestCase(mHostname, mPort,
+        getEndpoint(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO), params, HttpMethod.GET,
+        null).call();
+    BlockInfo blockInfo = new ObjectMapper().readValue(response, BlockInfo.class);
+    Assert.assertEquals(blockId, blockInfo.getBlockId());
+    Assert.assertEquals(initialBytes, blockInfo.getLength());
+    Assert.assertEquals("MEM", Iterables.getOnlyElement(blockInfo.getLocations()).getTierAlias());
   }
 }

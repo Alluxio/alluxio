@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -27,7 +27,6 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,8 +36,8 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,6 +56,9 @@ public final class BaseFileSystemTest {
   private FileSystemMasterClient mFileSystemMasterClient;
 
   private class DummyAlluxioFileSystem extends BaseFileSystem {
+    public DummyAlluxioFileSystem(FileSystemContext context) {
+      super(context);
+    }
   }
 
   /**
@@ -64,9 +66,8 @@ public final class BaseFileSystemTest {
    */
   @Before
   public void before() {
-    mFileSystem = new DummyAlluxioFileSystem();
     mFileContext = PowerMockito.mock(FileSystemContext.class);
-    Whitebox.setInternalState(mFileSystem, "mContext", mFileContext);
+    mFileSystem = new DummyAlluxioFileSystem(mFileContext);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     Mockito.when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
   }
@@ -83,11 +84,9 @@ public final class BaseFileSystemTest {
   /**
    * Tests the creation of a file via the
    * {@link BaseFileSystem#createFile(AlluxioURI, CreateFileOptions)} method.
-   *
-   * @throws Exception when the client or file system cannot be created
    */
   @Test
-  public void createFileTest() throws Exception {
+  public void createFile() throws Exception {
     Mockito.doNothing().when(mFileSystemMasterClient)
         .createFile(Mockito.any(AlluxioURI.class), Mockito.any(CreateFileOptions.class));
     AlluxioURI file = new AlluxioURI("/file");
@@ -99,11 +98,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when creating a file system.
-   *
-   * @throws Exception when the client or file system cannot be created
    */
   @Test
-  public void createExceptionTest() throws Exception {
+  public void createException() throws Exception {
     Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient)
         .createFile(Mockito.any(AlluxioURI.class), Mockito.any(CreateFileOptions.class));
     CreateFileOptions options = CreateFileOptions.defaults();
@@ -117,11 +114,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#delete(AlluxioURI, DeleteOptions)} method.
-   *
-   * @throws Exception when the file system cannot delete the file
    */
   @Test
-  public void deleteTest() throws Exception {
+  public void delete() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
     mFileSystem.delete(file, deleteOptions);
@@ -130,11 +125,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when deleting a file.
-   *
-   * @throws Exception when the file system cannot delete the file
    */
   @Test
-  public void deleteExceptionTest() throws Exception {
+  public void deleteException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
     Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient).delete(file, deleteOptions);
@@ -148,11 +141,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#free(AlluxioURI, FreeOptions)} method.
-   *
-   * @throws Exception when the file system cannot free the file
    */
   @Test
-  public void freeTest() throws Exception {
+  public void free() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
     mFileSystem.free(file, freeOptions);
@@ -161,11 +152,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when freeing a file.
-   *
-   * @throws Exception when the file system cannot free the file
    */
   @Test
-  public void freeExceptionTest() throws Exception {
+  public void freeException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
     Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient).free(file, freeOptions);
@@ -179,11 +168,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#getStatus(AlluxioURI, GetStatusOptions)} method.
-   *
-   * @throws Exception when the information cannot be retrieved
    */
   @Test
-  public void getStatusTest() throws Exception {
+  public void getStatus() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
     Mockito.when(mFileSystemMasterClient.getStatus(file)).thenReturn(status);
@@ -194,11 +181,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when retrieving information.
-   *
-   * @throws Exception when the information cannot be retrieved
    */
   @Test
-  public void getStatusExceptionTest() throws Exception {
+  public void getStatusException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     Mockito.when(mFileSystemMasterClient.getStatus(file)).thenThrow(EXCEPTION);
     GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
@@ -211,30 +196,27 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#listStatus(AlluxioURI, ListStatusOptions)}
-   * method.
-   *
-   * @throws Exception when listing the status fails
+   * Tests for the {@link BaseFileSystem#listStatus(AlluxioURI, ListStatusOptions)} method.
    */
   @Test
-  public void listStatusTest() throws Exception {
+  public void listStatus() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    List<URIStatus> infos = Lists.newArrayList(new URIStatus(new FileInfo()));
-    Mockito.when(mFileSystemMasterClient.listStatus(file)).thenReturn(infos);
+    List<URIStatus> infos = new ArrayList<>();
+    infos.add(new URIStatus(new FileInfo()));
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
+    Mockito.when(mFileSystemMasterClient.listStatus(file, listStatusOptions)).thenReturn(infos);
     Assert.assertSame(infos, mFileSystem.listStatus(file, listStatusOptions));
-    Mockito.verify(mFileSystemMasterClient).listStatus(file);
+    Mockito.verify(mFileSystemMasterClient).listStatus(file, listStatusOptions);
   }
 
   /**
    * Ensures that an exception is propagated correctly when listing the status.
-   *
-   * @throws Exception when listing the status fails
    */
   @Test
-  public void listStatusExceptionTest() throws Exception {
+  public void listStatusException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    Mockito.when(mFileSystemMasterClient.listStatus(file)).thenThrow(EXCEPTION);
+    Mockito.when(mFileSystemMasterClient.listStatus(file, ListStatusOptions.defaults()))
+        .thenThrow(EXCEPTION);
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
     try {
       mFileSystem.listStatus(file, listStatusOptions);
@@ -247,11 +229,9 @@ public final class BaseFileSystemTest {
   /**
    * Tests for the {@link BaseFileSystem#loadMetadata(AlluxioURI, LoadMetadataOptions)}
    * method.
-   *
-   * @throws Exception when loading the metadata fails
    */
   @Test
-  public void loadMetadataTest() throws Exception {
+  public void loadMetadata() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
     Mockito.doNothing().when(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
@@ -261,11 +241,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when loading the metadata.
-   *
-   * @throws Exception when loading the metadata fails
    */
   @Test
-  public void loadMetadataExceptionTest() throws Exception {
+  public void loadMetadataException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
     Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient)
@@ -281,11 +259,9 @@ public final class BaseFileSystemTest {
   /**
    * Tests for the {@link BaseFileSystem#createDirectory(AlluxioURI, CreateDirectoryOptions)}
    * method.
-   *
-   * @throws Exception when the creation of the directory fails
    */
   @Test
-  public void createDirectoryTest() throws Exception {
+  public void createDirectory() throws Exception {
     AlluxioURI dir = new AlluxioURI("/dir");
     CreateDirectoryOptions createDirectoryOptions = CreateDirectoryOptions.defaults();
     Mockito.doNothing().when(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
@@ -295,11 +271,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when creating a directory.
-   *
-   * @throws Exception when the creation of the directory fails
    */
   @Test
-  public void createDirectoryExceptionTest() throws Exception {
+  public void createDirectoryException() throws Exception {
     AlluxioURI dir = new AlluxioURI("/dir");
     CreateDirectoryOptions createDirectoryOptions = CreateDirectoryOptions.defaults();
     Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient)
@@ -314,11 +288,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#mount(AlluxioURI, AlluxioURI, MountOptions)} method.
-   *
-   * @throws Exception when the path cannot be mounted
    */
   @Test
-  public void mountTest() throws Exception {
+  public void mount() throws Exception {
     AlluxioURI alluxioPath = new AlluxioURI("/t");
     AlluxioURI ufsPath = new AlluxioURI("/u");
     MountOptions mountOptions = MountOptions.defaults();
@@ -329,11 +301,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when mounting a path.
-   *
-   * @throws Exception when the path cannot be mounted
    */
   @Test
-  public void mountExceptionTest() throws Exception {
+  public void mountException() throws Exception {
     AlluxioURI alluxioPath = new AlluxioURI("/t");
     AlluxioURI ufsPath = new AlluxioURI("/u");
     MountOptions mountOptions = MountOptions.defaults();
@@ -350,11 +320,9 @@ public final class BaseFileSystemTest {
   /**
    * Tests for the {@link BaseFileSystem#openFile(AlluxioURI, OpenFileOptions)} method to
    * complete successfully.
-   *
-   * @throws Exception when opening the file fails
    */
   @Test
-  public void openFileTest() throws Exception {
+  public void openFile() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
     Mockito.when(mFileSystemMasterClient.getStatus(file)).thenReturn(status);
@@ -365,13 +333,10 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated successfully when opening a file.
-   *
-   * @throws Exception when opening the file fails
    */
   @Test
-  public void openExceptionTest() throws Exception {
+  public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    URIStatus status = new URIStatus(new FileInfo());
     Mockito.when(mFileSystemMasterClient.getStatus(file)).thenThrow(EXCEPTION);
     OpenFileOptions openOptions = OpenFileOptions.defaults();
     try {
@@ -385,11 +350,9 @@ public final class BaseFileSystemTest {
   /**
    * Tests for the {@link BaseFileSystem#rename(AlluxioURI, AlluxioURI, RenameOptions)}
    * method.
-   *
-   * @throws Exception when renaming the file fails
    */
   @Test
-  public void renameTest() throws Exception {
+  public void rename() throws Exception {
     AlluxioURI src = new AlluxioURI("/file");
     AlluxioURI dst = new AlluxioURI("/file2");
     RenameOptions renameOptions = RenameOptions.defaults();
@@ -400,11 +363,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated successfully when renaming a file.
-   *
-   * @throws Exception when renaming the file fails
    */
   @Test
-  public void renameExceptionTest() throws Exception {
+  public void renameException() throws Exception {
     AlluxioURI src = new AlluxioURI("/file");
     AlluxioURI dst = new AlluxioURI("/file2");
     RenameOptions renameOptions = RenameOptions.defaults();
@@ -419,11 +380,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#setAttribute(AlluxioURI, SetAttributeOptions)} method.
-   *
-   * @throws Exception when setting the state fails
    */
   @Test
-  public void setAttributeTest() throws Exception {
+  public void setAttribute() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     SetAttributeOptions setAttributeOptions = SetAttributeOptions.defaults();
     mFileSystem.setAttribute(file, setAttributeOptions);
@@ -432,11 +391,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated successfully when setting the state.
-   *
-   * @throws Exception when setting the state fails
    */
   @Test
-  public void setStateExceptionTest() throws Exception {
+  public void setStateException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     SetAttributeOptions setAttributeOptions = SetAttributeOptions.defaults();
     Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient)
@@ -451,11 +408,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#unmount(AlluxioURI, UnmountOptions)} method.
-   *
-   * @throws Exception when unmounting the path fails
    */
   @Test
-  public void unmountTest() throws Exception {
+  public void unmount() throws Exception {
     AlluxioURI path = new AlluxioURI("/");
     UnmountOptions unmountOptions = UnmountOptions.defaults();
     Mockito.doNothing().when(mFileSystemMasterClient).unmount(path);
@@ -465,11 +420,9 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated successfully when unmounting a path.
-   *
-   * @throws Exception when unmounting the path fails
    */
   @Test
-  public void unmountExceptionTest() throws Exception {
+  public void unmountException() throws Exception {
     AlluxioURI path = new AlluxioURI("/");
     UnmountOptions unmountOptions = UnmountOptions.defaults();
     Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient).unmount(path);

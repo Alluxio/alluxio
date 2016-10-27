@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -36,7 +36,7 @@ public class PayloadReaderWriterTest {
    * Tests {@link BasePayloadWriter#insert} by adding zero-byte key or value.
    */
   @Test
-  public void addZeroLengthKeyOrValueTest() throws Exception {
+  public void addZeroLengthKeyOrValue() throws Exception {
     int offset;
     int expectedLength = 0;
 
@@ -67,7 +67,7 @@ public class PayloadReaderWriterTest {
    * Tests {@link BasePayloadWriter#insert} by adding multiple key-value pairs.
    */
   @Test
-  public void addMultipleKeyAndValuePairsTest() throws Exception {
+  public void addMultipleKeyAndValuePairs() throws Exception {
     int offset;
     int expectedLength = 0;
 
@@ -90,7 +90,7 @@ public class PayloadReaderWriterTest {
    * Tests {@link BasePayloadReader#getKey} to read data at offset 0.
    */
   @Test
-  public void getKeyAndValueZeroOffsetTest() throws Exception {
+  public void getKeyAndValueZeroOffset() throws Exception {
     int offset = mTestWriter.insert(KEY1, VALUE1);
     Assert.assertEquals(0, offset);
     mTestWriter.close();
@@ -105,7 +105,7 @@ public class PayloadReaderWriterTest {
    * Tests {@link BasePayloadReader#getKey} to read data at non-zero offset.
    */
   @Test
-  public void getKeyAndValueNonZeroOffsetTest() throws Exception {
+  public void getKeyAndValueNonZeroOffset() throws Exception {
     mTestOutStream.write("meaningless padding".getBytes());
     int offset = mTestWriter.insert(KEY1, VALUE1);
     mTestWriter.close();

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,15 +14,22 @@ package alluxio.underfs.gcs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.jets3t.service.ServiceException;
-import org.jets3t.service.utils.Mimetypes;
+import org.jets3t.service.StorageObjectsChunk;
+import org.jets3t.service.acl.gs.GSAccessControlList;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
+import org.jets3t.service.model.StorageObject;
 import org.jets3t.service.security.GSCredentials;
+import org.jets3t.service.utils.Mimetypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * GCS FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
-public class GCSUnderFileSystem extends UnderFileSystem {
+public final class GCSUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
@@ -63,6 +70,12 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example gs://my-bucket-name/ . */
   private final String mBucketPrefix;
 
+  /** The name of the account owner. */
+  private final String mAccountOwner;
+
+  /** The permission mode that the account owner has to the bucket. */
+  private final short mBucketMode;
+
   static {
     try {
       DIR_HASH = MessageDigest.getInstance("MD5").digest(new byte[0]);
@@ -75,28 +88,69 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link GCSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for Alluxio
+   * @return the created {@link GCSUnderFileSystem} instance
    * @throws ServiceException when a connection to GCS could not be created
    */
-  public GCSUnderFileSystem(AlluxioURI uri, Configuration conf) throws ServiceException {
-    super(uri, conf);
+  public static GCSUnderFileSystem createInstance(AlluxioURI uri)
+      throws ServiceException {
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(conf.containsKey(Constants.GCS_ACCESS_KEY),
-        "Property " + Constants.GCS_ACCESS_KEY + " is required to connect to GCS");
-    Preconditions.checkArgument(conf.containsKey(Constants.GCS_SECRET_KEY),
-        "Property " + Constants.GCS_SECRET_KEY + " is required to connect to GCS");
-    GSCredentials googleCredentials = new GSCredentials(conf.get(Constants.GCS_ACCESS_KEY),
-        conf.get(Constants.GCS_SECRET_KEY));
-    mBucketName = bucketName;
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_ACCESS_KEY),
+        "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_SECRET_KEY),
+        "Property " + PropertyKey.GCS_SECRET_KEY + " is required to connect to GCS");
+    GSCredentials googleCredentials = new GSCredentials(
+        Configuration.get(PropertyKey.GCS_ACCESS_KEY),
+        Configuration.get(PropertyKey.GCS_SECRET_KEY));
 
     // TODO(chaomin): maybe add proxy support for GCS.
-    mClient = new GoogleStorageService(googleCredentials);
-    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_GCS + mBucketName, PATH_SEPARATOR);
+    GoogleStorageService googleStorageService = new GoogleStorageService(googleCredentials);
+    String bucketPrefix = PathUtils.normalizePath(Constants.HEADER_GCS + bucketName,
+        PATH_SEPARATOR);
+
+    String accountOwnerId = googleStorageService.getAccountOwner().getId();
+    // Gets the owner from user-defined static mapping from GCS account id to Alluxio user name.
+    String owner = CommonUtils.getValueFromStaticMapping(
+        Configuration.get(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
+    // If there is no user-defined mapping, use the display name.
+    if (owner == null) {
+      owner = googleStorageService.getAccountOwner().getDisplayName();
+    }
+    String accountOwner = owner == null ? accountOwnerId : owner;
+
+    GSAccessControlList acl = googleStorageService.getBucketAcl(bucketName);
+    short bucketMode = GCSUtils.translateBucketAcl(acl, accountOwnerId);
+
+    return new GCSUnderFileSystem(uri, googleStorageService, bucketName,
+        bucketPrefix, bucketMode, accountOwner);
+  }
+
+  /**
+   * Constructor for {@link GCSUnderFileSystem}.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param googleStorageService the Jets3t GCS client
+   * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param bucketPrefix prefix of the bucket
+   * @param bucketMode the permission mode that the account owner has to the bucket
+   * @param accountOwner the name of the account owner
+   */
+  protected GCSUnderFileSystem(AlluxioURI uri,
+      GoogleStorageService googleStorageService,
+      String bucketName,
+      String bucketPrefix,
+      short bucketMode,
+      String accountOwner) {
+    super(uri);
+    mClient = googleStorageService;
+    mBucketName = bucketName;
+    mBucketPrefix = bucketPrefix;
+    mBucketMode = bucketMode;
+    mAccountOwner = accountOwner;
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.GCS;
+  public String getUnderFSType() {
+    return "gcs";
   }
 
   @Override
@@ -104,52 +158,49 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String hostname) {
+  public void connectFromMaster(String hostname) {
     // Authentication is taken care of in the constructor
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String hostname) {
+  public void connectFromWorker(String hostname) {
     // Authentication is taken care of in the constructor
   }
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
       return new GCSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
     }
     return null;
   }
 
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, int blockSizeByte) throws IOException {
-    LOG.warn("Create with block size is not supported with GCSUnderFileSystem. Block size will be "
-        + "ignored.");
-    return create(path);
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte)
-      throws IOException {
-    LOG.warn("Create with block size and replication is not supported with GCSUnderFileSystem."
-        + " Block size and replication will be ignored.");
-    return create(path);
-  }
-
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     if (!recursive) {
-      if (isFolder(path) && listInternal(path, false).length != 0) {
-        LOG.error("Unable to delete " + path + " because it is a non empty directory. Specify "
-            + "recursive as true in order to delete non empty directories.");
+      String[] children = listInternal(path, false);
+      if (children == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
+        return false;
+      }
+      if (isFolder(path) && children.length != 0) {
+        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
+                + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
       return deleteInternal(path);
     }
     // Get all relevant files
     String[] pathsToDelete = listInternal(path, true);
+    if (pathsToDelete == null) {
+      LOG.error("Unable to delete {} because listInternal returns null", path);
+      return false;
+    }
     for (String pathToDelete : pathsToDelete) {
       // If we fail to deleteInternal one file, stop
       if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
@@ -176,27 +227,27 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
   @Override
   public Object getConf() {
-    LOG.warn("getConf is not supported when using GCSUnderFileSystem, returning null.");
+    LOG.debug("getConf is not supported when using GCSUnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    LOG.warn("getFileLocations is not supported when using GCSUnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using GCSUnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path, long offset) throws IOException {
-    LOG.warn("getFileLocations is not supported when using GCSUnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using GCSUnderFileSystem, returning null.");
     return null;
   }
 
@@ -244,6 +295,11 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
     }
@@ -254,7 +310,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
-    if (!createParent) {
+    if (!options.getCreateParent()) {
       if (parentExists(path)) {
         // Parent directory exists
         return mkdirsInternal(path);
@@ -285,6 +341,24 @@ public class GCSUnderFileSystem extends UnderFileSystem {
     }
   }
 
+  /**
+   * Opens a GCS object at given position and returns the opened input stream.
+   *
+   * @param path the GCS object path
+   * @param pos the position to open at
+   * @return the opened input stream
+   * @throws IOException if failed to open file at position
+   */
+  public InputStream openAtPosition(String path, long pos) throws IOException {
+    try {
+      path = stripPrefixIfPresent(path);
+      return new GCSInputStream(mBucketName, path, mClient, pos);
+    } catch (ServiceException e) {
+      LOG.error("Failed to open file {} at position {}:", path, pos, e);
+      return null;
+    }
+  }
+
   @Override
   public boolean rename(String src, String dst) throws IOException {
     if (!exists(src)) {
@@ -303,8 +377,13 @@ public class GCSUnderFileSystem extends UnderFileSystem {
       }
       // Rename each child in the src folder to destination/child
       String [] children = list(src);
-      for (String child: children) {
+      if (children == null) {
+        LOG.error("Failed to list path {}, aborting rename.", src);
+        return false;
+      }
+      for (String child : children) {
         if (!rename(PathUtils.concatPath(src, child), PathUtils.concatPath(dst, child))) {
+          LOG.error("Failed to rename path {}, aborting rename.", child);
           return false;
         }
       }
@@ -319,9 +398,31 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   @Override
   public void setConf(Object conf) {}
 
-  // Not supported
+  // Setting GCS owner via Alluxio is not supported yet. This is a no-op.
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
+  public void setOwner(String path, String user, String group) {}
+
+  // Setting GCS mode via Alluxio is not supported yet. This is a no-op.
+  @Override
+  public void setMode(String path, short mode) throws IOException {}
+
+  // Returns the account owner.
+  @Override
+  public String getOwner(String path) throws IOException {
+    return mAccountOwner;
+  }
+
+  // No group in GCS ACL, returns the account owner.
+  @Override
+  public String getGroup(String path) throws IOException {
+    return mAccountOwner;
+  }
+
+  // Returns the account owner's permission mode to the GCS bucket.
+  @Override
+  public short getMode(String path) throws IOException {
+    return mBucketMode;
+  }
 
   /**
    * Appends the directory suffix to the key.
@@ -346,17 +447,25 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * @return true if the operation was successful, false otherwise
    */
   private boolean copy(String src, String dst) {
-    try {
-      src = stripPrefixIfPresent(src);
-      dst = stripPrefixIfPresent(dst);
-      LOG.info("Copying {} to {}", src, dst);
-      GSObject obj = new GSObject(dst);
-      mClient.copyObject(mBucketName, src, mBucketName, obj, false);
-      return true;
-    } catch (ServiceException e) {
-      LOG.error("Failed to rename file {} to {}", src, dst, e);
-      return false;
+    src = stripPrefixIfPresent(src);
+    dst = stripPrefixIfPresent(dst);
+    LOG.debug("Copying {} to {}", src, dst);
+    GSObject obj = new GSObject(dst);
+    // Retry copy for a few times, in case some Jets3t or GCS internal errors happened during copy.
+    int retries = 3;
+    for (int i = 0; i < retries; i++) {
+      try {
+        mClient.copyObject(mBucketName, src, mBucketName, obj, false);
+        return true;
+      } catch (ServiceException e) {
+        LOG.error("Failed to copy file {} to {}", src, dst, e);
+        if (i != retries - 1) {
+          LOG.error("Retrying copying file {} to {}", src, dst);
+        }
+      }
     }
+    LOG.error("Failed to copy file {} to {}, after {} retries", src, dst, retries);
+    return false;
   }
 
   /**
@@ -447,7 +556,20 @@ public class GCSUnderFileSystem extends UnderFileSystem {
       // If no exception is thrown, the key exists as a folder
       return true;
     } catch (ServiceException s) {
-      return false;
+      // It is possible that the folder has not been encoded as a _$folder$ file
+      try {
+        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
+        // Check if anything begins with <path>/
+        GSObject[] objs = mClient.listObjects(mBucketName, path, "");
+        if (objs.length > 0) {
+          mkdirsInternal(path);
+          return true;
+        } else {
+          return false;
+        }
+      } catch (ServiceException s2) {
+        return false;
+      }
     }
   }
 
@@ -464,7 +586,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix.
+   * folder suffix. Note that, the list results are unsorted.
    *
    * @param path the key to list
    * @param recursive if true will list children directories as well
@@ -472,36 +594,61 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * @throws IOException if an I/O error occurs
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
+    path = stripPrefixIfPresent(path);
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    path = path.equals(PATH_SEPARATOR) ? "" : path;
+    String delimiter = recursive ? "" : PATH_SEPARATOR;
+    String priorLastKey = null;
+    Set<String> children = new HashSet<>();
     try {
-      path = stripPrefixIfPresent(path);
-      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-      path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Alluxio
-      // managed "directories"
-      GSObject[] objs = mClient.listObjects(mBucketName, path, "");
-      if (recursive) {
-        String[] ret = new String[objs.length];
-        for (int i = 0; i < objs.length; i++) {
+      boolean done = false;
+      while (!done) {
+        // Directories in GCS UFS can be possibly encoded in two different ways:
+        // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
+        // (2) as "common prefixes" of other files objects for directories not created through
+        // Alluxio
+        //
+        // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
+        // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
+        //
+        // An example, with prefix="ufs" and delimiter="/" and LISTING_LENGTH=5
+        // - objects.key = ufs/, child =
+        // - objects.key = ufs/dir1_$folder$, child = dir1
+        // - objects.key = ufs/file, child = file
+        // - commonPrefix = ufs/dir1/, child = dir1
+        // - commonPrefix = ufs/dir2/, child = dir2
+        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
+            LISTING_LENGTH, priorLastKey);
+
+        // Handle case (1)
+        for (StorageObject obj : chunk.getObjects()) {
           // Remove parent portion of the key
-          String child = getChildName(objs[i].getKey(), path);
+          String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
-          child = stripFolderSuffixIfPresent(child);
-          ret[i] = child;
+          child = CommonUtils.stripSuffixIfPresent(child, FOLDER_SUFFIX);
+          // Only add if the path is not empty (removes results equal to the path)
+          if (!child.isEmpty()) {
+            children.add(child);
+          }
         }
-        return ret;
-      }
-      // Non recursive list
-      Set<String> children = new HashSet<String>();
-      for (GSObject obj : objs) {
-        // Remove parent portion of the key
-        String child = getChildName(obj.getKey(), path);
-        // Remove any portion after the path delimiter
-        int childNameIndex = child.indexOf(PATH_SEPARATOR);
-        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-        // Prune the special folder suffix
-        child = stripFolderSuffixIfPresent(child);
-        // Add to the set of children, the set will deduplicate.
-        children.add(child);
+        // Handle case (2)
+        for (String commonPrefix : chunk.getCommonPrefixes()) {
+          // Remove parent portion of the key
+          String child = getChildName(commonPrefix, path);
+
+          if (child != null) {
+            // Remove any portion after the last path delimiter
+            int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+            child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+            if (!child.isEmpty() && !children.contains(child)) {
+              // This directory has not been created through Alluxio.
+              mkdirsInternal(commonPrefix);
+              children.add(child);
+            }
+          }
+        }
+        done = chunk.isListingComplete();
+        priorLastKey = chunk.getPriorLastKey();
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {
@@ -548,20 +695,6 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
-   *
-   * @param key the key to strip the suffix from
-   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
-   */
-  private String stripFolderSuffixIfPresent(String key) {
-    if (key.endsWith(FOLDER_SUFFIX)) {
-      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
-    }
-    return key;
-  }
-
-  /**
    * Strips the GCS bucket prefix or the preceding path separator from the key if it is present. For
    * example, for input key gs://my-bucket-name/my-path/file, the output would be my-path/file. If
    * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
@@ -571,12 +704,15 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * @return the key without the gcs bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
-    if (key.startsWith(mBucketPrefix)) {
-      return key.substring(mBucketPrefix.length());
+    String stripedKey = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
+    if (!stripedKey.equals(key)) {
+      return stripedKey;
     }
-    if (key.startsWith(PATH_SEPARATOR)) {
-      return key.substring(PATH_SEPARATOR.length());
-    }
-    return key;
+    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return false;
   }
 }

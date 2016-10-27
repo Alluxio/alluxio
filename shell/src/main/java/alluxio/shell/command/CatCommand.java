@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -20,6 +19,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -34,11 +34,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CatCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public CatCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public CatCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -47,28 +46,20 @@ public final class CatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    try {
-      URIStatus status = mFileSystem.getStatus(path);
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
-      if (!status.isFolder()) {
-        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-        FileInStream is = mFileSystem.openFile(path, options);
-        byte[] buf = new byte[512];
-        try {
-          int read = is.read(buf);
-          while (read != -1) {
-            System.out.write(buf, 0, read);
-            read = is.read(buf);
-          }
-        } finally {
-          is.close();
-        }
-      } else {
-        throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
+    if (status.isFolder()) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
+    }
+    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    byte[] buf = new byte[512];
+    try (FileInStream is = mFileSystem.openFile(path, options)) {
+      int read = is.read(buf);
+      while (read != -1) {
+        System.out.write(buf, 0, read);
+        read = is.read(buf);
       }
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
     }
   }
 

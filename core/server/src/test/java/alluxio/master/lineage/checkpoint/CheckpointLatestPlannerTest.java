@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -32,6 +32,8 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+
 /**
  * Unit tests for {@link CheckpointLatestPlanner}.
  */
@@ -58,15 +60,13 @@ public final class CheckpointLatestPlannerTest {
   /**
    * Tests the {@link CheckpointLatestPlanner#generatePlan(LineageStoreView, FileSystemMasterView)}
    * method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
-  public void scheduleTest() throws Exception {
+  public void schedule() throws Exception {
     long fileId1 = 1L;
     long fileId2 = 2L;
     long l1 =
-        mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(fileId1), mJob);
+        mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(fileId1), mJob);
     // Sleep for 1ms to guarantee that the next lineage's creation time is later than the first's
     CommonUtils.sleepMs(1);
     long l2 =

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -72,7 +72,6 @@ public abstract class AbstractIOMapper<T> extends Configured implements
    * @param value offset within the file
    * @return object that is passed as a parameter to
    *         {@link #collectStats(OutputCollector, String,long, Object)}
-   * @throws IOException
    */
   abstract T doIO(Reporter reporter, String name, long value) throws IOException;
 
@@ -82,7 +81,6 @@ public abstract class AbstractIOMapper<T> extends Configured implements
    *
    * @param name file name
    * @return the stream
-   * @throws IOException
    */
   public Closeable getIOStream(String name) throws IOException {
     return null;
@@ -96,7 +94,6 @@ public abstract class AbstractIOMapper<T> extends Configured implements
    * @param execTime IO execution time
    * @param doIOReturnValue value returned by
    *        {@link #doIO(Reporter, String,long)}
-   * @throws IOException
    */
   abstract void collectStats(OutputCollector<Text, Text> output, String name, long execTime,
       T doIOReturnValue) throws IOException;

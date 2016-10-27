@@ -2,7 +2,7 @@
 layout: global
 title: Running Alluxio on EC2
 nickname: Alluxio on EC2
-group: User Guide
+group: Deploying Alluxio
 priority: 3
 ---
 

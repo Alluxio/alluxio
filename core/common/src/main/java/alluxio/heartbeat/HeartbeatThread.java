@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,11 +12,16 @@
 package alluxio.heartbeat;
 
 import alluxio.Constants;
+import alluxio.security.LoginUser;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
+import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -33,7 +38,7 @@ public final class HeartbeatThread implements Runnable {
   private HeartbeatTimer mTimer;
 
   /**
-   * Creates a {@code Runnable} to execute heartbeats for the given {@link HeartbeatExecutor}.
+   * Creates a {@link Runnable} to execute heartbeats for the given {@link HeartbeatExecutor}.
    *
    * This class is responsible for closing the given {@link HeartbeatExecutor} when it finishes.
    *
@@ -59,16 +64,25 @@ public final class HeartbeatThread implements Runnable {
 
   @Override
   public void run() {
+    try {
+      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
+        AuthenticatedClientUser.set(LoginUser.get().getName());
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to set AuthenticatedClientUser in HeartbeatThread.");
+    }
+
     // set the thread name
     Thread.currentThread().setName(mThreadName);
     try {
+      // Thread.interrupted() clears the interrupt status. Do not call interrupt again to clear it.
       while (!Thread.interrupted()) {
+        // TODO(peis): Fix this. The current implementation consumes one thread even when ticking.
         mTimer.tick();
         mExecutor.heartbeat();
       }
     } catch (InterruptedException e) {
-      // exit, reset interrupt
-      Thread.currentThread().interrupt();
+      LOG.info("Hearbeat is interrupted.");
     } catch (Exception e) {
       LOG.error("Uncaught exception in heartbeat executor, Heartbeat Thread shutting down", e);
     } finally {

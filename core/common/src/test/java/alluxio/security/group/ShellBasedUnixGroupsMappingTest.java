@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -40,15 +40,13 @@ public final class ShellBasedUnixGroupsMappingTest {
 
   /**
    * Tests the {@link ShellBasedUnixGroupsMapping#getGroups(String)} method.
-   *
-   * @throws Throwable when retrieval of the groups fails
    */
   @Test
-  public void userGroupTest() throws Throwable {
+  public void userGroup() throws Throwable {
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";
     String userGroup2 = "alluxio-user1-group2";
-    List<String> userGroups = new ArrayList<String>();
+    List<String> userGroups = new ArrayList<>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
     setupShellMocks(userName, userGroups);

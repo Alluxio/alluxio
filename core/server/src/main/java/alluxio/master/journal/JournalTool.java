@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 
@@ -43,13 +43,15 @@ public final class JournalTool {
   /** Amount of time to wait before giving up on the user supplying a journal log via stdin. */
   private static final long TIMEOUT_MS = 2000;
   private static final int EXIT_FAILED = -1;
-  private static final int EXIT_SUCCEEDED = -1;
+  private static final int EXIT_SUCCEEDED = 0;
   private static final Options OPTIONS = new Options()
       .addOption("help", false, "Show help for this test")
       .addOption("noTimeout", false, "Wait indefinitely for stdin to supply input");
 
   private static boolean sNoTimeout = false;
   private static boolean sHelp = false;
+
+  private JournalTool() {} // prevent instantiation
 
   /**
    * Reads a journal via
@@ -91,7 +93,7 @@ public final class JournalTool {
    */
   private static boolean parseInputArgs(String[] args) {
     CommandLineParser parser = new BasicParser();
-    CommandLine cmd = null;
+    CommandLine cmd;
     try {
       cmd = parser.parse(OPTIONS, args);
     } catch (ParseException e) {
@@ -121,7 +123,7 @@ public final class JournalTool {
 
   private static void usage() {
     new HelpFormatter().printHelp(
-        "java -cp alluxio-" + Version.VERSION
+        "java -cp alluxio-" + RuntimeConstants.VERSION
             + "-jar-with-dependencies.jar alluxio.master.journal.JournalTool",
         "Read an Alluxio journal from stdin and write it human-readably to stdout", OPTIONS, "",
         true);

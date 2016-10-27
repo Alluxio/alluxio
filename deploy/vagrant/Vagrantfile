@@ -69,6 +69,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               alluxio_dist:    alluxio_dist,
               alluxio_memory:  AlluxioV.memory,
               alluxio_version: alluxio_version,
+              alluxio_version_lessthan_1_1: AlluxioV.v_lt_1_1,
               alluxio_masters: AlluxioV.masters,
               alluxio_platform: alluxio_platform,
 
@@ -91,6 +92,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               gcs_id:     UfsV.gcs.id,
               gcs_key:    UfsV.gcs.key,
               gcs_bucket: UfsV.gcs.bucket,
+              
+              swift_container: UfsV.swift.container,
+              swift_user: UfsV.swift.user,
+              swift_tenant: UfsV.swift.tenant,
+              swift_password: UfsV.swift.password,
+              swift_auth_url: UfsV.swift.auth_url,
+              swift_use_public_url: UfsV.swift.use_public_url,
+              swift_auth_method: UfsV.swift.auth_method,
 
               provider: Provider,
           }
@@ -138,6 +147,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           IMAGE = @gce['Image']
           MACHINE_TYPE = @gce['Machine_Type']
           PREEMPTIBLE = @gce['Preemptible']
+          INSTANCE_GROUP = @gce['Instance_Group']
           SCOPES = @gce['Scopes']
           DISK_SIZE = @gce['Disk_Size']
           PREFIX = @gce['Prefix']

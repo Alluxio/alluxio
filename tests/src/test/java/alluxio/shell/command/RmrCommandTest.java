@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -24,9 +24,9 @@ import java.io.IOException;
 /**
  * Tests for rmr command.
  */
-public class RmrCommandTest extends AbstractAlluxioShellTest {
+public final class RmrCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void rmrTest() throws IOException {
+  public void rmr() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder1/testFolder2");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
@@ -56,23 +56,23 @@ public class RmrCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void rmrWildCardTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+  public void rmrWildCard() throws IOException, AlluxioException {
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
-    mFsShell.run("rmr", "/testWildCards/foo/foo*");
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foo/foobar1")));
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foo/foobar2")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/foo")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/bar/foobar3")));
+    mFsShell.run("rmr", testDir + "/foo/foo*");
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo/foobar1")));
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo/foobar2")));
+    Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/foo")));
+    Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/bar/foobar3")));
 
-    mFsShell.run("rmr", "/testWildCards/ba*");
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/bar")));
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/bar/foobar3")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/foobar4")));
+    mFsShell.run("rmr", testDir + "/ba*");
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/bar")));
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/bar/foobar3")));
+    Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/foobar4")));
 
-    mFsShell.run("rmr", "/testWildCards/*");
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/bar")));
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foo")));
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foobar4")));
+    mFsShell.run("rmr", testDir + "/*");
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/bar")));
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo")));
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foobar4")));
   }
 }

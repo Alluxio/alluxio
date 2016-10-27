@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,18 +12,26 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.AuthenticatedUserRule;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.SystemPropertyRule;
+import alluxio.client.block.BlockStoreContextTestUtils;
+import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -36,6 +44,8 @@ import java.util.concurrent.TimeUnit;
  * reproduce the correct state. Test both the single master(alluxio) and multi masters(alluxio-ft).
  */
 public class JournalShutdownIntegrationTest {
+  @Rule
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
 
   /**
    * Hold a client and keep creating files.
@@ -90,29 +100,34 @@ public class JournalShutdownIntegrationTest {
     }
   }
 
-  private static final int TEST_BLOCK_SIZE = 128;
   private static final String TEST_FILE_DIR = "/files/";
   private static final int TEST_NUM_MASTERS = 3;
   private static final long TEST_TIME_MS = Constants.SECOND_MS;
 
-  private ClientThread mCreateFileThread = null;
+  private ClientThread mCreateFileThread;
   /** Executor for running client threads. */
-  private final ExecutorService mExecutorsForClient = Executors.newFixedThreadPool(1);
-  private Configuration mMasterConfiguration = null;
+  private ExecutorService mExecutorsForClient;
+
+  @ClassRule
+  public static SystemPropertyRule sDisableHdfsCacheRule =
+      new SystemPropertyRule("fs.hdfs.impl.disable.cache", "true");
 
   @After
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
+    ConfigurationTestUtils.resetConfiguration();
+    RetryHandlingBlockWorkerClientTestUtils.reset();
+    FileSystemWorkerClientTestUtils.reset();
+    BlockStoreContextTestUtils.resetPool();
   }
 
   @Before
   public final void before() throws Exception {
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+    mExecutorsForClient = Executors.newFixedThreadPool(1);
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterConfiguration);
+    return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
   /**
@@ -121,7 +136,9 @@ public class JournalShutdownIntegrationTest {
   private void reproduceAndCheckState(int successFiles) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    int actualFiles = fsMaster.getFileInfoList(new AlluxioURI(TEST_FILE_DIR)).size();
+    int actualFiles =
+        fsMaster.listStatus(new AlluxioURI(TEST_FILE_DIR), ListStatusOptions.defaults())
+            .size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f++) {
       Assert.assertTrue(
@@ -134,9 +151,9 @@ public class JournalShutdownIntegrationTest {
       throws IOException, ConnectionFailedException {
     // Setup and start the alluxio-ft cluster.
     MultiMasterLocalAlluxioCluster cluster =
-        new MultiMasterLocalAlluxioCluster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
+        new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
+    cluster.initConfiguration();
     cluster.start();
-    mMasterConfiguration = cluster.getMasterConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
@@ -145,16 +162,16 @@ public class JournalShutdownIntegrationTest {
   private LocalAlluxioCluster setupSingleMasterCluster()
       throws IOException, ConnectionFailedException {
     // Setup and start the local alluxio cluster.
-    LocalAlluxioCluster cluster = new LocalAlluxioCluster(100, TEST_BLOCK_SIZE);
+    LocalAlluxioCluster cluster = new LocalAlluxioCluster();
+    cluster.initConfiguration();
     cluster.start();
-    mMasterConfiguration = cluster.getMasterConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
   }
 
   @Test
-  public void singleMasterJournalCrashIntegrationTest() throws Exception {
+  public void singleMasterJournalCrashIntegration() throws Exception {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Shutdown the cluster
@@ -170,7 +187,7 @@ public class JournalShutdownIntegrationTest {
 
   @Ignore
   @Test
-  public void multiMasterJournalCrashIntegrationTest() throws Exception {
+  public void multiMasterJournalCrashIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {

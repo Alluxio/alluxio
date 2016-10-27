@@ -7,9 +7,7 @@ priority: 3
 ---
 
 This guide
-describes how to configure Alluxio with secure [HDFS](https://hadoop.apache
-.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide
-.html)
+describes how to configure Alluxio with [secure HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)
 as the under storage system. Alluxio supports secure HDFS as the under filesystem, with
 [Kerberos](http://web.mit.edu/kerberos/) authentication.
 
@@ -30,6 +28,7 @@ of Alluxio source code.
 * Modify the `hadoop.version` tag defined in `${ALLUXIO_HOME}/pom.xml`. E.g., to work with Hadoop
 `2.6.0`, modify this pom file to set "`<hadoop.version>2.6.0</hadoop.version>`" instead of
 "`<hadoop.version>2.2.0</hadoop.version>`". Then recompile the source using maven.
+To make compiling faster, you can add `-DskipTests` option to skip unit tests.
 
 {% include Configuring-Alluxio-with-HDFS/mvn-package.md %}
 
@@ -44,25 +43,56 @@ If everything succeeds, you should see
 
 # Configuring Alluxio
 
-To run the Alluxio binary, we must setup configuration files. Create your configuration file from
- the template:
+To run Alluxio binary, we must setup configuration files. Create your configuration file with `bootstrapConf` command.
+For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+
+{% include Configuring-Alluxio-with-HDFS/bootstrapConf.md %}
+
+Alternatively, you can also create the configuration file from the template and set the contents manually.
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-Then edit `alluxio-env.sh` file to set the under storage address to the HDFS namenode address
-(e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with the default port).
+Then edit `conf/alluxio-site.properties` file to set the under storage address to the HDFS namenode address
+and the HDFS directory you want to mount to Alluxio. For example, the under storage address can be
+`hdfs://localhost:9000` if you are running the HDFS namenode locally with default port and mounting HDFS root directory to Alluxio,
+or `hdfs://localhost:9000/alluxio/data` if only the HDFS directory `/alluxio/data` is mounted to Alluxio.
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
-Copy secure HDFS conf xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to
-`${ALLUXIO_HOME}/conf/`
+## HDFS configuration files 
+To ensure Alluxio client picks up HDFS configurations in classpath, please copy secure HDFS configuration xml files
+(`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to `${ALLUXIO_HOME}/conf/`
 
-Set the following Alluxio properties:
+## Kerberos configuration
+Optionally, you can set jvm-level system properties for customized Kerberos configurations:
+`java.security.krb5.realm` and `java.security.krb5.kdc`. Those Kerberos configurations route java libraries to specified Kerberos realm and KDC server address.
+If both are set to empty, Kerberos library will respect
+the default Kerberos configuration on the machine. For example:
+
+* If you use Hadoop, you can add to `HADOOP_OPTS` in `{HADOOP_CONF_DIR}/hadoop-env.sh`. 
+
+{% include Configuring-Alluxio-with-secure-HDFS/hadoop-opts.md %}
+
+* If you use Spark, you can add to `SPARK_JAVA_OPTS` in `{SPARK_CONF_DIR}/spark-env.sh`.
+
+{% include Configuring-Alluxio-with-secure-HDFS/spark-opts.md %}
+
+* If you use Alluxio shell, you can add to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
+
+{% include Configuring-Alluxio-with-secure-HDFS/alluxio-opts.md %}
+
+## Alluxio server Kerberos credential
+Set the following Alluxio properties in `alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-properties-for-secure-hdfs-kerberos.md %}
 
+Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
+details about setting configuration parameters can be found in
+[Configuration Settings](Configuration-Settings.html).
+
 # Running Alluxio Locally with secure HDFS
 
+Before this step, please make sure your HDFS cluster is running and the directory mounted to Alluxio exists.
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 {% include Common-Commands/start-alluxio.md %}
@@ -76,7 +106,7 @@ Next, you can run a simple example program:
 
 After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
 to verify the files and directories created by Alluxio exist. For this test, you should see
-files named like: `/alluxio/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST`
+files named like: `/default_tests_files/BasicFile_STORE_SYNC_PERSIST`
 
 You can stop Alluxio any time by running:
 

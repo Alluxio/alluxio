@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,16 +12,16 @@
 package alluxio.security;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.lang.reflect.Field;
 
 /**
  * Unit test for {@link alluxio.security.LoginUser}.
@@ -34,28 +34,27 @@ public final class LoginUserTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  /**
-   * User reflection to reset the private static member sLoginUser in LoginUser.
-   */
   @Before
   public void before() throws Exception {
-    Field field = LoginUser.class.getDeclaredField("sLoginUser");
-    field.setAccessible(true);
-    field.set(null, null);
+    LoginUserTestUtils.resetLoginUser();
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
    * Tests whether we can get login user with conf in SIMPLE mode.
    */
   @Test
-  public void getSimpleLoginUserTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+  public void getSimpleLoginUser() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
 
-    User loginUser = LoginUser.get(conf);
+    User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   /**
@@ -63,15 +62,14 @@ public final class LoginUserTest {
    * the application through configuration.
    */
   @Test
-  public void getSimpleLoginUserProvidedByAppTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user");
+  public void getSimpleLoginUserProvidedByApp() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
-    User loginUser = LoginUser.get(conf);
+    User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), "alluxio-user");
+    Assert.assertEquals("alluxio-user", loginUser.getName());
   }
 
   /**
@@ -79,16 +77,15 @@ public final class LoginUserTest {
    * by the application through configuration.
    */
   @Test
-  public void getSimpleLoginUserListProvidedByAppTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user, superuser");
+  public void getSimpleLoginUserListProvidedByApp() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user, superuser");
 
-    User loginUser = LoginUser.get(conf);
+    User loginUser = LoginUser.get();
 
     // The user list is considered as a single user name.
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), "alluxio-user, superuser");
+    Assert.assertEquals("alluxio-user, superuser", loginUser.getName());
   }
 
   /**
@@ -97,29 +94,27 @@ public final class LoginUserTest {
    * instead of empty string.
    */
   @Test
-  public void getSimpleLoginUserWhenNotProvidedByAppTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_LOGIN_USERNAME, "");
+  public void getSimpleLoginUserWhenNotProvidedByApp() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "");
 
-    User loginUser = LoginUser.get(conf);
+    User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   /**
    * Tests whether we can get login user with conf in CUSTOM mode.
    */
   @Test
-  public void getCustomLoginUserTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+  public void getCustomLoginUser() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
 
-    User loginUser = LoginUser.get(conf);
+    User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   /**
@@ -127,15 +122,14 @@ public final class LoginUserTest {
    * the application through configuration.
    */
   @Test
-  public void getCustomLoginUserProvidedByAppTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    conf.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user");
+  public void getCustomLoginUserProvidedByApp() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
-    User loginUser = LoginUser.get(conf);
+    User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), "alluxio-user");
+    Assert.assertEquals("alluxio-user", loginUser.getName());
   }
 
   /**
@@ -144,15 +138,14 @@ public final class LoginUserTest {
    * instead of empty string.
    */
   @Test
-  public void getCustomLoginUserWhenNotProvidedByAppTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    conf.set(Constants.SECURITY_LOGIN_USERNAME, "");
+  public void getCustomLoginUserWhenNotProvidedByApp() throws Exception {
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "");
 
-    User loginUser = LoginUser.get(conf);
+    User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   // TODO(dong): getKerberosLoginUserTest()
@@ -161,14 +154,13 @@ public final class LoginUserTest {
    * Tests whether we can get exception when getting a login user in non-security mode.
    */
   @Test
-  public void securityEnabledTest() throws Exception {
+  public void securityEnabled() throws Exception {
     // TODO(dong): add Kerberos in the white list when it is supported.
     // throw exception when AuthType is not "SIMPLE", or "CUSTOM"
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
 
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("User is not supported in NOSASL mode");
-    LoginUser.get(conf);
+    LoginUser.get();
   }
 }

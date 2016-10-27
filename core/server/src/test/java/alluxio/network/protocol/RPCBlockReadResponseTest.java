@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -72,7 +72,7 @@ public class RPCBlockReadResponseTest {
    * Tests the {@link RPCBlockReadResponse#getEncodedLength()} method.
    */
   @Test
-  public void encodedLengthTest() {
+  public void encodedLength() {
     RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
     int encodedLength = resp.getEncodedLength();
     resp.encode(mBuffer);
@@ -84,7 +84,7 @@ public class RPCBlockReadResponseTest {
    * {@link RPCBlockReadResponse#decode(ByteBuf)} methods.
    */
   @Test
-  public void encodeDecodeTest() {
+  public void encodeDecode() {
     RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
     resp.encode(mBuffer);
     RPCBlockReadResponse resp2 = RPCBlockReadResponse.decode(mBuffer);
@@ -96,7 +96,7 @@ public class RPCBlockReadResponseTest {
    * Tests the {@link RPCBlockReadResponse#validate()} method.
    */
   @Test
-  public void validateTest() {
+  public void validate() {
     RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
     assertValid(resp);
   }
@@ -105,7 +105,7 @@ public class RPCBlockReadResponseTest {
    * Tests the {@link RPCBlockReadResponse#getPayloadDataBuffer()} method.
    */
   @Test
-  public void getPayloadDataBufferTest() {
+  public void getPayloadDataBuffer() {
     int length = 10;
     DataByteBuffer payload = new DataByteBuffer(ByteBuffer.allocate(length), length);
     RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, payload, STATUS);
@@ -119,7 +119,7 @@ public class RPCBlockReadResponseTest {
    * method.
    */
   @Test
-  public void createErrorResponseTest() {
+  public void createErrorResponse() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
         SESSION_ID);
 

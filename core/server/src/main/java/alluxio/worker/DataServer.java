@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,9 +12,8 @@
 package alluxio.worker;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
-import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Throwables;
 
@@ -33,21 +32,23 @@ public interface DataServer extends Closeable {
    */
   @ThreadSafe
   class Factory {
+
+    private Factory() {} // prevent instantiation
+
     /**
      * Factory for {@link DataServer}.
      *
      * @param dataAddress the address of the data server
-     * @param blockWorker block worker handle
-     * @param conf Alluxio configuration
+     * @param worker the Alluxio worker handle
      * @return the generated {@link DataServer}
      */
     public static DataServer create(final InetSocketAddress dataAddress,
-        final BlockWorker blockWorker, Configuration conf) {
+        final AlluxioWorkerService worker) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
-            new Class[] { InetSocketAddress.class, BlockWorker.class, Configuration.class },
-            new Object[] { dataAddress, blockWorker, conf });
+            Configuration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER_CLASS),
+            new Class[] {InetSocketAddress.class, AlluxioWorkerService.class},
+            new Object[] {dataAddress, worker});
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -41,7 +41,7 @@ public final class PlainSaslClientCallbackHandlerTest {
    * Tests that the callback is handled correctly.
    */
   @Test
-  public void clientCallbackHandlerTest() throws Exception {
+  public void clientCallbackHandler() throws Exception {
     Callback[] callbacks = new Callback[2];
     callbacks[0] = new NameCallback("Username:");
     callbacks[1] = new PasswordCallback("Password:", true);
@@ -60,7 +60,7 @@ public final class PlainSaslClientCallbackHandlerTest {
    * Tests that an exception is thrown in case an unsupported callback is used.
    */
   @Test
-  public void unsupportCallbackTest() throws Exception {
+  public void unsupportCallback() throws Exception {
     mThrown.expect(UnsupportedCallbackException.class);
     mThrown.expectMessage(RealmCallback.class + " is unsupported.");
 
@@ -80,7 +80,7 @@ public final class PlainSaslClientCallbackHandlerTest {
    * Tests that the callback can handle a non-existent user.
    */
   @Test
-  public void nullNameCallbackTest() throws Exception {
+  public void nullNameCallback() throws Exception {
     Callback[] callbacks = new Callback[2];
     callbacks[0] = new NameCallback("Username:");
     callbacks[1] = new PasswordCallback("Password:", true);
@@ -98,7 +98,7 @@ public final class PlainSaslClientCallbackHandlerTest {
    * Tests that the callback can handle a non-existent password.
    */
   @Test
-  public void nullPasswordCallbackTest() throws Exception {
+  public void nullPasswordCallback() throws Exception {
     Callback[] callbacks = new Callback[2];
     callbacks[0] = new NameCallback("Username:");
     callbacks[1] = new PasswordCallback("Password:", true);
@@ -116,7 +116,7 @@ public final class PlainSaslClientCallbackHandlerTest {
    * Tests that an exception is thrown when a callback is {@code null}.
    */
   @Test
-  public void nullCallbackTest() throws Exception {
+  public void nullCallback() throws Exception {
     mThrown.expect(UnsupportedCallbackException.class);
     mThrown.expectMessage(null + " is unsupported.");
 

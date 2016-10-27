@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -10,6 +10,8 @@
  */
 
 package alluxio.heartbeat;
+
+import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
 
@@ -36,7 +38,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ScheduledTimer implements HeartbeatTimer {
   private final String mThreadName;
   private final Lock mLock;
-  private final Condition mCondition;
+  /** This condition is signaled to tell the heartbeat thread to do a run. */
+  private final Condition mTickCondition;
   /** True when schedule() has been called, but tick() hasn't finished. **/
   private volatile boolean mScheduled;
 
@@ -49,8 +52,10 @@ public final class ScheduledTimer implements HeartbeatTimer {
   public ScheduledTimer(String threadName, long intervalMs) {
     mThreadName = threadName;
     mLock = new ReentrantLock();
-    mCondition = mLock.newCondition();
+    mTickCondition = mLock.newCondition();
     mScheduled = false;
+    // There should never be more than one scheduled timer with the same name.
+    HeartbeatScheduler.clearTimer(mThreadName);
   }
 
   /**
@@ -64,13 +69,11 @@ public final class ScheduledTimer implements HeartbeatTimer {
    * Schedules execution of the heartbeat.
    */
   protected void schedule() {
-    mLock.lock();
-    try {
+    try (LockResource r = new LockResource(mLock)) {
       Preconditions.checkState(!mScheduled, "Called schedule twice without waiting for any ticks");
       mScheduled = true;
-      mCondition.signal();
-    } finally {
-      mLock.unlock();
+      mTickCondition.signal();
+      HeartbeatScheduler.removeTimer(this);
     }
   }
 
@@ -79,17 +82,15 @@ public final class ScheduledTimer implements HeartbeatTimer {
    *
    * @throws InterruptedException if the thread is interrupted while waiting
    */
-  public synchronized void tick() throws InterruptedException {
-    mLock.lock();
-    try {
+  public void tick() throws InterruptedException {
+    try (LockResource r = new LockResource(mLock)) {
       HeartbeatScheduler.addTimer(this);
       // Wait in a loop to handle spurious wakeups
       while (!mScheduled) {
-        mCondition.await();
+        mTickCondition.await();
       }
+
       mScheduled = false;
-    } finally {
-      mLock.unlock();
     }
   }
 }

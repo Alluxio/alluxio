@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -22,11 +22,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public class MasterStorageTierAssoc extends StorageTierAssoc {
 
   /**
-   * @param conf the configuration for Alluxio
+   * Creates a new instance of {@link MasterStorageTierAssoc}.
    */
-  public MasterStorageTierAssoc(Configuration conf) {
-    super(conf, Constants.MASTER_TIERED_STORE_GLOBAL_LEVELS,
-        Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT);
+  public MasterStorageTierAssoc() {
+    super(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS,
+        PropertyKeyFormat.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT);
   }
 
   /**

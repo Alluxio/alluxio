@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,7 @@
 package alluxio.security.login;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.User;
 
 import java.io.IOException;
@@ -40,6 +40,11 @@ public final class AppLoginModule implements LoginModule {
   private User mUser;
   private CallbackHandler mCallbackHandler;
 
+  /**
+   * Constructs a new {@link AppLoginModule}.
+   */
+  public AppLoginModule() {}
+
   @Override
   public void initialize(Subject subject, CallbackHandler callbackHandler,
       Map<String, ?> sharedState, Map<String, ?> options) {
@@ -49,7 +54,7 @@ public final class AppLoginModule implements LoginModule {
 
   /**
    * Retrieves the user name by querying the property of
-   * {@link Constants#SECURITY_LOGIN_USERNAME} through {@link AppCallbackHandler}.
+   * {@link PropertyKey#SECURITY_LOGIN_USERNAME} through {@link AppCallbackHandler}.
    *
    * @return true if user name provided by application is set and not empty
    * @throws LoginException when the login fails
@@ -60,9 +65,7 @@ public final class AppLoginModule implements LoginModule {
     callbacks[0] = new NameCallback("user name: ");
     try {
       mCallbackHandler.handle(callbacks);
-    } catch (IOException e) {
-      throw new LoginException(e.getMessage());
-    } catch (UnsupportedCallbackException e) {
+    } catch (IOException | UnsupportedCallbackException e) {
       throw new LoginException(e.getMessage());
     }
 
@@ -99,7 +102,7 @@ public final class AppLoginModule implements LoginModule {
    * implementation first checks if there is already Alluxio user in the subject. If not, it adds
    * the previously logged in Alluxio user into the subject.
    *
-   * @return true if an Alluxio user if found or created
+   * @return true if an Alluxio user is found or created
    * @throws LoginException not Alluxio user is found or created
    */
   @Override
@@ -147,11 +150,11 @@ public final class AppLoginModule implements LoginModule {
     private String mUserName;
 
     /**
-     * @param conf the configuration for Alluxio
+     * Creates a new instance of {@link AppCallbackHandler}.
      */
-    public AppCallbackHandler(Configuration conf) {
-      if (conf.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
-        mUserName = conf.get(Constants.SECURITY_LOGIN_USERNAME);
+    public AppCallbackHandler() {
+      if (Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME)) {
+        mUserName = Configuration.get(PropertyKey.SECURITY_LOGIN_USERNAME);
       } else {
         mUserName = "";
       }

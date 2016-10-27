@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -81,7 +81,7 @@ public class AlluxioURITest {
    * Tests the {@link AlluxioURI#AlluxioURI(String)} constructor with query parameter.
    */
   @Test
-  public void basicConstructorQueryTest() {
+  public void basicConstructorQuery() {
     /**
      * Some encodings:
      * '&' -> %26
@@ -122,7 +122,7 @@ public class AlluxioURITest {
    * Tests the {@link AlluxioURI#AlluxioURI(String)} constructor for an empty URI.
    */
   @Test
-  public void emptyURITest() {
+  public void emptyURI() {
     AlluxioURI uri = new AlluxioURI("");
     Assert.assertEquals(null, uri.getAuthority());
     Assert.assertEquals(0, uri.getDepth());
@@ -141,7 +141,7 @@ public class AlluxioURITest {
   }
 
   /**
-   * Tests the {@link AlluxioURI#AlluxioURI(String, String, String)} constructor to build an URI
+   * Tests the {@link AlluxioURI#AlluxioURI(String, String, String)} constructor to build a URI
    * from its different components.
    */
   @Test
@@ -175,7 +175,7 @@ public class AlluxioURITest {
    * URI from its different components with a query map.
    */
   @Test
-  public void constructWithQueryMapTest() {
+  public void constructWithQueryMap() {
     String scheme = "alluxio";
     String authority = "host:1234";
     String path = "/a";
@@ -189,8 +189,6 @@ public class AlluxioURITest {
     AlluxioURI uri2 = new AlluxioURI(uri1.toString());
     Assert.assertEquals(queryMap, uri1.getQueryMap());
     Assert.assertEquals(uri1.getQueryMap(), uri2.getQueryMap());
-    Map<String, String> m1 = uri1.getQueryMap();
-    Map<String, String> m2 = uri2.getQueryMap();
   }
 
   /**
@@ -311,7 +309,7 @@ public class AlluxioURITest {
    * Tests the {@link AlluxioURI#equals(Object)} method for multi-component schemes.
    */
   @Test
-  public void multiPartSchemeEqualsTest() {
+  public void multiPartSchemeEquals() {
     Assert.assertTrue(new AlluxioURI("scheme:part1://127.0.0.1:3306/a.txt")
         .equals(new AlluxioURI("scheme:part1://127.0.0.1:3306/a.txt")));
     Assert.assertFalse(new AlluxioURI("part1://127.0.0.1:3306/a.txt")
@@ -331,7 +329,7 @@ public class AlluxioURITest {
    * Tests the {@link AlluxioURI#equals(Object)} method with query component.
    */
   @Test
-  public void queryEqualsTest() {
+  public void queryEquals() {
     Map<String, String> queryMap = new HashMap<>();
     queryMap.put("a", "b");
     queryMap.put("c", "d");
@@ -699,7 +697,7 @@ public class AlluxioURITest {
    * invalid URI was provided.
    */
   @Test(expected = IllegalArgumentException.class)
-  public void invalidURISyntaxTest() {
+  public void invalidURISyntax() {
     new AlluxioURI("://localhost:8080/a");
   }
 
@@ -717,7 +715,7 @@ public class AlluxioURITest {
    * Tests the {@link AlluxioURI#getLeadingPath(int)} method.
    */
   @Test
-  public void getLeadingPathTest() {
+  public void getLeadingPath() {
     Assert.assertEquals("/",      new AlluxioURI("/a/b/c/").getLeadingPath(0));
     Assert.assertEquals("/a",     new AlluxioURI("/a/b/c/").getLeadingPath(1));
     Assert.assertEquals("/a/b",   new AlluxioURI("/a/b/c/").getLeadingPath(2));

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -25,7 +25,8 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -35,6 +36,7 @@ import alluxio.wire.FileInfo;
 import com.google.common.cache.LoadingCache;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,22 +64,26 @@ public class AlluxioFuseFileSystemTest {
   private FuseFileInfo mFileInfo;
 
   @Before
-  public void setUp() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
-    conf.set(Constants.FUSE_CACHED_PATHS_MAX, "0");
+  public void before() throws Exception {
+    Configuration.set(PropertyKey.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
+    Configuration.set(PropertyKey.FUSE_CACHED_PATHS_MAX, "0");
 
     final List<String> empty = Collections.emptyList();
     AlluxioFuseOptions opts = new AlluxioFuseOptions(
         "/doesnt/matter", TEST_ROOT_PATH, false, empty);
 
     mFileSystem = mock(FileSystem.class);
-    mFuseFs = new AlluxioFuseFileSystem(conf, mFileSystem, opts);
+    mFuseFs = new AlluxioFuseFileSystem(mFileSystem, opts);
     mFileInfo = allocateNativeFileInfo();
   }
 
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   @Test
-  public void createTest() throws Exception {
+  public void create() throws Exception {
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
@@ -85,7 +91,7 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
-  public void createWrongFlagsTest() throws Exception {
+  public void createWrongFlags() throws Exception {
     mFileInfo.flags.set(O_RDONLY.intValue());
     int ret = mFuseFs.create("/foo/bar", 0, mFileInfo);
     verifyZeroInteractions(mFileSystem);
@@ -98,7 +104,7 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
-  public void flushTest() throws Exception {
+  public void flush() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
     when(mFileSystem.createFile(anyURI)).thenReturn(fos);
@@ -113,13 +119,13 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
-  public void mkDirTest() throws Exception {
+  public void mkDir() throws Exception {
     mFuseFs.mkdir("/foo/bar", -1);
     verify(mFileSystem).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"));
   }
 
   @Test
-  public void openTest() throws Exception {
+  public void open() throws Exception {
     // mocks set-up
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     FileInfo fi = new FileInfo();
@@ -137,7 +143,7 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
-  public void openWrongFlagsTest() throws Exception {
+  public void openWrongFlags() throws Exception {
     mFileInfo.flags.set(O_RDWR.intValue());
 
     // actual test
@@ -152,7 +158,7 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
-  public void readTest() throws Exception {
+  public void read() throws Exception {
     // mocks set-up
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     FileInfo fi = new FileInfo();
@@ -193,7 +199,7 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
-  public void writeTest() throws Exception {
+  public void write() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
     when(mFileSystem.createFile(anyURI)).thenReturn(fos);
@@ -214,7 +220,7 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
-  public void pathTranslationTest() throws Exception {
+  public void pathTranslation() throws Exception {
     final LoadingCache<String, AlluxioURI> resolver =
         mFuseFs.getPathResolverCache();
 

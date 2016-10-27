@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -38,13 +38,20 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** The election path in Zookeeper. */
   private final String mElectionPath;
+  /** The path of the leader in Zookeeper. */
   private final String mLeaderFolder;
+  /** The LeaderSelector used to elect. */
   private final LeaderSelector mLeaderSelector;
+  /** The name of this master in Zookeeper. */
   private final String mName;
+  /** The address to Zookeeper. */
   private final String mZookeeperAddress;
 
+  /** Whether this master is the leader master now. */
   private AtomicBoolean mIsLeader = new AtomicBoolean(false);
+  /** The thread of the current master. */
   private volatile Thread mCurrentMasterThread = null;
 
   /**
@@ -71,7 +78,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     mLeaderSelector = new LeaderSelector(getNewCuratorClient(), mElectionPath, this);
     mLeaderSelector.setId(name);
 
-    // for most cases you will want your instance to requeue when it relinquishes leadership
+    // For most cases you will want your instance to requeue when it relinquishes leadership.
     mLeaderSelector.autoRequeue();
   }
 
@@ -92,8 +99,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Gets the name of the leader.
-   *
    * @return the leader name
    */
   public String getName() {
@@ -101,15 +106,12 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Gets the participants.
-   *
    * @return the list of participants
    */
   public List<String> getParticipants() {
     try {
-      List<Participant> participants =
-          new ArrayList<Participant>(mLeaderSelector.getParticipants());
-      List<String> results = new ArrayList<String>();
+      List<Participant> participants = new ArrayList<>(mLeaderSelector.getParticipants());
+      List<String> results = new ArrayList<>();
       for (Participant part : participants) {
         results.add(part.getId());
       }
@@ -121,8 +123,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Checks if the client is the leader.
-   *
    * @return true if the client is the leader, false otherwise
    */
   public boolean isLeader() {
@@ -130,8 +130,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Sets the current master thread.
-   *
    * @param currentMasterThread the thread to use as the master thread
    */
   public void setCurrentMasterThread(Thread currentMasterThread) {
@@ -168,10 +166,10 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   public void takeLeadership(CuratorFramework client) throws Exception {
     mIsLeader.set(true);
     if (client.checkExists().forPath(mLeaderFolder + mName) != null) {
-      LOG.info("deleting zk path: {}{}", mLeaderFolder, mName);
+      LOG.info("Deleting zk path: {}{}", mLeaderFolder, mName);
       client.delete().forPath(mLeaderFolder + mName);
     }
-    LOG.info("creating zk path: {}{}", mLeaderFolder, mName);
+    LOG.info("Creating zk path: {}{}", mLeaderFolder, mName);
     client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
     LOG.info("{} is now the leader.", mName);
     try {

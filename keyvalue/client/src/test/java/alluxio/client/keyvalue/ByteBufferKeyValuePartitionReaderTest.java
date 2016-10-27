@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -30,8 +30,6 @@ public final class ByteBufferKeyValuePartitionReaderTest {
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
-  private static ByteArrayOutStream sOutStream;
-  private static BaseKeyValuePartitionWriter sWriter;
   private static ByteBuffer sBuffer;
   private ByteBufferKeyValuePartitionReader mReader;
 
@@ -40,12 +38,12 @@ public final class ByteBufferKeyValuePartitionReaderTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sOutStream = new ByteArrayOutStream();
-    sWriter = new BaseKeyValuePartitionWriter(sOutStream);
-    sWriter.put(KEY1, VALUE1);
-    sWriter.put(KEY2, VALUE2);
-    sWriter.close();
-    sBuffer = ByteBuffer.wrap(sOutStream.toByteArray());
+    ByteArrayOutStream outStream = new ByteArrayOutStream();
+    BaseKeyValuePartitionWriter writer = new BaseKeyValuePartitionWriter(outStream);
+    writer.put(KEY1, VALUE1);
+    writer.put(KEY2, VALUE2);
+    writer.close();
+    sBuffer = ByteBuffer.wrap(outStream.toByteArray());
   }
 
   @Before
@@ -57,7 +55,7 @@ public final class ByteBufferKeyValuePartitionReaderTest {
    * Tests {@link ByteBufferKeyValuePartitionReader#get} can retrieve values stored before.
    */
   @Test
-  public void getTest() throws Exception {
+  public void get() throws Exception {
     Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mReader.get(KEY2));
     Assert.assertNull(mReader.get("NoSuchKey".getBytes()));
@@ -69,7 +67,7 @@ public final class ByteBufferKeyValuePartitionReaderTest {
    * Tests {@link ByteBufferKeyValuePartitionReader#close} works.
    */
   @Test
-  public void closeTest() throws Exception {
+  public void close() throws Exception {
     mReader.close();
     // Expect close to be no-op
     mReader.close();
@@ -80,7 +78,7 @@ public final class ByteBufferKeyValuePartitionReaderTest {
    * {@link ByteBufferKeyValuePartitionReader#close}, expect an exception thrown.
    */
   @Test
-  public void getAfterCloseTest() throws Exception {
+  public void getAfterClose() throws Exception {
     mReader.close();
     mThrown.expect(IllegalStateException.class);
     mReader.get(KEY1);

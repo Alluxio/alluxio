@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -24,16 +25,19 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.WorkerIdRegistry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -57,6 +61,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
 
+  /** The worker ID for the worker. This may change if the master asks the worker to re-register. */
+  private AtomicReference<Long> mWorkerId;
+
   /** The net address of the worker. */
   private final WorkerNetAddress mWorkerAddress;
 
@@ -73,44 +80,48 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  /** Map from a block ID to whether it has been removed successfully. */
+  @GuardedBy("itself")
+  private final Map<Long, Boolean> mRemovingBlockIdToFinished;
+
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
    * @param blockWorker the {@link BlockWorker} this syncer is updating to
+   * @param workerId the worker id of the worker, assigned by the block master
    * @param workerAddress the net address of the worker
    * @param masterClient the Alluxio master client
    */
-  BlockMasterSync(BlockWorker blockWorker, WorkerNetAddress workerAddress,
-      BlockMasterClient masterClient) {
+  BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
+      WorkerNetAddress workerAddress, BlockMasterClient masterClient) {
     mBlockWorker = blockWorker;
+    mWorkerId = workerId;
     mWorkerAddress = workerAddress;
-    Configuration conf = WorkerContext.getConf();
     mMasterClient = masterClient;
-    mHeartbeatTimeoutMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatTimeoutMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    mRemovingBlockIdToFinished = new HashMap<>();
 
     try {
       registerWithMaster();
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    } catch (IOException e) {
+    } catch (IOException | ConnectionFailedException e) {
       // If failed to register when the thread starts, no retry will happen.
-      throw new RuntimeException("Failed to register with master.", e);
-    } catch (ConnectionFailedException e) {
       throw new RuntimeException("Failed to register with master.", e);
     }
   }
 
   /**
    * Registers with the Alluxio master. This should be called before the continuous heartbeat thread
-   * begins. The workerId will be set after this method is successful.
+   * begins.
    *
    * @throws IOException when workerId cannot be found
    * @throws ConnectionFailedException if network connection failed
    */
   private void registerWithMaster() throws IOException, ConnectionFailedException {
-    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     try {
-      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
-      mMasterClient.register(WorkerIdRegistry.getWorkerId(),
+      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
+      mMasterClient.register(mWorkerId.get(),
           storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException e) {
@@ -135,7 +146,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     Command cmdFromMaster = null;
     try {
       cmdFromMaster = mMasterClient
-          .heartbeat(WorkerIdRegistry.getWorkerId(), storeMeta.getUsedBytesOnTiers(),
+          .heartbeat(mWorkerId.get(), storeMeta.getUsedBytesOnTiers(),
               blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -177,9 +188,21 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests blocks to be removed from Alluxio managed space.
       case Free:
-        for (long block : cmd.getData()) {
-          mBlockRemovalService.execute(new BlockRemover(mBlockWorker,
-              Sessions.MASTER_COMMAND_SESSION_ID, block));
+        synchronized (mRemovingBlockIdToFinished) {
+          for (long block : cmd.getData()) {
+            if (!mRemovingBlockIdToFinished.containsKey(block)) {
+              mRemovingBlockIdToFinished.put(block, false);
+              mBlockRemovalService.execute(new BlockRemover(mBlockWorker,
+                  mRemovingBlockIdToFinished, Sessions.MASTER_COMMAND_SESSION_ID, block));
+            }
+          }
+          Iterator<Map.Entry<Long, Boolean>> it = mRemovingBlockIdToFinished.entrySet().iterator();
+          while (it.hasNext()) {
+            if (it.next().getValue()) {
+              // The block has been successfully removed.
+              it.remove();
+            }
+          }
         }
         break;
       // No action required
@@ -187,7 +210,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests re-registration
       case Register:
-        WorkerIdRegistry.registerWithBlockMaster(mMasterClient, mWorkerAddress);
+        mWorkerId.set(mMasterClient.getId(mWorkerAddress));
         registerWithMaster();
         break;
       // Unknown request
@@ -204,27 +227,36 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    */
   @NotThreadSafe
   private class BlockRemover implements Runnable {
-    private BlockWorker mBlockWorker;
-    private long mSessionId;
-    private long mBlockId;
+    private final BlockWorker mBlockWorker;
+    private final long mSessionId;
+    private final long mBlockId;
+    private final Map<Long, Boolean> mRemovingBlockIdToFinished;
 
     /**
      * Creates a new instance of {@link BlockRemover}.
      *
      * @param blockWorker block worker for data manager
+     * @param removingBlockIdToFinished map from block ID to whether it has been removed
      * @param sessionId the session id
      * @param blockId the block id
      */
-    public BlockRemover(BlockWorker blockWorker, long sessionId, long blockId) {
+    public BlockRemover(BlockWorker blockWorker, Map<Long, Boolean> removingBlockIdToFinished,
+        long sessionId, long blockId) {
       mBlockWorker = blockWorker;
+      mRemovingBlockIdToFinished = removingBlockIdToFinished;
       mSessionId = sessionId;
       mBlockId = blockId;
     }
 
     @Override
     public void run() {
+      boolean success = false;
       try {
         mBlockWorker.removeBlock(mSessionId, mBlockId);
+        success = true;
+        synchronized (mRemovingBlockIdToFinished) {
+          mRemovingBlockIdToFinished.put(mBlockId, true);
+        }
         LOG.info("Block {} removed at session {}", mBlockId, mSessionId);
       } catch (IOException e) {
         LOG.warn("Failed master free block cmd for: {}.", mBlockId, e);
@@ -232,6 +264,14 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId, e);
       } catch (BlockDoesNotExistException e) {
         LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId, e);
+      } finally {
+        if (!success) {
+          synchronized (mRemovingBlockIdToFinished) {
+            // The remove operation fails, so remove the block from the map in order to make it
+            // possible for another BlockRemover to remove it later.
+            mRemovingBlockIdToFinished.remove(mBlockId);
+          }
+        }
       }
     }
   }

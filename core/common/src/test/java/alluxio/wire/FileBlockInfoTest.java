@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,18 +11,22 @@
 
 package alluxio.wire;
 
-import com.google.common.collect.Lists;
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
+
+import com.google.common.net.HostAndPort;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class FileBlockInfoTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     FileBlockInfo fileBlockInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     FileBlockInfo other =
@@ -31,7 +35,7 @@ public class FileBlockInfoTest {
   }
 
   @Test
-  public void thriftTest() {
+  public void thrift() {
     FileBlockInfo fileBlockInfo = createRandom();
     FileBlockInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(fileBlockInfo));
     checkEquality(fileBlockInfo, other);
@@ -50,10 +54,11 @@ public class FileBlockInfoTest {
 
     BlockInfo blockInfo = BlockInfoTest.createRandom();
     long offset = random.nextLong();
-    List<WorkerNetAddress> ufsLocations = Lists.newArrayList();
+    List<String> ufsLocations = new ArrayList<>();
     long numUfsLocations = random.nextInt(10);
     for (int i = 0; i < numUfsLocations; i++) {
-      ufsLocations.add(WorkerNetAddressTest.createRandom());
+      ufsLocations.add(HostAndPort.fromParts(CommonUtils.randomString(random.nextInt(10)),
+          random.nextInt(Constants.MAX_PORT)).toString());
     }
 
     result.setBlockInfo(blockInfo);

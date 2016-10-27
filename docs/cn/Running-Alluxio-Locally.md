@@ -2,7 +2,7 @@
 layout: global
 title: 本地运行Alluxio
 nickname: 本地机器上运行Alluxio
-group: User Guide
+group: Deploying Alluxio
 priority: 1
 ---
 
@@ -14,9 +14,9 @@ priority: 1
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
-执行Alluxio运行脚本前，在`conf/alluxio-env.sh`中指定必要的环境变量，可以从自带的模板文件中拷贝：
+执行Alluxio运行脚本前，需要创建Alluxio环境配置`conf/alluxio-env.sh`。默认的配置可以通过下面方式自引导生成：
 
-{% include Running-Alluxio-Locally/copy-template.md %}
+{% include Running-Alluxio-Locally/bootstrap.md %}
 
 在独立模式下运行，确保：
 
@@ -41,7 +41,7 @@ Alluxio会要求用户输入root密码。如果不想重复输入root密码，�
 {% include Running-Alluxio-Locally/first-sample-output.md %}
 
 再次访问Alluxio Web UI **[http://localhost:19999](http://localhost:19999)**。点击导航栏
-`Browse File System`可以看见样例程序写入Alluxio的文件。
+`Browse`可以看见样例程序写入Alluxio的文件。
 
 
 运行一个更全面的系统完整性检查：

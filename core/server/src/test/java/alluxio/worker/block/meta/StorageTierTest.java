@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,10 +11,12 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.WorkerContext;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
+import alluxio.exception.PreconditionMessage;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,8 +56,6 @@ public class StorageTierTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public final void before() throws Exception {
@@ -72,18 +72,10 @@ public class StorageTierTest {
   }
 
   /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
-  }
-
-  /**
    * Tests the {@link StorageTier#getTierAlias()} method.
    */
   @Test
-  public void getTierAliasTest() {
+  public void getTierAlias() {
     Assert.assertEquals(TEST_TIER_ALIAS, mTier.getTierAlias());
   }
 
@@ -91,17 +83,15 @@ public class StorageTierTest {
    * Tests the {@link StorageTier#getTierOrdinal()} method.
    */
   @Test
-  public void getTierLevelTest() {
+  public void getTierLevel() {
     Assert.assertEquals(TEST_TIER_ORDINAL, mTier.getTierOrdinal());
   }
 
   /**
    * Tests the {@link StorageTier#getCapacityBytes()} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
-  public void getCapacityBytesTest() throws Exception {
+  public void getCapacityBytes() throws Exception {
     Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getCapacityBytes());
 
     // Capacity should not change after adding block to a dir.
@@ -111,11 +101,9 @@ public class StorageTierTest {
 
   /**
    * Tests the {@link StorageTier#getAvailableBytes()} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
-  public void getAvailableBytesTest() throws Exception {
+  public void getAvailableBytes() throws Exception {
     Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getAvailableBytes());
 
     // Capacity should subtract block size after adding block to a dir.
@@ -128,7 +116,7 @@ public class StorageTierTest {
    * Tests that an exception is thrown when trying to get a directory by a non-existing index.
    */
   @Test
-  public void getDirTest() {
+  public void getDir() {
     mThrown.expect(IndexOutOfBoundsException.class);
     StorageDir dir1 = mTier.getDir(0);
     Assert.assertEquals(mTestDirPath1, dir1.getDirPath());
@@ -142,10 +130,20 @@ public class StorageTierTest {
    * Tests the {@link StorageTier#getStorageDirs()} method.
    */
   @Test
-  public void getStorageDirsTest() {
+  public void getStorageDirs() {
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
     Assert.assertEquals(mTestDirPath1, dirs.get(0).getDirPath());
     Assert.assertEquals(mTestDirPath2, dirs.get(1).getDirPath());
+  }
+
+  @Test
+  public void blankStorageTier() throws Exception {
+    PropertyKey tierDirCapacityConf =
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(0);
+    Configuration.set(tierDirCapacityConf, "");
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage(PreconditionMessage.ERR_TIER_QUOTA_BLANK.toString());
+    mTier = StorageTier.newStorageTier("MEM");
   }
 }

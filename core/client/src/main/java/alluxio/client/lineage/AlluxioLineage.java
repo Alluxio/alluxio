@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,9 +12,9 @@
 package alluxio.client.lineage;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
 import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.lineage.options.GetLineageInfoListOptions;
@@ -37,23 +37,27 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public final class AlluxioLineage extends AbstractLineageClient {
-  private static AlluxioLineage sAlluxioLineage;
 
   /**
    * @return the current lineage for Alluxio
    */
   public static synchronized AlluxioLineage get() {
-    if (sAlluxioLineage == null) {
-      if (!ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
-        throw new IllegalStateException("Lineage is not enabled in the configuration.");
-      }
-      sAlluxioLineage = new AlluxioLineage();
-    }
-    return sAlluxioLineage;
+    return get(LineageContext.INSTANCE);
   }
 
-  protected AlluxioLineage() {
-    super();
+  /**
+   * @param context lineage context
+   * @return the current lineage for Alluxio
+   */
+  public static synchronized AlluxioLineage get(LineageContext context) {
+    if (!Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
+      throw new IllegalStateException("Lineage is not enabled in the configuration.");
+    }
+    return new AlluxioLineage(context);
+  }
+
+  protected AlluxioLineage(LineageContext context) {
+    super(context);
   }
 
   /**

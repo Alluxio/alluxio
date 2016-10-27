@@ -2,7 +2,7 @@
 layout: global
 title: Running Alluxio on Virtual Box
 nickname: Alluxio on Virtual Box
-group: User Guide
+group: Deploying Alluxio
 priority: 2
 ---
 

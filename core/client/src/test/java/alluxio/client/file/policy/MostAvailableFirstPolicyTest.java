@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,14 +11,15 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,8 +32,8 @@ public final class MostAvailableFirstPolicyTest {
    * Tests that the worker with the most available space is chosen.
    */
   @Test
-  public void getMostAvailableWorkerTest() {
-    List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
+  public void getMostAvailableWorker() {
+    List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
@@ -42,5 +43,10 @@ public final class MostAvailableFirstPolicyTest {
     MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy();
     Assert.assertEquals("worker3",
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(MostAvailableFirstPolicy.class);
   }
 }

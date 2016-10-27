@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,9 +12,8 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.collections.Pair;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
@@ -25,6 +24,7 @@ import alluxio.worker.block.meta.StorageTierView;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -52,14 +51,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LRFUEvictor extends AbstractEvictor {
   // Map from block id to the last updated logic time count
-  private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<Long, Long>();
+  private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMapV8<>();
   // Map from block id to the CRF value of the block
-  private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMap<Long, Double>();
+  private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMapV8<>();
   // In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU
   private final double mStepFactor;
   // In the range of [2, INF]
   private final double mAttenuationFactor;
-  private final Configuration mConfiguration;
 
   //logic time count
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
@@ -72,11 +70,9 @@ public final class LRFUEvictor extends AbstractEvictor {
    */
   public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
-    mConfiguration = WorkerContext.getConf();
-    mStepFactor = mConfiguration
-        .getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
-    mAttenuationFactor = mConfiguration
-        .getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+    mStepFactor = Configuration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+    mAttenuationFactor =
+        Configuration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
     Preconditions.checkArgument(mStepFactor >= 0.0 && mStepFactor <= 1.0,
         "Step factor should be in the range of [0.0, 1.0]");
     Preconditions.checkArgument(mAttenuationFactor >= 2.0,
@@ -111,9 +107,8 @@ public final class LRFUEvictor extends AbstractEvictor {
       updateCRFValue();
       mManagerView = view;
 
-      List<BlockTransferInfo> toMove = new ArrayList<BlockTransferInfo>();
-      List<Pair<Long, BlockStoreLocation>> toEvict =
-          new ArrayList<Pair<Long, BlockStoreLocation>>();
+      List<BlockTransferInfo> toMove = new ArrayList<>();
+      List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
       EvictionPlan plan = new EvictionPlan(toMove, toEvict);
       StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
@@ -143,8 +138,7 @@ public final class LRFUEvictor extends AbstractEvictor {
    * @return the sorted CRF of all blocks
    */
   private List<Map.Entry<Long, Double>> getSortedCRF() {
-    List<Map.Entry<Long, Double>> sortedCRF =
-        new ArrayList<Map.Entry<Long, Double>>(mBlockIdToCRFValue.entrySet());
+    List<Map.Entry<Long, Double>> sortedCRF = new ArrayList<>(mBlockIdToCRFValue.entrySet());
     Collections.sort(sortedCRF, new Comparator<Map.Entry<Long, Double>>() {
       @Override
       public int compare(Entry<Long, Double> o1, Entry<Long, Double> o2) {

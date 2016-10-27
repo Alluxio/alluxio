@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,10 +13,11 @@ package alluxio.worker.netty;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCBlockWriteRequest;
@@ -29,6 +30,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -46,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class handles {@link RPCBlockReadRequest}s and {@link RPCBlockWriteRequest}s.
  */
 @NotThreadSafe
-public final class BlockDataServerHandler {
+final class BlockDataServerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
@@ -56,11 +58,11 @@ public final class BlockDataServerHandler {
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc;
 
-  BlockDataServerHandler(BlockWorker worker, Configuration configuration) {
+  BlockDataServerHandler(BlockWorker worker) {
     mWorker = worker;
-    mStorageTierAssoc = new WorkerStorageTierAssoc(configuration);
-    mTransferType = configuration.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
-        FileTransferType.class);
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
+    mTransferType = Configuration
+        .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
   }
 
   /**
@@ -80,28 +82,31 @@ public final class BlockDataServerHandler {
     final long lockId = req.getLockId();
     final long sessionId = req.getSessionId();
 
-    BlockReader reader;
-    try {
-      reader = mWorker.readBlockRemote(sessionId, blockId, lockId);
-    } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
-      throw new IOException(e);
-    }
+    BlockReader reader = null;
+    DataBuffer buffer;
     try {
       req.validate();
+      reader = mWorker.readBlockRemote(sessionId, blockId, lockId);
       final long fileLength = reader.getLength();
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
-      RPCBlockReadResponse resp = new RPCBlockReadResponse(blockId, offset, readLength,
-          getDataBuffer(req, reader, readLength), RPCResponse.Status.SUCCESS);
-      ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(ChannelFutureListener.CLOSE);
-      future.addListener(new ClosableResourceChannelListener(reader));
-      mWorker.accessBlock(sessionId, blockId);
-      LOG.info("Preparation for responding to remote block request for: {} done.", blockId);
-    } catch (Exception e) {
-      LOG.error("The file is not here : {}", e.getMessage(), e);
+      buffer = getDataBuffer(req, reader, readLength);
+      Metrics.BYTES_READ_REMOTE.inc(buffer.getLength());
       RPCBlockReadResponse resp =
-          RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.FILE_DNE);
+          new RPCBlockReadResponse(blockId, offset, readLength, buffer, RPCResponse.Status.SUCCESS);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(new ClosableResourceChannelListener(reader));
+      future.addListener(new ReleasableResourceChannelListener(buffer));
+      mWorker.accessBlock(sessionId, blockId);
+      LOG.debug("Preparation for responding to remote block request for: {} done.", blockId);
+    } catch (Exception e) {
+      LOG.error("Exception reading block {}", blockId, e);
+      RPCBlockReadResponse resp;
+      if (e instanceof BlockDoesNotExistException) {
+        resp = RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.FILE_DNE);
+      } else {
+        resp = RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.UFS_READ_FAILED);
+      }
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       if (reader != null) {
@@ -147,10 +152,10 @@ public final class BlockDataServerHandler {
       writer = mWorker.getTempBlockWriterRemote(sessionId, blockId);
       writer.append(buffer);
 
+      Metrics.BYTES_WRITTEN_REMOTE.inc(data.getLength());
       RPCBlockWriteResponse resp =
           new RPCBlockWriteResponse(sessionId, blockId, offset, length, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(writer));
     } catch (Exception e) {
       LOG.error("Error writing remote block : {}", e.getMessage(), e);
@@ -213,5 +218,16 @@ public final class BlockDataServerHandler {
         reader.close();
         throw new IllegalArgumentException("Only FileChannel is supported!");
     }
+  }
+
+  /**
+   * Class that contains metrics for BlockDataServerHandler.
+   */
+  private static final class Metrics {
+    private static final Counter BYTES_READ_REMOTE = MetricsSystem.workerCounter("BytesReadRemote");
+    private static final Counter BYTES_WRITTEN_REMOTE =
+        MetricsSystem.workerCounter("BytesWrittenRemote");
+
+    private Metrics() {} // prevent instantiation
   }
 }

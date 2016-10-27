@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,6 +11,7 @@
 
 package alluxio.master.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
 
@@ -33,35 +34,40 @@ public class MountOptionsTest {
    * Tests the {@link MountOptions#defaults()} method.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     MountOptions options = MountOptions.defaults();
     Assert.assertFalse(options.isReadOnly());
     Assert.assertTrue(options.getProperties().isEmpty());
+    Assert.assertFalse(options.isShared());
   }
 
   /**
    * Tests creating a {@link MountOptions} from a thrift object.
    */
   @Test
-  public void FromThriftTest() {
+  public void FromThrift() {
     // Null thrift options
     MountTOptions thriftOptions = null;
     MountOptions options = new MountOptions(thriftOptions);
     Assert.assertFalse(options.isReadOnly());
+    Assert.assertFalse(options.isShared());
 
     // Default thrift options
     thriftOptions = new MountTOptions();
     options = new MountOptions(thriftOptions);
     Assert.assertFalse(options.isReadOnly());
+    Assert.assertFalse(options.isShared());
 
     // Set thrift options
     Map<String, String> properties = new HashMap<>();
     properties.put(PROPERTY_KEY, PROPERTY_VALUE);
     thriftOptions = new MountTOptions();
     thriftOptions.setReadOnly(true);
+    thriftOptions.setShared(true);
     thriftOptions.setProperties(properties);
     options = new MountOptions(thriftOptions);
     Assert.assertTrue(options.isReadOnly());
+    Assert.assertTrue(options.isShared());
     Assert.assertEquals(properties.size(), options.getProperties().size());
     Assert.assertEquals(PROPERTY_VALUE, options.getProperties().get(PROPERTY_KEY));
   }
@@ -70,11 +76,12 @@ public class MountOptionsTest {
    * Tests creating a {@link MountOptions} from a proto object.
    */
   @Test
-  public void FromProtoTest() {
+  public void FromProto() {
     // Null proto options
     File.AddMountPointEntry protoOptions = null;
     MountOptions options = new MountOptions(protoOptions);
     Assert.assertFalse(options.isReadOnly());
+    Assert.assertFalse(options.isShared());
 
     // Default proto options
     protoOptions = File.AddMountPointEntry.newBuilder().build();
@@ -89,9 +96,10 @@ public class MountOptionsTest {
         .build());
     protoOptions =
         File.AddMountPointEntry.newBuilder().setReadOnly(true).addAllProperties(protoProperties)
-            .build();
+            .setShared(true).build();
     options = new MountOptions(protoOptions);
     Assert.assertTrue(options.isReadOnly());
+    Assert.assertTrue(options.isShared());
     Assert.assertEquals(protoProperties.size(), options.getProperties().size());
     Assert.assertEquals(PROPERTY_VALUE, options.getProperties().get(PROPERTY_KEY));
   }
@@ -100,17 +108,27 @@ public class MountOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     MountOptions options = MountOptions.defaults().setReadOnly(true);
     Assert.assertTrue(options.isReadOnly());
 
     options = MountOptions.defaults().setReadOnly(false);
     Assert.assertFalse(options.isReadOnly());
 
+    options = MountOptions.defaults().setShared(true);
+    Assert.assertTrue(options.isShared());
+    options = MountOptions.defaults().setShared(false);
+    Assert.assertFalse(options.isShared());
+
     Map<String, String> properties = new HashMap<>();
     properties.put(PROPERTY_KEY, PROPERTY_VALUE);
     options = MountOptions.defaults().setProperties(properties);
     Assert.assertEquals(properties.size(), options.getProperties().size());
     Assert.assertEquals(PROPERTY_VALUE, options.getProperties().get(PROPERTY_KEY));
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(MountOptions.class, "mOperationTimeMs");
   }
 }

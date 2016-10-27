@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,13 +11,10 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
-import com.google.common.collect.Sets;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,6 +23,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.util.HashSet;
 
 /**
  * Unit tests for {@link StorageTierView}.
@@ -45,8 +43,6 @@ public class StorageTierViewTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public void before() throws Exception {
@@ -54,25 +50,17 @@ public class StorageTierViewTest {
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     BlockMetadataManagerView metaManagerView =
-        new BlockMetadataManagerView(metaManager, Sets.<Long>newHashSet(),
-            Sets.<Long>newHashSet());
+        new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
+            new HashSet<Long>());
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestTierView = new StorageTierView(mTestTier, metaManagerView);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**
    * Tests the {@link StorageTierView#getDirViews()} method.
    */
   @Test
-  public void getDirViewsTest() {
+  public void getDirViews() {
     Assert.assertEquals(TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length, mTestTierView
         .getDirViews().size());
   }
@@ -81,7 +69,7 @@ public class StorageTierViewTest {
    * Tests the {@link StorageTierView#getDirView(int)} method.
    */
   @Test
-  public void getDirViewTest() {
+  public void getDirView() {
     for (int i = 0; i < TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length; i++) {
       Assert.assertEquals(i, mTestTierView.getDirView(i).getDirViewIndex());
     }
@@ -91,7 +79,7 @@ public class StorageTierViewTest {
    * Tests that an exception is thrown when trying to get a storage directory view with a bad index.
    */
   @Test
-  public void getDirViewBadIndexTest() {
+  public void getDirViewBadIndex() {
     mThrown.expect(IndexOutOfBoundsException.class);
     int badDirIndex = TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length;
     Assert.assertEquals(badDirIndex, mTestTierView.getDirView(badDirIndex).getDirViewIndex());
@@ -101,7 +89,7 @@ public class StorageTierViewTest {
    * Tests the {@link StorageTierView#getTierViewAlias()} method.
    */
   @Test
-  public void getTierViewAliasTest() {
+  public void getTierViewAlias() {
     Assert.assertEquals(mTestTier.getTierAlias(), mTestTierView.getTierViewAlias());
   }
 
@@ -109,7 +97,7 @@ public class StorageTierViewTest {
    * Tests the {@link StorageTierView#getTierViewOrdinal()} method.
    */
   @Test
-  public void getTierViewOrdinalTest() {
+  public void getTierViewOrdinal() {
     Assert.assertEquals(mTestTier.getTierOrdinal(), mTestTierView.getTierViewOrdinal());
   }
 }

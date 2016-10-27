@@ -1,3 +1,3 @@
 ```bash
-export ALLUXIO_UNDERFS_ADDRESS=hdfs://NAMENODE:PORT
+alluxio.underfs.address=hdfs://NAMENODE:PORT
 ```

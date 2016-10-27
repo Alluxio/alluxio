@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,14 +11,17 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
+import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +30,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Provides a streaming API to write to an Alluxio block. This output stream will directly write the
@@ -46,27 +50,28 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
    * @param blockId the block id
    * @param blockSize the block size
    * @param workerNetAddress the address of the local worker
+   * @param blockStoreContext the block store context
    * @throws IOException if an I/O error occurs
    */
-  public LocalBlockOutStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress)
-      throws IOException {
-    super(blockId, blockSize);
-    if (!NetworkAddressUtils.getLocalHostName(ClientContext.getConf())
-        .equals(workerNetAddress.getHost())) {
+  public LocalBlockOutStream(long blockId,
+      long blockSize,
+      WorkerNetAddress workerNetAddress,
+      BlockStoreContext blockStoreContext) throws IOException {
+    super(blockId, blockSize, blockStoreContext);
+    if (!NetworkAddressUtils.getLocalHostName().equals(workerNetAddress.getHost())) {
       throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerNetAddress));
     }
 
     mCloser = Closer.create();
-    mBlockWorkerClient = mContext.acquireWorkerClient(workerNetAddress);
-
     try {
-      long initialSize = ClientContext.getConf().getBytes(Constants.USER_FILE_BUFFER_BYTES);
+      mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(workerNetAddress));
+      long initialSize = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
       String blockPath = mBlockWorkerClient.requestBlockLocation(mBlockId, initialSize);
       mReservedBytes += initialSize;
       mWriter = new LocalFileBlockWriter(blockPath);
       mCloser.register(mWriter);
     } catch (IOException e) {
-      mContext.releaseWorkerClient(mBlockWorkerClient);
+      mCloser.close();
       throw e;
     }
   }
@@ -76,14 +81,14 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     if (mClosed) {
       return;
     }
-    mCloser.close();
     try {
       mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
+    } finally {
+      mClosed = true;
+      mCloser.close();
     }
-    mContext.releaseWorkerClient(mBlockWorkerClient);
-    mClosed = true;
   }
 
   @Override
@@ -91,49 +96,65 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     if (mClosed) {
       return;
     }
-    flush();
-    mCloser.close();
-    if (mWrittenBytes > 0) {
-      try {
-        mBlockWorkerClient.cacheBlock(mBlockId);
-      } catch (AlluxioException e) {
-        throw new IOException(e);
+    try {
+      flush();
+      if (mWrittenBytes > 0) {
+        try {
+          mBlockWorkerClient.cacheBlock(mBlockId);
+        } catch (AlluxioException e) {
+          throw new IOException(e);
+        }
+        Metrics.BLOCKS_WRITTEN_LOCAL.inc();
       }
-      ClientContext.getClientMetrics().incBlocksWrittenLocal(1);
+    } finally {
+      mClosed = true;
+      mCloser.close();
     }
-    mContext.releaseWorkerClient(mBlockWorkerClient);
-    mClosed = true;
   }
 
   @Override
   public void flush() throws IOException {
     int bytesToWrite = mBuffer.position();
     if (mReservedBytes < bytesToWrite) {
-      mReservedBytes += requestSpace(bytesToWrite - mReservedBytes);
+      long bytesToRequest = bytesToWrite - mReservedBytes;
+      if (mBlockWorkerClient.requestSpace(mBlockId, bytesToRequest)) {
+        mReservedBytes += bytesToRequest;
+      }
     }
     mBuffer.flip();
     mWriter.append(mBuffer);
     mBuffer.clear();
     mReservedBytes -= bytesToWrite;
     mFlushedBytes += bytesToWrite;
-    ClientContext.getClientMetrics().incBytesWrittenLocal(bytesToWrite);
+
+    Metrics.BYTES_WRITTEN_LOCAL.inc(bytesToWrite);
   }
 
   @Override
   protected void unBufferedWrite(byte[] b, int off, int len) throws IOException {
     if (mReservedBytes < len) {
-      mReservedBytes += requestSpace(len - mReservedBytes);
+      long bytesToRequest = len - mReservedBytes;
+      if (mBlockWorkerClient.requestSpace(mBlockId, bytesToRequest)) {
+        mReservedBytes += bytesToRequest;
+      }
     }
     mWriter.append(ByteBuffer.wrap(b, off, len));
     mReservedBytes -= len;
     mFlushedBytes += len;
-    ClientContext.getClientMetrics().incBytesWrittenLocal(len);
+
+    Metrics.BYTES_WRITTEN_LOCAL.inc(len);
   }
 
-  private long requestSpace(long requestBytes) throws IOException {
-    if (!mBlockWorkerClient.requestSpace(mBlockId, requestBytes)) {
-      throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE.getMessage());
-    }
-    return requestBytes;
+  /**
+   * Class that contains metrics about LocalBlockOutStream.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter BLOCKS_WRITTEN_LOCAL =
+        MetricsSystem.clientCounter("BlocksWrittenLocal");
+    private static final Counter BYTES_WRITTEN_LOCAL =
+        MetricsSystem.clientCounter("BytesWrittenLocal");
+
+    private Metrics() {} // prevent instantiation.
   }
 }

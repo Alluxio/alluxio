@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,8 +11,8 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.Constants;
-import alluxio.master.MasterContext;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 
 import com.google.common.base.Objects;
 
@@ -23,17 +23,17 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A bucket with all files whose ttl value lies in the bucket's time interval. The bucket's time
- * interval starts at a certain time and lasts for {@link Constants#MASTER_TTL_CHECKER_INTERVAL_MS}.
- *
+ * interval starts at a certain time and lasts for
+ * {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
  */
 @NotThreadSafe
 public final class TtlBucket implements Comparable<TtlBucket> {
   /** The time interval of this bucket is the same as ttl checker's interval. */
-  private static long sTtlIntervalMs = MasterContext.getConf().getInt(
-      Constants.MASTER_TTL_CHECKER_INTERVAL_MS);
+  private static long sTtlIntervalMs =
+      Configuration.getInt(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
-   * value is the same as the configuration of {@link Constants#MASTER_TTL_CHECKER_INTERVAL_MS}.
+   * value is the same as the configuration of {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
    */
   private long mTtlIntervalStartTimeMs;
   /** A set of InodeFiles whose ttl value is in the range of this bucket's interval. */
@@ -46,7 +46,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mFiles = new HashSet<InodeFile>();
+    mFiles = new HashSet<>();
   }
 
   /**

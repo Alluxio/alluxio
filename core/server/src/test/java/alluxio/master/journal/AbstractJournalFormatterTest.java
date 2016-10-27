@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -28,6 +28,7 @@ import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
+import alluxio.proto.journal.File.PTtlAction;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue.CompletePartitionEntry;
 import alluxio.proto.journal.KeyValue.CompleteStoreEntry;
@@ -38,7 +39,7 @@ import alluxio.proto.journal.KeyValue.RenameStoreEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
 import alluxio.proto.journal.Lineage.LineageEntry;
 import alluxio.proto.journal.Lineage.LineageIdGeneratorEntry;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ContiguousSet;
@@ -86,8 +87,8 @@ public abstract class AbstractJournalFormatterTest {
   protected static final AlluxioURI TEST_UFS_PATH = new AlluxioURI("hdfs://host:port/test/path");
   protected static final String TEST_JOB_COMMAND = "Command";
   protected static final String TEST_JOB_OUTPUT_PATH = "/test/path";
-  protected static final PermissionStatus TEST_PERMISSION_STATUS =
-      new PermissionStatus("user1", "group1", (short) 0777);
+  protected static final Permission TEST_PERMISSION =
+      new Permission("user1", "group1", (short) 0777);
   protected static final String TEST_PERSISTED_STATE = "PERSISTED";
   protected static final String TEST_KEY1 = "test_key1";
   protected static final String TEST_KEY2 = "test_key2";
@@ -130,9 +131,10 @@ public abstract class AbstractJournalFormatterTest {
                     Range.closedOpen(TEST_BLOCK_ID, TEST_BLOCK_ID + 10), DiscreteDomain.longs())
                     .asList())
                 .setTtl(Constants.NO_TTL)
-                .setUserName(TEST_PERMISSION_STATUS.getUserName())
-                .setGroupName(TEST_PERMISSION_STATUS.getGroupName())
-                .setPermission(TEST_PERMISSION_STATUS.getPermission().toShort()))
+                .setTtlAction(PTtlAction.DELETE)
+                .setOwner(TEST_PERMISSION.getOwner())
+                .setGroup(TEST_PERMISSION.getGroup())
+                .setMode(TEST_PERMISSION.getMode().toShort()))
             .build())
         .add(JournalEntry.newBuilder()
             .setInodeDirectory(InodeDirectoryEntry.newBuilder()
@@ -143,9 +145,9 @@ public abstract class AbstractJournalFormatterTest {
                 .setPersistenceState(TEST_PERSISTED_STATE)
                 .setPinned(true)
                 .setLastModificationTimeMs(TEST_OP_TIME_MS)
-                .setUserName(TEST_PERMISSION_STATUS.getUserName())
-                .setGroupName(TEST_PERMISSION_STATUS.getGroupName())
-                .setPermission(TEST_PERMISSION_STATUS.getPermission().toShort()))
+                .setOwner(TEST_PERMISSION.getOwner())
+                .setGroup(TEST_PERMISSION.getGroup())
+                .setMode(TEST_PERMISSION.getMode().toShort()))
             .build())
         .add(JournalEntry.newBuilder()
             .setInodeLastModificationTime(InodeLastModificationTimeEntry.newBuilder()
@@ -195,7 +197,8 @@ public abstract class AbstractJournalFormatterTest {
             .setReinitializeFile(ReinitializeFileEntry.newBuilder()
                 .setPath(TEST_FILE_NAME)
                 .setBlockSizeBytes(TEST_BLOCK_SIZE_BYTES)
-                .setTtl(TEST_TTL))
+                .setTtl(TEST_TTL)
+                .setTtlAction(PTtlAction.DELETE))
             .build())
         .add(
             JournalEntry.newBuilder()
@@ -229,9 +232,10 @@ public abstract class AbstractJournalFormatterTest {
                     .setPinned(true)
                     .setPersisted(true)
                     .setTtl(TEST_TTL)
-                    .setOwner(TEST_PERMISSION_STATUS.getUserName())
-                    .setGroup(TEST_PERMISSION_STATUS.getGroupName())
-                    .setPermission(TEST_PERMISSION_STATUS.getPermission().toShort()))
+                    .setTtlAction(PTtlAction.DELETE)
+                    .setOwner(TEST_PERMISSION.getOwner())
+                    .setGroup(TEST_PERMISSION.getGroup())
+                    .setPermission(TEST_PERMISSION.getMode().toShort()))
                 .build())
         .add(
             JournalEntry.newBuilder()
@@ -289,8 +293,6 @@ public abstract class AbstractJournalFormatterTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -301,8 +303,6 @@ public abstract class AbstractJournalFormatterTest {
 
   /**
    * Closes all streams after a test ran.
-   *
-   * @throws Exception if closing the streams fails
    */
   @After
   public final void after() throws Exception {
@@ -335,7 +335,7 @@ public abstract class AbstractJournalFormatterTest {
    * Tests the number of entries written.
    */
   @Test
-  public void checkEntriesNumberTest() {
+  public void checkEntriesNumber() {
     // Subtract one to exclude ENTRY_NOT_SET
     Assert.assertEquals(JournalEntry.EntryCase.values().length - 1, ENTRIES_LIST.size());
   }
@@ -343,11 +343,9 @@ public abstract class AbstractJournalFormatterTest {
   /**
    * Tests the {@link JournalFormatter#deserialize(InputStream)} and
    * {@link JournalFormatter#serialize(JournalEntry, OutputStream)} methods.
-   *
-   * @throws IOException if reading or writing an entry fails
    */
   @Test
-  public void entriesTest() throws IOException {
+  public void entries() throws IOException {
     for (JournalEntry entry : ENTRIES_LIST) {
       entryTest(entry);
     }

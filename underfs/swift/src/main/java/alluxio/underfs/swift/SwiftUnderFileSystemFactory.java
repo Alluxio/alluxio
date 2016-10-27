@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,6 +14,7 @@ package alluxio.underfs.swift;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -33,14 +34,18 @@ import javax.annotation.concurrent.ThreadSafe;
 public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  @Override
-  public UnderFileSystem create(String path, Configuration configuration, Object unusedConf) {
-    Preconditions.checkNotNull(path);
-    Preconditions.checkNotNull(configuration);
+  /**
+   * Constructs a new {@link SwiftUnderFileSystemFactory}.
+   */
+  public SwiftUnderFileSystemFactory() {}
 
-    if (addAndCheckSwiftCredentials(configuration)) {
+  @Override
+  public UnderFileSystem create(String path, Object unusedConf) {
+    Preconditions.checkNotNull(path);
+
+    if (addAndCheckSwiftCredentials()) {
       try {
-        return new SwiftUnderFileSystem(new AlluxioURI(path), configuration);
+        return new SwiftUnderFileSystem(new AlluxioURI(path));
       } catch (Exception e) {
         LOG.error("Failed to create SwiftUnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -53,7 +58,7 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public boolean supportsPath(String path, Configuration configuration) {
+  public boolean supportsPath(String path) {
     return path != null && path.startsWith(Constants.HEADER_SWIFT);
   }
 
@@ -61,44 +66,39 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds Swift credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @param configuration the Alluxio configuration to check and add credentials to
-   * @return true if both access and secret key are present, false otherwise
+   * @return true if simulation mode or if all required authentication credentials are present
    */
-  private boolean addAndCheckSwiftCredentials(Configuration configuration) {
-    String tenantApiKeyConf = Constants.SWIFT_API_KEY;
-    if (System.getProperty(tenantApiKeyConf) != null
-        || (configuration.containsKey(tenantApiKeyConf)
-            && configuration.get(tenantApiKeyConf) == null)) {
-      configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
-    }
-    String tenantKeyConf = Constants.SWIFT_TENANT_KEY;
-    if (System.getProperty(tenantKeyConf) != null
-        || (configuration.containsKey(tenantKeyConf)
-            && configuration.get(tenantKeyConf) == null)) {
-      configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf));
-    }
-    String tenantUserConf = Constants.SWIFT_USER_KEY;
-    if (System.getProperty(tenantUserConf) != null
-        || (configuration.containsKey(tenantUserConf)
-            && configuration.get(tenantUserConf) == null)) {
-      configuration.set(tenantUserConf, System.getProperty(tenantUserConf));
-    }
-    String tenantAuthURLKeyConf = Constants.SWIFT_AUTH_URL_KEY;
-    if (System.getProperty(tenantAuthURLKeyConf) != null
-        || (configuration.containsKey(tenantAuthURLKeyConf)
-            && configuration.get(tenantAuthURLKeyConf) == null)) {
-      configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
-    }
-    String authMethodKeyConf = Constants.SWIFT_AUTH_METHOD_KEY;
-    if (System.getProperty(authMethodKeyConf) != null
-        || (configuration.containsKey(authMethodKeyConf)
-            && configuration.get(authMethodKeyConf) == null)) {
-      configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
+  private boolean addAndCheckSwiftCredentials() {
+    PropertyKey[] propertiesToRead = {PropertyKey.SWIFT_API_KEY, PropertyKey.SWIFT_TENANT_KEY,
+        PropertyKey.SWIFT_USER_KEY, PropertyKey.SWIFT_AUTH_URL_KEY,
+        PropertyKey.SWIFT_AUTH_METHOD_KEY, PropertyKey.SWIFT_PASSWORD_KEY,
+        PropertyKey.SWIFT_SIMULATION, PropertyKey.SWIFT_REGION_KEY};
+
+    for (PropertyKey property : propertiesToRead) {
+      if (System.getProperty(property.toString()) != null
+          && (!Configuration.containsKey(property) || Configuration.get(property) == null)) {
+        Configuration.set(property, System.getProperty(property.toString()));
+      }
     }
 
-    return configuration.get(tenantApiKeyConf) != null
-        && configuration.get(tenantKeyConf) != null
-        && configuration.get(tenantAuthURLKeyConf) != null
-        && configuration.get(tenantUserConf) != null;
+    // We do not need authentication credentials in simulation mode
+    if (Configuration.containsKey(PropertyKey.SWIFT_SIMULATION)
+        && Configuration.getBoolean(PropertyKey.SWIFT_SIMULATION)) {
+      return true;
+    }
+
+    // API or Password Key is required
+    PropertyKey apiOrPasswordKey = Configuration.containsKey(PropertyKey.SWIFT_API_KEY)
+        ? PropertyKey.SWIFT_API_KEY : PropertyKey.SWIFT_PASSWORD_KEY;
+
+    // Check if required credentials exist
+    PropertyKey[] requiredProperties = {apiOrPasswordKey, PropertyKey.SWIFT_TENANT_KEY,
+        PropertyKey.SWIFT_AUTH_URL_KEY, PropertyKey.SWIFT_USER_KEY};
+    for (PropertyKey propertyName : requiredProperties) {
+      if (Configuration.get(propertyName) == null) {
+        return false;
+      }
+    }
+    return true;
   }
 }

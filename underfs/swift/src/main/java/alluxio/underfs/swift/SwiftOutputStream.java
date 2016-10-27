@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -24,7 +24,7 @@ import java.net.HttpURLConnection;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A stream for writing data to Swift.
+ * A stream for writing data to Swift API based object store.
  */
 @NotThreadSafe
 public class SwiftOutputStream extends OutputStream {
@@ -73,6 +73,7 @@ public class SwiftOutputStream extends OutputStream {
       // Status 400 and up should be read from error stream
       // Expecting here 201 Create or 202 Accepted
       if (mHttpCon.getResponseCode() >= 400) {
+        LOG.error("Failed to write data to Swift with error code: " + mHttpCon.getResponseCode());
         is = mHttpCon.getErrorStream();
       } else {
         is = mHttpCon.getInputStream();

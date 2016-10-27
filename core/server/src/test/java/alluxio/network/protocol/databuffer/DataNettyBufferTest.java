@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -61,7 +61,7 @@ public class DataNettyBufferTest {
    * Tests that an exception is thrown when two NIO buffers are used.
    */
   @Test
-  public void singleNioBufferCheckFailedTest() {
+  public void singleNioBufferCheckFailed() {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Number of nioBuffers of this bytebuf is 2 (1 expected).");
     releaseBuffer(); // not using the default ByteBuf given in Before()
@@ -76,7 +76,7 @@ public class DataNettyBufferTest {
    * Tests that an exception is thrown when the reference count is two.
    */
   @Test
-  public void refCountCheckFailedTest() {
+  public void refCountCheckFailed() {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Reference count of this bytebuf is 2 (1 expected).");
     mBuffer.retain(); // increase reference count by 1
@@ -88,7 +88,7 @@ public class DataNettyBufferTest {
    * method is used.
    */
   @Test
-  public void getNettyOutputNotSupportedTest() {
+  public void getNettyOutputNotSupported() {
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("DataNettyBuffer doesn't support getNettyOutput()");
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
@@ -99,7 +99,7 @@ public class DataNettyBufferTest {
    * Tests the {@link DataNettyBuffer#getLength()} method.
    */
   @Test
-  public void lengthTest() {
+  public void length() {
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
     Assert.assertEquals(LENGTH, data.getLength());
   }
@@ -108,7 +108,7 @@ public class DataNettyBufferTest {
    * Tests the {@link DataNettyBuffer#getReadOnlyByteBuffer()} method.
    */
   @Test
-  public void readOnlyByteBufferTest() {
+  public void readOnlyByteBuffer() {
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
     ByteBuffer readOnlyBuffer = data.getReadOnlyByteBuffer();
     Assert.assertTrue(readOnlyBuffer.isReadOnly());
@@ -130,7 +130,7 @@ public class DataNettyBufferTest {
    * a reference count of two netty buffers.
    */
   @Test
-  public void releaseBufferFailTest() {
+  public void releaseBufferFail() {
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage("Reference count of the netty buffer is 2 (1 expected).");
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
@@ -142,7 +142,7 @@ public class DataNettyBufferTest {
    * {@link DataNettyBuffer#release()} method.
    */
   @Test
-  public void bufferAlreadyReleasedTest() {
+  public void bufferAlreadyReleased() {
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage("Reference count of the netty buffer is 0 (1 expected).");
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);

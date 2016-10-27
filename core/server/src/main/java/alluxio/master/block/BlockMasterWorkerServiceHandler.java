@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,6 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
+import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterWorkerService;
@@ -30,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is a Thrift handler for block master RPCs invoked by an Alluxio worker.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
+public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
   private final BlockMaster mBlockMaster;
 
   /**
@@ -49,32 +50,52 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
   }
 
   @Override
-  public long getWorkerId(WorkerNetAddress workerNetAddress) {
-    return mBlockMaster.getWorkerId(ThriftUtils.fromThrift((workerNetAddress)));
+  public long getWorkerId(final WorkerNetAddress workerNetAddress) throws AlluxioTException {
+    return RpcUtils.call(new RpcUtils.RpcCallable<Long>() {
+      @Override
+      public Long call() throws AlluxioException {
+        return mBlockMaster.getWorkerId(ThriftUtils.fromThrift((workerNetAddress)));
+      }
+    });
   }
 
   @Override
-  public void registerWorker(long workerId, List<String> storageTiers,
-      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers) throws AlluxioTException {
-    try {
-      mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers,
-          usedBytesOnTiers, currentBlocksOnTiers);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public void registerWorker(final long workerId, final List<String> storageTiers,
+      final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+      final Map<String, List<Long>> currentBlocksOnTiers) throws AlluxioTException {
+    RpcUtils.call(new RpcUtils.RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+            currentBlocksOnTiers);
+        return null;
+      }
+    });
   }
 
   @Override
-  public Command heartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
-    return mBlockMaster.workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds,
-        addedBlocksOnTiers);
+  public Command heartbeat(final long workerId, final Map<String, Long> usedBytesOnTiers,
+      final List<Long> removedBlockIds, final Map<String, List<Long>> addedBlocksOnTiers)
+      throws AlluxioTException {
+    return RpcUtils.call(new RpcUtils.RpcCallable<Command>() {
+      @Override
+      public Command call() throws AlluxioException {
+        return mBlockMaster
+            .workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers);
+      }
+    });
   }
 
   @Override
-  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias,
-      long blockId, long length) {
-    mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+  public void commitBlock(final long workerId, final long usedBytesOnTier, final String tierAlias,
+      final long blockId, final long length) throws AlluxioTException {
+    RpcUtils.call(new RpcUtils.RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+        return null;
+      }
+    });
   }
 }
+

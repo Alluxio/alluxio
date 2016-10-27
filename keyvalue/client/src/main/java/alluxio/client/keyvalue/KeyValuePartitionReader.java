@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -31,6 +31,9 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
    * Factory for {@link KeyValuePartitionReader}.
    */
   class Factory {
+
+    private Factory() {} // prevent instantiation
+
     /**
      * Factory method to create a {@link KeyValuePartitionReader} given the {@link AlluxioURI} of a
      * key-value partition.
@@ -45,7 +48,7 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
       Preconditions.checkNotNull(uri);
       FileSystem fs = FileSystem.Factory.get();
       List<Long> blockIds = fs.getStatus(uri).getBlockIds();
-      // Each partition file should only contains one block.
+      // Each partition file should only contain one block.
       // TODO(binfan): throw exception if a partition file has more than one blocks
       long blockId = blockIds.get(0);
       return new BaseKeyValuePartitionReader(blockId);

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -26,10 +26,10 @@ import org.junit.Test;
 public final class JournalProtoUtilsTest {
 
   /**
-   * Tests that getMessage returns the sub-message contained in a JournalEntry.
+   * Tests that format returns the sub-message contained in a JournalEntry.
    */
   @Test
-  public void getMessageTest() {
+  public void getMessage() {
     AddMountPointEntry addMountEntry = AddMountPointEntry.newBuilder().build();
     JournalEntry entry = JournalEntry.newBuilder()
         .setAddMountPoint(addMountEntry)
@@ -43,7 +43,7 @@ public final class JournalProtoUtilsTest {
    * Tests that the right exception is thrown when no sub-message is set for a JournalEntry.
    */
   @Test
-  public void getUnknownMessageTest() {
+  public void getUnknownMessage() {
     JournalEntry unknownEntry = JournalEntry.newBuilder().build();
     unknownEntry = unknownEntry.toBuilder()
         .setUnknownFields(
@@ -51,7 +51,7 @@ public final class JournalProtoUtilsTest {
         .build();
     try {
       JournalProtoUtils.unwrap(unknownEntry);
-      Assert.fail("getMessage() should fail when no messages is set");
+      Assert.fail("format() should fail when no messages is set");
     } catch (RuntimeException e) {
       Assert.assertEquals(ExceptionMessage.NO_ENTRY_TYPE.getMessage("[46264]"), e.getMessage());
     }

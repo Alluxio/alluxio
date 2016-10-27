@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,8 +13,9 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
+import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
@@ -22,7 +23,6 @@ import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -45,7 +45,7 @@ public class ReadOnlyMountIntegrationTest {
   private static final String SUB_FILE_PATH = PathUtils.concatPath(SUB_DIR_PATH, "subfile");
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private FileSystem mFileSystem = null;
 
   private String mAlternateUfsRoot;
@@ -53,17 +53,14 @@ public class ReadOnlyMountIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    Configuration testConf = mLocalAlluxioClusterResource.getTestConf();
 
     // Add a readonly mount point.
     mAlternateUfsRoot = createAlternateUfs();
     String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, MOUNT_PATH);
-    UnderFileSystemUtils.mkdirIfNotExists(ufsMountDir, testConf);
-    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, FILE_PATH), testConf);
-    UnderFileSystemUtils
-        .mkdirIfNotExists(PathUtils.concatPath(mAlternateUfsRoot, SUB_DIR_PATH), testConf);
-    UnderFileSystemUtils
-        .touch(PathUtils.concatPath(mAlternateUfsRoot, SUB_FILE_PATH), testConf);
+    UnderFileSystemUtils.mkdirIfNotExists(ufsMountDir);
+    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, FILE_PATH));
+    UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mAlternateUfsRoot, SUB_DIR_PATH));
+    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, SUB_FILE_PATH));
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
         MountOptions.defaults().setReadOnly(true));
@@ -75,8 +72,9 @@ public class ReadOnlyMountIntegrationTest {
   }
 
   @Test
-  public void createFileTest() throws IOException, AlluxioException {
-    CreateFileOptions writeBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
+  public void createFile() throws IOException, AlluxioException {
+    CreateFileOptions writeBoth =
+        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
 
     AlluxioURI uri = new AlluxioURI(FILE_PATH + "_create");
     try {
@@ -98,7 +96,7 @@ public class ReadOnlyMountIntegrationTest {
   }
 
   @Test
-  public void createDirectoryTest() throws IOException, AlluxioException {
+  public void createDirectory() throws IOException, AlluxioException {
     AlluxioURI uri = new AlluxioURI(PathUtils.concatPath(MOUNT_PATH, "create"));
     try {
       mFileSystem.createDirectory(uri);
@@ -119,7 +117,7 @@ public class ReadOnlyMountIntegrationTest {
   }
 
   @Test
-  public void deleteFileTest() throws IOException, AlluxioException {
+  public void deleteFile() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
     mFileSystem.loadMetadata(fileUri);
     try {
@@ -146,7 +144,7 @@ public class ReadOnlyMountIntegrationTest {
   }
 
   @Test
-  public void getFileStatusTest() throws IOException, AlluxioException {
+  public void getFileStatus() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
     mFileSystem.loadMetadata(fileUri);
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
@@ -157,7 +155,7 @@ public class ReadOnlyMountIntegrationTest {
   }
 
   @Test
-  public void renameFileTest() throws IOException, AlluxioException {
+  public void renameFile() throws IOException, AlluxioException {
     AlluxioURI srcUri = new AlluxioURI(FILE_PATH);
     AlluxioURI dstUri = new AlluxioURI(FILE_PATH + "_renamed");
     try {
@@ -180,7 +178,7 @@ public class ReadOnlyMountIntegrationTest {
   }
 
   @Test
-  public void renameFileDstTest() throws IOException, AlluxioException {
+  public void renameFileDst() throws IOException, AlluxioException {
     AlluxioURI srcUri = new AlluxioURI("/tmp");
     AlluxioURI dstUri = new AlluxioURI(FILE_PATH + "_renamed");
     try {
@@ -202,7 +200,7 @@ public class ReadOnlyMountIntegrationTest {
   }
 
   @Test
-  public void renameFileSrcTest() throws IOException, AlluxioException {
+  public void renameFileSrc() throws IOException, AlluxioException {
     AlluxioURI srcUri = new AlluxioURI(FILE_PATH);
     AlluxioURI dstUri = new AlluxioURI("/tmp");
     try {
@@ -224,7 +222,7 @@ public class ReadOnlyMountIntegrationTest {
   }
 
   @Test
-  public void renameDirectoryTest() throws IOException, AlluxioException {
+  public void renameDirectory() throws IOException, AlluxioException {
     AlluxioURI srcUri = new AlluxioURI(SUB_DIR_PATH);
     AlluxioURI dstUri = new AlluxioURI(SUB_DIR_PATH + "_renamed");
     try {
@@ -237,7 +235,7 @@ public class ReadOnlyMountIntegrationTest {
   }
 
   @Test
-  public void loadMetadataTest() throws IOException, AlluxioException {
+  public void loadMetadata() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
     // TODO(jiri) Re-enable this once we support the "check UFS" option for getStatus.
 //    try {
@@ -264,39 +262,40 @@ public class ReadOnlyMountIntegrationTest {
   }
 
   @Test
-  public void openFileTest() throws IOException, AlluxioException {
+  public void openFile() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
     mFileSystem.loadMetadata(fileUri);
-    Assert.assertNotNull(mFileSystem.openFile(fileUri));
+    FileInStream inStream = mFileSystem.openFile(fileUri);
+    Assert.assertNotNull(inStream);
+    inStream.close();
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
     mFileSystem.loadMetadata(fileUri, LoadMetadataOptions.defaults().setRecursive(true));
-    Assert.assertNotNull(mFileSystem.openFile(fileUri));
+    inStream = mFileSystem.openFile(fileUri);
+    Assert.assertNotNull(inStream);
+    inStream.close();
   }
 
   /**
    * Creates another directory on the local filesystem, alongside the existing Ufs, to be used as a
    * second Ufs.
+   *
    * @return the path of the alternate Ufs directory
-   * @throws InvalidPathException if the UNDERFS_ADDRESS is not properly formed
-   * @throws IOException if a UnderFS I/O error occurs
    */
-  private String createAlternateUfs() throws InvalidPathException, IOException {
+  private String createAlternateUfs() throws Exception {
     AlluxioURI parentURI =
-        new AlluxioURI(mLocalAlluxioClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
-            .getParent();
+        new AlluxioURI(Configuration.get(PropertyKey.UNDERFS_ADDRESS)).getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
-    UnderFileSystemUtils
-        .mkdirIfNotExists(alternateUfsRoot, mLocalAlluxioClusterResource.getTestConf());
+    UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot);
     return alternateUfsRoot;
   }
 
   /**
    * Deletes the alternate under file system directory.
+   *
    * @param alternateUfsRoot the root of the alternate Ufs
-   * @throws IOException if an UnderFS I/O error occurs
    */
-  private void destroyAlternateUfs(String alternateUfsRoot) throws IOException {
-    UnderFileSystemUtils.deleteDir(alternateUfsRoot, mLocalAlluxioClusterResource.getTestConf());
+  private void destroyAlternateUfs(String alternateUfsRoot) throws Exception {
+    UnderFileSystemUtils.deleteDir(alternateUfsRoot);
   }
 }

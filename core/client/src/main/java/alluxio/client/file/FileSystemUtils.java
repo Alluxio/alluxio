@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,13 +14,16 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.io.Closer;
@@ -79,11 +82,10 @@ public final class FileSystemUtils {
    * The method will deliberately block anyway for the specified amount of time, waiting for the
    * file to be created and eventually completed. Note also that the file might be moved or deleted
    * while it is waited upon. In such cases the method will throw the a {@link AlluxioException}
-   * with the appropriate {@link AlluxioExceptionType}
    * <p/>
    * <i>IMPLEMENTATION NOTES</i> This method is implemented by periodically polling the master about
    * the file status. The polling period is controlled by the
-   * {@link Constants#USER_FILE_WAITCOMPLETED_POLL_MS} java property and defaults to a generous 1
+   * {@link PropertyKey#USER_FILE_WAITCOMPLETED_POLL_MS} java property and defaults to a generous 1
    * second.
    *
    * @param fs an instance of {@link FileSystem}
@@ -102,11 +104,9 @@ public final class FileSystemUtils {
           throws IOException, AlluxioException, InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
-    final long pollPeriod =
-        ClientContext.getConf().getLong(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
+    final long pollPeriod = Configuration.getLong(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
     boolean completed = false;
     long timeleft = deadline - System.currentTimeMillis();
-    long toSleep = 0;
 
     while (!completed && (timeout <= 0 || timeleft > 0)) {
 
@@ -120,13 +120,15 @@ public final class FileSystemUtils {
       if (timeout == 0) {
         return completed;
       } else if (!completed) {
+        long toSleep;
+
         if (timeout < 0 || timeleft > pollPeriod) {
           toSleep = pollPeriod;
         } else {
           toSleep = timeleft;
         }
 
-        CommonUtils.sleepMs(LOG, toSleep, true);
+        CommonUtils.sleepMs(LOG, toSleep);
         timeleft = deadline - System.currentTimeMillis();
       }
     }
@@ -140,14 +142,13 @@ public final class FileSystemUtils {
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
    * @param status the status info of the file
-   * @param conf Alluxio configuration
    * @return the size of the file persisted
    * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws AlluxioException if an unexpected Alluxio error occurs
    */
-  public static long persistFile(FileSystem fs, AlluxioURI uri, URIStatus status,
-      Configuration conf) throws IOException, FileDoesNotExistException, AlluxioException {
+  public static long persistFile(FileSystem fs, AlluxioURI uri, URIStatus status)
+      throws IOException, FileDoesNotExistException, AlluxioException {
     // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
     Closer closer = Closer.create();
     long ret;
@@ -155,12 +156,23 @@ public final class FileSystemUtils {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream in = closer.register(fs.openFile(uri, options));
       AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
-      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), conf);
+      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString());
       String parentPath = dstPath.getParent().toString();
-      if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        throw new IOException("Failed to create " + parentPath);
+      if (!ufs.exists(parentPath)) {
+        URIStatus parentStatus = fs.getStatus(uri.getParent());
+        Permission parentPerm = new Permission(parentStatus.getOwner(), parentStatus.getGroup(),
+            (short) parentStatus.getMode());
+        MkdirsOptions parentMkdirsOptions = new MkdirsOptions().setCreateParent(true)
+            .setPermission(parentPerm);
+        if (!ufs.mkdirs(parentPath, parentMkdirsOptions)) {
+          throw new IOException("Failed to create " + parentPath);
+        }
       }
-      OutputStream out = closer.register(ufs.create(dstPath.getPath()));
+      URIStatus uriStatus = fs.getStatus(uri);
+      Permission perm = new Permission(uriStatus.getOwner(), uriStatus.getGroup(),
+          (short) uriStatus.getMode());
+      OutputStream out = closer.register(ufs.create(dstPath.toString(),
+          new CreateOptions().setPermission(perm)));
       ret = IOUtils.copyLarge(in, out);
     } catch (Exception e) {
       throw closer.rethrow(e);

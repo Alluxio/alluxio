@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,15 +12,12 @@
 package alluxio.web;
 
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.CommonUtils;
-import alluxio.worker.WorkerContext;
-import alluxio.worker.WorkerSource;
+import alluxio.worker.block.DefaultBlockWorker;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.Map;
@@ -34,18 +31,13 @@ import javax.servlet.http.HttpServletResponse;
  * Servlet that provides data for viewing the worker metrics values.
  */
 public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstractMetricsServlet {
-
   private static final long serialVersionUID = -1481253168100363787L;
-  private final transient MetricsSystem mWorkerMetricsSystem;
 
   /**
-   * Creates a new instance of {@link WebInterfaceWorkerMetricsServlet}.
-   *
-   * @param workerMetricsSystem Alluxio worker metrics system
+   * Creates a {@link WebInterfaceWorkerMetricsServlet} instance.
    */
-  public WebInterfaceWorkerMetricsServlet(MetricsSystem workerMetricsSystem) {
+  public WebInterfaceWorkerMetricsServlet() {
     super();
-    mWorkerMetricsSystem = Preconditions.checkNotNull(workerMetricsSystem);
   }
 
   /**
@@ -77,15 +69,13 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    MetricRegistry mr = mWorkerMetricsSystem.getMetricRegistry();
-
-    WorkerSource workerSource = WorkerContext.getWorkerSource();
+    MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
 
     Long workerCapacityTotal = (Long) mr.getGauges()
-        .get(CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.CAPACITY_TOTAL))
+        .get(MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.CAPACITY_TOTAL))
         .getValue();
     Long workerCapacityUsed = (Long) mr.getGauges()
-        .get(CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.CAPACITY_USED))
+        .get(MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.CAPACITY_USED))
         .getValue();
 
     int workerCapacityUsedPercentage =
@@ -107,12 +97,20 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
       }
     });
 
-    Map<String, Metric> operations = new TreeMap<String, Metric>();
-    operations.putAll(counters);
+    Map<String, Metric> operations = new TreeMap<>();
+    for (Map.Entry<String, Counter> entry: counters.entrySet()) {
+      operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
+    }
     String blockCachedProperty =
-        CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.BLOCKS_CACHED);
-    operations.put(blockCachedProperty, mr.getGauges().get(blockCachedProperty));
+        MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
+    operations.put(MetricsSystem.stripInstanceAndHost(blockCachedProperty),
+        mr.getGauges().get(blockCachedProperty));
 
-    populateCounterValues(operations, rpcInvocations, request);
+    Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
+    for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
+      rpcInvocationsUpdated
+          .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
+    }
+    populateCounterValues(operations, rpcInvocationsUpdated, request);
   }
 }

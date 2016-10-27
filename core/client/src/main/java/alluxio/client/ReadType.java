@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -39,7 +39,8 @@ public enum ReadType {
    * Read the file and cache it in a local worker. Additionally, if the file was in Alluxio
    * storage, it will be promoted to the top storage layer.
    */
-  CACHE_PROMOTE(3);
+  CACHE_PROMOTE(3),
+  ;
 
   private final int mValue;
 

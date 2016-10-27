@@ -25,6 +25,7 @@ of Alluxio source code.
 * Modify the `hadoop.version` tag defined in `${ALLUXIO_HOME}/pom.xml`. E.g., to work with Hadoop
 `2.6.0`, modify this pom file to set "`<hadoop.version>2.6.0</hadoop.version>`" instead of
 "`<hadoop.version>2.2.0</hadoop.version>`". Then recompile the source using maven.
+To make compiling faster, you can add `-DskipTests` option to skip unit tests.
 
 {% include Configuring-Alluxio-with-HDFS/mvn-package.md %}
 
@@ -39,18 +40,25 @@ If everything succeeds, you should see
 
 # Configuring Alluxio
 
-To run Alluxio binary, we must setup configuration files. Create your configuration file from the
-template:
+To run Alluxio binary, we must setup configuration files. Create your configuration file with `bootstrapConf` command.
+For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+
+{% include Configuring-Alluxio-with-HDFS/bootstrapConf.md %}
+
+Alternatively, you can also create the configuration file from the template and set the contents manually.
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-Then edit `alluxio-env.sh` file to set the under storage address to the HDFS namenode address
-(e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port).
+Then edit `conf/alluxio-site.properties` file to set the under storage address to the HDFS namenode address
+and the HDFS directory you want to mount to Alluxio. For example, the under storage address can be
+`hdfs://localhost:9000` if you are running the HDFS namenode locally with default port and mapping HDFS root directory to Alluxio,
+or `hdfs://localhost:9000/alluxio/data` if only the HDFS directory `/alluxio/data` is mapped to Alluxio.
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
 # Running Alluxio Locally with HDFS
 
+Before this step, please make sure your HDFS cluster is running and the directory mapped to Alluxio exists.
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 {% include Common-Commands/start-alluxio.md %}
@@ -64,7 +72,7 @@ Next, you can run a simple example program:
 
 After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
 to verify the files and directories created by Alluxio exist. For this test, you should see
-files named like: `/alluxio/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST`
+files named like: `/default_tests_files/BasicFile_STORE_SYNC_PERSIST`
 
 You can stop Alluxio any time by running:
 

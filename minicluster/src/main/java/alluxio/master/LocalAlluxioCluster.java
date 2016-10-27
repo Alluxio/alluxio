@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,15 +11,10 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.AlluxioWorker;
-import alluxio.worker.WorkerContext;
+import alluxio.worker.AlluxioWorkerService;
 
 import java.io.IOException;
 
@@ -44,11 +39,17 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   private LocalAlluxioMaster mMaster;
 
   /**
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param userBlockSize the block size for a user
+   * Runs a test Alluxio cluster with a single Alluxio worker.
    */
-  public LocalAlluxioCluster(long workerCapacityBytes, int userBlockSize) {
-    super(workerCapacityBytes, userBlockSize);
+  public LocalAlluxioCluster() {
+    super(1);
+  }
+
+  /**
+   * @param numWorkers the number of workers to run
+   */
+  public LocalAlluxioCluster(int numWorkers) {
+    super(numWorkers);
   }
 
   @Override
@@ -62,23 +63,23 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the hostname of the master
+   * @return the hostname of the cluster
    */
-  public String getMasterHostname() {
+  public String getHostname() {
     return mHostname;
   }
 
   /**
    * @return the URI of the master
    */
-  public String getMasterUri() {
+  public String getMasterURI() {
     return mMaster.getUri();
   }
 
   /**
-   * @return the port of the master
+   * @return the RPC port of the master
    */
-  public int getMasterPort() {
+  public int getMasterRpcPort() {
     return mMaster.getRPCLocalPort();
   }
 
@@ -86,81 +87,45 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * @return the home path to Alluxio
    */
   public String getAlluxioHome() {
-    return mHome;
+    return mWorkDirectory;
   }
 
   /**
-   * @return the worker
+   * @return the first worker
    */
-  public AlluxioWorker getWorker() {
-    return mWorker;
+  public AlluxioWorkerService getWorker() {
+    return mWorkers.get(0);
   }
 
   /**
-   * @return the configuration for Alluxio
-   */
-  public Configuration getWorkerConf() {
-    return mWorkerConf;
-  }
-
-  /**
-   * @return the address of the worker
+   * @return the address of the first worker
    */
   public WorkerNetAddress getWorkerAddress() {
-    return mWorker.getNetAddress();
+    return getWorker().getAddress();
   }
 
   @Override
-  protected void startMaster(Configuration testConf) throws IOException {
-    mMasterConf = new Configuration(testConf.getInternalProperties());
-    MasterContext.reset(mMasterConf);
-
-    mMaster = LocalAlluxioMaster.create(mHome);
+  protected void startMaster() throws IOException {
+    mMaster = LocalAlluxioMaster.create(mWorkDirectory);
     mMaster.start();
-
-    // Update the test conf with actual RPC port.
-    testConf.set(Constants.MASTER_RPC_PORT, String.valueOf(getMasterPort()));
-
-    // We need to update client context with the most recent configuration so they know the correct
-    // port to connect to master.
-    ClientContext.getConf().merge(testConf);
-    ClientTestUtils.reinitializeClientContext();
   }
 
   @Override
-  protected void startWorker(Configuration conf) throws IOException, ConnectionFailedException {
+  protected void startWorkers() throws IOException, ConnectionFailedException {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
-    mWorkerConf = new Configuration(conf.getInternalProperties());
-    WorkerContext.reset(mWorkerConf);
-
-    runWorker();
-  }
-
-  @Override
-  protected void resetContext() {
-    MasterContext.reset();
-    WorkerContext.reset();
-    ClientTestUtils.resetClientContext();
+    runWorkers();
   }
 
   @Override
   public void stopFS() throws Exception {
     LOG.info("stop Alluxio filesystem");
 
-    // Stopping Worker before stopping master speeds up tests
-    mWorker.stop();
+    // Stopping Workers before stopping master speeds up tests
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
     mMaster.stop();
-  }
-
-  /**
-   * Cleans up the worker state from the master and stops the worker.
-   *
-   * @throws Exception when the operation fails
-   */
-  public void stopWorker() throws Exception {
-    mMaster.clearClients();
-    mWorker.stop();
   }
 
   @Override

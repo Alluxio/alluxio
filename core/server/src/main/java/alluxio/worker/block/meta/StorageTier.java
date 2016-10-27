@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,13 +11,21 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.FormatUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,6 +41,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class StorageTier {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** Alias value of this tier in tiered storage. */
   private final String mTierAlias;
   /** Ordinal value of this tier in tiered storage, highest level is 0. */
@@ -43,15 +53,16 @@ public final class StorageTier {
 
   private StorageTier(String tierAlias) {
     mTierAlias = tierAlias;
-    mTierOrdinal = new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrdinal(tierAlias);
+    mTierOrdinal = new WorkerStorageTierAssoc().getOrdinal(tierAlias);
   }
 
   private void initStorageTier()
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    String workerDataFolder = WorkerContext.getConf().get(Constants.WORKER_DATA_FOLDER);
-    String tierDirPathConf =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, mTierOrdinal);
-    String[] dirPaths = WorkerContext.getConf().get(tierDirPathConf).split(",");
+    String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
+    String tmpDir = Configuration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
+    PropertyKey tierDirPathConf =
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(mTierOrdinal);
+    String[] dirPaths = Configuration.get(tierDirPathConf).split(",");
 
     // Add the worker data folder path after each storage directory, the final path will be like
     // /mnt/ramdisk/alluxioworker
@@ -59,11 +70,13 @@ public final class StorageTier {
       dirPaths[i] = PathUtils.concatPath(dirPaths[i].trim(), workerDataFolder);
     }
 
-    String tierDirCapacityConf =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, mTierOrdinal);
-    String[] dirQuotas = WorkerContext.getConf().get(tierDirCapacityConf).split(",");
+    PropertyKey tierDirCapacityConf =
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(mTierOrdinal);
+    String rawDirQuota = Configuration.get(tierDirCapacityConf);
+    Preconditions.checkState(rawDirQuota.length() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
+    String[] dirQuotas = rawDirQuota.split(",");
 
-    mDirs = new ArrayList<StorageDir>(dirPaths.length);
+    mDirs = new ArrayList<>(dirPaths.length);
 
     long totalCapacity = 0;
     for (int i = 0; i < dirPaths.length; i++) {
@@ -71,6 +84,16 @@ public final class StorageTier {
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       totalCapacity += capacity;
       mDirs.add(StorageDir.newStorageDir(this, i, capacity, dirPaths[i]));
+
+      // Delete tmp directory.
+      String tmpDirPath = PathUtils.concatPath(dirPaths[i], tmpDir);
+      try {
+        FileUtils.deletePathRecursively(tmpDirPath);
+      } catch (IOException e) {
+        if (FileUtils.exists(tmpDirPath)) {
+          LOG.error("Failed to clean up temporary directory: {}.", tmpDirPath);
+        }
+      }
     }
     mCapacityBytes = totalCapacity;
   }

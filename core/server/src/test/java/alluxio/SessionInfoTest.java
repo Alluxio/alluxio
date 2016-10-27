@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -30,15 +30,14 @@ public final class SessionInfoTest {
    */
   @Before
   public final void before() {
-    Configuration configuration = new Configuration();
-    mSessionTimeoutMs = configuration.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
+    mSessionTimeoutMs = Configuration.getInt(PropertyKey.WORKER_SESSION_TIMEOUT_MS);
   }
 
   /**
    * Tests the {@link SessionInfo#SessionInfo(long, int)} constructor.
    */
   @Test
-  public void constructorTest() {
+  public void constructor() {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       SessionInfo tSessionInfo = new SessionInfo(k, mSessionTimeoutMs);
       Assert.assertEquals(k, tSessionInfo.getSessionId());
@@ -50,7 +49,7 @@ public final class SessionInfoTest {
    * when using an invalid id for the session.
    */
   @Test(expected = RuntimeException.class)
-  public void constructorWithExceptionTest() {
+  public void constructorWithException() {
     for (int k = 0; k >= -1000; k -= DELTA) {
       SessionInfo tSessionInfo = new SessionInfo(k, mSessionTimeoutMs);
       Assert.assertEquals(k, tSessionInfo.getSessionId());
@@ -62,7 +61,7 @@ public final class SessionInfoTest {
    * Tests the {@link SessionInfo#getSessionId()} method.
    */
   @Test
-  public void getSessionIdTest() {
+  public void getSessionId() {
     for (int k = MIN_LEN; k < MAX_LEN; k += 66) {
       SessionInfo tSessionInfo = new SessionInfo(k, mSessionTimeoutMs);
       Assert.assertEquals(k, tSessionInfo.getSessionId());
@@ -73,7 +72,7 @@ public final class SessionInfoTest {
    * Tests the {@link SessionInfo#timeout()} method.
    */
   @Test
-  public void timeoutTest() {
+  public void timeout() {
     SessionInfo tSessionInfo = new SessionInfo(1, mSessionTimeoutMs);
     Assert.assertFalse(tSessionInfo.timeout());
   }

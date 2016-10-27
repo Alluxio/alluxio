@@ -42,9 +42,9 @@
       "id":1,
       "persisted":true,
       "lastModificationTimeMs":1409349750338,
-      "userName":"user1",
-      "groupName":"group1",
-      "permission":511
+      "owner":"user1",
+      "group":"group1",
+      "mode":511
     }
   },
   "INODE_DIRECTORY":{
@@ -58,10 +58,10 @@
       "persisted":true,
       "parentId":1,
       "lastModificationTimeMs":1409349750338,
-      "userName":"user1",
-      "groupName":"group1",
-      "permission":511,
-      "mountPoint":true,
+      "owner":"user1",
+      "group":"group1",
+      "mode":511,
+      "mountPoint":true
     }
   },
   "INODE_MTIME":{

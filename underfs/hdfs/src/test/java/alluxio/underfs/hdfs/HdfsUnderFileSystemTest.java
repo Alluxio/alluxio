@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,52 +12,67 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.underfs.UnderFileSystem.UnderFSType;
+import alluxio.PropertyKey;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.net.URI;
 
 /**
  * Tests {@link HdfsUnderFileSystem}.
  */
 public final class HdfsUnderFileSystemTest {
 
-  private HdfsUnderFileSystem mMockHdfsUnderFileSystem;
+  private HdfsUnderFileSystem mHdfsUnderFileSystem;
 
   @Before
   public final void before() throws Exception {
-    mMockHdfsUnderFileSystem =
-        new HdfsUnderFileSystem(new AlluxioURI("file:///"), new Configuration(), null);
+    mHdfsUnderFileSystem = new HdfsUnderFileSystem(new AlluxioURI("file:///"), null);
   }
 
   /**
-   * Tests the {@link HdfsUnderFileSystem#getUnderFSType()} method.
-   * Confirm the UnderFSType for HdfsUnderFileSystem
-   *
-   * @throws Exception
+   * Tests the {@link HdfsUnderFileSystem#getUnderFSType()} method. Confirm the UnderFSType for
+   * HdfsUnderFileSystem.
    */
   @Test
-  public void getUnderFSTypeTest() throws Exception {
-    Assert.assertEquals(UnderFSType.HDFS, mMockHdfsUnderFileSystem.getUnderFSType());
+  public void getUnderFSType() throws Exception {
+    Assert.assertEquals("hdfs", mHdfsUnderFileSystem.getUnderFSType());
   }
 
   /**
    * Tests the {@link HdfsUnderFileSystem#prepareConfiguration} method.
    *
    * Checks the hdfs implements class and alluxio underfs config setting
-   *
-   * @throws Exception
    */
   @Test
-  public void prepareConfigurationTest() throws Exception {
-    Configuration tConf = new Configuration();
-    org.apache.hadoop.conf.Configuration hConf = new org.apache.hadoop.conf.Configuration();
-    mMockHdfsUnderFileSystem.prepareConfiguration("", tConf, hConf);
-    Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", hConf.get("fs.hdfs.impl"));
-    Assert.assertFalse(hConf.getBoolean("fs.hdfs.impl.disable.cache", false));
-    Assert.assertNotNull(hConf.get(Constants.UNDERFS_HDFS_CONFIGURATION));
+  public void prepareConfiguration() throws Exception {
+    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+    mHdfsUnderFileSystem.prepareConfiguration("", conf);
+    Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", conf.get("fs.hdfs.impl"));
+    Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
+    Assert.assertNotNull(conf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION.toString()));
+  }
+
+  /**
+   * Tests the HDFS client caching is disabled.
+   */
+  public void disableHdfsCacheTest() throws Exception {
+    // create a default hadoop configuration
+    org.apache.hadoop.conf.Configuration hadoopConf = new org.apache.hadoop.conf.Configuration();
+    String underfsAddress = "hdfs://localhost";
+    URI uri = new URI(underfsAddress);
+    org.apache.hadoop.fs.FileSystem hadoopFs = org.apache.hadoop.fs.FileSystem.get(uri, hadoopConf);
+    // use the replication to test the default value
+    Assert.assertEquals("3", hadoopFs.getConf().get("dfs.replication"));
+
+    // create a new configuration with updated dfs replication value
+    org.apache.hadoop.conf.Configuration hadoopConf1 = new org.apache.hadoop.conf.Configuration();
+    hadoopConf1.set("dfs.replication", "1");
+    HdfsUnderFileSystem hdfs =
+        new HdfsUnderFileSystem(new AlluxioURI(underfsAddress), hadoopConf1);
+    Assert.assertEquals("1",
+        ((org.apache.hadoop.conf.Configuration) hdfs.getConf()).get("dfs.replication"));
   }
 }

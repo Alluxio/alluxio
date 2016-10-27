@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,11 +12,11 @@
 package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.wire.FileInfo;
@@ -49,10 +49,9 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * Creates a instance of {@link FileSystemMasterClient}.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public FileSystemMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public FileSystemMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override
@@ -111,13 +110,13 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @param persistedFiles the files which have been persisted since the last heartbeat
    * @return the command for file system worker
    * @throws IOException if file persistence fails
-   * @throws ConnectionFailedException if network connection failed
+   * @throws AlluxioException if an error occurs on Alluxio master
    */
   public synchronized FileSystemCommand heartbeat(final long workerId,
-      final List<Long> persistedFiles) throws ConnectionFailedException, IOException {
-    return retryRPC(new RpcCallable<FileSystemCommand>() {
+      final List<Long> persistedFiles) throws IOException, AlluxioException {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<FileSystemCommand>() {
       @Override
-      public FileSystemCommand call() throws TException {
+      public FileSystemCommand call() throws AlluxioTException, TException {
         return mClient.heartbeat(workerId, persistedFiles);
       }
     });

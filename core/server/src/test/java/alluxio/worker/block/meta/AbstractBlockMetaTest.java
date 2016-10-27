@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,11 +11,9 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,22 +49,19 @@ public class AbstractBlockMetaTest {
   private static final int TEST_TIER_ORDINAL = 0;
   private static final String TEST_TIER_ALIAS = "MEM";
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
-  private String mTestDirPath;
   private StorageTier mTier;
   private StorageDir mDir;
   private AbstractBlockMetaForTest mBlockMeta;
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public void before() throws Exception {
-    mTestDirPath = mFolder.newFolder().getAbsolutePath();
+    String testDirPath = mFolder.newFolder().getAbsolutePath();
     // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
-        TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES, "");
+        TEST_TIER_ALIAS, new String[] {testDirPath}, TEST_TIER_CAPACITY_BYTES, "");
 
     mTier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
     mDir = mTier.getDir(0);
@@ -74,18 +69,10 @@ public class AbstractBlockMetaTest {
   }
 
   /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
-  }
-
-  /**
    * Tests the {@link AbstractBlockMeta#getBlockId()} method.
    */
   @Test
-  public void getBlockIdTest() {
+  public void getBlockId() {
     Assert.assertEquals(TEST_BLOCK_ID, mBlockMeta.getBlockId());
   }
 
@@ -93,7 +80,7 @@ public class AbstractBlockMetaTest {
    * Tests the {@link AbstractBlockMeta#getBlockLocation()} method.
    */
   @Test
-  public void getBlockLocationTest() {
+  public void getBlockLocation() {
     BlockStoreLocation expectedLocation =
         new BlockStoreLocation(mTier.getTierAlias(), mDir.getDirIndex());
     Assert.assertEquals(expectedLocation, mBlockMeta.getBlockLocation());
@@ -103,7 +90,7 @@ public class AbstractBlockMetaTest {
    * Tests the {@link AbstractBlockMeta#getParentDir()} method.
    */
   @Test
-  public void getParentDirTest() {
+  public void getParentDir() {
     Assert.assertEquals(mDir, mBlockMeta.getParentDir());
   }
 }

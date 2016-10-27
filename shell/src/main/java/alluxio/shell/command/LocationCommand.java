@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -31,15 +30,18 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class LocationCommand extends WithWildCardPathCommand {
 
+  /** The block store client. */
+  private final AlluxioBlockStore mBlockStore;
+
   /**
    * Constructs a new instance to display a list of hosts that have the file specified in args
    * stored.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public LocationCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public LocationCommand(FileSystem fs) {
+    super(fs);
+    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override
@@ -48,17 +50,12 @@ public final class LocationCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
     System.out.println(path + " with file id " + status.getFileId() + " is on nodes: ");
     for (long blockId : status.getBlockIds()) {
-      for (BlockLocation location : AlluxioBlockStore.get().getInfo(blockId).getLocations()) {
+      for (BlockLocation location : mBlockStore.getInfo(blockId).getLocations()) {
         System.out.println(location.getWorkerAddress().getHost());
       }
     }

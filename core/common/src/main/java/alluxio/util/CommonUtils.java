@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,12 +11,13 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 
-import com.google.common.collect.Lists;
+import com.google.common.base.Function;
+import com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
 
@@ -36,6 +38,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final String ALPHANUM =
+      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   private static final Random RANDOM = new Random();
 
   /**
@@ -96,7 +100,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Generates a random string of the given length.
+   * Generates a random alphanumeric string of the given length.
    *
    * @param length the length
    * @return a random string
@@ -104,7 +108,7 @@ public final class CommonUtils {
   public static String randomString(int length) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < length; i++) {
-      sb.append((char) (RANDOM.nextInt(96) + 32)); // generates a random printable character
+      sb.append(ALPHANUM.charAt(RANDOM.nextInt(ALPHANUM.length())));
     }
     return sb.toString();
   }
@@ -133,33 +137,21 @@ public final class CommonUtils {
   /**
    * Sleeps for the given number of milliseconds, reporting interruptions using the given logger.
    *
-   * @param logger logger for reporting interruptions
+   * Unlike Thread.sleep(), this method responds to interrupts by setting the thread interrupt
+   * status. This means that callers must check the interrupt status if they need to handle
+   * interrupts.
+   *
+   * @param logger logger for reporting interruptions; no reporting is done if the logger is null
    * @param timeMs sleep duration in milliseconds
    */
   public static void sleepMs(Logger logger, long timeMs) {
-    sleepMs(logger, timeMs, false);
-  }
-
-  /**
-   * Sleeps for the given number of milliseconds, reporting interruptions using the given logger,
-   * and optionally pass the interruption to the caller.
-   *
-   * @param logger logger for reporting interruptions
-   * @param timeMs sleep duration in milliseconds
-   * @param shouldInterrupt determines if interruption should be passed to the caller
-   */
-  public static void sleepMs(Logger logger, long timeMs, boolean shouldInterrupt) {
     try {
       Thread.sleep(timeMs);
     } catch (InterruptedException e) {
-      // The null check is needed otherwise #sleeMs(long) will cause a NullPointerException
-      // if the thread is interrupted
       if (logger != null) {
         logger.warn(e.getMessage(), e);
       }
-      if (shouldInterrupt) {
-        Thread.currentThread().interrupt();
-      }
+      Thread.currentThread().interrupt();
     }
   }
 
@@ -205,8 +197,8 @@ public final class CommonUtils {
    * @throws IOException if encounter any error when running the command
    */
   public static List<String> getUnixGroups(String user) throws IOException {
-    String result = "";
-    List<String> groups = Lists.newArrayList();
+    String result;
+    List<String> groups = new ArrayList<>();
     try {
       result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));
     } catch (ExitCodeException e) {
@@ -223,18 +215,119 @@ public final class CommonUtils {
   }
 
   /**
-   * Using {@link GroupMappingService} to get the primary group name.
+   * Waits for a condition to be satisfied until a timeout occurs.
    *
-   * @param conf the runtime configuration of Alluxio
+   * @param description a description of what causes condition to evaluation to true
+   * @param condition the condition to wait on
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   */
+  public static void waitFor(String description, Function<Void, Boolean> condition, int timeoutMs) {
+    long start = System.currentTimeMillis();
+    while (!condition.apply(null)) {
+      if (System.currentTimeMillis() - start > timeoutMs) {
+        throw new RuntimeException("Timed out waiting for " + description);
+      }
+      CommonUtils.sleepMs(20);
+    }
+  }
+
+  /**
+   * Waits indefinitely for a condition to be satisfied.
+   *
+   * @param description a description of what causes condition to evaluation to true
+   * @param condition the condition to wait on
+   */
+  public static void waitFor(String description, Function<Void, Boolean> condition) {
+    while (!condition.apply(null)) {
+      CommonUtils.sleepMs(20);
+    }
+  }
+
+  /**
+   * Gets the primary group name of a user.
+   *
    * @param userName Alluxio user name
    * @return primary group name
    * @throws IOException if getting group failed
    */
-  public static String getPrimaryGroupName(Configuration conf, String userName) throws IOException {
-    GroupMappingService groupMappingService =
-        GroupMappingService.Factory.getUserToGroupsMappingService(conf);
-    List<String> groups = groupMappingService.getGroups(userName);
+  public static String getPrimaryGroupName(String userName) throws IOException {
+    List<String> groups = getGroups(userName);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
+  }
+
+  /**
+   * Using {@link CachedGroupMapping} to get the group list of a user.
+   *
+   * @param userName Alluxio user name
+   * @return the group list of the user
+   * @throws IOException if getting group list failed
+   */
+  public static List<String> getGroups(String userName) throws IOException {
+    GroupMappingService groupMappingService = GroupMappingService.Factory.get();
+    return groupMappingService.getGroups(userName);
+  }
+
+  /**
+   * Strips the suffix if it exists. This method will leave keys without a suffix unaltered.
+   *
+   * @param key the key to strip the suffix from
+   * @param suffix suffix to remove
+   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
+   */
+  public static String stripSuffixIfPresent(final String key, final String suffix) {
+    if (key.endsWith(suffix)) {
+      return key.substring(0, key.length() - suffix.length());
+    }
+    return key;
+  }
+
+  /**
+   * Strips the prefix from the key if it is present. For example, for input key
+   * ufs://my-bucket-name/my-key/file and prefix ufs://my-bucket-name/, the output would be
+   * my-key/file. This method will leave keys without a prefix unaltered, ie. my-key/file
+   * returns my-key/file.
+   *
+   * @param key the key to strip
+   * @param prefix prefix to remove
+   * @return the key without the prefix
+   */
+  public static String stripPrefixIfPresent(final String key, final String prefix) {
+    if (key.startsWith(prefix)) {
+      return key.substring(prefix.length());
+    }
+    return key;
+  }
+
+  /**
+   * Returns whether the given ufs address indicates a object storage ufs.
+   * @param ufsAddress the ufs address
+   * @return true if the under file system is a object storage; false otherwise
+   */
+  public static boolean isUfsObjectStorage(String ufsAddress) {
+    return ufsAddress.startsWith(Constants.HEADER_S3)
+        || ufsAddress.startsWith(Constants.HEADER_S3N)
+        || ufsAddress.startsWith(Constants.HEADER_S3A)
+        || ufsAddress.startsWith(Constants.HEADER_GCS)
+        || ufsAddress.startsWith(Constants.HEADER_SWIFT)
+        || ufsAddress.startsWith(Constants.HEADER_OSS);
+  }
+
+  /**
+   * Gets the value with a given key from a static key/value mapping in string format. E.g. with
+   * mapping "id1=user1;id2=user2", it returns "user1" with key "id1". It returns null if the given
+   * key does not exist in the mapping.
+   *
+   * @param mapping the "key=value" mapping in string format separated by ";"
+   * @param key the key to query
+   * @return the mapped value if the key exists, otherwise returns ""
+   */
+  public static String getValueFromStaticMapping(String mapping, String key) {
+    Map<String, String> m = Splitter.on(";")
+        .omitEmptyStrings()
+        .trimResults()
+        .withKeyValueSeparator("=")
+        .split(mapping);
+    return m.get(key);
   }
 
   private CommonUtils() {} // prevent instantiation

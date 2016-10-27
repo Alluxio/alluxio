@@ -1,7 +1,8 @@
-    -Dfs.swift.user=<swift-user>
-    -Dfs.swift.tenant=<swift-tenant>
-    -Dfs.swift.apikey=<swift-user-password>
-    -Dfs.swift.auth.url=<swift-auth-url>
-    -Dfs.swift.auth.port=<swift-auth-url-port>
-    -Dfs.swift.use.public.url=<swift-use-public>
-    -Dfs.swift.auth.method=<swift-auth-model>
+```bash
+fs.swift.user=<swift-user>
+fs.swift.tenant=<swift-tenant>
+fs.swift.password=<swift-user-password>
+fs.swift.auth.url=<swift-auth-url>
+fs.swift.use.public.url=<swift-use-public>
+fs.swift.auth.method=<swift-auth-model>
+```

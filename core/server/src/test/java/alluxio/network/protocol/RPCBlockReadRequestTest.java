@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -68,7 +68,7 @@ public class RPCBlockReadRequestTest {
    * Tests the {@link RPCBlockReadRequest#getEncodedLength()} method.
    */
   @Test
-  public void encodedLengthTest() {
+  public void encodedLength() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
         SESSION_ID);
     int encodedLength = req.getEncodedLength();
@@ -81,7 +81,7 @@ public class RPCBlockReadRequestTest {
    * {@link RPCBlockReadRequest#decode(ByteBuf)} methods.
    */
   @Test
-  public void encodeDecodeTest() {
+  public void encodeDecode() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
         SESSION_ID);
     req.encode(mBuffer);
@@ -94,7 +94,7 @@ public class RPCBlockReadRequestTest {
    * Tests the {@link RPCBlockReadRequest#validate()} method.
    */
   @Test
-  public void validateTest() {
+  public void validate() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
         SESSION_ID);
     assertValid(req);
@@ -105,7 +105,7 @@ public class RPCBlockReadRequestTest {
    * constructor with a valid length.
    */
   @Test
-  public void validLengthTest() {
+  public void validLength() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, -1, LOCK_ID,
         SESSION_ID);
     assertValid(req);
@@ -118,7 +118,7 @@ public class RPCBlockReadRequestTest {
    * constructor with a negative offset.
    */
   @Test
-  public void negativeOffsetTest() {
+  public void negativeOffset() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, -1, LENGTH, LOCK_ID,
         SESSION_ID);
     assertInvalid(req);
@@ -129,7 +129,7 @@ public class RPCBlockReadRequestTest {
    * constructor with an invalid length.
    */
   @Test
-  public void invalidLengthTest() {
+  public void invalidLength() {
     RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, -100, LOCK_ID,
         SESSION_ID);
     assertInvalid(req);

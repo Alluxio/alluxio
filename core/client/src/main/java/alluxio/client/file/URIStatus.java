@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,9 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 
@@ -72,8 +74,8 @@ public class URIStatus {
   /**
    * @return the group that owns the entity referenced by this uri, mutable
    */
-  public String getGroupName() {
-    return mInfo.getGroupName();
+  public String getGroup() {
+    return mInfo.getGroup();
   }
 
   /**
@@ -116,11 +118,11 @@ public class URIStatus {
   }
 
   /**
-   * @return the int representation of the ACL permissions of the entity referenced by this uri,
+   * @return the int representation of the ACL mode bits of the entity referenced by this uri,
    *         mutable
    */
-  public int getPermission() {
-    return mInfo.getPermission();
+  public int getMode() {
+    return mInfo.getMode();
   }
 
   /**
@@ -140,6 +142,13 @@ public class URIStatus {
   }
 
   /**
+   * @return the action to perform on ttl expiry
+   */
+  public TtlAction getTtlAction() {
+    return mInfo.getTtlAction();
+  }
+
+  /**
    * @return the uri of the under storage location of the entity referenced by this uri, mutable
    */
   public String getUfsPath() {
@@ -147,10 +156,10 @@ public class URIStatus {
   }
 
   /**
-   * @return the user which owns the entity referenced by this uri, mutable
+   * @return the owner of the entity referenced by this uri, mutable
    */
-  public String getUserName() {
-    return mInfo.getUserName();
+  public String getOwner() {
+    return mInfo.getOwner();
   }
 
   /**
@@ -195,6 +204,13 @@ public class URIStatus {
    */
   public boolean isMountPoint() {
     return mInfo.isMountPoint();
+  }
+
+  /**
+   * @return the list of file block descriptors
+   */
+  public List<FileBlockInfo> getFileBlockInfos() {
+    return mInfo.getFileBlockInfos();
   }
 
   @Override

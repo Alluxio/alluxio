@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,8 +53,8 @@ public final class LineageStoreTest {
    * Tests the {@link LineageStore#createLineage(List, List, Job)} method.
    */
   @Test
-  public void createLineageTest() {
-    long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
+  public void createLineage() {
+    long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
     long l3 = mLineageStore.createLineage(Lists.newArrayList(2L), Lists.newArrayList(3L), mJob);
     List<Lineage> lineages = mLineageStore.getAllInTopologicalOrder();
@@ -65,12 +66,10 @@ public final class LineageStoreTest {
 
   /**
    * Tests the {@link LineageStore#deleteLineage(long)} method.
-   *
-   * @throws Exception if deleting the lineage fails
    */
   @Test
-  public void deleteLineageTest() throws Exception {
-    long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
+  public void deleteLineage() throws Exception {
+    long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
     // delete the root
     mLineageStore.deleteLineage(l1);
@@ -82,11 +81,9 @@ public final class LineageStoreTest {
   /**
    * Tests that an exception is thrown when trying to delete a non-existing lineage via the
    * {@link LineageStore#deleteLineage(long)} method.
-   *
-   * @throws Exception if deleting the lineage fails
    */
   @Test
-  public void deleteNonexistingLineageTest() throws Exception {
+  public void deleteNonexistingLineage() throws Exception {
     long id = 1;
     mThrown.expect(LineageDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(id));
@@ -96,14 +93,12 @@ public final class LineageStoreTest {
 
   /**
    * Tests the {@link LineageStore#streamToJournalCheckpoint(JournalOutputStream)} method.
-   *
-   * @throws Exception if a {@link LineageStore} operation fails
    */
   @Test
-  public void journalEntrySerializationTest() throws Exception {
-    long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
-    long l2 =
-        mLineageStore.createLineage(Lists.<Long>newArrayList(1L), Lists.newArrayList(2L), mJob);
+  public void journalEntrySerialization() throws Exception {
+    long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
+    long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L),
+        mJob);
 
     JournalOutputStream outputStream = Mockito.mock(JournalOutputStream.class);
     mLineageStore.streamToJournalCheckpoint(outputStream);

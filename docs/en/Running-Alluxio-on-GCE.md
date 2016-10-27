@@ -2,7 +2,7 @@
 layout: global
 title: Running Alluxio on GCE
 nickname: Alluxio on GCE
-group: User Guide
+group: Deploying Alluxio
 priority: 4
 ---
 
@@ -41,15 +41,15 @@ in `deploy/vagrant` run:
 
 # Launch a Cluster
 
-To run an Alluxio cluster on GCE, you need a [Google Cloud](cloud.google.com) billing account, project, service account and JSON keys for the service account. 
+To run an Alluxio cluster on GCE, you need a [Google Cloud](https://cloud.google.com) billing account, project, service account and JSON keys for the service account.
 
-If you are new to Google Cloud, create a billing account and project at the [free trial signup page](https://console.cloud.google.com/billing/freetrial). Also, If you are not familiar with Google Compute Engine, you may want to review the [documentation](http://cloud.google.com/compute/docs) first.
+If you are new to Google Cloud, create a billing account and project at the [free trial signup page](https://console.cloud.google.com/billing/freetrial). Also, If you are not familiar with Google Compute Engine, you may want to review the [documentation](https://cloud.google.com/compute/docs) first.
 
-Next, new and existing Google Cloud users need to choose or create a service account within the [Console](console.google.com) on the [Permissions](http://console.cloud.google.com/permissions) page, under the [Service Accounts](http://console.cloud.google.com/permissions) tab.
+Next, new and existing Google Cloud users need to choose or create a service account within the [Console](https://console.google.com) on the [Permissions](https://console.cloud.google.com/permissions) page, under the [Service Accounts](https://console.cloud.google.com/permissions) tab.
 If creating a new service account, check "Furnish a new private key." from the account creation dialog box. Download and store the JSON key in a safe location.
-If reusing a service account, you'll need to have saved JSON keys for the account or download new keys. To download keys for an existing service account, while still in the [Service Accounts](http://console.cloud.google.com/permissions) tab, find the menu for the account under the 3 dots at the right of the service account list and select "create key." Save the JSON key in a safe location.
+If reusing a service account, you'll need to have saved JSON keys for the account or download new keys. To download keys for an existing service account, while still in the [Service Accounts](https://console.cloud.google.com/permissions) tab, find the menu for the account under the 3 dots at the right of the service account list and select "create key." Save the JSON key in a safe location.
 
-Using the [gcloud sdk](http://console.cloud.google.com) configure keys for ssh:
+Using the [gcloud sdk](https://console.cloud.google.com) configure keys for ssh:
 
 {% include Running-Alluxio-on-GCE/config-ssh.md %}
 

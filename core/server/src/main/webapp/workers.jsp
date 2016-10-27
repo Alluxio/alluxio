@@ -1,14 +1,15 @@
 <%--
-~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
-~ (the “License”). You may not use this work except in compliance with the License, which is
-~ available at www.apache.org/licenses/LICENSE-2.0
-~
-~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-~ either express or implied, as more fully set forth in the License.
-~
-~ See the NOTICE file distributed with this work for information regarding copyright ownership.
---%>
 
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+--%>
 <%@ page import="alluxio.web.*" %>
 
 <html>
@@ -100,7 +101,7 @@
                 <% if (request.getAttribute("failedNodeInfos") != null) {
                   for (WebInterfaceWorkersServlet.NodeInfo nodeInfo : ((WebInterfaceWorkersServlet.NodeInfo[]) request.getAttribute("failedNodeInfos"))) { %>
                   <tr>
-                    <th><a href="http://<%= nodeInfo.getHost() %>:<%= request.getAttribute("workerWebPort") %>"><%= nodeInfo.getHost() %></a></th>
+                    <th><a href="http://<%= nodeInfo.getHost() %>:<%= nodeInfo.getWebPort() %>"><%= nodeInfo.getHost() %></a></th>
                     <% if ((Boolean) request.getAttribute("debug")) { %>
                       <th><%= nodeInfo.getUptimeClockTime() %></th>
                     <% } %>

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,7 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
@@ -29,17 +29,23 @@ public final class ShowKeyValueStore {
         pair.getKey()));
     String value = FormatUtils.byteArrayToHexString(BufferUtils.newByteArrayFromByteBuffer(
         pair.getValue()));
-    if (scope.equals("key")) {
-      System.out.println(key);
-    } else if (scope.equals("value")) {
-      System.out.println(value);
-    } else if (scope.equals("all")) {
-      System.out.printf("%s %s%n", key, value);
-    } else {
-      throw new RuntimeException(String.format("Unknown scope: %s, should be one of key/value/all",
-          scope));
+    switch (scope) {
+      case "key":
+        System.out.println(key);
+        break;
+      case "value":
+        System.out.println(value);
+        break;
+      case "all":
+        System.out.printf("%s %s%n", key, value);
+        break;
+      default:
+        throw new RuntimeException(
+                String.format("Unknown scope: %s, should be one of key/value/all", scope));
     }
   }
+
+  private ShowKeyValueStore() {} // prevent instantiation
 
   /**
    * @param args two parameters, the first is the key-value store URI, the second is the scope of
@@ -49,7 +55,7 @@ public final class ShowKeyValueStore {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
-      System.out.println("Usage: java -cp " + Version.ALLUXIO_JAR + " "
+      System.out.println("Usage: java -cp " + RuntimeConstants.ALLUXIO_JAR + " "
           + ShowKeyValueStore.class.getName() + " <key-value store URI>"
           + " <scope, be one of key/value/all>");
       System.exit(-1);

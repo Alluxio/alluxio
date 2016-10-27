@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -24,8 +24,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Tests for the {@link FileUtils} class.
@@ -46,18 +54,16 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
-  public void changeLocalFilePermissionTest() throws IOException {
+  public void changeLocalFilePermission() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "000");
+    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "---------");
     Assert.assertFalse(tempFile.canRead() || tempFile.canWrite() || tempFile.canExecute());
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "777");
+    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "rwxrwxrwx");
     Assert.assertTrue(tempFile.canRead() && tempFile.canWrite() && tempFile.canExecute());
     // File deletion should fail, because we don't have write permissions
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "444");
+    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "r--r--r--");
     Assert.assertTrue(tempFile.canRead());
     Assert.assertFalse(tempFile.canWrite());
     Assert.assertFalse(tempFile.canExecute());
@@ -71,40 +77,34 @@ public class FileUtilsTest {
   /**
    * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method for a non-existent
    * file to thrown an exception.
-   *
-   * @throws IOException thrown when trying to change the file permissions of a non-existent file
    */
   @Test
-  public void changeNonExistentFileTest() throws IOException {
+  public void changeNonExistentFile() throws IOException {
     // ghostFile is never created, so changing permission should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
-    FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "777");
+    FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "rwxrwxrwx");
     Assert.fail("changing permissions of a non-existent file should have failed");
   }
 
   /**
    * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method for a directory.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void changeLocalDirPermissionTests() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
     // Change permission on directories
-    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "444");
+    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "r--r--r--");
     Assert.assertFalse(tempFile.delete());
-    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "744");
+    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "rwxr--r--");
     Assert.assertTrue(tempFile.delete());
   }
 
   /**
    * Tests the {@link FileUtils#move(String, String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
-  public void moveFileTest() throws IOException {
+  public void moveFile() throws IOException {
     File fromFile = mTestFolder.newFile("from.txt");
     File toFile = mTestFolder.newFile("to.txt");
     // Move a file and verify
@@ -116,11 +116,9 @@ public class FileUtilsTest {
   /**
    * Tests the {@link FileUtils#move(String, String)} method to thrown an exception when trying to
    * move a non-existent file.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
-  public void moveNonExistentFileTest() throws IOException {
+  public void moveNonExistentFile() throws IOException {
     // ghostFile is never created, so deleting should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     File toFile = mTestFolder.newFile("to.txt");
@@ -130,18 +128,68 @@ public class FileUtilsTest {
   }
 
   /**
-   * Tests the {@link FileUtils#setLocalDirStickyBit(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
+   * Tests the {@link FileUtils#delete(String)} method when trying to delete a file and a directory.
    */
   @Test
-  public void setLocalDirStickyBitTest() throws IOException {
+  public void deleteFile() throws IOException {
+    File tempFile = mTestFolder.newFile("fileToDelete");
+    File tempFolder = mTestFolder.newFolder("dirToDelete");
+    // Delete a file and a directory
+    FileUtils.delete(tempFile.getAbsolutePath());
+    FileUtils.delete(tempFolder.getAbsolutePath());
+    Assert.assertFalse(tempFile.exists());
+    Assert.assertFalse(tempFolder.exists());
+  }
+
+  /**
+   * Tests the {@link FileUtils#deletePathRecursively(String)} method when trying to delete
+   * directories.
+   */
+  @Test
+  public void deletePathRecursively() throws IOException {
+    File tmpDir = mTestFolder.newFolder("dir");
+    File tmpDir1 = mTestFolder.newFolder("dir", "dir1");
+    File tmpDir2 = mTestFolder.newFolder("dir", "dir2");
+
+    File tmpFile1 = mTestFolder.newFile("dir/dir1/file1");
+    File tmpFile2 = mTestFolder.newFile("dir/dir1/file2");
+    File tmpFile3 = mTestFolder.newFile("dir/file3");
+
+    // Delete all of these.
+    FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
+
+    Assert.assertFalse(tmpDir.exists());
+    Assert.assertFalse(tmpDir1.exists());
+    Assert.assertFalse(tmpDir2.exists());
+    Assert.assertFalse(tmpFile1.exists());
+    Assert.assertFalse(tmpFile2.exists());
+    Assert.assertFalse(tmpFile3.exists());
+  }
+
+  /**
+   * Tests the {@link FileUtils#delete(String)} method to throw an exception when trying to delete a
+   * non-existent file.
+   */
+  @Test
+  public void deleteNonExistentFile() throws IOException {
+    // ghostFile is never created, so deleting should fail
+    File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
+    mException.expect(IOException.class);
+    FileUtils.delete(ghostFile.getAbsolutePath());
+    Assert.fail("deleting a non-existent file should have failed");
+  }
+
+  /**
+   * Tests the {@link FileUtils#setLocalDirStickyBit(String)} method.
+   */
+  @Test
+  public void setLocalDirStickyBit() throws IOException {
     File tempFolder = mTestFolder.newFolder("dirToModify");
     // Only test this functionality of the absolute path of the temporary directory starts with "/",
     // which implies the host should support "chmod".
     if (tempFolder.getAbsolutePath().startsWith(AlluxioURI.SEPARATOR)) {
       FileUtils.setLocalDirStickyBit(tempFolder.getAbsolutePath());
-      List<String> commands = new ArrayList<String>();
+      List<String> commands = new ArrayList<>();
       commands.add("/bin/ls");
       commands.add("-ld");
       commands.add(tempFolder.getAbsolutePath());
@@ -162,11 +210,9 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#createBlockPath(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
-  public void createBlockPathTest() throws IOException {
+  public void createBlockPath() throws IOException {
     String absolutePath = PathUtils.concatPath(mTestFolder.getRoot(), "tmp", "bar");
     File tempFile = new File(absolutePath);
     FileUtils.createBlockPath(tempFile.getAbsolutePath());
@@ -175,11 +221,9 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#createFile(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
-  public void createFileTest() throws IOException {
+  public void createFile() throws IOException {
     File tempFile = new File(mTestFolder.getRoot(), "tmp");
     FileUtils.createFile(tempFile.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(tempFile.getAbsolutePath()));
@@ -188,14 +232,107 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#createDir(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
-  public void createDirTest() throws IOException {
+  public void createDir() throws IOException {
     File tempDir = new File(mTestFolder.getRoot(), "tmp");
     FileUtils.createDir(tempDir.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(tempDir.getAbsolutePath()));
     Assert.assertTrue(tempDir.delete());
+  }
+
+  /**
+   * Tests the {@link FileUtils#getLocalFileMode(String)}} method.
+   */
+  @Test
+  public void getLocalFileMode() throws IOException {
+    File tmpDir = mTestFolder.newFolder("dir");
+    File tmpFile777 = mTestFolder.newFile("dir/0777");
+    tmpFile777.setReadable(true, false /* owner only */);
+    tmpFile777.setWritable(true, false /* owner only */);
+    tmpFile777.setExecutable(true, false /* owner only */);
+
+    File tmpFile755 = mTestFolder.newFile("dir/0755");
+    tmpFile755.setReadable(true, false /* owner only */);
+    tmpFile755.setWritable(false, false /* owner only */);
+    tmpFile755.setExecutable(true, false /* owner only */);
+    tmpFile755.setWritable(true, true /* owner only */);
+
+    File tmpFile444 = mTestFolder.newFile("dir/0444");
+    tmpFile444.setReadOnly();
+
+    Assert.assertEquals((short) 0777, FileUtils.getLocalFileMode(tmpFile777.getPath()));
+    Assert.assertEquals((short) 0755, FileUtils.getLocalFileMode(tmpFile755.getPath()));
+    Assert.assertEquals((short) 0444, FileUtils.getLocalFileMode(tmpFile444.getPath()));
+
+    // Delete all of these.
+    FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
+  }
+
+  /**
+   * Tests {@link FileUtils#createBlockPath} method when storage dir exists or doesn't exist.
+   */
+  @Test
+  public void createStorageDirPath() throws IOException {
+    File storageDir = new File(mTestFolder.getRoot(), "storageDir");
+    File blockFile = new File(storageDir, "200");
+
+    // When storage dir doesn't exist
+    FileUtils.createBlockPath(blockFile.getAbsolutePath());
+    Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+    Assert.assertEquals(
+        PosixFilePermissions.fromString("rwxrwxrwx"),
+        Files.getPosixFilePermissions(Paths.get(storageDir.getAbsolutePath())));
+
+    // When storage dir exists
+    FileUtils.createBlockPath(blockFile.getAbsolutePath());
+    Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+  }
+
+  /**
+   * Tests invoking {@link FileUtils#createBlockPath} method concurrently. This simulates the case
+   * when multiple blocks belonging to the same storage dir get created concurrently.
+   */
+  @Test
+  public void concurrentCreateStorageDirPath() throws Exception {
+    /**
+     * A class provides multiple concurrent threads to invoke {@link FileUtils#createBlockPath}.
+     */
+    class ConcurrentCreator implements Callable<Void> {
+      private final String mPath;
+      private final CyclicBarrier mBarrier;
+
+      ConcurrentCreator(String path, CyclicBarrier barrier) {
+        mPath = path;
+        mBarrier = barrier;
+      }
+
+      @Override
+      public Void call() throws Exception {
+        mBarrier.await(); // Await until all threads submitted
+        FileUtils.createBlockPath(mPath);
+        return null;
+      }
+    }
+
+    final int numCreators = 5;
+    List<Future<Void>> futures = new ArrayList<>(numCreators);
+    for (int iteration = 0; iteration < 5; iteration++) {
+      final ExecutorService executor = Executors.newFixedThreadPool(numCreators);
+      final CyclicBarrier barrier = new CyclicBarrier(numCreators);
+      try {
+        File storageDir = new File(mTestFolder.getRoot(), "tmp" + iteration);
+        for (int i = 0; i < numCreators; i++) {
+          File blockFile = new File(storageDir, String.valueOf(i));
+          futures.add(executor.submit(new ConcurrentCreator(blockFile.getAbsolutePath(), barrier)));
+        }
+        for (Future<Void> f : futures) {
+          f.get();
+        }
+        Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+      } finally {
+        executor.shutdown();
+      }
+    }
   }
 }

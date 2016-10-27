@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,9 +12,8 @@
 package alluxio.security;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.ConnectionFailedException;
@@ -38,7 +37,7 @@ import javax.security.sasl.AuthenticationException;
 public final class MasterClientAuthenticationIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -55,45 +54,44 @@ public final class MasterClientAuthenticationIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void noAuthenticationOpenCloseTest() throws Exception {
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
+  public void noAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-nosasl");
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
-  public void simpleAuthenticationOpenCloseTest() throws Exception {
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+  public void simpleAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-simple");
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
-      "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-      NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-      Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
-  public void customAuthenticationOpenCloseTest() throws Exception {
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+          NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
+  public void customAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-custom");
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
-      "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-      NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-      Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
-  public void customAuthenticationDenyConnectTest() throws Exception {
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+          NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
+  public void customAuthenticationDenyConnect() throws Exception {
     mThrown.expect(ConnectionFailedException.class);
 
-    FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-            ClientContext.getConf());
-    try {
+    try (FileSystemMasterClient masterClient = new FileSystemMasterClient(
+        mLocalAlluxioClusterResource.get().getMaster().getAddress())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
-      LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-alluxio");
+      LoginUserTestUtils.resetLoginUser("no-alluxio");
       masterClient.connect();
-    } finally {
-      masterClient.close();
     }
   }
 
@@ -101,13 +99,12 @@ public final class MasterClientAuthenticationIntegrationTest {
    * Tests Alluxio client connects or disconnects to the Master. When the client connects
    * successfully to the Master, it can successfully create file or not.
    *
-   * @param filename
-   * @throws Exception
+   * @param filename the name of the file
+   * @throws Exception if a {@link FileSystemMasterClient} operation fails
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-            mLocalAlluxioClusterResource.get().getMasterConf());
+        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());

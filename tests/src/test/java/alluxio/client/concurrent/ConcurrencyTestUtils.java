@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -32,9 +32,9 @@ public final class ConcurrencyTestUtils {
    * maximize the chances of triggering a multithreading code error. Suggested by junit team at
    * https://github.com/junit-team/junit/wiki/Multithreaded-code-and-concurrency.
    *
-   * @param runnables
-   * @param maxTimeoutSeconds
-   * @throws InterruptedException
+   * @param runnables the list of runnables
+   * @param maxTimeoutSeconds the maximal timeout in seconds
+   * @throws InterruptedException if awaiting one of the threads fails
    */
   public static void assertConcurrent(final List<? extends Runnable> runnables,
       final int maxTimeoutSeconds) throws InterruptedException {

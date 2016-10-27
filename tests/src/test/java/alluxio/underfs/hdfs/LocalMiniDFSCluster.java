@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;
@@ -36,15 +35,14 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    */
   public static void main(String[] args) throws Exception {
     LocalMiniDFSCluster cluster = null;
-    Configuration configuration = new Configuration();
     try {
-      cluster = new LocalMiniDFSCluster("/tmp/dfs", 1, 54321, configuration);
+      cluster = new LocalMiniDFSCluster("/tmp/dfs", 1, 54321);
       cluster.start();
       System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
       Thread.sleep(10);
       DistributedFileSystem dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));
-      mkdirs(cluster.getUnderFilesystemAddress() + "/1/2", configuration);
+      mkdirs(cluster.getUnderFilesystemAddress() + "/1/2");
       FileStatus[] fs = dfs.listStatus(new Path(AlluxioURI.SEPARATOR));
       assert fs.length != 0;
       System.out.println(fs[0].getPath().toUri());
@@ -52,7 +50,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
       cluster.shutdown();
 
-      cluster = new LocalMiniDFSCluster("/tmp/dfs", 3, configuration);
+      cluster = new LocalMiniDFSCluster("/tmp/dfs", 3);
       cluster.start();
       System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
 
@@ -60,8 +58,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       dfs.mkdirs(new Path("/1"));
 
       UnderFileSystemUtils.touch(
-          cluster.getUnderFilesystemAddress() + "/1" + "/_format_" + System.currentTimeMillis(),
-          configuration);
+          cluster.getUnderFilesystemAddress() + "/1" + "/_format_" + System.currentTimeMillis());
       fs = dfs.listStatus(new Path("/1"));
       assert fs.length != 0;
       System.out.println(fs[0].getPath().toUri());
@@ -75,8 +72,8 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     }
   }
 
-  public static boolean mkdirs(String path, Configuration configuration) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, configuration);
+  public static boolean mkdirs(String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
     return ufs.mkdirs(path, true);
   }
 
@@ -95,10 +92,9 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    *
    * @param dfsBaseDirs the base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
-   * @param configuration the {@link Configuration} instance
    */
-  public LocalMiniDFSCluster(String dfsBaseDirs, Configuration configuration) {
-    this(dfsBaseDirs, 1, 0, configuration);
+  public LocalMiniDFSCluster(String dfsBaseDirs) {
+    this(dfsBaseDirs, 1, 0);
   }
 
   /**
@@ -107,10 +103,9 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    * @param dfsBaseDirs the base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
    * @param numDataNode the number of datanode
-   * @param configuration the {@link Configuration} instance
    */
-  public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, Configuration configuration) {
-    this(dfsBaseDirs, numDataNode, 0, configuration);
+  public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode) {
+    this(dfsBaseDirs, numDataNode, 0);
   }
 
   /**
@@ -121,11 +116,9 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    * @param numDataNode The number of datanode
    * @param nameNodePort the port of namenode. If it is 0, the real namenode port can be retrieved
    *        by {@link #getNameNodePort()} after the cluster started
-   * @param configuration the {@link Configuration} instance
    */
-  public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, int nameNodePort,
-      Configuration configuration) {
-    super(dfsBaseDirs, configuration);
+  public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, int nameNodePort) {
+    super(dfsBaseDirs);
     mNamenodePort = nameNodePort;
     mNumDataNode = numDataNode;
   }
@@ -140,11 +133,10 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    * @param numDataNode the number of datanode
    * @param nameNodePort the port of namenode. If it is 0, the real namenode port can be retrieved
    *        by {@link #getNameNodePort()} after the cluster started
-   * @param configuration the {@link Configuration} instance
    */
   public LocalMiniDFSCluster(org.apache.hadoop.conf.Configuration conf, String dfsBaseDirs,
-      int numDataNode, int nameNodePort, Configuration configuration) {
-    super(dfsBaseDirs, configuration);
+      int numDataNode, int nameNodePort) {
+    super(dfsBaseDirs);
     mConf = conf;
     mNamenodePort = nameNodePort;
     mNumDataNode = numDataNode;
@@ -174,7 +166,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   /**
-   * Gets the namenode address for this {@LocalMiniDFSCluster}.
+   * Gets the namenode address for this {@link LocalMiniDFSCluster}.
    *
    * @return namenode address
    */
@@ -193,8 +185,6 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * Shuts down the minidfscluster in teardown phase.
-   *
-   * @throws IOException
    */
   @Override
   public void shutdown() throws IOException {
@@ -207,15 +197,13 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * Starts the minidfscluster before using it.
-   *
-   * @throws IOException
    */
   @Override
   public void start() throws IOException {
     if (!mIsStarted) {
 
       delete(mBaseDir, true);
-      if (!mkdirs(mBaseDir, mConfiguration)) {
+      if (!mkdirs(mBaseDir)) {
         throw new IOException("Failed to make folder: " + mBaseDir);
       }
 

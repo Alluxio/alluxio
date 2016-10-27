@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,11 +12,10 @@
 package alluxio.web;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Objects;
 
@@ -168,8 +167,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
 
   private static final long serialVersionUID = -7454493761603179826L;
 
-  private final transient BlockMaster mBlockMaster;
-  private final transient Configuration mConfiguration;
+  private final BlockMaster mBlockMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceWorkersServlet}.
@@ -178,7 +176,6 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    */
   public WebInterfaceWorkersServlet(BlockMaster blockMaster) {
     mBlockMaster = blockMaster;
-    mConfiguration = WorkerContext.getConf();
   }
 
   /**
@@ -220,7 +217,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
+    request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
 
     List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
@@ -229,7 +226,5 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     Set<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfo();
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
-
-    request.setAttribute("workerWebPort", mConfiguration.getInt(Constants.WORKER_WEB_PORT));
   }
 }

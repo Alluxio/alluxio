@@ -27,17 +27,17 @@ service BlockMasterClientService extends common.AlluxioService {
   /**
    * Returns the capacity (in bytes).
    */
-  i64 getCapacityBytes()
+  i64 getCapacityBytes() throws (1: exception.AlluxioTException e)
 
   /**
    * Returns the used storage (in bytes).
    */
-  i64 getUsedBytes()
+  i64 getUsedBytes() throws (1: exception.AlluxioTException e)
 
   /**
    * Returns a list of workers information.
    */
-  list<WorkerInfo> getWorkerInfoList()
+  list<WorkerInfo> getWorkerInfoList() throws (1: exception.AlluxioTException e)
 }
 
 /**
@@ -53,11 +53,13 @@ service BlockMasterWorkerService extends common.AlluxioService {
       /** the alias of the target tier */ 3: string tierAlias,
       /** the id of the block being committed */ 4: i64 blockId,
       /** the length of the block being committed */ 5: i64 length)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Returns a worker id for the given network address.
    */
   i64 getWorkerId( /** the worker network address */ 1: common.WorkerNetAddress workerNetAddress)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Periodic worker heartbeat returns an optional command for the worker to execute.
@@ -66,6 +68,7 @@ service BlockMasterWorkerService extends common.AlluxioService {
       /** the map of space used in bytes on all tiers */ 2: map<string, i64> usedBytesOnTiers,
       /** the list of removed block ids */ 3: list<i64> removedBlockIds,
       /** the map of added blocks on all tiers */ 4: map<string, list<i64>> addedBlocksOnTiers)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Registers a worker.

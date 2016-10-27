@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -60,6 +60,24 @@ public class S3InputStream extends InputStream {
     mKey = key;
     mClient = client;
     mObject = mClient.getObject(mBucketName, mKey);
+    mInputStream = new BufferedInputStream(mObject.getDataInputStream());
+  }
+
+  /**
+   * Creates a new instance of {@link S3InputStream}, at a specific position.
+   *
+   * @param bucketName the name of the bucket
+   * @param key the key of the file
+   * @param client the client for S3
+   * @param pos the position to start
+   * @throws ServiceException if a service exception occurs
+   */
+  S3InputStream(String bucketName, String key, S3Service client, long pos) throws ServiceException {
+    mBucketName = bucketName;
+    mKey = key;
+    mClient = client;
+    mPos = pos;
+    mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
     mInputStream = new BufferedInputStream(mObject.getDataInputStream());
   }
 

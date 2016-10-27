@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -43,7 +43,7 @@ public class LinearProbingIndexTest {
    * Tests {@link LinearProbingIndex#put} to work.
    */
   @Test
-  public void putBasicTest() throws Exception {
+  public void putBasic() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
     Assert.assertEquals(0, index.keyCount());
     Assert.assertTrue(index.put(KEY1, VALUE1, mPayloadWriter));
@@ -56,7 +56,7 @@ public class LinearProbingIndexTest {
    * Tests {@link LinearProbingIndex#get} to return correct values for inserted keys.
    */
   @Test
-  public void getInsertedKeysTest() throws Exception {
+  public void getInsertedKeys() throws Exception {
     // Initialize a batch of key-value pairs
     int testKeys = 100;
     byte[][] keys = new byte[testKeys][];
@@ -88,7 +88,7 @@ public class LinearProbingIndexTest {
    * Tests {@link LinearProbingIndex#get} to return null for non-existent key.
    */
   @Test
-  public void getNonExistentKeyTest() throws Exception {
+  public void getNonExistentKey() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
     BasePayloadReader payloadReaderNotUsed =
         new BasePayloadReader(ByteBuffer.allocate(1));
@@ -102,7 +102,7 @@ public class LinearProbingIndexTest {
    * and can be correctly recovered after recovering {@link LinearProbingIndex} from an byte array.
    */
   @Test
-  public void keyCountTest() throws Exception {
+  public void keyCount() throws Exception {
     // keyCount should increase while inserting key-value pairs.
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
     Assert.assertEquals(0, index.keyCount());
@@ -124,7 +124,7 @@ public class LinearProbingIndexTest {
    * recovering {@link LinearProbingIndex} from byte array.
    */
   @Test
-  public void byteCountTest() throws Exception {
+  public void byteCount() throws Exception {
     // Empty Index.
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
     int count = index.byteCount();
@@ -155,7 +155,7 @@ public class LinearProbingIndexTest {
    * both empty and non-empty index.
    */
   @Test
-  public void nextKeyTest() throws Exception {
+  public void nextKey() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
     Assert.assertNull(nextKey(index, null));
 
@@ -181,7 +181,7 @@ public class LinearProbingIndexTest {
    * and non-empty index.
    */
   @Test
-  public void keyIteratorTest() throws Exception {
+  public void keyIterator() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
     Assert.assertNull(nextKey(index, null));
 

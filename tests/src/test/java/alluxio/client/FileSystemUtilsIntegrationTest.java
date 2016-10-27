@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,13 +12,13 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -37,12 +37,12 @@ import java.util.concurrent.TimeUnit;
  * Tests for {@link alluxio.client.file.FileSystemUtils}.
  */
 public class FileSystemUtilsIntegrationTest {
-  private static final int WORKER_CAPACITY_BYTES = 2 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
-          Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES))
+          .build();
   private static CreateFileOptions sWriteBoth;
   private static FileSystem sFileSystem = null;
 
@@ -52,7 +52,7 @@ public class FileSystemUtilsIntegrationTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
+    sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
   }
 
   @Test
@@ -64,9 +64,8 @@ public class FileSystemUtilsIntegrationTest {
     final Runnable writer = new Runnable() {
       @Override
       public void run() {
-        FileOutStream os = null;
         try {
-          os = sFileSystem.createFile(uri, sWriteBoth);
+          FileOutStream os = sFileSystem.createFile(uri, sWriteBoth);
           boolean completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertFalse(completed);
           for (int i = 0; i < numWrites; i++) {
@@ -116,9 +115,8 @@ public class FileSystemUtilsIntegrationTest {
     final Runnable writer = new Runnable() {
       @Override
       public void run() {
-        FileOutStream os = null;
         try {
-          os = sFileSystem.createFile(uri, sWriteBoth);
+          FileOutStream os = sFileSystem.createFile(uri, sWriteBoth);
           boolean completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertFalse(completed);
           // four writes that will take > 600ms due to the sleeps
@@ -141,7 +139,8 @@ public class FileSystemUtilsIntegrationTest {
         try {
           // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
-          ClientContext.getConf().set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
+          String original = Configuration.get(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
+          Configuration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
           try {
             // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
             boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri, 300,
@@ -150,7 +149,7 @@ public class FileSystemUtilsIntegrationTest {
             completed = sFileSystem.getStatus(uri).isCompleted();
             Assert.assertFalse(completed);
           } finally {
-            ClientTestUtils.resetClientContext();
+            Configuration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, original);
           }
         } catch (Exception e) {
           e.printStackTrace();

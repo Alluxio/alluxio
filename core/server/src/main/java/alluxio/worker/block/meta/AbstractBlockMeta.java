@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -25,11 +27,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class AbstractBlockMeta {
   /**
    * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
-   * subdir of its {@link StorageDir}, the subdir is the same as the creator's sessionId, and the
-   * block file is the same as its blockId. e.g. sessionId 2 creates a temp Block 100 in
+   * subdir of its {@link StorageDir}, the subdir is tmpFolder/sessionId % maxSubdirMax.
+   * tmpFolder is a property of {@link PropertyKey#WORKER_DATA_TMP_FOLDER}.
+   * maxSubdirMax is a property of {@link PropertyKey#WORKER_DATA_TMP_SUBDIR_MAX}.
+   * The block file name is "sessionId-blockId". e.g. sessionId 2 creates a temp Block 100 in
    * {@link StorageDir} "/mnt/mem/0", this temp block has path:
    * <p>
-   * /mnt/mem/0/2/100
+   * /mnt/mem/0/.tmp_blocks/2/2-100
    *
    * @param dir the parent directory
    * @param sessionId the session id
@@ -37,7 +41,11 @@ public abstract class AbstractBlockMeta {
    * @return temp file path
    */
   public static String tempPath(StorageDir dir, long sessionId, long blockId) {
-    return PathUtils.concatPath(dir.getDirPath(), sessionId, blockId);
+    final String tmpDir = Configuration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
+    final int subDirMax = Configuration.getInt(PropertyKey.WORKER_DATA_TMP_SUBDIR_MAX);
+
+    return PathUtils.concatPath(dir.getDirPath(), tmpDir, sessionId % subDirMax,
+        String.format("%x-%x", sessionId, blockId));
   }
 
   /**

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,6 +14,8 @@ package alluxio.worker.block.meta;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -33,18 +35,24 @@ import java.nio.ByteOrder;
 public class CapacityUsageIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 20 * Constants.MB;
   private static final int DISK_CAPACITY_BYTES = Constants.GB;
-  private static final int USER_QUOTA_UNIT_BYTES = Constants.MB;
   private static final int HEARTBEAT_INTERVAL_MS = 30;
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(MEM_CAPACITY_BYTES,
-          MEM_CAPACITY_BYTES / 2, Constants.WORKER_TIERED_STORE_LEVELS, "2",
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "HDD",
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 1), "/disk1",
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 1),
-          String.valueOf(DISK_CAPACITY_BYTES), Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS,
-          String.valueOf(HEARTBEAT_INTERVAL_MS));
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, MEM_CAPACITY_BYTES)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, MEM_CAPACITY_BYTES / 2)
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
+          .setProperty(
+              PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(1), "HDD")
+          .setProperty(
+              PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(1), "/disk1")
+          .setProperty(
+              PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(1),
+              String.valueOf(DISK_CAPACITY_BYTES))
+          .setProperty(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS,
+              String.valueOf(HEARTBEAT_INTERVAL_MS))
+          .build();
   private FileSystem mFileSystem = null;
 
   @Before
@@ -83,7 +91,7 @@ public class CapacityUsageIntegrationTest {
 
   // TODO(calvin): Rethink the approach of this test and what it should be testing.
   // @Test
-  public void deleteDuringEvictionTest() throws IOException, AlluxioException {
+  public void deleteDuringEviction() throws IOException, AlluxioException {
     // This test may not trigger eviction each time, repeat it 20 times.
     for (int i = 0; i < 20; i++) {
       deleteDuringEviction(i);

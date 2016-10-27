@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,12 +12,12 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import javax.security.sasl.AuthenticationException;
 
 /**
- * Abstraction for an authentication provider at Sasl server for
+ * Abstraction for an authentication provider at SASL server for
  * {@link AuthType#SIMPLE} and {@link AuthType#CUSTOM}.
  */
 public interface AuthenticationProvider {
@@ -26,19 +26,23 @@ public interface AuthenticationProvider {
    * Factory for {@link AuthenticationProvider}.
    */
   class Factory {
+
+    // prevent instantiation
+    private Factory() {}
+
     /**
      * @param authType authentication type to use
-     * @param conf Alluxio configuration
      * @return the generated {@link AuthenticationProvider}
      * @throws AuthenticationException when unsupported authentication type is used
      */
-    public static AuthenticationProvider create(AuthType authType, Configuration conf)
+    public static AuthenticationProvider create(AuthType authType)
         throws AuthenticationException {
       switch (authType) {
         case SIMPLE:
           return new SimpleAuthenticationProvider();
         case CUSTOM:
-          String customProviderName = conf.get(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
+          String customProviderName =
+              Configuration.get(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS);
           return new CustomAuthenticationProvider(customProviderName);
         default:
           throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());

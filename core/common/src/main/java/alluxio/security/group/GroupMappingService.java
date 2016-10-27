@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,6 +13,7 @@ package alluxio.security.group;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 
@@ -37,36 +38,38 @@ public interface GroupMappingService {
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-    /**
-     * Gets the groups being used to map user-to-groups.
-     *
-     * @return the groups being used to map user-to-groups
-     */
-    public static GroupMappingService getUserToGroupsMappingService() {
-      return getUserToGroupsMappingService(new Configuration());
-    }
+    // TODO(chaomin): maintain a map from SECURITY_GROUP_MAPPING_CLASS name to cachedGroupMapping.
+    // Currently the single global cached GroupMappingService assumes that there is no dynamic
+    // configuration change for {@link Constants#SECURITY_GROUP_MAPPING_CLASS}.
+    private static CachedGroupMapping sCachedGroupMapping = null;
+
+    // prevent instantiation
+    private Factory() {}
 
     /**
-     * Gets the groups being used to map user-to-groups.
+     * Gets the cached groups mapping service being used to map user-to-groups.
      *
-     * @param conf Alluxio configuration
-     * @return the groups being used to map user-to-groups
+     * @return the groups mapping service being used to map user-to-groups
      */
-    public static GroupMappingService getUserToGroupsMappingService(Configuration conf) {
-      GroupMappingService mGroupMappingService;
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Creating new Groups object");
+    public static GroupMappingService get() {
+      if (sCachedGroupMapping == null) {
+        synchronized (Factory.class) {
+          if (sCachedGroupMapping == null) {
+            try {
+              LOG.debug("Creating new Groups object");
+              GroupMappingService groupMappingService = CommonUtils.createNewClassInstance(
+                  Configuration.<GroupMappingService>getClass(
+                      PropertyKey.SECURITY_GROUP_MAPPING_CLASS), null, null);
+              sCachedGroupMapping = new CachedGroupMapping(groupMappingService);
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
+          }
+        }
       }
-      try {
-        mGroupMappingService =
-            CommonUtils.createNewClassInstance(
-                conf.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null, null);
-        mGroupMappingService.setConf(conf);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return mGroupMappingService;
+      return sCachedGroupMapping;
     }
+
   }
 
   /**
@@ -78,13 +81,4 @@ public interface GroupMappingService {
    * @throws IOException if can't get user's groups
    */
   List<String> getGroups(String user) throws IOException;
-
-  /**
-   * Sets the configuration to GroupMappingService. For example, when we get user-groups mapping
-   * from LDAP, we will need configuration to set up the connection to LDAP server.
-   *
-   * @param conf The alluxio configuration set to GroupMappingService
-   * @throws IOException if failed config GroupMappingService
-   */
-  void setConf(Configuration conf) throws IOException;
 }

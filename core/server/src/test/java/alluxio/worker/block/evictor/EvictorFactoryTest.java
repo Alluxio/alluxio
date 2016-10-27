@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,13 +12,15 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.allocator.MaxFreeAllocator;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,8 +44,6 @@ public class EvictorFactoryTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public void before() throws Exception {
@@ -58,47 +58,49 @@ public class EvictorFactoryTest {
     }
   }
 
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   /**
    * Tests that a {@link GreedyEvictor} can be created from
-   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(Configuration,
+   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(
    *        BlockMetadataManagerView, Allocator)}.
    */
   @Test
-  public void createGreedyEvictorTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(conf, sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(conf, sBlockMetadataManagerView, allocator);
+  public void createGreedyEvictor() {
+    Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
+    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof GreedyEvictor);
   }
 
   /**
    * Tests that a {@link LRUEvictor} can be created from
-   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(Configuration,
+   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(
    *        BlockMetadataManagerView, Allocator)}.
    */
   @Test
-  public void createLRUEvictorTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(conf, sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(conf, sBlockMetadataManagerView, allocator);
+  public void createLRUEvictor() {
+    Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
+    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 
   /**
    * Tests that the default evictor can be created from
-   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(Configuration,
+   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(
    *        BlockMetadataManagerView, Allocator)}.
    */
   @Test
-  public void createDefaultEvictorTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(conf, sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.create(conf, sBlockMetadataManagerView, allocator);
+  public void createDefaultEvictor() {
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
+    Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 }

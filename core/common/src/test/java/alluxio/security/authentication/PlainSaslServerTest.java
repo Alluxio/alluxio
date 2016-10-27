@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -40,8 +40,6 @@ public class PlainSaslServerTest{
 
   /**
    * Sets up the server before a test runs.
-   *
-   * @throws Exception thrown if setting up the server fails
    */
   @Before
   public void before() throws Exception {
@@ -54,7 +52,6 @@ public class PlainSaslServerTest{
    * @param user The name of the user will be transferred from client side
    * @param password The password will be transferred from client side
    * @return The response is simulated from the client side
-   * @throws Exception if the bytes for the user and password cannot be retrieved
    */
   private byte[] getUserInfo(String user, String password) throws Exception {
     byte[] auth = user.getBytes("UTF8");
@@ -73,11 +70,9 @@ public class PlainSaslServerTest{
 
   /**
    * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when the user is not set.
-   *
-   * @throws Exception if the bytes for the user and password cannot be retrieved
    */
   @Test
-  public void userIsNotSetTest() throws Exception {
+  public void userIsNotSet() throws Exception {
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("Plain authentication failed: No authentication identity provided");
     mPlainSaslServer.evaluateResponse(getUserInfo("", "anonymous"));
@@ -87,7 +82,7 @@ public class PlainSaslServerTest{
    * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when the password is not set.
    */
   @Test
-  public void passwordIsNotSetTest() throws Exception {
+  public void passwordIsNotSet() throws Exception {
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("Plain authentication failed: No password provided");
     mPlainSaslServer.evaluateResponse(getUserInfo("alluxio", ""));
@@ -97,7 +92,7 @@ public class PlainSaslServerTest{
    * Tests the {@link PlainSaslServer#getAuthorizationID()} method.
    */
   @Test
-  public void authenticationNotCompleteTest() {
+  public void authenticationNotComplete() {
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage("PLAIN authentication not completed");
     mPlainSaslServer.getAuthorizationID();
@@ -107,7 +102,7 @@ public class PlainSaslServerTest{
    * Tests the {@link PlainSaslServer#getAuthorizationID()} to retrieve the correct user.
    */
   @Test
-  public void userPasswordReceiveTest() throws Exception {
+  public void userPasswordReceive() throws Exception {
     String testUser = "alluxio";
     String password = "anonymous";
     mPlainSaslServer.evaluateResponse(getUserInfo(testUser, password));
@@ -145,7 +140,7 @@ public class PlainSaslServerTest{
    * not authorized.
    */
   @Test
-  public void unauthorizedCallbackTest() throws Exception {
+  public void unauthorizedCallback() throws Exception {
     String testUser = "alluxio";
     String password = "anonymous";
     mPlainSaslServer = new PlainSaslServer(new MockCallbackHandlerUnauthorized());

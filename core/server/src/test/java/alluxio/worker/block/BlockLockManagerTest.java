@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,12 +11,15 @@
 
 package alluxio.worker.block;
 
-import alluxio.Constants;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.worker.WorkerContext;
 
+import com.google.common.base.Throwables;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,12 +31,18 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Unit tests for {@link BlockLockManager}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMetadataManager.class)
-public class BlockLockManagerTest {
+public final class BlockLockManagerTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
 
@@ -49,8 +58,6 @@ public class BlockLockManagerTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -59,11 +66,16 @@ public class BlockLockManagerTest {
     mLockManager = new BlockLockManager();
   }
 
+  @After
+  public void after() throws Exception {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   /**
    * Tests the {@link BlockLockManager#lockBlock(long, long, BlockLockType)} method.
    */
   @Test
-  public void lockBlockTest() {
+  public void lockBlock() {
     // Read-lock on can both get through
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
@@ -73,11 +85,9 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to unlock a block via
    * {@link BlockLockManager#unlockBlock(long)} which is not locked.
-   *
-   * @throws Exception if unlocking the block fails
    */
   @Test
-  public void unlockNonExistingLockTest() throws Exception {
+  public void unlockNonExistingLock() throws Exception {
     long badLockId = 1;
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
@@ -88,11 +98,9 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} which is not locked.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
-  public void validateLockIdWithNoRecordTest() throws Exception {
+  public void validateLockIdWithNoRecord() throws Exception {
     long badLockId = 1;
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
@@ -103,11 +111,9 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} with an incorrect session ID.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
-  public void validateLockIdWithWrongSessionIdTest() throws Exception {
+  public void validateLockIdWithWrongSessionId() throws Exception {
     long lockId = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongSessionId = TEST_SESSION_ID + 1;
     mThrown.expect(InvalidWorkerStateException.class);
@@ -120,11 +126,9 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} with an incorrect block ID.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
-  public void validateLockIdWithWrongBlockIdTest() throws Exception {
+  public void validateLockIdWithWrongBlockId() throws Exception {
     long lockId = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongBlockId = TEST_BLOCK_ID + 1;
     mThrown.expect(InvalidWorkerStateException.class);
@@ -137,11 +141,9 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} after the session was cleaned up.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
-  public void cleanupSessionTest() throws Exception {
+  public void cleanupSession() throws Exception {
     long sessionId1 = TEST_SESSION_ID;
     long sessionId2 = TEST_SESSION_ID + 1;
     long lockId1 = mLockManager.lockBlock(sessionId1, TEST_BLOCK_ID, BlockLockType.READ);
@@ -159,7 +161,7 @@ public class BlockLockManagerTest {
    * Tests that up to WORKER_TIERED_STORE_BLOCK_LOCKS block locks can be grabbed simultaneously.
    */
   @Test(timeout = 10000)
-  public void grabManyLocksTest() throws Exception {
+  public void grabManyLocks() throws Exception {
     int maxLocks = 100;
     setMaxLocks(maxLocks);
     BlockLockManager manager = new BlockLockManager();
@@ -173,7 +175,7 @@ public class BlockLockManagerTest {
    * Tests that two sessions can both take a read lock on the same block.
    */
   @Test(timeout = 10000)
-  public void lockAcrossSessionsTest() throws Exception {
+  public void lockAcrossSessions() throws Exception {
     BlockLockManager manager = new BlockLockManager();
     manager.lockBlock(1, TEST_BLOCK_ID, BlockLockType.READ);
     manager.lockBlock(2, TEST_BLOCK_ID, BlockLockType.READ);
@@ -183,7 +185,7 @@ public class BlockLockManagerTest {
    * Tests that a write lock can't be taken while a read lock is held.
    */
   @Test(timeout = 10000)
-  public void readBlocksWriteTest() throws Exception {
+  public void readBlocksWrite() throws Exception {
     BlockLockManager manager = new BlockLockManager();
     manager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     lockExpectingHang(manager, TEST_BLOCK_ID);
@@ -193,7 +195,7 @@ public class BlockLockManagerTest {
    * Tests that block locks are returned to the pool when they are no longer in use.
    */
   @Test(timeout = 10000)
-  public void reuseLockTest() throws Exception {
+  public void reuseLock() throws Exception {
     setMaxLocks(1);
     BlockLockManager manager = new BlockLockManager();
     long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.WRITE);
@@ -205,7 +207,7 @@ public class BlockLockManagerTest {
    * Tests that block locks are not returned to the pool when they are still in use.
    */
   @Test(timeout = 10000)
-  public void dontReuseLockTest() throws Exception {
+  public void dontReuseLock() throws Exception {
     setMaxLocks(1);
     final BlockLockManager manager = new BlockLockManager();
     long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.READ);
@@ -218,7 +220,8 @@ public class BlockLockManagerTest {
    * Calls {@link BlockLockManager#lockBlock(long, long, BlockLockType)} and fails if it doesn't
    * hang.
    *
-   * @param the block id to try locking
+   * @param manager the manager to call lock on
+   * @param blockId block id to try locking
    */
   private void lockExpectingHang(final BlockLockManager manager, final long blockId)
       throws Exception {
@@ -234,8 +237,76 @@ public class BlockLockManagerTest {
     Assert.assertTrue(thread.isAlive());
   }
 
+  /**
+   * Tests that taking and releasing many block locks concurrently won't cause a failure.
+   *
+   * This is done by creating 200 threads, 100 for each of 2 different block ids. Each thread locks
+   * and then unlocks its block 50 times. After this, it takes a final lock on its block before
+   * returning. At the end of the test, the internal state of the lock manager is validated.
+   */
+  @Test(timeout = 10000)
+  public void stress() throws Throwable {
+    final int numBlocks = 2;
+    final int threadsPerBlock = 100;
+    final int lockUnlocksPerThread = 50;
+    setMaxLocks(numBlocks);
+    final BlockLockManager manager = new BlockLockManager();
+    final List<Thread> threads = new ArrayList<>();
+    final CyclicBarrier barrier = new CyclicBarrier(numBlocks * threadsPerBlock);
+    // If there are exceptions, we will store them here.
+    final AtomicReference<List<Throwable>> failedThreadThrowables =
+        new AtomicReference<List<Throwable>>(new ArrayList<Throwable>());
+    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread th, Throwable ex) {
+        failedThreadThrowables.get().add(ex);
+      }
+    };
+    for (int blockId = 0; blockId < numBlocks; blockId++) {
+      final int finalBlockId = blockId;
+      for (int i = 0; i < threadsPerBlock; i++) {
+        Thread t = new Thread(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              barrier.await();
+            } catch (Exception e) {
+              throw Throwables.propagate(e);
+            }
+            // Lock and unlock the block lockUnlocksPerThread times.
+            for (int j = 0; j < lockUnlocksPerThread; j++) {
+              long lockId = manager.lockBlock(TEST_SESSION_ID, finalBlockId, BlockLockType.READ);
+              try {
+                manager.unlockBlock(lockId);
+              } catch (BlockDoesNotExistException e) {
+                throw Throwables.propagate(e);
+              }
+            }
+            // Lock the block one last time.
+            manager.lockBlock(TEST_SESSION_ID, finalBlockId, BlockLockType.READ);
+          }
+        });
+        t.setUncaughtExceptionHandler(exceptionHandler);
+        threads.add(t);
+      }
+    }
+    Collections.shuffle(threads);
+    for (Thread t : threads) {
+      t.start();
+    }
+    for (Thread t : threads) {
+      t.join();
+    }
+    if (!failedThreadThrowables.get().isEmpty()) {
+      StringBuilder sb = new StringBuilder("Failed with the following errors:\n");
+      for (Throwable failedThreadThrowable : failedThreadThrowables.get()) {
+        sb.append(Throwables.getStackTraceAsString(failedThreadThrowable));
+      }
+      Assert.fail(sb.toString());
+    }
+    manager.validate();
+  }
+
   private void setMaxLocks(int maxLocks) {
-    WorkerContext.getConf().set(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS,
-        Integer.toString(maxLocks));
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, Integer.toString(maxLocks));
   }
 }

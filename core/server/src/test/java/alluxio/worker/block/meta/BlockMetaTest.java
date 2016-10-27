@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,10 +13,8 @@ package alluxio.worker.block.meta;
 
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,7 +33,6 @@ public class BlockMetaTest {
   private static final int TEST_TIER_ORDINAL = 0;
   private static final String TEST_TIER_ALIAS = "MEM";
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
-  private StorageDir mDir;
   private BlockMeta mBlockMeta;
   private TempBlockMeta mTempBlockMeta;
   private String mTestDirPath;
@@ -46,8 +43,6 @@ public class BlockMetaTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public void before() throws Exception {
@@ -57,25 +52,15 @@ public class BlockMetaTest {
         TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES, "");
 
     StorageTier tier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
-    mDir = tier.getDir(0);
-    mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
+    StorageDir dir = tier.getDir(0);
+    mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
   }
 
   /**
    * Tests the {@link BlockMeta#getBlockSize()} method.
-   *
-   * @throws IOException if writting the buffer to the file fails
    */
   @Test
-  public void getBlockSizeTest() throws IOException {
+  public void getBlockSize() throws IOException {
     // With the block file not really existing, expect committed block size to be zero.
     mBlockMeta = new BlockMeta(mTempBlockMeta);
     Assert.assertEquals(0, mBlockMeta.getBlockSize());
@@ -97,7 +82,7 @@ public class BlockMetaTest {
    * Tests the {@link BlockMeta#getPath()} method.
    */
   @Test
-  public void getPathTest() {
+  public void getPath() {
     mBlockMeta = new BlockMeta(mTempBlockMeta);
     Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID), mBlockMeta.getPath());
   }

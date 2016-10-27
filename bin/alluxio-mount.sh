@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
 
-# Start all Alluxio workers.
-# Starts the master on this node.
-# Starts a worker on each node specified in conf/workers
+# Starts the Alluxio master on this node.
+# Starts an Alluxio worker on each node specified in conf/workers
 
 LAUNCHER=
 # If debugging is enabled propagate that through to sub-shells
@@ -22,8 +31,8 @@ function init_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
   if [[ -z ${ALLUXIO_WORKER_MEMORY_SIZE} ]]; then
-    echo "ALLUXIO_WORKER_MEMORY_SIZE was not set. Using the default one: 128MB"
-    ALLUXIO_WORKER_MEMORY_SIZE="128MB"
+    echo "ALLUXIO_WORKER_MEMORY_SIZE was not set. Using the default one: 1GB"
+    ALLUXIO_WORKER_MEMORY_SIZE="1GB"
   fi
 
   MEM_SIZE=$(echo "${ALLUXIO_WORKER_MEMORY_SIZE}" | tr -s '[:upper:]' '[:lower:]')
@@ -64,7 +73,7 @@ function mem_size_to_bytes() {
       BYTE_SIZE=${SIZE}
       ;;
     *)
-      echo "Please specify ALLUXIO_WORKER_MEMORY_SIZE in a correct form."
+      echo "Please specify ALLUXIO_WORKER_MEMORY_SIZE in a correct form." >&2
       exit 1
   esac
 }
@@ -139,7 +148,7 @@ function mount_ramfs_linux() {
   TOTAL_MEM=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
   if [[ ${TOTAL_MEM} -lt ${BYTE_SIZE} ]]; then
     echo "ERROR: Memory(${TOTAL_MEM}) is less than requested ramdisk size(${BYTE_SIZE}). Please
-    reduce ALLUXIO_WORKER_MEMORY_SIZE"
+    reduce ALLUXIO_WORKER_MEMORY_SIZE" >&2
     exit 1
   fi
 
@@ -148,7 +157,7 @@ function mount_ramfs_linux() {
   if mount | grep ${F} > /dev/null; then
     umount -f ${F}
     if [[ $? -ne 0 ]]; then
-      echo "ERROR: umount RamFS ${F} failed"
+      echo "ERROR: umount RamFS ${F} failed" >&2
       exit 1
     fi
   else
@@ -167,8 +176,8 @@ function mount_ramfs_mac() {
   fi
 
   if [[ ${ALLUXIO_RAM_FOLDER} != "/Volumes/"* ]]; then
-    echo "Invalid ALLUXIO_RAM_FOLDER: ${ALLUXIO_RAM_FOLDER}"
-    echo "ALLUXIO_RAM_FOLDER must set to /Volumes/[name] on Mac OS X."
+    echo "Invalid ALLUXIO_RAM_FOLDER: ${ALLUXIO_RAM_FOLDER}" >&2
+    echo "ALLUXIO_RAM_FOLDER must set to /Volumes/[name] on Mac OS X." >&2
     exit 1
   fi
 
@@ -199,8 +208,8 @@ function mount_local() {
       DECL_INIT=$(declare -f init_env)
       DECL_MEM_SIZE_TO_BYTES=$(declare -f mem_size_to_bytes)
       DECL_MOUNT_LINUX=$(declare -f mount_ramfs_linux)
-      sudo bash -O extglob -c "BIN=${BIN}; ${DECL_INIT}; ${DECL_MEM_SIZE_TO_BYTES}; \
-       ${DECL_MOUNT_LINUX}; mount_ramfs_linux $0"
+      sudo bash -O extglob -c "ALLUXIO_CONF_DIR=${ALLUXIO_CONF_DIR}; BIN=${BIN}; ${DECL_INIT}; \
+${DECL_MEM_SIZE_TO_BYTES}; ${DECL_MOUNT_LINUX}; mount_ramfs_linux $0"
     else
       mount_ramfs_linux $0
     fi
@@ -219,6 +228,6 @@ case "${1}" in
     esac
     ;;
   *)
-    echo -e ${USAGE}
+    echo -e ${USAGE} >&2
     exit 1
 esac

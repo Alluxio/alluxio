@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -22,9 +22,9 @@ import java.io.IOException;
 /**
  * Tests for mv command.
  */
-public class MvCommandTest extends AbstractAlluxioShellTest {
+public final class MvCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void renameTest() throws IOException {
+  public void rename() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
@@ -37,7 +37,7 @@ public class MvCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void renameParentDirectoryTest() throws IOException {
+  public void renameParentDirectory() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/test/File1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/test/File1"}));
@@ -50,7 +50,7 @@ public class MvCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void renameToExistingFileTest() throws IOException {
+  public void renameToExistingFile() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));

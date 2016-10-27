@@ -1,21 +1,22 @@
 <!--
-  ~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
-  ~ (the “License”). You may not use this work except in compliance with the License, which is
-  ~ available at www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-  ~ either express or implied, as more fully set forth in the License.
-  ~
-  ~ See the NOTICE file distributed with this work for information regarding copyright ownership.
-  -->
 
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>1.1.0-SNAPSHOT</version>
+  <version>1.4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -140,6 +141,7 @@
 
   <properties>
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
+    <aws.amazonaws.version>1.11.7</aws.amazonaws.version>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
     <findbugs.path>build/findbugs</findbugs.path>
@@ -147,12 +149,13 @@
     <hadoop.version>2.2.0</hadoop.version>
     <java.version>1.7</java.version>
     <jersey.version>2.22</jersey.version>
-    <jetty.version>7.6.15.v20140411</jetty.version>
+    <jetty.version>9.2.16.v20160414</jetty.version>
     <junit.version>4.12</junit.version>
     <libthrift.version>0.9.3</libthrift.version>
     <license.header.path>build/license/</license.header.path>
+    <build.path>build</build.path>
     <log4j.version>1.2.17</log4j.version>
-    <metrics.version>3.1.0</metrics.version>
+    <metrics.version>3.1.2</metrics.version>
     <powermock.version>1.6.1</powermock.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
@@ -187,9 +190,20 @@
         <version>3.4</version>
       </dependency>
       <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.10</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.mesos</groupId>
         <artifactId>mesos</artifactId>
         <version>0.23.0</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
@@ -207,6 +221,10 @@
           <exclusion>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>jsp-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -245,6 +263,11 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-log4j12</artifactId>
         <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.beust</groupId>
+        <artifactId>jcommander</artifactId>
+        <version>1.48</version>
       </dependency>
 
       <!-- Test Dependencies -->
@@ -347,8 +370,10 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.14</version>
           <configuration>
-            <argLine>-Djava.net.preferIPv4Stack=true -Djava.security.krb5.realm= -Djava.security.krb5.kdc= -XX:MaxPermSize=512M</argLine>
+            <argLine>-Djava.net.preferIPv4Stack=true -XX:MaxPermSize=512M</argLine>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
+            <!-- Alphabetical order on even hours, reverse-alphabetical on odd hours  -->
+            <runOrder>hourly</runOrder>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>
@@ -521,42 +546,45 @@
           <failIfMissing>true</failIfMissing>
           <aggregate>false</aggregate>
           <excludes>
+
             <!-- Code Exclusions -->
             <exclude>**/src/main/java/alluxio/thrift/*</exclude>
             <exclude>**/src/main/java/alluxio/proto/**</exclude>
             <exclude>**/src/main/java/alluxio/perf/thrift/*</exclude>
-            <exclude>**/src/main/webapp/**/*</exclude>
+            <exclude>**/src/main/resources/*</exclude>
+            <exclude>**/src/main/webapp/css/*</exclude>
+            <exclude>**/src/main/webapp/js/*</exclude>
             <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
-            <exclude>**/package-info.java</exclude>
-            <exclude>**/src/main/resources/alluxio-default.properties</exclude>
+            <exclude>**/vagrant/**/*</exclude>
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
-            <exclude>**/pom.xml</exclude>
-            <exclude>**/logs/*</exclude>
-            <exclude>**/deploy/**/*</exclude>
-            <exclude>**/bin/*</exclude>
-            <exclude>**/conf/*</exclude>
-            <exclude>**/conf/testsuite/*</exclude>
-            <exclude>**/libexec/*</exclude>
-            <exclude>**/src/main/findbugs/*</exclude>
-            <exclude>**/src/main/resources/alluxio_checks*</exclude>
+            <exclude>conf/alluxio-site.properties</exclude>
+            <exclude>dev/scripts/tarballs/**/*</exclude>
+            <exclude>dev/scripts/workdir/**/*</exclude>
+            <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
 
             <!-- Documentation Exclusions -->
-            <exclude>**/docs/**/*</exclude>
+            <exclude>docs/**/*</exclude>
             <exclude>LICENSE</exclude>
             <exclude>NOTICE</exclude>
 
-            <!-- Default local file Exclusions -->
-            <exclude>**/underFSStorage/**</exclude>
-            <exclude>**/journal/**</exclude>
+            <!-- Default Local File System Exclusions -->
+            <exclude>logs/*</exclude>
+            <exclude>journal/**/*</exclude>
+            <exclude>underFSStorage/**/*</exclude>
           </excludes>
           <mapping>
+            <alluxio>SCRIPT_STYLE</alluxio>
             <java>SLASHSTAR_STYLE</java>
+            <properties.template>SCRIPT_STYLE</properties.template>
+            <sh.template>SCRIPT_STYLE</sh.template>
+            <workers>SCRIPT_STYLE</workers>
+            <xml.template>XML_STYLE</xml.template>
           </mapping>
           <useDefaultMapping>true</useDefaultMapping>
           <strictCheck>true</strictCheck>
@@ -567,6 +595,25 @@
             <goals>
               <goal>check</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <version>1.4.0</version>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>Check that there are no Windows line endings</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${build.path}/style/check_no_windows_line_endings.sh</executable>
+            </configuration>
           </execution>
         </executions>
       </plugin>

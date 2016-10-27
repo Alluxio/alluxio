@@ -11,12 +11,13 @@ message StringPairEntry {
   optional string value = 2;
 }
 
-// next available id: 5
+// next available id: 6
 message AddMountPointEntry {
   optional string alluxio_path = 1;
   optional string ufs_path = 2;
   optional bool readOnly = 3;
   repeated StringPairEntry properties = 4;
+  optional bool shared = 5;
 }
 
 // next available id: 2
@@ -44,7 +45,7 @@ message DeleteMountPointEntry {
   optional string alluxio_path = 1;
 }
 
-// next available id: 12
+// next available id: 13
 message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -53,10 +54,11 @@ message InodeDirectoryEntry {
   optional bool pinned = 5;
   optional int64 creation_time_ms = 6;
   optional int64 last_modification_time_ms = 7;
-  optional string user_name = 8;
-  optional string group_name = 9;
-  optional int32 permission = 10;
+  optional string owner = 8;
+  optional string group = 9;
+  optional int32 mode = 10;
   optional bool mount_point = 11;
+  optional bool direct_children_loaded = 12;
 }
 
 // next available id: 3
@@ -65,7 +67,12 @@ message InodeDirectoryIdGeneratorEntry {
   optional int64 sequence_number = 2;
 }
 
-// next available id: 17
+enum PTtlAction {
+  DELETE = 0;
+  FREE = 1;
+}
+
+// next available id: 18
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -80,9 +87,10 @@ message InodeFileEntry {
   optional bool cacheable = 11;
   repeated int64 blocks = 12;
   optional int64 ttl = 13;
-  optional string user_name = 14;
-  optional string group_name = 15;
-  optional int32 permission = 16;
+  optional string owner = 14;
+  optional string group = 15;
+  optional int32 mode = 16;
+  optional PTtlAction ttlAction = 17 [default = DELETE];
 }
 
 // next available id: 3
@@ -103,11 +111,12 @@ message PersistFileEntry {
   optional int64 op_time_ms = 3;
 }
 
-// next available id: 4
+// next available id: 5
 message ReinitializeFileEntry {
   optional string path = 1;
   optional int64 block_size_bytes = 2;
   optional int64 ttl = 3;
+  optional PTtlAction ttlAction = 4 [default = DELETE];
 }
 
 // next available id: 4
@@ -117,7 +126,7 @@ message RenameEntry {
   optional int64 op_time_ms = 3;
 }
 
-// next available id: 9
+// next available id: 10
 message SetAttributeEntry {
   optional int64 id = 1;
   optional int64 op_time_ms = 2;
@@ -127,4 +136,5 @@ message SetAttributeEntry {
   optional string owner = 6;
   optional string group = 7;
   optional int32 permission = 8;
+  optional PTtlAction ttlAction = 9 [default = DELETE];
 }

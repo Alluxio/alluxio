@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,8 +14,8 @@ package alluxio.examples;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
@@ -40,14 +40,13 @@ import java.nio.channels.FileChannel.MapMode;
 /**
  * Example to show the performance of Alluxio.
  */
-public class Performance {
+public final class Performance {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";
 
   private static FileSystem sFileSystem = null;
-  private static HostAndPort sMasterAddress = null;
   private static String sFileName = null;
   private static int sBlockSizeBytes = -1;
   private static long sBlocksPerFile = -1;
@@ -60,6 +59,8 @@ public class Performance {
   private static long[] sResults = new long[RESULT_ARRAY_SIZE];
   private static int sBaseFileNumber = 0;
   private static boolean sAlluxioStreamingRead = false;
+
+  private Performance() {} // prevent instantiation
 
   /**
    * Creates the files for this example.
@@ -76,7 +77,7 @@ public class Performance {
   }
 
   /**
-   * Write log information.
+   * Writes log information.
    *
    * @param startTimeMs the start time in milliseconds
    * @param times the number of the iteration
@@ -594,7 +595,7 @@ public class Performance {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 9) {
-      System.out.println("java -cp " + Version.ALLUXIO_JAR
+      System.out.println("java -cp " + RuntimeConstants.ALLUXIO_JAR
           + " alluxio.examples.Performance "
           + "<MasterIp> <FileNamePrefix> <WriteBlockSizeInBytes> <BlocksPerFile> "
           + "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> "
@@ -604,7 +605,7 @@ public class Performance {
       System.exit(-1);
     }
 
-    sMasterAddress = HostAndPort.fromString(args[0]);
+    HostAndPort masterAddress = HostAndPort.fromString(args[0]);
     sFileName = args[1];
     sBlockSizeBytes = Integer.parseInt(args[2]);
     sBlocksPerFile = Long.parseLong(args[3]);
@@ -615,11 +616,9 @@ public class Performance {
     sBaseFileNumber = Integer.parseInt(args[8]);
 
     sFileBytes = sBlocksPerFile * sBlockSizeBytes;
-    sFilesBytes = 1L * sFileBytes * sFiles;
+    sFilesBytes = sFileBytes * sFiles;
 
-    Configuration configuration = ClientContext.getConf();
-
-    long fileBufferBytes = configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    long fileBufferBytes = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     sResultPrefix = String.format(
         "Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
@@ -629,8 +628,8 @@ public class Performance {
 
     CommonUtils.warmUpLoop();
 
-    configuration.set(Constants.MASTER_HOSTNAME, sMasterAddress.getHostText());
-    configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(sMasterAddress.getPort()));
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostText());
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
 
     if (testCase == 1) {
       sResultPrefix = "AlluxioFilesWriteTest " + sResultPrefix;

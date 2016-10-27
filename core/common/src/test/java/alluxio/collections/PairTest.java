@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -30,7 +30,7 @@ public class PairTest {
    * Tests the {@link Pair} constructor.
    */
   @Test
-  public void constructorTest() {
+  public void constructor() {
     mObjs[0] = STR_TYPE;
     mObjs[1] = INTEGER_TYPE;
     mObjs[2] = LONG_TYPE;
@@ -40,7 +40,7 @@ public class PairTest {
 
     for (int j = 0; j < mObjs.length - 1; j++) {
       for (int k = j + 1; k < mObjs.length; k++) {
-        Pair<Object, Object> tPair = new Pair<Object, Object>(mObjs[j], mObjs[k]);
+        Pair<Object, Object> tPair = new Pair<>(mObjs[j], mObjs[k]);
         Assert.assertEquals(mObjs[j], tPair.getFirst());
         Assert.assertEquals(mObjs[k], tPair.getSecond());
         Assert.assertNotSame(mObjs[k], tPair.getFirst());

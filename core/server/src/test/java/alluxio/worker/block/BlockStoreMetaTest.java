@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,12 +12,10 @@
 package alluxio.worker.block;
 
 import alluxio.collections.Pair;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,6 +39,7 @@ public class BlockStoreMetaTest {
 
   private BlockMetadataManager mMetadataManager;
   private BlockStoreMeta mBlockStoreMeta;
+  private BlockStoreMeta mBlockStoreMetaFull;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -48,8 +47,6 @@ public class BlockStoreMetaTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public void before() throws Exception {
@@ -62,31 +59,24 @@ public class BlockStoreMetaTest {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
     }
-    mBlockStoreMeta = new BlockStoreMeta(mMetadataManager);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
+    mBlockStoreMeta = BlockStoreMeta.getBlockStoreMeta(mMetadataManager);
+    mBlockStoreMetaFull = BlockStoreMeta.getBlockStoreMetaFull(mMetadataManager);
   }
 
   /**
    * Tests the {@link BlockStoreMeta#getBlockList()} method.
    */
   @Test
-  public void getBlockListTest() {
-    Map<String, List<Long>> tierAliasToBlockIds = new HashMap<String, List<Long>>();
+  public void getBlockList() {
+    Map<String, List<Long>> tierAliasToBlockIds = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
-      List<Long> blockIdsOnTier = new ArrayList<Long>();
+      List<Long> blockIdsOnTier = new ArrayList<>();
       for (StorageDir dir : tier.getStorageDirs()) {
         blockIdsOnTier.addAll(dir.getBlockIds());
       }
       tierAliasToBlockIds.put(tier.getTierAlias(), blockIdsOnTier);
     }
-    Map<String, List<Long>> actual = mBlockStoreMeta.getBlockList();
+    Map<String, List<Long>> actual = mBlockStoreMetaFull.getBlockList();
     Assert.assertEquals(TieredBlockStoreTestUtils.TIER_ALIAS.length, actual.keySet().size());
     Assert.assertEquals(tierAliasToBlockIds, actual);
   }
@@ -95,7 +85,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getCapacityBytes()} method.
    */
   @Test
-  public void getCapacityBytesTest() {
+  public void getCapacityBytes() {
     Assert.assertEquals(TieredBlockStoreTestUtils.getDefaultTotalCapacityBytes(),
         mBlockStoreMeta.getCapacityBytes());
   }
@@ -104,11 +94,11 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getCapacityBytes()} method.
    */
   @Test
-  public void getCapacityBytesOnDirsTest() {
-    Map<Pair<String, String>, Long> dirsToCapacityBytes = new HashMap<Pair<String, String>, Long>();
+  public void getCapacityBytesOnDirs() {
+    Map<Pair<String, String>, Long> dirsToCapacityBytes = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dirsToCapacityBytes.put(new Pair<String, String>(tier.getTierAlias(), dir.getDirPath()),
+        dirsToCapacityBytes.put(new Pair<>(tier.getTierAlias(), dir.getDirPath()),
             dir.getCapacityBytes());
       }
     }
@@ -121,7 +111,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getCapacityBytesOnTiers()} method.
    */
   @Test
-  public void getCapacityBytesOnTiersTest() {
+  public void getCapacityBytesOnTiers() {
     Map<String, Long> expectedCapacityBytesOnTiers = ImmutableMap.of("MEM", 5000L, "SSD", 60000L);
     Assert.assertEquals(expectedCapacityBytesOnTiers, mBlockStoreMeta.getCapacityBytesOnTiers());
   }
@@ -130,15 +120,15 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getNumberOfBlocks()} method.
    */
   @Test
-  public void getNumberOfBlocksTest() {
-    Assert.assertEquals(COMMITTED_BLOCKS_NUM, mBlockStoreMeta.getNumberOfBlocks());
+  public void getNumberOfBlocks() {
+    Assert.assertEquals(COMMITTED_BLOCKS_NUM, mBlockStoreMetaFull.getNumberOfBlocks());
   }
 
   /**
    * Tests the {@link BlockStoreMeta#getUsedBytes()} method.
    */
   @Test
-  public void getUsedBytesTest() {
+  public void getUsedBytes() {
     long usedBytes = TEST_BLOCK_SIZE * COMMITTED_BLOCKS_NUM;
     Assert.assertEquals(usedBytes, mBlockStoreMeta.getUsedBytes());
   }
@@ -147,11 +137,11 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getUsedBytesOnDirs()} method.
    */
   @Test
-  public void getUsedBytesOnDirsTest() {
-    Map<Pair<String, String>, Long> dirsToUsedBytes = new HashMap<Pair<String, String>, Long>();
+  public void getUsedBytesOnDirs() {
+    Map<Pair<String, String>, Long> dirsToUsedBytes = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dirsToUsedBytes.put(new Pair<String, String>(tier.getTierAlias(), dir.getDirPath()),
+        dirsToUsedBytes.put(new Pair<>(tier.getTierAlias(), dir.getDirPath()),
             dir.getCapacityBytes() - dir.getAvailableBytes());
       }
     }
@@ -162,7 +152,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getUsedBytesOnTiers()} method.
    */
   @Test
-  public void getUsedBytesOnTiersTest() {
+  public void getUsedBytesOnTiers() {
     long usedBytes = TEST_BLOCK_SIZE * COMMITTED_BLOCKS_NUM;
     Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", usedBytes, "SSD", 0L);
     Assert.assertEquals(usedBytesOnTiers, mBlockStoreMeta.getUsedBytesOnTiers());

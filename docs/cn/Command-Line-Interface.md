@@ -58,6 +58,14 @@ fs命令中的所有“路径”都应该以以下开头：
 
 {% include Command-Line-Interface/cat.md %}
 
+## checksum
+
+`checksum`命令输出某个Alluxio文件的md5值。
+
+例如，`checksum`可以用来验证Alluxio中的文件内容与存储在底层文件系统或者本地文件系统中的文件内容是否匹配：
+
+{% include Command-Line-Interface/checksum.md %}
+
 ## chgrp
 
 `chgrp`命令可以改变Alluxio中的文件或文件夹的所属组，Alluxio支持POSIX标准的文件权限，组在POSIX文件权限模型中是一个授权实体，文件所有者或者超级用户可以执行这条命令从而改变一个文件或文件夹的所属组。
@@ -123,6 +131,16 @@ fs命令中的所有“路径”都应该以以下开头：
 
 {% include Command-Line-Interface/count.md %}
 
+## cp
+
+`cp`命令拷贝Alluxio文件系统中的一个文件或者目录。
+
+如果使用了`-R`选项，并且源路径是一个目录，`cp`将源路径下的整个子树拷贝到目标路径。
+
+例如，`cp`可以在底层文件系统之间拷贝文件。
+
+{% include Command-Line-Interface/cp.md %}
+
 ## du
 
 `du`命令输出一个文件的大小，如果指定的目标为文件夹，该命令输出该文件夹下所有子文件及子文件夹中内容的大小总和。
@@ -163,6 +181,12 @@ fs命令中的所有“路径”都应该以以下开头：
 
 {% include Command-Line-Interface/getUsedBytes.md %}
 
+## leader
+
+`leader`命令打印当前Alluxio的leader master节点主机名。
+
+{% include Command-Line-Interface/leader.md %}
+
 ## load
 
 `load` 命令将底层文件系统中的数据载入到Alluxio中。如果运行该命令的机器上正在运行一个Alluxio worker，那么数据将移动到该worker上，否则，数据会被随机移动到一个worker上。如果该文件已经存在在Alluxio中，该命令不进行任何操作。如果该命令的目标是一个文件夹，那么其子文件和子文件夹会被递归载入。
@@ -192,6 +216,9 @@ fs命令中的所有“路径”都应该以以下开头：
 `ls`命令列出一个文件夹下的所有子文件和子文件夹及文件大小、上次修改时间以及文件的内存状态。对一个文件使用`ls`命令仅仅会显示该文件的信息。
 
 加上`-R`选项可以递归的列出输入路径下的所有子文件和子文件夹，并列出从输入路径开始的所有子树。
+
+加上`-f`选项可以强制访问本地文件系统, 创建子文件在Alluxio系统中的镜像。该命令只创建元数据, 例如文件名及文件大小，而不会传输数据。如果不加
+这个选项, 底层文件只会在第一次访问该文件夹的时候访问一次。
 
 使用举例：使用`ls`命令可以浏览文件系统。
 

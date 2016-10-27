@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,10 +12,11 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -31,11 +32,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RmCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public RmCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public RmCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -54,23 +54,20 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     // TODO(calvin): Remove explicit state checking.
-    try {
-      boolean recursive = cl.hasOption("R");
-      if (!mFileSystem.exists(path)) {
-        throw new IOException("Path " + path + " does not exist");
-      }
-      if (!recursive && mFileSystem.getStatus(path).isFolder()) {
-        throw new IOException("rm: cannot remove a directory, please try rm -R <path>");
-      }
-
-      DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
-      mFileSystem.delete(path, options);
-      System.out.println(path + " has been removed");
-    } catch (AlluxioException e) {
-      throw new IOException(e);
+    boolean recursive = cl.hasOption("R");
+    if (!mFileSystem.exists(path)) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
+    if (!recursive && mFileSystem.getStatus(path).isFolder()) {
+      throw new IOException(
+          path.getPath() + " is a directory, to remove it, please use \"rm -R <path>\"");
+    }
+
+    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
+    mFileSystem.delete(path, options);
+    System.out.println(path + " has been removed");
   }
 
   @Override

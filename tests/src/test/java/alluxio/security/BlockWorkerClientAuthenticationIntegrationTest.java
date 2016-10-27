@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,14 +11,14 @@
 
 package alluxio.security;
 
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.block.RetryHandlingBlockWorkerClient;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
-import alluxio.worker.ClientMetrics;
 
+import org.apache.thrift.transport.TTransportException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,8 +27,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Tests RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
@@ -38,86 +36,79 @@ import java.util.concurrent.Executors;
 public final class BlockWorkerClientAuthenticationIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
-  private ExecutorService mExecutorService;
+      new LocalAlluxioClusterResource.Builder().build();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
-    mExecutorService = Executors.newFixedThreadPool(2);
     clearLoginUser();
   }
 
   @After
   public void after() throws Exception {
     clearLoginUser();
-    mExecutorService.shutdownNow();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void noAuthenticationOpenCloseTest() throws Exception {
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
+  public void noAuthenticationOpenClose() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
-  public void simpleAuthenticationOpenCloseTest() throws Exception {
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+  public void simpleAuthenticationOpenClose() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
-          Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
-  public void customAuthenticationOpenCloseTest() throws Exception {
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
+  public void customAuthenticationOpenClose() throws Exception {
     authenticationOperationTest();
   }
 
   @Test(timeout = 10000)
-  @LocalAlluxioClusterResource.Config(confParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
-      "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-      NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-      Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
-  public void customAuthenticationDenyConnectTest() throws Exception {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("Failed to connect to the worker");
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE,
+          "CUSTOM", PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+          NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
+  public void customAuthenticationDenyConnect() throws Exception {
+    boolean failedToConnect = false;
 
-    BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(),
-        mExecutorService, ClientContext.getConf(),
-        1 /* fake session id */, true, new ClientMetrics());
-    try {
-      Assert.assertFalse(blockWorkerClient.isConnected());
-      // Using no-alluxio as loginUser to connect to Worker, the IOException will be thrown
-      LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-alluxio");
-      blockWorkerClient.connect();
+    // Using no-alluxio as loginUser to connect to Worker, the IOException will be thrown
+    LoginUserTestUtils.resetLoginUser("no-alluxio");
+
+    try (BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake
+        session id */)) {
+      // Just to supress the "Empty try block" warning in CheckStyle.
+      failedToConnect = false;
+    } catch (IOException e) {
+      if (e.getCause() instanceof TTransportException) {
+        failedToConnect = true;
+      }
     } finally {
-      blockWorkerClient.close();
-      ClientTestUtils.resetClientContext();
+      ClientTestUtils.resetClient();
     }
+    Assert.assertTrue(failedToConnect);
   }
 
   /**
    * Tests Alluxio Worker client connects or disconnects to the Worker.
-   *
-   * @throws Exception
    */
   private void authenticationOperationTest() throws Exception {
-    BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(),
-        mExecutorService, mLocalAlluxioClusterResource.get().getWorkerConf(),
-        1 /* fake session id */, true, new ClientMetrics());
-
-    Assert.assertFalse(blockWorkerClient.isConnected());
-    blockWorkerClient.connect();
-    Assert.assertTrue(blockWorkerClient.isConnected());
+    RetryHandlingBlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), (long) 1 /* fake session id */);
 
     blockWorkerClient.close();
   }

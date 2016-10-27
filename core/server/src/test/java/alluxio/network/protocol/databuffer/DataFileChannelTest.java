@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -45,8 +45,6 @@ public class DataFileChannelTest {
 
   /**
    * Sets up the dependencies before a test runs.
-   *
-   * @throws IOException if setting up a dependency fails
    */
   @Before
   public final void before() throws IOException {
@@ -64,8 +62,6 @@ public class DataFileChannelTest {
 
   /**
    * Closes the stream after a test ran.
-   *
-   * @throws IOException if closing the stream fails
    */
   @After
   public final void after() throws IOException {
@@ -76,7 +72,7 @@ public class DataFileChannelTest {
    * Tests the {@link DataFileChannel#getNettyOutput()} method.
    */
   @Test
-  public void nettyOutputTest() {
+  public void nettyOutput() {
     DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
     Object output = data.getNettyOutput();
     Assert.assertTrue(output instanceof ByteBuf || output instanceof FileRegion);
@@ -86,7 +82,7 @@ public class DataFileChannelTest {
    * Tests the {@link DataFileChannel#getLength()} method.
    */
   @Test
-  public void lengthTest() {
+  public void length() {
     DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
     Assert.assertEquals(LENGTH, data.getLength());
   }
@@ -95,7 +91,7 @@ public class DataFileChannelTest {
    * Tests the {@link DataFileChannel#getReadOnlyByteBuffer()} method.
    */
   @Test
-  public void readOnlyByteBufferTest() {
+  public void readOnlyByteBuffer() {
     DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
     ByteBuffer readOnlyBuffer = data.getReadOnlyByteBuffer();
     Assert.assertTrue(readOnlyBuffer.isReadOnly());

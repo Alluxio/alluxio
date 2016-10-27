@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -25,36 +25,34 @@ import java.io.IOException;
 /**
  * Tests for chown command.
  */
-public class ChownCommandTest extends AbstractAlluxioShellTest {
+public final class ChownCommandTest extends AbstractAlluxioShellTest {
 
   @Test
-  public void chownTest() throws IOException, AlluxioException {
+  public void chown() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chown", "user1", "/testFile");
-    String owner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getUserName();
+    String owner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     Assert.assertEquals("user1", owner);
     mFsShell.run("chown", "user2", "/testFile");
-    owner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getUserName();
+    owner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     Assert.assertEquals("user2", owner);
   }
 
   /**
    * Tests -R option for chown recursively.
-   *
-   * @throws Exception
    */
   @Test
-  public void chownRecursiveTest() throws IOException, AlluxioException {
+  public void chownRecursive() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chown", "-R", "user1", "/testDir");
-    String owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getUserName();
+    String owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getOwner();
     Assert.assertEquals("user1", owner);
-    owner = mFileSystem.getStatus(new AlluxioURI("/testDir")).getUserName();
+    owner = mFileSystem.getStatus(new AlluxioURI("/testDir")).getOwner();
     Assert.assertEquals("user1", owner);
     mFsShell.run("chown", "-R", "user2", "/testDir");
-    owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getUserName();
+    owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getOwner();
     Assert.assertEquals("user2", owner);
   }
 }

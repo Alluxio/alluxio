@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,13 +11,14 @@
 
 package alluxio.client.file;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,16 +30,13 @@ public final class FileSystemContextTest {
    * requests for clients. It also ensures clients are available for reuse after they are released
    * by the previous owners. If the test takes longer than 10 seconds, a deadlock most likely
    * occurred preventing the release of the master clients.
-   *
-   * @throws Exception if an unexpected error occurs during the test
    */
   @Test(timeout = 10000)
-  public void acquireAtMaxLimitTest() throws Exception {
-    final List<FileSystemMasterClient> clients = Lists.newArrayList();
+  public void acquireAtMaxLimit() throws Exception {
+    final List<FileSystemMasterClient> clients = new ArrayList<>();
 
     // Acquire all the clients
-    for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS); i++) {
       clients.add(FileSystemContext.INSTANCE.acquireMasterClient());
     }
     Thread acquireThread = new Thread(new AcquireClient());

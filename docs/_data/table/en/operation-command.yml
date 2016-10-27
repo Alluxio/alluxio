@@ -1,5 +1,7 @@
 cat:
   Print the content of the file to the console.
+checksum:
+  Calculate the md5 checksum for a file.
 chgrp:
   Change the group of the directory or file.
 chmod:
@@ -14,6 +16,8 @@ copyToLocal:
   destination.
 count:
   Display the number of folders and files matching the specified prefix in "path".
+cp:
+  Copy a file or directory within the Alluxio file system.
 du:
   Display the size of a file or a directory specified by the input path.
 fileInfo:
@@ -25,9 +29,12 @@ getCapacityBytes:
   Get the capacity of the AlluxioFS.
 getUsedBytes:
   Get number of bytes used in the AlluxioFS.
+leader:
+  Prints the current Alluxio leader master host name.
 load:
   Load the data of a file or a directory from under storage into Alluxio.
 loadMetadata:
+  The loadMetadata command is deprecated since Alluxio version 1.1. Please use "alluxio fs ls &lt;path&gt;" command instead.
   Load the metadata of a file or a directory from under storage into Alluxio.
 location:
   Display a list of hosts that have the file data.
@@ -49,7 +56,7 @@ mv:
   Move a file or directory specified by "source" to a new location "destination". This command
   will fail if "destination" already exists.
 persist:
-  Persist a file or directory currently stored only in Alluxio to the underlying file system.
+  Persist files or directories currently stored only in Alluxio to the underlying file system.
 
 pin:
   Pin the given file to avoid evicting it from memory. If the given path is a directory, it
@@ -63,7 +70,8 @@ rmr:
   Remove a file, or a directory with all the files and sub-directories that this directory
   contains.
 setTtl:
-  Set the TTL (time to live) in milliseconds to a file.
+  Set the TTL (time to live) in milliseconds to a file. Allowing to perform either "delete"
+  or "free" after expiry of ttl interval.
 tail:
   Print the last 1KB of the specified file to the console.
 touch:

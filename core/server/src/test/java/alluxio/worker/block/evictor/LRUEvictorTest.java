@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.worker.WorkerContext;
+import alluxio.ConfigurationTestUtils;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -29,8 +29,6 @@ public class LRUEvictorTest extends EvictorTestBase {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public final void before() throws Exception {
@@ -42,7 +40,7 @@ public class LRUEvictorTest extends EvictorTestBase {
    */
   @After
   public void after() {
-    WorkerContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   // access the block to update evictor
@@ -52,11 +50,9 @@ public class LRUEvictorTest extends EvictorTestBase {
 
   /**
    * Tests that the eviction in the bottom tier works.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
-  public void evictInBottomTierTest() throws Exception {
+  public void evictInBottomTier() throws Exception {
     int bottomTierOrdinal =
         TieredBlockStoreTestUtils.TIER_ORDINAL[TieredBlockStoreTestUtils.TIER_ORDINAL.length - 1];
     // capacity increases with index
@@ -86,8 +82,6 @@ public class LRUEvictorTest extends EvictorTestBase {
   /**
    * Tests the cascading eviction with the first tier filled and the second tier empty resulting in
    * no eviction.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void cascadingEvictionTest1() throws Exception {
@@ -119,8 +113,6 @@ public class LRUEvictorTest extends EvictorTestBase {
   /**
    * Tests the cascading eviction with the first and second tier filled resulting in blocks in the
    * second tier are evicted.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void cascadingEvictionTest2() throws Exception {
@@ -162,8 +154,6 @@ public class LRUEvictorTest extends EvictorTestBase {
 
   /**
    * Tests the behavior of moving blocks with the cascading eviction.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void cascadingEvictionTest3() throws Exception {

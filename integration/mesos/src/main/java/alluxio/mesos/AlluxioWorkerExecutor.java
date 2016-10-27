@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,8 @@
 
 package alluxio.mesos;
 
-import alluxio.Format;
+import alluxio.Constants;
+import alluxio.cli.Format;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.worker.AlluxioWorker;
 
@@ -19,6 +20,8 @@ import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,24 +31,31 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class AlluxioWorkerExecutor implements Executor {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  /**
+   * Creates a new {@link AlluxioWorkerExecutor}.
+   */
+  public AlluxioWorkerExecutor() {}
+
   @Override
   public void disconnected(ExecutorDriver driver) {
-    System.out.println("Executor has disconnected from the Mesos slave.");
+    LOG.info("Executor has disconnected from the Mesos slave");
   }
 
   @Override
   public void error(ExecutorDriver driver, String message) {
-    System.out.println("A fatal error has occurred: " + message + ".");
+    LOG.error("A fatal error has occurred: {}", message);
   }
 
   @Override
   public void frameworkMessage(ExecutorDriver driver, byte[] data) {
-    System.out.println("Received a framework message.");
+    LOG.info("Received a framework message");
   }
 
   @Override
   public void killTask(ExecutorDriver driver, Protos.TaskID taskId) {
-    System.out.println("Killing task " + taskId.getValue() + ".");
+    LOG.info("Killing task {}", taskId.getValue());
     // TODO(jiri): Implement.
   }
 
@@ -60,19 +70,18 @@ public class AlluxioWorkerExecutor implements Executor {
 
           driver.sendStatusUpdate(status);
 
-          System.out.println("Launching task " + task.getTaskId().getValue());
+          LOG.info("Launching task {}", task.getTaskId().getValue());
 
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
 
           // TODO(jiri): Consider handling Format.main() failures gracefully.
-          Format.main(new String[] {"master"});
+          Format.main(new String[] {"worker"});
           AlluxioWorker.main(new String[] {});
 
           status =
               Protos.TaskStatus.newBuilder().setTaskId(task.getTaskId())
                   .setState(Protos.TaskState.TASK_FINISHED).build();
-
           driver.sendStatusUpdate(status);
         } catch (Exception e) {
           e.printStackTrace();
@@ -84,18 +93,18 @@ public class AlluxioWorkerExecutor implements Executor {
   @Override
   public void registered(ExecutorDriver driver, Protos.ExecutorInfo executorInfo,
       Protos.FrameworkInfo frameworkInfo, Protos.SlaveInfo slaveInfo) {
-    System.out.println("Registered executor " + executorInfo.getName() + " with "
-        + slaveInfo.getHostname() + " through framework " + frameworkInfo.getName() + ".");
+    LOG.info("Registered executor {} with {} through framework {}",
+        executorInfo.getName(), slaveInfo.getHostname(), frameworkInfo.getName());
   }
 
   @Override
   public void reregistered(ExecutorDriver driver, Protos.SlaveInfo slaveInfo) {
-    System.out.println("Re-registered executor with " + slaveInfo.getHostname() + ".");
+    LOG.info("Re-registered executor with {}", slaveInfo.getHostname());
   }
 
   @Override
   public void shutdown(ExecutorDriver driver) {
-    System.out.println("Shutting down.");
+    LOG.info("Shutting down");
     // TODO(jiri): Implement.
   }
 

@@ -29,9 +29,9 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 {% include Running-Flink-on-Alluxio/create-core-site.md %}
 
-#### 在`conf/flink-config.yaml`中指定`core-site.xml`的路径
+#### 在`conf/flink-conf.yaml`中指定`core-site.xml`的路径
 
-接下来需要指定Flink中Hadoop配置的路径。打开Flink根目录下`conf/flink-config.yaml`文件，设置`fs.hdfs.hadoopconf`的值为`core-site.xml`的**目录**（对于新的Hadoop版本，该目录通常以`etc/hadoop`结尾）。 
+接下来需要指定Flink中Hadoop配置的路径。打开Flink根目录下`conf/flink-conf.yaml`文件，设置`fs.hdfs.hadoopconf`的值为`core-site.xml`的**目录**（对于新的Hadoop版本，该目录通常以`etc/hadoop`结尾）。 
 
 #### 构建及布置Alluxio客户端Jar包
 
@@ -48,6 +48,10 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 - 在`HADOOP_CLASSPATH`环境变量中指定该jar文件的路径（要保证该路径对集群中的所有节点都有效）。例如：
 
 {% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
+
+#### 将Alluxio额外属性转化为Flink属性
+
+除此以外，如果`conf/alluxio-site.properties`配置文件中有任何指定的属性，请在`{FLINK_HOME}/conf/flink-conf.yaml`文件中将这些属性转化为`env.java.opts`，从而方便Flink使用Alluxio的配置。
 
 # 在Flink中使用Alluxio
 

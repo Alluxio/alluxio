@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.thrift.CompleteFileTOptions;
 
 import org.junit.Assert;
@@ -26,7 +27,7 @@ public class CompleteFileOptionsTest {
    * Tests that building a {@link CompleteFileOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     CompleteFileOptions options = CompleteFileOptions.defaults();
 
     Assert.assertEquals(0, options.getUfsLength());
@@ -36,7 +37,7 @@ public class CompleteFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     long len = new Random().nextLong();
     CompleteFileOptions options = CompleteFileOptions.defaults();
     options.setUfsLength(len);
@@ -47,11 +48,16 @@ public class CompleteFileOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThriftTest() {
+  public void toThrift() {
     long len = new Random().nextLong();
     CompleteFileOptions options = CompleteFileOptions.defaults();
     options.setUfsLength(len);
     CompleteFileTOptions thriftOptions = options.toThrift();
     Assert.assertEquals(len, thriftOptions.getUfsLength());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(CompleteFileOptions.class);
   }
 }

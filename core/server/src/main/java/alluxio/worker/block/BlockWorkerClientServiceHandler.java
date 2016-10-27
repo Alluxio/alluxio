@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -19,11 +19,13 @@ import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.LockBlockResult;
 import alluxio.thrift.ThriftIOException;
-import alluxio.worker.WorkerContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +54,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    */
   public BlockWorkerClientServiceHandler(BlockWorker worker) {
     mWorker = worker;
-    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
   }
 
   @Override
@@ -76,12 +78,6 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
         return null;
       }
     });
-  }
-
-  // TODO(calvin): Make this supported again.
-  @Override
-  public boolean asyncCheckpoint(long fileId) throws AlluxioTException {
-    return false;
   }
 
   /**
@@ -171,6 +167,26 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   /**
+   * Used to remove a block in Alluxio storage. Worker will delete the block file and
+   * reclaim space allocated to the block.
+   *
+   * @param blockId the id of the block to be removed
+   * @throws AlluxioTException if an Alluxio error occurs
+   * @throws ThriftIOException if an I/O error occurs
+   */
+  @Override
+  public void removeBlock(final long blockId)
+      throws AlluxioTException, ThriftIOException {
+    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+      @Override
+      public Void call() throws AlluxioException, IOException {
+        mWorker.removeBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId);
+        return null;
+      }
+    });
+  }
+
+  /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
    * storage directory which fits the initial block size by some allocation strategy. If there is
    * not enough space on Alluxio storage {@link alluxio.exception.WorkerOutOfSpaceException} will be
@@ -197,23 +213,40 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   /**
-   * Used to request space for some block file.
+   * Requests space for a block.
    *
    * @param sessionId the id of the client requesting space
    * @param blockId the id of the block to add the space to, this must be a temporary block
    * @param requestBytes the amount of bytes to add to the block
    * @return true if the worker successfully allocates space for the block on block’s location,
-   *         false if there is no enough space
+   *         false if there is not enough space
+   * @throws AlluxioTException if an Alluxio error occurs
+   * @throws ThriftIOException if an I/O error occurs
    */
   @Override
-  public boolean requestSpace(long sessionId, long blockId, long requestBytes) {
-    try {
-      mWorker.requestSpace(sessionId, blockId, requestBytes);
-      return true;
-    } catch (Exception e) {
-      LOG.error("Failed to request {} bytes for block: {}", requestBytes, blockId, e);
-    }
-    return false;
+  public boolean requestSpace(final long sessionId, final long blockId, final long requestBytes)
+      throws AlluxioTException, ThriftIOException {
+    return RpcUtils.call(new RpcCallable<Boolean>() {
+      @Override
+      public Boolean call() throws AlluxioException {
+        try {
+          mWorker.requestSpace(sessionId, blockId, requestBytes);
+          return true;
+        } catch (WorkerOutOfSpaceException e) {
+          LOG.warn("Worker is out of space, failed to serve request for {} bytes for block {}",
+              requestBytes, blockId);
+          return false;
+        } catch (IOException e) {
+          LOG.error("Failed to serve request for {} bytes for block: {}", requestBytes, blockId, e);
+          // We must wrap IOException in an AlluxioException here for backwards compatibility with
+          // previous versions of our API.
+          throw new UnexpectedAlluxioException(e);
+        } catch (BlockDoesNotExistException e) {
+          LOG.error("Failed to serve request for {} bytes for block: {}", requestBytes, blockId, e);
+          throw e;
+        }
+      }
+    });
   }
 
   /**
@@ -242,11 +275,17 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * Local session send heartbeat to local worker to keep its temporary folder.
    *
    * @param sessionId the id of the client heartbeating
-   * @param metrics a list of the client metrics that were collected between this heartbeat and the
-   *        last. Each value in the list represents a specific metric based on the index.
+   * @param metrics deprecated
    */
   @Override
-  public void sessionHeartbeat(long sessionId, List<Long> metrics) {
-    mWorker.sessionHeartbeat(sessionId, metrics);
+  public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
+      throws AlluxioTException {
+    RpcUtils.call(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mWorker.sessionHeartbeat(sessionId);
+        return null;
+      }
+    });
   }
 }

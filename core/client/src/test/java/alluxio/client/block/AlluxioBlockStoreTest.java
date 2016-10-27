@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,10 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
+import alluxio.client.WriteType;
+import alluxio.client.file.options.OutStreamOptions;
+import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.exception.PreconditionMessage;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
@@ -19,57 +22,70 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.io.File;
-import java.net.InetSocketAddress;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Tests for {@link AlluxioBlockStore}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockMasterClient.class, BlockStoreContext.class, NetworkAddressUtils.class,
-    BlockWorkerClient.class})
+@PrepareForTest({BlockStoreContext.class})
 public final class AlluxioBlockStoreTest {
   private static final long BLOCK_ID = 3L;
-  private static final long BLOCK_LENGTH = 1000L;
+  private static final long BLOCK_LENGTH = 100L;
   private static final long LOCK_ID = 44L;
-  private static final long WORKER_ID_LOCAL = 5L;
-  private static final long WORKER_ID_REMOTE = 6L;
-  private static final String WORKER_HOSTNAME_LOCAL = "localhost";
+  private static final String WORKER_HOSTNAME_LOCAL = NetworkAddressUtils.getLocalHostName();
   private static final String WORKER_HOSTNAME_REMOTE = "remote";
-  private static final int WORKER_RPC_PORT = 7;
-  private static final int WORKER_DATA_PORT = 9;
-  private static final int WORKER_WEB_PORT = 10;
   private static final WorkerNetAddress WORKER_NET_ADDRESS_LOCAL = new WorkerNetAddress()
-      .setHost(WORKER_HOSTNAME_LOCAL).setRpcPort(WORKER_RPC_PORT).setDataPort(WORKER_DATA_PORT)
-      .setWebPort(WORKER_WEB_PORT);
+      .setHost(WORKER_HOSTNAME_LOCAL);
   private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = new WorkerNetAddress()
-      .setHost(WORKER_HOSTNAME_REMOTE).setRpcPort(WORKER_RPC_PORT).setDataPort(WORKER_DATA_PORT)
-      .setWebPort(WORKER_WEB_PORT);
-  private static final String STORAGE_TIER = "mem";
+      .setHost(WORKER_HOSTNAME_REMOTE);
   private static final BlockLocation BLOCK_LOCATION_LOCAL = new BlockLocation()
-      .setWorkerId(WORKER_ID_LOCAL).setWorkerAddress(WORKER_NET_ADDRESS_LOCAL)
-      .setTierAlias(STORAGE_TIER);
+      .setWorkerAddress(WORKER_NET_ADDRESS_LOCAL);
   private static final BlockLocation BLOCK_LOCATION_REMOTE = new BlockLocation()
-      .setWorkerId(WORKER_ID_REMOTE).setWorkerAddress(WORKER_NET_ADDRESS_REMOTE)
-      .setTierAlias(STORAGE_TIER);
-  /** {@link BlockInfo} representing a block stored both remotely and locally. */
-  private static final BlockInfo BLOCK_INFO = new BlockInfo().setBlockId(BLOCK_ID)
-      .setLength(BLOCK_LENGTH)
-      .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL));
+      .setWorkerAddress(WORKER_NET_ADDRESS_REMOTE);
+
+  /**
+   * A mock class used to return controlled result when selecting workers.
+   */
+  @ThreadSafe
+  private static class MockFileWriteLocationPolicy implements FileWriteLocationPolicy {
+    private final List<WorkerNetAddress> mWorkerNetAddresses;
+    private int mIndex;
+
+    /**
+     * Constructs this mock policy that returns the given result, once a time, in the input order.
+     *
+     * @param addresses list of addresses this mock policy will return
+     */
+    public MockFileWriteLocationPolicy(List<WorkerNetAddress> addresses) {
+      mWorkerNetAddresses = Lists.newArrayList(addresses);
+      mIndex = 0;
+    }
+
+    @Override
+    public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
+        long blockSizeBytes) {
+      return mWorkerNetAddresses.get(mIndex++);
+    }
+  }
 
   /**
    * The rule for a temporary folder.
@@ -77,79 +93,113 @@ public final class AlluxioBlockStoreTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  private static BlockStoreContext sBlockStoreContext;
-  private static AlluxioBlockStore sBlockStore;
-  private static BlockMasterClient sMasterClient;
-  private static BlockWorkerClient sBlockWorkerClient;
-
-  private File mTestFile;
-
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    // Replace the singleton BlockStoreContext.INSTANCE with a mock we can control
-    sBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
-    Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", sBlockStoreContext);
-
-    // Mock block store should return our mock clients
-    sBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
-    Mockito.when(sBlockStoreContext.acquireWorkerClient(Mockito.any(WorkerNetAddress.class)))
-        .thenReturn(sBlockWorkerClient);
-    sMasterClient = PowerMockito.mock(BlockMasterClient.class);
-    Mockito.when(sBlockStoreContext.acquireMasterClientResource()).thenReturn(
-        new DummyCloseableResource<BlockMasterClient>(sMasterClient));
-
-    // Inform the block store that it should use the mock context
-    sBlockStore = AlluxioBlockStore.get();
-    Whitebox.setInternalState(sBlockStore, "mContext", sBlockStoreContext);
-  }
+  private BlockMasterClient mMasterClient;
+  private BlockWorkerClient mBlockWorkerClient;
+  private AlluxioBlockStore mBlockStore;
 
   @Before
   public void before() throws Exception {
-    mTestFile = mTestFolder.newFile("testFile");
-    // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
-    Mockito.when(sBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
-        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
+    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
+    mMasterClient = PowerMockito.mock(BlockMasterClient.class);
+
+    BlockStoreContext blockStoreContext = PowerMockito.mock(BlockStoreContext.class);
+    // Mock block store context to return our mock clients
+    Mockito.when(blockStoreContext.createWorkerClient(Mockito.any(WorkerNetAddress.class)))
+        .thenReturn(mBlockWorkerClient);
+    Mockito.when(blockStoreContext.acquireMasterClientResource()).thenReturn(
+        new DummyCloseableResource<>(mMasterClient));
+
+    mBlockStore = new AlluxioBlockStore(blockStoreContext, WORKER_HOSTNAME_LOCAL);
   }
 
   /**
    * Tests {@link AlluxioBlockStore#getInStream(long)} when a local block exists, making sure that
    * the local block is preferred.
-   *
-   * @throws Exception when getting the reading stream fails
    */
   @Test
-  public void getInStreamLocalTest() throws Exception {
-    Mockito.when(sMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
-    PowerMockito.mockStatic(NetworkAddressUtils.class);
-    Mockito.when(NetworkAddressUtils.getLocalHostName(Mockito.<Configuration>any()))
-        .thenReturn(WORKER_HOSTNAME_LOCAL);
-    BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
+  public void getInStreamLocal() throws Exception {
+    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo()
+        .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL)));
 
-    Assert.assertTrue(stream instanceof LocalBlockInStream);
-    Assert.assertEquals(Long.valueOf(BLOCK_ID), Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(Long.valueOf(BLOCK_LENGTH),
-        Whitebox.getInternalState(stream, "mBlockSize"));
+    File mTestFile = mTestFolder.newFile("testFile");
+    // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
+
+    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
+    Assert.assertEquals(LocalBlockInStream.class, stream.getClass());
   }
 
   /**
    * Tests {@link AlluxioBlockStore#getInStream(long)} when no local block exists, making sure that
    * the first {@link BlockLocation} in the {@link BlockInfo} list is chosen.
-   *
-   * @throws Exception when getting the reading stream fails
    */
   @Test
-  public void getInStreamRemoteTest() throws Exception {
-    Mockito.when(sMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
-    PowerMockito.mockStatic(NetworkAddressUtils.class);
-    Mockito.when(NetworkAddressUtils.getLocalHostName(Mockito.<Configuration>any()))
-        .thenReturn(WORKER_HOSTNAME_LOCAL + "_different");
-    BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
+  public void getInStreamRemote() throws Exception {
+    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo()
+        .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE)));
 
-    Assert.assertTrue(stream instanceof RemoteBlockInStream);
-    Assert.assertEquals(Long.valueOf(BLOCK_ID), Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(Long.valueOf(BLOCK_LENGTH),
-        Whitebox.getInternalState(stream, "mBlockSize"));
-    Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
-        Whitebox.getInternalState(stream, "mWorkerInetSocketAddress"));
+    File mTestFile = mTestFolder.newFile("testFile");
+    // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
+
+    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
+    Assert.assertEquals(RemoteBlockInStream.class, stream.getClass());
+  }
+
+  @Test
+  public void getOutStreamUsingLocationPolicy() throws Exception {
+    OutStreamOptions options = OutStreamOptions.defaults().setWriteType(WriteType.MUST_CACHE)
+        .setLocationPolicy(new FileWriteLocationPolicy() {
+          @Override
+          public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
+              long blockSizeBytes) {
+            throw new RuntimeException("policy threw exception");
+          }
+        });
+    try {
+      mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+      Assert.fail("An exception should have been thrown");
+    } catch (Exception e) {
+      Assert.assertEquals("policy threw exception", e.getMessage());
+    }
+  }
+
+  @Test
+  public void getOutStreamMissingLocationPolicy() throws IOException {
+    OutStreamOptions options =
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
+    try {
+      mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+      Assert.fail("missing location policy should fail");
+    } catch (NullPointerException e) {
+      Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED.toString(),
+          e.getMessage());
+    }
+  }
+
+  @Test
+  public void getOutStreamLocal() throws Exception {
+    Mockito.when(mBlockWorkerClient.requestBlockLocation(Matchers.eq(BLOCK_ID), Matchers.anyLong()))
+        .thenReturn("test_path");
+
+    OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+        .setLocationPolicy(new MockFileWriteLocationPolicy(
+            Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
+        .setWriteType(WriteType.MUST_CACHE);
+    BufferedBlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+    Assert.assertEquals(LocalBlockOutStream.class, stream.getClass());
+  }
+
+  @Test
+  public void getOutStreamRemote() throws Exception {
+    OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+        .setLocationPolicy(new MockFileWriteLocationPolicy(
+            Lists.newArrayList(WORKER_NET_ADDRESS_REMOTE)))
+        .setWriteType(WriteType.MUST_CACHE);
+    BufferedBlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+    Assert.assertEquals(RemoteBlockOutStream.class, stream.getClass());
   }
 }

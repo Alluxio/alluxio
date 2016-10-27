@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,10 +13,9 @@ package alluxio.fuse;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -28,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -38,7 +38,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static Configuration sConfiguration;
 
   // prevent instantiation
   private AlluxioFuse() {
@@ -54,14 +53,13 @@ public final class AlluxioFuse {
    * @param args arguments to run the command line
    */
   public static void main(String[] args) {
-    sConfiguration = ClientContext.getConf();
     final AlluxioFuseOptions opts = parseOptions(args);
     if (opts == null) {
       System.exit(1);
     }
 
     final FileSystem tfs = FileSystem.Factory.get();
-    final AlluxioFuseFileSystem fs = new AlluxioFuseFileSystem(sConfiguration, tfs, opts);
+    final AlluxioFuseFileSystem fs = new AlluxioFuseFileSystem(tfs, opts);
     final List<String> fuseOpts = opts.getFuseOpts();
     // Force direct_io in FUSE: writes and reads bypass the kernel page
     // cache and go directly to alluxio. This avoids extra memory copies
@@ -129,7 +127,7 @@ public final class AlluxioFuse {
       String mntPointValue = cli.getOptionValue("m");
       String alluxioRootValue = cli.getOptionValue("r");
 
-      List<String> fuseOpts = Lists.newArrayList();
+      List<String> fuseOpts = new ArrayList<>();
       boolean noUserMaxWrite = true;
       if (cli.hasOption("o")) {
         String[] fopts = cli.getOptionValues("o");
@@ -144,21 +142,21 @@ public final class AlluxioFuse {
       // check if the user has specified his own max_write, otherwise get it
       // from conf
       if (noUserMaxWrite) {
-        final long maxWrite = sConfiguration.getLong(Constants.FUSE_MAXWRITE_BYTES);
+        final long maxWrite = Configuration.getLong(PropertyKey.FUSE_MAXWRITE_BYTES);
         fuseOpts.add(String.format("-omax_write=%d", maxWrite));
       }
 
       if (mntPointValue == null) {
-        mntPointValue = sConfiguration.get(Constants.FUSE_DEFAULT_MOUNTPOINT);
+        mntPointValue = Configuration.get(PropertyKey.FUSE_MOUNT_DEFAULT);
         LOG.info("Mounting on default {}", mntPointValue);
       }
 
       if (alluxioRootValue == null) {
-        alluxioRootValue = sConfiguration.get(Constants.FUSE_FS_ROOT);
+        alluxioRootValue = Configuration.get(PropertyKey.FUSE_FS_ROOT);
         LOG.info("Using default alluxio root {}", alluxioRootValue);
       }
 
-      final boolean fuseDebug = sConfiguration.getBoolean(Constants.FUSE_DEBUG_ENABLE);
+      final boolean fuseDebug = Configuration.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
 
       return new AlluxioFuseOptions(mntPointValue, alluxioRootValue, fuseDebug, fuseOpts);
     } catch (ParseException e) {

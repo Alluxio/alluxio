@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PreconditionMessage;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
@@ -22,6 +23,7 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -30,23 +32,28 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The base class for clients.
  */
+// TODO(peis): Consolidate this to ThriftClientPool.
 @ThreadSafe
-public abstract class AbstractClient implements Closeable {
+public abstract class AbstractClient implements Client {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  /** The pattern of exception message when client and server transport frame sizes do not match. */
+  private static final Pattern FRAME_SIZE_EXCEPTION_PATTERN =
+      Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
+
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY = 30;
 
-  protected final Configuration mConfiguration;
   protected final String mMode;
 
   protected InetSocketAddress mAddress = null;
@@ -73,15 +80,13 @@ public abstract class AbstractClient implements Closeable {
    * Creates a new client base.
    *
    * @param address the address
-   * @param configuration the Alluxio configuration
    * @param mode the mode of the client for display
    */
-  public AbstractClient(InetSocketAddress address, Configuration configuration, String mode) {
-    mConfiguration = Preconditions.checkNotNull(configuration);
+  public AbstractClient(InetSocketAddress address, String mode) {
     mAddress = Preconditions.checkNotNull(address);
     mMode = mode;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    mTransportProvider = TransportProvider.Factory.create();
   }
 
   /**
@@ -105,12 +110,12 @@ public abstract class AbstractClient implements Closeable {
    * @param client the service client
    * @param version the client version
    */
-  private void checkVersion(AlluxioService.Client client, long version) throws IOException {
+  protected void checkVersion(AlluxioService.Client client, long version) throws IOException {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
         mServiceVersion = client.getServiceVersion();
       } catch (TException e) {
-        throw new IOException(e.getMessage());
+        throw new IOException(e);
       }
       if (mServiceVersion != version) {
         throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
@@ -156,14 +161,14 @@ public abstract class AbstractClient implements Closeable {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    int maxConnectsTry = mConfiguration.getInt(Constants.MASTER_RETRY_COUNT);
+    int maxConnectsTry = Configuration.getInt(PropertyKey.MASTER_RETRY);
     final int BASE_SLEEP_MS = 50;
     RetryPolicy retry =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
     while (!mClosed) {
       mAddress = getAddress();
-      LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}", Version.VERSION,
-              getServiceName(), mMode, mAddress);
+      LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
+          RuntimeConstants.VERSION, getServiceName(), mMode, mAddress);
 
       TProtocol binaryProtocol =
           new TBinaryProtocol(mTransportProvider.getClientTransport(mAddress));
@@ -175,9 +180,29 @@ public abstract class AbstractClient implements Closeable {
         afterConnect();
         checkVersion(getClient(), getServiceVersion());
         return;
+      } catch (IOException e) {
+        if (FRAME_SIZE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
+          // See an error like "Frame size (67108864) larger than max length (16777216)!",
+          // pointing to the helper page.
+          String message = String.format("Failed to connect to %s %s @ %s: %s. "
+              + "This exception may be caused by incorrect network configuration. "
+              + "Please consult %s for common solutions to address this problem.",
+              getServiceName(), mMode, mAddress, e.getMessage(),
+              RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
+          throw new IOException(message, e);
+        }
+        throw e;
       } catch (TTransportException e) {
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to " + getServiceName() + " "
             + mMode + " @ " + mAddress + " : " + e.getMessage());
+        if (e.getCause() instanceof java.net.SocketTimeoutException) {
+          // Do not retry if socket timeout.
+          String message = "Thrift transport open times out. Please check whether the "
+              + "authentication types match between client and server. Note that NOSASL client "
+              + "is not able to connect to servers with SIMPLE security mode.";
+          throw new IOException(message, e);
+        }
+        // TODO(peis): Consider closing the connection here as well.
         if (!retry.attemptRetry()) {
           break;
         }
@@ -194,22 +219,16 @@ public abstract class AbstractClient implements Closeable {
    */
   public synchronized void disconnect() {
     if (mConnected) {
+      Preconditions.checkNotNull(mProtocol, PreconditionMessage.PROTOCOL_NULL_WHEN_CONNECTED);
       LOG.debug("Disconnecting from the {} {} {}", getServiceName(), mMode, mAddress);
-      mConnected = false;
-    }
-    try {
       beforeDisconnect();
-      if (mProtocol != null) {
-        mProtocol.getTransport().close();
-      }
-    } finally {
+      mProtocol.getTransport().close();
+      mConnected = false;
       afterDisconnect();
     }
   }
 
   /**
-   * Returns the connected status of the client.
-   *
    * @return true if this client is connected to the remote
    */
   public synchronized boolean isConnected() {
@@ -235,8 +254,6 @@ public abstract class AbstractClient implements Closeable {
   }
 
   /**
-   * Returns the {@link InetSocketAddress} of the remote.
-   *
    * @return the {@link InetSocketAddress} of the remote
    */
   protected synchronized InetSocketAddress getAddress() {
@@ -277,9 +294,10 @@ public abstract class AbstractClient implements Closeable {
   }
 
   /**
-   * Tries to execute an RPC defined as a {@link RpcCallable}, if error
-   * happens in one execution, a reconnection will be tried through {@link #connect()} and the
-   * action will be re-executed.
+   * Tries to execute an RPC defined as a {@link RpcCallable}.
+   *
+   * If a non-Alluxio thrift exception occurs, a reconnection will be tried through
+   * {@link #connect()} and the action will be re-executed.
    *
    * @param rpc the RPC call to be executed
    * @param <V> type of return value of the RPC call
@@ -297,9 +315,11 @@ public abstract class AbstractClient implements Closeable {
         return rpc.call();
       } catch (ThriftIOException e) {
         throw new IOException(e);
+      } catch (AlluxioTException e) {
+        throw Throwables.propagate(AlluxioException.fromThrift(e));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mConnected = false;
+        disconnect();
       }
     }
     throw new IOException("Failed after " + retry + " retries.");
@@ -325,12 +345,12 @@ public abstract class AbstractClient implements Closeable {
       try {
         return rpc.call();
       } catch (AlluxioTException e) {
-        throw AlluxioException.from(e);
+        throw AlluxioException.fromThrift(e);
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mConnected = false;
+        disconnect();
       }
     }
     throw new IOException("Failed after " + retry + " retries.");

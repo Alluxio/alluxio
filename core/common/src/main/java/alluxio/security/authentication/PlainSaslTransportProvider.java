@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,10 +12,9 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.LoginUser;
 
-import com.google.common.base.Preconditions;
 import org.apache.thrift.transport.TSaslClientTransport;
 import org.apache.thrift.transport.TSaslServerTransport;
 import org.apache.thrift.transport.TTransport;
@@ -31,7 +30,7 @@ import javax.security.sasl.SaslException;
 
 /**
  * If authentication type is {@link AuthType#SIMPLE} or {@link AuthType#CUSTOM}, this is the
- * default transport provider which uses Sasl transport.
+ * default transport provider which uses SASL transport.
  */
 @ThreadSafe
 public final class PlainSaslTransportProvider implements TransportProvider {
@@ -41,22 +40,17 @@ public final class PlainSaslTransportProvider implements TransportProvider {
 
   /** Timeout for socket in ms. */
   private int mSocketTimeoutMs;
-  /** Configuration. */
-  private Configuration mConfiguration;
 
   /**
    * Constructor for transport provider with {@link AuthType#SIMPLE} or {@link AuthType#CUSTOM}.
-   *
-   * @param conf Alluxio configuration
    */
-  public PlainSaslTransportProvider(Configuration conf) {
-    mConfiguration = Preconditions.checkNotNull(conf);
-    mSocketTimeoutMs = conf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
+  public PlainSaslTransportProvider() {
+    mSocketTimeoutMs = Configuration.getInt(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
   }
 
   @Override
   public TTransport getClientTransport(InetSocketAddress serverAddress) throws IOException {
-    String username = LoginUser.get(mConfiguration).getName();
+    String username = LoginUser.get().getName();
     String password = "noPassword";
     return getClientTransport(username, password, serverAddress);
   }
@@ -83,10 +77,10 @@ public final class PlainSaslTransportProvider implements TransportProvider {
   @Override
   public TTransportFactory getServerTransportFactory() throws SaslException {
     AuthType authType =
-        mConfiguration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+        Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();
     AuthenticationProvider provider =
-        AuthenticationProvider.Factory.create(authType, mConfiguration);
+        AuthenticationProvider.Factory.create(authType);
     saslFactory
         .addServerDefinition(PlainSaslServerProvider.MECHANISM, null, null,
             new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider));

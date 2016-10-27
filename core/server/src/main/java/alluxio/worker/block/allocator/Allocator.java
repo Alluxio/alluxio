@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,7 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
@@ -32,18 +32,20 @@ public interface Allocator {
    * Factory for {@link Allocator}.
    */
   class Factory {
+
+    private Factory() {} // prevent instantiation
+
     /**
      * Factory for {@link Allocator}.
      *
-     * @param conf Alluxio configuration used to define the {@link Allocator} type
      * @param view {@link BlockMetadataManagerView} to pass to {@link Allocator}
      * @return the generated {@link Allocator}, it will be a {@link MaxFreeAllocator} by default
      */
-    public static Allocator create(Configuration conf, BlockMetadataManagerView view) {
+    public static Allocator create(BlockMetadataManagerView view) {
       BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<Allocator>getClass(Constants.WORKER_ALLOCATOR_CLASS),
+            Configuration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
             new Class[] {BlockMetadataManagerView.class}, new Object[] {managerView});
       } catch (Exception e) {
         throw Throwables.propagate(e);

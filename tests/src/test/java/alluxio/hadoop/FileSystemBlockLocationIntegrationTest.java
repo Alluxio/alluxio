@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.hadoop;
 
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
@@ -35,7 +34,7 @@ public class FileSystemBlockLocationIntegrationTest {
   private static final int FILE_LEN = BLOCK_SIZE * 3;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE);
+      new LocalAlluxioClusterResource.Builder().build();
   private static org.apache.hadoop.fs.FileSystem sTFS;
 
   @BeforeClass
@@ -46,7 +45,7 @@ public class FileSystemBlockLocationIntegrationTest {
     alluxio.client.file.FileSystem alluxioFS = sLocalAlluxioClusterResource.get().getClient();
     FileSystemTestUtils.createByteFile(alluxioFS, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
 
-    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
   }
 
@@ -55,14 +54,12 @@ public class FileSystemBlockLocationIntegrationTest {
    * Test the different situations of different start and len.
    */
   @Test
-  public void basicBlockLocationTest() throws Exception {
-    long start = 0;
-    long len = 0;
+  public void basicBlockLocation() throws Exception {
     FileStatus fStatus = sTFS.getFileStatus(new Path("/testFile1"));
 
     // block0.offset = start < start+len < block1.offset
-    start = 0;
-    len = BLOCK_SIZE - 1;
+    long start = 0;
+    long len = BLOCK_SIZE - 1;
     Assert.assertEquals(1, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
     // block0.offset < start < start+len < block1.offset

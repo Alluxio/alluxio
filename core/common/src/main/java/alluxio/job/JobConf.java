@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,6 +11,8 @@
 
 package alluxio.job;
 
+import alluxio.annotation.PublicApi;
+
 import java.io.Serializable;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -18,6 +20,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A job configuration.
  */
+@PublicApi
 @ThreadSafe
 public class JobConf implements Serializable {
   private static final long serialVersionUID = 1258775437399802121L;

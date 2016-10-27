@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,29 +12,35 @@
 package alluxio.client.lineage;
 
 import alluxio.AlluxioURI;
-import alluxio.client.UnderStorageType;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.OutStreamOptions;
 
-import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Tests {@link LineageFileOutStream}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class})
 public final class LineageFileOutStreamTest {
 
-  /**
-   * Tests that the correct {@link UnderStorageType} is set when creating the stream.
-   *
-   * @throws Exception if creating the stream fails
-   */
   @Test
-  public void outStreamCreationTest() throws Exception {
-    LineageFileOutStream stream =
-        new LineageFileOutStream(new AlluxioURI("/path"), OutStreamOptions.defaults());
-    UnderStorageType underStorageType =
-        (UnderStorageType) Whitebox.getInternalState(stream, "mUnderStorageType");
-    Assert.assertEquals(UnderStorageType.ASYNC_PERSIST, underStorageType);
+  public void persistHandledByMaster() throws Exception {
+    FileSystemContext context = PowerMockito.mock(FileSystemContext.class);
+    FileSystemMasterClient client = PowerMockito.mock(FileSystemMasterClient.class);
+    Mockito.when(context.acquireMasterClient()).thenReturn(client);
+
+    LineageFileOutStream stream = new LineageFileOutStream(context, new AlluxioURI("/path"),
+        OutStreamOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH));
+    stream.close();
+    // The lineage file out stream doesn't manage asynchronous persistence.
+    Mockito.verify(client, Mockito.times(0)).scheduleAsyncPersist(new AlluxioURI("/path"));
   }
 }

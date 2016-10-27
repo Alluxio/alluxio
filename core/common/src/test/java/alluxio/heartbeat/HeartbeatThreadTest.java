@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,17 +11,18 @@
 
 package alluxio.heartbeat;
 
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.FutureTask;
 
 /**
  * Unit tests for {@link HeartbeatThread}. This test uses
@@ -58,92 +59,84 @@ public final class HeartbeatThreadTest {
 
   private static final int NUMBER_OF_THREADS = 10;
 
-  private static ExecutorService sExecutorService;
+  private ExecutorService mExecutorService;
 
-  @BeforeClass
-  public static void beforeClass() {
-    sExecutorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+  @Before
+  public void before() {
+    mExecutorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
   }
 
-  @AfterClass
-  public static void afterClass() {
-    sExecutorService.shutdownNow();
+  @After
+  public void after() {
+    mExecutorService.shutdownNow();
   }
 
   /**
    * This is a basic test of the heartbeat scheduler logic. It steps through the execution of a
    * single dummy executor.
-   *
-   * @throws Exception when joining a thread
    */
   @Test
-  public void serialHeartbeatThreadTest() throws Exception {
-    Thread thread = new DummyHeartbeatTestThread();
+  public void serialHeartbeatThread() throws Exception {
+    FutureTask<Void> task = new FutureTask<>(new DummyHeartbeatTestCallable());
+    Thread thread = new Thread(task);
     thread.start();
     thread.join();
+    task.get();
   }
 
   /**
    * This is a stress test of the heartbeat scheduler logic. It concurrently steps through the
    * execution of multiple dummy executors.
-   *
-   * @throws Exception when joining a thread
    */
   @Test
-  public void concurrentHeartbeatThreadTest() throws Exception {
-    List<Thread> mThreads = new LinkedList<Thread>();
+  public void concurrentHeartbeatThread() throws Exception {
+    List<FutureTask<Void>> tasks = new LinkedList<>();
 
     // Start the threads.
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-      Thread thread = new DummyHeartbeatTestThread(i);
+      FutureTask<Void> task = new FutureTask<>(new DummyHeartbeatTestCallable(i));
+      Thread thread = new Thread(task);
       thread.start();
-      mThreads.add(thread);
+      tasks.add(task);
     }
 
     // Wait for the threads to finish.
-    for (Thread thread : mThreads) {
-      thread.join();
+    for (FutureTask<Void> task: tasks) {
+      task.get();
     }
   }
 
-  private class DummyHeartbeatTestThread extends Thread  {
-    private String mThreadName;
+  private class DummyHeartbeatTestCallable implements Callable<Void>  {
+    private final String mThreadName;
 
-    public DummyHeartbeatTestThread() {
+    public DummyHeartbeatTestCallable() {
       mThreadName = THREAD_NAME;
     }
 
-    public DummyHeartbeatTestThread(int id) {
+    public DummyHeartbeatTestCallable(int id) {
       mThreadName = THREAD_NAME + "-" + id;
     }
 
     @Override
-    public void run()  {
-      try {
-        Whitebox.invokeMethod(HeartbeatContext.class, "setTimerClass", mThreadName,
-            HeartbeatContext.SCHEDULED_TIMER_CLASS);
-
+    public Void call() throws Exception {
+      try (ManuallyScheduleHeartbeat.Resource r =
+          new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
         HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1);
 
         // Run the HeartbeatThread.
-        sExecutorService.submit(ht);
+        mExecutorService.submit(ht);
 
-        // Wait for the DummyHeartbeatExecutor executor to be ready to execute its heartbeat.
-        Assert.assertTrue("Initial wait failed.",
-            HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS));
-
-        final int numIterations = 100000;
+        final int numIterations = 5000;
         for (int i = 0; i < numIterations; i++) {
-          HeartbeatScheduler.schedule(mThreadName);
-          Assert.assertTrue("Iteration " + i + " failed.",
-              HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS));
+          HeartbeatScheduler.execute(mThreadName);
         }
 
         Assert.assertEquals("The executor counter is wrong.", numIterations, executor.getCounter());
       } catch (Exception e) {
         throw new RuntimeException(e.getMessage());
       }
+      return null;
     }
   }
 

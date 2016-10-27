@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -39,8 +39,8 @@ public final class StorageDirView {
 
   // The below data structures are used by the evictor to mark blocks to move in/out during
   // generating an eviction plan.
-  private final Set<Long> mBlocksToMoveIn = new HashSet<Long>();
-  private final Set<Long> mBlocksToMoveOut = new HashSet<Long>();
+  private final Set<Long> mBlocksToMoveIn = new HashSet<>();
+  private final Set<Long> mBlocksToMoveOut = new HashSet<>();
   private long mBlocksToMoveInSize = 0L;
   private long mBlocksToMoveOutSize = 0L;
 
@@ -74,7 +74,7 @@ public final class StorageDirView {
    * @return a list of metadata for all evictable blocks
    */
   public List<BlockMeta> getEvictableBlocks() {
-    List<BlockMeta> filteredList = new ArrayList<BlockMeta>();
+    List<BlockMeta> filteredList = new ArrayList<>();
 
     for (BlockMeta blockMeta : mDir.getBlocks()) {
       long blockId = blockMeta.getBlockId();
@@ -159,7 +159,7 @@ public final class StorageDirView {
   /**
    * Returns an indication whether the given block is marked to be moved out.
    *
-   * @param blockId the block id
+   * @param blockId the block ID
    * @return whether the block is marked to be moved out
    */
   public boolean isMarkedToMoveOut(long blockId) {

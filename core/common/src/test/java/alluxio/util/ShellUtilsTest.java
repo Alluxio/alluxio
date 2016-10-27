@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -25,10 +25,10 @@ public class ShellUtilsTest {
    * @throws Throwable when the execution of the command fails
    */
   @Test
-  public void execCommandTest() throws Throwable {
+  public void execCommand() throws Throwable {
     String testString = "alluxio";
     // Execute echo for testing command execution.
-    String result = ShellUtils.execCommand(new String[] {"bash", "-c", "echo " + testString});
+    String result = ShellUtils.execCommand("bash", "-c", "echo " + testString);
     Assert.assertEquals(testString + "\n", result);
   }
 
@@ -38,7 +38,7 @@ public class ShellUtilsTest {
    * @throws Throwable when the execution of the commands fails
    */
   @Test
-  public void execGetGroupCommandTest() throws Throwable {
+  public void execGetGroupCommand() throws Throwable {
     String result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand("root"));
     // On Linux user "root" will be a part of the group "root". On OSX it will be a part of "admin".
     Assert.assertTrue(result.contains("root") || result.contains("admin"));

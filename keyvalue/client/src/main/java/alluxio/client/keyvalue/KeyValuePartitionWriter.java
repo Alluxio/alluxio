@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,9 +12,9 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.Cancelable;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -34,6 +34,9 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
    * Factory for {@link KeyValuePartitionWriter}.
    */
   class Factory {
+
+    private Factory() {} // prevent instantiation
+
     /**
      * Factory method to create a {@link KeyValuePartitionWriter} instance that writes key-value
      * data to a new partition file in Alluxio.
@@ -48,7 +51,7 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
       Preconditions.checkNotNull(uri);
       FileSystem fs = FileSystem.Factory.get();
       CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(
-          ClientContext.getConf().getBytes(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
+          Configuration.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
       FileOutStream fileOutStream = fs.createFile(uri, options);
       return new BaseKeyValuePartitionWriter(fileOutStream);
     }
@@ -71,4 +74,9 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
    * @return whether this writer is full to take any more key-value pairs
    */
   boolean canPut(byte[] key, byte[] value);
+
+  /**
+   * @return number of keys
+   */
+  int keyCount();
 }

@@ -1,0 +1,4 @@
+alluxio.keyvalue.enabled:
+  Whether the keyvalue interface is enabled.
+alluxio.keyvalue.partition.size.bytes.max:
+  Maximum size of each partition.

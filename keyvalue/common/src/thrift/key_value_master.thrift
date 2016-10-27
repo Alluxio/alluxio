@@ -10,6 +10,7 @@ struct PartitionInfo {
   1: binary keyStart
   2: binary keyLimit
   3: i64 blockId
+  4: i32 keyCount
 }
 
 /**

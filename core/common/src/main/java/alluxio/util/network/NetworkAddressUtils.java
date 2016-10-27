@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,6 +14,8 @@ package alluxio.util.network;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.LeaderInquireClient;
+import alluxio.PropertyKey;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -64,53 +66,54 @@ public final class NetworkAddressUtils {
     /**
      * Master RPC service (Thrift).
      */
-    MASTER_RPC("Alluxio Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
-        Constants.MASTER_RPC_PORT, Constants.DEFAULT_MASTER_PORT),
+    MASTER_RPC("Alluxio Master RPC service", PropertyKey.MASTER_HOSTNAME,
+        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_RPC_PORT, Constants.DEFAULT_MASTER_PORT),
 
     /**
      * Master web service (Jetty).
      */
-    MASTER_WEB("Alluxio Master Web service", Constants.MASTER_WEB_HOSTNAME,
-        Constants.MASTER_WEB_BIND_HOST, Constants.MASTER_WEB_PORT,
+    MASTER_WEB("Alluxio Master Web service", PropertyKey.MASTER_WEB_HOSTNAME,
+        PropertyKey.MASTER_WEB_BIND_HOST, PropertyKey.MASTER_WEB_PORT,
         Constants.DEFAULT_MASTER_WEB_PORT),
 
     /**
      * Worker RPC service (Thrift).
      */
-    WORKER_RPC("Alluxio Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
-        Constants.WORKER_RPC_PORT, Constants.DEFAULT_WORKER_PORT),
+    WORKER_RPC("Alluxio Worker RPC service", PropertyKey.WORKER_HOSTNAME,
+        PropertyKey.WORKER_BIND_HOST, PropertyKey.WORKER_RPC_PORT, Constants.DEFAULT_WORKER_PORT),
 
     /**
      * Worker data service (Netty).
      */
-    WORKER_DATA("Alluxio Worker data service", Constants.WORKER_DATA_HOSTNAME,
-        Constants.WORKER_DATA_BIND_HOST, Constants.WORKER_DATA_PORT,
+    WORKER_DATA("Alluxio Worker data service", PropertyKey.WORKER_DATA_HOSTNAME,
+        PropertyKey.WORKER_DATA_BIND_HOST, PropertyKey.WORKER_DATA_PORT,
         Constants.DEFAULT_WORKER_DATA_PORT),
 
     /**
      * Worker web service (Jetty).
      */
-    WORKER_WEB("Alluxio Worker Web service", Constants.WORKER_WEB_HOSTNAME,
-        Constants.WORKER_WEB_BIND_HOST, Constants.WORKER_WEB_PORT,
-        Constants.DEFAULT_WORKER_WEB_PORT);
+    WORKER_WEB("Alluxio Worker Web service", PropertyKey.WORKER_WEB_HOSTNAME,
+        PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_WEB_PORT,
+        Constants.DEFAULT_WORKER_WEB_PORT),
+    ;
 
     // service name
     private final String mServiceName;
 
     // the key of connect hostname
-    private final String mHostNameKey;
+    private final PropertyKey mHostNameKey;
 
     // the key of bind hostname
-    private final String mBindHostKey;
+    private final PropertyKey mBindHostKey;
 
     // the key of service port
-    private final String mPortKey;
+    private final PropertyKey mPortKey;
 
     // default port number
     private final int mDefaultPort;
 
-    ServiceType(String serviceName, String hostNameKey, String bindHostKey, String portKey,
-        int defaultPort) {
+    ServiceType(String serviceName, PropertyKey hostNameKey, PropertyKey bindHostKey,
+        PropertyKey portKey, int defaultPort) {
       mServiceName = serviceName;
       mHostNameKey = hostNameKey;
       mBindHostKey = bindHostKey;
@@ -132,16 +135,16 @@ public final class NetworkAddressUtils {
      *
      * @return key of connect hostname
      */
-    public String getHostNameKey() {
+    public PropertyKey getHostNameKey() {
       return mHostNameKey;
     }
 
     /**
      * Gets the key of bind hostname.
      *
-     * @return key of bindhostname
+     * @return key of bind hostname
      */
-    public String getBindHostKey() {
+    public PropertyKey getBindHostKey() {
       return mBindHostKey;
     }
 
@@ -150,7 +153,7 @@ public final class NetworkAddressUtils {
      *
      * @return key of service port
      */
-    public String getPortKey() {
+    public PropertyKey getPortKey() {
       return mPortKey;
     }
 
@@ -188,12 +191,11 @@ public final class NetworkAddressUtils {
    * service.
    *
    * @param service the service name used to connect
-   * @param conf the configuration of Alluxio
    * @return the service address that a client (typically outside the service machine) uses to
    *         communicate with service.
    */
-  public static InetSocketAddress getConnectAddress(ServiceType service, Configuration conf) {
-    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
+  public static InetSocketAddress getConnectAddress(ServiceType service) {
+    return new InetSocketAddress(getConnectHost(service), getPort(service));
   }
 
   /**
@@ -235,24 +237,23 @@ public final class NetworkAddressUtils {
    * </table>
    *
    * @param service Service type used to connect
-   * @param conf Alluxio configuration used to look up the host resolution timeout
    * @return the externally resolvable hostname that the client can use to communicate with the
    *         service.
    */
-  public static String getConnectHost(ServiceType service, Configuration conf) {
-    if (conf.containsKey(service.mHostNameKey)) {
-      String connectHost = conf.get(service.mHostNameKey);
+  public static String getConnectHost(ServiceType service) {
+    if (Configuration.containsKey(service.mHostNameKey)) {
+      String connectHost = Configuration.get(service.mHostNameKey);
       if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
         return connectHost;
       }
     }
-    if (conf.containsKey(service.mBindHostKey)) {
-      String bindHost = conf.get(service.mBindHostKey);
+    if (Configuration.containsKey(service.mBindHostKey)) {
+      String bindHost = Configuration.get(service.mBindHostKey);
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
     }
-    return getLocalHostName(conf);
+    return getLocalHostName();
   }
 
   /**
@@ -260,11 +261,10 @@ public final class NetworkAddressUtils {
    * specified, Alluxio will use the default service port.
    *
    * @param service Service type used to connect
-   * @param conf Alluxio configuration
    * @return the service port number
    */
-  public static int getPort(ServiceType service, Configuration conf) {
-    return conf.getInt(service.mPortKey);
+  public static int getPort(ServiceType service) {
+    return Configuration.getInt(service.mPortKey);
   }
 
   /**
@@ -278,18 +278,18 @@ public final class NetworkAddressUtils {
    * </ol>
    *
    * @param service the service name used to connect
-   * @param conf the configuration of Alluxio
    * @return the InetSocketAddress the service will bind to
    */
-  public static InetSocketAddress getBindAddress(ServiceType service, Configuration conf) {
-    int port = getPort(service, conf);
+  public static InetSocketAddress getBindAddress(ServiceType service) {
+    int port = getPort(service);
     assertValidPort(port);
 
     String host;
-    if (conf.containsKey(service.mBindHostKey) && !conf.get(service.mBindHostKey).isEmpty()) {
-      host = conf.get(service.mBindHostKey);
+    if (Configuration.containsKey(service.mBindHostKey) && !Configuration.get(service.mBindHostKey)
+        .isEmpty()) {
+      host = Configuration.get(service.mBindHostKey);
     } else {
-      host = getLocalHostName(conf);
+      host = getLocalHostName();
     }
     return new InetSocketAddress(host, port);
   }
@@ -297,34 +297,33 @@ public final class NetworkAddressUtils {
   /**
    * Gets a local host name for the host this JVM is running on.
    *
-   * @param conf Alluxio configuration used to look up the host resolution timeout
    * @return the local host name, which is not based on a loopback ip address
    */
-  public static synchronized String getLocalHostName(Configuration conf) {
+  public static synchronized String getLocalHostName() {
     if (sLocalHost != null) {
       return sLocalHost;
     }
-    int hostResolutionTimeout = conf.getInt(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout =
+        Configuration.getInt(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalHostName(hostResolutionTimeout);
   }
 
   /**
    * Gets a local host name for the host this JVM is running on.
    *
-   * @param timeout Timeout in milliseconds to use for checking that a possible local host is
+   * @param timeoutMs Timeout in milliseconds to use for checking that a possible local host is
    *        reachable
    * @return the local host name, which is not based on a loopback ip address
    */
-  public static synchronized String getLocalHostName(int timeout) {
+  public static synchronized String getLocalHostName(int timeoutMs) {
     if (sLocalHost != null) {
       return sLocalHost;
     }
 
     try {
-      sLocalHost = InetAddress.getByName(getLocalIpAddress(timeout)).getCanonicalHostName();
+      sLocalHost = InetAddress.getByName(getLocalIpAddress(timeoutMs)).getCanonicalHostName();
       return sLocalHost;
     } catch (UnknownHostException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
@@ -332,25 +331,25 @@ public final class NetworkAddressUtils {
   /**
    * Gets a local IP address for the host this JVM is running on.
    *
-   * @param conf Alluxio configuration
    * @return the local ip address, which is not a loopback address and is reachable
    */
-  public static synchronized String getLocalIpAddress(Configuration conf) {
+  public static synchronized String getLocalIpAddress() {
     if (sLocalIP != null) {
       return sLocalIP;
     }
-    int hostResolutionTimeout = conf.getInt(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout =
+        Configuration.getInt(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalIpAddress(hostResolutionTimeout);
   }
 
   /**
    * Gets a local IP address for the host this JVM is running on.
    *
-   * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
+   * @param timeoutMs Timeout in milliseconds to use for checking that a possible local IP is
    *        reachable
    * @return the local ip address, which is not a loopback address and is reachable
    */
-  public static synchronized String getLocalIpAddress(int timeout) {
+  public static synchronized String getLocalIpAddress(int timeoutMs) {
     if (sLocalIP != null) {
       return sLocalIP;
     }
@@ -363,7 +362,7 @@ public final class NetworkAddressUtils {
       // Make sure that the address is actually reachable since in some network configurations
       // it is possible for the InetAddress.getLocalHost() call to return a non-reachable
       // address e.g. a broadcast address
-      if (!isValidAddress(address, timeout)) {
+      if (!isValidAddress(address, timeoutMs)) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 
         // Make getNetworkInterfaces have the same order of network interfaces as listed on
@@ -383,7 +382,7 @@ public final class NetworkAddressUtils {
             address = addresses.nextElement();
 
             // Address must not be link local or loopback. And it must be reachable
-            if (isValidAddress(address, timeout)) {
+            if (isValidAddress(address, timeoutMs)) {
               sLocalIP = address.getHostAddress();
               return sLocalIP;
             }
@@ -398,7 +397,6 @@ public final class NetworkAddressUtils {
       sLocalIP = address.getHostAddress();
       return sLocalIP;
     } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
@@ -426,14 +424,14 @@ public final class NetworkAddressUtils {
    * loopback address, non-IPv4, or other unreachable addresses.
    *
    * @param address The testing address
-   * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
+   * @param timeoutMs Timeout in milliseconds to use for checking that a possible local IP is
    *        reachable
    * @return a {@code boolean} indicating if the given address is externally resolvable address
    * @throws IOException if the address resolution fails
    */
-  private static boolean isValidAddress(InetAddress address, int timeout) throws IOException {
+  private static boolean isValidAddress(InetAddress address, int timeoutMs) throws IOException {
     return !address.isAnyLocalAddress() && !address.isLinkLocalAddress()
-        && !address.isLoopbackAddress() && address.isReachable(timeout)
+        && !address.isLoopbackAddress() && address.isReachable(timeoutMs)
         && (address instanceof Inet4Address);
   }
 
@@ -450,7 +448,7 @@ public final class NetworkAddressUtils {
       return null;
     }
 
-    if (path.hasAuthority() && path.getPort() != -1) {
+    if (path.hasAuthority()) {
       String authority = resolveHostName(path.getHost());
       if (path.getPort() != -1) {
         authority += ":" + path.getPort();
@@ -526,9 +524,7 @@ public final class NetworkAddressUtils {
       Field field = TServerSocket.class.getDeclaredField("serverSocket_");
       field.setAccessible(true);
       return (ServerSocket) field.get(thriftSocket);
-    } catch (NoSuchFieldException e) {
-      throw Throwables.propagate(e);
-    } catch (IllegalAccessException e) {
+    } catch (NoSuchFieldException | IllegalAccessException e) {
       throw Throwables.propagate(e);
     }
   }
@@ -579,6 +575,25 @@ public final class NetworkAddressUtils {
       int port = netAddress.getDataPort();
       return new InetSocketAddress(host, port);
     } catch (UnknownHostException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * Get the active master address from zookeeper for the fault tolerant Alluxio masters.
+   *
+   * @param zkLeaderPath the Zookeeper path containing the leader master address
+   * @return InetSocketAddress the active master address retrieved from zookeeper
+   */
+  public static InetSocketAddress getMasterAddressFromZK(String zkLeaderPath) {
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
+    LeaderInquireClient leaderInquireClient = LeaderInquireClient
+        .getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS), zkLeaderPath);
+    try {
+      String temp = leaderInquireClient.getMasterAddress();
+      return NetworkAddressUtils.parseInetSocketAddress(temp);
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -37,13 +37,16 @@ public abstract class RPCResponse extends RPCMessage {
     // Specific errors.
     FILE_DNE(100),
     BLOCK_LOCK_ERROR(101),
-    WRITE_ERROR(102);
+    WRITE_ERROR(102),
+    UFS_READ_FAILED(103),
+    UFS_WRITE_FAILED(104),
+    ;
 
     private static final String DEFAULT_ERROR_STRING = "Unknown error.";
     /** Mapping from short id to {@link Status}. */
-    private static final Map<Short, Status> SHORT_TO_STATUS_MAP = new HashMap<Short, Status>();
+    private static final Map<Short, Status> SHORT_TO_STATUS_MAP = new HashMap<>();
     /** Mapping from {@link Status} to status message. */
-    private static final Map<Status, String> STATUS_TO_MESSAGE_MAP = new HashMap<Status, String>();
+    private static final Map<Status, String> STATUS_TO_MESSAGE_MAP = new HashMap<>();
     static {
       // Populate the mappings.
       for (Status status : Status.values()) {
@@ -123,4 +126,9 @@ public abstract class RPCResponse extends RPCMessage {
       }
     }
   }
+
+  /**
+   * @return the status
+   */
+  public abstract Status getStatus();
 }

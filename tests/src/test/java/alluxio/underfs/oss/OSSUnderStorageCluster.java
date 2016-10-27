@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.underfs.oss;
 
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.io.PathUtils;
@@ -25,15 +24,15 @@ public class OSSUnderStorageCluster extends UnderFileSystemCluster {
 
   private String mOSSBucket;
 
-  public OSSUnderStorageCluster(String baseDir, Configuration configuration) {
-    super(baseDir, configuration);
+  public OSSUnderStorageCluster(String baseDir) {
+    super(baseDir);
     mOSSBucket = System.getProperty(INTEGRATION_OSS_BUCKET);
     mBaseDir = PathUtils.concatPath(mOSSBucket, UUID.randomUUID());
   }
 
   @Override
   public void cleanup() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir);
     ufs.delete(mBaseDir, true);
     mBaseDir = PathUtils.concatPath(mOSSBucket, UUID.randomUUID());
   }

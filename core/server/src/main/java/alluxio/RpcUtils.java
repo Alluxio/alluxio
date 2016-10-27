@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * Utilities for handling rpc calls.
+ * Utilities for handling RPC calls.
  */
 public final class RpcUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -39,10 +39,11 @@ public final class RpcUtils {
     try {
       return callable.call();
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (RuntimeException e) {
+      LOG.debug("Internal Alluxio error when running rpc", e);
+      throw e.toThrift();
+    } catch (Exception e) {
       LOG.error("Unexpected error running rpc", e);
-      throw new UnexpectedAlluxioException(e).toAlluxioTException();
+      throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
 
@@ -60,12 +61,14 @@ public final class RpcUtils {
     try {
       return callable.call();
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      LOG.debug("Internal Alluxio error when running rpc", e);
+      throw e.toThrift();
     } catch (IOException e) {
+      LOG.warn("I/O error when running rpc", e);
       throw new ThriftIOException(e.getMessage());
-    } catch (RuntimeException e) {
+    } catch (Exception e) {
       LOG.error("Unexpected error running rpc", e);
-      throw new UnexpectedAlluxioException(e).toAlluxioTException();
+      throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
 
@@ -99,4 +102,6 @@ public final class RpcUtils {
      */
     T call() throws AlluxioException, IOException;
   }
+
+  private RpcUtils() {} // prevent instantiation
 }

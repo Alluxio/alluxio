@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -10,6 +10,8 @@
  */
 
 package alluxio.master.file.meta;
+
+import alluxio.master.file.options.CreateFileOptions;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,7 +35,7 @@ public class TtlBucketTest {
    * Tests the different interval methods.
    */
   @Test
-  public void intervalTest() {
+  public void interval() {
     for (long i = 0; i < 10; i++) {
       mBucket = new TtlBucket(i);
       Assert.assertEquals(mBucket.getTtlIntervalEndTimeMs(), mBucket.getTtlIntervalStartTimeMs()
@@ -46,7 +48,7 @@ public class TtlBucketTest {
    * {@link TtlBucket#getTtlIntervalStartTimeMs()} method.
    */
   @Test
-  public void compareIntervalStartTimeTest() {
+  public void compareIntervalStartTime() {
     for (long i = 0; i < 10; i++) {
       for (long j = i + 1; j < 10; j++) {
         TtlBucket bucket1 = new TtlBucket(i);
@@ -71,9 +73,11 @@ public class TtlBucketTest {
    * methods.
    */
   @Test
-  public void addAndRemoveFileTest() {
-    InodeFile mFileTtl1 = new InodeFile(0).setTtl(1);
-    InodeFile mFileTtl2 = new InodeFile(1).setTtl(2);
+  public void addAndRemoveFile() {
+    InodeFile mFileTtl1 =
+        InodeFile.create(0, 0, "test1", 0, CreateFileOptions.defaults().setTtl(1));
+    InodeFile mFileTtl2 =
+        InodeFile.create(1, 0, "test1", 0, CreateFileOptions.defaults().setTtl(2));
     Assert.assertTrue(mBucket.getFiles().isEmpty());
 
     mBucket.addFile(mFileTtl1);
@@ -99,7 +103,7 @@ public class TtlBucketTest {
    * Tests the {@link TtlBucket#compareTo(TtlBucket)} method.
    */
   @Test
-  public void compareToTest() {
+  public void compareTo() {
     TtlBucket firstBucket = new TtlBucket(0);
     TtlBucket secondBucket = new TtlBucket(0);
     TtlBucket thirdBucket = new TtlBucket(1);
@@ -116,7 +120,7 @@ public class TtlBucketTest {
    * Tests the {@link TtlBucket#equals(Object)} method.
    */
   @Test
-  public void equalsTest() {
+  public void equals() {
     TtlBucket firstBucket = new TtlBucket(0);
     TtlBucket secondBucket = new TtlBucket(0);
     TtlBucket thirdBucket = new TtlBucket(1);

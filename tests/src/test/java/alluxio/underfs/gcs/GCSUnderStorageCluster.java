@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.underfs.gcs;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
@@ -39,12 +38,12 @@ public class GCSUnderStorageCluster extends UnderFileSystemCluster {
   private boolean mStarted;
   private String mGCSBucket;
 
-  public GCSUnderStorageCluster(String baseDir, Configuration configuration) {
-    super(baseDir, configuration);
-    mGCSBucket = PathUtils.concatPath(System.getProperty(INTEGRATION_GCS_BUCKET),
-        UUID.randomUUID());
-    Preconditions.checkState(mGCSBucket != null && mGCSBucket != "",
-        PreconditionMessage.GCS_BUCKET_MUST_BE_SET, INTEGRATION_GCS_BUCKET);
+  public GCSUnderStorageCluster(String baseDir) {
+    super(baseDir);
+    mGCSBucket =
+        PathUtils.concatPath(System.getProperty(INTEGRATION_GCS_BUCKET), UUID.randomUUID());
+    Preconditions.checkState(mGCSBucket != null && !mGCSBucket.equals(""),
+        PreconditionMessage.GCS_BUCKET_MUST_BE_SET.toString(), INTEGRATION_GCS_BUCKET);
     mBaseDir = PathUtils.concatPath(mGCSBucket, UUID.randomUUID());
     mStarted = false;
   }
@@ -67,7 +66,7 @@ public class GCSUnderStorageCluster extends UnderFileSystemCluster {
   @Override
   public void shutdown() throws IOException {
     LOG.info("Shutting down GCS testing cluster, deleting bucket contents in: " + mGCSBucket);
-    UnderFileSystem ufs = UnderFileSystem.get(mGCSBucket, mConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(mGCSBucket);
     ufs.delete(mGCSBucket, true);
   }
 

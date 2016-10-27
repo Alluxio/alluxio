@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,10 +11,12 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,11 +25,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The block descriptor.
  */
+@PublicApi
 @NotThreadSafe
-public final class BlockInfo {
+public final class BlockInfo implements Serializable {
+  private static final long serialVersionUID = 5646834366222004646L;
+
   private long mBlockId;
   private long mLength;
-  private List<BlockLocation> mLocations = Lists.newArrayList();
+  private ArrayList<BlockLocation> mLocations = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link BlockInfo}.
@@ -42,7 +47,7 @@ public final class BlockInfo {
   protected BlockInfo(alluxio.thrift.BlockInfo blockInfo) {
     mBlockId = blockInfo.getBlockId();
     mLength = blockInfo.getLength();
-    mLocations = new ArrayList<BlockLocation>();
+    mLocations = new ArrayList<>();
     for (alluxio.thrift.BlockLocation location : blockInfo.getLocations()) {
       mLocations.add(new BlockLocation(location));
     }
@@ -93,7 +98,7 @@ public final class BlockInfo {
    */
   public BlockInfo setLocations(List<BlockLocation> locations) {
     Preconditions.checkNotNull(locations);
-    mLocations = locations;
+    mLocations = new ArrayList<>(locations);
     return this;
   }
 
@@ -101,7 +106,7 @@ public final class BlockInfo {
    * @return thrift representation of the block descriptor
    */
   protected alluxio.thrift.BlockInfo toThrift() {
-    List<alluxio.thrift.BlockLocation> locations = new ArrayList<alluxio.thrift.BlockLocation>();
+    List<alluxio.thrift.BlockLocation> locations = new ArrayList<>();
     for (BlockLocation location : mLocations) {
       locations.add(location.toThrift());
     }

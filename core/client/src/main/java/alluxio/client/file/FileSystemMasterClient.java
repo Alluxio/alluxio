@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,13 +13,13 @@ package alluxio.client.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
+import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -27,7 +27,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.wire.FileBlockInfo;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -53,10 +52,9 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * Creates a new file system master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public FileSystemMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public FileSystemMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override
@@ -175,27 +173,6 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * @param path the URI of the file
-   * @return the list of file block information for the given file id
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
-   */
-  public synchronized List<FileBlockInfo> getFileBlockInfoList(final AlluxioURI path)
-      throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<List<FileBlockInfo>>() {
-      @Override
-      public List<FileBlockInfo> call() throws AlluxioTException, TException {
-        List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
-        for (alluxio.thrift.FileBlockInfo fileBlockInfo :
-            mClient.getFileBlockInfoList(path.getPath())) {
-          result.add(ThriftUtils.fromThrift(fileBlockInfo));
-        }
-        return result;
-      }
-    });
-  }
-
-  /**
    * @param path the file path
    * @return the file info for the given file id
    * @throws IOException if an I/O error occurs
@@ -207,25 +184,6 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       @Override
       public URIStatus call() throws AlluxioTException, TException {
         return new URIStatus(ThriftUtils.fromThrift(mClient.getStatus(path.getPath())));
-      }
-    });
-  }
-
-  /**
-   * Internal API, only used by the WebUI of the servers.
-   *
-   * @param fileId the file id
-   * @return the file info for the given file id
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
-   */
-  // TODO(calvin): Split this into its own client
-  public synchronized URIStatus getStatusInternal(final long fileId) throws IOException,
-      AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<URIStatus>() {
-      @Override
-      public URIStatus call() throws AlluxioTException, TException {
-        return new URIStatus(ThriftUtils.fromThrift(mClient.getStatusInternal(fileId)));
       }
     });
   }
@@ -248,17 +206,19 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
 
   /**
    * @param path the path to list
+   * @param options the listStatus options
    * @return the list of file information for the given path
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
-  public synchronized List<URIStatus> listStatus(final AlluxioURI path)
-      throws IOException, AlluxioException {
+  public synchronized List<URIStatus> listStatus(final AlluxioURI path,
+      final ListStatusOptions options) throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws AlluxioTException, TException {
         List<URIStatus> result = new ArrayList<URIStatus>();
-        for (alluxio.thrift.FileInfo fileInfo : mClient.listStatus(path.getPath())) {
+        for (alluxio.thrift.FileInfo fileInfo : mClient
+            .listStatus(path.getPath(), options.toThrift())) {
           result.add(new URIStatus(ThriftUtils.fromThrift(fileInfo)));
         }
         return result;
@@ -273,7 +233,9 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @param options method options
    * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
+   * @deprecated since version 1.1 and will be removed in version 2.0
    */
+  @Deprecated
   public synchronized void loadMetadata(final AlluxioURI path,
       final LoadMetadataOptions options) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {

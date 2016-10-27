@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,9 +12,12 @@
 package alluxio.util.network;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,61 +29,41 @@ import java.net.InetSocketAddress;
  */
 public class GetMasterWorkerAddressTest {
 
-  /**
-   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method for
-   * a master node.
-   */
-  @Test
-  public void getMasterAddressTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.MASTER_HOSTNAME, "RemoteMaster1");
-    conf.set(Constants.MASTER_RPC_PORT, "10000");
-    String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
-    int defaultPort = Constants.DEFAULT_MASTER_PORT;
-
-    // connect host and port
-    InetSocketAddress masterAddress =
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
-    Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
-
-    conf = new Configuration();
-    conf.set(Constants.MASTER_RPC_PORT, "20000");
-    // port only
-    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
-    Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
-
-    conf = new Configuration();
-    conf.set(Constants.MASTER_HOSTNAME, "RemoteMaster3");
-    // connect host only
-    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
-    Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
-
-    conf = new Configuration();
-    // all default
-    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
-    Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
-   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method for
-   * a worker node.
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType)} method for
+   * a master node.
    */
   @Test
-  public void getWorkerAddressTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_RPC_PORT, "10001");
-
-    String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
-    int defaultPort = Constants.DEFAULT_WORKER_PORT;
+  public void getMasterAddress() {
+    // connect host and port
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster1");
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, "10000");
+    String defaultHostname = NetworkAddressUtils.getLocalHostName();
+    int defaultPort = Constants.DEFAULT_MASTER_PORT;
+    InetSocketAddress masterAddress =
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+    Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
+    ConfigurationTestUtils.resetConfiguration();
 
     // port only
-    InetSocketAddress workerAddress =
-        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, conf);
-    Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, "20000");
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+    Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
+    ConfigurationTestUtils.resetConfiguration();
 
-    conf = new Configuration();
+    // connect host only
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster3");
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+    Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
+    ConfigurationTestUtils.resetConfiguration();
+
     // all default
-    workerAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, conf);
-    Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+    Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
 }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,7 +13,7 @@ package alluxio.web;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import com.google.common.io.ByteStreams;
 
@@ -37,14 +37,10 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
   private static final long serialVersionUID = 7260819317567193560L;
 
-  private final transient Configuration mConfiguration;
-
   /**
    * Creates a new instance of {@link WebInterfaceDownloadLocalServlet}.
    */
-  public WebInterfaceDownloadLocalServlet() {
-    mConfiguration = new Configuration();
-  }
+  public WebInterfaceDownloadLocalServlet() {}
 
   /**
    * Prepares for downloading a file.
@@ -63,7 +59,7 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
     }
 
     // Download a file from the local filesystem.
-    File logsDir = new File(mConfiguration.get(Constants.LOGS_DIR));
+    File logsDir = new File(Configuration.get(PropertyKey.LOGS_DIR));
 
     // Only allow filenames as the path, to avoid downloading arbitrary local files.
     requestPath = new File(requestPath).getName();
@@ -88,8 +84,8 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
    * @param response the {@link HttpServletResponse} object
    * @throws IOException if an I/O error occurs
    */
-  private void downloadLogFile(File file, HttpServletRequest request,
-                               HttpServletResponse response) throws IOException {
+  private void downloadLogFile(File file, HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
     long len = file.length();
     String fileName = file.getName();
     response.setContentType("application/octet-stream");
@@ -100,8 +96,7 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
     }
     response.addHeader("Content-Disposition", "attachment;filename=" + fileName);
 
-    InputStream is = new FileInputStream(file);
-    try {
+    try (InputStream is = new FileInputStream(file)) {
       ServletOutputStream out = response.getOutputStream();
       try {
         ByteStreams.copy(is, out);
@@ -112,8 +107,6 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
           out.close();
         }
       }
-    } finally {
-      is.close();
     }
   }
 }

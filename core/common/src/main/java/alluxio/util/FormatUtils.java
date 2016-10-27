@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,9 +12,7 @@
 package alluxio.util;
 
 import alluxio.Constants;
-import alluxio.security.authorization.FileSystemPermission;
-
-import org.apache.commons.lang3.StringEscapeUtils;
+import alluxio.security.authorization.Mode;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
@@ -75,17 +73,30 @@ public final class FormatUtils {
 
   /**
    * Parses a byte array into a space separated hex string where each byte is represented in the
-   * format {@code 0x%02X}.
+   * format {@code 0x%02x}.
    *
    * @param bytes the byte array to be transformed
    * @return the string representation of the byte array
    */
   public static String byteArrayToHexString(byte[] bytes) {
+    return byteArrayToHexString(bytes, "0x", " ");
+  }
+
+  /**
+   * Parses a byte array into a hex string where each byte is represented in the
+   * format {@code %02x}.
+   *
+   * @param bytes the byte array to be transformed
+   * @param prefix the prefix to use
+   * @param separator the separator to use
+   * @return the string representation of the byte array
+   */
+  public static String byteArrayToHexString(byte[] bytes, String prefix, String separator) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < bytes.length; i++) {
-      sb.append(String.format("0x%02X", bytes[i]));
+      sb.append(String.format("%s%02x", prefix, bytes[i]));
       if (i != bytes.length - 1) {
-        sb.append(" ");
+        sb.append(separator);
       }
     }
     return sb.toString();
@@ -187,31 +198,21 @@ public final class FormatUtils {
   }
 
   /**
-   * Formats file permission to human-readable version.
+   * Formats digital representation of a model as a human-readable string.
    *
-   * @param permission file permission
-   * @param isDirectory if the path is a directory
-   * @return human-readable version of permission
+   * @param mode file mode
+   * @param directory if the mode corresponds to a directory
+   * @return human-readable version of the given mode
    */
-  public static String formatPermission(short permission, boolean isDirectory) {
-    StringBuffer permissionStr = new StringBuffer();
-    if (isDirectory) {
-      permissionStr.append("d");
+  public static String formatMode(short mode, boolean directory) {
+    StringBuilder str = new StringBuilder();
+    if (directory) {
+      str.append("d");
     } else {
-      permissionStr.append("-");
+      str.append("-");
     }
-    permissionStr.append(new FileSystemPermission(permission).toString());
-    return permissionStr.toString();
-  }
-
-  /**
-   * Encodes the given string as a JSON object.
-   *
-   * @param input the string to encode
-   * @return the JSON-encoded version of the input string
-   */
-  public static String encodeJson(String input) {
-    return "\"" + StringEscapeUtils.escapeJson(input) + "\"";
+    str.append(new Mode(mode).toString());
+    return str.toString();
   }
 
   private FormatUtils() {} // prevent instantiation

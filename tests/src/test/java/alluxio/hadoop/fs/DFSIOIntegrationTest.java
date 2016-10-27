@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.hadoop.fs;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.hadoop.ConfUtils;
@@ -105,7 +104,7 @@ public class DFSIOIntegrationTest implements Tool {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private static URI sLocalAlluxioClusterUri = null;
 
   static {
@@ -115,14 +114,14 @@ public class DFSIOIntegrationTest implements Tool {
     org.apache.hadoop.conf.Configuration.addDefaultResource("mapred-site.xml");
   }
 
-  private static enum TestType {
+  private enum TestType {
     TEST_TYPE_READ("read"), TEST_TYPE_WRITE("write"), TEST_TYPE_CLEANUP("cleanup"),
         TEST_TYPE_APPEND("append"), TEST_TYPE_READ_RANDOM("random read"),
         TEST_TYPE_READ_BACKWARD("backward read"), TEST_TYPE_READ_SKIP("skip read");
 
     private String mType;
 
-    private TestType(String t) {
+    TestType(String t) {
       mType = t;
     }
 
@@ -133,12 +132,12 @@ public class DFSIOIntegrationTest implements Tool {
     }
   }
 
-  static enum ByteMultiple {
+  enum ByteMultiple {
     B(1L), KB(0x400L), MB(0x100000L), GB(0x40000000L), TB(0x10000000000L);
 
     private long mMultiplier;
 
-    private ByteMultiple(long mult) {
+    ByteMultiple(long mult) {
       mMultiplier = mult;
     }
 
@@ -210,21 +209,20 @@ public class DFSIOIntegrationTest implements Tool {
     sBench = new DFSIOIntegrationTest();
     sBench.getConf().setBoolean("dfs.support.append", true);
 
-    sLocalAlluxioClusterUri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    sLocalAlluxioClusterUri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
     sBench.getConf().set("fs.defaultFS", sLocalAlluxioClusterUri.toString());
     sBench.getConf().set("fs.default.name", sLocalAlluxioClusterUri.toString());
     sBench.getConf().set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
 
     // Store Alluxio configuration in Hadoop configuration
-    Configuration configuration = sLocalAlluxioClusterResource.get().getMasterConf();
-    ConfUtils.storeToHadoopConfiguration(configuration, sBench.getConf());
+    ConfUtils.storeToHadoopConfiguration(sBench.getConf());
 
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     sBench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
 
     /** Check write here, as it is required for other tests */
-    testWrite();
+    writeTest();
   }
 
   @AfterClass
@@ -235,27 +233,27 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.cleanup(fs);
   }
 
-  public static void testWrite() throws Exception {
+  public static void writeTest() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    sBench.writeTest(fs);
+    sBench.mapperWriteTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
     sBench.analyzeResult(fs, TestType.TEST_TYPE_WRITE, execTime);
   }
 
-  @Test(timeout = 25000)
-  public void testRead() throws Exception {
+  @Test(timeout = 50000)
+  public void read() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    sBench.readTest(fs);
+    sBench.mapperReadTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ, execTime);
   }
 
-  @Test(timeout = 25000)
-  public void testReadRandom() throws Exception {
+  @Test(timeout = 50000)
+  public void readRandom() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -265,8 +263,8 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_RANDOM, execTime);
   }
 
-  @Test(timeout = 25000)
-  public void testReadBackward() throws Exception {
+  @Test(timeout = 50000)
+  public void readBackward() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -276,8 +274,8 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_BACKWARD, execTime);
   }
 
-  @Test(timeout = 25000)
-  public void testReadSkip() throws Exception {
+  @Test(timeout = 50000)
+  public void readSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -287,8 +285,8 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_SKIP, execTime);
   }
 
-  @Test(timeout = 25000)
-  public void testReadLargeSkip() throws Exception {
+  @Test(timeout = 50000)
+  public void readLargeSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -299,12 +297,12 @@ public class DFSIOIntegrationTest implements Tool {
   }
 
   // TODO(hy): Should active this unit test after ALLUXIO-25 has been solved
-  // @Test (timeout = 25000)
-  public void testAppend() throws Exception {
+  // @Test (timeout = 50000)
+  public void append() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    sBench.appendTest(fs);
+    sBench.mapperAppendTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
     sBench.analyzeResult(fs, TestType.TEST_TYPE_APPEND, execTime);
   }
@@ -390,7 +388,7 @@ public class DFSIOIntegrationTest implements Tool {
     // AbstractIOMapper
     void collectStats(OutputCollector<Text, Text> output, String name, long execTime, Long objSize)
         throws IOException {
-      long totalSize = objSize.longValue();
+      long totalSize = objSize;
       float ioRateMbSec = (float) totalSize * 1000 / (execTime * MEGA);
       LOG.info("Number of bytes processed = " + totalSize);
       LOG.info("Exec time = " + execTime);
@@ -444,11 +442,11 @@ public class DFSIOIntegrationTest implements Tool {
         reporter.setStatus("writing " + name + "@" + (totalSize - nrRemaining) + "/" + totalSize
             + " ::host = " + mHostname);
       }
-      return Long.valueOf(totalSize);
+      return totalSize;
     }
   }
 
-  private void writeTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
+  private void mapperWriteTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
     Path writeDir = getWriteDir(mConfig);
     fs.delete(getDataDir(mConfig), true);
     fs.delete(writeDir, true);
@@ -508,11 +506,11 @@ public class DFSIOIntegrationTest implements Tool {
         reporter.setStatus("writing " + name + "@" + (totalSize - nrRemaining) + "/" + totalSize
             + " ::host = " + mHostname);
       }
-      return Long.valueOf(totalSize);
+      return totalSize;
     }
   }
 
-  private void appendTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
+  private void mapperAppendTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
     Path appendDir = getAppendDir(mConfig);
     fs.delete(appendDir, true);
     runIOTest(AppendMapper.class, appendDir);
@@ -551,11 +549,11 @@ public class DFSIOIntegrationTest implements Tool {
         reporter.setStatus("reading " + name + "@" + actualSize + "/" + totalSize + " ::host = "
             + mHostname);
       }
-      return Long.valueOf(actualSize);
+      return actualSize;
     }
   }
 
-  private void readTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
+  private void mapperReadTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
     Path readDir = getReadDir(mConfig);
     fs.delete(readDir, true);
     runIOTest(ReadMapper.class, readDir);
@@ -614,7 +612,7 @@ public class DFSIOIntegrationTest implements Tool {
         reporter.setStatus("reading " + name + "@" + actualSize + "/" + totalSize + " ::host = "
             + mHostname);
       }
-      return Long.valueOf(actualSize);
+      return actualSize;
     }
 
     /**
@@ -622,7 +620,7 @@ public class DFSIOIntegrationTest implements Tool {
      * type.
      *
      * @param current offset
-     * @return
+     * @return the next offset for reading
      */
     private long nextOffset(long current) {
       if (mSkipSize == 0) {
@@ -646,7 +644,7 @@ public class DFSIOIntegrationTest implements Tool {
   // fileSize is in Bytes
   private void sequentialTest(org.apache.hadoop.fs.FileSystem fs, TestType testType, long fileSize,
       int nrFiles) throws IOException {
-    IOStatMapper ioer = null;
+    IOStatMapper ioer;
     switch (testType) {
       case TEST_TYPE_READ:
         ioer = new ReadMapper();
@@ -673,7 +671,7 @@ public class DFSIOIntegrationTest implements Tool {
 
   public static void main(String[] args) {
     DFSIOIntegrationTest bench = new DFSIOIntegrationTest();
-    int res = -1;
+    int res;
     try {
       res = ToolRunner.run(bench, args);
     } catch (Exception e) {
@@ -691,7 +689,7 @@ public class DFSIOIntegrationTest implements Tool {
   public int run(String[] args) throws IOException {
     TestType testType = null;
     int bufferSize = DEFAULT_BUFFER_SIZE;
-    long nrBytes = 1 * MEGA;
+    long nrBytes = MEGA;
     int nrFiles = 1;
     long skipSize = 0;
     String resFileName = DEFAULT_RES_FILE_NAME;
@@ -792,13 +790,13 @@ public class DFSIOIntegrationTest implements Tool {
     long tStart = System.currentTimeMillis();
     switch (testType) {
       case TEST_TYPE_WRITE:
-        writeTest(fs);
+        mapperWriteTest(fs);
         break;
       case TEST_TYPE_READ:
-        readTest(fs);
+        mapperReadTest(fs);
         break;
       case TEST_TYPE_APPEND:
-        appendTest(fs);
+        mapperAppendTest(fs);
         break;
       case TEST_TYPE_READ_RANDOM:
       case TEST_TYPE_READ_BACKWARD:

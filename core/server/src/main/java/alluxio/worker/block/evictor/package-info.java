@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -8,7 +8,6 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
-
 /**
  * Set of evictors for evicting or moving blocks to other locations.
  *
@@ -45,5 +44,6 @@
  * is called. The eviction plan will return two block lists, one is the blocks to be removed
  * directly and another is the blocks to be moved to lower tier views.
  */
+
 package alluxio.worker.block.evictor;
 

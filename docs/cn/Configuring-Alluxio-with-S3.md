@@ -12,7 +12,13 @@ priority: 0
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，如果你还没有配置文件，由template文件创建配置文件：
+然后，如果你还没有进行这项配置，那么用`bootstrapConf`命令创建你的配置文件
+
+例如，如果你在本地机器上运行Alluxio，`ALLUXIO_MASTER_HOSTNAME`应该设置为`localhost`。
+
+{% include Configuring-Alluxio-with-S3/bootstrapConf.md %}
+
+或者，你也可以由template文件创建配置文件并手动设置配置内容：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -22,13 +28,19 @@ priority: 0
 
 若要在Alluxio中使用S3作为底层文件系统，一定要修改`conf/alluxio-env.sh`配置文件。首先要指定一个**已有的**S3 bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-env.sh`中添加如下语句指定它：
 
-{% include Configuring-Alluxio-with-S3/underfs-address.md %}
+{% include Configuring-Alluxio-with-S3/underfs-address-s3n.md %}
 
 接着，需要指定AWS证书以便访问S3，在`conf/alluxio-env.sh`中的`ALLUXIO_JAVA_OPTS`部分添加：
 
 {% include Configuring-Alluxio-with-S3/aws.md %}
 
 其中，`<AWS_ACCESS_KEY_ID>`和`<AWS_SECRET_ACCESS_KEY>`是你实际的[AWS keys](https://aws.amazon.com/developers/access-keys)，或者其他包含证书的环境变量。
+
+底层的S3软件库JetS3t可以包含与其请求的主机名的DNS相兼容的bucket名称。你可以选择性地通过配置`conf/alluxio-env.sh`文件中的`ALLUXIO_JAVA_OPTS`部分的内容来指定这种行为。具体地，添加下面内容：
+
+{% include Configuring-Alluxio-with-S3/jets3t.md %}
+
+当`<DISABLE_DNS>`设置为`false`（默认情况）时，定向到名称为"mybucket"的bucket会被发送到名称为"mybucket.s3.amazonaws.com"的主机。当当`<DISABLE_DNS>`设置为`true`时，JetS3t会在HTTP消息请求路径中设定bucket名称，例如"http://s3.amazonaws.com/mybucket"，而不是在主机头部设定。如果不设置该参数，系统将默认设置为`false`.更多的详情请参考http://www.jets3t.org/toolkit/configuration.html。
 
 更改完成后，Alluxio应该能够将S3作为底层文件系统运行，你可以尝试[使用S3在本地运行Alluxio](#running-alluxio-locally-with-s3)
 
@@ -62,6 +74,16 @@ Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配
 {% include Configuring-Alluxio-with-S3/jets3t-dependency.md %}
 
 `jets3t 0.9.0`适用于Hadoop `2.3.0`，而`jets3t 0.7.1`应适用于更旧版本的Hadoop。要确认支持你的Hadoop版本的具体`jets3t`版本号，可以参考[MvnRepository](http://mvnrepository.com/)。
+
+## 使用非亚马逊服务提供商
+
+如果需要使用一个不是来自"s3.amazonaws.com"的S3服务，用户需要修改`conf/alluxio-env.sh`文件中的`ALLUXIO_JAVA_OPTS`部分，具体添加如下：
+
+{% include Configuring-Alluxio-with-S3/non-amazon.md %}
+
+对于这些参数，将`<S3_ENDPOINT>`参数替换成你的S3服务的主机名。该参数只有在你的服务提供商非`s3.amazonaws.com`时才需要进行配置。
+
+将`<USE_HTTPS>`设置为`true`或者`false`。如果设置为`true` (使用HTTPS)，同时需要设置`<HTTPS_PORT>`为服务提供商给定的HTTPS port，并且删除`alluxio.underfs.s3.endpoint.http.port`参数。 如果你将`<USE_HTTPS>`设置为`false`（即使用HTTP），同时也需要设置`<HTTPS_PORT>`为服务提供商给定的HTTPS port，并且删除`alluxio.underfs.s3.endpoint.https.port`参数。如果HTTP或HTTPS的port值没有设定，那么`<HTTP_PORT>`采用的默认端口为80，`<HTTPS_PORT>`采用的默认端口为443.
 
 ## 配置分布式应用
 

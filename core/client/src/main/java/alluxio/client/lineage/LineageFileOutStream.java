@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 
 import org.slf4j.Logger;
@@ -37,12 +39,15 @@ public class LineageFileOutStream extends FileOutStream {
   /**
    * Creates a new file output stream when lineage is enabled.
    *
+   * @param context file system context
    * @param path the path of the file
    * @param options the set of options specific to this operation
    * @throws IOException if an I/O error occurs
    */
-  public LineageFileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
-    super(path, updateOutStreamOptions(options));
+  public LineageFileOutStream(FileSystemContext context, AlluxioURI path, OutStreamOptions options)
+      throws IOException {
+    super(path, updateOutStreamOptions(options), context,
+        UnderFileSystemFileOutStream.Factory.get());
   }
 
   private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {
@@ -52,6 +57,5 @@ public class LineageFileOutStream extends FileOutStream {
   @Override
   protected void scheduleAsyncPersist() throws IOException {
     // do nothing, the scheduling is handled by the lineage master
-    return;
   }
 }

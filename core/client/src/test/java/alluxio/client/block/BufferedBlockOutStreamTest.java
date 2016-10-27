@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -44,14 +44,14 @@ public class BufferedBlockOutStreamTest {
    */
   @Before
   public void before() {
-    mTestStream = new TestBufferedBlockOutStream(1L, BLOCK_LENGTH);
+    mTestStream = new TestBufferedBlockOutStream(1L, BLOCK_LENGTH, BlockStoreContext.get());
   }
 
   /**
    * Tests for the {@link BufferedBlockOutStream#remaining()} method.
    */
   @Test
-  public void remainingTest() {
+  public void remaining() {
     mTestStream.setWrittenBytes(BLOCK_LENGTH);
     Assert.assertEquals(0L, mTestStream.remaining());
 
@@ -64,11 +64,9 @@ public class BufferedBlockOutStreamTest {
 
   /**
    * Tests writing an increasing byte array one byte at a time.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
-  public void singleByteWriteTest() throws Exception {
+  public void singleByteWrite() throws Exception {
     for (int i = 0; i < BLOCK_LENGTH; i++) {
       mTestStream.write(INCREASING_BYTES[i]);
       Assert.assertEquals(i + 1, mTestStream.getWrittenBytes());
@@ -79,11 +77,9 @@ public class BufferedBlockOutStreamTest {
 
   /**
    * Tests writing an increasing byte array.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
-  public void byteArrayWriteTest() throws Exception {
+  public void byteArrayWrite() throws Exception {
     mTestStream.write(INCREASING_BYTES);
     Assert.assertEquals(INCREASING_BYTES.length, mTestStream.getWrittenBytes());
     Assert.assertArrayEquals(INCREASING_BYTES,
@@ -93,11 +89,9 @@ public class BufferedBlockOutStreamTest {
   /**
    * Tests writing the middle half of an increasing byte array and test writing more than half the
    * buffer limit. This causes an unbuffered write and flush.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
-  public void byteArrayAtOffsetTest() throws Exception {
+  public void byteArrayAtOffset() throws Exception {
     mTestStream.write(INCREASING_BYTES, 25, 50);
     Assert.assertEquals(50, mTestStream.getWrittenBytes());
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(25, 50),
@@ -115,34 +109,28 @@ public class BufferedBlockOutStreamTest {
 
   /**
    * Tests that writing to a closed stream throws an exception.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void writeToClosed() throws Exception {
     mTestStream.close();
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage(PreconditionMessage.ERR_CLOSED_BLOCK_OUT_STREAM);
+    mThrown.expectMessage(PreconditionMessage.ERR_CLOSED_BLOCK_OUT_STREAM.toString());
     mTestStream.write(0);
   }
 
   /**
    * Tests that writing past a block throws an exception.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void writePastBlock() throws Exception {
     mTestStream.setWrittenBytes(BLOCK_LENGTH);
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage(PreconditionMessage.ERR_END_OF_BLOCK);
+    mThrown.expectMessage(PreconditionMessage.ERR_END_OF_BLOCK.toString());
     mTestStream.write(0);
   }
 
   /**
    * Tests that flushing twice works.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void doubleFlush() throws Exception {

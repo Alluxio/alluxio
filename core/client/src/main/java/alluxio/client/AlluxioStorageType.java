@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -10,6 +10,8 @@
  */
 
 package alluxio.client;
+
+import alluxio.annotation.PublicApi;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -23,6 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * storage.</li>
  * </ul>
  */
+@PublicApi
 @ThreadSafe
 public enum AlluxioStorageType {
   /** Put the data reading or writing in Alluxio storage. */
@@ -34,7 +37,8 @@ public enum AlluxioStorageType {
   /**
    * Same as {@link #STORE} for writes. Will move the data to highest tier before access for reads.
    */
-  PROMOTE(3);
+  PROMOTE(3),
+  ;
 
   private final int mValue;
 

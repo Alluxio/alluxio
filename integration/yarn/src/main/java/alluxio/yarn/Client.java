@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,6 +12,8 @@
 package alluxio.yarn;
 
 import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -24,6 +26,13 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.security.Credentials;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
@@ -38,17 +47,17 @@ import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.YarnClientApplication;
+import org.apache.hadoop.yarn.client.ClientRMProxy;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Apps;
+import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -77,6 +86,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class Client {
+  private static final Log LOG = LogFactory.getLog(Client.class);
+
   /** Yarn client to talk to resource manager. */
   private YarnClient mYarnClient;
   /** Yarn configuration. */
@@ -131,10 +142,21 @@ public final class Client {
   }
 
   /**
+   * Constructs a new client for launching an Alluxio application master and
+   * parses command line options.
+   *
+   * @param args Command line arguments
+   * @throws ParseException if an error occurs when parsing the argument
+   */
+  public Client(String[] args) throws ParseException {
+    this();
+    parseArgs(args);
+  }
+
+  /**
    * @param args Command line arguments
    */
   public static void main(String[] args) {
-    boolean result = false;
     try {
       Client client = new Client();
       System.out.println("Initializing Client");
@@ -143,29 +165,21 @@ public final class Client {
         System.exit(0);
       }
       System.out.println("Starting Client");
-      result = client.run();
+      client.run();
     } catch (Exception e) {
       System.err.println("Error running Client " + e);
       System.exit(1);
     }
-    if (result) {
-      System.out.println("Application completed successfully");
-      System.exit(0);
-    }
-    System.err.println("Application failed to complete");
-    System.exit(2);
   }
 
   /**
    * Main run function for the client.
    *
-   * @return true if application completed successfully
    * @throws IOException if errors occur from ResourceManager
    * @throws YarnException if errors occur from ResourceManager
    */
-  public boolean run() throws IOException, YarnException {
+  public void run() throws IOException, YarnException {
     submitApplication();
-    return monitorApplication();
   }
 
   /**
@@ -205,7 +219,7 @@ public final class Client {
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("am_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
     mMaxWorkersPerHost =
-        new Configuration().getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
+        Configuration.getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
 
     Preconditions.checkArgument(mAmMemoryInMB > 0,
         "Invalid memory specified for application master, " + "exiting. Specified memory="
@@ -224,8 +238,6 @@ public final class Client {
    * alpha API.
    */
   private void submitApplication() throws YarnException, IOException {
-    // TODO(binfan): setup credential
-
     // Initialize a YarnClient
     mYarnClient = YarnClient.createYarnClient();
     mYarnClient.init(mYarnConf);
@@ -255,19 +267,53 @@ public final class Client {
     mAppId = mAppContext.getApplicationId();
     System.out.println("Submitting application of id " + mAppId + " to ResourceManager");
     mYarnClient.submitApplication(mAppContext);
+    monitorApplication();
   }
 
-  // Checks if the cluster has enough resource to launch application master
+  // Checks if the cluster has enough resource to launch application master,
+  // alluxio master and alluxio workers
   private void checkClusterResource(GetNewApplicationResponse appResponse) {
     int maxMem = appResponse.getMaximumResourceCapability().getMemory();
     int maxVCores = appResponse.getMaximumResourceCapability().getVirtualCores();
 
-    Preconditions.checkArgument(mAmMemoryInMB <= maxMem,
-        "ApplicationMaster memory specified above max threshold of cluster, specified="
-            + mAmMemoryInMB + ", max=" + maxMem);
-    Preconditions.checkArgument(mAmVCores <= maxVCores,
-        "ApplicationMaster virtual cores specified above max threshold of cluster, specified="
-            + mAmVCores + ", max=" + maxVCores);
+    if (mAmMemoryInMB > maxMem) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("ApplicationMaster", "memory", mAmMemoryInMB, maxMem));
+    }
+
+    if (mAmVCores > maxVCores) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("ApplicationMaster", "virtual cores", mAmVCores, maxVCores));
+    }
+
+    int masterMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
+    if (masterMemInMB > maxMem) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("Alluxio Master", "memory", masterMemInMB, maxMem));
+    }
+
+    int masterVCores = Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
+    if (masterVCores > maxVCores) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("Alluxio Master", "virtual cores", masterVCores, maxVCores));
+    }
+
+    int workerMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
+    int ramdiskMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+
+    if ((workerMemInMB + ramdiskMemInMB) > maxMem) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("Alluxio Worker", "memory", (workerMemInMB + ramdiskMemInMB), maxMem));
+    }
+
+    int workerVCore = Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
+    if (workerVCore > maxVCores) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("Alluxio Worker", "virtual cores", workerVCore, maxVCores));
+    }
   }
 
   // Checks that there are enough nodes in the cluster to run the desired number of workers
@@ -279,7 +325,7 @@ public final class Client {
             mNumWorkers, hosts.size(), mMaxWorkersPerHost, hosts));
   }
 
-  private void setupContainerLaunchContext() throws IOException {
+  private void setupContainerLaunchContext() throws IOException, YarnException {
     Map<String, String> applicationMasterArgs = ImmutableMap.<String, String>of(
         "-num_workers", Integer.toString(mNumWorkers),
         "-master_address", mMasterAddress,
@@ -305,9 +351,38 @@ public final class Client {
     Map<String, String> appMasterEnv = new HashMap<String, String>();
     setupAppMasterEnv(appMasterEnv);
     mAmContainer.setEnvironment(appMasterEnv);
+
+    // Set up security tokens for launching our ApplicationMaster container.
+    if (UserGroupInformation.isSecurityEnabled()) {
+      Credentials credentials = new Credentials();
+      String tokenRenewer = mYarnConf.get(YarnConfiguration.RM_PRINCIPAL);
+      if (tokenRenewer == null || tokenRenewer.length() == 0) {
+        throw new IOException("Can't get Master Kerberos principal for the RM to use as renewer");
+      }
+      org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(mYarnConf);
+      // getting tokens for the default file-system.
+      final Token<?>[] tokens = fs.addDelegationTokens(tokenRenewer, credentials);
+      if (tokens != null) {
+        for (Token<?> token : tokens) {
+          LOG.info("Got dt for " + fs.getUri() + "; " + token);
+        }
+      }
+      // getting yarn resource manager token
+      org.apache.hadoop.conf.Configuration config = mYarnClient.getConfig();
+      Token<TokenIdentifier> token = ConverterUtils.convertFromYarn(
+          mYarnClient.getRMDelegationToken(new org.apache.hadoop.io.Text(tokenRenewer)),
+          ClientRMProxy.getRMDelegationTokenService(config));
+      LOG.info("Added RM delegation token: " + token);
+      credentials.addToken(token.getService(), token);
+
+      DataOutputBuffer dob = new DataOutputBuffer();
+      credentials.writeTokenStorageToStream(dob);
+      ByteBuffer buffer = ByteBuffer.wrap(dob.getData(), 0, dob.getLength());
+      mAmContainer.setTokens(buffer);
+    }
   }
 
-  private void setupAppMasterEnv(Map<String, String> appMasterEnv) {
+  private void setupAppMasterEnv(Map<String, String> appMasterEnv) throws IOException {
     String classpath = ApplicationConstants.Environment.CLASSPATH.name();
     for (String path : mYarnConf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
         YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
@@ -318,6 +393,10 @@ public final class Client {
         ApplicationConstants.CLASS_PATH_SEPARATOR);
 
     appMasterEnv.put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$());
+
+    if (UserGroupInformation.isSecurityEnabled()) {
+      appMasterEnv.put("ALLUXIO_USER", UserGroupInformation.getCurrentUser().getShortUserName());
+    }
   }
 
   /**
@@ -343,50 +422,40 @@ public final class Client {
   }
 
   /**
-   * Monitors the submitted application for completion.
+   * Monitor the submitted application until app is running, finished, killed or failed.
    *
-   * @return true if application completed successfully
    * @throws YarnException if errors occur when obtaining application report from ResourceManager
    * @throws IOException if errors occur when obtaining application report from ResourceManager
    */
-  private boolean monitorApplication() throws YarnException, IOException {
-    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+  private void monitorApplication() throws YarnException, IOException {
     while (true) {
-      // Check app status every 10 second.
-      CommonUtils.sleepMs(10 * Constants.SECOND_MS);
-      Date date = new Date();
-      String timeDateStr = dateFormat.format(date);
-
+      // Check app status every 5 seconds
+      CommonUtils.sleepMs(5 * Constants.SECOND_MS);
       // Get application report for the appId we are interested in
       ApplicationReport report = mYarnClient.getApplicationReport(mAppId);
 
-      System.out.println(timeDateStr + " Got application report from ASM for appId="
-          + mAppId.getId() + ", clientToAMToken=" + report.getClientToAMToken()
-          + ", appDiagnostics=" + report.getDiagnostics() + ", appMasterHost=" + report.getHost()
-          + ", appQueue=" + report.getQueue() + ", appMasterRpcPort=" + report.getRpcPort()
-          + ", appStartTime=" + report.getStartTime() + ", yarnAppState="
-          + report.getYarnApplicationState().toString() + ", distributedFinalState="
-          + report.getFinalApplicationStatus().toString() + ", appTrackingUrl="
-          + report.getTrackingUrl() + ", appUser=" + report.getUser());
-
       YarnApplicationState state = report.getYarnApplicationState();
       FinalApplicationStatus dsStatus = report.getFinalApplicationStatus();
-      if (YarnApplicationState.FINISHED == state) {
-        if (FinalApplicationStatus.SUCCEEDED == dsStatus) {
-          System.out.println("Application has completed successfully. Breaking monitoring loop");
-          return true;
-        }
-        System.out.println("Application did finished unsuccessfully. YarnState=" + state.toString()
-            + ", DSFinalStatus=" + dsStatus.toString() + ". Breaking monitoring loop");
-        return false;
-      }
-
-      if (YarnApplicationState.KILLED == state || YarnApplicationState.FAILED == state) {
-        System.out.println("Application did not finish. YarnState=" + state.toString()
-            + ", DSFinalStatus=" + dsStatus.toString() + ". Breaking monitoring loop");
-        return false;
+      switch (state) {
+        case RUNNING:
+          System.out.println("Application is running. Tracking url is " + report.getTrackingUrl());
+          return;
+        case FINISHED:
+          if (FinalApplicationStatus.SUCCEEDED == dsStatus) {
+            System.out.println("Application has completed successfully");
+          } else {
+            System.out.println("Application finished unsuccessfully. YarnState="
+                + state.toString() + ", DSFinalStatus=" + dsStatus.toString());
+          }
+          return;
+        case KILLED: // intended to fall through
+        case FAILED:
+          System.out.println("Application did not finish. YarnState=" + state.toString()
+              + ", DSFinalStatus=" + dsStatus.toString());
+          return;
+        default:
+          System.out.println("Application is in state " + state + ". Waiting.");
       }
     }
   }
-
 }

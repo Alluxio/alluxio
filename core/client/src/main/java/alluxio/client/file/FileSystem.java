@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,9 +12,9 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -28,6 +28,7 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
+import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -51,11 +52,14 @@ public interface FileSystem {
    * Factory for {@link FileSystem}.
    */
   class Factory {
+
+    private Factory() {} // prevent instantiation
+
     public static FileSystem get() {
-      if (ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
-        return LineageFileSystem.get();
+      if (Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
+        return LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
       }
-      return BaseFileSystem.get();
+      return BaseFileSystem.get(FileSystemContext.INSTANCE);
     }
   }
 
@@ -245,7 +249,9 @@ public interface FileSystem {
    * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @deprecated since version 1.1 and will be removed in version 2.0
    */
+  @Deprecated
   void loadMetadata(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
@@ -257,7 +263,9 @@ public interface FileSystem {
    * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @deprecated since version 1.1 and will be removed in version 2.0
    */
+  @Deprecated
   void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 

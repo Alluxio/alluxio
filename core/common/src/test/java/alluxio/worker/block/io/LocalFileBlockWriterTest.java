@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -44,8 +44,6 @@ public class LocalFileBlockWriterTest {
 
   /**
    * Sets up the file path and writer before a test runs.
-   *
-   * @throws Exception if one of the file operations fails
    */
   @Before
   public void before() throws Exception {
@@ -55,11 +53,9 @@ public class LocalFileBlockWriterTest {
 
   /**
    * Test for the {@link LocalFileBlockWriter#getChannel()} method.
-   *
-   * @throws Exception if writing to the channel or closing it fails
    */
   @Test
-  public void getChannelTest() throws Exception {
+  public void getChannel() throws Exception {
     WritableByteChannel channel = mWriter.getChannel();
     Assert.assertNotNull(channel);
 
@@ -71,11 +67,9 @@ public class LocalFileBlockWriterTest {
 
   /**
    * Test for the {@link LocalFileBlockWriter#append(ByteBuffer)} method.
-   *
-   * @throws Exception if appending to the channel or closing it fails
    */
   @Test
-  public void appendTest() throws Exception {
+  public void append() throws Exception {
     ByteBuffer buf = BufferUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
@@ -88,11 +82,9 @@ public class LocalFileBlockWriterTest {
   /**
    * Tests that a {@link ClosedChannelException} is thrown when trying to append to a channel after
    * closing it.
-   *
-   * @throws Exception if appending to the channel or closing it fails
    */
   @Test
-  public void closeTest() throws Exception {
+  public void close() throws Exception {
     mThrown.expect(ClosedChannelException.class);
 
     ByteBuffer buf = BufferUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);

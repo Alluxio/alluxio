@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -15,6 +15,8 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.exception.PreconditionMessage;
 import alluxio.thrift.SetAttributeTOptions;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -30,10 +32,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;
+  private TtlAction mTtlAction;
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
-  private Short mPermission;
+  private Short mMode;
   private boolean mRecursive;
 
   /**
@@ -46,10 +49,11 @@ public final class SetAttributeOptions {
   private SetAttributeOptions() {
     mPinned = null;
     mTtl = null;
+    mTtlAction = TtlAction.DELETE;
     mPersisted = null;
     mOwner = null;
     mGroup = null;
-    mPermission = Constants.INVALID_PERMISSION;
+    mMode = Constants.INVALID_MODE;
     mRecursive = false;
   }
 
@@ -83,6 +87,13 @@ public final class SetAttributeOptions {
   public long getTtl() {
     Preconditions.checkState(hasTtl(), PreconditionMessage.MUST_SET_TTL);
     return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
   }
 
   /**
@@ -132,18 +143,18 @@ public final class SetAttributeOptions {
   }
 
   /**
-   * @return true if the permission value is set, otherwise false
+   * @return true if the mode value is set, otherwise false
    */
-  public boolean hasPermission() {
-    return mPermission != Constants.INVALID_PERMISSION;
+  public boolean hasMode() {
+    return mMode != Constants.INVALID_MODE;
   }
 
   /**
-   * @return the permission
+   * @return the mode
    */
-  public short getPermission() {
-    Preconditions.checkState(hasPermission(), PreconditionMessage.MUST_SET_PERMISSION);
-    return mPermission;
+  public short getMode() {
+    Preconditions.checkState(hasMode(), PreconditionMessage.MUST_SET_MODE);
+    return mMode;
   }
 
   /**
@@ -176,6 +187,15 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @param ttlAction the {@link TtlAction} to use
+   * @return the updated options object
+   */
+  public SetAttributeOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
+    return this;
+  }
+
+  /**
    * @param persisted the persisted flag value to use; it specifies whether the file has been
    *        persisted in the under file system or not.
    * @return the updated options object
@@ -188,8 +208,12 @@ public final class SetAttributeOptions {
   /**
    * @param owner to be set as the owner of a path
    * @return the updated options object
+   * @throws IllegalArgumentException if the owner is set to empty
    */
-  public SetAttributeOptions setOwner(String owner) {
+  public SetAttributeOptions setOwner(String owner) throws IllegalArgumentException {
+    if (owner != null && owner.isEmpty()) {
+      throw new IllegalArgumentException("It is not allowed to set owner to empty.");
+    }
     mOwner = owner;
     return this;
   }
@@ -197,18 +221,22 @@ public final class SetAttributeOptions {
   /**
    * @param group to be set as the group of a path
    * @return the updated options object
+   * @throws IllegalArgumentException if the group is set to empty
    */
-  public SetAttributeOptions setGroup(String group) {
+  public SetAttributeOptions setGroup(String group) throws IllegalArgumentException {
+    if (group != null && group.isEmpty()) {
+      throw new IllegalArgumentException("It is not allowed to set group to empty");
+    }
     mGroup = group;
     return this;
   }
 
   /**
-   * @param permission to be set as the permission of a path
+   * @param mode to be set as the mode of a path
    * @return the updated options object
    */
-  public SetAttributeOptions setPermission(short permission) {
-    mPermission = permission;
+  public SetAttributeOptions setMode(short mode) {
+    mMode = mode;
     return this;
   }
 
@@ -233,7 +261,9 @@ public final class SetAttributeOptions {
     }
     if (mTtl != null) {
       options.setTtl(mTtl);
+      options.setTtlAction(ThriftUtils.toThrift(mTtlAction));
     }
+
     if (mPersisted != null) {
       options.setPersisted(mPersisted);
     }
@@ -243,20 +273,49 @@ public final class SetAttributeOptions {
     if (mGroup != null) {
       options.setGroup(mGroup);
     }
-    if (mPermission != Constants.INVALID_PERMISSION) {
-      options.setPermission(mPermission);
+    if (mMode != Constants.INVALID_MODE) {
+      options.setMode(mMode);
     }
     options.setRecursive(mRecursive);
     return options;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SetAttributeOptions)) {
+      return false;
+    }
+    SetAttributeOptions that = (SetAttributeOptions) o;
+    return Objects.equal(mPinned, that.mPinned)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlAction, that.mTtlAction)
+        && Objects.equal(mPersisted, that.mPersisted)
+        && Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mGroup, that.mGroup)
+        && Objects.equal(mMode, that.mMode)
+        && Objects.equal(mRecursive, that.mRecursive);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner,
+        mGroup, mMode, mRecursive);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("pinned", mPinned).add("ttl", mTtl)
-        .add("persisted", mPersisted).add("owner", mOwner).add("group", mGroup)
-        .add("permission", mPermission).add("recursive", mRecursive).toString();
+    return Objects.toStringHelper(this)
+        .add("pinned", mPinned)
+        .add("ttl", mTtl)
+        .add("ttlAction", mTtlAction)
+        .add("persisted", mPersisted)
+        .add("owner", mOwner)
+        .add("group", mGroup)
+        .add("mode", mMode)
+        .add("recursive", mRecursive)
+        .toString();
   }
 }

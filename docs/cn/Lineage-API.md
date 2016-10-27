@@ -52,7 +52,7 @@ Alluxio提供了Java版本的API来操作和访问世系关系信息。
 
 # 配置世系关系相关参数
 
-下表就是与Alluxio世系关系相关的配置参数。
+下表列出了与Alluxio世系关系相关的配置参数。
 
 <table class="table table-striped">
 <tr><th>参数</th><th>默认值</th><th>介绍</th></tr>

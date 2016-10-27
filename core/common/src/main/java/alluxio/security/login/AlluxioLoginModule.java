@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -31,6 +31,11 @@ import javax.security.auth.spi.LoginModule;
 public final class AlluxioLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
+
+  /**
+   * Constructs a new {@link AlluxioLoginModule}.
+   */
+  public AlluxioLoginModule() {}
 
   @Override
   public void initialize(Subject subject, CallbackHandler callbackHandler,
@@ -129,7 +134,7 @@ public final class AlluxioLoginModule implements LoginModule {
       loader = ClassLoader.getSystemClassLoader();
     }
 
-    Class<? extends Principal> clazz = null;
+    Class<? extends Principal> clazz;
     try {
       // Declare a temp variable so that we can suppress warnings locally
       @SuppressWarnings("unchecked")

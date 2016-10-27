@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio独立模式实现容错
 nickname: Alluxio独立模式实现容错
-group: User Guide
+group: Deploying Alluxio
 priority: 3
 ---
 
@@ -85,7 +85,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 除了以上配置，Alluxio master需要额外的配置，以下变量需在`conf/alluxio-env.sh`中正确设置：
 
-    export ALLUXIO_MASTER_ADDRESS=[externally visible address of this machine]
+    export ALLUXIO_MASTER_HOSTNAME=[externally visible address of this machine]
 
 同样，指定正确的日志文件夹需在`ALLUXIO_JAVA_OPTS`中设置`alluxio.master.journal.folder`，举例而言，如果
 使用HDFS来存放日志，可以添加：
@@ -97,7 +97,12 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### Worker配置
 
-只要以上参数配置正确，worker就可以咨询ZooKeeper，找到当前应当连接的master。所以，worker无需设置`ALLUXIO_MASTER_ADDRESS`。
+只要以上参数配置正确，worker就可以咨询ZooKeeper，找到当前应当连接的master。所以，worker无需设置`ALLUXIO_MASTER_HOSTNAME`。
+
+> 注意: 当在容错模式下运行Alluxio, worker的默认心跳超时时间可能太短。
+> 为了能在master进行故障转移时正确处理master的状态，建议将worker的默认心跳超时时间设置的长点。
+> 增加worker上的默认超时时间，可以通过修改`conf/alluxio-site.properties`下的配置参数
+> `alluxio.worker.block.heartbeat.timeout.ms` 至一个大些的值（至少几分钟）。
 
 ### Client配置
 
