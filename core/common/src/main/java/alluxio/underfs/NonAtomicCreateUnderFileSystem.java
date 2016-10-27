@@ -12,10 +12,14 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -28,6 +32,8 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
   private final long mNonce;
   private String mTemporaryPath;
   private String mPermanentPath;
+
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Constructs a new {@link NonAtomicCreateUnderFileSystem}.
@@ -44,7 +50,7 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
     mPermanentPath = path;
     mTemporaryPath = PathUtils.temporaryFileName(mNonce, path);
 
-    return new AtomicFileOutputStream(createNonAtomic(path, options), this);
+    return new AtomicFileOutputStream(createNonAtomic(mTemporaryPath, options), this);
   }
 
   /**
@@ -54,7 +60,9 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
    */
   public void completeCreate() throws IOException {
     if (!rename(mTemporaryPath, mPermanentPath)) {
-      delete(mTemporaryPath, false);
+      if (!delete(mTemporaryPath, false)) {
+        LOG.error("Failed to delete temporary file {}", mTemporaryPath);
+      }
       throw new IOException(
           ExceptionMessage.FAILED_UFS_RENAME.getMessage(mTemporaryPath, mPermanentPath));
     }
