@@ -205,16 +205,14 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
       }
     }
 
-    long serviceVersionFound = -1;
     try {
-      serviceVersionFound = client.getServiceVersion();
+      long serviceVersionFound = client.getServiceVersion();
       synchronized (this) {
         mServerVersionFound = serviceVersionFound;
         if (mServerVersionFound != mServiceVersion) {
           throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION
               .getMessage(mServiceName, mServiceVersion, mServerVersionFound));
         }
-        return;
       }
     } catch (TTransportException e) {
       closeResource(client);

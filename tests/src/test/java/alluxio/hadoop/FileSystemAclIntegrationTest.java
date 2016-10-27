@@ -137,8 +137,15 @@ public final class FileSystemAclIntegrationTest {
     create(sTFS, fileA);
     FileStatus fs = sTFS.getFileStatus(fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
-    // Default permission should be 0644
-    Assert.assertEquals((short) 0644, fs.getPermission().toShort());
+
+    if (sUfs instanceof HdfsUnderFileSystem && HadoopClientTestUtils.isHadoop1x()) {
+      // If the UFS is hadoop 1.0, the org.apache.hadoop.fs.FileSystem.create uses default
+      // permission option 0777.
+      Assert.assertEquals((short) 0777, fs.getPermission().toShort());
+    } else {
+      // Default permission should be 0644.
+      Assert.assertEquals((short) 0644, fs.getPermission().toShort());
+    }
 
     sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
     Assert.assertEquals((short) 0755, sTFS.getFileStatus(fileA).getPermission().toShort());

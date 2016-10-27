@@ -114,7 +114,7 @@ public final class LsCommand extends WithWildCardPathCommand {
     }
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path, options);
     for (URIStatus status : statuses) {
-      System.out.format(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
+      System.out.print(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
           FormatUtils.formatMode((short) status.getMode(), status.isFolder()), status.getOwner(),
           status.getGroup(), status.getLength(), status.getCreationTimeMs(),
           100 == status.getInMemoryPercentage(), status.getPath()));

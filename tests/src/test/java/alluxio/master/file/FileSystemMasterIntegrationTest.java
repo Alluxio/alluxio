@@ -433,8 +433,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeRename() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), CreateFileOptions.defaults());
+    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
 
     try (InodePathPair inodePathPair = mInodeTree.lockInodePathPair(
@@ -598,7 +597,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
+    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
 
     try (InodePathPair inodePathPair = mInodeTree.lockInodePathPair(
         new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,

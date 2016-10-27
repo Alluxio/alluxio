@@ -41,6 +41,7 @@ A: Please follow [Running-Alluxio-on-a-Cluster](Running-Alluxio-on-a-Cluster.htm
 [Configuring-Alluxio-with-HDFS](Configuring-Alluxio-with-HDFS.html).
 
 Tips:
+
 - Usually, the best performance gains occur when Alluxio workers are co-located with the nodes of the computation frameworks.
 - You can use Mesos and Yarn integration if you are already using Mesos or Yarn to manage your cluster. Using Mesos or Yarn can benefit management.
 - If the under storage is remote (like S3 or remote HDFS), using Alluxio can be especially beneficial.
@@ -57,6 +58,51 @@ bucket, without the `s3://`, `s3a://`, or `s3n://` prefix.
 
 
 ## Usage FAQ
+
+#### Q: Why do I see exceptions like "No FileSystem for scheme: alluxio"?
+
+A: This error message is seen when your applications (e.g., MapReduce, Spark) try to access
+Alluxio as an HDFS-compatible file system, but the `alluxio://` scheme is not recognized by the
+application. Please make sure your HDFS configuration file `core-site.xml` (in your default hadoop
+installation or `spark/conf/` if you customize this file for Spark) has the following property:
+
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
+```
+
+#### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"?
+
+A: This error message is seen when your applications (e.g., MapReduce, Spark) try to access
+Alluxio as an HDFS-compatible file system, the `alluxio://` scheme has been
+configured correctly but the Alluxio client jar is not found on the classpath of your application.
+Depending on the computation frameworks, users usually need to add the Alluxio
+client jar to their class path of the framework through environment variables or
+properties on all nodes running this framework. Here are some examples:
+
+- For MapReduce jobs, you can append the client jar to `$HADOOP_CLASSPATH`:
+
+```bash
+$ export HADOOP_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${HADOOP_CLASSPATH}
+```
+
+- For Spark jobs, you can append the client jar to `$SPARK_CLASSPATH`:
+
+```bash
+$ export SPARK_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${SPARK_CLASSPATH}
+```
+
+Alternatively, add the following lines to `spark/conf/spark-defaults.conf` to
+
+```bash
+spark.driver.extraClassPath /<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
+spark.executor.extraClassPath
+/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
+```
 
 #### Q: I'm seeing error messages like "Frame size (67108864) larger than max length (16777216)". What is wrong?
 

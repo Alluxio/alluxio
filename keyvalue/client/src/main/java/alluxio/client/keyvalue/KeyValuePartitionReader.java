@@ -48,7 +48,7 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
       Preconditions.checkNotNull(uri);
       FileSystem fs = FileSystem.Factory.get();
       List<Long> blockIds = fs.getStatus(uri).getBlockIds();
-      // Each partition file should only contains one block.
+      // Each partition file should only contain one block.
       // TODO(binfan): throw exception if a partition file has more than one blocks
       long blockId = blockIds.get(0);
       return new BaseKeyValuePartitionReader(blockId);
