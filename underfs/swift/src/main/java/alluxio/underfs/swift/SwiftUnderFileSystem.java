@@ -762,8 +762,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param uri URI used to construct Swift UFS
    * @return the container name from the given uri
    */
-  protected static String getContainerName(AlluxioURI uri)
-  {
+  protected static String getContainerName(AlluxioURI uri) {
     //Authority contains the user, host and port portion of a URI
     return uri.getAuthority();
   }
