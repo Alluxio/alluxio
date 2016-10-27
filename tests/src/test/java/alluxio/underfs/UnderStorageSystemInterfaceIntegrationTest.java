@@ -22,6 +22,9 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.Permission;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
@@ -352,6 +355,24 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests {@link UnderFileSystem#rename(String, String)} preserves permissions.
+   */
+  @Test
+  public void renameFileWithPermission() throws IOException {
+    String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "testFileSrc");
+    String testFileDst = PathUtils.concatPath(mUnderfsAddress, "testFileDst");
+    String user = "User";
+    String group = "Group";
+    Permission perm = new Permission(user, group, Mode.createFullAccess());
+    createEmptyFileWithPermission(testFileSrc, perm);
+    mUfs.rename(testFileSrc, testFileDst);
+    Assert.assertFalse(mUfs.exists(testFileSrc));
+    Assert.assertTrue(mUfs.exists(testFileDst));
+    Assert.assertEquals(user, mUfs.getOwner(testFileDst));
+    Assert.assertEquals(group, mUfs.getGroup(testFileDst));
+  }
+
+  /**
    * Tests {@link UnderFileSystem#rename(String, String)} works file to a folder if supported.
    */
   @Test
@@ -461,6 +482,13 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   private void createEmptyFile(String path) throws IOException {
     OutputStream o = mUfs.create(path);
+    o.close();
+  }
+
+  private void createEmptyFileWithPermission(String path, Permission perm) throws IOException {
+    CreateOptions options = new CreateOptions();
+    options.setPermission(perm);
+    OutputStream o = mUfs.create(path, options);
     o.close();
   }
 
