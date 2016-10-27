@@ -16,7 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
-import alluxio.underfs.AtomicOutputStream;
+import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -73,7 +73,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     path = stripPath(path);
     String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
     FileOutputStream fsStream = new FileOutputStream(temporaryPath);
-    OutputStream stream = new AtomicOutputStream(path, temporaryPath, fsStream, this);
+    OutputStream stream = new AtomicFileOutputStream(path, temporaryPath, fsStream, this);
     try {
       setMode(temporaryPath, options.getPermission().getMode().toShort());
     } catch (IOException e) {

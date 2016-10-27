@@ -18,7 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
-import alluxio.underfs.AtomicOutputStream;
+import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -146,7 +146,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
             path);
         FSDataOutputStream fsStream = FileSystem.create(mFileSystem, new Path(temporaryPath),
             new FsPermission(perm.getMode().toShort()));
-        return new AtomicOutputStream(path, temporaryPath, fsStream, this);
+        return new AtomicFileOutputStream(path, temporaryPath, fsStream, this);
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;

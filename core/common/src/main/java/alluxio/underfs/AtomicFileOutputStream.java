@@ -16,24 +16,24 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * An {@link AtomicOutputStream} writes to a temporary file and renames on close.
+ * An {@link AtomicFileOutputStream} writes to a temporary file and renames on close.
  */
-public class AtomicOutputStream extends FilterOutputStream {
+public class AtomicFileOutputStream extends FilterOutputStream {
 
   private String mPermanentPath;
   private String mTemporaryPath;
   private UnderFileSystem mUfs;
 
   /**
-   * Constructs a new {@link AtomicOutputStream}.
+   * Constructs a new {@link AtomicFileOutputStream}.
    *
    * @param permanentPath the final path
    * @param temporaryPath the path being written to
    * @param out the wrapped {@link OutputStream}
    * @param ufs the {@link UnderFileSystem} whose rename is invoked
    */
-  public AtomicOutputStream(String permanentPath, String temporaryPath, OutputStream out,
-                            UnderFileSystem ufs) {
+  public AtomicFileOutputStream(String permanentPath, String temporaryPath, OutputStream out,
+                                UnderFileSystem ufs) {
     super(out);
 
     mPermanentPath = permanentPath;
@@ -47,7 +47,7 @@ public class AtomicOutputStream extends FilterOutputStream {
 
     if (!mUfs.rename(mTemporaryPath, mPermanentPath)) {
       mUfs.delete(mTemporaryPath, false);
-      throw new IOException("Error renaming temporary path");
+      throw new IOException("Failed to rename " + mTemporaryPath + "to " + mPermanentPath);
     }
   }
 }
