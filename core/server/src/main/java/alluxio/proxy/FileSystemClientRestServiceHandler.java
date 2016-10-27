@@ -23,6 +23,7 @@ import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.web.ProxyWebServer;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
 
@@ -74,7 +75,8 @@ public final class FileSystemClientRestServiceHandler {
    * @param context context for the servlet
    */
   public FileSystemClientRestServiceHandler(@Context ServletContext context) {
-    mFileSystem = FileSystem.Factory.get();
+    mFileSystem =
+        (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
   }
 
   /**

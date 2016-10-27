@@ -32,7 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Entry point for the Alluxio proxy program.
  */
 @NotThreadSafe
-public class AlluxioProxy implements Server {
+public final class AlluxioProxy implements Server {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -71,7 +71,10 @@ public class AlluxioProxy implements Server {
   /** The web server. */
   private WebServer mWebServer = null;
 
-  private AlluxioProxy() {}
+  /**
+   * Creates an instance of {@link AlluxioProxy}.
+   */
+  public AlluxioProxy() {}
 
   /**
    * @return the actual bind hostname on web service (used by unit test only)

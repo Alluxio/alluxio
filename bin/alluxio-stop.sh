@@ -63,6 +63,7 @@ case "${WHAT}" in
     kill_master
     kill_worker
     kill_remote_workers
+    kill_proxy
     ;;
   -h)
     echo -e "${USAGE}"

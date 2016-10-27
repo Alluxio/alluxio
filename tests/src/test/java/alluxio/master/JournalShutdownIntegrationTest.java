@@ -20,7 +20,6 @@ import alluxio.client.block.BlockStoreContextTestUtils;
 import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.util.CommonUtils;
@@ -147,8 +146,7 @@ public class JournalShutdownIntegrationTest {
     fsMaster.stop();
   }
 
-  private MultiMasterLocalAlluxioCluster setupMultiMasterCluster()
-      throws IOException, ConnectionFailedException {
+  private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {
     // Setup and start the alluxio-ft cluster.
     MultiMasterLocalAlluxioCluster cluster =
         new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
@@ -159,8 +157,7 @@ public class JournalShutdownIntegrationTest {
     return cluster;
   }
 
-  private LocalAlluxioCluster setupSingleMasterCluster()
-      throws IOException, ConnectionFailedException {
+  private LocalAlluxioCluster setupSingleMasterCluster() throws Exception {
     // Setup and start the local alluxio cluster.
     LocalAlluxioCluster cluster = new LocalAlluxioCluster();
     cluster.initConfiguration();

@@ -275,8 +275,8 @@ main() {
       fi
       start_master "${FORMAT}"
       sleep 2
-
       ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}"
+      start_proxy
       ;;
     local)
       if [[ "${killonstart}" != "no" ]]; then

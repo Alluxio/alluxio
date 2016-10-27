@@ -12,6 +12,7 @@
 package alluxio.web;
 
 import alluxio.Constants;
+import alluxio.client.file.FileSystem;
 import alluxio.util.io.PathUtils;
 
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -21,12 +22,15 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletException;
 
 /**
  * The Alluxio proxy web server.
  */
 @NotThreadSafe
 public final class ProxyWebServer extends WebServer {
+
+  public static final String FILE_SYSTEM_SERVLET_RESOURCE_KEY = "File System";
 
   /**
    * Creates a new instance of {@link ProxyWebServer}.
@@ -39,7 +43,16 @@ public final class ProxyWebServer extends WebServer {
 
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.proxy");
-    ServletContainer servlet = new ServletContainer(config);
+    ServletContainer servlet = new ServletContainer(config) {
+      private static final long serialVersionUID = 7756010860672831556L;
+
+      @Override
+      public void init() throws ServletException {
+        super.init();
+        getServletContext()
+            .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, FileSystem.Factory.get());
+      }
+    };
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
     mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }

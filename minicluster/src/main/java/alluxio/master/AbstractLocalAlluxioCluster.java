@@ -23,6 +23,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.proxy.AlluxioProxy;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.LocalFileSystemCluster;
@@ -41,6 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -55,6 +57,7 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final int DEFAULT_BLOCK_SIZE_BYTES = Constants.KB;
   private static final long DEFAULT_WORKER_MEMORY_BYTES = 100 * Constants.MB;
 
+  protected AlluxioProxy mProxy;
   protected List<AlluxioWorkerService> mWorkers;
 
   protected UnderFileSystemCluster mUfsCluster;
@@ -74,10 +77,9 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Starts both master and a worker using the configurations in test conf respectively.
    *
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
+   * @throws Exception if the operation fails
    */
-  public void start() throws IOException, ConnectionFailedException {
+  public void start() throws Exception {
     // Disable HDFS client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
@@ -90,6 +92,9 @@ public abstract class AbstractLocalAlluxioCluster {
     for (AlluxioWorkerService worker : mWorkers) {
       worker.waitForReady();
     }
+    mProxy = new AlluxioProxy();
+    mProxy.start();
+    mProxy.waitForReady();
 
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
@@ -98,17 +103,16 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Configures and starts a master.
    *
-   * @throws IOException when the operation fails
+   * @throws Exception if the operation fails
    */
-  protected abstract void startMaster() throws IOException;
+  protected abstract void startMaster() throws Exception;
 
   /**
    * Configures and starts the workers.
    *
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
+   * @throws Exception if the operation fails
    */
-  protected abstract void startWorkers() throws IOException, ConnectionFailedException;
+  protected abstract void startWorkers() throws Exception;
 
   /**
    * Sets up corresponding directories for tests.
@@ -169,6 +173,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   public void stop() throws Exception {
     stopFS();
+    mProxy.stop();
     stopUFS();
     ConfigurationTestUtils.resetConfiguration();
     reset();
@@ -226,14 +231,16 @@ public abstract class AbstractLocalAlluxioCluster {
     // people running with strange network configurations will see very slow tests
     Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    Configuration.set(PropertyKey.WEB_THREADS, "1");
-    Configuration.set(PropertyKey.WEB_RESOURCES,
-        PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
+    Configuration.set(PropertyKey.PROXY_WEB_PORT, Integer.toString(0));
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+
+    Configuration.set(PropertyKey.WEB_THREADS, "1");
+    Configuration.set(PropertyKey.WEB_RESOURCES,
+        PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
 
     Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(0));
     Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
@@ -286,10 +293,9 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Runs workers.
    *
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
+   * @throws Exception if the operation fails
    */
-  protected void runWorkers() throws IOException, ConnectionFailedException {
+  protected void runWorkers() throws Exception {
     mWorkers = new ArrayList<>();
     for (int i = 0; i < mNumWorkers; i++) {
       mWorkers.add(new DefaultAlluxioWorker());
@@ -323,9 +329,16 @@ public abstract class AbstractLocalAlluxioCluster {
   public abstract FileSystem getClient() throws IOException;
 
   /**
-   * Gets the master which should be listening for RPC and Web requests.
+   * Gets the master which should be listening for RPC and web requests.
    */
   protected abstract LocalAlluxioMaster getMaster();
+
+  /**
+   * Gets the proxy which should be listening for web requests.
+   */
+  public AlluxioProxy getProxy() {
+    return mProxy;
+  }
 
   /**
    * Resets the cluster to original state.
