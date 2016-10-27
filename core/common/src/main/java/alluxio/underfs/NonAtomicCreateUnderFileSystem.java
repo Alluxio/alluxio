@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
@@ -54,7 +55,8 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
   public void completeCreate() throws IOException {
     if (!rename(mTemporaryPath, mPermanentPath)) {
       delete(mTemporaryPath, false);
-      throw new IOException("Failed to rename " + mTemporaryPath + "to " + mPermanentPath);
+      throw new IOException(
+          ExceptionMessage.FAILED_UFS_RENAME.getMessage(mTemporaryPath, mPermanentPath));
     }
   }
 
