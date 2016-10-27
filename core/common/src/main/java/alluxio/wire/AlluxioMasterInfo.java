@@ -82,7 +82,7 @@ public class AlluxioMasterInfo {
    * @return the UFS capacity
    */
   public Capacity getUfsCapacity() {
-    return mCapacity;
+    return mUfsCapacity;
   }
 
   /**
