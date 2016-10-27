@@ -205,11 +205,16 @@ public class AlluxioMasterInfo {
       return false;
     }
     AlluxioMasterInfo that = (AlluxioMasterInfo) o;
-    return mCapacity.equals(that.mCapacity) && mConfiguration.equals(that.mConfiguration)
-        && mMetrics.equals(that.mMetrics) && mRpcAddress.equals(that.mRpcAddress)
-        && mStartTimeMs == that.mStartTimeMs && mTierCapacity.equals(that.mTierCapacity)
-        && mUfsCapacity.equals(that.mUfsCapacity) && mUptimeMs == that.mUptimeMs && mVersion
-        .equals(that.mVersion) && mWorkers.equals(that.mWorkers);
+    return Objects.equal(mCapacity, that.mCapacity)
+        && Objects.equal(mConfiguration, that.mConfiguration)
+        && Objects.equal(mMetrics, that.mMetrics)
+        && Objects.equal(mRpcAddress, that.mRpcAddress)
+        && mStartTimeMs == that.mStartTimeMs
+        && Objects.equal(mTierCapacity, that.mTierCapacity)
+        && Objects.equal(mUfsCapacity, that.mUfsCapacity)
+        && mUptimeMs == that.mUptimeMs
+        && Objects.equal(mVersion, that.mVersion)
+        && Objects.equal(mWorkers, that.mWorkers);
   }
 
   @Override
@@ -221,10 +226,16 @@ public class AlluxioMasterInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("capacity", mCapacity)
-        .add("configuration", mConfiguration).add("metrics", mMetrics)
-        .add("rpc address", mRpcAddress).add("start time", mStartTimeMs)
-        .add("tier capacity", mTierCapacity).add("ufs capacity", mUfsCapacity)
-        .add("uptime", mUptimeMs).add("version", mVersion).add("workers", mWorkers).toString();
+    return Objects.toStringHelper(this)
+        .add("capacity", mCapacity)
+        .add("configuration", mConfiguration)
+        .add("metrics", mMetrics)
+        .add("rpc address", mRpcAddress)
+        .add("start time", mStartTimeMs)
+        .add("tier capacity", mTierCapacity)
+        .add("ufs capacity", mUfsCapacity)
+        .add("uptime", mUptimeMs)
+        .add("version", mVersion)
+        .add("workers", mWorkers).toString();
   }
 }

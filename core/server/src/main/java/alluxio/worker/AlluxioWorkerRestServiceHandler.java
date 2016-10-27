@@ -18,13 +18,14 @@ import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricsSystem;
 import alluxio.web.WorkerUIWebServer;
+import alluxio.wire.AlluxioWorkerInfo;
+import alluxio.wire.Capacity;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.DefaultBlockWorker;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
-import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.Comparator;
 import java.util.List;
@@ -50,17 +51,7 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioWorkerRestServiceHandler {
   public static final String SERVICE_PREFIX = "worker";
-  public static final String GET_RPC_ADDRESS = "rpc_address";
-  public static final String GET_CAPACITY_BYTES = "capacity_bytes";
-  public static final String GET_CONFIGURATION = "configuration";
-  public static final String GET_USED_BYTES = "used_bytes";
-  public static final String GET_CAPACITY_BYTES_ON_TIERS = "capacity_bytes_on_tiers";
-  public static final String GET_USED_BYTES_ON_TIERS = "used_bytes_on_tiers";
-  public static final String GET_DIRECTORY_PATHS_ON_TIERS = "directory_paths_on_tiers";
-  public static final String GET_START_TIME_MS = "start_time_ms";
-  public static final String GET_UPTIME_MS = "uptime_ms";
-  public static final String GET_VERSION = "version";
-  public static final String GET_METRICS = "metrics";
+  public static final String GET_INFO = "info";
 
   private final AlluxioWorkerService mWorker;
   private final BlockStoreMeta mStoreMeta;
@@ -75,75 +66,69 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary get the configuration map, the keys are ordered alphabetically.
+   * @summary get the Alluxio master information
    * @return the response object
    */
   @GET
-  @Path(GET_CONFIGURATION)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
-  public Response getConfiguration() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, String>>() {
+  @Path(GET_INFO)
+  public Response getInfo() {
+    return RestUtils.call(new RestUtils.RestCallable<AlluxioWorkerInfo>() {
       @Override
-      public Map<String, String> call() throws Exception {
-        Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
-        SortedMap<String, String> configuration = new TreeMap<>();
-        for (Map.Entry<String, String> entry : properties) {
-          String key = entry.getKey();
-          if (PropertyKey.isValid(key)) {
-            configuration.put(key, entry.getValue());
-          }
-        }
-        return configuration;
+      public AlluxioWorkerInfo call() throws Exception {
+        AlluxioWorkerInfo result =
+            new AlluxioWorkerInfo()
+                .setCapacity(getCapacity())
+                .setConfiguration(getConfiguration())
+                .setRpcAddress(mWorker.getRpcAddress().toString())
+                .setStartTimeMs(mWorker.getStartTimeMs())
+                .setTierCapacity(getTierCapacity())
+                .setTierPaths(getTierPaths())
+                .setUptimeMs(mWorker.getUptimeMs())
+                .setVersion(RuntimeConstants.VERSION);
+        return result;
       }
     });
   }
 
-  /**
-   * @summary get the address of the worker
-   * @return the response object
-   */
-  @GET
-  @Path(GET_RPC_ADDRESS)
-  @ReturnType("java.lang.String")
-  public Response getRpcAddress() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return mWorker.getRpcAddress().toString();
-      }
-    });
+  private Capacity getCapacity() {
+    return new Capacity().setTotal(mStoreMeta.getCapacityBytes())
+        .setUsed(mStoreMeta.getUsedBytes());
   }
 
-  /**
-   * @summary get the total capacity of the worker in bytes
-   * @return the response object
-   */
-  @GET
-  @Path(GET_CAPACITY_BYTES)
-  @ReturnType("java.lang.Long")
-  public Response getCapacityBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mStoreMeta.getCapacityBytes();
+  private Map<String, String> getConfiguration() {
+    Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
+    SortedMap<String, String> configuration = new TreeMap<>();
+    for (Map.Entry<String, String> entry : properties) {
+      String key = entry.getKey();
+      if (PropertyKey.isValid(key)) {
+        configuration.put(key, entry.getValue());
       }
-    });
+    }
+    return configuration;
   }
 
-  /**
-   * @summary get the used bytes of the worker
-   * @return the response object
-   */
-  @GET
-  @Path(GET_USED_BYTES)
-  @ReturnType("java.lang.Long")
-  public Response getUsedBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mStoreMeta.getUsedBytes();
-      }
-    });
+  private Map<String, Long> getMetrics() {
+    MetricRegistry metricRegistry = MetricsSystem.METRIC_REGISTRY;
+
+    // Get all counters.
+    Map<String, Counter> counters = metricRegistry.getCounters();
+
+    // Only the gauge for cached blocks is retrieved here, other gauges are statistics of
+    // free/used spaces, those statistics can be gotten via other REST apis.
+    String blocksCachedProperty =
+        MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
+    @SuppressWarnings("unchecked")
+    Gauge<Integer> blocksCached =
+        (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
+
+    // Get values of the counters and gauges and put them into a metrics map.
+    SortedMap<String, Long> metrics = new TreeMap<>();
+    for (Map.Entry<String, Counter> counter : counters.entrySet()) {
+      metrics.put(counter.getKey(), counter.getValue().getCount());
+    }
+    metrics.put(blocksCachedProperty, blocksCached.getValue().longValue());
+
+    return metrics;
   }
 
   private Comparator<String> getTierAliasComparator() {
@@ -165,147 +150,20 @@ public final class AlluxioWorkerRestServiceHandler {
     };
   }
 
-  /**
-   * @summary get the mapping from tier alias to the total capacity of the tier in bytes, the keys
-   *    are in the order from tier aliases with smaller ordinals to those with larger ones.
-   * @return the response object
-   */
-  @GET
-  @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
-  public Response getCapacityBytesOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
-      @Override
-      public Map<String, Long> call() throws Exception {
-        SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-        for (Map.Entry<String, Long> tierBytes : mStoreMeta.getCapacityBytesOnTiers().entrySet()) {
-          capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-        }
-        return capacityBytesOnTiers;
-      }
-    });
+  private Map<String, Capacity> getTierCapacity() {
+    SortedMap<String, Capacity> tierCapacity = new TreeMap<>(getTierAliasComparator());
+    Map<String, Long> capacityBytesOnTiers = mStoreMeta.getCapacityBytesOnTiers();
+    Map<String, Long> usedBytesOnTiers = mStoreMeta.getUsedBytesOnTiers();
+    for (Map.Entry<String, Long> entry : capacityBytesOnTiers.entrySet()) {
+      tierCapacity.put(entry.getKey(),
+          new Capacity().setTotal(entry.getValue()).setUsed(usedBytesOnTiers.get(entry.getKey())));
+    }
+    return tierCapacity;
   }
 
-  /**
-   * @summary get the mapping from tier alias to the used bytes of the tier, the keys are in the
-   *    order from tier aliases with smaller ordinals to those with larger ones.
-   * @return the response object
-   */
-  @GET
-  @Path(GET_USED_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
-  public Response getUsedBytesOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
-      @Override
-      public Map<String, Long> call() throws Exception {
-        SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-        for (Map.Entry<String, Long> tierBytes : mStoreMeta.getUsedBytesOnTiers().entrySet()) {
-          usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-        }
-        return usedBytesOnTiers;
-      }
-    });
-  }
-
-  /**
-   * @summary get the mapping from tier alias to the paths of the directories in the tier
-   * @return the response object
-   */
-  @GET
-  @Path(GET_DIRECTORY_PATHS_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.util.List<java.lang.String>>")
-  public Response getDirectoryPathsOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, List<String>>>() {
-      @Override
-      public Map<String, List<String>> call() throws Exception {
-        SortedMap<String, List<String>> tierToDirPaths = new TreeMap<>(getTierAliasComparator());
-        tierToDirPaths.putAll(mStoreMeta.getDirectoryPathsOnTiers());
-        return tierToDirPaths;
-      }
-    });
-  }
-
-  /**
-   * @summary get the version of the worker
-   * @return the response object
-   */
-  @GET
-  @Path(GET_VERSION)
-  @ReturnType("java.lang.String")
-  public Response getVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return RuntimeConstants.VERSION;
-      }
-    });
-  }
-
-  /**
-   * @summary get the start time of the worker in milliseconds
-   * @return the response object
-   */
-  @GET
-  @Path(GET_START_TIME_MS)
-  @ReturnType("java.lang.Long")
-  public Response getStartTimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mWorker.getStartTimeMs();
-      }
-    });
-  }
-
-  /**
-   * @summary get the uptime of the worker in milliseconds
-   * @return the response object
-   */
-  @GET
-  @Path(GET_UPTIME_MS)
-  @ReturnType("java.lang.Long")
-  public Response getUptimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mWorker.getUptimeMs();
-      }
-    });
-  }
-
-  /**
-   * @summary get the worker metrics
-   * @return the response object
-   */
-  @GET
-  @Path(GET_METRICS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
-  public Response getMetrics() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
-      @Override
-      public Map<String, Long> call() throws Exception {
-        MetricRegistry metricRegistry = MetricsSystem.METRIC_REGISTRY;
-
-        // Get all counters.
-        Map<String, Counter> counters = metricRegistry.getCounters();
-
-        // Only the gauge for cached blocks is retrieved here, other gauges are statistics of
-        // free/used spaces, those statistics can be gotten via other REST apis.
-        String blocksCachedProperty =
-            MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
-        @SuppressWarnings("unchecked")
-        Gauge<Integer> blocksCached =
-            (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
-
-        // Get values of the counters and gauges and put them into a metrics map.
-        SortedMap<String, Long> metrics = new TreeMap<>();
-        for (Map.Entry<String, Counter> counter : counters.entrySet()) {
-          metrics.put(counter.getKey(), counter.getValue().getCount());
-        }
-        metrics.put(blocksCachedProperty, blocksCached.getValue().longValue());
-
-        return metrics;
-      }
-    });
+  private Map<String, List<String>> getTierPaths() {
+    SortedMap<String, List<String>> tierToDirPaths = new TreeMap<>(getTierAliasComparator());
+    tierToDirPaths.putAll(mStoreMeta.getDirectoryPathsOnTiers());
+    return tierToDirPaths;
   }
 }
