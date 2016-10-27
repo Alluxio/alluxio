@@ -30,8 +30,8 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.web.MasterUIWebServer;
-import alluxio.web.UIWebServer;
+import alluxio.web.MasterWebServer;
+import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -140,7 +140,7 @@ public class AlluxioMaster implements Server {
   protected final ReadWriteJournal mLineageMasterJournal;
 
   /** The web ui server. */
-  private UIWebServer mWebServer = null;
+  private WebServer mWebServer = null;
 
   /** The RPC server. */
   private TServer mMasterServiceServer = null;
@@ -433,14 +433,14 @@ public class AlluxioMaster implements Server {
   }
 
   protected void startServingWebServer() {
-    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB.getServiceName(),
+    mWebServer = new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
         NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
     // reset master web port
     Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     // Add the metrics servlet to the web server.
     mWebServer.addHandler(mMetricsServlet.getHandler());
     // start web ui
-    mWebServer.startWebServer();
+    mWebServer.start();
   }
 
   private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
@@ -493,7 +493,7 @@ public class AlluxioMaster implements Server {
       mMasterServiceServer = null;
     }
     if (mWebServer != null) {
-      mWebServer.shutdownWebServer();
+      mWebServer.stop();
       mWebServer = null;
     }
     MetricsSystem.stopSinks();

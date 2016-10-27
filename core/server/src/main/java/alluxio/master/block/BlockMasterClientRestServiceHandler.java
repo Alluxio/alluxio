@@ -14,7 +14,7 @@ package alluxio.master.block;
 import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.master.AlluxioMaster;
-import alluxio.web.MasterUIWebServer;
+import alluxio.web.MasterWebServer;
 import alluxio.wire.BlockInfo;
 
 import com.google.common.base.Preconditions;
@@ -52,7 +52,7 @@ public final class BlockMasterClientRestServiceHandler {
   public BlockMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
     AlluxioMaster master =
-        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+        (AlluxioMaster) context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = master.getBlockMaster();
   }
 

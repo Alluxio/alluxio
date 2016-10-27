@@ -40,10 +40,10 @@ import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 /**
- * Class that bootstraps and starts the web server for the web interface.
+ * Class that bootstraps and starts a web server.
  */
 @NotThreadSafe
-public abstract class UIWebServer {
+public abstract class WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   protected final WebAppContext mWebAppContext;
@@ -53,13 +53,13 @@ public abstract class UIWebServer {
   private final ServerConnector mServerConnector;
 
   /**
-   * Creates a new instance of {@link UIWebServer}. It pairs URLs with servlets and sets the webapp
+   * Creates a new instance of {@link WebServer}. It pairs URLs with servlets and sets the webapp
    * folder.
    *
    * @param serviceName name of the web service
    * @param address address of the server
    */
-  public UIWebServer(String serviceName, InetSocketAddress address) {
+  public WebServer(String serviceName, InetSocketAddress address) {
     Preconditions.checkNotNull(serviceName, "Service name cannot be null");
     Preconditions.checkNotNull(address, "Server address cannot be null");
 
@@ -171,7 +171,7 @@ public abstract class UIWebServer {
    *
    * @throws Exception if the underlying jetty server throws an exception
    */
-  public void shutdownWebServer() throws Exception {
+  public void stop() throws Exception {
     // close all connectors and release all binding ports
     for (Connector connector : mServer.getConnectors()) {
       connector.stop();
@@ -183,7 +183,7 @@ public abstract class UIWebServer {
   /**
    * Starts the web server.
    */
-  public void startWebServer() {
+  public void start() {
     try {
       mServer.start();
       LOG.info("{} started @ {}", mServiceName, mAddress);

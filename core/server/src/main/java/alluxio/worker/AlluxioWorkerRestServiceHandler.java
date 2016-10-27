@@ -17,7 +17,7 @@ import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricsSystem;
-import alluxio.web.WorkerUIWebServer;
+import alluxio.web.WorkerWebServer;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
 import alluxio.worker.block.BlockStoreMeta;
@@ -61,7 +61,7 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   public AlluxioWorkerRestServiceHandler(@Context ServletContext context) {
     mWorker = (AlluxioWorkerService) context
-        .getAttribute(WorkerUIWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY);
+        .getAttribute(WorkerWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY);
     mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
   }
 

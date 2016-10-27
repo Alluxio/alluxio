@@ -20,7 +20,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.web.MasterUIWebServer;
+import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 
@@ -69,7 +69,7 @@ public final class AlluxioMasterRestServiceHandler {
   public AlluxioMasterRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
     mMaster =
-        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+        (AlluxioMaster) context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMaster.getBlockMaster();
   }
 

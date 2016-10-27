@@ -22,7 +22,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.web.MasterUIWebServer;
+import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
@@ -83,7 +83,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
     AlluxioMaster master =
-        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+        (AlluxioMaster) context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mFileSystemMaster = master.getFileSystemMaster();
   }
 
