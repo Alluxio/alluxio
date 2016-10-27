@@ -71,7 +71,9 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
     }
     // Rename does not preserve permissions
     Permission perm = options.getCreateOptions().getPermission();
-    setOwner(permanentPath, perm.getOwner(), perm.getGroup());
+    if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
+      setOwner(permanentPath, perm.getOwner(), perm.getGroup());
+    }
   }
 
   /**
