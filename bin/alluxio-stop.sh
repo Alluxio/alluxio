@@ -19,15 +19,20 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-stop.sh [-h] [component]
 Where component is one of:
-  all\t\t\tStop local master/worker and remote workers. Default.
-  master\t\tStop local master.
-  worker\t\tStop local worker.
-  workers\t\tStop local worker and all remote workers.
+  all     \tStop local master/worker and remote workers. Default.
+  master  \tStop local master.
+  master  \tStop local proxy.
+  worker  \tStop local worker.
+  workers \tStop local worker and all remote workers.
 
 -h  display this help."
 
 kill_master() {
   ${LAUNCHER} ${BIN}/alluxio killAll alluxio.master.AlluxioMaster
+}
+
+kill_proxy() {
+  ${LAUNCHER} ${BIN}/alluxio killAll alluxio.master.AlluxioProxy
 }
 
 kill_worker() {
@@ -43,6 +48,9 @@ WHAT=${1:--h}
 case "${WHAT}" in
   master)
     kill_master
+    ;;
+  proxy)
+    kill_proxy
     ;;
   worker)
     kill_worker
