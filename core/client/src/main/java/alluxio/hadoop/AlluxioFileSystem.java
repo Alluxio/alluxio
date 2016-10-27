@@ -56,6 +56,6 @@ public class AlluxioFileSystem extends DelegateToFileSystem {
 
   @Override
   public int getUriDefaultPort() {
-    return Constants.DEFAULT_MASTER_PORT;
+    return Constants.DEFAULT_MASTER_RPC_PORT;
   }
 }

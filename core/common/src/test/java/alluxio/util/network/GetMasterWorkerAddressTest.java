@@ -44,7 +44,7 @@ public class GetMasterWorkerAddressTest {
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster1");
     Configuration.set(PropertyKey.MASTER_RPC_PORT, "10000");
     String defaultHostname = NetworkAddressUtils.getLocalHostName();
-    int defaultPort = Constants.DEFAULT_MASTER_PORT;
+    int defaultPort = Constants.DEFAULT_MASTER_RPC_PORT;
     InetSocketAddress masterAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);

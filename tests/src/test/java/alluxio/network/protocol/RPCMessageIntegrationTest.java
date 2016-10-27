@@ -102,7 +102,7 @@ public class RPCMessageIntegrationTest {
 
     InetSocketAddress address =
         new InetSocketAddress(NetworkAddressUtils.getLocalHostName(100),
-            Constants.DEFAULT_MASTER_PORT);
+            Constants.DEFAULT_MASTER_RPC_PORT);
     ChannelFuture cf = bootstrap.bind(address).syncUninterruptibly();
     sLocalAddress = cf.channel().localAddress();
 

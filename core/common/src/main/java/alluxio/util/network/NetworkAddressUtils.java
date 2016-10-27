@@ -67,7 +67,8 @@ public final class NetworkAddressUtils {
      * Master RPC service (Thrift).
      */
     MASTER_RPC("Alluxio Master RPC service", PropertyKey.MASTER_HOSTNAME,
-        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_RPC_PORT, Constants.DEFAULT_MASTER_PORT),
+        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_RPC_PORT,
+        Constants.DEFAULT_MASTER_RPC_PORT),
 
     /**
      * Master web service (Jetty).
@@ -80,7 +81,8 @@ public final class NetworkAddressUtils {
      * Worker RPC service (Thrift).
      */
     WORKER_RPC("Alluxio Worker RPC service", PropertyKey.WORKER_HOSTNAME,
-        PropertyKey.WORKER_BIND_HOST, PropertyKey.WORKER_RPC_PORT, Constants.DEFAULT_WORKER_PORT),
+        PropertyKey.WORKER_BIND_HOST, PropertyKey.WORKER_RPC_PORT,
+        Constants.DEFAULT_WORKER_RPC_PORT),
 
     /**
      * Worker data service (Netty).
