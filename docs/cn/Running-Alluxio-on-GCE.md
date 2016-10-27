@@ -33,7 +33,7 @@ priority: 4
 
 {% include Running-Alluxio-on-GCE/install-vagrant.md %}
 
-另外，你可以搜互动选择安装 [pip](https://pip.pypa.io/en/latest/installing/), 之后进入 `deploy/vagrant` 目录，运行:
+除了上述方法，你还可以手动安装 [pip](https://pip.pypa.io/en/latest/installing/), 之后进入 `deploy/vagrant` 目录，运行:
 
 {% include Running-Alluxio-on-GCE/install-pip.md %}
 
@@ -41,25 +41,25 @@ priority: 4
 
 要在GCE上运行Alluxio集群, 首先在 [Google Cloud](cloud.google.com) 上有一个计费账号，项目，服务账户和JSON服务账号的密钥。
 
-如果你未注册过Google Cloud, 你需要在 [free trial signup page](https://console.cloud.google.com/billing/freetrial)上创建一个计费账号和项目。 同样地，如果你不熟悉Google计算引擎，你可以先在 [documentation](http://cloud.google.com/compute/docs)上回顾一下关于这部分的内容。
+如果你未注册过Google Cloud, 你需要在 [free trial signup page](https://console.cloud.google.com/billing/freetrial)上创建一个计费账号和项目。 同样地，如果你不熟悉Google计算引擎，你可以先在 [documentation](http://cloud.google.com/compute/docs)上浏览关于这部分的内容。
 
-接着, 对于一个 Google Cloud 新用户来说需要在 [Console](console.google.com) 上的 [Permissions](http://console.cloud.google.com/permissions) 页面内 [Service Accounts](http://console.cloud.google.com/permissions) 标签上选择或者创建一个服务账号。
-如果你创建好了一个新的服务账号, 请在账号创建的对话框中核对 "Furnish a new private key."信息 。下载JSON密钥并将它存储在一个安全的位置。
-如果你是使用了一个已有的服务账号, 你需要使用这个账号已有的JSON密钥或者重新下载一个新的。 你可以在 [Service Accounts](http://console.cloud.google.com/permissions) 标签中,在服务账号的列表右侧的菜单栏中的三个省略号下找到并学则“创建密钥”的按钮，为已有的服务账号下载一个新的JSON密钥，并将它存储在一个安全的位置。
+接着, Google Cloud新用户需要在[Service Accounts](http://console.cloud.google.com/permissions)选项卡下的[Permissions](http://console.cloud.google.com/permissions)页面中的[Console](console.google.com)内选择或者创建一个服务帐号。
+如果要创建一个新的服务账号, 请在账号创建的对话框中核对 "Furnish a new private key."信息，并下载JSON密钥，将它存储在一个安全的位置。
+如果要使用了一个已有的服务账号, 你需要使用这个账号已有的JSON密钥或者重新下载一个新的。 你可以在 [Service Accounts](http://console.cloud.google.com/permissions)选项卡下找到在服务账号列表右侧的三个句点下的菜单，并选择“create key”，为已有的服务账号下载一个新的JSON密钥，并将它存储在一个安全的位置。
 
-为 [gcloud sdk](http://console.cloud.google.com) 配置ssh密钥:
+使用[gcloud sdk](http://console.cloud.google.com) 配置ssh密钥:
 
 {% include Running-Alluxio-on-GCE/config-ssh.md %}
 
-复制 `deploy/vagrant/conf/gce.yml.template` to `deploy/vagrant/conf/gce.yml` :
+运行以下命令复制`deploy/vagrant/conf/gce.yml.template`到`deploy/vagrant/conf/gce.yml`:
 
 {% include Running-Alluxio-on-GCE/copy-gce.md %}
 
-在 `deploy/vagrant/conf/gce.yml`配置文件中,设置你的 项目 id,服务账号, JSON密钥的位置和已经创建好的ssh用户名.
+在 `deploy/vagrant/conf/gce.yml`配置文件中,设置你的项目id,服务账号, JSON密钥的位置和已经创建好的ssh用户名.
 
-对于GCE，默认的底层文件系统是Google Cloud Storage(GCS)。你需要登入你的[Google云控制台](https://console.cloud.google.com)，新建一个GCS bucket并将该bucket的名称写到`conf/ufs.yml`里面的`GCS:Bucket`字段中。要使用其他底层存储系统的话，配置`conf/ufs.yml`里面`Type`字段及其相关字段。
+对于GCE来说，默认的底层文件系统是Google Cloud Storage(GCS)。你需要登入你的[Google云控制台](https://console.cloud.google.com)，新建一个GCS bucket并将该bucket的名称写到`conf/ufs.yml`里面的`GCS:Bucket`字段中。要使用其他底层存储系统的话，配置`conf/ufs.yml`里面`Type`字段及其相关字段。
 
-为了使用访问密钥访问GCS，你需要在GCS的控制台[互操作性设置](https://console.cloud.google.com/storage/settings)里面创建[开发者密钥](https://cloud.google.com/storage/docs/migrating#keys)，并将shell环境变量`GCS_ACCESS_KEY_ID`和`GCS_SECRET_ACCESS_KEY`进行如下设置：
+为了使用访问密钥访问GCS，你需要在GCS控制台中的[互操作性设置](https://console.cloud.google.com/storage/settings)里面创建[开发者密钥](https://cloud.google.com/storage/docs/migrating#keys)，并将shell环境变量`GCS_ACCESS_KEY_ID`和`GCS_SECRET_ACCESS_KEY`进行如下设置：
 
 {% include Running-Alluxio-on-GCE/access-key.md %}
 
