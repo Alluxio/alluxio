@@ -11,6 +11,8 @@
 
 package alluxio.master.file.options;
 
+import alluxio.thrift.CheckConsistencyTOptions;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -27,6 +29,14 @@ public final class CheckConsistencyOptions {
   public static CheckConsistencyOptions defaults() {
     return new CheckConsistencyOptions();
   }
+
+  /**
+   * Constructs an instance of {@link CheckConsistencyOptions} from
+   * {@link alluxio.thrift.CheckConsistencyTOptions}.
+   *
+   * @param options the {@link alluxio.thrift.CheckConsistencyTOptions} to use
+   */
+  public CheckConsistencyOptions(CheckConsistencyTOptions options) {}
 
   private CheckConsistencyOptions() {} // prevent instantiation
 }

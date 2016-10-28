@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.thrift.CheckConsistencyTOptions;
 
 import com.google.common.base.Objects;
 

@@ -26,6 +26,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.CheckConsistencyTOptions;
 import alluxio.thrift.CompleteFileTOptions;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.thrift.CreateFileTOptions;
@@ -71,13 +72,13 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public List<String> checkConsistency(final String path)
+  public List<String> checkConsistency(final String path, final CheckConsistencyTOptions options)
       throws AlluxioTException, ThriftIOException {
     return RpcUtils.call(new RpcCallableThrowsIOException<List<String>>() {
       @Override
       public List<String> call() throws AlluxioException, IOException {
         List<AlluxioURI> inconsistentUris = mFileSystemMaster.checkConsistency(
-            new AlluxioURI(path), CheckConsistencyOptions.defaults());
+            new AlluxioURI(path), new CheckConsistencyOptions(options));
         List<String> uris = new ArrayList<>(inconsistentUris.size());
         for (AlluxioURI uri : inconsistentUris) {
           uris.add(uri.getPath());
