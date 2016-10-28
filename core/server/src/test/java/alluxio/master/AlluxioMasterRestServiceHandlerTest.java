@@ -98,14 +98,14 @@ public class AlluxioMasterRestServiceHandlerTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @BeforeClass
-  public static void setUpClass() throws Exception {
+  public static void beforeClass() throws Exception {
     String filesPinnedProperty =
         MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
   }
 
   @Before
-  public void setUp() throws Exception {
+  public void before() throws Exception {
     mMaster = mock(AlluxioMaster.class);
     mContext = mock(ServletContext.class);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
@@ -150,7 +150,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   }
 
   @After
-  public void tearDown() {
+  public void after() {
     ConfigurationTestUtils.resetConfiguration();
   }
 
