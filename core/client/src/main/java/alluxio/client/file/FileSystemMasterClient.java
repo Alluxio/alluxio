@@ -27,6 +27,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -78,10 +79,10 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path)
-      throws IOException, AlluxioException {
+      throws AlluxioException, IOException {
     return retryRPC(new RpcCallable<List<AlluxioURI>>() {
       @Override
-      public List<AlluxioURI> call() throws AlluxioTException, TException {
+      public List<AlluxioURI> call() throws AlluxioTException, ThriftIOException, TException {
         List<String> inconsistentPaths = mClient.checkConsistency(path.getPath());
         List<AlluxioURI> inconsistentUris = new ArrayList<>(inconsistentPaths.size());
         for (String path : inconsistentPaths) {

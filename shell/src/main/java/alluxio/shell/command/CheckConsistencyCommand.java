@@ -44,8 +44,15 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI root = new AlluxioURI(args[0]);
-    List<AlluxioURI> result = FileSystemUtils.checkConsistency(root);
-    System.out.println("The following files are inconsistent: " + StringUtils.join(result, ","));
+    List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(root);
+    if (inconsistentUris.isEmpty()) {
+      System.out.println(root + " is consistent with the under storage system.");
+    } else {
+      System.out.println("The following files are inconsistent:");
+      for (AlluxioURI uri : inconsistentUris) {
+        System.out.println(uri);
+      }
+    }
   }
 
   @Override
