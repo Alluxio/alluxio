@@ -47,7 +47,7 @@ public class FileSystemMasterClientService {
      * 
      * @param path the root of the subtree to check
      */
-    public List<String> checkConsistency(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public List<String> checkConsistency(String path) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Marks a file as completed.
@@ -264,7 +264,7 @@ public class FileSystemMasterClientService {
       super(iprot, oprot);
     }
 
-    public List<String> checkConsistency(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public List<String> checkConsistency(String path) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_checkConsistency(path);
       return recv_checkConsistency();
@@ -277,7 +277,7 @@ public class FileSystemMasterClientService {
       sendBase("checkConsistency", args);
     }
 
-    public List<String> recv_checkConsistency() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public List<String> recv_checkConsistency() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       checkConsistency_result result = new checkConsistency_result();
       receiveBase(result, "checkConsistency");
@@ -286,6 +286,9 @@ public class FileSystemMasterClientService {
       }
       if (result.e != null) {
         throw result.e;
+      }
+      if (result.ioe != null) {
+        throw result.ioe;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "checkConsistency failed: unknown result");
     }
@@ -770,7 +773,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public List<String> getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public List<String> getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1407,6 +1410,8 @@ public class FileSystemMasterClientService {
           result.success = iface.checkConsistency(args.path);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
+        } catch (alluxio.thrift.ThriftIOException ioe) {
+          result.ioe = ioe;
         }
         return result;
       }
@@ -1898,6 +1903,11 @@ public class FileSystemMasterClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof alluxio.thrift.ThriftIOException) {
+                        result.ioe = (alluxio.thrift.ThriftIOException) e;
+                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -3293,6 +3303,7 @@ public class FileSystemMasterClientService {
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3302,11 +3313,13 @@ public class FileSystemMasterClientService {
 
     private List<String> success; // required
     private alluxio.thrift.AlluxioTException e; // required
+    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e");
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -3325,6 +3338,8 @@ public class FileSystemMasterClientService {
             return SUCCESS;
           case 1: // E
             return E;
+          case 2: // IOE
+            return IOE;
           default:
             return null;
         }
@@ -3373,6 +3388,8 @@ public class FileSystemMasterClientService {
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(checkConsistency_result.class, metaDataMap);
     }
@@ -3382,11 +3399,13 @@ public class FileSystemMasterClientService {
 
     public checkConsistency_result(
       List<String> success,
-      alluxio.thrift.AlluxioTException e)
+      alluxio.thrift.AlluxioTException e,
+      alluxio.thrift.ThriftIOException ioe)
     {
       this();
       this.success = success;
       this.e = e;
+      this.ioe = ioe;
     }
 
     /**
@@ -3400,6 +3419,9 @@ public class FileSystemMasterClientService {
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
+      if (other.isSetIoe()) {
+        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
+      }
     }
 
     public checkConsistency_result deepCopy() {
@@ -3410,6 +3432,7 @@ public class FileSystemMasterClientService {
     public void clear() {
       this.success = null;
       this.e = null;
+      this.ioe = null;
     }
 
     public int getSuccessSize() {
@@ -3475,6 +3498,30 @@ public class FileSystemMasterClientService {
       }
     }
 
+    public alluxio.thrift.ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public checkConsistency_result setIoe(alluxio.thrift.ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -3493,6 +3540,14 @@ public class FileSystemMasterClientService {
         }
         break;
 
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((alluxio.thrift.ThriftIOException)value);
+        }
+        break;
+
       }
     }
 
@@ -3503,6 +3558,9 @@ public class FileSystemMasterClientService {
 
       case E:
         return getE();
+
+      case IOE:
+        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -3519,6 +3577,8 @@ public class FileSystemMasterClientService {
         return isSetSuccess();
       case E:
         return isSetE();
+      case IOE:
+        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -3554,6 +3614,15 @@ public class FileSystemMasterClientService {
           return false;
       }
 
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
+          return false;
+      }
+
       return true;
     }
 
@@ -3570,6 +3639,11 @@ public class FileSystemMasterClientService {
       list.add(present_e);
       if (present_e)
         list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
 
       return list.hashCode();
     }
@@ -3598,6 +3672,16 @@ public class FileSystemMasterClientService {
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -3635,6 +3719,14 @@ public class FileSystemMasterClientService {
         sb.append("null");
       } else {
         sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -3707,6 +3799,15 @@ public class FileSystemMasterClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new alluxio.thrift.ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -3739,6 +3840,11 @@ public class FileSystemMasterClientService {
           struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -3763,7 +3869,10 @@ public class FileSystemMasterClientService {
         if (struct.isSetE()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetIoe()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
@@ -3776,12 +3885,15 @@ public class FileSystemMasterClientService {
         if (struct.isSetE()) {
           struct.e.write(oprot);
         }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, checkConsistency_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list63 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
@@ -3799,6 +3911,11 @@ public class FileSystemMasterClientService {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.ioe = new alluxio.thrift.ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
         }
       }
     }
