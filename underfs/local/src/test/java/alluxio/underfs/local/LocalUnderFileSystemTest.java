@@ -45,6 +45,18 @@ public class LocalUnderFileSystemTest {
   }
 
   @Test
+  public void exists() throws IOException {
+    String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
+    mLocalUfs.create(filepath);
+
+    Assert.assertTrue(mLocalUfs.exists(filepath));
+
+    mLocalUfs.delete(filepath, true);
+
+    Assert.assertFalse(mLocalUfs.exists(filepath));
+  }
+
+  @Test
   public void create() throws IOException {
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     mLocalUfs.create(filepath);
@@ -54,7 +66,6 @@ public class LocalUnderFileSystemTest {
     File file = new File(filepath);
     Assert.assertTrue(file.exists());
   }
-
 
   @Test
   public void delete() throws IOException {
@@ -74,7 +85,6 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.mkdirs(dirpath, true);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
     mLocalUfs.create(filepath);
-
     mLocalUfs.delete(dirpath, true);
 
     Assert.assertFalse(mLocalUfs.exists(dirpath));
@@ -89,7 +99,6 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.mkdirs(dirpath, true);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
     mLocalUfs.create(filepath);
-
     mLocalUfs.delete(dirpath, false);
 
     Assert.assertTrue(mLocalUfs.exists(dirpath));
