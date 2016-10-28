@@ -22,7 +22,6 @@ import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.proxy.AlluxioProxy;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
@@ -42,7 +41,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -71,6 +69,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @param numWorkers the number of workers to run
    */
   public AbstractLocalAlluxioCluster(int numWorkers) {
+    mProxy = new AlluxioProxy();
     mNumWorkers = numWorkers;
   }
 
@@ -92,7 +91,6 @@ public abstract class AbstractLocalAlluxioCluster {
     for (AlluxioWorkerService worker : mWorkers) {
       worker.waitForReady();
     }
-    mProxy = new AlluxioProxy();
     mProxy.start();
     mProxy.waitForReady();
 
@@ -330,11 +328,15 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Gets the master which should be listening for RPC and web requests.
+   *
+   * @return the master
    */
   protected abstract LocalAlluxioMaster getMaster();
 
   /**
    * Gets the proxy which should be listening for web requests.
+   *
+   * @return the proxy
    */
   public AlluxioProxy getProxy() {
     return mProxy;
