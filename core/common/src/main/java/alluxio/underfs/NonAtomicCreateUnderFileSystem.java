@@ -72,8 +72,13 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
     // Rename does not preserve permissions
     Permission perm = options.getCreateOptions().getPermission();
     if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
-      setOwner(permanentPath, perm.getOwner(), perm.getGroup());
+      try {
+        setOwner(permanentPath, perm.getOwner(), perm.getGroup());
+      } catch (Exception e) {
+        LOG.warn("Failed to update the ufs ownership, default values will be used. " + e);
+      }
     }
+    // TODO(chaomin): consider setMode of the ufs file.
   }
 
   /**
