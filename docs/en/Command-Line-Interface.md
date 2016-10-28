@@ -140,8 +140,8 @@ investigation or debugging.
 
 ## count
 The `count` command outputs the number of files and folders matching a prefix as well as the
-total size of the files. `Count` works recursively and accounts for any nested directories and
-files. `Count` is best utilized when the user has some predefined naming conventions for their
+total size of the files. `count` works recursively and accounts for any nested directories and
+files. `count` is best utilized when the user has some predefined naming conventions for their
 files.
 
 For example, if data files are stored by their date, `count` can be used to determine the number of
