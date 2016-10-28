@@ -27,11 +27,13 @@ alluxio.underfs.s3.proxy.port,No default
 alluxio.underfs.s3.threads.max,22
 alluxio.underfs.s3.admin.threads.max,20
 alluxio.underfs.s3.upload.threads.max,2
+alluxio.underfs.s3.disable.dns.buckets,false
 alluxio.underfs.s3a.consistency.timeout.ms,60000
 alluxio.underfs.s3a.direct.writes.enabled,true
 alluxio.underfs.s3a.secure.http.enabled,false
 alluxio.underfs.s3a.server.side.encryption.enabled,false
 alluxio.underfs.s3a.socket.timeout.ms,50000
+alluxio.underfs.s3a.inherit_acl,true
 alluxio.web.resources,${alluxio.home}/core/server/src/main/webapp
 alluxio.web.threads,1
 alluxio.work.dir,${alluxio.home}
