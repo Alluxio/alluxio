@@ -3,6 +3,9 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
+struct CheckConsistencyTOptions {
+}
+
 struct CompleteFileTOptions {
   1: optional i64 ufsLength
 }
@@ -113,7 +116,8 @@ service FileSystemMasterClientService extends common.AlluxioService {
   /**
    * Checks the consistency of the files and directores with the path as the root of the subtree
    */
-  list<string> checkConsistency(/** the root of the subtree to check */ 1: string path)
+  list<string> checkConsistency(/** the root of the subtree to check */ 1: string path,
+      /** the method options */ 2: CheckConsistencyTOptions options)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
