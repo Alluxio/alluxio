@@ -616,17 +616,19 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an error occurs interacting with the under storage
    */
   public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
-    try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
-        InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
-      if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
-        inconsistentUris.add(parent.getUri());
-      }
-      for (Inode child : children.getInodes()) {
-        AlluxioURI currentPath = mInodeTree.getPath(child);
-        if (!checkConsistencyInternal(child, currentPath)) {
-          inconsistentUris.add(currentPath);
+    try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkPermission(Mode.Bits.READ, parent);
+      try (InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
+        if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
+          inconsistentUris.add(parent.getUri());
+        }
+        for (Inode child : children.getInodes()) {
+          AlluxioURI currentPath = mInodeTree.getPath(child);
+          if (!checkConsistencyInternal(child, currentPath)) {
+            inconsistentUris.add(currentPath);
+          }
         }
       }
     }
