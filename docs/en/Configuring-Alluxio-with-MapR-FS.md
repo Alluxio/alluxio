@@ -50,7 +50,7 @@ the HDFS client to access MapR-FS URIs, you have to add the URI prefix `maprfs:/
 `alluxio.underfs.hdfs.prefixes`.
 
 ```
-alluxio.underfs.hdfs.prefixes=hdfs://,glusterfs:///,maprfs:///
+alluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///
 ```
 
 This configuration parameter should be set for all the Alluxio servers (masters, workers). Please read how to
@@ -60,7 +60,7 @@ This configuration parameter should be set for all the Alluxio servers (masters,
 
 This parameter should also be set any client that accesses Alluxio. This means the parameter should be set for any application
 (MapReduce, Spark, Flink, etc.) that accesses Alluxio. This can typically be done by adding
-`-Dalluxio.underfs.hdfs.prefixes=hdfs://,glusterfs:///,maprfs:///` to the command. For more information, please read
+`-Dalluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///` to the command. For more information, please read
 about [configurating applications for Alluxio](Configuration-Settings.html#application-settings).
 
 # Configuring Alluxio to use MapR-FS as Under File System
