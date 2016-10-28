@@ -634,7 +634,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Check if a path is consistent between Alluxio and the underlying storage.
+   * Checks if a path is consistent between Alluxio and the underlying storage.
    *
    * A path without a backing under storage is always consistent.
    *
