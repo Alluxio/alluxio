@@ -77,6 +77,17 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     mClient = new FileSystemMasterClientService.Client(mProtocol);
   }
 
+  public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path)
+      throws IOException, AlluxioException {
+    return retryRPC(new RpcCallable<List<AlluxioURI>>() {
+      @Override
+      public List<AlluxioURI> call() throws AlluxioTException, TException {
+        mClient.checkConsistency(path.getPath());
+        return null;
+      }
+    });
+  }
+
   /**
    * Creates a new directory.
    *

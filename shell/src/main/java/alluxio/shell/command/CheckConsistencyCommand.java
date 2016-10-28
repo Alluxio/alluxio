@@ -13,11 +13,14 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemUtils;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Command for checking the consistency of a file or folder between Alluxio and the under storage.
@@ -41,6 +44,8 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI root = new AlluxioURI(args[0]);
+    List<AlluxioURI> result = FileSystemUtils.checkConsistency(root);
+    System.out.println("The following files are inconsistent: " + StringUtils.join(result, ","));
   }
 
   @Override

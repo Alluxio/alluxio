@@ -17,6 +17,7 @@ import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.exception.AlluxioException;
+import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -38,6 +39,7 @@ import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -66,6 +68,18 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public long getServiceVersion() {
     return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION;
+  }
+
+  @Override
+  public List<String> checkConsistency(final String path) throws AlluxioTException {
+    return RpcUtils.call(new RpcCallableThrowsIOException<List<String>>() {
+      @Override
+      public List<String> call() throws AlluxioException, IOException {
+        List<AlluxioURI> inconsistentUris = mFileSystemMaster.checkConsistency(
+            new AlluxioURI(path), CheckConsistencyOptions.defaults());
+        Lists.transform(inconsistentUris);
+      }
+    })
   }
 
   @Override

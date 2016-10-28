@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -182,5 +183,16 @@ public final class FileSystemUtils {
     // Tell the master to mark the file as persisted
     fs.setAttribute(uri, SetAttributeOptions.defaults().setPersisted(true));
     return ret;
+  }
+
+  public static List<AlluxioURI> checkConsistency(AlluxioURI path)
+      throws AlluxioException, IOException {
+    FileSystemContext context = FileSystemContext.INSTANCE;
+    FileSystemMasterClient client = context.acquireMasterClient();
+    try {
+      return client.checkConsistency(path);
+    } finally {
+      context.releaseMasterClient(client);
+    }
   }
 }
