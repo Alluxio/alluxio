@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -27,7 +28,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -78,11 +78,11 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     mClient = new FileSystemMasterClientService.Client(mProtocol);
   }
 
-  public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path)
-      throws AlluxioException, IOException {
-    return retryRPC(new RpcCallable<List<AlluxioURI>>() {
+  public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path,
+      final CheckConsistencyOptions options) throws AlluxioException, IOException {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<List<AlluxioURI>>() {
       @Override
-      public List<AlluxioURI> call() throws AlluxioTException, ThriftIOException, TException {
+      public List<AlluxioURI> call() throws AlluxioTException, TException {
         List<String> inconsistentPaths = mClient.checkConsistency(path.getPath());
         List<AlluxioURI> inconsistentUris = new ArrayList<>(inconsistentPaths.size());
         for (String path : inconsistentPaths) {
