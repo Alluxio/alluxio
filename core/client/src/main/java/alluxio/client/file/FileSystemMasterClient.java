@@ -82,8 +82,12 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<List<AlluxioURI>>() {
       @Override
       public List<AlluxioURI> call() throws AlluxioTException, TException {
-        mClient.checkConsistency(path.getPath());
-        return null;
+        List<String> inconsistentPaths = mClient.checkConsistency(path.getPath());
+        List<AlluxioURI> inconsistentUris = new ArrayList<>(inconsistentPaths.size());
+        for (String path : inconsistentPaths) {
+          inconsistentUris.add(new AlluxioURI(path));
+        }
+        return inconsistentUris;
       }
     });
   }

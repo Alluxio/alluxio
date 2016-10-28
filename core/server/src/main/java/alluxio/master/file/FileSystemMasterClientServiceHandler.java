@@ -71,15 +71,20 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public List<String> checkConsistency(final String path) throws AlluxioTException {
+  public List<String> checkConsistency(final String path)
+      throws AlluxioTException, ThriftIOException {
     return RpcUtils.call(new RpcCallableThrowsIOException<List<String>>() {
       @Override
       public List<String> call() throws AlluxioException, IOException {
         List<AlluxioURI> inconsistentUris = mFileSystemMaster.checkConsistency(
             new AlluxioURI(path), CheckConsistencyOptions.defaults());
-        Lists.transform(inconsistentUris);
+        List<String> uris = new ArrayList<>(inconsistentUris.size());
+        for (AlluxioURI uri : inconsistentUris) {
+          uris.add(uri.getPath());
+        }
+        return uris;
       }
-    })
+    });
   }
 
   @Override

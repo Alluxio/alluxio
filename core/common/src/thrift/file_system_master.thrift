@@ -114,7 +114,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
    * Checks the consistency of the files and directores with the path as the root of the subtree
    */
   list<string> checkConsistency(/** the root of the subtree to check */ 1: string path)
-    throws (1: exception.AlluxioTException e)
+    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Marks a file as completed.
