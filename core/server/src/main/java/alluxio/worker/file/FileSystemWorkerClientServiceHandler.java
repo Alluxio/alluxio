@@ -49,7 +49,7 @@ public final class FileSystemWorkerClientServiceHandler
    * @param worker the file system worker which will handle most of the requests
    */
   public FileSystemWorkerClientServiceHandler(FileSystemWorker worker) {
-    mWorker = Preconditions.checkNotNull(worker);
+    mWorker = Preconditions.checkNotNull(worker,"worker");
   }
 
   @Override
