@@ -72,6 +72,10 @@ public abstract class AbstractMasterClient extends AbstractClient {
     return getAddress(mZkLeaderPath);
   }
 
+  private static InetSocketAddress getAddress(String zkLeaderPath) {
+    return NetworkAddressUtils.getLeaderAddressFromZK(zkLeaderPath);
+  }
+
   /**
    * @return the list containing all master addresses
    */
@@ -83,9 +87,5 @@ public abstract class AbstractMasterClient extends AbstractClient {
     } else {
       return NetworkAddressUtils.getMasterAddressesFromZK();
     }
-  }
-
-  private static InetSocketAddress getAddress(String zkLeaderPath) {
-    return NetworkAddressUtils.getLeaderAddressFromZK(zkLeaderPath);
   }
 }
