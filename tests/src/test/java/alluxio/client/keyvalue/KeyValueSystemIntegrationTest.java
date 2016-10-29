@@ -505,4 +505,13 @@ public final class KeyValueSystemIntegrationTest {
       }
     }
   }
+
+  /**
+   * Tests that the factory can create an instance of {@link KeyValueSystem}.
+   */
+  @Test
+  public void create() {
+    KeyValueSystem system = KeyValueSystem.Factory.create();
+    Assert.assertNotNull(system);
+  }
 }
