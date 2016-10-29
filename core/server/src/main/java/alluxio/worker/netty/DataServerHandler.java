@@ -55,7 +55,7 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
    * @param worker the Alluxio worker handle
    */
   public DataServerHandler(final AlluxioWorkerService worker) {
-    Preconditions.checkNotNull(worker);
+    Preconditions.checkNotNull(worker, "worker");
     mBlockHandler = new BlockDataServerHandler(worker.getBlockWorker());
     mUnderFileSystemHandler = new UnderFileSystemDataServerHandler(worker.getFileSystemWorker());
   }

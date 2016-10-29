@@ -29,6 +29,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
@@ -149,30 +150,42 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     }
 
     AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
+    // Set a custom endpoint.
     if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
       amazonS3Client.setEndpoint(Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT));
     }
+    // Disable DNS style buckets, this enables path style requests.
+    if (Configuration.getBoolean(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
+      S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
+      amazonS3Client.setS3ClientOptions(clientOptions);
+    }
+
     TransferManager transferManager = new TransferManager(amazonS3Client);
 
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
     transferManager.setConfiguration(transferConf);
 
-    String accountOwnerId = amazonS3Client.getS3AccountOwner().getId();
-    // Gets the owner from user-defined static mapping from S3 canonical user id  to Alluxio
-    // user name.
-    String owner = CommonUtils.getValueFromStaticMapping(
-        Configuration.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING),
-        accountOwnerId);
-    // If there is no user-defined mapping, use the display name.
-    if (owner == null) {
-      owner = amazonS3Client.getS3AccountOwner().getDisplayName();
+     // Default to readable and writable by the user.
+    short bucketMode = (short) 700;
+    String accountOwner = ""; // There is no known account owner by default.
+    // if ACL enabled inherit bucket acl for all the objects.
+    if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_INHERIT_ACL)) {
+      String accountOwnerId = amazonS3Client.getS3AccountOwner().getId();
+      // Gets the owner from user-defined static mapping from S3 canonical user
+      // id to Alluxio user name.
+      String owner = CommonUtils.getValueFromStaticMapping(
+          Configuration.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING),
+          accountOwnerId);
+      // If there is no user-defined mapping, use the display name.
+      if (owner == null) {
+        owner = amazonS3Client.getS3AccountOwner().getDisplayName();
+      }
+      accountOwner = owner == null ? accountOwnerId : owner;
+
+      AccessControlList acl = amazonS3Client.getBucketAcl(bucketName);
+      bucketMode = S3AUtils.translateBucketAcl(acl, accountOwnerId);
     }
-    String accountOwner = owner == null ? accountOwnerId : owner;
-
-    AccessControlList acl = amazonS3Client.getBucketAcl(bucketName);
-    short bucketMode = S3AUtils.translateBucketAcl(acl, accountOwnerId);
-
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName, bucketPrefix,
         bucketMode, accountOwner, transferManager);
   }
