@@ -458,8 +458,7 @@ public final class InodeTreeTest {
    */
   @Test
   public void deleteInode() throws Exception {
-    InodeTree.CreatePathResult createResult =
-        createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
+    createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
 
     // all inodes under root
     try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.WRITE)) {

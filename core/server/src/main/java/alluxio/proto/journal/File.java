@@ -2588,7 +2588,7 @@ public final class File {
             .computeInt64SizeNoTag(blockIds_.get(i));
         }
         size += dataSize;
-        size += 1 * getBlockIdsList().size();
+        size += getBlockIdsList().size();
       }
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
@@ -7022,7 +7022,7 @@ public final class File {
             .computeInt64SizeNoTag(blocks_.get(i));
         }
         size += dataSize;
-        size += 1 * getBlocksList().size();
+        size += getBlocksList().size();
       }
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         size += com.google.protobuf.CodedOutputStream
