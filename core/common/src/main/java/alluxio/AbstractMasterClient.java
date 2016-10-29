@@ -18,6 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -68,6 +70,19 @@ public abstract class AbstractMasterClient extends AbstractClient {
       return super.getAddress();
     }
     return getAddress(mZkLeaderPath);
+  }
+
+  /**
+   * @return the list containing all master addresses
+   */
+  public synchronized List<InetSocketAddress> getMasterAddresses() {
+    if (mZkLeaderPath == null) {
+      List<InetSocketAddress> ret = new ArrayList<>(1);
+      ret.add(super.getAddress());
+      return ret;
+    } else {
+      return NetworkAddressUtils.getMasterAddressesFromZK();
+    }
   }
 
   private static InetSocketAddress getAddress(String zkLeaderPath) {
