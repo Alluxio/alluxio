@@ -38,7 +38,7 @@ public class MutableLockedInodePath extends LockedInodePath {
    * @return the closest ancestor inode
    * @throws FileDoesNotExistException if an ancestor does not exist
    */
-  public synchronized Inode getAncestorInode() throws FileDoesNotExistException {
+  public synchronized Inode<?> getAncestorInode() throws FileDoesNotExistException {
     int ancestorIndex = mPathComponents.length - 2;
     if (ancestorIndex < 0) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
