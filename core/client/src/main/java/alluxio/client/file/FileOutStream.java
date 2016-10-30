@@ -38,6 +38,7 @@ import alluxio.util.io.PathUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,16 +157,10 @@ public class FileOutStream extends AbstractOutStream {
           mFileSystemWorkerClient = null;
           mUfsFileId = null;
         }
-      } catch (AlluxioException e) {
-        mClosed = true;
-        throw mCloser.rethrow(new IOException(e));
-      } catch (Throwable e) { // must catch Throwable
-        mClosed = true;
-        throw mCloser.rethrow(e); // IOException will be thrown as-is
-      } finally {
-        if (mClosed) {
-          mCloser.close();
-        }
+      } catch (AlluxioException | IOException e) {
+        mCloser.close();
+        Throwables.propagateIfInstanceOf(e, IOException.class);
+        throw new IOException(e);
       }
     }
   }

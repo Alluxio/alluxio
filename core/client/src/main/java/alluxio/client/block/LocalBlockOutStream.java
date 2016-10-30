@@ -84,7 +84,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     try {
       mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (AlluxioException e) {
-      throw new IOException(e);
+      throw mCloser.rethrow(new IOException(e));
     } finally {
       mClosed = true;
       mCloser.close();
@@ -99,13 +99,13 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     try {
       flush();
       if (mWrittenBytes > 0) {
-        try {
-          mBlockWorkerClient.cacheBlock(mBlockId);
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        }
+        mBlockWorkerClient.cacheBlock(mBlockId);
         Metrics.BLOCKS_WRITTEN_LOCAL.inc();
       }
+    } catch (AlluxioException e) {
+      throw mCloser.rethrow(new IOException(e));
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is
     } finally {
       mClosed = true;
       mCloser.close();
