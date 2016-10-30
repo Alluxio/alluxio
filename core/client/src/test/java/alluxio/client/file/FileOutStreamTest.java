@@ -45,6 +45,8 @@ import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.resource.CloseableResource;
+import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authorization.Permission;
@@ -118,7 +120,8 @@ public class FileOutStreamTest {
     mFactory = PowerMockito.mock(UnderFileSystemFileOutStream.Factory.class);
 
     when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
-    when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
+    when(mFileSystemContext.acquireMasterClientResource())
+        .thenReturn(new DummyCloseableResource<>(mFileSystemMasterClient));
     when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class))).thenReturn(
         new URIStatus(new FileInfo()));
 
