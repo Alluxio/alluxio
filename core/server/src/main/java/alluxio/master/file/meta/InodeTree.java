@@ -1075,6 +1075,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   private static final class TraversalResult {
+    /** True if the traversal found the target inode, false otherwise.  */
     private final boolean mFound;
 
     /** The list of non-persisted inodes encountered during the traversal. */
