@@ -31,8 +31,6 @@ import java.io.OutputStream;
  */
 public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
 
-  private final long mNonce;
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -42,12 +40,12 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
    */
   public NonAtomicCreateUnderFileSystem(AlluxioURI uri) {
     super(uri);
-    mNonce = IdUtils.getRandomNonNegativeLong();
   }
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    String temporaryPath = PathUtils.temporaryFileName(mNonce, path);
+    LOG.info("AMDEBUG non atomic create called on path {}", path);
+    String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
 
     return new NonAtomicFileOutputStream(createNonAtomic(temporaryPath, options), this,
         new NonAtomicCreateOptions(temporaryPath, path, options));
@@ -62,13 +60,17 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
   public void completeCreate(NonAtomicCreateOptions options) throws IOException {
     String temporaryPath = options.getTemporaryPath();
     String permanentPath = options.getPermanentPath();
+    LOG.info("AMDEBUG completing non atomic create from {} to {}", temporaryPath, permanentPath);
     if (!rename(temporaryPath, permanentPath)) {
+      LOG.info("AMDEBUG failed to rename {} to {}", temporaryPath, permanentPath);
       if (!delete(temporaryPath, false)) {
         LOG.error("Failed to delete temporary file {}", temporaryPath);
       }
       throw new IOException(
           ExceptionMessage.FAILED_UFS_RENAME.getMessage(temporaryPath, permanentPath));
     }
+
+    LOG.info("AMDebug setting permissions on {}", permanentPath);
     // Rename does not preserve permissions
     Permission perm = options.getCreateOptions().getPermission();
     if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {

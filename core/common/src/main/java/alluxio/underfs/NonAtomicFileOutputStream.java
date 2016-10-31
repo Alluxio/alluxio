@@ -11,9 +11,12 @@
 
 package alluxio.underfs;
 
+import alluxio.Constants;
 import alluxio.underfs.options.NonAtomicCreateOptions;
 
-import java.io.FilterOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -23,8 +26,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * An {@link NonAtomicFileOutputStream} writes to a temporary file and renames on close.
  */
 @NotThreadSafe
-public class NonAtomicFileOutputStream extends FilterOutputStream {
+public class NonAtomicFileOutputStream extends OutputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private OutputStream mLocalOutputStream;
   private NonAtomicCreateUnderFileSystem mUfs;
   private NonAtomicCreateOptions mParams;
   private boolean mClosed = false;
@@ -38,18 +43,39 @@ public class NonAtomicFileOutputStream extends FilterOutputStream {
    */
   public NonAtomicFileOutputStream(OutputStream out, NonAtomicCreateUnderFileSystem ufs,
                                    NonAtomicCreateOptions params) {
-    super(out);
-
+    mLocalOutputStream = out;
     mParams = params;
     mUfs = ufs;
   }
 
   @Override
+  public void write(int b) throws IOException {
+    LOG.info("AMDEBUG writing to temp path {}", mParams.getTemporaryPath());
+    mLocalOutputStream.write(b);
+  }
+
+  @Override
+  public void write(byte[] b) throws IOException {
+    LOG.info("AMDEBUG writing to temp path {}", mParams.getTemporaryPath());
+    mLocalOutputStream.write(b, 0, b.length);
+  }
+
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    LOG.info("AMDEBUG writing to temp path {}", mParams.getTemporaryPath());
+    mLocalOutputStream.write(b, off, len);
+  }
+
+  @Override
   public void close() throws IOException {
+    LOG.info("AMDEBUG closing non atomic output stream: {} to {}", mParams.getTemporaryPath(),
+        mParams.getPermanentPath());
     if (mClosed) {
       return;
     }
-    out.close();
+    LOG.info("AMDEBUG actually closing non atomic output stream: {} to {}",
+        mParams.getTemporaryPath(), mParams.getPermanentPath());
+    mLocalOutputStream.close();
     mUfs.completeCreate(mParams);
     mClosed = true;
   }
