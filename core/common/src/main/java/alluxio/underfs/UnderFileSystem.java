@@ -277,9 +277,7 @@ public abstract class UnderFileSystem {
   public abstract void close() throws IOException;
 
   /**
-   * Creates a file in the under file system with the indicated name. This operation is expected
-   * to be atomic. Implementations should make sure that the path appears to exist only after a
-   * successful close and that contents are written in its entirety or not at all.
+   * Creates a file in the under file system with the indicated name.
    *
    * @param path the file name
    * @return A {@code OutputStream} object
@@ -290,8 +288,9 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Creates a file in the under file system with the specified
-   * {@link CreateOptions}.
+   * Creates a file in the under file system with the specified {@link CreateOptions}.
+   * Implementations should make sure that the path under creation appears in listings only
+   * after a successful close and that contents are written in its entirety or not at all.
    *
    * @param path the file name
    * @param options the options for create

@@ -19,13 +19,13 @@ import java.io.OutputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * An {@link NonAtomicFileOutputStream} writes to a temporary file and renames on close.
+ * A {@link NonAtomicFileOutputStream} writes to a temporary file and renames on close.
  */
 @NotThreadSafe
 public class NonAtomicFileOutputStream extends OutputStream {
   private OutputStream mLocalOutputStream;
   private NonAtomicCreateUnderFileSystem mUfs;
-  private NonAtomicCreateOptions mParams;
+  private NonAtomicCreateOptions mOptions;
   private boolean mClosed = false;
 
   /**
@@ -33,12 +33,12 @@ public class NonAtomicFileOutputStream extends OutputStream {
    *
    * @param out the wrapped {@link OutputStream}
    * @param ufs the calling {@link NonAtomicCreateUnderFileSystem}
-   * @param params options to complete create
+   * @param options options to complete create
    */
   public NonAtomicFileOutputStream(OutputStream out, NonAtomicCreateUnderFileSystem ufs,
-                                   NonAtomicCreateOptions params) {
+                                   NonAtomicCreateOptions options) {
     mLocalOutputStream = out;
-    mParams = params;
+    mOptions = options;
     mUfs = ufs;
   }
 
@@ -63,7 +63,7 @@ public class NonAtomicFileOutputStream extends OutputStream {
       return;
     }
     mLocalOutputStream.close();
-    mUfs.completeCreate(mParams);
+    mUfs.completeCreate(mOptions);
     mClosed = true;
   }
 }
