@@ -14,6 +14,7 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
+import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
@@ -44,7 +45,8 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI root = new AlluxioURI(args[0]);
-    List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(root);
+    CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
+    List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(root, options);
     if (inconsistentUris.isEmpty()) {
       System.out.println(root + " is consistent with the under storage system.");
     } else {

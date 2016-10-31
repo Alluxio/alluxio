@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
+import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
@@ -185,12 +186,12 @@ public final class FileSystemUtils {
     return ret;
   }
 
-  public static List<AlluxioURI> checkConsistency(AlluxioURI path)
+  public static List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
       throws AlluxioException, IOException {
     FileSystemContext context = FileSystemContext.INSTANCE;
     FileSystemMasterClient client = context.acquireMasterClient();
     try {
-      return client.checkConsistency(path);
+      return client.checkConsistency(path, options);
     } finally {
       context.releaseMasterClient(client);
     }
