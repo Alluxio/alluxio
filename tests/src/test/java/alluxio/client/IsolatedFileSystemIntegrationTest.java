@@ -30,8 +30,6 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -43,8 +41,6 @@ import java.util.List;
 public class IsolatedFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
@@ -69,16 +65,14 @@ public class IsolatedFileSystemIntegrationTest {
   @Test
   public void lockBlockTest1() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    int numOfFiles = 1;
+    int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
-      LOG.info("AMDEBUG lockblock client creating {}", k);
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
     }
     for (int k = 0; k < numOfFiles; k++) {
-      LOG.info("AMDEBUG lockblock client getting status {}", k);
       Assert.assertTrue(mFileSystem.getStatus(files.get(k)).getInMemoryPercentage() == 100);
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);

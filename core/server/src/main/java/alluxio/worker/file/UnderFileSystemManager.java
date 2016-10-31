@@ -324,7 +324,6 @@ public final class UnderFileSystemManager {
     synchronized (mOutputStreamAgents) {
       mOutputStreamAgents.add(agent);
     }
-    LOG.info("AMDEBUG id is {} for path", id, ufsUri.toString());
     return id;
   }
 

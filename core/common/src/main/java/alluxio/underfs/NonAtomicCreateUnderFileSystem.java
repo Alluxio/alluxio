@@ -44,7 +44,6 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    LOG.info("AMDEBUG non atomic create called on path {}", path);
     String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
 
     return new NonAtomicFileOutputStream(createNonAtomic(temporaryPath, options), this,
@@ -60,9 +59,7 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
   public void completeCreate(NonAtomicCreateOptions options) throws IOException {
     String temporaryPath = options.getTemporaryPath();
     String permanentPath = options.getPermanentPath();
-    LOG.info("AMDEBUG completing non atomic create from {} to {}", temporaryPath, permanentPath);
     if (!rename(temporaryPath, permanentPath)) {
-      LOG.info("AMDEBUG failed to rename {} to {}", temporaryPath, permanentPath);
       if (!delete(temporaryPath, false)) {
         LOG.error("Failed to delete temporary file {}", temporaryPath);
       }
@@ -70,7 +67,6 @@ public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
           ExceptionMessage.FAILED_UFS_RENAME.getMessage(temporaryPath, permanentPath));
     }
 
-    LOG.info("AMDebug setting permissions on {}", permanentPath);
     // Rename does not preserve permissions
     Permission perm = options.getCreateOptions().getPermission();
     if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {

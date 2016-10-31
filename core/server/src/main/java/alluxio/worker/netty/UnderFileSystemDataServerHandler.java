@@ -125,15 +125,12 @@ final class UnderFileSystemDataServerHandler {
       // This channel will not be closed because the underlying stream should not be closed, the
       // channel will be cleaned up when the underlying stream is closed.
       WritableByteChannel channel = Channels.newChannel(out);
-      LOG.info("AMDEBUG writing to channel with fileId {}", ufsFileId);
       channel.write(data.getReadOnlyByteBuffer());
-      LOG.debug("AMDEBUG done writing");
       RPCFileWriteResponse resp =
           new RPCFileWriteResponse(ufsFileId, offset, length, RPCResponse.Status.SUCCESS);
       ctx.writeAndFlush(resp);
     } catch (Exception e) {
       // TODO(peis): Fix this. The exception here should never be caused netty related issue.
-      LOG.info("AMDEBUG error writing to file with id {}", ufsFileId);
       LOG.error("Failed to write ufs file.", e);
       RPCFileWriteResponse resp =
           RPCFileWriteResponse.createErrorResponse(req, RPCResponse.Status.UFS_WRITE_FAILED);
