@@ -85,6 +85,8 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (AlluxioException e) {
       throw mCloser.rethrow(new IOException(e));
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is
     } finally {
       mClosed = true;
       mCloser.close();

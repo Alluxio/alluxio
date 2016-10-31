@@ -68,7 +68,7 @@ public enum FileSystemContext {
   /**
    * Acquires a file system master client from the file system master client pool.
    *
-   * @return the acquired block master client
+   * @return the acquired file system master client
    */
   public FileSystemMasterClient acquireMasterClient() {
     return mFileSystemMasterClientPool.acquire();
@@ -78,7 +78,7 @@ public enum FileSystemContext {
    * Acquires a file system master client from the file system master client pool. The resource is
    * {@code Closeable}.
    *
-   * @return the acquired block master client resource
+   * @return the acquired file system master client resource
    */
   public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
     return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
