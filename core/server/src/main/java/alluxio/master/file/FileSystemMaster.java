@@ -611,6 +611,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param path the root of the subtree to check
    * @param options the options to use for the checkConsistency method
    * @return a list of paths in Alluxio which are not consistent with the under storage
+   * @throws AccessControlException if the permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    * @throws InvalidPathException if the path is invalid
    * @throws IOException if an error occurs interacting with the under storage
