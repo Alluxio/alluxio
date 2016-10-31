@@ -20,8 +20,8 @@ Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以�
 [卡内基梅隆大学](https://www.cmu.edu/)，[IBM](https://www.ibm.com)，[Intel](http://www.intel.com/),
 [南京大学](http://pasa-bigdata.nju.edu.cn/),
 [Red Hat](https://www.redhat.com/)，[UC Berkeley](https://amplab.cs.berkeley.edu/)和
-[Yahoo](https://www.yahoo.com/)。Alluxio处于伯克利数据分析栈(
-[BDAS](https://amplab.cs.berkeley.edu/bdas/))的存储层，也是
+[Yahoo](https://www.yahoo.com/)。Alluxio处于伯克利数据分析栈
+([BDAS](https://amplab.cs.berkeley.edu/bdas/))的存储层，也是
 [Fedora发行版](https://fedoraproject.org/wiki/SIGs/bigdata/packaging)的一部分。
 
 [Github ](https://github.com/alluxio/alluxio/) |
