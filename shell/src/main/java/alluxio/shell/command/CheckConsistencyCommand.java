@@ -18,7 +18,6 @@ import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,6 +26,9 @@ import java.util.List;
  * Command for checking the consistency of a file or folder between Alluxio and the under storage.
  */
 public class CheckConsistencyCommand extends AbstractShellCommand {
+  /**
+   * @param fs the filesystem of Alluxio
+   */
   public CheckConsistencyCommand(FileSystem fs) {
     super(fs);
   }
@@ -64,8 +66,8 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Checks the consistency of a persisted file or directory in Alluxio. Any files or " +
-        "directories which only exist in Alluxio or do not match the metadata of files in the " +
-        "under storage will be returned. An administrator should then reconcile the differences.";
+    return "Checks the consistency of a persisted file or directory in Alluxio. Any files or "
+        + "directories which only exist in Alluxio or do not match the metadata of files in the "
+        + "under storage will be returned. An administrator should then reconcile the differences.";
   }
 }

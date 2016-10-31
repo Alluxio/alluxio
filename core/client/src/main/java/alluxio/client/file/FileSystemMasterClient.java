@@ -78,6 +78,16 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     mClient = new FileSystemMasterClientService.Client(mProtocol);
   }
 
+  /**
+   * Checks the consistency of Alluxio metadata against the under storage for all files and
+   * directories in a given subtree.
+   *
+   * @param path the root of the subtree to check
+   * @param options method options
+   * @return a list of inconsistent files and directories
+   * @throws AlluxioException if an Alluxio error occurs
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path,
       final CheckConsistencyOptions options) throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<List<AlluxioURI>>() {

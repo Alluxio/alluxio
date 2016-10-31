@@ -186,6 +186,16 @@ public final class FileSystemUtils {
     return ret;
   }
 
+  /**
+   * Checks the consistency of Alluxio metadata against the under storage for all files and
+   * directories in a given subtree.
+   *
+   * @param path the root of the subtree to check
+   * @param options method options
+   * @return a list of inconsistent files and directories
+   * @throws AlluxioException if an Alluxio error occurs
+   * @throws IOException if an I/O error occurs
+   */
   public static List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
       throws AlluxioException, IOException {
     FileSystemContext context = FileSystemContext.INSTANCE;

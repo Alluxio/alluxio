@@ -40,7 +40,6 @@ import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.util.ArrayList;
