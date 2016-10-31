@@ -13,14 +13,17 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.options.CheckConsistencyOptions;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,10 +41,12 @@ import java.util.List;
 public class CheckConsistencyIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
+  private static final String TEST_USER = "test";
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.SECURITY_LOGIN_USERNAME,
+          TEST_USER).build();
 
   private FileSystemMaster mFileSystemMaster;
   private FileSystem mFileSystem;
@@ -50,6 +55,7 @@ public class CheckConsistencyIntegrationTest {
   public final void before() throws Exception {
     mFileSystemMaster =
         mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    AuthenticatedClientUser.set(TEST_USER);
     mFileSystem = FileSystem.Factory.get();
     CreateDirectoryOptions dirOptions =
         CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
@@ -57,6 +63,11 @@ public class CheckConsistencyIntegrationTest {
         CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
     mFileSystem.createDirectory(DIRECTORY, dirOptions);
     mFileSystem.createFile(FILE, fileOptions).close();
+  }
+
+  @After
+  public final void after() {
+    AuthenticatedClientUser.remove();
   }
 
   /**

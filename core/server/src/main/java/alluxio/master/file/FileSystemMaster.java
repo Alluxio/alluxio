@@ -611,22 +611,25 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param path the root of the subtree to check
    * @param options the options to use for the checkConsistency method
    * @return a list of paths in Alluxio which are not consistent with the under storage
+   * @throws AccessControlException if the permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    * @throws InvalidPathException if the path is invalid
    * @throws IOException if an error occurs interacting with the under storage
    */
   public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
-    try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
-        InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
-      if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
-        inconsistentUris.add(parent.getUri());
-      }
-      for (Inode child : children.getInodes()) {
-        AlluxioURI currentPath = mInodeTree.getPath(child);
-        if (!checkConsistencyInternal(child, currentPath)) {
-          inconsistentUris.add(currentPath);
+    try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkPermission(Mode.Bits.READ, parent);
+      try (InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
+        if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
+          inconsistentUris.add(parent.getUri());
+        }
+        for (Inode child : children.getInodes()) {
+          AlluxioURI currentPath = mInodeTree.getPath(child);
+          if (!checkConsistencyInternal(child, currentPath)) {
+            inconsistentUris.add(currentPath);
+          }
         }
       }
     }
@@ -634,7 +637,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Check if a path is consistent between Alluxio and the underlying storage.
+   * Checks if a path is consistent between Alluxio and the underlying storage.
    *
    * A path without a backing under storage is always consistent.
    *
