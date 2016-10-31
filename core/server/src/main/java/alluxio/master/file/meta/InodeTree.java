@@ -1106,6 +1106,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
       mLockList = lockList;
     }
 
+    /**
+     * @return true if target inode was found, false otherwise
+     */
     boolean isFound() {
       return mFound;
     }
