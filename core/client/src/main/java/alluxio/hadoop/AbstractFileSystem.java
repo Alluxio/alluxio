@@ -223,7 +223,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       sFileSystem.delete(uri, options);
       return true;
     } catch (InvalidPathException | FileDoesNotExistException e) {
-      LOG.info("delete failed: {}", e.getMessage());
+      LOG.error("delete failed: {}", e.getMessage());
       return false;
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -346,6 +346,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param permission permission set to path
    * @throws IOException if the path failed to be changed permission
    */
+  @Override
   public void setPermission(Path path, FsPermission permission) throws IOException {
     LOG.info("setMode({},{})", path, permission.toString());
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
@@ -396,7 +397,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
 
     super.initialize(uri, conf);
-    LOG.info("initialize({}, {}). Connecting to Alluxio: {}", uri, conf, uri.toString());
+    LOG.info("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addS3Credentials(conf);
     HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
@@ -404,7 +405,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
-    LOG.info("{} {}", mAlluxioHeader, mUri);
+    LOG.debug("{} {}", mAlluxioHeader, mUri);
 
     if (sInitialized) {
       return;
