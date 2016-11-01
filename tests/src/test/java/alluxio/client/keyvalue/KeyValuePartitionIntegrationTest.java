@@ -182,8 +182,7 @@ public final class KeyValuePartitionIntegrationTest {
 
   /**
    * Tests that an exception is thrown when trying to create an instance via
-   * {@link alluxio.client.keyvalue.KeyValuePartitionWriter.Factory#create(AlluxioURI)} which is
-   * null.
+   * {@link KeyValuePartitionWriter.Factory#create(AlluxioURI)} which is null.
    */
   @Test
   public void createWriterUriNotNull() throws IOException, AlluxioException {
@@ -203,8 +202,7 @@ public final class KeyValuePartitionIntegrationTest {
 
   /**
    * Tests that an exception is thrown when trying to create an instance via
-   * {@link alluxio.client.keyvalue.KeyValuePartitionReader.Factory#create(AlluxioURI)} which is
-   * null.
+   * {@link KeyValuePartitionReader.Factory#create(AlluxioURI)} which is null.
    */
   @Test
   public void createReaderUriNotNull() throws IOException, AlluxioException {
