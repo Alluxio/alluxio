@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class NonAtomicFileOutputStream extends OutputStream {
-  private OutputStream mLocalOutputStream;
+  private OutputStream mTemporaryOutputStream;
   private NonAtomicCreateUnderFileSystem mUfs;
   private NonAtomicCreateOptions mOptions;
   private boolean mClosed = false;
@@ -37,24 +37,24 @@ public class NonAtomicFileOutputStream extends OutputStream {
    */
   public NonAtomicFileOutputStream(OutputStream out, NonAtomicCreateUnderFileSystem ufs,
                                    NonAtomicCreateOptions options) {
-    mLocalOutputStream = out;
+    mTemporaryOutputStream = out;
     mOptions = options;
     mUfs = ufs;
   }
 
   @Override
   public void write(int b) throws IOException {
-    mLocalOutputStream.write(b);
+    mTemporaryOutputStream.write(b);
   }
 
   @Override
   public void write(byte[] b) throws IOException {
-    mLocalOutputStream.write(b, 0, b.length);
+    mTemporaryOutputStream.write(b, 0, b.length);
   }
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    mLocalOutputStream.write(b, off, len);
+    mTemporaryOutputStream.write(b, off, len);
   }
 
   @Override
@@ -62,7 +62,7 @@ public class NonAtomicFileOutputStream extends OutputStream {
     if (mClosed) {
       return;
     }
-    mLocalOutputStream.close();
+    mTemporaryOutputStream.close();
     mUfs.completeCreate(mOptions);
     mClosed = true;
   }

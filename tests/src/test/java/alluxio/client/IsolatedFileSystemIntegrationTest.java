@@ -127,7 +127,6 @@ public class IsolatedFileSystemIntegrationTest {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
-
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
     }
