@@ -405,7 +405,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
-    LOG.debug("{} {}", mAlluxioHeader, mUri);
 
     if (sInitialized) {
       return;
