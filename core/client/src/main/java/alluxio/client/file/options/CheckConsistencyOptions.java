@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CheckConsistencyOptions {
   /**
-   * @return the default {@link CancelUfsFileOptions}
+   * @return the default {@link CheckConsistencyOptions}
    */
   public static CheckConsistencyOptions defaults() {
     return new CheckConsistencyOptions();
