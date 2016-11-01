@@ -27,6 +27,7 @@ import alluxio.worker.block.io.BlockReader;
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
@@ -210,6 +211,12 @@ final public class BlockReadDataServerHandler
           if (response.getStatus() == RPCResponse.Status.SUCCESS) {
             done = true;
           }
+          ChannelFuture channelFuture = mContext.writeAndFlush(response).sync();
+          if (!channelFuture.isSuccess()) {
+            Preconditions.checkNotNull(channelFuture.cause());
+            mResponseQueue.exceptionCaught(channelFuture.cause());
+            mResponseQueue.clearPackets();
+          }
         } catch (Throwable e) {
           if (e instanceof BlockDoesNotExistException) {
             response = RPCBlockReadResponse
@@ -221,7 +228,10 @@ final public class BlockReadDataServerHandler
           done = true;
         }
         try {
-          mContext.writeAndFlush(response).sync();
+          ChannelFuture channelFuture = mContext.writeAndFlush(response).sync();
+          if (!channelFuture.isSuccess()) {
+            channelFuture.cause();
+          }
         } catch (InterruptedException e) {
           Throwables.propagate(e);
         }
@@ -273,7 +283,6 @@ final public class BlockReadDataServerHandler
     }
 
     mResponseQueue.reset();
-    ctx.close();
   }
 
   @Override
@@ -298,6 +307,7 @@ final public class BlockReadDataServerHandler
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Exception caught {} in BlockReadDataServerHandler.", cause);
     // This is likely a read error, close the channel to be safe.
+    ctx.close();
   }
 
   /**

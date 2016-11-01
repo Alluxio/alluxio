@@ -69,11 +69,11 @@ public abstract class PacketQueue<T> {
         signalIfNecessary();
         if (!mPacketsQueue.isEmpty()) {
           return mPacketsQueue.poll();
-        } else if (mEof) {
-          throw new EOFException("Reached the end of the block.");
-        } else if (!mThrowableQueue.isEmpty()) {
+       } else if (!mThrowableQueue.isEmpty()) {
           // We only look at the first Exception.
           throw mThrowableQueue.poll();
+        } else if (mEof) {
+          throw new EOFException("Reached the end of the block.");
         } else {
           try {
             mNotEmpty.await(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS);
