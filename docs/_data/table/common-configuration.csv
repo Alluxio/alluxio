@@ -11,6 +11,7 @@ alluxio.network.thrift.frame.&#8203;size.bytes.max,16MB
 alluxio.site.conf.dir,"${user.home}/.alluxio/,/etc/alluxio/"
 alluxio.test.mode,false
 alluxio.underfs.address,${alluxio.work.dir}/underFSStorage
+alluxio.underfs.allow.set.owner.failure,false
 alluxio.underfs.gcs.owner.id.to.username.mapping,No default
 alluxio.underfs.glusterfs.impl,org.apache.hadoop.fs.glusterfs.&#8203;GlusterFileSystem
 alluxio.underfs.glusterfs.mapred.&#8203;system.dir,glusterfs:///mapred/system

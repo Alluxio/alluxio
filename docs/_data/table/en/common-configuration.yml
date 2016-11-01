@@ -28,6 +28,8 @@ alluxio.test.mode:
   Flag used only during tests to allow special behavior.
 alluxio.underfs.address:
   Alluxio directory in the under file system.
+alluxio.underfs.allow.set.owner.failure:
+  Enable this to allow under file system setOwner failures, and proceed with Alluxio operations.
 alluxio.underfs.gcs.owner.id.to.username.mapping:
   Optionally, specify a preset gcs owner id to Alluxio username static mapping in the
   format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address

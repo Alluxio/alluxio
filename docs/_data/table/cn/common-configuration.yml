@@ -22,6 +22,8 @@ alluxio.test.mode:
   设置在测试过程中是否启用某些特殊行为。
 alluxio.underfs.address:
   Alluxio在底层文件系统中的文件夹。
+alluxio.underfs.allow.set.owner.failure:
+  可选配置项，是否允许当底层文件系统更改文件用户出现错误的时候继续Alluxio操作。
 alluxio.underfs.gcs.owner.id.to.username.mapping:
   可选配置项，指定一个预设的gcs拥有者ID到Alluxio用户名的静态映射，格式为“id1=user1;id2=user2”。谷歌云存储的ID可以在控制台地址https://console.cloud.google.com/storage/settings找到。请使用“Owners”选项。
 alluxio.underfs.glusterfs.impl:
