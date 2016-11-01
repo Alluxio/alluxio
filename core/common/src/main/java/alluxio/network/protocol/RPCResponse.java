@@ -30,6 +30,7 @@ public abstract class RPCResponse extends RPCMessage {
   public enum Status {
     // Success.
     SUCCESS(0),
+    STREAM_PACKET(4),
     // Generic errors.
     UNEXPECTED_STATUS_CODE(1),
     DECODE_ERROR(2),
@@ -40,6 +41,9 @@ public abstract class RPCResponse extends RPCMessage {
     WRITE_ERROR(102),
     UFS_READ_FAILED(103),
     UFS_WRITE_FAILED(104),
+
+    // A block read request is cancelled before its completion.
+    BLOCK_READ_CANCELLED(105),
     ;
 
     private static final String DEFAULT_ERROR_STRING = "Unknown error.";

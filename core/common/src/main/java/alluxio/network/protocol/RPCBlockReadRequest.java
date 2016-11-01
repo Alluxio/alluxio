@@ -81,11 +81,18 @@ public final class RPCBlockReadRequest extends RPCRequest {
     out.writeLong(mSessionId);
   }
 
+  public boolean isCancelRequest() {
+    return mOffset == -1;
+  }
+
   @Override
   public void validate() {
-    Preconditions.checkState(mOffset >= 0, "Offset cannot be negative: %s", mOffset);
-    Preconditions.checkState(mLength >= 0 || mLength == -1,
-        "Length cannot be negative (except for -1): %s", mLength);
+    Preconditions
+        .checkState(mOffset >= 0 || mOffset == -1, "Offset cannot be negative (except for -1): %s",
+            mOffset);
+    Preconditions
+        .checkState(mLength >= 0 || mLength == -1, "Length cannot be negative (except for -1): %s",
+            mLength);
   }
 
   @Override
