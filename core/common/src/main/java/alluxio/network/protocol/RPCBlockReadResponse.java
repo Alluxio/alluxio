@@ -60,16 +60,13 @@ public final class RPCBlockReadResponse extends RPCResponse {
    * Creates a {@link RPCBlockReadResponse} object that indicates an error for the given
    * {@link RPCBlockReadRequest}.
    *
-   * @param request the {@link RPCBlockReadRequest} to generated
-   * the {@link RPCBlockReadResponse} for
    * @param status the {@link alluxio.network.protocol.RPCResponse.Status} for the response
    * @return The generated {@link RPCBlockReadResponse} object
    */
-  public static RPCBlockReadResponse createErrorResponse(final RPCBlockReadRequest request,
-      final Status status) {
+  public static RPCBlockReadResponse createErrorResponse(long blockId, Status status) {
     Preconditions.checkArgument(status != Status.SUCCESS);
     // The response has no payload, so length must be 0.
-    return new RPCBlockReadResponse(request.getBlockId(), request.getOffset(), 0, null, status);
+    return new RPCBlockReadResponse(blockId, -1, 0, null, status);
   }
 
   /**
