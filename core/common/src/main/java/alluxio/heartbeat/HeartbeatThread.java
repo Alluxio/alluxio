@@ -49,7 +49,7 @@ public final class HeartbeatThread implements Runnable {
    */
   public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs) {
     mThreadName = threadName;
-    mExecutor = Preconditions.checkNotNull(executor);
+    mExecutor = Preconditions.checkNotNull(executor, "executor");
     Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
     try {
       mTimer =
