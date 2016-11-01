@@ -27,7 +27,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * An {@link UnderFileSystem} which does not have an atomic create operation.
+ * An {@link UnderFileSystem} which does not have an atomic create operation, i.e. the file in
+ * creation may show up in listings before its closed and partial contents can be read.
  */
 public abstract class NonAtomicCreateUnderFileSystem extends UnderFileSystem {
 
