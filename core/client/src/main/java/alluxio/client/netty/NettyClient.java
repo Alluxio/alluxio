@@ -38,6 +38,8 @@ public final class NettyClient {
   private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
 
+  private static final int NETTY_CLIENT_VERSION = 1;
+
   private static final ChannelType CHANNEL_TYPE =
       Configuration.getEnum(PropertyKey.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
   private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
@@ -69,6 +71,7 @@ public final class NettyClient {
     boot.option(ChannelOption.SO_KEEPALIVE, true);
     boot.option(ChannelOption.TCP_NODELAY, true);
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+    boot.option(ChannelOption.AUTO_READ, false);
 
     boot.handler(new ChannelInitializer<SocketChannel>() {
       @Override
