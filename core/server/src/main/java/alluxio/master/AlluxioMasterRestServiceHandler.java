@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -42,6 +41,7 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -91,21 +91,24 @@ public final class AlluxioMasterRestServiceHandler {
 
   /**
    * @summary get the configuration map, the keys are ordered alphabetically.
+   * @param raw whether the unresolved, raw property values should be returned, null means false
    * @return the response object
    */
   @GET
   @Path(GET_CONFIGURATION)
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
-  public Response getConfiguration() {
+  public Response getConfiguration(@QueryParam("raw") final Boolean raw) {
     return RestUtils.call(new RestUtils.RestCallable<Map<String, String>>() {
       @Override
       public Map<String, String> call() throws Exception {
-        Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
+        Map<String, String> properties = Configuration.toMap();
         SortedMap<String, String> configuration = new TreeMap<>();
-        for (Map.Entry<String, String> entry : properties) {
+        for (Map.Entry<String, String> entry : properties.entrySet()) {
           String key = entry.getKey();
           if (PropertyKey.isValid(key)) {
-            configuration.put(key, entry.getValue());
+            String value = (raw != null && raw) ? entry.getValue() :
+                Configuration.get(PropertyKey.fromString(key));
+            configuration.put(key, value);
           }
         }
         return configuration;
