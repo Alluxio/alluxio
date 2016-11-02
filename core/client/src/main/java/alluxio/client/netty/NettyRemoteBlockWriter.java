@@ -25,7 +25,6 @@ import alluxio.network.protocol.databuffer.DataByteArrayChannel;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Throwables;
-import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
@@ -33,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -45,8 +43,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  private final Callable<Bootstrap> mClientBootstrap;
 
   private boolean mOpen;
   private InetSocketAddress mAddress;
@@ -60,7 +56,6 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
    * Creates a new {@link NettyRemoteBlockWriter}.
    */
   public NettyRemoteBlockWriter() {
-    mClientBootstrap = NettyClient.bootstrapBuilder();
     mOpen = false;
   }
 
@@ -86,13 +81,18 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
 
   @Override
   public void write(byte[] bytes, int offset, int length) throws IOException {
-    SingleResponseListener listener = null;
     Channel channel = null;
+    ClientHandler clientHandler = null;
     Metrics.NETTY_BLOCK_WRITE_OPS.inc();
     try {
-      channel = BlockStoreContext.acquireNettyChannel(mAddress, mClientBootstrap);
-      listener = new SingleResponseListener();
-      channel.pipeline().get(ClientHandler.class).addListener(listener);
+      channel = BlockStoreContext.acquireNettyChannel(mAddress);
+      if (!(channel.pipeline().last() instanceof ClientHandler)) {
+        channel.pipeline().addLast(new ClientHandler());
+      }
+      clientHandler = (ClientHandler) channel.pipeline().last();
+      SingleResponseListener listener = new SingleResponseListener();
+      clientHandler.addListener(listener);
+
       ChannelFuture channelFuture = channel.writeAndFlush(
           new RPCBlockWriteRequest(mSessionId, mBlockId, mWrittenBytes, length,
               new DataByteArrayChannel(bytes, offset, length))).sync();
@@ -135,8 +135,8 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
       }
       throw new IOException(e);
     } finally {
-      if (channel != null && listener != null && channel.isActive()) {
-        channel.pipeline().get(ClientHandler.class).removeListener(listener);
+      if (clientHandler != null) {
+        clientHandler.removeListeners();
       }
       if (channel != null) {
         BlockStoreContext.releaseNettyChannel(mAddress, channel);
