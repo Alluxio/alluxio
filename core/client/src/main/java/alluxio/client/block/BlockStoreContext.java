@@ -197,7 +197,7 @@ public final class BlockStoreContext {
     }
   }
 
-  /**
+ /**
    * Releases a netty channel to the channel pools.
    *
    * @param address the network address of the channel

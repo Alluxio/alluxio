@@ -66,6 +66,10 @@ public final class RPCBlockReadRequest extends RPCRequest {
     return new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId);
   }
 
+  public static RPCBlockReadRequest createCancelRequest(long blockId) {
+    return new RPCBlockReadRequest(blockId, -1, 0, 0, 0);
+  }
+
   @Override
   public int getEncodedLength() {
     // 5 longs (mBLockId, mOffset, mLength, mLockId, mSessionId)

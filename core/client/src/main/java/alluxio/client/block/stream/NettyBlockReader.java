@@ -13,128 +13,157 @@ package alluxio.client.block.stream;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockStoreContext;
+import alluxio.exception.DataTransferException;
+import alluxio.network.netty.MessageQueue;
+import alluxio.network.protocol.RPCBlockReadRequest;
+import alluxio.network.protocol.RPCBlockReadResponse;
+import alluxio.network.protocol.RPCResponse;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.net.InetSocketAddress;
 
-import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The interface to read remote block from data server.
+ * The class to read remote block from data server.
  */
-public abstract class NettyBlockReader implements BlockReader {
-  private Channel mChannel = null;
+@NotThreadSafe
+public class NettyBlockReader implements BlockReader {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private final Channel mChannel;
+  private final InetSocketAddress mAddress;
+  private final long mBlockId;
+  private int mBytesRemaining = -1;
 
-  public static class PacketQueue {
-    private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-    private Channel mChannel = null;
-    private final int mMaxCapacity = 4;
-    // TODO: make the size configurable.
-    private ReentrantLock mLock = new ReentrantLock();
-    @GuardedBy("mLock")
-    private Queue<ByteBuf> mPacketsQueue = new LinkedList<>();
-    private Queue<Throwable> mThrowableQueue = new LinkedList<>();
-    // Will be set to true if we are done with reading the block range.
-    private boolean mEof = false;
-    private Condition mNotEmpty = mLock.newCondition();
+  private volatile boolean mDone = false;
 
-    private final static int READ_TIMEOUT_MS = Constants.MINUTE_MS;
-
-    public void read() {
-      try {
-        mLock.lock();
-        if (!mEof && mPacketsQueue.size() < mMaxCapacity && mThrowableQueue.isEmpty()) {
-          mChannel.read();
-        }
-      } finally {
-        mLock.unlock();
-      }
+  private final class NettyPacketQueue extends MessageQueue<ByteBuf> {
+    public NettyPacketQueue() {
+      super(MessageQueue.Options.defaultOptions());
     }
 
-    // The caller is responsible for releasing this.
-    public ByteBuf pollPacket() throws IOException {
-      while (true) {
-        try {
-          mLock.lock();
-          if (!mPacketsQueue.isEmpty()) {
-            return mPacketsQueue.poll();
-          } else if (mEof) {
-            throw new EOFException("Reached the end of the block.");
-          } else if (!mThrowableQueue.isEmpty()) {
-            // We only look at the first Exception.
-            throw new IOException(mThrowableQueue.poll());
-          } else {
-            try {
-              mNotEmpty.await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-              throw new IOException(e);
-            }
-          }
-        } finally {
-          mLock.unlock();
-        }
-      }
-    }
-
-    public void offerPacket(ByteBuf packet, boolean eof) {
-      try {
-        mLock.lock();
-        Preconditions.checkState(!mEof, "Reading packet after reaching EOF.");
-        mPacketsQueue.offer(packet);
-        if (mPacketsQueue.size() > mMaxCapacity) {
-          LOG.warn("Netty block reader queue size exceeds the maximum capacity: actual: {}, max: {}",
-              mPacketsQueue.size(), mMaxCapacity);
-        }
-        mEof = eof;
-      } finally {
-        mLock.unlock();
-      }
-    }
-
-    public void exceptionCaught(Throwable throwable) {
-      try {
-        mLock.lock();
-        mThrowableQueue.offer(throwable);
-      } finally {
-        mLock.unlock();
-      }
+    protected void signal() {
+      mChannel.read();
     }
   }
 
-  private PacketQueue mPacketQueue = new PacketQueue();
+  private NettyPacketQueue mPacketQueue = new NettyPacketQueue();
+  private Handler mHandler = new Handler();
 
-  public NettyBlockReader() {
-    // TODO: build the channel with correct handlers.
-    // mChannel = BlockStoreContext.acquireNettyChannel();
-    // mChannel.pipeline().addLast(handler);
+  public class Handler extends ChannelInboundHandlerAdapter {
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+      Preconditions.checkState(msg instanceof RPCBlockReadResponse, "Incorrect response type.");
+      RPCBlockReadResponse response = (RPCBlockReadResponse) msg;
+      if (response.getStatus() == RPCResponse.Status.SUCCESS ||
+          response.getStatus() == RPCResponse.Status.STREAM_PACKET) {
+        mPacketQueue.offerMessage(response.getPayloadData(),
+            response.getStatus() == RPCResponse.Status.SUCCESS);
+      } else {
+        mPacketQueue.exceptionCaught(new DataTransferException(String
+            .format("Failed to read block %d from %s with status %s.", mBlockId, mAddress,
+                response.getStatus().getMessage())));
+      }
+    }
 
-    // Send read request.
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+      LOG.error("Exception caught while reading response from netty channel {}.",
+          cause.getMessage());
+      mPacketQueue.exceptionCaught(cause);
+      ctx.close();
+    }
+  }
+
+  public NettyBlockReader(final InetSocketAddress address, long blockId, long offset, int len,
+      long lockId, long sessionId) throws IOException {
+    mAddress = address;
+    mBlockId = blockId;
+    mBytesRemaining = len;
+
+    mChannel = BlockStoreContext.acquireNettyChannel(address);
+    ChannelPipeline pipeline = mChannel.pipeline();
+    if (pipeline.last() instanceof Handler) {
+      pipeline.removeLast();
+    }
+    mChannel.pipeline().addLast(mHandler);
+
+    Preconditions.checkArgument(len >= 0, "Len must be >= 0");
+    mChannel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, len, lockId, sessionId))
+        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
   @Override
   public ByteBuf readPacket() throws IOException {
-    mPacketQueue.read();
-    return mPacketQueue.pollPacket();
+    try {
+      ByteBuf buf = mPacketQueue.pollMessage();
+      mBytesRemaining -= buf.readableBytes();
+      Preconditions.checkState(mBytesRemaining >= 0, "mBytesRemaining must be >= 0.");
+      mDone = mBytesRemaining == 0;
+      return buf;
+    } catch (EOFException e) {
+      // This should never happen.
+      throw Throwables.propagate(e);
+    } catch (DataTransferException e) {
+      mDone = true;
+      throw new IOException(e);
+    } catch (Throwable e) {
+      // TODO(peis): Retry once if e is caused by ClosedChannelException.
+      try {
+        mChannel.close().sync();
+      } catch (InterruptedException ee) {
+        Throwables.propagate(ee);
+      }
+      throw new IOException(e);
+    }
   }
 
   @Override
   public void close() throws IOException {
-    // BlockStoreContext.releaseNettyChannel();
-    // Send stop msg.
-    // wait for eof.
+    try {
+      if (mDone) {
+        return;
+      }
+      try {
+        ChannelFuture channelFuture =
+            mChannel.writeAndFlush(RPCBlockReadRequest.createCancelRequest(mBlockId)).sync();
+        if (!channelFuture.isSuccess()) {
+          mChannel.close().sync();
+          throw new IOException(channelFuture.cause());
+        }
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+
+      // wait for response.
+      while (true) {
+        try {
+          ByteBuf buf = readPacket();
+          ReferenceCountUtil.release(buf);
+        } catch (IOException e) {
+          if (mDone) {
+            return;
+          }
+          throw e;
+        }
+      }
+    } finally {
+      BlockStoreContext.releaseNettyChannel(mAddress, mChannel);
+    }
   }
 }
+
