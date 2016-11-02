@@ -63,8 +63,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       if (result == null) {
         throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
       }
-      mReader = new LocalFileBlockReader(result.getBlockPath());
-      mCloser.register(mReader);
+      mReader = mCloser.register(new LocalFileBlockReader(result.getBlockPath()));
     } catch (IOException e) {
       mCloser.close();
       throw e;
@@ -88,6 +87,8 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
         Metrics.BLOCKS_READ_LOCAL.inc();
       }
       mBlockWorkerClient.unlockBlock(mBlockId);
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is
     } finally {
       mClosed = true;
       mCloser.close();

@@ -12,17 +12,24 @@ priority: 5
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，如果你还没有配置文件，可以由template文件创建配置文件：
+然后，如果你还没有配置文件，可通过`bootstrapConf`命令创建。
+例如，如果你是在本机运行Alluxio，那么在以下的命令中`<ALLUXIO_MASTER_HOSTNAME>`应该设置为`localhost`：
+
+```bash
+$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
+```
+
+除了上述方式，也可以通过template文件创建配置文件，并且手动设置相应参数。
 
 {% include Configuring-Alluxio-with-NFS/copy-alluxio-env.md %}
 
 # 配置Alluxio
 
-假定所有NFS客户端与Alluxio部署在同样的节点上，且NFS volume挂载在`/alluxio_vol`，那以下的环境变量要添加到`conf/alluxio-env.sh`配置文件中：
+假定所有NFS客户端与Alluxio部署在同样的节点上，且NFS挂载在`/mnt/nfs`，那以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中：
 
 {% include Configuring-Alluxio-with-NFS/underfs-address.md %}
 
-# 使用NFS在本地运行Alluxio 
+# 使用NFS运行Alluxio 
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 

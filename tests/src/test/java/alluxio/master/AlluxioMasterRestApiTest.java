@@ -40,7 +40,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Before
   public void before() {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getMaster().getWebLocalPort();
+    mPort = mResource.get().getMaster().getInternalMaster().getWebLocalPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
 
     MetricsSystem.resetAllCounters();
