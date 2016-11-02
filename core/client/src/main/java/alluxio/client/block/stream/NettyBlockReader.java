@@ -47,6 +47,7 @@ public class NettyBlockReader implements BlockReader {
   private final Channel mChannel;
   private final InetSocketAddress mAddress;
   private final long mBlockId;
+  private long mPos;
   private int mBytesRemaining = -1;
 
   private volatile boolean mDone = false;
@@ -94,6 +95,7 @@ public class NettyBlockReader implements BlockReader {
     mAddress = address;
     mBlockId = blockId;
     mBytesRemaining = len;
+    mPos = offset;
 
     mChannel = BlockStoreContext.acquireNettyChannel(address);
     ChannelPipeline pipeline = mChannel.pipeline();
@@ -108,10 +110,16 @@ public class NettyBlockReader implements BlockReader {
   }
 
   @Override
+  public long pos() {
+    return mPos;
+  }
+
+  @Override
   public ByteBuf readPacket() throws IOException {
     try {
       ByteBuf buf = mPacketQueue.pollMessage();
       mBytesRemaining -= buf.readableBytes();
+      mPos += buf.readableBytes();
       Preconditions.checkState(mBytesRemaining >= 0, "mBytesRemaining must be >= 0.");
       mDone = mBytesRemaining == 0;
       return buf;

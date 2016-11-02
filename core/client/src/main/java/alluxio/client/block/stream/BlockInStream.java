@@ -20,6 +20,8 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
+import io.netty.util.ReferenceCounted;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,15 +38,19 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
   /** The size in bytes of the block. */
   protected final long mBlockSize;
 
-  protected ByteBuf mCurrentPacket = null;
+  private ByteBuf mCurrentPacket = null;
+
+  private BlockReader mBlockReader;
 
   private boolean mClosed = false;
 
   private boolean mBlockIsRead = false;
 
-  public BlockInStream(long blockId, long blockSize) {
+  public BlockInStream(long blockId, long blockSize, BlockReader blockReader) throws IOException {
     mBlockId = blockId;
     mBlockSize = blockSize;
+
+    mBlockReader = blockReader;
   }
 
   @Override
@@ -54,19 +60,26 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
   @Override
   public int read() throws IOException {
     checkIfClosed();
-
-    readPacket();
     if (remaining() == 0) {
       close();
       return -1;
     }
+
+    readPacket();
+
     mPos++;
     mBlockIsRead = true;
     return BufferUtils.byteToInt(mCurrentPacket.readByte());
   }
 
-  private void readPacket() {
+  private void readPacket() throws IOException {
+    if (mCurrentPacket.readableBytes() == 0) {
+      ReferenceCountUtil.release(mCurrentPacket);
+      mCurrentPacket = mBlockReader.readPacket();
+    }
   }
+
+  protected abstract BlockReader createBlockReader();
 
   /**
    * Close the current block reader.
@@ -140,17 +153,6 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
    * @param bytes number of bytes to record as read
    */
   protected abstract void incrementBytesReadMetric(int bytes);
-
-  /**
-   * Initializes the internal buffer based on the user's specified size. Any reads above half
-   * this size will not be buffered.
-   *
-   * @return a heap buffer of user configured size
-   */
-  private ByteBuffer allocateBuffer() {
-    return ByteBuffer.allocate(
-        (int) Configuration.getBytes(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES));
-  }
 
   /**
    * Convenience method to ensure the stream is not closed.

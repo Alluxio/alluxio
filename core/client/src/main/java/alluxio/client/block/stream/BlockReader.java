@@ -22,6 +22,8 @@ import java.io.IOException;
 public interface BlockReader extends Closeable {
   ByteBuf readPacket() throws IOException;
 
+  long pos();
+
   @Override
   void close() throws IOException;
 }
