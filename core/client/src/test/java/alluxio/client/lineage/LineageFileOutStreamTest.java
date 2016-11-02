@@ -16,6 +16,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.resource.DummyCloseableResource;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +36,8 @@ public final class LineageFileOutStreamTest {
   public void persistHandledByMaster() throws Exception {
     FileSystemContext context = PowerMockito.mock(FileSystemContext.class);
     FileSystemMasterClient client = PowerMockito.mock(FileSystemMasterClient.class);
-    Mockito.when(context.acquireMasterClient()).thenReturn(client);
+    Mockito.when(context.acquireMasterClientResource())
+        .thenReturn(new DummyCloseableResource<>(client));
 
     LineageFileOutStream stream = new LineageFileOutStream(context, new AlluxioURI("/path"),
         OutStreamOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH));

@@ -96,6 +96,8 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     }
     try {
       mBlockWorkerClient.unlockBlock(mBlockId);
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is
     } finally {
       mClosed = true;
       mCloser.close();
