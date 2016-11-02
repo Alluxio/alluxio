@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,6 +53,7 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
     if (inconsistentUris.isEmpty()) {
       System.out.println(root + " is consistent with the under storage system.");
     } else {
+      Collections.sort(inconsistentUris);
       System.out.println("The following files are inconsistent:");
       for (AlluxioURI uri : inconsistentUris) {
         System.out.println(uri);
