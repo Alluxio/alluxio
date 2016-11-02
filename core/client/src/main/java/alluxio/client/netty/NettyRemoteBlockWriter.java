@@ -57,6 +57,10 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
    */
   public NettyRemoteBlockWriter() {
     mOpen = false;
+    mAddress = null;
+    mBlockId = 0;
+    mSessionId = 0;
+    mWrittenBytes = 0;
   }
 
   @Override

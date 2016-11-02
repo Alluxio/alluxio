@@ -180,8 +180,8 @@ public final class BlockStoreContext {
    */
   public static Channel acquireNettyChannel(final InetSocketAddress address) throws IOException {
     if (!NETTY_CHANNEL_POOL_MAP.containsKey(address)) {
-          Bootstrap bs = NettyClient.createClientBootstrap();
-          bs.remoteAddress(address);
+      Bootstrap bs = NettyClient.createClientBootstrap();
+      bs.remoteAddress(address);
       NettyChannelPool pool = new NettyChannelPool(bs,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
           Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
