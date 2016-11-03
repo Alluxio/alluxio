@@ -73,6 +73,9 @@ files at their discretion. To avoid metadata inconsistencies between Alluxio and
 design your systems to modify files and directories through the Alluxio API and avoid directly
 modifying state in the underlying storage.
 
+NOTE: This command requires a read lock on the subtree being checked, meaning no writes or updates
+to files or directories in the subtree can be handled by the Master until this command completes.
+
 For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
 
 {% include Command-Line-Interface/checkConsistency.md %}

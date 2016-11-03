@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio fs checkConsistency /data/s3
+$ ./bin/alluxio fs checkConsistency /
 ```
