@@ -17,8 +17,10 @@ import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +52,14 @@ public final class JournalWriter {
   private final String mJournalDirectory;
   /** Absolute path to the directory storing all completed logs. */
   private final String mCompletedDirectory;
+  /** Absolute path to the checkpoint file. */
+  private final String mCheckpointPath;
   /** Absolute path to the temporary checkpoint file. */
   private final String mTempCheckpointPath;
+  /** Absolute path to the backup checkpoint file. */
+  private final String mBackupCheckpointPath;
+  /** Absolute path to the temporary backup checkpoint file. */
+  private final String mTempBackupCheckpointPath;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
   private final long mMaxLogSize;
@@ -76,9 +84,34 @@ public final class JournalWriter {
     mJournal = Preconditions.checkNotNull(journal);
     mJournalDirectory = mJournal.getDirectory();
     mCompletedDirectory = mJournal.getCompletedDirectory();
+    mCheckpointPath = mJournal.getCheckpointFilePath();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
+    mTempBackupCheckpointPath = mJournal.getCheckpointFilePath() + ".backup.tmp";
+    mBackupCheckpointPath = mJournal.getCheckpointFilePath() + ".backup";
     mUfs = UnderFileSystem.get(mJournalDirectory);
     mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+  }
+
+  /**
+   * Recovers the checkpoint file in case the master crashed while updating it previously.
+   */
+  public synchronized void recoverCheckpoint() {
+    try {
+      if (mUfs.exists(mBackupCheckpointPath)) {
+        if (mUfs.exists(mJournal.getCheckpointFilePath())) {
+          // We must have crashed while cleaning up the completed logs directory and backup
+          // checkpoint, so we finish these steps now.
+          deleteCompletedLogs();
+          mUfs.delete(mBackupCheckpointPath, false);
+        } else {
+          // We must have crashed before writing the checkpoint file, restore the checkpoint from
+          // backup.
+          mUfs.rename(mBackupCheckpointPath, mJournal.getCheckpointFilePath());
+        }
+      }
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   /**
@@ -120,6 +153,7 @@ public final class JournalWriter {
       mNextEntrySequenceNumber = latestSequenceNumber + 1;
       LOG.info("Latest journal sequence number: {} Next journal sequence number: {}",
           latestSequenceNumber, mNextEntrySequenceNumber);
+      UnderFileSystemUtils.deleteIfExists(mUfs, mTempCheckpointPath);
       mCheckpointOutputStream =
           new CheckpointOutputStream(new DataOutputStream(mUfs.create(mTempCheckpointPath)));
     }
@@ -179,16 +213,15 @@ public final class JournalWriter {
    */
   private synchronized void deleteCompletedLogs() throws IOException {
     LOG.info("Deleting all completed log files...");
-    // Loop over all complete logs starting from the beginning.
-    // TODO(gpang): should the deletes start from the end?
+    // Loop over all complete logs starting from the end.
     long logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
-    String logFilename = mJournal.getCompletedLogFilePath(logNumber);
-    while (mUfs.exists(logFilename)) {
+    while (mUfs.exists(mJournal.getCompletedLogFilePath(logNumber))) {
+      logNumber++;
+    }
+    for (long i = logNumber - 1; i >= 0; i--) {
+      String logFilename = mJournal.getCompletedLogFilePath(i);
       LOG.info("Deleting completed log: {}", logFilename);
       mUfs.delete(logFilename, true);
-      logNumber++;
-      // generate the next completed log filename in the sequence.
-      logFilename = mJournal.getCompletedLogFilePath(logNumber);
     }
     LOG.info("Finished deleting all completed log files.");
 
@@ -274,15 +307,22 @@ public final class JournalWriter {
       mOutputStream.close();
 
       LOG.info("Successfully created tmp checkpoint file: {}", mTempCheckpointPath);
-      mUfs.delete(mJournal.getCheckpointFilePath(), false);
-      // TODO(gpang): the real checkpoint should not be overwritten here, but after all operations.
-      mUfs.rename(mTempCheckpointPath, mJournal.getCheckpointFilePath());
-      mUfs.delete(mTempCheckpointPath, false);
+      if (mUfs.exists(mCheckpointPath)) {
+        UnderFileSystemUtils.deleteIfExists(mUfs, mTempBackupCheckpointPath);
+        UnderFileSystemUtils.deleteIfExists(mUfs, mBackupCheckpointPath);
+        // Rename in two steps so that we never have identical mCheckpointPath and
+        // mBackupCheckpointPath. This is a concern since UFS may implement rename as copy + delete.
+        mUfs.rename(mCheckpointPath, mTempBackupCheckpointPath);
+        mUfs.rename(mTempBackupCheckpointPath, mBackupCheckpointPath);
+      }
+      mUfs.rename(mTempCheckpointPath, mCheckpointPath);
       LOG.info("Renamed checkpoint file {} to {}", mTempCheckpointPath,
           mJournal.getCheckpointFilePath());
 
       // The checkpoint already reflects the information in the completed logs.
       deleteCompletedLogs();
+
+      UnderFileSystemUtils.deleteIfExists(mUfs, mBackupCheckpointPath);
 
       // Consider the current log to be complete.
       completeCurrentLog();

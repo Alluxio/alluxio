@@ -118,6 +118,8 @@ public abstract class AbstractMaster implements Master {
        * concurrent access to the master during these phases.
        */
 
+      mJournalWriter.recoverCheckpoint();
+
       // Phase 1: Mark all logs as complete, including the current log. After this call, the current
       // log should not exist, and all the log files will be complete.
       mJournalWriter.completeAllLogs();
