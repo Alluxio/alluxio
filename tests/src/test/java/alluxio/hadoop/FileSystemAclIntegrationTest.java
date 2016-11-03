@@ -449,7 +449,6 @@ public final class FileSystemAclIntegrationTest {
       sUfs.setMode(ufsPath, (short) value);
       Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, file)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
-      FileStatus fs = sTFS.getFileStatus(file);
       Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
     }
   }
@@ -474,7 +473,6 @@ public final class FileSystemAclIntegrationTest {
       sUfs.setMode(ufsPath, (short) value);
       Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, file)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
-      FileStatus fs = sTFS.getFileStatus(file);
       Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
     }
   }
