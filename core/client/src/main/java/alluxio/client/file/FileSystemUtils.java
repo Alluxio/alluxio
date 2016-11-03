@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
+import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -182,5 +184,26 @@ public final class FileSystemUtils {
     // Tell the master to mark the file as persisted
     fs.setAttribute(uri, SetAttributeOptions.defaults().setPersisted(true));
     return ret;
+  }
+
+  /**
+   * Checks the consistency of Alluxio metadata against the under storage for all files and
+   * directories in a given subtree.
+   *
+   * @param path the root of the subtree to check
+   * @param options method options
+   * @return a list of inconsistent files and directories
+   * @throws AlluxioException if an Alluxio error occurs
+   * @throws IOException if an I/O error occurs
+   */
+  public static List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
+      throws AlluxioException, IOException {
+    FileSystemContext context = FileSystemContext.INSTANCE;
+    FileSystemMasterClient client = context.acquireMasterClient();
+    try {
+      return client.checkConsistency(path, options);
+    } finally {
+      context.releaseMasterClient(client);
+    }
   }
 }
