@@ -32,7 +32,7 @@ public final class ProtobufUtils {
    */
   public static TtlAction fromProtobuf(PTtlAction pTtlAction) {
     if (pTtlAction == null) {
-      return null;
+      return TtlAction.DELETE;
     }
     switch (pTtlAction) {
       case DELETE:
@@ -52,7 +52,7 @@ public final class ProtobufUtils {
    */
   public static PTtlAction toProtobuf(TtlAction ttlAction) {
     if (ttlAction == null) {
-      return null;
+      return PTtlAction.DELETE;
     }
     switch (ttlAction) {
       case DELETE:

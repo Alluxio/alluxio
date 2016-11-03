@@ -37,7 +37,7 @@ public enum TtlAction {
    */
   public static TtlAction fromThrift(TTtlAction tTtlAction) {
     if (tTtlAction == null) {
-      return null;
+      return TtlAction.DELETE;
     }
     switch (tTtlAction) {
       case Delete:
@@ -45,7 +45,7 @@ public enum TtlAction {
       case Free:
         return TtlAction.FREE;
       default:
-        throw new IllegalStateException("Unrecognized ttl action in thrift message: " + tTtlAction);
+        throw new IllegalStateException("Unrecognized thrift ttl action: " + tTtlAction);
     }
   }
 
@@ -57,7 +57,7 @@ public enum TtlAction {
    */
   public static TTtlAction toThrift(TtlAction ttlAction) {
     if (ttlAction == null) {
-      return null;
+      return TTtlAction.Delete;
     }
     switch (ttlAction) {
       case DELETE:
