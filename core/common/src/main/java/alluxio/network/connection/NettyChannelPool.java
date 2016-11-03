@@ -43,7 +43,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
           ThreadFactoryUtils.build("NettyChannelPoolGcThreads-%d", true));
   private static final boolean POOL_DISABLED =
       Configuration.getBoolean(alluxio.PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED);
-  private Bootstrap mBootstrap;
+  private final Bootstrap mBootstrap;
   private final long mGcThresholdMs;
 
   /**
