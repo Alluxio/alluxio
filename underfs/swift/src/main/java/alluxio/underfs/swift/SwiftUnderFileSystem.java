@@ -210,6 +210,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
+    return createTemporary(path, options);
+  }
+
+  @Override
+  public OutputStream createTemporary(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
 
     // create will attempt to create the parent directory if it does not already exist

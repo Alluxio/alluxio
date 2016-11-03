@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class NonAtomicFileOutputStream extends OutputStream {
   private OutputStream mTemporaryOutputStream;
-  private NonAtomicCreateUnderFileSystem mUfs;
+  private UnderFileSystem mUfs;
   private NonAtomicCreateOptions mOptions;
   private boolean mClosed = false;
 
@@ -35,7 +35,7 @@ public class NonAtomicFileOutputStream extends OutputStream {
    * @param ufs the calling {@link NonAtomicCreateUnderFileSystem}
    * @param options options to complete create
    */
-  public NonAtomicFileOutputStream(OutputStream out, NonAtomicCreateUnderFileSystem ufs,
+  public NonAtomicFileOutputStream(OutputStream out, UnderFileSystem ufs,
                                    NonAtomicCreateOptions options) {
     mTemporaryOutputStream = out;
     mOptions = options;

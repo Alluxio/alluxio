@@ -15,8 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.NonAtomicCreateOptions;
+import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
@@ -276,6 +280,36 @@ public abstract class UnderFileSystem {
    */
   public abstract void close() throws IOException;
 
+
+  /**
+   * Complete the default create operation by renaming temporary path to permanent.
+   *
+   * @param options information to complete create
+   * @throws IOException when rename fails
+   */
+  public void completeCreate(NonAtomicCreateOptions options) throws IOException {
+    String temporaryPath = options.getTemporaryPath();
+    String permanentPath = options.getPermanentPath();
+    if (!rename(temporaryPath, permanentPath)) {
+      if (!delete(temporaryPath, false)) {
+        LOG.error("Failed to delete temporary file {}", temporaryPath);
+      }
+      throw new IOException(
+          ExceptionMessage.FAILED_UFS_RENAME.getMessage(temporaryPath, permanentPath));
+    }
+
+    // Rename does not preserve permissions
+    Permission perm = options.getCreateOptions().getPermission();
+    if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
+      try {
+        setOwner(permanentPath, perm.getOwner(), perm.getGroup());
+      } catch (Exception e) {
+        LOG.warn("Failed to update the ufs ownership, default values will be used. " + e);
+      }
+    }
+    // TODO(chaomin): consider setMode of the ufs file.
+  }
+
   /**
    * Creates a file in the under file system with the indicated name.
    *
@@ -297,7 +331,22 @@ public abstract class UnderFileSystem {
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path, CreateOptions options)
+  public OutputStream create(String path, CreateOptions options) throws IOException {
+    String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
+
+    return new NonAtomicFileOutputStream(createTemporary(temporaryPath, options), this,
+        new NonAtomicCreateOptions(temporaryPath, path, options));
+  }
+
+  /**
+   * Create an output stream to a temporary path.
+   *
+   * @param path temporary path
+   * @param options the options for create
+   * @return a non atomic output stream
+   * @throws IOException when create fails
+   */
+  public abstract OutputStream createTemporary(String path, CreateOptions options)
       throws IOException;
 
   /**

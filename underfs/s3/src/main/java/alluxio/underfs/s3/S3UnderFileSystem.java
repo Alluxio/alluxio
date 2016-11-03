@@ -211,6 +211,11 @@ public final class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
+    return createTemporary(path, options);
+  }
+
+  @Override
+  public OutputStream createTemporary(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
       return new S3OutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
     }
