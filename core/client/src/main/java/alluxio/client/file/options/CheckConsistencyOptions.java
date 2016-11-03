@@ -9,34 +9,51 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.options;
+package alluxio.client.file.options;
 
+import alluxio.annotation.PublicApi;
 import alluxio.thrift.CheckConsistencyTOptions;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for checking the consistency of a path.
+ * Options for checking the consistency of an Alluxio subtree.
  */
+@PublicApi
 @NotThreadSafe
 public final class CheckConsistencyOptions {
   /**
-   * @return the default {@link CompleteFileOptions}
+   * @return the default {@link CheckConsistencyOptions}
    */
-  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static CheckConsistencyOptions defaults() {
     return new CheckConsistencyOptions();
   }
 
-  /**
-   * Constructs an instance of {@link CheckConsistencyOptions} from
-   * {@link alluxio.thrift.CheckConsistencyTOptions}.
-   *
-   * @param options the {@link alluxio.thrift.CheckConsistencyTOptions} to use
-   */
-  public CheckConsistencyOptions(CheckConsistencyTOptions options) {}
+  private CheckConsistencyOptions() {
+    // No options currently
+  }
 
-  private CheckConsistencyOptions() {} // prevent instantiation
+  @Override
+  public boolean equals(Object o) {
+    return this == o || o instanceof CheckConsistencyOptions;
+  }
+
+  @Override
+  public int hashCode() {
+    return 0;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).toString();
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public CheckConsistencyTOptions toThrift() {
+    return new CheckConsistencyTOptions();
+  }
 }
