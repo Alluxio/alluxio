@@ -143,6 +143,10 @@ public abstract class UnderFileSystem {
       }
       return cachedFs;
     }
+
+    void clear() {
+      mUnderFileSystemMap.clear();
+    }
   }
 
   /**
@@ -182,6 +186,7 @@ public abstract class UnderFileSystem {
       return mScheme + "://" + mAuthority;
     }
   }
+
   /**
    * Gets the UnderFileSystem instance according to its schema.
    *
@@ -203,6 +208,13 @@ public abstract class UnderFileSystem {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     return UFS_CACHE.get(path, ufsConf);
+  }
+
+  /**
+   * Clears the under file system cache.
+   */
+  public static void clearCache() {
+    UFS_CACHE.clear();
   }
 
   /**
