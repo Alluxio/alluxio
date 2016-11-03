@@ -950,7 +950,7 @@ public final class Lineage {
             .computeInt64SizeNoTag(inputFiles_.get(i));
         }
         size += dataSize;
-        size += getInputFilesList().size();
+        size += 1 * getInputFilesList().size();
       }
       {
         int dataSize = 0;
@@ -959,7 +959,7 @@ public final class Lineage {
             .computeInt64SizeNoTag(outputFileIds_.get(i));
         }
         size += dataSize;
-        size += getOutputFileIdsList().size();
+        size += 1 * getOutputFileIdsList().size();
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
