@@ -467,7 +467,7 @@ public final class FileSystemAclIntegrationTest {
 
     for (int value : permissionValues) {
       Path file = new Path("/loadDirMetadataMode" + value);
-      // Create a file directly in UFS and set the corresponding mode.
+      // Create a directory directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, file);
       sUfs.mkdirs(ufsPath, false);
       sUfs.setMode(ufsPath, (short) value);
