@@ -36,22 +36,17 @@ public enum TtlAction {
    * @return {@link TtlAction} equivalent
    */
   public static TtlAction fromThrift(TTtlAction tTtlAction) {
-
-    TtlAction ttlAction = TtlAction.DELETE;
-    if (tTtlAction != null) {
-      switch (tTtlAction) {
-        case Delete:
-          ttlAction = TtlAction.DELETE;
-          break;
-        case Free:
-          ttlAction = TtlAction.FREE;
-          break;
-        default:
-          ttlAction = TtlAction.DELETE;
-          break;
-      }
+    if (tTtlAction == null) {
+      return null;
     }
-    return ttlAction;
+    switch (tTtlAction) {
+      case Delete:
+        return TtlAction.DELETE;
+      case Free:
+        return TtlAction.FREE;
+      default:
+        throw new IllegalStateException("Unrecognized ttl action in thrift message: " + tTtlAction);
+    }
   }
 
   /**
@@ -61,21 +56,16 @@ public enum TtlAction {
    * @return {@link TTtlAction} equivalent
    */
   public static TTtlAction toThrift(TtlAction ttlAction) {
-
-    TTtlAction tTtlAction = TTtlAction.Delete;
-    if (ttlAction != null) {
-      switch (ttlAction) {
-        case DELETE:
-          tTtlAction = TTtlAction.Delete;
-          break;
-        case FREE:
-          tTtlAction = TTtlAction.Free;
-          break;
-        default:
-          tTtlAction = TTtlAction.Delete;
-          break;
-      }
+    if (ttlAction == null) {
+      return null;
     }
-    return tTtlAction;
+    switch (ttlAction) {
+      case DELETE:
+        return TTtlAction.Delete;
+      case FREE:
+        return TTtlAction.Free;
+      default:
+        throw new IllegalStateException("Unrecognized ttl action: " + ttlAction);
+    }
   }
 }

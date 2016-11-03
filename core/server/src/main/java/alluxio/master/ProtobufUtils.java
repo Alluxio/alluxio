@@ -31,22 +31,17 @@ public final class ProtobufUtils {
    * @return {@link TtlAction} equivalent
    */
   public static TtlAction fromProtobuf(PTtlAction pTtlAction) {
-
-    TtlAction ttlAction = TtlAction.DELETE;
-    if (pTtlAction != null) {
-      switch (pTtlAction) {
-        case DELETE:
-          ttlAction = TtlAction.DELETE;
-          break;
-        case FREE:
-          ttlAction = TtlAction.FREE;
-          break;
-        default:
-          ttlAction = TtlAction.DELETE;
-          break;
-      }
+    if (pTtlAction == null) {
+      return null;
     }
-    return ttlAction;
+    switch (pTtlAction) {
+      case DELETE:
+        return TtlAction.DELETE;
+      case FREE:
+        return TtlAction.FREE;
+      default:
+        throw new IllegalStateException("Unknown protobuf ttl action: " + pTtlAction);
+    }
   }
 
   /**
@@ -56,21 +51,16 @@ public final class ProtobufUtils {
    * @return {@link TtlAction} equivalent
    */
   public static PTtlAction toProtobuf(TtlAction ttlAction) {
-
-    PTtlAction pTtlAction = PTtlAction.DELETE;
-    if (ttlAction != null) {
-      switch (ttlAction) {
-        case DELETE:
-          pTtlAction = PTtlAction.DELETE;
-          break;
-        case FREE:
-          pTtlAction = PTtlAction.FREE;
-          break;
-        default:
-          pTtlAction = PTtlAction.DELETE;
-          break;
-      }
+    if (ttlAction == null) {
+      return null;
     }
-    return pTtlAction;
+    switch (ttlAction) {
+      case DELETE:
+        return PTtlAction.DELETE;
+      case FREE:
+        return PTtlAction.FREE;
+      default:
+        throw new IllegalStateException("Unknown ttl action: " + ttlAction);
+    }
   }
 }
