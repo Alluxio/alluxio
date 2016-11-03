@@ -65,6 +65,18 @@ output:
 
 {% include Command-Line-Interface/cat.md %}
 
+## checkConsistency
+The `checkConsistency` command compares Alluxio and under storage metadata for a given path. If the
+path is a directory, the entire subtree will be compared. The command returns a message listing each
+inconsistent file or directory. The system administrator should reconcile the differences of these
+files at their discretion. To avoid metadata inconsistencies between Alluxio and under storages,
+design your systems to modify files and directories through the Alluxio API and avoid directly
+modifying state in the underlying storage.
+
+For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
+
+{% include Command-Line-Interface/checkConsistency.md %}
+
 ## checksum
 The `checksum` command outputs the md5 value of a file in Alluxio.
 
