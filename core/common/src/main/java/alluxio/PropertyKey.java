@@ -45,6 +45,7 @@ public enum PropertyKey {
   // UFS related properties
   //
   UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, "${alluxio.work.dir}/underFSStorage"),
+  UNDERFS_ALLOW_SET_OWNER_FAILURE(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE, false),
   UNDERFS_LISTING_LENGTH(Name.UNDERFS_LISTING_LENGTH, 1000),
   UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ""),
   UNDERFS_GLUSTERFS_IMPL(Name.UNDERFS_GLUSTERFS_IMPL,
@@ -374,6 +375,8 @@ public enum PropertyKey {
     // UFS related properties
     //
     public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
+    public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
+        "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
