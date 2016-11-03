@@ -1914,7 +1914,9 @@ public final class FileSystemMaster extends AbstractMaster {
       Mode mode = permission.getMode();
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createFileOptions = createFileOptions.setPermission(permission);
+    // This file is loaded from UFS. By setting default mode to false, umask will not be
+    // applied to loaded mode.
+    createFileOptions = createFileOptions.setPermission(permission).setDefaultMode(false);
 
     try {
       long counter = createFileAndJournal(inodePath, createFileOptions);
@@ -1965,7 +1967,9 @@ public final class FileSystemMaster extends AbstractMaster {
       Mode mode = permission.getMode();
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createDirectoryOptions = createDirectoryOptions.setPermission(permission);
+    // This directory is loaded from UFS. By setting default mode to false, umask will not be
+    // applied to loaded mode.
+    createDirectoryOptions = createDirectoryOptions.setPermission(permission).setDefaultMode(false);
 
     try {
       return createDirectoryAndJournal(inodePath, createDirectoryOptions);
