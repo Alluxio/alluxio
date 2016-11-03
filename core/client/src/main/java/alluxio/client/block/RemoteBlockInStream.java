@@ -46,6 +46,8 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   private final BlockWorkerClient mBlockWorkerClient;
   /** The block store context which provides block worker clients. */
   private final BlockStoreContext mContext;
+  /** {@link RemoteBlockReader} for this instance. */
+  private RemoteBlockReader mReader;
 
   /**
    * Creates a new remote block input stream.
@@ -102,6 +104,10 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       mClosed = true;
       mCloser.close();
     }
+
+    if (mReader != null) {
+      mReader.close();
+    }
   }
 
   @Override
@@ -147,15 +153,17 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     // read up to the end of the block.
     int toRead = (int) Math.min(len, remaining());
     int bytesLeft = toRead;
+
+    if (mReader == null) {
+      mReader = RemoteBlockReader.Factory.create();
+    }
+
     while (bytesLeft > 0) {
-      // TODO(calvin): Fix needing to recreate reader each time.
-      try (RemoteBlockReader reader = RemoteBlockReader.Factory.create()) {
-        ByteBuffer data = reader.readRemoteBlock(mWorkerInetSocketAddress, mBlockId, getPosition(),
-            bytesLeft, mLockId, mBlockWorkerClient.getSessionId());
-        int bytesRead = data.remaining();
-        data.get(b, off, bytesRead);
-        bytesLeft -= bytesRead;
-      }
+      ByteBuffer data = mReader.readRemoteBlock(mWorkerInetSocketAddress, mBlockId, getPosition(),
+          bytesLeft, mLockId, mBlockWorkerClient.getSessionId());
+      int bytesRead = data.remaining();
+      data.get(b, off, bytesRead);
+      bytesLeft -= bytesRead;
     }
 
     return toRead;
