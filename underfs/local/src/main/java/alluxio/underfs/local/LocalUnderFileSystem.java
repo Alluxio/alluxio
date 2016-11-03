@@ -222,7 +222,6 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     }
     // Create parent directories one by one and set their permissions to rwxrwxrwx.
     Stack<File> dirsToMake = new Stack<>();
-    Stack<String> dirsToSetOwner = new Stack<>();
     dirsToMake.push(file);
     File parent = file.getParentFile();
     while (!parent.exists()) {
@@ -234,21 +233,19 @@ public class LocalUnderFileSystem extends UnderFileSystem {
       if (dirToMake.mkdir()) {
         setMode(dirToMake.getAbsolutePath(), perm.getMode().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());
-        dirsToSetOwner.push(dirToMake.getAbsolutePath());
+        // Set the owner to the Alluxio client user to achieve permission delegation.
+        // Alluxio server-side user is required to be a superuser. If it fails to set owner,
+        // proceeds with mkdirs and print out an warning message.
+        try {
+          setOwner(dirToMake.getAbsolutePath(), perm.getOwner(), perm.getGroup());
+        } catch (IOException e) {
+          LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+        }
       } else {
         return false;
       }
     }
-    // Set the owner to the Alluxio client user to achieve permission delegation.
-    // Alluxio server-side user is required to be a superuser. If it fails to set owner,
-    // proceeds with mkdirs and print out an warning message.
-    while (!dirsToSetOwner.empty()) {
-      try {
-        setOwner(dirsToSetOwner.pop(), perm.getOwner(), perm.getGroup());
-      } catch (IOException e) {
-        LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
-      }
-    }
+
     return true;
   }
 
