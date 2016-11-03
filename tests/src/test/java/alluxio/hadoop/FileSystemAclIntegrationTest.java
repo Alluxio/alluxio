@@ -429,6 +429,56 @@ public final class FileSystemAclIntegrationTest {
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileB.getParent())));
   }
 
+  /**
+   * Tests the loaded file metadata from UFS having the same mode as that in the UFS.
+   */
+  @Test
+  public void loadFileMetadataMode() throws Exception {
+    if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
+      // Skip non-local and non-HDFS UFSs.
+      return;
+    }
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+
+    for (int value : permissionValues) {
+      Path file = new Path("/loadFileMetadataMode" + value);
+      // Create a file directly in UFS and set the corresponding mode.
+      String ufsPath = PathUtils.concatPath(sUfsRoot, file);
+      sUfs.create(ufsPath);
+      sUfs.setMode(ufsPath, (short) value);
+      Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, file)));
+      // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
+      FileStatus fs = sTFS.getFileStatus(file);
+      Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
+    }
+  }
+
+  /**
+   * Tests the loaded directory metadata from UFS having the same mode as that in the UFS.
+   */
+  @Test
+  public void loadDirMetadataMode() throws Exception {
+    if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
+      // Skip non-local and non-HDFS UFSs.
+      return;
+    }
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+
+    for (int value : permissionValues) {
+      Path file = new Path("/loadDirMetadataMode" + value);
+      // Create a file directly in UFS and set the corresponding mode.
+      String ufsPath = PathUtils.concatPath(sUfsRoot, file);
+      sUfs.mkdirs(ufsPath, false);
+      sUfs.setMode(ufsPath, (short) value);
+      Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, file)));
+      // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
+      FileStatus fs = sTFS.getFileStatus(file);
+      Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
+    }
+  }
+
   @Test
   public void s3GetPermission() throws Exception {
     Assume.assumeTrue((sUfs instanceof S3UnderFileSystem) || (sUfs instanceof S3AUnderFileSystem));
