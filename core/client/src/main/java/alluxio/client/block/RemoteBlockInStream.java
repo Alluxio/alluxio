@@ -148,8 +148,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     int toRead = (int) Math.min(len, remaining());
     int bytesLeft = toRead;
     while (bytesLeft > 0) {
-      // TODO(calvin): Fix needing to recreate reader each time.
-      try (RemoteBlockReader reader = RemoteBlockReader.Factory.create()) {
+      try (RemoteBlockReader reader = RemoteBlockReader.Factory.createIfNotExist()) {
         ByteBuffer data = reader.readRemoteBlock(mWorkerInetSocketAddress, mBlockId, getPosition(),
             bytesLeft, mLockId, mBlockWorkerClient.getSessionId());
         int bytesRead = data.remaining();
