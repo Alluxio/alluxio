@@ -280,7 +280,6 @@ public abstract class UnderFileSystem {
    */
   public abstract void close() throws IOException;
 
-
   /**
    * Complete the default create operation by renaming temporary path to permanent.
    *

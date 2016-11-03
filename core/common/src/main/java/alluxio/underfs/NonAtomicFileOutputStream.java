@@ -32,7 +32,7 @@ public class NonAtomicFileOutputStream extends OutputStream {
    * Constructs a new {@link NonAtomicFileOutputStream}.
    *
    * @param out the wrapped {@link OutputStream}
-   * @param ufs the calling {@link NonAtomicCreateUnderFileSystem}
+   * @param ufs the calling {@link UnderFileSystem}
    * @param options options to complete create
    */
   public NonAtomicFileOutputStream(OutputStream out, UnderFileSystem ufs,
