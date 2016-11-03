@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
+import alluxio.client.netty.NettyClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.connection.NettyChannelPool;
@@ -36,7 +37,6 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -174,24 +174,15 @@ public final class BlockStoreContext {
    * create a new one.
    *
    * @param address the network address of the channel
-   * @param bootstrapBuilder the bootstrap builder that creates a new bootstrap upon called
    * @return the acquired netty channel
    * @throws IOException if it fails to create a new client instance mostly because it fails to
    *         connect to remote worker
    */
-  public static Channel acquireNettyChannel(final InetSocketAddress address,
-      final Callable<Bootstrap> bootstrapBuilder) throws IOException {
+  public static Channel acquireNettyChannel(final InetSocketAddress address) throws IOException {
     if (!NETTY_CHANNEL_POOL_MAP.containsKey(address)) {
-      Callable<Bootstrap> bootstrapBuilderClone = new Callable<Bootstrap>() {
-        @Override
-        public Bootstrap call() throws Exception {
-          Bootstrap bs = bootstrapBuilder.call();
-          bs.remoteAddress(address);
-          return bs;
-        }
-      };
-      NettyChannelPool pool = new NettyChannelPool(
-          bootstrapBuilderClone,
+      Bootstrap bs = NettyClient.createClientBootstrap();
+      bs.remoteAddress(address);
+      NettyChannelPool pool = new NettyChannelPool(bs,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
           Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
       if (NETTY_CHANNEL_POOL_MAP.putIfAbsent(address, pool) != null) {
