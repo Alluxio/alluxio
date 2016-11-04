@@ -120,15 +120,20 @@ public final class JournalWriter {
    */
   public synchronized void recoverCheckpoint() {
     try {
+      if (mUfs.exists(mTempBackupCheckpointPath)) {
+        // If mCheckpointPath exists, step 2 must have implemented rename as copy + delete, and
+        // failed during the delete.
+        UnderFileSystemUtils.deleteIfExists(mUfs, mCheckpointPath);
+        mUfs.rename(mTempBackupCheckpointPath, mCheckpointPath);
+      }
       if (mUfs.exists(mBackupCheckpointPath)) {
+        // We must have crashed after step 3
         if (mUfs.exists(mCheckpointPath)) {
-          // We must have crashed while cleaning up the completed logs directory and backup
-          // checkpoint, so we finish these steps now.
+          // We crashed after step 4, so we can finish steps 5 and 6.
           deleteCompletedLogs();
           mUfs.delete(mBackupCheckpointPath, false);
         } else {
-          // We must have crashed before writing the checkpoint file, restore the checkpoint from
-          // backup.
+          // We crashed before step 4, so we roll back to backup checkpoint.
           mUfs.rename(mBackupCheckpointPath, mCheckpointPath);
         }
       }
