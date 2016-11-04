@@ -29,19 +29,11 @@ The Alluxio master home page looks something like below:
 
 The home page gives an overview of the system status. It includes the following sections:
 
-* **Alluxio Summary**
+* **Alluxio Summary** Alluxio system level information
 
-    Alluxio system level information
+* **Cluster Usage Summary** Alluxio storage information as well as under storage information. Alluxio storage utilization can be near 100%, but under storage utilization should not approach 100%.
 
-* **Cluster Usage Summary**
-
-    Alluxio storage information as well as under storage information. Alluxio storage utilization
-    can be near 100%, but under storage utilization should not approach 100%.
-
-* **Storage Usage Summary**
-
-    Alluxio tiered storage information which gives a break down of amount of space used per tier
-    across the Alluxio cluster.
+* **Storage Usage Summary** Alluxio tiered storage information which gives a break down of amount of space used per tier across the Alluxio cluster.
 
 ## Configuration Page
 
@@ -52,15 +44,9 @@ navigation bar on the top of the screen.
 
 The configuration page has two sections:
 
-* **Alluxio Configuration**
+* **Alluxio Configuration** A map of all the Alluxio configuration properties and their set values.
 
-    A map of all the Alluxio configuration properties and their set values.
-
-* **White List**
-
-    Contains all the Alluxio path prefixes eligible to be stored in Alluxio. A request may still be
-    made to a file not prefixed by a path in the white list. Only whitelisted files will be stored
-    in Alluxio.
+* **White List** Contains all the Alluxio path prefixes eligible to be stored in Alluxio. A request may still be made to a file not prefixed by a path in the white list. Only whitelisted files will be stored in Alluxio.
 
 ## Browse File System
 
@@ -92,15 +78,9 @@ The master also shows all known Alluxio workers in the system and shows them in 
 
 The workers page gives an overview of all Alluxio worker nodes divided into two sections:
 
-* **Live Nodes**
+* **Live Nodes** A list of all the workers currently serving Alluxio requests. Clicking on the worker name will redirect to the worker's web UI.
 
-    A list of all the workers currently serving Alluxio requests. Clicking on the worker name will
-    redirect to the worker's web UI.
-
-* **Dead Nodes**
-
-    A list of all workers proclaimed as dead by the master, usually due to a long timeout waiting
-    for the worker heartbeat. Possible causes include system restart or network failures.
+* **Dead Nodes** A list of all workers proclaimed as dead by the master, usually due to a long timeout waiting for the worker heartbeat. Possible causes include system restart or network failures.
     
 ## Master Metrics 
 
@@ -110,17 +90,11 @@ To Access master metrics section, click on the “Metrics” tab in the navigati
 
 This section shows all master metrics. It includes the following sections:
 
-* **Master Gauges**
+* **Master Gauges** Overall measures of the master.
 
-    Overall measures of the master.
+* **Logical Operation** Number of operations performed.
 
-* **Logical Operation**
-
-    Number of operations performed.
-
-* **RPC Invocation**
-
-    Number of RPC invocations per operation.
+* **RPC Invocation** Number of RPC invocations per operation.
 
 # Alluxio Workers Web Interface
 
@@ -149,10 +123,6 @@ To Access worker metrics section, click on the “Metrics” tab in the navigati
 
 This section shows all worker metrics. It includes the following sections:
 
-* **Worker Gauges**
+* **Worker Gauges** Overall measures of the worker.
 
-    Overall measures of the worker.
-
-* **Logical Operation**
-
-    Number of operations performed.
+* **Logical Operation** Number of operations performed.
