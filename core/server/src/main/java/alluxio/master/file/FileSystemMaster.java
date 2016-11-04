@@ -121,6 +121,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -1530,15 +1531,29 @@ public final class FileSystemMaster extends AbstractMaster {
       String ufsSrcUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
       String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
-      String parentUri = new AlluxioURI(ufsDstUri).getParent().toString();
-      if (!ufs.exists(parentUri)) {
-        Permission parentPerm = new Permission(srcParentInode.getOwner(), srcParentInode.getGroup(),
-            srcParentInode.getMode());
-        MkdirsOptions parentMkdirsOptions = new MkdirsOptions().setCreateParent(true)
-            .setPermission(parentPerm);
-        if (!ufs.mkdirs(parentUri, parentMkdirsOptions)) {
-          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentUri));
+      // Create ancestor directories from top to the bottom. We cannot use recursive create parents
+      // here because the permission for the ancestors can be different.
+      Stack<AlluxioURI> dirsToMake = new Stack<>();
+      AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
+      while (!ufs.exists(curUfsDirPath.toString())) {
+        dirsToMake.push(curUfsDirPath);
+        curUfsDirPath = curUfsDirPath.getParent();
+      }
+      List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
+      // The dst inode does not exist yet, so the last inode in the list is the existing parent.
+      int index = dstInodeList.size() - dirsToMake.size();
+      while (!dirsToMake.empty()) {
+        AlluxioURI dirToMake = dirsToMake.pop();
+        Inode<?> curInode = dstInodeList.get(index);
+        Permission perm = new Permission(curInode.getOwner(), curInode.getGroup(),
+            curInode.getMode());
+        MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(false)
+            .setPermission(perm);
+        if (!ufs.mkdirs(dirToMake.toString(), mkdirsOptions)) {
+          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(
+              dirToMake.toString()));
         }
+        ++index;
       }
       if (!ufs.rename(ufsSrcUri, ufsDstUri)) {
         throw new IOException(
