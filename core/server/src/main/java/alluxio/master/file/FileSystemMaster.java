@@ -109,7 +109,6 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -433,6 +432,10 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * @return The list of inconsistent files at start up, null if the check has not completed or
+   *         failed.
+   */
   public List<AlluxioURI> getStartupConsistencyCheck() {
     boolean isDone = mStartupConsistencyCheck.isDone();
     if (isDone) {
