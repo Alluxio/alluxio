@@ -36,7 +36,7 @@ public class NonAtomicFileOutputStream extends OutputStream {
    * @param options options to complete create
    */
   public NonAtomicFileOutputStream(OutputStream out, UnderFileSystem ufs,
-                                   NonAtomicCreateOptions options) {
+      NonAtomicCreateOptions options) {
     mTemporaryOutputStream = out;
     mOptions = options;
     mUfs = ufs;
