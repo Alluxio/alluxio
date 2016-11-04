@@ -14,7 +14,6 @@ package alluxio;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
-import alluxio.underfs.local.LocalUnderFileSystem;
 
 import org.mockito.Mockito;
 
@@ -22,8 +21,8 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * {@link SpyLocalUnderFileSystem} replaces {@link LocalUnderFileSystem} in the under file system
- * registry and acts identically, but with the ability to mock ufs methods via {@link #get}.
+ * {@link SpyLocalUnderFileSystem} replaces an {@link UnderFileSystem} in the under file system
+ * registry and acts identically, but with the ability to mock ufs methods via {@link #get()}.
  *
  * <pre>
  * SpyLocalUnderFileSystem spyUfs = new SpyLocalUnderFileSystem();
@@ -60,6 +59,12 @@ public final class UnderFileSystemSpy implements Closeable {
     UnderFileSystem.clearCache();
   }
 
+  /**
+   * Returns the spy object for the under file system being spied. This is the object to mock in
+   * tests.
+   *
+   * @return the underlying spy object
+   */
   public UnderFileSystem get() {
     return mUfsSpy;
   }
