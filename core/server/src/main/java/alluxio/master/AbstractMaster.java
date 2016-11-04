@@ -102,15 +102,18 @@ public abstract class AbstractMaster implements Master {
       /**
        * The sequence for dealing with the journal before starting as the leader:
        *
-       * Phase 1. Mark all the logs as completed. Since this master is the leader, it is allowed to
+       * Phase 1. Recover from a backup checkpoint if the last startup failed while writing the
+       * checkpoint.
+       *
+       * Phase 2. Mark all the logs as completed. Since this master is the leader, it is allowed to
        * write the journal, so it can mark the current log as completed. After this step, the
        * current log file will not exist, and all logs will be complete.
        *
-       * Phase 2. Reconstruct the state from the journal. This uses the JournalTailer to process all
+       * Phase 3. Reconstruct the state from the journal. This uses the JournalTailer to process all
        * of the checkpoint and the complete log files. Since all logs are complete, after this step,
        * the master will reflect the state of all of the journal entries.
        *
-       * Phase 3. Write out the checkpoint file. Since this master is completely up-to-date, it
+       * Phase 4. Write out the checkpoint file. Since this master is completely up-to-date, it
        * writes out the checkpoint file. When the checkpoint file is closed, it will then delete the
        * complete log files.
        *
@@ -118,13 +121,14 @@ public abstract class AbstractMaster implements Master {
        * concurrent access to the master during these phases.
        */
 
+      // Phase 1: Recover from a backup checkpoint if necessary.
       mJournalWriter.recoverCheckpoint();
 
-      // Phase 1: Mark all logs as complete, including the current log. After this call, the current
+      // Phase 2: Mark all logs as complete, including the current log. After this call, the current
       // log should not exist, and all the log files will be complete.
       mJournalWriter.completeAllLogs();
 
-      // Phase 2: Replay all the state of the checkpoint and the completed log files.
+      // Phase 3: Replay all the state of the checkpoint and the completed log files.
       JournalTailer catchupTailer;
       if (mStandbyJournalTailer != null && mStandbyJournalTailer.getLatestJournalTailer() != null
           && mStandbyJournalTailer.getLatestJournalTailer().isValid()) {
@@ -148,7 +152,7 @@ public abstract class AbstractMaster implements Master {
       }
       long latestSequenceNumber = catchupTailer.getLatestSequenceNumber();
 
-      // Phase 3: initialize the journal and write out the checkpoint file (the state of all
+      // Phase 4: initialize the journal and write out the checkpoint file (the state of all
       // completed logs).
       JournalOutputStream checkpointStream =
           mJournalWriter.getCheckpointOutputStream(latestSequenceNumber);

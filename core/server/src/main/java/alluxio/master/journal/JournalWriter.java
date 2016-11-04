@@ -52,13 +52,26 @@ public final class JournalWriter {
   private final String mJournalDirectory;
   /** Absolute path to the directory storing all completed logs. */
   private final String mCompletedDirectory;
-  /** Absolute path to the checkpoint file. */
+  /**
+   * Absolute path to the checkpoint file. This is where the latest checkpoint is stored. During
+   * normal operation (when not writing a new checkpoint file), this is the only checkpoint file
+   * that exists.
+   */
   private final String mCheckpointPath;
-  /** Absolute path to the temporary checkpoint file. */
+  /**
+   * Absolute path to the temporary checkpoint file. This is where a new checkpoint file is fully
+   * written before being renamed to {@link #mCheckpointPath}
+   */
   private final String mTempCheckpointPath;
-  /** Absolute path to the backup checkpoint file. */
+  /**
+   * Absolute path to the backup checkpoint file. The latest checkpoint is saved here while renaming
+   * the temporary checkpoint so that we can recover in case the rename fails.
+   */
   private final String mBackupCheckpointPath;
-  /** Absolute path to the temporary backup checkpoint file. */
+  /**
+   * Absolute path to the temporary backup checkpoint file. This path is used as an intermediate
+   * rename step when backing up mCheckpointPath to mBackupCheckpointPath.
+   */
   private final String mTempBackupCheckpointPath;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
@@ -94,11 +107,21 @@ public final class JournalWriter {
 
   /**
    * Recovers the checkpoint file in case the master crashed while updating it previously.
+   *
+   * The checkpointing process goes
+   * <pre>
+   * 1. Write mTempCheckpointPath based on all completed logs
+   * 2. Rename mCheckpointPath to mTempBackupCheckpointPath
+   * 3. Rename mTempBackupCheckpointPath to mBackupCheckpointPath
+   * 4. Rename mTempCheckpointPath to mCheckpointPath
+   * 5. Delete completed logs
+   * 6. Delete mBackupCheckpointPath
+   * </pre>
    */
   public synchronized void recoverCheckpoint() {
     try {
       if (mUfs.exists(mBackupCheckpointPath)) {
-        if (mUfs.exists(mJournal.getCheckpointFilePath())) {
+        if (mUfs.exists(mCheckpointPath)) {
           // We must have crashed while cleaning up the completed logs directory and backup
           // checkpoint, so we finish these steps now.
           deleteCompletedLogs();
@@ -106,7 +129,7 @@ public final class JournalWriter {
         } else {
           // We must have crashed before writing the checkpoint file, restore the checkpoint from
           // backup.
-          mUfs.rename(mBackupCheckpointPath, mJournal.getCheckpointFilePath());
+          mUfs.rename(mBackupCheckpointPath, mCheckpointPath);
         }
       }
     } catch (IOException e) {
@@ -316,8 +339,7 @@ public final class JournalWriter {
         mUfs.rename(mTempBackupCheckpointPath, mBackupCheckpointPath);
       }
       mUfs.rename(mTempCheckpointPath, mCheckpointPath);
-      LOG.info("Renamed checkpoint file {} to {}", mTempCheckpointPath,
-          mJournal.getCheckpointFilePath());
+      LOG.info("Renamed checkpoint file {} to {}", mTempCheckpointPath, mCheckpointPath);
 
       // The checkpoint already reflects the information in the completed logs.
       deleteCompletedLogs();
