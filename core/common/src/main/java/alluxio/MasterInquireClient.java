@@ -117,7 +117,7 @@ public final class MasterInquireClient {
   }
 
   /**
-   * @return the list of all the master addresses, null if errors occur
+   * @return the list of all the master addresses
    */
   public synchronized List<String> getMasterAddresses() {
     int tried = 0;

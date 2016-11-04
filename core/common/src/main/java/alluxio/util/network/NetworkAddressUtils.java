@@ -624,7 +624,6 @@ public final class NetworkAddressUtils {
       }
       return ret;
     } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }

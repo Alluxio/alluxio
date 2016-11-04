@@ -14,11 +14,11 @@ package alluxio;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -56,7 +56,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @param zkLeaderPath the Zookeeper path holding the leader master address
    */
   public AbstractMasterClient(String zkLeaderPath) {
-    super(getAddress(zkLeaderPath), "master");
+    super(NetworkAddressUtils.getLeaderAddressFromZK(zkLeaderPath), "master");
     Preconditions.checkState(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     mZkLeaderPath = zkLeaderPath;
   }
@@ -69,11 +69,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
     if (mZkLeaderPath == null) {
       return super.getAddress();
     }
-    return getAddress(mZkLeaderPath);
-  }
-
-  private static InetSocketAddress getAddress(String zkLeaderPath) {
-    return NetworkAddressUtils.getLeaderAddressFromZK(zkLeaderPath);
+    return NetworkAddressUtils.getLeaderAddressFromZK(mZkLeaderPath);
   }
 
   /**
@@ -81,9 +77,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    */
   public synchronized List<InetSocketAddress> getMasterAddresses() {
     if (mZkLeaderPath == null) {
-      List<InetSocketAddress> ret = new ArrayList<>(1);
-      ret.add(super.getAddress());
-      return ret;
+      return Lists.newArrayList(super.getAddress());
     } else {
       return NetworkAddressUtils.getMasterAddressesFromZK();
     }
