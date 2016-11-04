@@ -28,6 +28,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
@@ -87,14 +88,34 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getConfiguration() throws Exception {
-    Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
+    String home = "home";
+    String rawConfDir = String.format("${%s}/conf", PropertyKey.Name.HOME);
+    String resolvedConfDir = String.format("%s/conf", home);
+    Configuration.set(PropertyKey.HOME, home);
+    Configuration.set(PropertyKey.CONF_DIR, rawConfDir);
+
+    // Without URL parameters, value is resolved.
+    checkConfiguration(PropertyKey.CONF_DIR, resolvedConfDir, NO_PARAMS);
+
+    // With URL parameter "raw=false", value is resolved.
+    Map<String, String> params = new HashMap<>();
+    params.put("raw", "false");
+    checkConfiguration(PropertyKey.CONF_DIR, resolvedConfDir, params);
+
+    // With URL parameter "raw=true", value is raw.
+    params.put("raw", "true");
+    checkConfiguration(PropertyKey.CONF_DIR, rawConfDir, params);
+  }
+
+  private void checkConfiguration(PropertyKey key, String expectedValue, Map<String, String> params)
+      throws Exception {
     String result = new TestCase(mHostname, mPort,
-        getEndpoint(AlluxioMasterRestServiceHandler.GET_CONFIGURATION), NO_PARAMS, HttpMethod.GET,
+        getEndpoint(AlluxioMasterRestServiceHandler.GET_CONFIGURATION), params, HttpMethod.GET,
         null).call();
     @SuppressWarnings("unchecked")
     Map<String, String> config =
         (Map<String, String>) new ObjectMapper().readValue(result, Map.class);
-    Assert.assertEquals("abc", config.get(PropertyKey.METRICS_CONF_FILE.toString()));
+    Assert.assertEquals(expectedValue, config.get(key.toString()));
   }
 
   @Test
