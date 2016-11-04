@@ -62,7 +62,7 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
           "fs.glusterfs.volume.fuse." + Configuration.get(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES),
           Configuration.get(PropertyKey.UNDERFS_GLUSTERFS_MOUNTS));
     } else {
-      // If not Gluster FS fall back to default HDFS behaviour
+      // If not Gluster FS fall back to default HDFS behavior
       // This should only happen if someone creates an instance of this directly rather than via the
       // registry and factory which enforces the GlusterFS prefix being present.
       super.prepareConfiguration(path, hadoopConf);

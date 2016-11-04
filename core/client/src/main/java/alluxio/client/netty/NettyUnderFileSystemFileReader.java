@@ -24,7 +24,6 @@ import alluxio.network.protocol.RPCResponse;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Throwables;
-import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
@@ -33,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -49,17 +47,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class NettyUnderFileSystemFileReader implements UnderFileSystemFileReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Netty bootstrap for the connection. */
-  private final Callable<Bootstrap> mClientBootstrap;
   /** A reference to read response so we can explicitly release the resource after reading. */
   private RPCFileReadResponse mReadResponse;
 
   /**
    * Creates a new reader for a file in an under file system through a worker's data server.
    */
-  public NettyUnderFileSystemFileReader() {
-    mClientBootstrap = NettyClient.bootstrapBuilder();
-  }
+  public NettyUnderFileSystemFileReader() {}
 
   @Override
   public ByteBuffer read(InetSocketAddress address, long ufsFileId, long offset, long length)
@@ -70,12 +64,17 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
     }
 
     Metrics.NETTY_UFS_READ_OPS.inc();
-    SingleResponseListener listener = null;
     Channel channel = null;
+    ClientHandler clientHandler = null;
     try {
-      channel = BlockStoreContext.acquireNettyChannel(address, mClientBootstrap);
-      listener = new SingleResponseListener();
-      channel.pipeline().get(ClientHandler.class).addListener(listener);
+      channel = BlockStoreContext.acquireNettyChannel(address);
+      if (!(channel.pipeline().last() instanceof ClientHandler)) {
+        channel.pipeline().addLast(new ClientHandler());
+      }
+      clientHandler = (ClientHandler) channel.pipeline().last();
+      SingleResponseListener listener = new SingleResponseListener();
+      clientHandler.addListener(listener);
+
       ChannelFuture channelFuture =
           channel.writeAndFlush(new RPCFileReadRequest(ufsFileId, offset, length)).sync();
 
@@ -121,8 +120,8 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
       }
       throw new IOException(e);
     } finally {
-      if (channel != null && listener != null && channel.isActive()) {
-        channel.pipeline().get(ClientHandler.class).removeListener(listener);
+      if (clientHandler != null) {
+        clientHandler.removeListeners();
       }
       if (channel != null) {
         BlockStoreContext.releaseNettyChannel(address, channel);

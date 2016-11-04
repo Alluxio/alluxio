@@ -458,9 +458,7 @@ public final class InodeTreeTest {
    */
   @Test
   public void deleteInode() throws Exception {
-    InodeTree.CreatePathResult createResult =
-        createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
-    List<Inode<?>> created = createResult.getCreated();
+    createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
 
     // all inodes under root
     try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.WRITE)) {
@@ -552,7 +550,7 @@ public final class InodeTreeTest {
     mTree.addInodeFromJournal(root.toJournalEntry());
 
     // re-init the root since the tree was reset above
-    root = mTree.getRoot();
+    mTree.getRoot();
 
     try (
         LockedInodePath inodePath = mTree

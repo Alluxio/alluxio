@@ -130,7 +130,6 @@ public final class ThriftUtils {
    * @return {@link TtlAction} equivalent
    */
   public static TtlAction fromThrift(TTtlAction tTtlAction) {
-
     return TtlAction.fromThrift(tTtlAction);
   }
 

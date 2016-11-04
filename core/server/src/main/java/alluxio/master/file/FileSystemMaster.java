@@ -52,6 +52,7 @@ import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -296,7 +297,18 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     Message innerEntry = JournalProtoUtils.unwrap(entry);
-    if (innerEntry instanceof InodeFileEntry || innerEntry instanceof InodeDirectoryEntry) {
+    if (innerEntry instanceof InodeFileEntry) {
+      try {
+        mInodeTree.addInodeFromJournal(entry);
+        // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
+        InodeFileEntry inodeFileEntry = (InodeFileEntry) innerEntry;
+        if (inodeFileEntry.hasTtl()) {
+          mTtlBuckets.insert(InodeFile.fromJournalEntry(inodeFileEntry));
+        }
+      } catch (AccessControlException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (innerEntry instanceof InodeDirectoryEntry) {
       try {
         mInodeTree.addInodeFromJournal(entry);
       } catch (AccessControlException e) {
@@ -602,6 +614,78 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public FileSystemMasterView getFileSystemMasterView() {
     return new FileSystemMasterView(this);
+  }
+
+  /**
+   * Checks the consistency of the files and directories in the subtree under the path.
+   *
+   * @param path the root of the subtree to check
+   * @param options the options to use for the checkConsistency method
+   * @return a list of paths in Alluxio which are not consistent with the under storage
+   * @throws AccessControlException if the permission checking fails
+   * @throws FileDoesNotExistException if the path does not exist
+   * @throws InvalidPathException if the path is invalid
+   * @throws IOException if an error occurs interacting with the under storage
+   */
+  public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
+    List<AlluxioURI> inconsistentUris = new ArrayList<>();
+    try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkPermission(Mode.Bits.READ, parent);
+      try (InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
+        if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
+          inconsistentUris.add(parent.getUri());
+        }
+        for (Inode child : children.getInodes()) {
+          AlluxioURI currentPath = mInodeTree.getPath(child);
+          if (!checkConsistencyInternal(child, currentPath)) {
+            inconsistentUris.add(currentPath);
+          }
+        }
+      }
+    }
+    return inconsistentUris;
+  }
+
+  /**
+   * Checks if a path is consistent between Alluxio and the underlying storage.
+   *
+   * A path without a backing under storage is always consistent.
+   *
+   * A not persisted path is considered consistent if:
+   *   1. It does not shadow an object in the underlying storage.
+   *
+   * A persisted path is considered consistent if:
+   *   1. An equivalent object exists for its under storage path.
+   *   2. The metadata of the Alluxio and under storage object are equal.
+   *
+   * @param inode the inode to check
+   * @param path the current path associated with the inode
+   * @return true if the path is consistent, false otherwise
+   * @throws FileDoesNotExistException if the path cannot be found in the Alluxio inode tree
+   * @throws InvalidPathException if the path is not well formed
+   */
+  private boolean checkConsistencyInternal(Inode inode, AlluxioURI path)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
+    MountTable.Resolution resolution = mMountTable.resolve(path);
+    UnderFileSystem ufs = resolution.getUfs();
+    String ufsPath = resolution.getUri().getPath();
+    if (ufs == null) {
+      return true;
+    }
+    if (!inode.isPersisted()) {
+      return !ufs.exists(ufsPath);
+    }
+    // TODO(calvin): Evaluate which other metadata fields should be validated.
+    if (inode.isDirectory()) {
+      return ufs.exists(ufsPath)
+          && !ufs.isFile(ufsPath);
+    } else {
+      InodeFile file = (InodeFile) inode;
+      return ufs.exists(ufsPath)
+          && ufs.isFile(ufsPath)
+          && ufs.getFileSize(ufsPath) == file.getLength();
+    }
   }
 
   /**

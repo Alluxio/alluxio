@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.collections.Pair;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
@@ -127,9 +126,8 @@ public abstract class UnderFileSystem {
      * @return the UFS instance
      */
     UnderFileSystem get(String path, Object ufsConf) {
-      UnderFileSystem cachedFs = null;
       Key key = new Key(new AlluxioURI(path));
-      cachedFs = mUnderFileSystemMap.get(key);
+      UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
         return cachedFs;
       }
@@ -217,71 +215,12 @@ public abstract class UnderFileSystem {
   public abstract String getUnderFSType();
 
   /**
-   * Determines if the given path is on a Hadoop under file system
-   *
-   * To decide if a path should use the hadoop implementation, we check
-   * {@link String#startsWith(String)} to see if the configured schemas are found.
-   *
-   * @param path the path in under filesystem
-   * @return true if the given path is on a Hadoop under file system, false otherwise
-   */
-  public static boolean isHadoopUnderFS(final String path) {
-    // TODO(hy): In Hadoop 2.x this can be replaced with the simpler call to
-    // FileSystem.getFileSystemClass() without any need for having users explicitly declare the file
-    // system schemes to treat as being HDFS. However as long as pre 2.x versions of Hadoop are
-    // supported this is not an option and we have to continue to use this method.
-    for (final String prefix : Configuration.getList(PropertyKey.UNDERFS_HDFS_PREFIXES, ",")) {
-      if (path.startsWith(prefix)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Checks whether the underFS provides storage.
    *
    * @return true if the under filesystem provides storage, false otherwise
    */
   public boolean providesStorage() {
     return mProvidesStorage;
-  }
-
-  /**
-   * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir into a
-   * pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
-   * ("hdfs://host:port", "/"), ("/", "/dir") and ("/", "/dir") respectively.
-   *
-   * @param path the input path string
-   * @return null if path does not start with alluxio://, alluxio-ft://, hdfs://, s3://, s3n://,
-   *         file://, /. Or a pair of strings denoting the under FS address and the relative path
-   *         relative to that address. For local FS (with prefixes file:// or /), the under FS
-   *         address is "/" and the path starts with "/".
-   */
-  // TODO(calvin): See if this method is still necessary
-  public static Pair<String, String> parse(AlluxioURI path) {
-    Preconditions.checkArgument(path != null, "path may not be null");
-
-    if (path.hasScheme()) {
-      String header = path.getScheme() + "://";
-      String authority = (path.hasAuthority()) ? path.getAuthority() : "";
-      if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
-          || isHadoopUnderFS(header) || header.equals(Constants.HEADER_S3)
-          || header.equals(Constants.HEADER_S3A) || header.equals(Constants.HEADER_S3N)
-          || header.equals(Constants.HEADER_OSS) || header.equals(Constants.HEADER_GCS)) {
-        if (path.getPath().isEmpty()) {
-          return new Pair<>(header + authority, AlluxioURI.SEPARATOR);
-        } else {
-          return new Pair<>(header + authority, path.getPath());
-        }
-      } else if (header.equals("file://")) {
-        return new Pair<>(AlluxioURI.SEPARATOR, path.getPath());
-      }
-    } else if (path.isPathAbsolute()) {
-      return new Pair<>(AlluxioURI.SEPARATOR, path.getPath());
-    }
-
-    return null;
   }
 
   /**

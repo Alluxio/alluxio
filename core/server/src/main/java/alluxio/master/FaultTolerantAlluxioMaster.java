@@ -59,7 +59,6 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
       mLeaderSelectorClient =
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
     } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }

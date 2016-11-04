@@ -115,7 +115,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
 
     if (mSimulationMode) {
-      // In simulation mode we do not need access credentials
+      // We do not need access credentials in simulation mode
       config.setMock(true);
       config.setMockAllowEveryone(true);
     } else {
@@ -763,6 +763,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the container name from the given uri
    */
   protected static String getContainerName(AlluxioURI uri) {
+    //Authority contains the user, host and port portion of a URI
     return uri.getAuthority();
   }
 

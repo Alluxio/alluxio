@@ -58,6 +58,14 @@ fs命令中的所有“路径”都应该以以下开头：
 
 {% include Command-Line-Interface/cat.md %}
 
+## checksum
+
+`checksum`命令输出某个Alluxio文件的md5值。
+
+例如，`checksum`可以用来验证Alluxio中的文件内容与存储在底层文件系统或者本地文件系统中的文件内容是否匹配：
+
+{% include Command-Line-Interface/checksum.md %}
+
 ## chgrp
 
 `chgrp`命令可以改变Alluxio中的文件或文件夹的所属组，Alluxio支持POSIX标准的文件权限，组在POSIX文件权限模型中是一个授权实体，文件所有者或者超级用户可以执行这条命令从而改变一个文件或文件夹的所属组。
@@ -122,6 +130,16 @@ fs命令中的所有“路径”都应该以以下开头：
 使用举例：若文件是以它们的创建日期命名，使用`count`命令可以获取任何日期、月份以及年份的所有文件的数目以及它们的总大小：
 
 {% include Command-Line-Interface/count.md %}
+
+## cp
+
+`cp`命令拷贝Alluxio文件系统中的一个文件或者目录。
+
+如果使用了`-R`选项，并且源路径是一个目录，`cp`将源路径下的整个子树拷贝到目标路径。
+
+例如，`cp`可以在底层文件系统之间拷贝文件。
+
+{% include Command-Line-Interface/cp.md %}
 
 ## du
 
@@ -266,9 +284,9 @@ fs命令中的所有“路径”都应该以以下开头：
 
 ## setTtl
 
-`setTtl`命令设置一个文件的ttl时间，单位为毫秒。当当前时间大于该文件的创建时间与ttl时间之和时，该文件会被自动删除。该删除操作会同时作用于Alluxio和底层文件系统。
+`setTtl`命令设置一个文件的ttl时间，单位为毫秒。当当前时间大于该文件的创建时间与ttl时间之和时，行动参数将指示要执行的操作。`delete`操作（默认）将同时删除Alluxio和底层文件系统中的文件，而`free`操作将仅仅删除Alluxio中的文件。
 
-使用举例：管理员在知道某些文件经过一段时间后便没用时，可以使用`setTtl`命令。
+使用举例：管理员在知道某些文件经过一段时间后便没用时，可以使用带有`delete`操作的`setTtl`命令来清理文件；如果仅仅希望为Alluxio释放更多的空间，可以使用带有`free`操作的`setTtl`命令来清理Alluxio中的文件内容。
 
 {% include Command-Line-Interface/setTtl.md %}
 

@@ -188,8 +188,8 @@ public class ServiceSocketBindIntegrationTest {
     // connect Master Web service on loopback, while Master is listening on local hostname.
     try {
       mMasterWebService = (HttpURLConnection) new URL(
-          "http://127.0.0.1:" + mLocalAlluxioCluster.getMaster().getWebLocalPort() + "/home")
-          .openConnection();
+          "http://127.0.0.1:" + mLocalAlluxioCluster.getMaster().getInternalMaster()
+              .getWebLocalPort() + "/home").openConnection();
       Assert.assertEquals(200, mMasterWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Master Web service.");
     } catch (IOException e) {
