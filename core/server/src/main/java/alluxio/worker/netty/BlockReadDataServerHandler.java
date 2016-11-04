@@ -36,7 +36,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -70,7 +69,7 @@ final public class BlockReadDataServerHandler
 
   public final class ResponseQueue extends MessageQueue<RPCBlockReadResponse> {
     public ResponseQueue() {
-      super(4);
+      super(MessageQueue.Options.defaultOptions());
     }
 
     @Override
@@ -184,7 +183,12 @@ final public class BlockReadDataServerHandler
           RPCBlockReadResponse response =
               new RPCBlockReadResponse(mBlockId, offset, packet_size, packet,
                   isLastPacket ? RPCResponse.Status.SUCCESS : RPCResponse.Status.STREAM_PACKET);
-          mResponseQueue.offerMessage(response, isLastPacket);
+          try {
+            mResponseQueue.offerMessage(response, isLastPacket);
+          } catch (Throwable e) {
+            // This should not happen.
+            throw new RuntimeException(e);
+          }
           readLength -= PACKET_SIZE;
           offset += PACKET_SIZE;
         }

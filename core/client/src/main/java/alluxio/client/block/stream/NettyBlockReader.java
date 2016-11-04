@@ -72,8 +72,12 @@ public class NettyBlockReader implements BlockReader {
       RPCBlockReadResponse response = (RPCBlockReadResponse) msg;
       if (response.getStatus() == RPCResponse.Status.SUCCESS ||
           response.getStatus() == RPCResponse.Status.STREAM_PACKET) {
-        mPacketQueue.offerMessage(response.getPayloadData(),
-            response.getStatus() == RPCResponse.Status.SUCCESS);
+        try {
+          mPacketQueue.offerMessage(response.getPayloadData(),
+              response.getStatus() == RPCResponse.Status.SUCCESS);
+        } catch (Throwable e) {
+          ReferenceCountUtil.release(response.getPayloadData());
+        }
       } else {
         mPacketQueue.exceptionCaught(new DataTransferException(String
             .format("Failed to read block %d from %s with status %s.", mBlockId, mAddress,
@@ -131,11 +135,7 @@ public class NettyBlockReader implements BlockReader {
       throw new IOException(e);
     } catch (Throwable e) {
       // TODO(peis): Retry once if e is caused by ClosedChannelException.
-      try {
-        mChannel.close().sync();
-      } catch (InterruptedException ee) {
-        Throwables.propagate(ee);
-      }
+      mChannel.close();
       throw new IOException(e);
     }
   }
@@ -149,8 +149,8 @@ public class NettyBlockReader implements BlockReader {
       try {
         ChannelFuture channelFuture =
             mChannel.writeAndFlush(RPCBlockReadRequest.createCancelRequest(mBlockId)).sync();
+        channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         if (!channelFuture.isSuccess()) {
-          mChannel.close().sync();
           throw new IOException(channelFuture.cause());
         }
       } catch (InterruptedException e) {

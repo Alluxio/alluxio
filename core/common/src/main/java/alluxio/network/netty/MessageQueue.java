@@ -240,13 +240,12 @@ public abstract class MessageQueue<T> {
    * @param message the message to enqueue
    * @param eof whether this is the last packet that should enqueued
    */
-  public void offerMessage(T message, boolean eof) {
+  public void offerMessage(T message, boolean eof) throws Throwable {
     try {
       mLock.lock();
       while (true) {
         if (mThrowable != null) {
-          ReferenceCountUtil.release(message);
-          return;
+          throw mThrowable;
         }
 
         if (mNotFull == null || mMessagesQueue.size() < mOptions.getMaxCapacity()) {
