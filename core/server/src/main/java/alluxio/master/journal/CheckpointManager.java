@@ -23,7 +23,20 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
+ * A class which manages the checkpoint for a journal. The {@link #updateCheckpoint(String)} method
+ * will update the journal's checkpoint file to a specified checkpoint, and
+ * {@link recoverCheckpoint()} will recover from any failures that may occur during
+ * {@link #updateCheckpoint(String)}.
  *
+ * The checkpoint updating process goes
+ * <pre>
+ * 1. Write a new checkpoint named checkpoint.data.tmp
+ * 2. Rename checkpoint.data to checkpoint.data.backup.tmp
+ * 3. Rename checkpoint.data.backup.tmp to checkpoint.data.backup
+ * 4. Rename checkpoint.data.tmp to checkpoint.data
+ * 5. Delete completed logs
+ * 6. Delete checkpoint.data.backup
+ * </pre>
  */
 public final class CheckpointManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -72,16 +85,6 @@ public final class CheckpointManager {
 
   /**
    * Recovers the checkpoint file in case the master crashed while updating it previously.
-   *
-   * The checkpointing process goes
-   * <pre>
-   * 1. Write mTempCheckpointPath based on all completed logs
-   * 2. Rename mCheckpointPath to mTempBackupCheckpointPath
-   * 3. Rename mTempBackupCheckpointPath to mBackupCheckpointPath
-   * 4. Rename mTempCheckpointPath to mCheckpointPath
-   * 5. Delete completed logs
-   * 6. Delete mBackupCheckpointPath
-   * </pre>
    */
   public void recoverCheckpoint() {
     try {
@@ -113,8 +116,11 @@ public final class CheckpointManager {
   }
 
   /**
-   * @throws Exception
+   * Updates the checkpoint file to the checkpoint at the specified path. The update is done in such
+   * a way that {@link #recoverCheckpoint()} will recover from any failures that occur during the
+   * update.
    *
+   * @param newCheckpointPath the path to the new checkpoint file
    */
   public void updateCheckpoint(String newCheckpointPath) {
     try {
