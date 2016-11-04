@@ -11,8 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.BoundedStream;
 import alluxio.client.Seekable;
 import alluxio.exception.PreconditionMessage;
@@ -21,40 +19,40 @@ import alluxio.util.io.BufferUtils;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
-import io.netty.util.ReferenceCounted;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
 public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
-  /** Current position of the stream, relative to the start of the block. */
-  private long mPos = 0;
   /** The id of the block to which this instream provides access. */
   protected final long mBlockId;
   /** The size in bytes of the block. */
   protected final long mBlockSize;
 
+  /** Current position of the stream, relative to the start of the block. */
+  private long mPos = 0;
+
   private ByteBuf mCurrentPacket = null;
 
-  private BlockReader mBlockReader;
+  private BlockReader mBlockReader = null;
 
   private boolean mClosed = false;
 
   private boolean mBlockIsRead = false;
 
-  public BlockInStream(long blockId, long blockSize, BlockReader blockReader) throws IOException {
+  public BlockInStream(long blockId, long blockSize) throws IOException {
     mBlockId = blockId;
     mBlockSize = blockSize;
-
-    mBlockReader = blockReader;
   }
 
   @Override
   public void close() throws IOException {
+    if (mCurrentPacket != null) {
+      ReferenceCountUtil.release(mCurrentPacket);
+    }
   }
 
   @Override
@@ -72,14 +70,23 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
     return BufferUtils.byteToInt(mCurrentPacket.readByte());
   }
 
+  /**
+   * Reads a new packet from the channel.
+   *
+   * @throws IOException if it fails to read the packet
+   */
   private void readPacket() throws IOException {
     if (mCurrentPacket.readableBytes() == 0) {
       ReferenceCountUtil.release(mCurrentPacket);
+      if (mBlockReader == null) {
+        mBlockReader = createBlockReader(mPos, mBlockSize - mPos);
+      }
       mCurrentPacket = mBlockReader.readPacket();
     }
   }
 
-  protected abstract BlockReader createBlockReader();
+
+  protected abstract BlockReader createBlockReader(long offset, long len);
 
   /**
    * Close the current block reader.
@@ -122,7 +129,13 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
     Preconditions.checkArgument(pos <= mBlockSize,
         PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), mBlockSize);
-    closeBlockReader();
+    if (pos == mPos) {
+      return;
+    }
+    if (mBlockReader != null) {
+      mBlockReader.close();
+      mBlockReader = null;
+    }
     mPos = pos;
   }
 
@@ -134,8 +147,12 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
     }
 
     long toSkip = Math.min(remaining(), n);
-    closeBlockReader();
     mPos += toSkip;
+
+    if (mBlockReader != null) {
+      mBlockReader.close();
+      mBlockReader = null;
+    }
     return toSkip;
   }
 

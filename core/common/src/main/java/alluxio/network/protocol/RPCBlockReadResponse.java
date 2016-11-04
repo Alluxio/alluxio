@@ -19,7 +19,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 import io.netty.buffer.ByteBuf;
-import org.apache.commons.lang.NotImplementedException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,7 +30,7 @@ public final class RPCBlockReadResponse extends RPCResponse {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
-  private final ByteBuf mData;
+  private final DataBuffer mData;
   private final Status mStatus;
 
   /**
@@ -43,7 +42,7 @@ public final class RPCBlockReadResponse extends RPCResponse {
    * @param data the data for the response
    * @param status the status of the response
    */
-  public RPCBlockReadResponse(long blockId, long offset, long length, ByteBuf data,
+  public RPCBlockReadResponse(long blockId, long offset, long length, DataBuffer data,
       Status status) {
     mBlockId = blockId;
     mOffset = offset;
@@ -82,7 +81,13 @@ public final class RPCBlockReadResponse extends RPCResponse {
     long length = in.readLong();
     short status = in.readShort();
 
-    return new RPCBlockReadResponse(blockId, offset, length, in, Status.fromShort(status));
+    DataBuffer data = null;
+    if (length > 0) {
+      // use DataNettyBuffer instead of DataByteBuffer to avoid copying
+      data = new DataNettyBuffer(in, (int) length);
+    }
+
+    return new RPCBlockReadResponse(blockId, offset, length, data, Status.fromShort(status));
   }
 
   @Override
@@ -103,14 +108,14 @@ public final class RPCBlockReadResponse extends RPCResponse {
 
   @Override
   public DataBuffer getPayloadDataBuffer() {
-    throw new NotImplementedException("getPayloadDataBuffer is deprecated.");
+    return mData;
   }
 
   /**
    * @return the payload data
    */
   public ByteBuf getPayloadData() {
-    return mData;
+    return (ByteBuf) mData.getNettyOutput();
   }
 
   @Override
