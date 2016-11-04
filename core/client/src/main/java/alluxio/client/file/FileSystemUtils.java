@@ -161,23 +161,24 @@ public final class FileSystemUtils {
       UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString());
       // Create ancestor directories from top to the bottom. We cannot use recursive create parents
       // here because the permission for the ancestors can be different.
-      Stack<Pair<String, MkdirsOptions>> dirsToMakeWithOptions = new Stack<>();
+      Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
       AlluxioURI curAlluxioPath = uri.getParent();
       AlluxioURI curUfsPath = dstPath.getParent();
       while (!ufs.exists(curUfsPath.toString())) {
         URIStatus curDirStatus = fs.getStatus(curAlluxioPath);
         Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
             (short) curDirStatus.getMode());
-        dirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
+        ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
             new MkdirsOptions().setCreateParent(false).setPermission(perm)));
 
         curAlluxioPath = curAlluxioPath.getParent();
         curUfsPath = curUfsPath.getParent();
       }
-      while (!dirsToMakeWithOptions.empty()) {
-        Pair<String, MkdirsOptions> dirToMake = dirsToMakeWithOptions.pop();
-        if (!ufs.mkdirs(dirToMake.getFirst(), dirToMake.getSecond())) {
-          throw new IOException("Failed to create " + dirToMake.toString());
+      while (!ufsDirsToMakeWithOptions.empty()) {
+        Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
+        if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
+          throw new IOException("Failed to create " + ufsDirAndPerm.getFirst() + " with permission "
+              + ufsDirAndPerm.getSecond().toString());
         }
       }
       URIStatus uriStatus = fs.getStatus(uri);

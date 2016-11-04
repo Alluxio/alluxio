@@ -1533,25 +1533,24 @@ public final class FileSystemMaster extends AbstractMaster {
       String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
       // Create ancestor directories from top to the bottom. We cannot use recursive create parents
       // here because the permission for the ancestors can be different.
-      Stack<AlluxioURI> dirsToMake = new Stack<>();
+      Stack<String> ufsDirsToMake = new Stack<>();
       AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
       while (!ufs.exists(curUfsDirPath.toString())) {
-        dirsToMake.push(curUfsDirPath);
+        ufsDirsToMake.push(curUfsDirPath.toString());
         curUfsDirPath = curUfsDirPath.getParent();
       }
       List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
       // The dst inode does not exist yet, so the last inode in the list is the existing parent.
-      int index = dstInodeList.size() - dirsToMake.size();
-      while (!dirsToMake.empty()) {
-        AlluxioURI dirToMake = dirsToMake.pop();
+      int index = dstInodeList.size() - ufsDirsToMake.size();
+      while (!ufsDirsToMake.empty()) {
+        String ufsDirToMake = ufsDirsToMake.pop();
         Inode<?> curInode = dstInodeList.get(index);
         Permission perm = new Permission(curInode.getOwner(), curInode.getGroup(),
             curInode.getMode());
         MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(false)
             .setPermission(perm);
-        if (!ufs.mkdirs(dirToMake.toString(), mkdirsOptions)) {
-          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(
-              dirToMake.toString()));
+        if (!ufs.mkdirs(ufsDirToMake, mkdirsOptions)) {
+          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirToMake));
         }
         ++index;
       }
