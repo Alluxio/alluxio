@@ -297,7 +297,7 @@ public abstract class UnderFileSystem {
           ExceptionMessage.FAILED_UFS_RENAME.getMessage(temporaryPath, permanentPath));
     }
 
-    // Rename does not preserve permissions
+    // Preserve permissions in case delegation was used to create path
     Permission perm = options.getCreateOptions().getPermission();
     if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
       try {
