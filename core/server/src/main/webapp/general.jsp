@@ -63,6 +63,12 @@
                   <th>Safe Mode:</th>
                   <th><%= request.getAttribute("safeMode") %></th>
                 </tr>
+                <% if (!((Boolean) request.getAttribute("safeMode")) && request.getAttribute("inconsistentUris") != 0) { %>
+                  <tr>
+                    <th>Number of Inconsistent Files on Startup:</th>
+                    <th><%= request.getAttribute("inconsistentPaths") %></th>
+                  </tr>
+                <% } %>
               </tbody>
             </table>
           </div>

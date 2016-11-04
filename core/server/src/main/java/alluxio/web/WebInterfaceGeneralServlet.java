@@ -195,7 +195,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("safeMode", true);
     } else { // complete
       request.setAttribute("safeMode", false);
-      request.setAttribute("inconsistentPaths", inconsistentUris);
+      request.setAttribute("inconsistentPaths", inconsistentUris.size());
     }
 
     String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
