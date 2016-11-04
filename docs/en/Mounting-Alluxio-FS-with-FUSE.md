@@ -23,7 +23,7 @@ what it can and cannot do for you.
 
 * Linux kernel 2.6.9 or newer
 * JDK 1.8 or newer
-* libfuse 2.9.3 or newer
+* [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer
   (2.8.3 has been reported to also work - with some warnings)
 
 # Building
