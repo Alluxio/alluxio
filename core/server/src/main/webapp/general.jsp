@@ -59,6 +59,10 @@
                   <!-- <th>${liveWorkerNodes}</th> -->
                   <th><%= request.getAttribute("liveWorkerNodes") %></th>
                 </tr>
+                <tr>
+                  <th>Safe Mode:</th>
+                  <th><%= request.getAttribute("safeMode") %></th>
+                </tr>
               </tbody>
             </table>
           </div>

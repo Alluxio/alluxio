@@ -109,6 +109,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -124,6 +125,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -232,6 +234,8 @@ public final class FileSystemMaster extends AbstractMaster {
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostFilesDetectionService;
 
+  private Future<List<AlluxioURI>> mStartupConsistencyCheck;
+
   /**
    * @param baseDirectory the base journal directory
    * @return the journal directory for this master
@@ -248,7 +252,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
     this(blockMaster, journal, ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 2));
+        .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
   }
 
   /**
@@ -420,7 +424,25 @@ public final class FileSystemMaster extends AbstractMaster {
       mLostFilesDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_FILES_DETECTION, new LostFilesDetectionHeartbeatExecutor(),
           Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+      mStartupConsistencyCheck = getExecutorService().submit(new Callable<List<AlluxioURI>>() {
+        @Override
+        public List<AlluxioURI> call() throws Exception {
+          return checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+        }
+      });
     }
+  }
+
+  public List<AlluxioURI> getStartupConsistencyCheck() {
+    boolean isDone = mStartupConsistencyCheck.isDone();
+    if (isDone) {
+      try {
+        return mStartupConsistencyCheck.get();
+      } catch (Exception e) {
+        // fall through
+      }
+    }
+    return null;
   }
 
   /**
