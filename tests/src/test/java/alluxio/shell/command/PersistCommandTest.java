@@ -154,11 +154,11 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     }
     AlluxioURI testFile = new AlluxioURI("/grand/parent/file");
     AlluxioURI grandParent = new AlluxioURI("/grand");
-    short grandPathMode = (short) 0777;
+    short grandParentMode = (short) 0777;
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
     URIStatus status = mFileSystem.getStatus(testFile);
     Assert.assertFalse(status.isPersisted());
-    mFileSystem.setAttribute(grandParent, SetAttributeOptions.defaults().setMode(grandPathMode));
+    mFileSystem.setAttribute(grandParent, SetAttributeOptions.defaults().setMode(grandParentMode));
     int ret = mFsShell.run("persist", testFile.toString());
 
     Assert.assertEquals(0, ret);
@@ -170,7 +170,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(fileMode, ufs.getMode(PathUtils.concatPath(ufsRoot, testFile)));
     Assert.assertEquals(parentMode,
         ufs.getMode(PathUtils.concatPath(ufsRoot, testFile.getParent())));
-    Assert.assertEquals(grandPathMode,
+    Assert.assertEquals(grandParentMode,
         ufs.getMode(PathUtils.concatPath(ufsRoot, grandParent)));
   }
 }
