@@ -55,7 +55,7 @@ You need to add the following properties to `core-site.xml` file in Hadoop:
 modify `$HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
 
 ```bash
-$ export HADOOP_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${HADOOP_CLASSPATH}
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 Distributing the Alluxio Client Jar in Hadoop MapReduce:

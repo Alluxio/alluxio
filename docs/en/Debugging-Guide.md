@@ -87,21 +87,21 @@ properties on all nodes running this framework. Here are some examples:
 - For MapReduce jobs, you can append the client jar to `$HADOOP_CLASSPATH`:
 
 ```bash
-$ export HADOOP_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${HADOOP_CLASSPATH}
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 - For Spark jobs, you can append the client jar to `$SPARK_CLASSPATH`:
 
 ```bash
-$ export SPARK_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${SPARK_CLASSPATH}
+$ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 ```
 
 Alternatively, add the following lines to `spark/conf/spark-defaults.conf` to
 
 ```bash
-spark.driver.extraClassPath /<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
+spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath
-/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
+{{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
 #### Q: I'm seeing error messages like "Frame size (67108864) larger than max length (16777216)". What is wrong?
