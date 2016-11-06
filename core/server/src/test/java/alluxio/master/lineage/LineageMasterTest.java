@@ -170,7 +170,7 @@ public final class LineageMasterTest {
   }
 
   /**
-   * Tests the {@link LineageMaster#reinitializeFile(String, long, long)} method.
+   * Tests the {@link LineageMaster#reinitializeFile(String, long, long, TtlAction)} method.
    */
   @Test
   public void reinitializeFile() throws Exception {
