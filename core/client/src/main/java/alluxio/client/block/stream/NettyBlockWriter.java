@@ -141,7 +141,6 @@ public class NettyBlockWriter implements BlockWriter {
     }
   }
 
-
   public NettyBlockWriter(final InetSocketAddress address, long blockId, long sessionId)
       throws IOException {
     mAddress = address;
