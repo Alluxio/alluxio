@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
@@ -22,6 +21,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -49,7 +49,6 @@ public class StartupConsistencyCheckTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB))
           .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
           .build();
 
