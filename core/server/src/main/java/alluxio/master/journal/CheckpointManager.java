@@ -73,7 +73,8 @@ public final class CheckpointManager {
    * Creates a new instance of {@link CheckpointManager}.
    *
    * @param ufs the under file system holding the journal
-   * @param the directory for the journal
+   * @param checkpointPath the path to the checkpoint file
+   * @param writer a journal writer which can be used to delete completed logs
    */
   public CheckpointManager(UnderFileSystem ufs, String checkpointPath, JournalWriter writer) {
     mUfs = ufs;
