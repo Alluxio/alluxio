@@ -45,7 +45,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -59,12 +58,12 @@ import java.util.Map;
  * Test master journal, including checkpoint and entry log. Most tests will test entry log first,
  * followed by the checkpoint.
  */
-@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2091")
 public class JournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
         .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB))
+        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
         .build();
 
   @Rule

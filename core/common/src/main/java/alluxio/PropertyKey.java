@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,22 +22,23 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public enum PropertyKey {
-  CONF_DIR(Name.CONF_DIR, "${alluxio.home}/conf"),
+  CONF_DIR(Name.CONF_DIR, String.format("${%s}/conf", Name.HOME)),
   DEBUG(Name.DEBUG, false),
   HOME(Name.HOME, "/opt/alluxio"),
   KEY_VALUE_ENABLED(Name.KEY_VALUE_ENABLED, false),
   KEY_VALUE_PARTITION_SIZE_BYTES_MAX(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, "512MB"),
   LOGGER_TYPE(Name.LOGGER_TYPE, "Console"),
-  LOGS_DIR(Name.LOGS_DIR, "${alluxio.work.dir}/logs"),
-  METRICS_CONF_FILE(Name.METRICS_CONF_FILE, "${alluxio.conf.dir}/metrics.properties"),
+  LOGS_DIR(Name.LOGS_DIR, String.format("${%s}/logs", Name.WORK_DIR)),
+  METRICS_CONF_FILE(Name.METRICS_CONF_FILE,
+      String.format("${%s}/metrics.properties", Name.CONF_DIR)),
   NETWORK_HOST_RESOLUTION_TIMEOUT_MS(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 5000),
   NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB"),
   SITE_CONF_DIR(Name.SITE_CONF_DIR, "${user.home}/.alluxio/,/etc/alluxio/"),
   TEST_MODE(Name.TEST_MODE, false),
   VERSION(Name.VERSION, ProjectConstants.VERSION),
-  WEB_RESOURCES(Name.WEB_RESOURCES, "${alluxio.home}/core/server/src/main/webapp"),
+  WEB_RESOURCES(Name.WEB_RESOURCES, String.format("${%s}/core/server/src/main/webapp", Name.HOME)),
   WEB_THREADS(Name.WEB_THREADS, 1),
-  WORK_DIR(Name.WORK_DIR, "${alluxio.home}"),
+  WORK_DIR(Name.WORK_DIR, String.format("${%s}", Name.HOME)),
   ZOOKEEPER_ADDRESS(Name.ZOOKEEPER_ADDRESS, null),
   ZOOKEEPER_ELECTION_PATH(Name.ZOOKEEPER_ELECTION_PATH, "/election"),
   ZOOKEEPER_ENABLED(Name.ZOOKEEPER_ENABLED, false),
@@ -48,7 +48,7 @@ public enum PropertyKey {
   //
   // UFS related properties
   //
-  UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, "${alluxio.work.dir}/underFSStorage"),
+  UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR)),
   UNDERFS_LISTING_LENGTH(Name.UNDERFS_LISTING_LENGTH, 1000),
   UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ""),
   UNDERFS_GLUSTERFS_IMPL(Name.UNDERFS_GLUSTERFS_IMPL,
@@ -57,7 +57,7 @@ public enum PropertyKey {
   UNDERFS_GLUSTERFS_MR_DIR(Name.UNDERFS_GLUSTERFS_MR_DIR, "glusterfs:///mapred/system"),
   UNDERFS_GLUSTERFS_VOLUMES(Name.UNDERFS_GLUSTERFS_VOLUMES, null),
   UNDERFS_HDFS_CONFIGURATION(Name.UNDERFS_HDFS_CONFIGURATION,
-      "${alluxio.conf.dir}/core-site.xml"),
+      String.format("${%s}/core-site.xml", Name.CONF_DIR)),
   UNDERFS_HDFS_IMPL(Name.UNDERFS_HDFS_IMPL, "org.apache.hadoop.hdfs.DistributedFileSystem"),
   UNDERFS_HDFS_PREFIXES(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///"),
   UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY,
@@ -119,7 +119,7 @@ public enum PropertyKey {
   MASTER_HEARTBEAT_INTERVAL_MS(Name.MASTER_HEARTBEAT_INTERVAL_MS, 1000),
   MASTER_HOSTNAME(Name.MASTER_HOSTNAME, null),
   MASTER_JOURNAL_FLUSH_BATCH_TIME_MS(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5),
-  MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, "${alluxio.work.dir}/journal"),
+  MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, String.format("${%s}/journal", Name.WORK_DIR)),
   MASTER_JOURNAL_FORMATTER_CLASS(Name.MASTER_JOURNAL_FORMATTER_CLASS,
       "alluxio.master.journal.ProtoBufJournalFormatter"),
   MASTER_JOURNAL_LOG_SIZE_BYTES_MAX(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10MB"),
@@ -132,7 +132,7 @@ public enum PropertyKey {
   MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, 300000),
   MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, 300000),
   MASTER_LINEAGE_RECOMPUTE_LOG_PATH(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH,
-      "${alluxio.logs.dir}/recompute.log"),
+      String.format("${%s}/recompute.log", Name.LOGS_DIR)),
   MASTER_PRINCIPAL(Name.MASTER_PRINCIPAL, null),
   MASTER_RETRY(Name.MASTER_RETRY, 29),
   MASTER_RPC_PORT(Name.MASTER_RPC_PORT, 19998),
@@ -190,6 +190,7 @@ public enum PropertyKey {
   WORKER_PRINCIPAL(Name.WORKER_PRINCIPAL, null),
   WORKER_RPC_PORT(Name.WORKER_RPC_PORT, 29998),
   WORKER_SESSION_TIMEOUT_MS(Name.WORKER_SESSION_TIMEOUT_MS, 60000),
+  WORKER_TIERED_STORE_BLOCK_LOCK_READERS(Name.WORKER_TIERED_STORE_BLOCK_LOCK_READERS, 1000),
   WORKER_TIERED_STORE_BLOCK_LOCKS(Name.WORKER_TIERED_STORE_BLOCK_LOCKS, 1000),
   WORKER_TIERED_STORE_LEVEL0_ALIAS(Name.WORKER_TIERED_STORE_LEVEL0_ALIAS, "MEM"),
   WORKER_TIERED_STORE_LEVEL0_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, "/mnt/ramdisk"),
@@ -302,8 +303,8 @@ public enum PropertyKey {
   INTEGRATION_MASTER_RESOURCE_CPU(Name.INTEGRATION_MASTER_RESOURCE_CPU, 1),
   INTEGRATION_MASTER_RESOURCE_MEM(Name.INTEGRATION_MASTER_RESOURCE_MEM, "1024MB"),
   INTEGRATION_MESOS_ALLUXIO_JAR_URL(Name.INTEGRATION_MESOS_ALLUXIO_JAR_URL,
-      "http://downloads.alluxio.org/downloads/files/${alluxio.version}/"
-      + "alluxio-${alluxio.version}-bin.tar.gz"),
+      String.format("http://downloads.alluxio.org/downloads/files/${%s}/"
+      + "alluxio-${%s}-bin.tar.gz", Name.VERSION, Name.VERSION)),
   INTEGRATION_MESOS_ALLUXIO_MASTER_NAME(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME,
       "AlluxioMaster"),
   INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT, 1),
@@ -561,6 +562,8 @@ public enum PropertyKey {
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
+    public static final String WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
+         "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
         "alluxio.worker.tieredstore.block.locks";
     public static final String WORKER_TIERED_STORE_LEVEL0_ALIAS =

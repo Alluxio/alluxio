@@ -40,7 +40,7 @@ public final class MasterWorkerInfoTest {
   private static final Map<String, Long> TOTAL_BYTES_ON_TIERS =
       ImmutableMap.of("MEM", Constants.KB * 3L, "SSD", Constants.KB * 3L);
   private static final Map<String, Long> USED_BYTES_ON_TIERS =
-      ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L);
+      ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB);
   private static final Set<Long> NEW_BLOCKS = Sets.newHashSet(1L, 2L);
   private MasterWorkerInfo mInfo;
 
@@ -106,7 +106,7 @@ public final class MasterWorkerInfoTest {
         + " totalBytesOnTiers has 2 tiers and usedBytesOnTiers has 1 tiers");
 
     mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES, TOTAL_BYTES_ON_TIERS,
-        ImmutableMap.of("SSD", Constants.KB * 1L), NEW_BLOCKS);
+        ImmutableMap.of("SSD", (long) Constants.KB), NEW_BLOCKS);
   }
 
   /**
@@ -166,7 +166,7 @@ public final class MasterWorkerInfoTest {
   public void updateUsedBytes() {
     Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
     Map<String, Long> usedBytesOnTiers =
-        ImmutableMap.of("MEM", Constants.KB * 2L, "SSD", Constants.KB * 1L);
+        ImmutableMap.of("MEM", Constants.KB * 2L, "SSD", (long) Constants.KB);
     mInfo.updateUsedBytes(usedBytesOnTiers);
     Assert.assertEquals(usedBytesOnTiers, mInfo.getUsedBytesOnTiers());
     Assert.assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());

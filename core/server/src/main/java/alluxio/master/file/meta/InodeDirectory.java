@@ -21,6 +21,7 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -183,6 +184,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setPersisted(isPersisted());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(Constants.NO_TTL);
+    ret.setTtlAction(TtlAction.DELETE);
     ret.setOwner(getOwner());
     ret.setGroup(getGroup());
     ret.setMode(getMode());
