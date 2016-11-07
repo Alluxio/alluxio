@@ -239,12 +239,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
-      // Return the direct stream if the user has enabled direct writes
-      if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_DIRECT_WRITES_ENABLED)) {
-        return new S3ADirectOutputStream(mBucketName, stripPrefixIfPresent(path), mManager);
-      } else {
-        return new S3AOutputStream(mBucketName, stripPrefixIfPresent(path), mManager);
-      }
+      return new S3AOutputStream(mBucketName, stripPrefixIfPresent(path), mManager);
     }
     return null;
   }
