@@ -6,7 +6,7 @@ group: Under Store
 priority: 1
 ---
 
-该指南介绍如何配置Alluxio以使用[Swift](http://docs.openstack.org/developer/swift/)作为底层文件系统。
+该指南介绍如何配置Alluxio以使用[Swift](http://developer.openstack.org/api-ref/object-storage/)作为底层文件系统。
 
 # 初始安装步骤
 
