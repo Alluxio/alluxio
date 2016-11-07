@@ -11,7 +11,10 @@
 
 package alluxio.underfs;
 
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.NonAtomicCreateOptions;
+import alluxio.util.IdUtils;
+import alluxio.util.io.PathUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,21 +27,45 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class NonAtomicFileOutputStream extends OutputStream {
   private OutputStream mTemporaryOutputStream;
-  private UnderFileSystem mUfs;
+  private NonAtomicUnderFileSystem mUfs;
   private NonAtomicCreateOptions mOptions;
   private boolean mClosed = false;
 
   /**
+   * A {@link UnderFileSystem} which want to use a {@link NonAtomicFileOutputStream}.
+   */
+  public interface NonAtomicUnderFileSystem {
+    /**
+     * Create an output stream to a temporary path.
+     *
+     * @param path temporary path
+     * @param options the options for create
+     * @return a non atomic output stream
+     * @throws IOException when create fails
+     */
+    OutputStream createTemporary(String path, CreateOptions options) throws IOException;
+
+    /**
+     * Complete the create operation by renaming temporary path to permanent.
+     *
+     * @param options information to complete create
+     * @throws IOException when rename fails
+     */
+    void completeCreate(NonAtomicCreateOptions options) throws IOException;
+  }
+
+  /**
    * Constructs a new {@link NonAtomicFileOutputStream}.
    *
-   * @param out the wrapped {@link OutputStream}
+   * @param path path being written to
+   * @param options create options for destination file
    * @param ufs the calling {@link UnderFileSystem}
-   * @param options options to complete create
    */
-  public NonAtomicFileOutputStream(OutputStream out, UnderFileSystem ufs,
-      NonAtomicCreateOptions options) {
-    mTemporaryOutputStream = out;
-    mOptions = options;
+  public NonAtomicFileOutputStream(String path, CreateOptions options,
+      NonAtomicUnderFileSystem ufs) throws IOException {
+    String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
+    mOptions = new NonAtomicCreateOptions(temporaryPath, path, options);
+    mTemporaryOutputStream = ufs.createTemporary(temporaryPath, options);
     mUfs = ufs;
   }
 

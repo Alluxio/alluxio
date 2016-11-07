@@ -20,7 +20,6 @@ import alluxio.security.authorization.Permission;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.NonAtomicCreateOptions;
-import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
@@ -281,7 +280,8 @@ public abstract class UnderFileSystem {
   public abstract void close() throws IOException;
 
   /**
-   * Complete the default create operation by renaming temporary path to permanent.
+   * Complete a create operation by renaming temporary path to permanent. This is required when a
+   * {@link NonAtomicFileOutputStream} is used.
    *
    * @param options information to complete create
    * @throws IOException when rename fails
@@ -330,23 +330,7 @@ public abstract class UnderFileSystem {
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public OutputStream create(String path, CreateOptions options) throws IOException {
-    String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
-
-    return new NonAtomicFileOutputStream(createTemporary(temporaryPath, options), this,
-        new NonAtomicCreateOptions(temporaryPath, path, options));
-  }
-
-  /**
-   * Create an output stream to a temporary path.
-   *
-   * @param path temporary path
-   * @param options the options for create
-   * @return a non atomic output stream
-   * @throws IOException when create fails
-   */
-  public abstract OutputStream createTemporary(String path, CreateOptions options)
-      throws IOException;
+  public abstract OutputStream create(String path, CreateOptions options) throws IOException;
 
   /**
    * Deletes a file or folder from the under file system with the indicated name.

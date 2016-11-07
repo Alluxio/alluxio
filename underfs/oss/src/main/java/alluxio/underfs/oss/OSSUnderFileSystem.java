@@ -130,11 +130,6 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    return createTemporary(path, options);
-  }
-
-  @Override
-  public OutputStream createTemporary(String path, CreateOptions options) throws IOException {
     path = toURIPath(path);
     if (mkdirs(getParentKey(path), true)) {
       return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
