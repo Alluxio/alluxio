@@ -13,9 +13,9 @@ Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](h
 除性能外，Alluxio为新型大数据应用作用于传统存储系统的数据建立了桥梁。
 用户可以以独立集群方式(如Amazon EC2)运行Alluxio，也可以从Apache Mesos或Apache YARN上启动Alluxio。
 
-Alluxio与Hadoop是兼容的。这意味着已有的Spark和MapReduce程序可以不修改代码直接在Alluxio上运行。Alluxio是一个已在多家公司部署的开源项目([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE))。
+Alluxio与Hadoop是兼容的。现有的数据分析应用，如Spark和MapReduce程序，可以不修改代码直接在Alluxio上运行。Alluxio是一个已在多家公司部署的开源项目([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE))。
 Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以来，已有超过100个组织机构的
-[250多贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
+[350多贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
 [阿里巴巴](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/), [百度](https://www.baidu.com),
 [卡内基梅隆大学](https://www.cmu.edu/)，[IBM](https://www.ibm.com)，[Intel](http://www.intel.com/),
 [南京大学](http://pasa-bigdata.nju.edu.cn/),
@@ -23,6 +23,7 @@ Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以�
 [Yahoo](https://www.yahoo.com/)。Alluxio处于伯克利数据分析栈(
 [BDAS](https://amplab.cs.berkeley.edu/bdas/))的存储层，也是
 [Fedora发行版](https://fedoraproject.org/wiki/SIGs/bigdata/packaging)的一部分。
+到今天为止，Alluxio已经在超过100家公司的生产中进行了部署，并且在超过1000个节点的集群上运行着。
 
 [Github ](https://github.com/alluxio/alluxio/) |
 [ 版 本  ](http://alluxio.org/releases/) |
