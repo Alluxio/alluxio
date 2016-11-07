@@ -65,8 +65,8 @@
                 </tr>
                 <% if (((Boolean) request.getAttribute("consistencyCheckComplete")) && request.getAttribute("inconsistentPaths") != 0) { %>
                   <tr>
-                    <th>Inconsistent Files on Startup (run fs checkConsistency for details):</th>
-                    <th><%= request.getAttribute("inconsistentPaths") %></th>
+                    <th><font color="red">Inconsistent Files on Startup (run fs checkConsistency for details):</font></th>
+                    <th><font color="red"><%= request.getAttribute("inconsistentPaths") %></font></th>
                   </tr>
                 <% } %>
               </tbody>
