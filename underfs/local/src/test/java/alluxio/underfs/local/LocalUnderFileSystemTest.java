@@ -47,7 +47,7 @@ public class LocalUnderFileSystemTest {
   @Test
   public void exists() throws IOException {
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.create(filepath);
+    mLocalUfs.create(filepath).close();
 
     Assert.assertTrue(mLocalUfs.exists(filepath));
 
@@ -59,7 +59,11 @@ public class LocalUnderFileSystemTest {
   @Test
   public void create() throws IOException {
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.create(filepath);
+    OutputStream os = mLocalUfs.create(filepath);
+
+    Assert.assertFalse(mLocalUfs.exists(filepath));
+
+    os.close();
 
     Assert.assertTrue(mLocalUfs.exists(filepath));
 
@@ -70,7 +74,7 @@ public class LocalUnderFileSystemTest {
   @Test
   public void delete() throws IOException {
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.create(filepath);
+    mLocalUfs.create(filepath).close();
     mLocalUfs.delete(filepath, true);
 
     Assert.assertFalse(mLocalUfs.exists(filepath));
@@ -84,7 +88,7 @@ public class LocalUnderFileSystemTest {
     String dirpath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     mLocalUfs.mkdirs(dirpath, true);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
-    mLocalUfs.create(filepath);
+    mLocalUfs.create(filepath).close();
     mLocalUfs.delete(dirpath, true);
 
     Assert.assertFalse(mLocalUfs.exists(dirpath));
@@ -98,7 +102,7 @@ public class LocalUnderFileSystemTest {
     String dirpath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     mLocalUfs.mkdirs(dirpath, true);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
-    mLocalUfs.create(filepath);
+    mLocalUfs.create(filepath).close();
     mLocalUfs.delete(dirpath, false);
 
     Assert.assertTrue(mLocalUfs.exists(dirpath));
@@ -169,7 +173,7 @@ public class LocalUnderFileSystemTest {
     Assert.assertFalse(mLocalUfs.isFile(dirpath));
 
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.create(filepath);
+    mLocalUfs.create(filepath).close();
     Assert.assertTrue(mLocalUfs.isFile(filepath));
   }
 
