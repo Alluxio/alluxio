@@ -60,6 +60,7 @@ public class NonAtomicFileOutputStream extends OutputStream {
    * @param path path being written to
    * @param options create options for destination file
    * @param ufs the calling {@link UnderFileSystem}
+   * @throws IOException when a non Alluxio error occurs
    */
   public NonAtomicFileOutputStream(String path, CreateOptions options,
       NonAtomicUnderFileSystem ufs) throws IOException {

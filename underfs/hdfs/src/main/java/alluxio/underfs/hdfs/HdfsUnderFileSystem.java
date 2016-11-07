@@ -135,6 +135,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem
     return new NonAtomicFileOutputStream(path, options, this);
   }
 
+  @Override
   public OutputStream createTemporary(String path, CreateOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
