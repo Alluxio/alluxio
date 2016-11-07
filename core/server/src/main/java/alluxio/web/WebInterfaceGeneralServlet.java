@@ -192,9 +192,9 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
     List<AlluxioURI> inconsistentUris = mMaster.getFileSystemMaster().getStartupConsistencyCheck();
     if (inconsistentUris == null) { // incomplete
-      request.setAttribute("safeMode", true);
+      request.setAttribute("consistencyCheckComplete", false);
     } else { // complete
-      request.setAttribute("safeMode", false);
+      request.setAttribute("consistencyCheckComplete", true);
       request.setAttribute("inconsistentPaths", inconsistentUris.size());
     }
 

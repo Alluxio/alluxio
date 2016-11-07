@@ -60,12 +60,12 @@
                   <th><%= request.getAttribute("liveWorkerNodes") %></th>
                 </tr>
                 <tr>
-                  <th>Safe Mode:</th>
-                  <th><%= request.getAttribute("safeMode") %></th>
+                  <th>Startup Consistency Check Complete:</th>
+                  <th><%= request.getAttribute("consistencyCheckComplete") %></th>
                 </tr>
-                <% if (!((Boolean) request.getAttribute("safeMode")) && request.getAttribute("inconsistentUris") != 0) { %>
+                <% if (((Boolean) request.getAttribute("consistencyCheckComplete")) && request.getAttribute("inconsistentPaths") != 0) { %>
                   <tr>
-                    <th>Number of Inconsistent Files on Startup:</th>
+                    <th>Inconsistent Files on Startup (run fs checkConsistency for details):</th>
                     <th><%= request.getAttribute("inconsistentPaths") %></th>
                   </tr>
                 <% } %>
