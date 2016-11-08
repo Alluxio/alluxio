@@ -32,7 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is a Thrift handler for block master RPCs invoked by an Alluxio client.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public class BlockMasterClientServiceHandler implements BlockMasterClientService.Iface {
+public final class BlockMasterClientServiceHandler implements BlockMasterClientService.Iface {
   private final BlockMaster mBlockMaster;
 
   /**
@@ -51,22 +51,37 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
   }
 
   @Override
-  public List<WorkerInfo> getWorkerInfoList() {
-    List<WorkerInfo> workerInfos = new ArrayList<>();
-    for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
-      workerInfos.add(ThriftUtils.toThrift(workerInfo));
-    }
-    return workerInfos;
+  public List<WorkerInfo> getWorkerInfoList() throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<List<WorkerInfo>>() {
+      @Override
+      public List<WorkerInfo> call() throws AlluxioException {
+        List<WorkerInfo> workerInfos = new ArrayList<>();
+        for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
+          workerInfos.add(ThriftUtils.toThrift(workerInfo));
+        }
+        return workerInfos;
+      }
+    });
   }
 
   @Override
-  public long getCapacityBytes() {
-    return mBlockMaster.getCapacityBytes();
+  public long getCapacityBytes() throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<Long>() {
+      @Override
+      public Long call() throws AlluxioException {
+        return mBlockMaster.getCapacityBytes();
+      }
+    });
   }
 
   @Override
-  public long getUsedBytes() {
-    return mBlockMaster.getUsedBytes();
+  public long getUsedBytes() throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<Long>() {
+      @Override
+      public Long call() throws AlluxioException {
+        return mBlockMaster.getUsedBytes();
+      }
+    });
   }
 
   @Override

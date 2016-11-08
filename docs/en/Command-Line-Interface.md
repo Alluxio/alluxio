@@ -65,8 +65,23 @@ output:
 
 {% include Command-Line-Interface/cat.md %}
 
+## checkConsistency
+The `checkConsistency` command compares Alluxio and under storage metadata for a given path. If the
+path is a directory, the entire subtree will be compared. The command returns a message listing each
+inconsistent file or directory. The system administrator should reconcile the differences of these
+files at their discretion. To avoid metadata inconsistencies between Alluxio and under storages,
+design your systems to modify files and directories through the Alluxio and avoid directly modifying
+state in the underlying storage.
+
+NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates
+to files or directories in the subtree cannot be completed until this command completes.
+
+For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
+
+{% include Command-Line-Interface/checkConsistency.md %}
+
 ## checksum
-The `checksum` command outputs the md5 value of a file in Alluxio. 
+The `checksum` command outputs the md5 value of a file in Alluxio.
 
 For example, `checksum` can be used to verify the content of a file stored in Alluxio
 matches the content stored in an UnderFS or local filesystem:
@@ -140,8 +155,8 @@ investigation or debugging.
 
 ## count
 The `count` command outputs the number of files and folders matching a prefix as well as the
-total size of the files. `Count` works recursively and accounts for any nested directories and
-files. `Count` is best utilized when the user has some predefined naming conventions for their
+total size of the files. `count` works recursively and accounts for any nested directories and
+files. `count` is best utilized when the user has some predefined naming conventions for their
 files.
 
 For example, if data files are stored by their date, `count` can be used to determine the number of
@@ -338,12 +353,14 @@ For example, `rm` can be used to remove temporary files which are no longer need
 {% include Command-Line-Interface/rm2.md %}
 
 ## setTtl
-The `setTtl` command sets the time-to-live of a file, in milliseconds. The file will automatically
-be deleted once the current time is greater than the TTL + creation time of the file. This delete
-will affect both Alluxio and the under storage system.
+The `setTtl` command sets the time-to-live of a file, in milliseconds. Action parameter will
+indicate the action to perform once the current time is greater than the TTL + creation time of the file.
+Action `delete` (default) will delete file from both Alluxio and the under storage system, whereas action
+`free` will just free the file from Alluxio.
 
-For example, `setTtl` can be used to clean up files the administrator knows are unnecessary after a
-period of time.
+For example, `setTtl` with action `delete` can be used to clean up files the administrator knows are
+unnecessary after a period of time, or can be used to just remove the contents from Alluxio to make room
+for more space in Alluxio.
 
 {% include Command-Line-Interface/setTtl.md %}
 

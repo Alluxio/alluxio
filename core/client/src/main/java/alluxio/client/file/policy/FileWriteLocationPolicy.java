@@ -16,8 +16,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileOutStream;
 import alluxio.wire.WorkerNetAddress;
 
-import java.util.List;
-
 /**
  * <p>
  * Interface for the location policy of which workers a file's blocks are written into. A location
@@ -25,8 +23,8 @@ import java.util.List;
  * </p>
  *
  * <p>
- * The {@link FileOutStream} calls {@link #getWorkerForNextBlock(List, long)} to decide which worker
- * to write the next block per block write.
+ * The {@link FileOutStream} calls {@link #getWorkerForNextBlock} to decide which worker to write
+ * the next block per block write.
  * </p>
  *
  * <p>
@@ -40,7 +38,8 @@ public interface FileWriteLocationPolicy {
    *
    * @param workerInfoList the info of the active workers
    * @param blockSizeBytes the size of the block in bytes
-   * @return the address of the worker to write to
+   * @return the address of the worker to write to, null if no worker can be selected
    */
-  WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes);
+  WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
+      long blockSizeBytes);
 }

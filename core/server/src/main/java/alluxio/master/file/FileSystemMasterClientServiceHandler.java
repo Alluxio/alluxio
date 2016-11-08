@@ -17,6 +17,7 @@ import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.exception.AlluxioException;
+import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -25,6 +26,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.CheckConsistencyTOptions;
 import alluxio.thrift.CompleteFileTOptions;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.thrift.CreateFileTOptions;
@@ -66,6 +68,23 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public long getServiceVersion() {
     return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION;
+  }
+
+  @Override
+  public List<String> checkConsistency(final String path, final CheckConsistencyTOptions options)
+      throws AlluxioTException, ThriftIOException {
+    return RpcUtils.call(new RpcCallableThrowsIOException<List<String>>() {
+      @Override
+      public List<String> call() throws AlluxioException, IOException {
+        List<AlluxioURI> inconsistentUris = mFileSystemMaster.checkConsistency(
+            new AlluxioURI(path), new CheckConsistencyOptions(options));
+        List<String> uris = new ArrayList<>(inconsistentUris.size());
+        for (AlluxioURI uri : inconsistentUris) {
+          uris.add(uri.getPath());
+        }
+        return uris;
+      }
+    });
   }
 
   @Override
@@ -181,8 +200,13 @@ public final class FileSystemMasterClientServiceHandler implements
    */
   @Override
   @Deprecated
-  public String getUfsAddress() {
-    return mFileSystemMaster.getUfsAddress();
+  public String getUfsAddress() throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<String>() {
+      @Override
+      public String call() throws AlluxioException {
+        return mFileSystemMaster.getUfsAddress();
+      }
+    });
   }
 
   @Override

@@ -87,8 +87,6 @@ public final class Constants {
   public static final int DEFAULT_WORKER_DATA_PORT = DEFAULT_WORKER_PORT + 1;
   public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
 
-  public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
-
   // Service versions should be incremented every time a backwards incompatible change occurs.
   public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 1;
@@ -127,19 +125,6 @@ public final class Constants {
 
   public static final long CLIENT_METRICS_VERSION = 1L;
   public static final int CLIENT_METRICS_SIZE = 13;
-  public static final int CLIENT_METRICS_VERSION_INDEX = 0;
-  public static final int BLOCKS_READ_LOCAL_INDEX = 1;
-  public static final int BLOCKS_READ_REMOTE_INDEX = 2;
-  public static final int BLOCKS_WRITTEN_LOCAL_INDEX = 3;
-  public static final int BLOCKS_WRITTEN_REMOTE_INDEX = 4;
-  public static final int BYTES_READ_LOCAL_INDEX = 5;
-  public static final int BYTES_READ_REMOTE_INDEX = 6;
-  public static final int BYTES_READ_UFS_INDEX = 7;
-  public static final int BYTES_WRITTEN_LOCAL_INDEX = 8;
-  public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
-  public static final int BYTES_WRITTEN_UFS_INDEX = 10;
-  public static final int SEEKS_LOCAL_INDEX = 11;
-  public static final int SEEKS_REMOTE_INDEX = 12;
 
   public static final String SWIFT_AUTH_KEYSTONE = "keystone";
   public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";

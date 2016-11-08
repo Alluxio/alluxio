@@ -13,14 +13,17 @@ package alluxio.client.netty;
 
 import alluxio.Constants;
 import alluxio.client.RemoteBlockReader;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 
-import io.netty.bootstrap.Bootstrap;
+import com.codahale.metrics.Counter;
+import com.google.common.base.Throwables;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
@@ -32,6 +35,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Read data from remote data server using Netty.
@@ -40,52 +44,44 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class NettyRemoteBlockReader implements RemoteBlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final Bootstrap mClientBootstrap;
-  private final ClientHandler mHandler;
   /** A reference to read response so we can explicitly release the resource after reading. */
   private RPCBlockReadResponse mReadResponse = null;
 
   /**
    * Creates a new {@link NettyRemoteBlockReader}.
-   *
-   * TODO(gene): Creating a new remote block reader may be expensive, so consider a connection pool.
    */
-  public NettyRemoteBlockReader() {
-    mHandler = new ClientHandler();
-    mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param clientBootstrap bootstrap class of the client channel
-   * @param clientHandler handler of the client channel
-   */
-  public NettyRemoteBlockReader(Bootstrap clientBootstrap, ClientHandler clientHandler) {
-    mClientBootstrap = clientBootstrap;
-    mHandler = clientHandler;
-  }
+  public NettyRemoteBlockReader() {}
 
   @Override
   public ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
       long length, long lockId, long sessionId) throws IOException {
-    SingleResponseListener listener = null;
+    Channel channel = null;
+    ClientHandler clientHandler = null;
+    Metrics.NETTY_BLOCK_READ_OPS.inc();
     try {
-      ChannelFuture f = mClientBootstrap.connect(address).sync();
+      channel = BlockStoreContext.acquireNettyChannel(address);
+      if (!(channel.pipeline().last() instanceof ClientHandler)) {
+        channel.pipeline().addLast(new ClientHandler());
+      }
+      clientHandler = (ClientHandler) channel.pipeline().last();
+      SingleResponseListener listener = new SingleResponseListener();
+      clientHandler.addListener(listener);
 
-      LOG.info("Connected to remote machine {}", address);
-      Channel channel = f.channel();
-      listener = new SingleResponseListener();
-      mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId));
+      ChannelFuture channelFuture = channel
+          .writeAndFlush(new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId));
+      channelFuture = channelFuture.sync();
+      if (channelFuture.isDone() && !channelFuture.isSuccess()) {
+        LOG.error("Failed to write to %s for block %d with error %s.", address.toString(), blockId,
+            channelFuture.cause());
+        throw new IOException(channelFuture.cause());
+      }
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      channel.close().sync();
 
       switch (response.getType()) {
         case RPC_BLOCK_READ_RESPONSE:
           RPCBlockReadResponse blockResponse = (RPCBlockReadResponse) response;
-          LOG.info("Data {} from remote machine {} received", blockId, address);
+          LOG.debug("Data {} from remote machine {} received", blockId, address);
 
           RPCResponse.Status status = blockResponse.getStatus();
           if (status == RPCResponse.Status.SUCCESS) {
@@ -103,10 +99,21 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
               .getMessage(response.getType(), RPCMessage.Type.RPC_BLOCK_READ_RESPONSE));
       }
     } catch (Exception e) {
+      Metrics.NETTY_BLOCK_READ_FAILURES.inc();
+      try {
+        if (channel != null) {
+          channel.close().sync();
+        }
+      } catch (InterruptedException ee) {
+        throw Throwables.propagate(ee);
+      }
       throw new IOException(e);
     } finally {
-      if (listener != null) {
-        mHandler.removeListener(listener);
+      if (clientHandler != null) {
+        clientHandler.removeListeners();
+      }
+      if (channel != null) {
+        BlockStoreContext.releaseNettyChannel(address, channel);
       }
     }
   }
@@ -122,5 +129,18 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       mReadResponse.getPayloadDataBuffer().release();
       mReadResponse = null;
     }
+  }
+
+  /**
+   * Class that contains metrics about {@link NettyRemoteBlockReader}.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter NETTY_BLOCK_READ_OPS =
+        MetricsSystem.clientCounter("NettyBlockReadOps");
+    private static final Counter NETTY_BLOCK_READ_FAILURES =
+        MetricsSystem.clientCounter("NettyBlockReadFailures");
+
+    private Metrics() {} // prevent instantiation
   }
 }

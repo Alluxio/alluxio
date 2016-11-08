@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
@@ -36,6 +35,7 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -45,7 +45,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -59,12 +58,12 @@ import java.util.Map;
  * Test master journal, including checkpoint and entry log. Most tests will test entry log first,
  * followed by the checkpoint.
  */
-@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2091")
 public class JournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
         .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB))
+        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
         .build();
 
   @Rule
@@ -484,7 +483,7 @@ public class JournalIntegrationTest {
     final FileSystemMaster fsMaster = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
 
     try {
-      CommonTestUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
+      CommonUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           try {
@@ -507,7 +506,7 @@ public class JournalIntegrationTest {
   public void multiEditLog() throws Exception {
     for (int i = 0; i < 124; i++) {
       CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64);
-      mFileSystem.createFile(new AlluxioURI("/a" + i), op);
+      mFileSystem.createFile(new AlluxioURI("/a" + i), op).close();
     }
     mLocalAlluxioCluster.stopFS();
     multiEditLogTestUtil();

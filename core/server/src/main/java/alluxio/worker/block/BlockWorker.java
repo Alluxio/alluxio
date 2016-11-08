@@ -23,7 +23,6 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -190,7 +189,7 @@ public interface BlockWorker extends Worker {
   BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Gets the meta data of a specific block from local storage.
+   * Gets the metadata of a specific block from local storage.
    * <p>
    * Unlike {@link #getVolatileBlockMeta(long)}, this method requires the lock id returned by a
    * previously acquired {@link #lockBlock(long, long)}.
@@ -326,9 +325,8 @@ public interface BlockWorker extends Worker {
    * Handles the heartbeat from a client.
    *
    * @param sessionId the id of the client
-   * @param metrics the set of metrics the client has gathered since the last heartbeat
    */
-  void sessionHeartbeat(long sessionId, List<Long> metrics);
+  void sessionHeartbeat(long sessionId);
 
   /**
    * Sets the pinlist for the underlying block store. Typically called by {@link PinListSync}.

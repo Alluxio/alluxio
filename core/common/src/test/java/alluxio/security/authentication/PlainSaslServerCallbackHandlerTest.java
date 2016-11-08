@@ -55,6 +55,7 @@ public class PlainSaslServerCallbackHandlerTest {
 
   @After
   public void after() {
+    AuthenticatedClientUser.remove();
     ConfigurationTestUtils.resetConfiguration();
   }
 

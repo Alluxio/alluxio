@@ -6,8 +6,8 @@ group: Under Store
 priority: 1
 ---
 
-This guide describes how to configure Alluxio with
-[Swift](http://docs.openstack.org/developer/swift/) as the under storage system.
+This guide describes how to configure Alluxio with an under storage system
+supporting the [Swift API](http://docs.openstack.org/developer/swift/).
 
 # Initial Setup
 
@@ -93,7 +93,7 @@ In case of failures, logs located under `tests/target/logs`. You may also activa
 
 If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object storage.
 
-The Swift crendentials specified in Alluxio (`fs.swift.user`, `fs.swift.tenant` and `fs.swift.password`) represents a Swift user. Swift service backend checks the user permission to the container.
+The Swift credentials specified in Alluxio (`fs.swift.user`, `fs.swift.tenant` and `fs.swift.password`) represents a Swift user. Swift service backend checks the user permission to the container.
 If the given Swift user does not have the right access permission to the specified container, a permission denied error will be thrown.
 When Alluxio security is enabled, Alluxio loads the container ACL to Alluxio permission on the first time when the metadata is loaded to Alluxio namespace.
 

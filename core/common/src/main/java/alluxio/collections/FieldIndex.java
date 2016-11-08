@@ -15,20 +15,21 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * An interface representing an index for this {@link IndexedSet}, each index for this set must
+ * An interface representing an index for {@link IndexedSet}, each index for this set must
  * implement the interface to define how to get the value of the field chosen as the index. Users
  * must use the same instance of the implementation of this interface as the parameter in all
  * methods of {@link IndexedSet} to represent the same index.
  *
- * @param <T> type of objects in this {@link IndexedSet}
+ * @param <T> type of objects in {@link IndexedSet}
  */
 public interface FieldIndex<T> extends Iterable<T> {
   /**
    * Adds an object o to the index.
    *
    * @param o the object to add to the index
+   * @return true if object is added successfully, false otherwise
    */
-  void add(T o);
+  boolean add(T o);
 
   /**
    * Removes the object o from the index.
@@ -88,7 +89,7 @@ public interface FieldIndex<T> extends Iterable<T> {
   Iterator<T> iterator();
 
   /**
-   * @return the number of objects in this indexed set
+   * @return the number of objects in this index set
    */
   int size();
 }

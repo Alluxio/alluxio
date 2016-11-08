@@ -13,7 +13,9 @@ package alluxio.client.netty;
 
 import alluxio.Constants;
 import alluxio.client.RemoteBlockWriter;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCBlockWriteRequest;
 import alluxio.network.protocol.RPCBlockWriteResponse;
 import alluxio.network.protocol.RPCErrorResponse;
@@ -21,7 +23,8 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataByteArrayChannel;
 
-import io.netty.bootstrap.Bootstrap;
+import com.codahale.metrics.Counter;
+import com.google.common.base.Throwables;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
@@ -32,6 +35,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Write data to a remote data server using Netty.
@@ -39,9 +43,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  private final Bootstrap mClientBootstrap;
-  private final ClientHandler mHandler;
 
   private boolean mOpen;
   private InetSocketAddress mAddress;
@@ -55,9 +56,11 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
    * Creates a new {@link NettyRemoteBlockWriter}.
    */
   public NettyRemoteBlockWriter() {
-    mHandler = new ClientHandler();
-    mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
     mOpen = false;
+    mAddress = null;
+    mBlockId = 0;
+    mSessionId = 0;
+    mWrittenBytes = 0;
   }
 
   @Override
@@ -82,26 +85,34 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
 
   @Override
   public void write(byte[] bytes, int offset, int length) throws IOException {
-    SingleResponseListener listener = null;
+    Channel channel = null;
+    ClientHandler clientHandler = null;
+    Metrics.NETTY_BLOCK_WRITE_OPS.inc();
     try {
-      // TODO(hy): keep connection open across multiple write calls.
-      ChannelFuture f = mClientBootstrap.connect(mAddress).sync();
+      channel = BlockStoreContext.acquireNettyChannel(mAddress);
+      if (!(channel.pipeline().last() instanceof ClientHandler)) {
+        channel.pipeline().addLast(new ClientHandler());
+      }
+      clientHandler = (ClientHandler) channel.pipeline().last();
+      SingleResponseListener listener = new SingleResponseListener();
+      clientHandler.addListener(listener);
 
-      LOG.info("Connected to remote machine {}", mAddress);
-      Channel channel = f.channel();
-      listener = new SingleResponseListener();
-      mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCBlockWriteRequest(mSessionId, mBlockId, mWrittenBytes, length,
-          new DataByteArrayChannel(bytes, offset, length)));
+      ChannelFuture channelFuture = channel.writeAndFlush(
+          new RPCBlockWriteRequest(mSessionId, mBlockId, mWrittenBytes, length,
+              new DataByteArrayChannel(bytes, offset, length))).sync();
+      if (channelFuture.isDone() && !channelFuture.isSuccess()) {
+        LOG.error("Failed to write to %s for block %d with error %s.", mAddress.toString(),
+            mBlockId, channelFuture.cause());
+        throw new IOException(channelFuture.cause());
+      }
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      channel.close().sync();
 
       switch (response.getType()) {
         case RPC_BLOCK_WRITE_RESPONSE:
           RPCBlockWriteResponse resp = (RPCBlockWriteResponse) response;
           RPCResponse.Status status = resp.getStatus();
-          LOG.info("status: {} from remote machine {} received", status, mAddress);
+          LOG.debug("status: {} from remote machine {} received", status, mAddress);
 
           if (status != RPCResponse.Status.SUCCESS) {
             throw new IOException(ExceptionMessage.BLOCK_WRITE_ERROR.getMessage(mBlockId,
@@ -117,11 +128,36 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
               .getMessage(response.getType(), RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE));
       }
     } catch (Exception e) {
+      Metrics.NETTY_BLOCK_WRITE_FAILURES.inc();
+      try {
+        // TODO(peis): We should not close the channel unless it is an exception caused by network.
+        if (channel != null) {
+          channel.close().sync();
+        }
+      } catch (InterruptedException ee) {
+        Throwables.propagate(ee);
+      }
       throw new IOException(e);
     } finally {
-      if (listener != null) {
-        mHandler.removeListener(listener);
+      if (clientHandler != null) {
+        clientHandler.removeListeners();
+      }
+      if (channel != null) {
+        BlockStoreContext.releaseNettyChannel(mAddress, channel);
       }
     }
+  }
+
+  /**
+   * Class that contains metrics about {@link NettyRemoteBlockWriter}.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter NETTY_BLOCK_WRITE_OPS =
+        MetricsSystem.clientCounter("NettyBlockWriteOps");
+    private static final Counter NETTY_BLOCK_WRITE_FAILURES =
+        MetricsSystem.clientCounter("NettyBlockWriteFailures");
+
+    private Metrics() {} // prevent instantiation
   }
 }

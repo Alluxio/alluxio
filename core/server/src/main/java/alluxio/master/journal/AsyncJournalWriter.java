@@ -56,7 +56,7 @@ public final class AsyncJournalWriter {
    * @param journalWriter the {@link JournalWriter} to use for writing
    */
   public AsyncJournalWriter(JournalWriter journalWriter) {
-    mJournalWriter = Preconditions.checkNotNull(journalWriter);
+    mJournalWriter = Preconditions.checkNotNull(journalWriter, "journalWriter");
     mQueue = new ConcurrentLinkedQueue<>();
     mCounter = new AtomicLong(0);
     mFlushCounter = new AtomicLong(0);

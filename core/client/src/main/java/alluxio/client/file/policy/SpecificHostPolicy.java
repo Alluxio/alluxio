@@ -17,8 +17,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,7 +37,7 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy {
   }
 
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     // find the first worker matching the host name
     for (BlockWorkerInfo info : workerInfoList) {

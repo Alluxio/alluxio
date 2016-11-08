@@ -29,6 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * @param <T> the type of resource this pool manages
  */
+// TODO(peis): Implements this from the Pool interface.
 @ThreadSafe
 public abstract class ResourcePool<T> {
   private final ReentrantLock mTakeLock;

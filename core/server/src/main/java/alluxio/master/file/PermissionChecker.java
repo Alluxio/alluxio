@@ -300,7 +300,9 @@ public final class PermissionChecker {
     StringBuilder stringBuilder =
         new StringBuilder().append("user=").append(user).append(", ").append("access=").append(bits)
             .append(", ").append("path=").append(path).append(": ").append("failed at ")
-            .append(inode.getName().equals("") ? "/" : inode.getName());
+            .append(inode.getName().equals("") ? "/" : inode.getName()).append(", inode owner=")
+            .append(inode.getOwner()).append(", inode group=").append(inode.getGroup())
+            .append(", inode mode=").append(inode.getMode());
     return stringBuilder.toString();
   }
 }

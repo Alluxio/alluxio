@@ -72,9 +72,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /** If the stream is closed, this can only go from false to true. */
   protected boolean mClosed;
-  /**
-   * Current position of the file instream.
-   */
+  /** Current position of the file instream. */
   protected long mPos;
 
   /**
@@ -284,12 +282,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
     return new UnderStoreBlockInStream(blockStart, length, mBlockSize,
-        getUnderStoreStreamFactory(path));
+        getUnderStoreStreamFactory(path, mContext));
   }
 
-  protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path) throws IOException {
+  protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path, FileSystemContext
+      context) throws IOException {
     if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
-      return new DelegatedUnderStoreStreamFactory(FileSystemContext.INSTANCE, path);
+      return new DelegatedUnderStoreStreamFactory(context, path);
     } else {
       return new DirectUnderStoreStreamFactory(path);
     }
@@ -511,7 +510,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           mContext.getAlluxioBlockStore().promote(blockId);
         } catch (IOException e) {
-          // Failed to promote
+          // Failed to promote.
           LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
@@ -632,6 +631,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * Reads the remaining of the current block.
+   *
    * @throws IOException if read or cache write fails
    */
   private void readCurrentBlockToEnd() throws IOException {

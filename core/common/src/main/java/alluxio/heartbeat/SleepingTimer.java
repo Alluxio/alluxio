@@ -69,9 +69,7 @@ public final class SleepingTimer implements HeartbeatTimer {
    * @throws InterruptedException if the thread is interrupted while waiting
    */
   public void tick() throws InterruptedException {
-    if (mPreviousTickMs == 0) {
-      mSleeper.sleep(mIntervalMs);
-    } else {
+    if (mPreviousTickMs != 0) {
       long executionTimeMs = mClock.millis() - mPreviousTickMs;
       if (executionTimeMs > mIntervalMs) {
         mLogger.warn("{} last execution took {} ms. Longer than the interval {}", mThreadName,

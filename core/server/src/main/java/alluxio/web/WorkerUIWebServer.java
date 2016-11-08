@@ -38,7 +38,7 @@ public final class WorkerUIWebServer extends UIWebServer {
    * Creates a new instance of {@link WorkerUIWebServer}.
    *
    * @param webAddress the service address
-   * @param alluxioWorker Alluxio worker
+   * @param alluxioWorker the alluxio worker
    * @param blockWorker block worker to manage blocks
    * @param connectHost the connect host for the web server
    * @param startTimeMs start time milliseconds
@@ -60,8 +60,8 @@ public final class WorkerUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),
         "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()), "/header");
-    mWebAppContext.addServlet(new ServletHolder(new
-        WebInterfaceWorkerMetricsServlet(alluxioWorker.getWorkerMetricsSystem())), "/metricsui");
+    mWebAppContext
+        .addServlet(new ServletHolder(new WebInterfaceWorkerMetricsServlet()), "/metricsui");
 
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");

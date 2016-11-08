@@ -11,6 +11,9 @@
 
 package alluxio.worker.block;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,9 +30,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ClientRWLock implements ReadWriteLock {
-  // TODO(bin): Make this const a configurable.
   /** Total number of permits. This value decides the max number of concurrent readers. */
-  private static final int MAX_AVAILABLE = 1000;
+  private static final int MAX_AVAILABLE =
+          Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCK_READERS);
   /** Underlying Semaphore. */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
   /** Reference count. */

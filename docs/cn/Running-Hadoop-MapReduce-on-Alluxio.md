@@ -36,11 +36,13 @@ priority: 1
 
 该配置让你的MapReduce作业可以使用Alluxio来输入输出文件。如果你正在使用HDFS作为Alluxio的底层存储系统，同样有必要在`hdfs-site.xml`文件中添加这些属性：
 
-其次, 为了让JobClient可以访问Alluxio客户端Jar文件，你可以在`hadoop-env.sh`文件中将`HADOOP_CLASSPATH`修改为:
+其次, 为了让JobClient可以访问Alluxio客户端Jar文件，你必须在`hadoop-env.sh`文件中将`$HADOOP_CLASSPATH`修改为:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-hadoop.md %}
 
 该配置让代码可以使用Alluxio的URI来创建和提交作业。
+
+注意，将Alluxio客户端jar文件添加到`HADOOP_CLASSPATH`是必须的。因为从Alluxio-1.3.0开始，security默认是开启的，如果`HADOOP_CLASSPATH`不包含Alluxio客户端jar文件，那么在Alluxio上运行Hadoop MapReduce可能得到如下错误：“Failed to login: No Alluxio User is found.”。
 
 # 分发Alluxio客户端Jar包
 
@@ -66,7 +68,7 @@ priority: 1
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/start-cluster.md %}
 
-配置Alluxio，将本地HDFS集群作为其底层存储系统。你需要修改`conf/alluxio-env.sh`，加入如下语句：
+配置Alluxio，将本地HDFS集群作为其底层存储系统。你需要修改`conf/alluxio-site.properties`，加入如下语句：
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-Alluxio.md %}
 

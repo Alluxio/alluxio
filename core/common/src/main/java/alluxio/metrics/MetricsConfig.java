@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -31,14 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MetricsConfig {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  private static final String DEFAULT_PREFIX = "*";
-  private static final String INSTANCE_REGEX = "^(\\*|[a-zA-Z]+)\\.(.+)";
-  private static final String METRICS_CONF = "metrics.properties";
-
-  private String mConfigFile;
   private Properties mProperties;
-  private Map<String, Properties> mPropertyCategories;
 
   /**
    * Creates a new {@code MetricsConfig} using the given config file.
@@ -46,11 +41,11 @@ public final class MetricsConfig {
    * @param configFile config file to use
    */
   public MetricsConfig(String configFile) {
-    mConfigFile = configFile;
     mProperties = new Properties();
-    setServletProperties();
-    loadConfigFile();
-    parseConfiguration();
+    if (Files.exists(Paths.get(configFile))) {
+      loadConfigFile(configFile);
+    }
+    removeInstancePrefix();
   }
 
   /**
@@ -60,97 +55,15 @@ public final class MetricsConfig {
    */
   public MetricsConfig(Properties properties) {
     mProperties = new Properties();
-    setServletProperties();
     mProperties.putAll(properties);
-    parseConfiguration();
-  }
-
-  private void addDefaultProperties(Properties prop, Properties defaultProp) {
-    for (Map.Entry<Object, Object> entry : defaultProp.entrySet()) {
-      String key = entry.getKey().toString();
-      if (prop.getProperty(key) == null) {
-        prop.setProperty(key, entry.getValue().toString());
-      }
-    }
+    removeInstancePrefix();
   }
 
   /**
-   * Gets properties for the given instance.
-   *
-   * @param inst the instance name. Currently there are only two instances: "master" and "worker"
-   * @return the instance's properties if it is present, otherwise a default one is returned
+   * @return the properties
    */
-  public Properties getInstanceProperties(String inst) {
-    Properties prop = mPropertyCategories.get(inst);
-    if (prop == null) {
-      prop = mPropertyCategories.get(DEFAULT_PREFIX);
-      if (prop == null) {
-        prop = new Properties();
-      }
-    }
-    return prop;
-  }
-
-  /**
-   * Gets the property categories, used by unit tests only.
-   *
-   * @return a {@code Map} that maps from instance name to its properties
-   */
-  public Map<String, Properties> getPropertyCategories() {
-    return mPropertyCategories;
-  }
-
-  /**
-   * Loads the metrics configuration file.
-   */
-  private void loadConfigFile() {
-    InputStream is = null;
-    try {
-      if (mConfigFile != null) {
-        is = new FileInputStream(mConfigFile);
-      } else {
-        is = getClass().getClassLoader().getResourceAsStream(METRICS_CONF);
-      }
-      if (is != null) {
-        mProperties.load(is);
-      }
-    } catch (Exception e) {
-      LOG.error("Error loading metrics configuration file.");
-    } finally {
-      if (is != null) {
-        try {
-          is.close();
-        } catch (Exception e) {
-          LOG.error(e.getMessage(), e);
-        }
-      }
-    }
-  }
-
-  /**
-   * Parses the configuration and maps the instance name to its properties.
-   */
-  private void parseConfiguration() {
-    mPropertyCategories = subProperties(mProperties, INSTANCE_REGEX);
-    if (mPropertyCategories.containsKey(DEFAULT_PREFIX)) {
-      Properties defaultProperties = mPropertyCategories.get(DEFAULT_PREFIX);
-      for (Map.Entry<String, Properties> entry : mPropertyCategories.entrySet()) {
-        if (!entry.getKey().equals(DEFAULT_PREFIX)) {
-          addDefaultProperties(entry.getValue(), defaultProperties);
-        }
-      }
-    }
-  }
-
-  /**
-   * Sets the default properties. The MetricsServlet is enabled and the path is /metrics/json
-   * by default on servers.
-   */
-  public void setServletProperties() {
-    mProperties.setProperty("master.sink.servlet.class", "alluxio.metrics.sink.MetricsServlet");
-    mProperties.setProperty("worker.sink.servlet.class", "alluxio.metrics.sink.MetricsServlet");
-    mProperties.setProperty("master.sink.servlet.path", "/metrics/json");
-    mProperties.setProperty("worker.sink.servlet.path", "/metrics/json");
+  public Properties getProperties() {
+    return mProperties;
   }
 
   /**
@@ -161,7 +74,7 @@ public final class MetricsConfig {
    * @param regex specifies the prefix and suffix pattern
    * @return a {@code Map} maps from the prefix to its properties
    */
-  public Map<String, Properties> subProperties(Properties prop, String regex) {
+  public static Map<String, Properties> subProperties(Properties prop, String regex) {
     Map<String, Properties> subProperties = new HashMap<>();
     Pattern pattern = Pattern.compile(regex);
 
@@ -177,5 +90,42 @@ public final class MetricsConfig {
       }
     }
     return subProperties;
+  }
+
+  /**
+   * Loads the metrics configuration file.
+   *
+   * @param configFile the metrics config file
+   */
+  private void loadConfigFile(String configFile) {
+    try (InputStream is = new FileInputStream(configFile)) {
+      mProperties.load(is);
+    } catch (Exception e) {
+      LOG.error("Error loading metrics configuration file.", e);
+    }
+  }
+
+  /**
+   * This method removes the instance prefix in the properties. This is to make the configuration
+   * parsing logic backward compatible with old configuration format.
+   */
+  private void removeInstancePrefix() {
+    Properties newProperties = new Properties();
+    for (Map.Entry<Object, Object> entry : mProperties.entrySet()) {
+      String key = entry.getKey().toString();
+
+      if (key.startsWith("*") || key.startsWith("worker") || key.startsWith("master")) {
+        String newKey = key.substring(key.indexOf('.') + 1);
+        newProperties.put(newKey, entry.getValue());
+      } else {
+        newProperties.put(key, entry.getValue());
+      }
+    }
+    mProperties = newProperties;
+  }
+
+  @Override
+  public String toString() {
+    return mProperties.toString();
   }
 }

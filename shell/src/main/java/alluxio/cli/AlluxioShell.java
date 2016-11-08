@@ -13,7 +13,6 @@ package alluxio.cli;
 
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
 import alluxio.shell.command.ShellCommand;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -131,8 +130,7 @@ public final class AlluxioShell implements Closeable {
   }
 
   /**
-   * Method which determines how to handle the user's request, will display usage help to the user
-   * if command format is incorrect.
+   * Handles the specified shell command request, displaying usage if the command format is invalid.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred
@@ -176,7 +174,7 @@ public final class AlluxioShell implements Closeable {
     try {
       command.run(cmdline);
       return 0;
-    } catch (AlluxioException | IOException e) {
+    } catch (Exception e) {
       System.out.println(e.getMessage());
       LOG.error("Error running " + StringUtils.join(argv, " "), e);
       return -1;

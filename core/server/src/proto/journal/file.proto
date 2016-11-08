@@ -67,7 +67,12 @@ message InodeDirectoryIdGeneratorEntry {
   optional int64 sequence_number = 2;
 }
 
-// next available id: 17
+enum PTtlAction {
+  DELETE = 0;
+  FREE = 1;
+}
+
+// next available id: 18
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -85,6 +90,7 @@ message InodeFileEntry {
   optional string owner = 14;
   optional string group = 15;
   optional int32 mode = 16;
+  optional PTtlAction ttlAction = 17 [default = DELETE];
 }
 
 // next available id: 3
@@ -105,11 +111,12 @@ message PersistFileEntry {
   optional int64 op_time_ms = 3;
 }
 
-// next available id: 4
+// next available id: 5
 message ReinitializeFileEntry {
   optional string path = 1;
   optional int64 block_size_bytes = 2;
   optional int64 ttl = 3;
+  optional PTtlAction ttlAction = 4 [default = DELETE];
 }
 
 // next available id: 4
@@ -119,7 +126,7 @@ message RenameEntry {
   optional int64 op_time_ms = 3;
 }
 
-// next available id: 9
+// next available id: 10
 message SetAttributeEntry {
   optional int64 id = 1;
   optional int64 op_time_ms = 2;
@@ -129,4 +136,5 @@ message SetAttributeEntry {
   optional string owner = 6;
   optional string group = 7;
   optional int32 permission = 8;
+  optional PTtlAction ttlAction = 9 [default = DELETE];
 }

@@ -14,6 +14,7 @@ service BlockWorkerClientService extends common.AlluxioService {
    * Accesses a block given the block id.
    */
   void accessBlock( /** the id of the block being accessed */ 1: i64 blockId)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Used to cache a block into Alluxio space, worker will move the temporary block file from session
@@ -50,6 +51,12 @@ service BlockWorkerClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
+   * Used to remove a block from an Alluxio worker.
+   **/
+  void removeBlock( /** the id of the block being removed */ 1: i64 blockId)
+    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+
+  /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
    * storage directory which fits the initial block size by some allocation strategy, and the
    * temporary file path of the block file will be returned. if there is no enough space on Alluxio
@@ -72,11 +79,11 @@ service BlockWorkerClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
-   * metrics to the worker.
+   * Local session send heartbeat to local worker to keep its temporary folder.
    */
   void sessionHeartbeat( /** the id of the current session */ 1: i64 sessionId,
-      /** the client metrics */ 2: list<i64> metrics)
+      /** deprecated since 1.3.0 and will be removed in 2.0 */ 2: list<i64> metrics)
+       throws (1: exception.AlluxioTException e)
 
   /**
    * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
@@ -85,4 +92,5 @@ service BlockWorkerClientService extends common.AlluxioService {
    */
   bool unlockBlock( /** the id of the block being accessed */ 1: i64 blockId,
       /** the id of the current session */ 2: i64 sessionId)
+    throws (1: exception.AlluxioTException e)
 }

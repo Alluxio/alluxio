@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-common</artifactId>
   <packaging>jar</packaging>
@@ -97,6 +97,16 @@
       <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-graphite</artifactId>
       <version>${metrics.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-ganglia</artifactId>
+      <version>${metrics.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>info.ganglia.gmetric4j</groupId>
+      <artifactId>gmetric4j</artifactId>
+      <version>${gmetric4j.version}</version>
     </dependency>
 
     <!-- Test Dependencies -->

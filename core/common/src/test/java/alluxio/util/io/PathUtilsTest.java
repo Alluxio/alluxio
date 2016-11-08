@@ -266,6 +266,16 @@ public class PathUtilsTest {
         PathUtils.temporaryFileName(1, "/a"));
   }
 
+  @Test
+  public void getPermanentFileName() {
+    Assert.assertEquals("/", PathUtils.getPermanentFileName(PathUtils.temporaryFileName(1, "/")));
+    Assert.assertEquals("/",
+        PathUtils.getPermanentFileName(PathUtils.temporaryFileName(0xFFFFFFFFFFFFFFFFL, "/")));
+    Assert.assertEquals("/foo.alluxio.0x0123456789ABCDEF.tmp", PathUtils
+        .getPermanentFileName(PathUtils.temporaryFileName(14324,
+            "/foo.alluxio.0x0123456789ABCDEF.tmp")));
+  }
+
   /**
    * Test the {@link PathUtils#isTemporaryFileName(String)} method.
    */

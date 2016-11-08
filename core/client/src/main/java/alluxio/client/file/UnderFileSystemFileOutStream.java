@@ -13,11 +13,12 @@ package alluxio.client.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.netty.NettyUnderFileSystemFileWriter;
+import alluxio.client.UnderFileSystemFileWriter;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -37,12 +38,13 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
   /** Java heap buffer to buffer writes before flushing them to the worker. */
   private final ByteBuffer mBuffer;
   /** Writer to the worker, currently only implemented through Netty. */
-  private final NettyUnderFileSystemFileWriter mWriter;
+  private final UnderFileSystemFileWriter mWriter;
   /** Address of the worker to write to. */
   private final InetSocketAddress mAddress;
   /** Worker file id referencing the file to write to. */
   private final long mUfsFileId;
-
+  /** Used to manage closeable resources. */
+  private final Closer mCloser;
   /** If the stream is closed, this can only go from false to true. */
   private boolean mClosed;
   /** Number of bytes flushed to the worker. */
@@ -73,7 +75,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
      * @param ufsFileId the file ID of the ufs fild to write to
      * @return a new {@link UnderFileSystemFileOutStream}
      */
-    public UnderFileSystemFileOutStream create(InetSocketAddress address, long ufsFileId) {
+    public OutputStream create(InetSocketAddress address, long ufsFileId) {
       return new UnderFileSystemFileOutStream(address, ufsFileId);
     }
   }
@@ -88,10 +90,11 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
     mBuffer = allocateBuffer();
     mAddress = address;
     mUfsFileId = ufsFileId;
-    mWriter = new NettyUnderFileSystemFileWriter();
     mFlushedBytes = 0;
     mWrittenBytes = 0;
     mClosed = false;
+    mCloser = Closer.create();
+    mWriter = mCloser.register(UnderFileSystemFileWriter.Factory.create());
   }
 
   @Override
@@ -99,10 +102,16 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
     if (mClosed) {
       return;
     }
-    if (mFlushedBytes < mWrittenBytes) {
-      flush();
+    try {
+      if (mFlushedBytes < mWrittenBytes) {
+        flush();
+      }
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is
+    } finally {
+      mClosed = true;
+      mCloser.close();
     }
-    mClosed = true;
   }
 
   @Override

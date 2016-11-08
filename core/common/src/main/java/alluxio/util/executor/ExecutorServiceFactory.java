@@ -9,26 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.util.executor;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import java.util.concurrent.ExecutorService;
 
 /**
- * A singleton for storing shared worker state.
+ * Interface for a factory which constructs executor services.
  */
-@NotThreadSafe
-public final class WorkerContext {
-  private WorkerContext() {} // to prevent initialization
-
+public interface ExecutorServiceFactory {
   /**
-   * The {@link WorkerSource} for collecting worker metrics.
+   * @return an {@link ExecutorService}
    */
-  private static WorkerSource sWorkerSource = new WorkerSource();
-
-  /**
-   * @return the {@link WorkerSource} for the worker process
-   */
-  public static WorkerSource getWorkerSource() {
-    return sWorkerSource;
-  }
+  ExecutorService create();
 }

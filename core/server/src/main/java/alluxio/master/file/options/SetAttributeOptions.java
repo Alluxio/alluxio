@@ -13,6 +13,8 @@ package alluxio.master.file.options;
 
 import alluxio.Constants;
 import alluxio.thrift.SetAttributeTOptions;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
@@ -22,9 +24,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for setting the attributes.
  */
 @NotThreadSafe
-public class SetAttributeOptions {
+public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;
+  private TtlAction mTtlAction;
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
@@ -47,6 +50,7 @@ public class SetAttributeOptions {
   public SetAttributeOptions(SetAttributeTOptions options) {
     mPinned = options.isSetPinned() ? options.isPinned() : null;
     mTtl = options.isSetTtl() ? options.getTtl() : null;
+    mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
     mOwner = options.isSetOwner() ? options.getOwner() : null;
     mGroup = options.isSetGroup() ? options.getGroup() : null;
@@ -58,6 +62,7 @@ public class SetAttributeOptions {
   private SetAttributeOptions() {
     mPinned = null;
     mTtl = null;
+    mTtlAction = TtlAction.DELETE;
     mPersisted = null;
     mOwner = null;
     mGroup = null;
@@ -78,6 +83,13 @@ public class SetAttributeOptions {
    */
   public Long getTtl() {
     return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
   }
 
   /**
@@ -141,6 +153,15 @@ public class SetAttributeOptions {
   }
 
   /**
+   * @param ttlAction the {@link TtlAction} to use
+   * @return the updated options object
+   */
+  public SetAttributeOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
+    return this;
+  }
+
+  /**
    * @param persisted the persisted flag value to use
    * @return the updated options object
    */
@@ -152,8 +173,12 @@ public class SetAttributeOptions {
   /**
    * @param owner the owner to use
    * @return the updated options object
+   * @throws IllegalArgumentException if the owner is set to empty
    */
   public SetAttributeOptions setOwner(String owner) {
+    if (owner != null && owner.isEmpty()) {
+      throw new IllegalArgumentException("It is not allowed to set owner to empty.");
+    }
     mOwner = owner;
     return this;
   }
@@ -161,8 +186,12 @@ public class SetAttributeOptions {
   /**
    * @param group the group to use
    * @return the updated options object
+   * @throws IllegalArgumentException if the group is set to empty
    */
   public SetAttributeOptions setGroup(String group) {
+    if (group != null && group.isEmpty()) {
+      throw new IllegalArgumentException("It is not allowed to set group to empty");
+    }
     mGroup = group;
     return this;
   }
@@ -205,6 +234,7 @@ public class SetAttributeOptions {
     SetAttributeOptions that = (SetAttributeOptions) o;
     return Objects.equal(mPinned, that.mPinned)
         && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
@@ -214,14 +244,16 @@ public class SetAttributeOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mMode, mRecursive);
+    return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode,
+        mRecursive);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("mPinned", mPinned)
+        .add("pinned", mPinned)
         .add("ttl", mTtl)
+        .add("ttlAction", mTtlAction)
         .add("persisted", mPersisted)
         .add("owner", mOwner)
         .add("group", mGroup)

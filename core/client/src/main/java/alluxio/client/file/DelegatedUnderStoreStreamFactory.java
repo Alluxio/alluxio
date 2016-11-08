@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.options.CloseUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
-import alluxio.client.netty.NettyUnderFileSystemFileReader;
+import alluxio.client.UnderFileSystemFileReader;
 import alluxio.exception.AlluxioException;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
    */
   public DelegatedUnderStoreStreamFactory(FileSystemContext context, String path)
       throws IOException {
-    mClient = FileSystemContext.INSTANCE.createWorkerClient();
+    mClient = context.createWorkerClient();
     try {
       mFileId = mClient.openUfsFile(new AlluxioURI(path), OpenUfsFileOptions.defaults());
     } catch (AlluxioException | IOException e) {
@@ -48,7 +48,7 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
   @Override
   public InputStream create() {
     return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mFileId,
-        new NettyUnderFileSystemFileReader());
+        UnderFileSystemFileReader.Factory.create());
   }
 
   @Override

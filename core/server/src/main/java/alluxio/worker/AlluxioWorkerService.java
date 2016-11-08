@@ -12,7 +12,6 @@
 package alluxio.worker;
 
 import alluxio.Server;
-import alluxio.metrics.MetricsSystem;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
@@ -67,11 +66,6 @@ public interface AlluxioWorkerService extends Server {
    * @return this worker's rpc address
    */
   InetSocketAddress getRpcAddress();
-
-  /**
-   * @return the worker metric system reference
-   */
-  MetricsSystem getWorkerMetricsSystem();
 
   /**
    * Waits until the worker is ready to server requests.

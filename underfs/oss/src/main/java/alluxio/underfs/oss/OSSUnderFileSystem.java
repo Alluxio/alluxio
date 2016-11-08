@@ -56,9 +56,6 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** Value used to indicate folder structure in OSS. */
   private static final String PATH_SEPARATOR = "/";
 
-  /** Length of each list request in S3. */
-  private static final int LISTING_LENGTH = 1000;
-
   /** Aliyun OSS client. */
   private final OSSClient mClient;
 
@@ -647,7 +644,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * If the path passed to this filesystem is not an URI path, then add oss prefix.
+   * Adds oss prefix if the given path is not a URI path.
    *
    * @param path the path to process
    * @return the path with oss prefix

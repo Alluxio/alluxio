@@ -16,6 +16,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +38,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
   }
 
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     // first try the local host
     for (BlockWorkerInfo workerInfo : workerInfoList) {
@@ -48,7 +49,8 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
     }
 
     // otherwise randomly pick a worker that has enough availability
-    Collections.shuffle(workerInfoList);
+    List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
+    Collections.shuffle(shuffledWorkers);
     for (BlockWorkerInfo workerInfo : workerInfoList) {
       if (workerInfo.getCapacityBytes() >= blockSizeBytes) {
         return workerInfo.getNetAddress();

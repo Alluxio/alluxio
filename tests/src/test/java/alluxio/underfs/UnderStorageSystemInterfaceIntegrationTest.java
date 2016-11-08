@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
@@ -25,6 +26,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,8 +47,14 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   @Before
   public final void before() throws Exception {
+    Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
+  }
+
+  @After
+  public final void after() throws Exception {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -126,7 +134,19 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     String[] children = config.getChildren();
     for (String child : children) {
-      Assert.assertFalse(mUfs.exists(child));
+      // Retry for some time to allow list operation eventual consistency for S3 and GCS.
+      // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
+      // https://cloud.google.com/storage/docs/consistency for more details.
+      // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
+      boolean childDeleted = false;
+      for (int i = 0; i < 20; i++) {
+        childDeleted = !mUfs.exists(child);
+        if (childDeleted) {
+          break;
+        }
+        CommonUtils.sleepMs(500);
+      }
+      Assert.assertTrue(childDeleted);
     }
   }
 
@@ -224,10 +244,21 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     LargeDirectoryConfig config = prepareLargeDirectoryTest();
     String[] children = config.getChildren();
 
-    String[] results = mUfs.list(config.getTopLevelDirectory());
-    Arrays.sort(results);
-    Assert.assertEquals(results.length, children.length);
+    // Retry for some time to allow list operation eventual consistency for S3 and GCS.
+    // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
+    // https://cloud.google.com/storage/docs/consistency for more details.
+    // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
+    String[] results = new String[] {};
+    for (int i = 0; i < 20; i++) {
+      results = mUfs.list(config.getTopLevelDirectory());
+      if (children.length == results.length) {
+        break;
+      }
+      CommonUtils.sleepMs(500);
+    }
+    Assert.assertEquals(children.length, results.length);
 
+    Arrays.sort(results);
     for (int i = 0; i < children.length; ++i) {
       Assert.assertTrue(results[i].equals(CommonUtils.stripPrefixIfPresent(children[i],
           PathUtils.normalizePath(config.getTopLevelDirectory(), "/"))));
@@ -411,7 +442,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     AlluxioURI file1URI = rootAlluxioURI.join("file1");
     try {
-      client.createFile(file1URI, CreateFileOptions.defaults());
+      client.createFile(file1URI, CreateFileOptions.defaults()).close();
       Assert.fail("create is expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
       Assert.assertEquals(
@@ -420,7 +451,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     AlluxioURI file2URI = rootAlluxioURI.join("file2");
     try {
-      client.createFile(file2URI, CreateFileOptions.defaults());
+      client.createFile(file2URI, CreateFileOptions.defaults()).close();
       Assert.fail("create is expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
       Assert.assertEquals(
@@ -446,7 +477,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     String topLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDir");
 
-    final int numFiles = 1500;
+    final int numFiles = 100;
 
     String[] children = new String[numFiles + numFiles];
 

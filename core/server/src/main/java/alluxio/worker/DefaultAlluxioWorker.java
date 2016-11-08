@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
-import alluxio.metrics.sink.Sink;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -76,8 +75,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   /** Whether the worker is serving the RPC server. */
   private boolean mIsServingRPC = false;
 
-  /** Worker metrics system. */
-  private MetricsSystem mWorkerMetricsSystem;
+  private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   /** Worker Web UI server. */
   private UIWebServer mWebServer;
@@ -125,12 +123,6 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
           mAdditionalWorkers.add(worker);
         }
       }
-
-      // Setup metrics collection system
-      mWorkerMetricsSystem = new MetricsSystem(MetricsSystem.WORKER_INSTANCE);
-      WorkerSource workerSource = WorkerContext.getWorkerSource();
-      workerSource.registerGauges(mBlockWorker);
-      mWorkerMetricsSystem.registerSource(workerSource);
 
       // Setup web server
       mWebServer = new WorkerUIWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB),
@@ -206,17 +198,11 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     // NOTE: the order to start different services is sensitive. If you change it, do it cautiously.
 
     // Start serving metrics system, this will not block
-    mWorkerMetricsSystem.start();
+    MetricsSystem.startSinks();
 
-    // Start serving the web server, this will not block
-    // Requirement: metrics system started so we could add the metrics servlet to the web server
-    // Consequence: when starting webserver, the webport will be updated.
-    for (Sink sink : mWorkerMetricsSystem.getSinks()) {
-      if (sink instanceof MetricsServlet) {
-        mWebServer.addHandler(((MetricsServlet) sink).getHandler());
-        break;
-      }
-    }
+    // Start serving the web server, this will not block.
+    mWebServer.addHandler(mMetricsServlet.getHandler());
+
     mWebServer.startWebServer();
 
     // Start each worker
@@ -273,7 +259,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     } catch (Exception e) {
       LOG.error("Failed to stop web server", e);
     }
-    mWorkerMetricsSystem.stop();
+    MetricsSystem.stopSinks();
   }
 
   private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
@@ -328,14 +314,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     try {
       return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC));
     } catch (TTransportException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
-  }
-
-  @Override
-  public MetricsSystem getWorkerMetricsSystem() {
-    return mWorkerMetricsSystem;
   }
 
   @Override

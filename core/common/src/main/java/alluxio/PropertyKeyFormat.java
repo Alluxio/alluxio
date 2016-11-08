@@ -11,11 +11,14 @@
 
 package alluxio;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A set of format templates to generate the property name for a given level in tiered storage. e
  * .g.,
  * {@code PropertyKeyFormat.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT.format(0)}
  */
+@ThreadSafe
 public enum PropertyKeyFormat {
   MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT("alluxio.master.tieredstore.global.level%d.alias"),
   WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT("alluxio.worker.tieredstore.level%d.alias"),
@@ -25,7 +28,7 @@ public enum PropertyKeyFormat {
       "alluxio.worker.tieredstore.level%d.reserved.ratio"),
   ;
 
-  private String mFormat;
+  private final String mFormat;
 
   /**
    * Constructs a property key format.

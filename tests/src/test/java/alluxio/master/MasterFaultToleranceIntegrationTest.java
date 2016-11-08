@@ -30,7 +30,6 @@ import alluxio.util.io.PathUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -38,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2091")
 public class MasterFaultToleranceIntegrationTest {
 
   private static final long WORKER_CAPACITY_BYTES = 10000;
@@ -58,9 +56,9 @@ public class MasterFaultToleranceIntegrationTest {
     // TODO(gpang): Implement multi-master cluster as a resource.
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(MASTERS);
+    mMultiMasterLocalAlluxioCluster.initConfiguration();
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
-    mMultiMasterLocalAlluxioCluster.initConfiguration();
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
   }

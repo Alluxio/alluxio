@@ -19,8 +19,6 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.master.MasterContext;
-import alluxio.master.MasterSource;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -29,6 +27,8 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
+import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
@@ -36,6 +36,7 @@ import alluxio.security.authorization.Permission;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
@@ -134,6 +135,8 @@ public final class PermissionCheckTest {
 
   @Before
   public void before() throws Exception {
+    LoginUserTestUtils.resetLoginUser();
+    GroupMappingServiceTestUtils.resetCache();
     // authentication
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "admin");
@@ -145,10 +148,9 @@ public final class PermissionCheckTest {
 
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    MasterContext masterContext = new MasterContext(new MasterSource());
-    BlockMaster blockMaster = new BlockMaster(masterContext, blockJournal);
+    BlockMaster blockMaster = new BlockMaster(blockJournal);
 
-    mFileSystemMaster = new FileSystemMaster(masterContext, blockMaster, fsJournal);
+    mFileSystemMaster = new FileSystemMaster(blockMaster, fsJournal);
 
     blockMaster.start(true);
     mFileSystemMaster.start(true);
@@ -158,6 +160,7 @@ public final class PermissionCheckTest {
 
   @After
   public void after() throws Exception {
+    AuthenticatedClientUser.remove();
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -563,6 +566,7 @@ public final class PermissionCheckTest {
     SetAttributeOptions result = verifySetState(TEST_USER_2, file, expect);
 
     Assert.assertEquals(expect.getTtl(), result.getTtl());
+    Assert.assertEquals(expect.getTtlAction(), result.getTtlAction());
     Assert.assertEquals(expect.getPinned(), result.getPinned());
   }
 
@@ -585,7 +589,8 @@ public final class PermissionCheckTest {
     boolean recursive = true;
     long ttl = 11;
 
-    return SetAttributeOptions.defaults().setPinned(recursive).setTtl(ttl);
+    return SetAttributeOptions.defaults().setPinned(recursive).setTtl(ttl)
+        .setTtlAction(TtlAction.DELETE);
   }
 
   private SetAttributeOptions verifySetState(TestUser user, String path,

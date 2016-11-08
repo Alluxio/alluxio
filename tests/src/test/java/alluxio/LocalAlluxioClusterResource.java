@@ -13,6 +13,9 @@ package alluxio;
 
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.metrics.MetricsSystem;
+import alluxio.security.LoginUserTestUtils;
+import alluxio.security.authentication.AuthenticatedClientUser;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -100,6 +103,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mStartCluster = startCluster;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
+    MetricsSystem.resetAllCounters();
   }
 
   /**
@@ -125,6 +129,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * Explicitly starts the {@link LocalAlluxioCluster}.
    */
   public void start() throws IOException, AlluxioException {
+    AuthenticatedClientUser.remove();
+    LoginUserTestUtils.resetLoginUser();
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration();
     // Overwrite the test configuration with test specific parameters

@@ -24,6 +24,7 @@ import alluxio.master.AlluxioMaster;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.wire.LineageInfo;
+import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,7 +52,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   @Before
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getMaster().getWebLocalPort();
+    mPort = mResource.get().getMaster().getInternalMaster().getWebLocalPort();
     mServicePrefix = LineageMasterClientRestServiceHandler.SERVICE_PREFIX;
     mLineageClient = LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
     mMaster = mResource.get().getMaster().getInternalMaster();
@@ -130,6 +131,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
     params.put("path", "/test");
     params.put("blockSizeBytes", "1");
     params.put("ttl", "1");
+    params.put("ttlAction", TtlAction.DELETE.toString());
 
     new TestCase(mHostname, mPort,
         getEndpoint(LineageMasterClientRestServiceHandler.REINITIALIZE_FILE), params,

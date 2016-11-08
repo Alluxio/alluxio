@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueWorker extends AbstractWorker {
-  /** BlockWorker handle for access block info. */
+  /** BlockWorker handle for accessing block info. */
   private final BlockWorker mBlockWorker;
   /** Logic for handling key-value RPC requests. */
   private final KeyValueWorkerClientServiceHandler mKeyValueServiceHandler;

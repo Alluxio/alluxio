@@ -121,8 +121,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   @SafeVarargs
   public IndexedSet(IndexDefinition<T> primaryIndexDefinition,
-      IndexDefinition<T>...
-      otherIndexDefinitions) {
+      IndexDefinition<T>... otherIndexDefinitions) {
     Iterable<IndexDefinition<T>> indexDefinitions =
         Iterables.concat(Arrays.asList(primaryIndexDefinition),
             Arrays.asList(otherIndexDefinitions));
@@ -188,7 +187,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * order. It is to implement {@link Iterable} so that users can foreach the {@link IndexedSet}
    * directly.
    *
-   * Note that the behaviour of the iterator is unspecified if the underlying collection is
+   * Note that the behavior of the iterator is unspecified if the underlying collection is
    * modified while a thread is going through the iterator.
    *
    * @return an iterator over the elements in this {@link IndexedSet}

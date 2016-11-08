@@ -1,5 +1,7 @@
 cat:
   Print the content of the file to the console.
+checkConsistency:
+  Check the metadata consistency between Alluxio and the under storage.
 checksum:
   Calculate the md5 checksum for a file.
 chgrp:
@@ -70,7 +72,8 @@ rmr:
   Remove a file, or a directory with all the files and sub-directories that this directory
   contains.
 setTtl:
-  Set the TTL (time to live) in milliseconds to a file.
+  Set the TTL (time to live) in milliseconds to a file. Allowing to perform either "delete"
+  or "free" after expiry of ttl interval.
 tail:
   Print the last 1KB of the specified file to the console.
 touch:

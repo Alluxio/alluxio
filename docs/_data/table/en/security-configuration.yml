@@ -1,6 +1,7 @@
 alluxio.security.authentication.type:
   "The authentication mode. Currently three modes are supported: NOSASL, SIMPLE,
-  CUSTOM. The default value NOSASL indicates that authentication is not enabled."
+  CUSTOM. The default value SIMPLE indicates that a simple authentication is enabled. Server
+  trusts whoever the client claims to be."
 alluxio.security.authentication.socket.timeout.ms:
   The maximum amount of time (in milliseconds) for a user to create a Thrift socket which
   will connect to the master.

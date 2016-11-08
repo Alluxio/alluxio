@@ -29,7 +29,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Formats Alluxio file system.
+ * Formats the Alluxio file system.
  */
 @ThreadSafe
 public final class Format {
@@ -106,6 +106,7 @@ public final class Format {
       LOG.info(USAGE);
       System.exit(-1);
     }
+    System.exit(0);
   }
 
   private Format() {}  // Prevent instantiation.

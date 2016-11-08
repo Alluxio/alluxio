@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.thrift.WorkerInfo;
@@ -39,8 +40,10 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Before
   public void before() {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getMaster().getWebLocalPort();
+    mPort = mResource.get().getMaster().getInternalMaster().getWebLocalPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
+
+    MetricsSystem.resetAllCounters();
   }
 
   @Test
@@ -113,7 +116,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     Map<String, Long> metrics = new ObjectMapper().readValue(result,
         new TypeReference<Map<String, Long>>() {});
 
-    Assert.assertEquals(Long.valueOf(0), metrics.get("master.master.CompleteFileOps"));
+    Assert.assertEquals(Long.valueOf(0), metrics.get("master.CompleteFileOps"));
   }
 
   @Test
@@ -145,7 +148,9 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_CAPACITY_BYTES), NO_PARAMS,
         HttpMethod.GET, null).call();
 
-    Assert.assertTrue(Long.valueOf(ufsCapacity) > 0);
+    // Capacity should be greater than 0, or -1 which means capacity is not applicable for the
+    // under storage (ie. for an object store in the cloud)
+    Assert.assertTrue(Long.valueOf(ufsCapacity) > 0 || Long.valueOf(ufsCapacity) == -1);
   }
 
   @Test
@@ -161,7 +166,9 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_FREE_BYTES), NO_PARAMS, HttpMethod.GET,
         null).call();
 
-    Assert.assertTrue(Long.valueOf(ufsFreeBytes) > 0);
+    // Free space should be greater than 0, or -1 which means free space is not applicable for the
+    // under storage (ie. for an object store in the cloud)
+    Assert.assertTrue(Long.valueOf(ufsFreeBytes) > 0 || Long.valueOf(ufsFreeBytes) == -1);
   }
 
   @Test

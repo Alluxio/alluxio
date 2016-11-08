@@ -14,18 +14,16 @@ package alluxio.master.lineage;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.AlluxioMaster;
 import alluxio.web.MasterUIWebServer;
+import alluxio.wire.LineageInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,8 +45,6 @@ import javax.ws.rs.core.Response;
 @Path(LineageMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class LineageMasterClientRestServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   public static final String SERVICE_PREFIX = "master/lineage";
   public static final String SERVICE_NAME = "service_name";
   public static final String SERVICE_VERSION = "service_version";
@@ -80,7 +76,12 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return RestUtils.createResponse(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME);
+    return RestUtils.call(new RestUtils.RestCallable<String>() {
+      @Override
+      public String call() throws Exception {
+        return Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME;
+      }
+    });
   }
 
   /**
@@ -91,7 +92,12 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return RestUtils.createResponse(Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION);
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION;
+      }
+    });
   }
 
   /**
@@ -105,29 +111,29 @@ public final class LineageMasterClientRestServiceHandler {
   @POST
   @Path(CREATE_LINEAGE)
   @ReturnType("java.lang.Long")
-  public Response createLineage(@QueryParam("inputFiles") String inputFiles,
-      @QueryParam("outputFiles") String outputFiles, @QueryParam("command") String command,
-      @QueryParam("commandOutputFile") String outputFile) {
-    Preconditions.checkNotNull(inputFiles, "required 'inputFiles' parameter is missing");
-    Preconditions.checkNotNull(outputFiles, "required 'outputFiles' parameter is missing");
-    Preconditions.checkNotNull(command, "required 'command' parameter is missing");
-    Preconditions.checkNotNull(outputFile, "required 'commandOutputFile' parameter is missing");
-    List<AlluxioURI> inputFilesUri = new ArrayList<>();
-    for (String path : inputFiles.split(":", -1)) {
-      inputFilesUri.add(new AlluxioURI(path));
-    }
-    List<AlluxioURI> outputFilesUri = new ArrayList<>();
-    for (String path : outputFiles.split(":", -1)) {
-      outputFilesUri.add(new AlluxioURI(path));
-    }
-    CommandLineJob job = new CommandLineJob(command, new JobConf(outputFile));
-    try {
-      return RestUtils
-          .createResponse(mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job));
-    } catch (AlluxioException | IOException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
+  public Response createLineage(@QueryParam("inputFiles") final String inputFiles,
+      @QueryParam("outputFiles") final String outputFiles,
+      @QueryParam("command") final String command,
+      @QueryParam("commandOutputFile") final String outputFile) {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        Preconditions.checkNotNull(inputFiles, "required 'inputFiles' parameter is missing");
+        Preconditions.checkNotNull(outputFiles, "required 'outputFiles' parameter is missing");
+        Preconditions.checkNotNull(command, "required 'command' parameter is missing");
+        Preconditions.checkNotNull(outputFile, "required 'commandOutputFile' parameter is missing");
+        List<AlluxioURI> inputFilesUri = new ArrayList<>();
+        for (String path : inputFiles.split(":", -1)) {
+          inputFilesUri.add(new AlluxioURI(path));
+        }
+        List<AlluxioURI> outputFilesUri = new ArrayList<>();
+        for (String path : outputFiles.split(":", -1)) {
+          outputFilesUri.add(new AlluxioURI(path));
+        }
+        CommandLineJob job = new CommandLineJob(command, new JobConf(outputFile));
+        return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
+      }
+    });
   }
 
   /**
@@ -139,15 +145,15 @@ public final class LineageMasterClientRestServiceHandler {
   @POST
   @Path(DELETE_LINEAGE)
   @ReturnType("java.lang.Boolean")
-  public Response deleteLineage(@QueryParam("lineageId") Long lineageId,
-      @QueryParam("cascade") boolean cascade) {
-    try {
-      Preconditions.checkNotNull(lineageId, "required 'lineageId' parameter is missing");
-      return RestUtils.createResponse(mLineageMaster.deleteLineage(lineageId, cascade));
-    } catch (AlluxioException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
+  public Response deleteLineage(@QueryParam("lineageId") final Long lineageId,
+      @QueryParam("cascade") final boolean cascade) {
+    return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        Preconditions.checkNotNull(lineageId, "required 'lineageId' parameter is missing");
+        return mLineageMaster.deleteLineage(lineageId, cascade);
+      }
+    });
   }
 
   /**
@@ -158,12 +164,12 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(GET_LINEAGE_INFO_LIST)
   @ReturnType("java.util.List<alluxio.wire.LineageInfo>")
   public Response getLineageInfoList() {
-    try {
-      return RestUtils.createResponse(mLineageMaster.getLineageInfoList());
-    } catch (AlluxioException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
+    return RestUtils.call(new RestUtils.RestCallable<List<LineageInfo>>() {
+      @Override
+      public List<LineageInfo> call() throws Exception {
+        return mLineageMaster.getLineageInfoList();
+      }
+    });
   }
 
   /**
@@ -171,22 +177,25 @@ public final class LineageMasterClientRestServiceHandler {
    * @param path the file path
    * @param blockSizeBytes the file block size (in bytes)
    * @param ttl the file time-to-live (in seconds)
+   * @param ttlAction action to take after TTL is expired
    * @return the response object
    */
   @POST
   @Path(REINITIALIZE_FILE)
   @ReturnType("java.lang.Long")
-  public Response reinitializeFile(@QueryParam("path") String path,
-      @QueryParam("blockSizeBytes") Long blockSizeBytes, @QueryParam("ttl") Long ttl) {
-    try {
-      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      Preconditions.checkNotNull(blockSizeBytes, "required 'blockSizeBytes' parameter is missing");
-      Preconditions.checkNotNull(ttl, "required 'ttl' parameter is missing");
-      return RestUtils.createResponse(mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl));
-    } catch (AlluxioException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
+  public Response reinitializeFile(@QueryParam("path") final String path,
+      @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl,
+      @QueryParam("ttlAction") final TtlAction ttlAction) {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
+        Preconditions
+            .checkNotNull(blockSizeBytes, "required 'blockSizeBytes' parameter is missing");
+        Preconditions.checkNotNull(ttl, "required 'ttl' parameter is missing");
+        return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl, ttlAction);
+      }
+    });
   }
 
   /**
@@ -197,14 +206,14 @@ public final class LineageMasterClientRestServiceHandler {
   @POST
   @Path(REPORT_LOST_FILE)
   @ReturnType("java.lang.Void")
-  public Response reportLostFile(@QueryParam("path") String path) {
-    try {
-      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      mLineageMaster.reportLostFile(path);
-      return RestUtils.createResponse();
-    } catch (AlluxioException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
+  public Response reportLostFile(@QueryParam("path") final String path) {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
+        mLineageMaster.reportLostFile(path);
+        return null;
+      }
+    });
   }
 }

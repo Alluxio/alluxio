@@ -12,11 +12,16 @@
 package alluxio.heartbeat;
 
 import alluxio.Constants;
+import alluxio.security.LoginUser;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
+import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -44,7 +49,7 @@ public final class HeartbeatThread implements Runnable {
    */
   public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs) {
     mThreadName = threadName;
-    mExecutor = Preconditions.checkNotNull(executor);
+    mExecutor = Preconditions.checkNotNull(executor, "executor");
     Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
     try {
       mTimer =
@@ -59,16 +64,25 @@ public final class HeartbeatThread implements Runnable {
 
   @Override
   public void run() {
+    try {
+      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
+        AuthenticatedClientUser.set(LoginUser.get().getName());
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to set AuthenticatedClientUser in HeartbeatThread.");
+    }
+
     // set the thread name
     Thread.currentThread().setName(mThreadName);
     try {
+      // Thread.interrupted() clears the interrupt status. Do not call interrupt again to clear it.
       while (!Thread.interrupted()) {
+        // TODO(peis): Fix this. The current implementation consumes one thread even when ticking.
         mTimer.tick();
         mExecutor.heartbeat();
       }
     } catch (InterruptedException e) {
-      // exit, reset interrupt
-      Thread.currentThread().interrupt();
+      LOG.info("Hearbeat is interrupted.");
     } catch (Exception e) {
       LOG.error("Uncaught exception in heartbeat executor, Heartbeat Thread shutting down", e);
     } finally {

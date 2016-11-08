@@ -16,13 +16,12 @@ import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterContext;
-import alluxio.master.MasterSource;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
@@ -46,7 +45,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link alluxio.master.block.BlockMaster}.
@@ -85,8 +83,8 @@ public class BlockMasterTest {
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    MasterContext masterContext = new MasterContext(new MasterSource());
-    mMaster = new BlockMaster(masterContext, blockJournal, mClock, mExecutorService);
+    mMaster = new BlockMaster(blockJournal, mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mMaster.start(true);
   }
 
@@ -136,9 +134,7 @@ public class BlockMasterTest {
     mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
 
     // Run the lost worker detector.
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
 
     // Make sure the worker is detected as lost.
     Set<WorkerInfo> info = mMaster.getLostWorkersInfo();
@@ -159,9 +155,7 @@ public class BlockMasterTest {
     mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
 
     // Run the lost worker detector.
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
 
     // Reregister the worker using its original worker id.
     mMaster.getWorkerId(NET_ADDRESS_1);

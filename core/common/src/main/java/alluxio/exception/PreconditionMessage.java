@@ -11,6 +11,8 @@
 
 package alluxio.exception;
 
+import alluxio.PropertyKey;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -51,6 +53,7 @@ public enum PreconditionMessage {
   FILE_WRITE_LOCATION_POLICY_UNSPECIFIED("The location policy is not specified"),
   GCS_BUCKET_MUST_BE_SET("The %s system property must be set to use the GCSUnderStorageCluster"),
   INODE_TREE_UNINITIALIZED_IS_ROOT_ID("Cannot call isRootId() before initializeRoot()"),
+  INVALID_USER_FILE_BUFFER_BYTES("Invalid \"" + PropertyKey.USER_FILE_BUFFER_BYTES + "\": %d"),
   MUST_SET_PINNED("The pinned flag must be set"),
   MUST_SET_TTL("The TTL value must be set"),
   MUST_SET_PERSISTED("The persisted value must be set"),

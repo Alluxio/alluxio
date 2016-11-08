@@ -14,7 +14,6 @@ package alluxio.network.protocol;
 import alluxio.Constants;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -51,9 +50,10 @@ public final class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
     LOG.error("Error in decoding message. Possible Client/DataServer version incompatibility: "
         + cause.getMessage());
-    // Return an error message to the client.
-    ctx.channel()
-        .writeAndFlush(new RPCErrorResponse(RPCResponse.Status.DECODE_ERROR))
-        .addListener(ChannelFutureListener.CLOSE);
+    // Propagate this to other handlers.
+    // TODO(peis): We should propagate the error type to the downstreaming handlers so that
+    // we can correctly return the RPC error types to the client (if caused on server) or notify
+    // the App with enough error information.
+    super.exceptionCaught(ctx, cause);
   }
 }

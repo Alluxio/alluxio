@@ -66,12 +66,27 @@ public enum FileSystemContext {
   }
 
   /**
-   * Acquires a block master client from the block master client pool.
+   * Acquires a file system master client from the file system master client pool.
    *
-   * @return the acquired block master client
+   * @return the acquired file system master client
    */
   public FileSystemMasterClient acquireMasterClient() {
     return mFileSystemMasterClientPool.acquire();
+  }
+
+  /**
+   * Acquires a file system master client from the file system master client pool. The resource is
+   * {@code Closeable}.
+   *
+   * @return the acquired file system master client resource
+   */
+  public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
+    return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
+      @Override
+      public void close() {
+        mFileSystemMasterClientPool.release(get());
+      }
+    };
   }
 
   /**
@@ -90,8 +105,7 @@ public enum FileSystemContext {
       address = mWorkerAddresses.get(ThreadLocalRandom.current().nextInt(mWorkerAddresses.size()));
     }
     long sessionId = IdUtils.getRandomNonNegativeLong();
-    return new FileSystemWorkerClient(address, ClientContext.getFileClientExecutorService(),
-        sessionId, ClientContext.getClientMetrics());
+    return new FileSystemWorkerClient(address, sessionId);
   }
 
   /**

@@ -16,6 +16,7 @@ import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 
+import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,6 +212,35 @@ public final class CommonUtils {
       groups.add(tokenizer.nextToken());
     }
     return groups;
+  }
+
+  /**
+   * Waits for a condition to be satisfied until a timeout occurs.
+   *
+   * @param description a description of what causes condition to evaluation to true
+   * @param condition the condition to wait on
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   */
+  public static void waitFor(String description, Function<Void, Boolean> condition, int timeoutMs) {
+    long start = System.currentTimeMillis();
+    while (!condition.apply(null)) {
+      if (System.currentTimeMillis() - start > timeoutMs) {
+        throw new RuntimeException("Timed out waiting for " + description);
+      }
+      CommonUtils.sleepMs(20);
+    }
+  }
+
+  /**
+   * Waits indefinitely for a condition to be satisfied.
+   *
+   * @param description a description of what causes condition to evaluation to true
+   * @param condition the condition to wait on
+   */
+  public static void waitFor(String description, Function<Void, Boolean> condition) {
+    while (!condition.apply(null)) {
+      CommonUtils.sleepMs(20);
+    }
   }
 
   /**

@@ -60,10 +60,9 @@ public final class NettyClient {
   /**
    * Creates and returns a new Netty client bootstrap for clients to connect to remote servers.
    *
-   * @param handler the handler that should be added to new channel pipelines
    * @return the new client {@link Bootstrap}
    */
-  public static Bootstrap createClientBootstrap(final ClientHandler handler) {
+  public static Bootstrap createClientBootstrap() {
     final Bootstrap boot = new Bootstrap();
 
     boot.group(WORKER_GROUP).channel(CLIENT_CHANNEL_CLASS);
@@ -79,7 +78,6 @@ public final class NettyClient {
         pipeline.addLast(RPCMessage.createFrameDecoder());
         pipeline.addLast(ENCODER);
         pipeline.addLast(DECODER);
-        pipeline.addLast(handler);
       }
     });
 

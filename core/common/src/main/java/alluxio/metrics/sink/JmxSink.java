@@ -16,13 +16,13 @@ import com.codahale.metrics.MetricRegistry;
 
 import java.util.Properties;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A sink which listens for new metrics and exposes them as namespaces MBeans.
  */
-@NotThreadSafe
-public class JmxSink implements Sink {
+@ThreadSafe
+public final class JmxSink implements Sink {
   private JmxReporter mReporter;
 
   /**

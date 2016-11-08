@@ -32,23 +32,25 @@ public enum ExceptionMessage {
   PATH_INVALID("Path {0} is invalid"),
 
   // general block
-  BLOCK_NOT_LOCALLY_AVAILABLE("Block {0} is not available on local machine"),
-  BLOCK_UNAVAILABLE("Block {0} is not available in Alluxio"),
-  CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store block {1}."),
-  NO_LOCAL_WORKER("Local {0} requested but there is no local worker"),
+  BLOCK_NOT_LOCALLY_AVAILABLE("blockId {0,number,#} is not available on local machine"),
+  BLOCK_UNAVAILABLE("blockId {0,number,#} is not available in Alluxio"),
+  CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
+  NO_LOCAL_WORKER("Local address {0} requested but there is no local worker"),
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
   // block lock manager
-  LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0} is for block {1}, not {2}"),
-  LOCK_ID_FOR_DIFFERENT_SESSION("lockId {0} is owned by sessionId {1} not {2}"),
-  LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION("no lock is found for blockId {0} for sessionId {1}"),
-  LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0} has no lock record"),
+  LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0,number,#} is for blockId {1,number,#}, not {2,number,#}"),
+  LOCK_ID_FOR_DIFFERENT_SESSION(
+      "lockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
+  LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION(
+      "no lock is found for blockId {0,number,#} for sessionId {1,number,#}"),
+  LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0,number,#} has no lock record"),
 
   // block metadata manager and view
-  BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0}"),
+  BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0,number,#}"),
   GET_DIR_FROM_NON_SPECIFIC_LOCATION("Cannot get path from non-specific dir {0}"),
-  TEMP_BLOCK_META_NOT_FOUND("TempBlockMeta not found for blockId {0}"),
+  TEMP_BLOCK_META_NOT_FOUND("TempBlockMeta not found for blockId {0,number,#}"),
   TIER_ALIAS_NOT_FOUND("Tier with alias {0} not found"),
   TIER_VIEW_ALIAS_NOT_FOUND("Tier view with alias {0} not found"),
 
@@ -59,32 +61,41 @@ public enum ExceptionMessage {
   FAILED_SKIP("Failed to skip {0}"),
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
-  SEEK_NEGATIVE("Seek position is negative: {0}"),
-  SEEK_PAST_EOF("Seek position is past EOF: {0}, fileSize: {1}"),
+  SEEK_NEGATIVE("Seek position is negative: {0,number,#}"),
+  SEEK_PAST_EOF("Seek position is past EOF: {0,number,#}, fileSize: {1,number,#}"),
 
   // netty
-  BLOCK_WRITE_ERROR("Error writing blockId: {0}, sessionId: {1}, address: {2}, message: {3}"),
+  BLOCK_WRITE_ERROR(
+      "Error writing blockId: {0,number,#}, sessionId: {1,number,#}, address: {2}, message: {3}"),
   NO_RPC_HANDLER("No handler implementation for rpc message type: {0}"),
   UNEXPECTED_RPC_RESPONSE("Unexpected response message type: {0} (expected: {1})"),
-  WRITER_ALREADY_OPEN("This writer is already open for address: {0}, blockId: {1}, sessionId: {2}"),
-  UNDER_FILE_WRITE_ERROR("Error writing to under file system fileId: {0}, addr: {1}, msg: {2}"),
+  WRITER_ALREADY_OPEN(
+      "This writer is already open for address: {0}, blockId: {1,number,#}, "
+          + "sessionId: {2,number,#}"),
+  UNDER_FILE_WRITE_ERROR(
+      "Error writing to under file system fileId: {0,number,#}, addr: {1}, msg: {2}"),
 
   // storageDir
-  ADD_EXISTING_BLOCK("blockId {0} exists in {1}"),
-  BLOCK_NOT_FOUND_FOR_SESSION("blockId {0} in {1} not found for session {2}"),
-  NO_SPACE_FOR_BLOCK_META("blockId {0} is {1} bytes, but only {2} bytes available in {3}"),
+  ADD_EXISTING_BLOCK("blockId {0,number,#} exists in {1}"),
+  BLOCK_NOT_FOUND_FOR_SESSION("blockId {0,number,#} in {1} not found for session {2,number,#}"),
+  NO_SPACE_FOR_BLOCK_META(
+      "blockId {0,number,#} is {1,number,#} bytes, but only {2,number,#} bytes available in {3}"),
 
   // tieredBlockStore
-  BLOCK_ID_FOR_DIFFERENT_SESSION("BlockId {0} is owned by sessionId {1} not {2}"),
-  BLOCK_NOT_FOUND_AT_LOCATION("Block {0} not found at location: {1}"),
-  MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted block {0}"),
-  NO_BLOCK_ID_FOUND("BlockId {0} not found"),
+  BLOCK_ID_FOR_DIFFERENT_SESSION(
+      "blockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
+  BLOCK_NOT_FOUND_AT_LOCATION("blockId {0,number,#} not found at location: {1}"),
+  MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
+  NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
   NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
-  NO_SPACE_FOR_BLOCK_ALLOCATION("Failed to allocate {0} bytes after {1} retries for blockId {2}"),
-  NO_SPACE_FOR_BLOCK_MOVE("Failed to find space in {0} to move blockId {1} after {2} retries"),
-  REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted block {0}"),
-  TEMP_BLOCK_ID_COMMITTED("Temp blockId {0} is not available, because it is already committed"),
-  TEMP_BLOCK_ID_EXISTS("Temp blockId {0} is not available, because it already exists"),
+  NO_SPACE_FOR_BLOCK_ALLOCATION(
+      "Failed to allocate {0,number,#} bytes after {1} retries for blockId {2,number,#}"),
+  NO_SPACE_FOR_BLOCK_MOVE(
+      "Failed to find space in {0} to move blockId {1,number,#} after {2} retries"),
+  REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted blockId {0,number,#}"),
+  TEMP_BLOCK_ID_COMMITTED(
+      "Temp blockId {0,number,#} is not available, because it is already committed"),
+  TEMP_BLOCK_ID_EXISTS("Temp blockId {0,number,#} is not available, because it already exists"),
 
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
@@ -100,12 +111,11 @@ public enum ExceptionMessage {
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
-  HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
+  HDFS_FILE_NOT_FOUND("File {0} with URI {1} is not found"),
 
   // file system master
-  FILEID_MUST_BE_FILE("File id {0} must be a file"),
-  INODE_DOES_NOT_EXIST("Inode id {0} does not exist"),
-  INODE_DOES_NOT_EXIST_RETRIES("Inode id {0} does not exist; too many retries"),
+  INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
+  INODE_DOES_NOT_EXIST_RETRIES("inodeId {0,number,#} does not exist; too many retries"),
   NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
   PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
   PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
@@ -117,15 +127,16 @@ public enum ExceptionMessage {
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
 
   // block master
-  NO_WORKER_FOUND("No worker with ID {0} is found"),
+  NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
 
   // file system master ufs
   FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
   FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),
 
   // file system worker
-  BAD_WORKER_FILE_ID("Worker file id {0} is invalid. The worker may have crashed or cleaned up "
-      + "the client state due to a timeout."),
+  BAD_WORKER_FILE_ID(
+      "Worker fileId {0,number,#} is invalid. The worker may have crashed or cleaned up "
+          + "the client state due to a timeout."),
 
   // shell
   DESTINATION_CANNOT_BE_FILE(
@@ -183,7 +194,7 @@ public enum ExceptionMessage {
   KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
 
   // block worker
-  FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block {0} to master."),
+  FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
@@ -201,8 +212,9 @@ public enum ExceptionMessage {
    * @return the formatted message
    */
   public String getMessage(Object... params) {
-    Preconditions.checkArgument(mMessage.getFormats().length == params.length, "The message takes "
-        + mMessage.getFormats().length + " arguments, but is given " + params.length);
+    Preconditions.checkArgument(mMessage.getFormats().length == params.length,
+        "The message takes " + mMessage.getFormats().length + " arguments, but is given "
+            + params.length);
     // MessageFormat is not thread-safe, so guard it
     synchronized (mMessage) {
       return mMessage.format(params);

@@ -112,11 +112,11 @@ $ ./bin/alluxio fs ls /
 
 ```bash
 $ ./bin/alluxio fs cat /LICENSE
-Apache License
-Version 2.0, January 2004
-http://www.apache.org/licenses/
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
 
-TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 ...
 ```
 
@@ -281,6 +281,8 @@ $ ./bin/alluxio-stop.sh all
 
 ### 部署Alluxio
 
+Alluxio可以部署在很多不同的环境下。
+
 * [本地运行Alluxio](Running-Alluxio-Locally.html)
 * [在Virtual Box上运行Alluxio](Running-Alluxio-on-Virtual-Box.html)
 * [在集群上独立运行Alluxio](Running-Alluxio-on-a-Cluster.html)
@@ -300,6 +302,7 @@ $ ./bin/alluxio-stop.sh all
 * [Alluxio使用Swift](Configuring-Alluxio-with-Swift.html)
 * [Alluxio使用GlusterFS](Configuring-Alluxio-with-GlusterFS.html)
 * [Alluxio使用HDFS](Configuring-Alluxio-with-HDFS.html)
+* [Alluxio使用MapR-FS](Configuring-Alluxio-with-MapR-FS.html)
 * [Alluxio使用Secure HDFS](Configuring-Alluxio-with-secure-HDFS.html)
 * [Alluxio使用OSS](Configuring-Alluxio-with-OSS.html)
 * [Alluxio使用NFS](Configuring-Alluxio-with-NFS.html)
@@ -312,3 +315,4 @@ $ ./bin/alluxio-stop.sh all
 * [Apache Hadoop MapReduce使用Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html)
 * [Apache Flink使用Alluxio](Running-Flink-on-Alluxio.html)
 * [Apache Zeppelin使用Alluxio](Accessing-Alluxio-from-Zeppelin.html)
+* [Apache HBase使用Alluxio](Running-HBase-on-Alluxio.html)

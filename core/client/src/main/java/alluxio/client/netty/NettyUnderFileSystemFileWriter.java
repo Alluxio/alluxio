@@ -12,7 +12,10 @@
 package alluxio.client.netty;
 
 import alluxio.Constants;
+import alluxio.client.UnderFileSystemFileWriter;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCFileWriteRequest;
 import alluxio.network.protocol.RPCFileWriteResponse;
@@ -20,7 +23,8 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataByteArrayChannel;
 
-import io.netty.bootstrap.Bootstrap;
+import com.codahale.metrics.Counter;
+import com.google.common.base.Throwables;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
@@ -31,6 +35,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Writer for an under file system file through a worker data server via Netty. This class does not
@@ -38,48 +43,40 @@ import javax.annotation.concurrent.NotThreadSafe;
  * concurrently. This class does not keep lingering resources and does not need to be closed.
  */
 @NotThreadSafe
-public final class NettyUnderFileSystemFileWriter {
+public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  /** Netty bootstrap for the connection. */
-  private final Bootstrap mClientBootstrap;
-  /** Handler for Netty messages. */
-  private final ClientHandler mHandler;
 
   /**
    * Constructor for a Netty based writer to an under file system file on a worker.
    */
-  public NettyUnderFileSystemFileWriter() {
-    mHandler = new ClientHandler();
-    mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
-  }
+  public NettyUnderFileSystemFileWriter() {}
 
-  /**
-   * Writes data to the file in the under file system.
-   *
-   * @param address worker address to write the data to
-   * @param ufsFileId worker file id referencing the file
-   * @param fileOffset where in the file to start writing, only sequential writes are supported
-   * @param bytes data to write
-   * @param offset start offset of the data
-   * @param length length to write
-   * @throws IOException if an error occurs during the write
-   */
-  public void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] bytes,
+  @Override
+  public void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] source,
       int offset, int length) throws IOException {
-    SingleResponseListener listener = null;
+    Channel channel = null;
+    ClientHandler clientHandler = null;
+    Metrics.NETTY_UFS_WRITE_OPS.inc();
     try {
-      ChannelFuture f = mClientBootstrap.connect(address).sync();
+      channel = BlockStoreContext.acquireNettyChannel(address);
+      if (!(channel.pipeline().last() instanceof ClientHandler)) {
+        channel.pipeline().addLast(new ClientHandler());
+      }
+      clientHandler = (ClientHandler) channel.pipeline().last();
+      SingleResponseListener listener = new SingleResponseListener();
+      clientHandler.addListener(listener);
 
-      LOG.debug("Connected to remote machine {}", address);
-      Channel channel = f.channel();
-      listener = new SingleResponseListener();
-      mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCFileWriteRequest(ufsFileId, fileOffset, length,
-          new DataByteArrayChannel(bytes, offset, length)));
+      ChannelFuture channelFuture = channel.writeAndFlush(
+          new RPCFileWriteRequest(ufsFileId, fileOffset, length,
+              new DataByteArrayChannel(source, offset, length))).sync();
+
+      if (channelFuture.isDone() && !channelFuture.isSuccess()) {
+        LOG.error("Failed to read ufs file from %s for ufsFilId %d with error %s.",
+            address.toString(), ufsFileId, channelFuture.cause());
+        throw new IOException(channelFuture.cause());
+      }
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      channel.close().sync();
 
       switch (response.getType()) {
         case RPC_FILE_WRITE_RESPONSE:
@@ -100,11 +97,38 @@ public final class NettyUnderFileSystemFileWriter {
               .getMessage(response.getType(), RPCMessage.Type.RPC_FILE_WRITE_RESPONSE));
       }
     } catch (Exception e) {
+      Metrics.NETTY_UFS_WRITE_FAILURES.inc();
+      try {
+        if (channel != null) {
+          channel.close().sync();
+        }
+      } catch (InterruptedException ee) {
+        Throwables.propagate(ee);
+      }
       throw new IOException(e);
     } finally {
-      if (listener != null) {
-        mHandler.removeListener(listener);
+      if (clientHandler != null) {
+        clientHandler.removeListeners();
+      }
+      if (channel != null) {
+        BlockStoreContext.releaseNettyChannel(address, channel);
       }
     }
+  }
+
+  @Override
+  public void close() {}
+
+  /**
+   * Class that contains metrics about {@link NettyUnderFileSystemFileWriter}.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter NETTY_UFS_WRITE_OPS =
+        MetricsSystem.clientCounter("NettyUfsWriteOps");
+    private static final Counter NETTY_UFS_WRITE_FAILURES =
+        MetricsSystem.clientCounter("NettyUfsWriteFailures");
+
+    private Metrics() {} // prevent instantiation
   }
 }

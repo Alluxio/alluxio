@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PreconditionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
@@ -192,6 +193,16 @@ public final class Configuration {
         String.format("the key value pair (%s, %s) cannot have null", key, value));
     PROPERTIES.put(key.toString(), value.toString());
     checkUserFileBufferBytes();
+  }
+
+  /**
+   * Unsets the value for the appropriate key in the {@link Properties}.
+   *
+   * @param key the key to unset
+   */
+  public static void unset(PropertyKey key) {
+    Preconditions.checkNotNull(key);
+    PROPERTIES.remove(key.toString());
   }
 
   /**
@@ -431,7 +442,7 @@ public final class Configuration {
     }
     long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     Preconditions.checkArgument((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
-        "Invalid \"" + PropertyKey.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
+        PreconditionMessage.INVALID_USER_FILE_BUFFER_BYTES.toString(), usrFileBufferBytes);
   }
 
   private Configuration() {} // prevent instantiation

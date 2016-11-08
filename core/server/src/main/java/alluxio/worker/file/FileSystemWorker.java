@@ -20,7 +20,6 @@ import alluxio.worker.Worker;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
 /**
  * Interface representing a file system worker.
@@ -132,7 +131,6 @@ public interface FileSystemWorker extends Worker {
    * piggyback metrics on this call. Currently there are no metrics collected from this call.
    *
    * @param sessionId the session id to renew
-   * @param metrics a list of metrics to update from the client
    */
-  void sessionHeartbeat(long sessionId, List<Long> metrics);
+  void sessionHeartbeat(long sessionId);
 }

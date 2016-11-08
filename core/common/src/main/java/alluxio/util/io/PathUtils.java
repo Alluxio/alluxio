@@ -31,6 +31,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PathUtils {
+  private static final String TEMPORARY_SUFFIX_FORMAT = ".alluxio.0x%016X.tmp";
+  private static final int TEMPORARY_SUFFIX_LENGTH =
+      String.format(TEMPORARY_SUFFIX_FORMAT, 0).length();
 
   /**
    * Checks and normalizes the given path.
@@ -213,7 +216,18 @@ public final class PathUtils {
    * @return a deterministic temporary file name
    */
   public static String temporaryFileName(long nonce, String path) {
-    return path + ".alluxio." + String.format("0x%016X", nonce) + ".tmp";
+    return path + String.format(TEMPORARY_SUFFIX_FORMAT, nonce);
+  }
+
+  /**
+   * @param path the path of the file, possibly temporary
+   * @return the permanent path of the file if it was temporary, or the original path if it was not
+   */
+  public static String getPermanentFileName(String path) {
+    if (isTemporaryFileName(path)) {
+      return path.substring(0, path.length() - TEMPORARY_SUFFIX_LENGTH);
+    }
+    return path;
   }
 
   /**

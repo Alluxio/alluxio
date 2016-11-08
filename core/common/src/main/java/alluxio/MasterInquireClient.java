@@ -21,6 +21,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,38 +31,42 @@ import javax.annotation.concurrent.ThreadSafe;
  * Utility to get leader from zookeeper.
  */
 @ThreadSafe
-public final class LeaderInquireClient {
+public final class MasterInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static HashMap<String, LeaderInquireClient> sCreatedClients = new HashMap<>();
+  /** Map from key spliced by the address for Zookeeper and path of leader to created client. */
+  private static HashMap<String, MasterInquireClient> sCreatedClients = new HashMap<>();
 
   /**
    * Gets the client.
    *
    * @param zookeeperAddress the address for Zookeeper
+   * @param electionPath the path of the master election
    * @param leaderPath the path of the leader
    *
    * @return the client
    */
-  public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
-      String leaderPath) {
+  public static synchronized MasterInquireClient getClient(String zookeeperAddress,
+      String electionPath, String leaderPath) {
     String key = zookeeperAddress + leaderPath;
     if (!sCreatedClients.containsKey(key)) {
-      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
+      sCreatedClients.put(key, new MasterInquireClient(zookeeperAddress, electionPath, leaderPath));
     }
     return sCreatedClients.get(key);
   }
 
   private final String mZookeeperAddress;
+  private final String mElectionPath;
   private final String mLeaderPath;
   private final CuratorFramework mClient;
   private final int mMaxTry;
 
-  private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
+  private MasterInquireClient(String zookeeperAddress, String electionPath, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
+    mElectionPath = electionPath;
     mLeaderPath = leaderPath;
 
-    LOG.info("create new zookeeper client. address: {}", mZookeeperAddress);
+    LOG.info("Creating new zookeeper client. address: {}", mZookeeperAddress);
     mClient =
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
@@ -71,11 +76,9 @@ public final class LeaderInquireClient {
   }
 
   /**
-   * Gets the address of the master.
-   *
-   * @return the address of the master
+   * @return the address of the current leader master
    */
-  public synchronized String getMasterAddress() {
+  public synchronized String getLeaderAddress() {
     int tried = 0;
     try {
       while (tried < mMaxTry) {
@@ -106,7 +109,38 @@ public final class LeaderInquireClient {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
     } catch (Exception e) {
-      LOG.error("Error getting the master address from zookeeper. Zookeeper address: {}",
+      LOG.error("Error getting the leader master address from zookeeper. Zookeeper address: {}",
+          mZookeeperAddress, e);
+    }
+
+    return null;
+  }
+
+  /**
+   * @return the list of all the master addresses
+   */
+  public synchronized List<String> getMasterAddresses() {
+    int tried = 0;
+    try {
+      while (tried < mMaxTry) {
+        if (mClient.checkExists().forPath(mElectionPath) != null) {
+          List<String> children = mClient.getChildren().forPath(mElectionPath);
+          List<String> ret = new ArrayList<>();
+          for (String child : children) {
+            byte[] data = mClient.getData().forPath(PathUtils.concatPath(mElectionPath, child));
+            if (data != null) {
+              // The data of the child znode is the corresponding master address for now
+              ret.add(new String(data, "utf-8"));
+            }
+          }
+          LOG.info("All masters: {}", ret);
+          return ret;
+        } else {
+          LOG.info("{} does not exist ({})", mElectionPath, ++tried);
+        }
+      }
+    } catch (Exception e) {
+      LOG.error("Error getting the master addresses from zookeeper. Zookeeper address: {}",
           mZookeeperAddress, e);
     }
 

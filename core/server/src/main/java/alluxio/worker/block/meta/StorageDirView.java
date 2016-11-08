@@ -159,7 +159,7 @@ public final class StorageDirView {
   /**
    * Returns an indication whether the given block is marked to be moved out.
    *
-   * @param blockId the block id
+   * @param blockId the block ID
    * @return whether the block is marked to be moved out
    */
   public boolean isMarkedToMoveOut(long blockId) {

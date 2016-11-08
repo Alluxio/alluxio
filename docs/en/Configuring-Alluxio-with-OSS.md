@@ -17,7 +17,7 @@ For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_H
 
 {% include Configuring-Alluxio-with-OSS/bootstrapConf.md %}
 
-Alternatively, you can also create the configuration file from the template and set the contents manually. 
+Alternatively, you can also create the configuration file from the template and set the contents manually.
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -28,11 +28,12 @@ Also, in preparation for using OSS with alluxio, create a bucket or use an exist
 You need to configure Alluxio to use OSS as its under storage system. The first modification is to specify an existing OSS bucket and directory as the under storage system by modifying `conf/alluxio-site.properties` to include:
 
 {% include Configuring-Alluxio-with-OSS/underfs-address.md %}
-    
+
 Next you need to specify the Aliyun credentials for OSS access. In `conf/alluxio-site.properties`, add:
 
 {% include Configuring-Alluxio-with-OSS/oss-access.md %}
-    
+
+Here `fs.oss.accessKeyId` and `fs.oss.accessKeySecret` correspond to the Access Key Id and Secret strings which are managed in [AccessKeys](https://ak-console.aliyun.com) in Aliyun UI, and `fs.oss.endpoint` is the Bucket region which is described in the Bucket overview with possible values like "oss-us-west-1.aliyuncs.com", "oss-cn-shanghai.aliyuncs.com".
 Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
 details about setting configuration parameters can be found in
 [Configuration Settings](Configuration-Settings.html#environment-variables).
@@ -54,13 +55,13 @@ the classpath.
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 {% include Common-Commands/start-alluxio.md %}
-    
+
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at http://localhost:19999.
 
 Next, you can run a simple example program:
 
 {% include Common-Commands/runTests.md %}
-    
+
 After this succeeds, you can visit your OSS directory OSS_BUCKET/OSS_DIRECTORY to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
 
 {% include Configuring-Alluxio-with-OSS/oss-file.md %}

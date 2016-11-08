@@ -78,6 +78,8 @@ final class UnderFileSystemDataServerHandler {
       int bytesRead = 0;
       if (in != null) { // if we have not reached the end of the file
         while (bytesRead < length) {
+          // TODO(peis): Fix this. It is not recommended to do heavy blocking IO operation
+          // in Netty's IO event group. We should do it in another threadpool.
           int read = in.read(data, bytesRead, (int) length - bytesRead);
           if (read == -1) {
             break;
@@ -90,9 +92,9 @@ final class UnderFileSystemDataServerHandler {
               : null;
       RPCFileReadResponse resp =
           new RPCFileReadResponse(ufsFileId, offset, bytesRead, buf, RPCResponse.Status.SUCCESS);
-      ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(ChannelFutureListener.CLOSE);
+      ctx.writeAndFlush(resp);
     } catch (Exception e) {
+      // TODO(peis): Fix this. The exception here should never be caused netty related issue.
       LOG.error("Failed to read ufs file, may have been closed due to a client timeout.", e);
       RPCFileReadResponse resp =
           RPCFileReadResponse.createErrorResponse(req, RPCResponse.Status.UFS_READ_FAILED);
@@ -126,9 +128,9 @@ final class UnderFileSystemDataServerHandler {
       channel.write(data.getReadOnlyByteBuffer());
       RPCFileWriteResponse resp =
           new RPCFileWriteResponse(ufsFileId, offset, length, RPCResponse.Status.SUCCESS);
-      ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(ChannelFutureListener.CLOSE);
+      ctx.writeAndFlush(resp);
     } catch (Exception e) {
+      // TODO(peis): Fix this. The exception here should never be caused netty related issue.
       LOG.error("Failed to write ufs file.", e);
       RPCFileWriteResponse resp =
           RPCFileWriteResponse.createErrorResponse(req, RPCResponse.Status.UFS_WRITE_FAILED);

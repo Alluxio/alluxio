@@ -246,13 +246,13 @@ public final class NettyDataServerTest {
   private RPCResponse request(RPCRequest rpcBlockWriteRequest) throws Exception {
     InetSocketAddress address =
         new InetSocketAddress(mNettyDataServer.getBindHost(), mNettyDataServer.getPort());
-    ClientHandler handler = new ClientHandler();
-    Bootstrap clientBootstrap = NettyClient.createClientBootstrap(handler);
+    Bootstrap clientBootstrap = NettyClient.createClientBootstrap();
     ChannelFuture f = clientBootstrap.connect(address).sync();
     Channel channel = f.channel();
     try {
       SingleResponseListener listener = new SingleResponseListener();
-      handler.addListener(listener);
+      ((ClientHandler) channel.pipeline().addLast(new ClientHandler()).last())
+          .addListener(listener);
       channel.writeAndFlush(rpcBlockWriteRequest);
       return listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
     } finally {

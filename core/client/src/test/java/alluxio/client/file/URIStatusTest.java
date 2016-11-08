@@ -59,6 +59,7 @@ public class URIStatusTest {
     Assert.assertEquals(uriStatus.getPersistenceState(),
         fileInfo.getPersistenceState());
     Assert.assertEquals(uriStatus.getTtl(), fileInfo.getTtl());
+    Assert.assertEquals(uriStatus.getTtlAction(), fileInfo.getTtlAction());
     Assert.assertEquals(uriStatus.getUfsPath(), fileInfo.getUfsPath());
     Assert.assertEquals(uriStatus.getOwner(), fileInfo.getOwner());
     Assert.assertEquals(uriStatus.isCacheable(), fileInfo.isCacheable());
