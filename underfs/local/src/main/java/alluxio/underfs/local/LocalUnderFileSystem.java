@@ -105,10 +105,24 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean exists(String path) throws IOException {
+  public boolean fileOrFolderExists(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     return file.exists();
+  }
+
+  @Override
+  public boolean fileExists(String path) throws IOException {
+    path = stripPath(path);
+    File file = new File(path);
+    return file.exists() && file.isFile();
+  }
+
+  @Override
+  public boolean directoryExists(String path) throws IOException {
+    path = stripPath(path);
+    File file = new File(path);
+    return file.exists() && file.isDirectory();
   }
 
   @Override
@@ -166,13 +180,6 @@ public class LocalUnderFileSystem extends UnderFileSystem {
       default:
         throw new IOException("Unknown getSpace parameter: " + type);
     }
-  }
-
-  @Override
-  public boolean isFile(String path) throws IOException {
-    path = stripPath(path);
-    File file = new File(path);
-    return file.isFile();
   }
 
   @Override

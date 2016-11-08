@@ -91,7 +91,7 @@ public final class JournalWriter {
     // Loop over all complete logs starting from the beginning, to determine the next log number.
     mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
-    while (mUfs.exists(logFilename)) {
+    while (mUfs.fileExists(logFilename)) {
       mNextCompleteLogNumber++;
       // generate the next completed log filename in the sequence.
       logFilename = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
@@ -113,7 +113,7 @@ public final class JournalWriter {
       throws IOException {
     if (mCheckpointOutputStream == null) {
       LOG.info("Creating tmp checkpoint file: {}", mTempCheckpointPath);
-      if (!mUfs.exists(mJournalDirectory)) {
+      if (!mUfs.directoryExists(mJournalDirectory)) {
         LOG.info("Creating journal folder: {}", mJournalDirectory);
         mUfs.mkdirs(mJournalDirectory, true);
       }
@@ -183,7 +183,7 @@ public final class JournalWriter {
     // TODO(gpang): should the deletes start from the end?
     long logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(logNumber);
-    while (mUfs.exists(logFilename)) {
+    while (mUfs.fileExists(logFilename)) {
       LOG.info("Deleting completed log: {}", logFilename);
       mUfs.delete(logFilename, true);
       logNumber++;
@@ -204,12 +204,12 @@ public final class JournalWriter {
    */
   private synchronized void completeCurrentLog() throws IOException {
     String currentLog = mJournal.getCurrentLogFilePath();
-    if (!mUfs.exists(currentLog)) {
+    if (!mUfs.fileExists(currentLog)) {
       // All logs are already complete, so nothing to do.
       return;
     }
 
-    if (!mUfs.exists(mCompletedDirectory)) {
+    if (!mUfs.directoryExists(mCompletedDirectory)) {
       mUfs.mkdirs(mCompletedDirectory, true);
     }
 

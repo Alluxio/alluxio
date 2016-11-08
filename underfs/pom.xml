@@ -24,15 +24,22 @@
 
   <modules>
     <module>local</module>
-    <module>hdfs</module>
-    <module>glusterfs</module>
-    <module>oss</module>
-    <module>swift</module>
-    <module>s3</module>
-    <module>s3a</module>
-    <module>gcs</module>
   </modules>
 
+  <profiles>
+    <profile>
+      <id>ufs-all</id>
+      <modules>
+        <module>hdfs</module>
+        <module>glusterfs</module>
+        <module>oss</module>
+        <module>swift</module>
+        <module>s3</module>
+        <module>s3a</module>
+        <module>gcs</module>
+      </modules>
+    </profile>
+  </profiles>
 
   <dependencyManagement>
     <dependencies>

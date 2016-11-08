@@ -308,13 +308,33 @@ public abstract class UnderFileSystem {
   public abstract boolean delete(String path, boolean recursive) throws IOException;
 
   /**
-   * Checks if a file or folder exists in under file system.
+   * Checks if a file exists in under file system.
    *
    * @param path the file name
    * @return true if succeed, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean exists(String path) throws IOException;
+  public abstract boolean fileExists(String path) throws IOException;
+
+  /**
+   * Checks if a folder exists in under file system.
+   *
+   * @param path the folder name
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract boolean directoryExists(String path) throws IOException;
+
+  /**
+   * Check if the file or folder exists.
+   *
+   * @param path of file or folder
+   * @return true if the path exists
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public boolean fileOrFolderExists(String path) throws IOException {
+    return fileExists(path) || directoryExists(path);
+  }
 
   /**
    * Gets the block size of a file in under file system, in bytes.
@@ -386,15 +406,6 @@ public abstract class UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract long getSpace(String path, SpaceType type) throws IOException;
-
-  /**
-   * Checks if the indicated path is a file or not.
-   *
-   * @param path the path name
-   * @return true if this is a file, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public abstract boolean isFile(String path) throws IOException;
 
   /**
    * Returns an array of strings naming the files and directories in the directory denoted by this

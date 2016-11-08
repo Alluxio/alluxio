@@ -640,7 +640,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       Permission permission = new Permission(inode.getOwner(), inode.getGroup(), inode.getMode());
       MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(false)
           .setPermission(permission);
-      if (ufs.exists(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
+      if (ufs.directoryExists(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
         inode.setPersistenceState(PersistenceState.PERSISTED);
       }
     }
