@@ -41,50 +41,6 @@ public class NonAtomicFileOutputStream extends OutputStream {
   private boolean mClosed = false;
 
   /**
-   * A {@link UnderFileSystem} which want to use a {@link NonAtomicFileOutputStream}.
-   */
-  public interface NonAtomicUnderFileSystem {
-    /**
-     * Create an output stream to a temporary path.
-     *
-     * @param path temporary path
-     * @param options the options for create
-     * @return a non atomic output stream
-     * @throws IOException when create fails
-     */
-    OutputStream createInternal(String path, CreateOptions options) throws IOException;
-
-    /**
-     * Delete temporary path.
-     *
-     * @param path temporary path
-     * @param recursive is false
-     * @return true if delete was successful
-     * @throws IOException if a non Alluxio error occurs
-     */
-    boolean delete(String path, boolean recursive) throws IOException;
-
-    /**
-     * Rename temporary path to final destination.
-     *
-     * @param src temporary path
-     * @param dst final path
-     * @return true if rename was successful
-     * @throws IOException if a non Alluxio error occurs
-     */
-    boolean rename(String src, String dst) throws IOException;
-
-    /**
-     *
-     * @param path final path
-     * @param owner owner
-     * @param group group
-     * @throws IOException if a non Alluxio error occurs
-     */
-    void setOwner(String path, String owner, String group) throws IOException;
-  }
-
-  /**
    * Constructs a new {@link NonAtomicFileOutputStream}.
    *
    * @param path path being written to

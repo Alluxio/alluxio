@@ -19,6 +19,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.NonAtomicFileOutputStream;
+import alluxio.underfs.NonAtomicUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -50,8 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * HDFS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public class HdfsUnderFileSystem extends UnderFileSystem
-    implements NonAtomicFileOutputStream.NonAtomicUnderFileSystem {
+public class HdfsUnderFileSystem extends UnderFileSystem implements NonAtomicUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
   // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.

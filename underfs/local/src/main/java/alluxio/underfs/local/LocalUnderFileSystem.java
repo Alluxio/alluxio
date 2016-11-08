@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.NonAtomicFileOutputStream;
+import alluxio.underfs.NonAtomicUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -48,8 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * </p>
  */
 @ThreadSafe
-public class LocalUnderFileSystem extends UnderFileSystem
-    implements NonAtomicFileOutputStream.NonAtomicUnderFileSystem {
+public class LocalUnderFileSystem extends UnderFileSystem implements NonAtomicUnderFileSystem {
 
   /**
    * Constructs a new {@link LocalUnderFileSystem}.
