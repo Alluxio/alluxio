@@ -339,6 +339,23 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests {@link UnderFileSystem#mkdirs(String, boolean)} does not make parent directories if
+   * createParent is false.
+   */
+  @Test
+  public void mkdirsWithCreateParentEqualToFalse() throws IOException {
+    mUfs.mkdirs(mUnderfsAddress, true);
+    String testDirTop = PathUtils.concatPath(mUnderfsAddress, "testDirTop");
+    String testDir1 = PathUtils.concatPath(testDirTop, "testDir1");
+    String testDirDeep = PathUtils.concatPath(testDir1, "testDirDeep");
+    mUfs.mkdirs(testDirTop, false);
+    Assert.assertTrue(mUfs.exists(testDirTop));
+    mUfs.mkdirs(testDirDeep, false);
+    Assert.assertFalse(mUfs.exists(testDir1));
+    Assert.assertFalse(mUfs.exists(testDirDeep));
+  }
+
+  /**
    * Tests {@link UnderFileSystem#rename(String, String)} works file to new location.
    */
   @Test
