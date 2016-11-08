@@ -86,6 +86,10 @@ public final class CheckpointManager {
 
   /**
    * Recovers the checkpoint file in case the master crashed while updating it previously.
+   *
+   * After this method has completed, the checkpoint at {@link #mCheckpointPath} plus any completed
+   * logs will fully represent the master's state, and there will be no files at
+   * {@link mBackupCheckpointPath} or {@link #mTempBackupCheckpointPath}.
    */
   public void recoverCheckpoint() {
     try {
@@ -94,8 +98,7 @@ public final class CheckpointManager {
       boolean tempBackupCheckpointExists = mUfs.exists(mTempBackupCheckpointPath);
       Preconditions.checkState(
           !(checkpointExists && backupCheckpointExists && tempBackupCheckpointExists),
-          "checkpoint, temp backup checkpoint, and backup checkpoint should never exist "
-              + "simultaneously");
+          "checkpoint, temp backup checkpoint, and backup checkpoint should never all exist ");
       if (tempBackupCheckpointExists) {
         // If mCheckpointPath also exists, step 2 must have implemented rename as copy + delete, and
         // failed during the delete.
