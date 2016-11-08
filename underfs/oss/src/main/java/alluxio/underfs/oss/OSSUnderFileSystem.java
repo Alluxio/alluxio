@@ -130,6 +130,11 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
+    return createDirect(path, options);
+  }
+
+  @Override
+  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     path = toURIPath(path);
     if (mkdirs(getParentKey(path), true)) {
       return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);

@@ -238,6 +238,11 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
+    return createDirect(path, options);
+  }
+
+  @Override
+  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
       return new S3AOutputStream(mBucketName, stripPrefixIfPresent(path), mManager);
     }

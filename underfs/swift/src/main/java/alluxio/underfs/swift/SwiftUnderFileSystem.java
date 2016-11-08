@@ -210,6 +210,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
+    return createDirect(path, options);
+  }
+
+  @Override
+  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
 
     // create will attempt to create the parent directory if it does not already exist
