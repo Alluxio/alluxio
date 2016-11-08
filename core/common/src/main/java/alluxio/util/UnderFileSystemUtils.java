@@ -13,6 +13,8 @@ package alluxio.util;
 
 import alluxio.underfs.UnderFileSystem;
 
+import com.google.common.base.Throwables;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -65,6 +67,23 @@ public final class UnderFileSystemUtils {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     OutputStream os = ufs.create(path);
     os.close();
+  }
+
+  /**
+   * Deletes the specified path from the specified under file system if it exists. This will not
+   * delete nonempty directories.
+   *
+   * @param ufs the under file system to delete from
+   * @param path the path to delete
+   */
+  public static void deleteIfExists(UnderFileSystem ufs, String path) {
+    try {
+      if (ufs.exists(path)) {
+        ufs.delete(path, false);
+      }
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation
