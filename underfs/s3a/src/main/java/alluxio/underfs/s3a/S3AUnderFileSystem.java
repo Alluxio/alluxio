@@ -565,24 +565,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Waits until the given key exists or the timeout is exceeded. This should only be used when
-   * the key is expected to exist.
-   *
-   * @throws IOException if the timeout is exceeded
-   */
-  private void ensureExists(String key) throws IOException {
-    long startMs = System.currentTimeMillis();
-    long timeoutMs = Configuration.getLong(PropertyKey.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS);
-    while (!exists(key)) {
-      if (System.currentTimeMillis() - startMs < timeoutMs) {
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-      } else {
-        throw new IOException("Timeout exceeded while waiting for " + key + " to exist.");
-      }
-    }
-  }
-
-  /**
    * Gets the child name based on the parent name.
    *
    * @param child the key of the child

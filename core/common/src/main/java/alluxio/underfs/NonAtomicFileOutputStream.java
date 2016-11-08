@@ -11,10 +11,15 @@
 
 package alluxio.underfs;
 
+import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.underfs.options.NonAtomicCreateOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,9 +31,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class NonAtomicFileOutputStream extends OutputStream {
-  private OutputStream mTemporaryOutputStream;
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private NonAtomicUnderFileSystem mUfs;
-  private NonAtomicCreateOptions mOptions;
+  private CreateOptions mOptions;
+  private String mPermanentPath;
+  private String mTemporaryPath;
+  private OutputStream mTemporaryOutputStream;
   private boolean mClosed = false;
 
   /**
@@ -46,12 +55,33 @@ public class NonAtomicFileOutputStream extends OutputStream {
     OutputStream createTemporary(String path, CreateOptions options) throws IOException;
 
     /**
-     * Complete the create operation by renaming temporary path to permanent.
+     * Delete temporary path.
      *
-     * @param options information to complete create
-     * @throws IOException when rename fails
+     * @param path temporary path
+     * @param recursive is false
+     * @return true if delete was successful
+     * @throws IOException if a non Alluxio error occurs
      */
-    void completeCreate(NonAtomicCreateOptions options) throws IOException;
+    boolean delete(String path, boolean recursive) throws IOException;
+
+    /**
+     * Rename temporary path to final destination.
+     *
+     * @param src temporary path
+     * @param dst final path
+     * @return true if rename was successful
+     * @throws IOException if a non Alluxio error occurs
+     */
+    boolean rename(String src, String dst) throws IOException;
+
+    /**
+     *
+     * @param path final path
+     * @param owner owner
+     * @param group group
+     * @throws IOException if a non Alluxio error occurs
+     */
+    void setOwner(String path, String owner, String group) throws IOException;
   }
 
   /**
@@ -64,9 +94,10 @@ public class NonAtomicFileOutputStream extends OutputStream {
    */
   public NonAtomicFileOutputStream(String path, CreateOptions options,
       NonAtomicUnderFileSystem ufs) throws IOException {
-    String temporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
-    mOptions = new NonAtomicCreateOptions(temporaryPath, path, options);
-    mTemporaryOutputStream = ufs.createTemporary(temporaryPath, options);
+    mOptions = options;
+    mPermanentPath = path;
+    mTemporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
+    mTemporaryOutputStream = ufs.createTemporary(mTemporaryPath, options);
     mUfs = ufs;
   }
 
@@ -91,7 +122,25 @@ public class NonAtomicFileOutputStream extends OutputStream {
       return;
     }
     mTemporaryOutputStream.close();
-    mUfs.completeCreate(mOptions);
+
+    if (!mUfs.rename(mTemporaryPath, mPermanentPath)) {
+      if (!mUfs.delete(mTemporaryPath, false)) {
+        LOG.error("Failed to delete temporary file {}", mTemporaryPath);
+      }
+      throw new IOException(
+          ExceptionMessage.FAILED_UFS_RENAME.getMessage(mTemporaryPath, mPermanentPath));
+    }
+
+    // Preserve permissions in case delegation was used to create path
+    Permission perm = mOptions.getPermission();
+    if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
+      try {
+        mUfs.setOwner(mPermanentPath, perm.getOwner(), perm.getGroup());
+      } catch (Exception e) {
+        LOG.warn("Failed to update the ufs ownership, default values will be used. " + e);
+      }
+    }
+    // TODO(chaomin): consider setMode of the ufs file.
     mClosed = true;
   }
 }

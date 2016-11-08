@@ -15,11 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.exception.ExceptionMessage;
-import alluxio.security.authorization.Permission;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.underfs.options.NonAtomicCreateOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
@@ -278,36 +275,6 @@ public abstract class UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract void close() throws IOException;
-
-  /**
-   * Complete a create operation by renaming temporary path to permanent. This is required when a
-   * {@link NonAtomicFileOutputStream} is used.
-   *
-   * @param options information to complete create
-   * @throws IOException when rename fails
-   */
-  public void completeCreate(NonAtomicCreateOptions options) throws IOException {
-    String temporaryPath = options.getTemporaryPath();
-    String permanentPath = options.getPermanentPath();
-    if (!rename(temporaryPath, permanentPath)) {
-      if (!delete(temporaryPath, false)) {
-        LOG.error("Failed to delete temporary file {}", temporaryPath);
-      }
-      throw new IOException(
-          ExceptionMessage.FAILED_UFS_RENAME.getMessage(temporaryPath, permanentPath));
-    }
-
-    // Preserve permissions in case delegation was used to create path
-    Permission perm = options.getCreateOptions().getPermission();
-    if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
-      try {
-        setOwner(permanentPath, perm.getOwner(), perm.getGroup());
-      } catch (Exception e) {
-        LOG.warn("Failed to update the ufs ownership, default values will be used. " + e);
-      }
-    }
-    // TODO(chaomin): consider setMode of the ufs file.
-  }
 
   /**
    * Creates a file in the under file system with the indicated name.
