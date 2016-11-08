@@ -170,7 +170,39 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean exists(String path) throws IOException {
+  public boolean fileExists(String path) throws IOException {
+    IOException te = null;
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
+      try {
+        return mFileSystem.isFile(new Path(path));
+      } catch (IOException e) {
+        LOG.error("{} try to check if {} exists : {}", retryPolicy.getRetryCount(), path,
+            e.getMessage(), e);
+        te = e;
+      }
+    }
+    throw te;
+  }
+
+  @Override
+  public boolean directoryExists(String path) throws IOException {
+    IOException te = null;
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
+      try {
+        return mFileSystem.isDirectory(new Path(path));
+      } catch (IOException e) {
+        LOG.error("{} try to check if {} exists : {}", retryPolicy.getRetryCount(), path,
+            e.getMessage(), e);
+        te = e;
+      }
+    }
+    throw te;
+  }
+
+  @Override
+  public boolean fileOrFolderExists(String path) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
@@ -273,11 +305,6 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean isFile(String path) throws IOException {
-    return mFileSystem.isFile(new Path(path));
-  }
-
-  @Override
   public String[] list(String path) throws IOException {
     FileStatus[] files;
     try {
@@ -285,7 +312,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     } catch (FileNotFoundException e) {
       return null;
     }
-    if (files != null && !isFile(path)) {
+    if (files != null && !fileExists(path)) {
       String[] rtn = new String[files.length];
       int i = 0;
       for (FileStatus status : files) {
@@ -391,12 +418,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean rename(String src, String dst) throws IOException {
     LOG.debug("Renaming from {} to {}", src, dst);
-    if (!exists(src)) {
+    if (!fileOrFolderExists(src)) {
       LOG.error("File {} does not exist. Therefore rename to {} failed.", src, dst);
       return false;
     }
 
-    if (exists(dst)) {
+    if (fileOrFolderExists(dst)) {
       LOG.error("File {} does exist. Therefore rename from {} failed.", dst, src);
       return false;
     }
