@@ -189,6 +189,7 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void openUfsFile() throws Exception {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
+    Mockito.when(mMockUfs.isDirectory(mUri.toString())).thenReturn(true);
     mManager.openFile(SESSION_ID, new AlluxioURI(mUri.toString()));
     Mockito.verify(mMockUfs).exists(mUri.toString());
     Mockito.verify(mMockUfs).connectFromWorker(Mockito.anyString());
@@ -200,6 +201,8 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void openNonExistentUfsFile() throws Exception {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(false);
+    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(false);
+    Mockito.when(mMockUfs.isDirectory(mUri.toString())).thenReturn(false);
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mUri.toString()));
     mManager.openFile(SESSION_ID, mUri);
@@ -211,6 +214,7 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void closeUfsFile() throws Exception {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
+    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, new AlluxioURI(mUri.toString()));
     mManager.closeFile(SESSION_ID, id);
     mThrown.expect(FileDoesNotExistException.class);
@@ -234,6 +238,7 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void closeUfsFileInvalidSession() throws Exception {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
+    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(SESSION_ID, mUri);
     mThrown.expect(IllegalArgumentException.class);
@@ -268,6 +273,7 @@ public final class UnderFileSystemManagerTest {
   public void getInputStream() throws Exception {
     long position = 0L;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
+    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     Mockito.when(mMockInputStream.read()).thenReturn(5);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
@@ -283,6 +289,7 @@ public final class UnderFileSystemManagerTest {
   public void getInputStreamAtPosition() throws Exception {
     long position = FILE_LENGTH - 1;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
+    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     Mockito.when(mMockInputStream.read()).thenReturn(5);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
@@ -327,6 +334,7 @@ public final class UnderFileSystemManagerTest {
     long position = 0;
     long nextPosition = 100;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
+    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
     in.skip(nextPosition - position);
@@ -345,6 +353,7 @@ public final class UnderFileSystemManagerTest {
     long position = 0;
     long nextPosition = 100;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
+    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
     in.skip(nextPosition - position);
@@ -361,6 +370,7 @@ public final class UnderFileSystemManagerTest {
   public void getInputStreamAtEOF() throws Exception {
     long position = FILE_LENGTH;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
+    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
     Assert.assertEquals(null, in);
