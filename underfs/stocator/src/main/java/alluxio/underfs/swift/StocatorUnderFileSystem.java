@@ -15,8 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.retry.CountingRetry;
-import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -28,6 +26,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Throwables;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -47,8 +47,6 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
   /** Stocator access. */
   private final FileSystem mFileSystem;
 
-  private static final int MAX_TRY = 5;
-
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
@@ -60,27 +58,21 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
     org.apache.hadoop.conf.Configuration hConf = new org.apache.hadoop.conf.Configuration();
     hConf.set("fs.swift2d.impl", "com.ibm.stocator.fs.ObjectStoreFileSystem");
     hConf.set("fs.swift2d.service.srv.auth.url", Configuration.get(PropertyKey.SWIFT_AUTH_URL_KEY));
-    hConf.set("fs.swift2d.service.srv.public", "true");
+    hConf.set("fs.swift2d.service.srv.public",
+        Configuration.get(PropertyKey.SWIFT_USE_PUBLIC_URI_KEY));
     hConf.set("fs.swift2d.service.srv.tenant", Configuration.get(PropertyKey.SWIFT_TENANT_KEY));
     hConf.set("fs.swift2d.service.srv.password", Configuration.get(PropertyKey.SWIFT_PASSWORD_KEY));
     hConf.set("fs.swift2d.service.srv.username", Configuration.get(PropertyKey.SWIFT_USER_KEY));
     hConf.set("fs.swift2d.service.srv.auth.method",
         Configuration.get(PropertyKey.SWIFT_AUTH_METHOD_KEY));
-    hConf.set("fs.swift2d.service.srv.failure.mode.delete", "true");
     LOG.debug("Stocator under fs init {}", uri.toString());
-    mFileSystem = stocatorInit(uri.toString() , hConf);
-  }
-
-  private FileSystem stocatorInit(String path, org.apache.hadoop.conf.Configuration hConf) {
-    FileSystem stocatorTemp = null;
     try {
-      stocatorTemp = FileSystem.get(new URI(path) , hConf);
-      LOG.debug("Stocator under fs init successfull {}", path);
+      mFileSystem = FileSystem.get(new URI(uri.toString()) , hConf);
+      LOG.debug("Stocator under fs init successfull {}", uri.toString());
     } catch (IOException | URISyntaxException e) {
-      LOG.debug("Stocator under fs init failed {}", path);
-      LOG.debug(e.getMessage());
+      LOG.error("Exception thrown when trying to get FileSystem for {}", uri.toString(), e);
+      throw Throwables.propagate(e);
     }
-    return stocatorTemp;
   }
 
   @Override
@@ -107,17 +99,12 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
   @Override
   public FSDataOutputStream create(String path, CreateOptions options)
       throws IOException {
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        return FileSystem.create(mFileSystem, new Path(path), null);
-      } catch (IOException e) {
-        LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
-        te = e;
-      }
+    try {
+      return FileSystem.create(mFileSystem, new Path(path), null);
+    }  catch (IOException e) {
+      LOG.error("Failed to create {}", path);
+      throw e;
     }
-    throw te;
   }
 
   @Override
@@ -128,7 +115,7 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
-    LOG.debug("Existis {}", path);
+    LOG.debug("Exists {}", path);
     return mFileSystem.exists(new Path(path));
   }
 
@@ -168,17 +155,13 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
   @Override
   public long getFileSize(String path) throws IOException {
     Path tPath = new Path(path);
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        FileStatus fs = mFileSystem.getFileStatus(tPath);
-        return fs.getLen();
-      } catch (IOException e) {
-        LOG.error("{} try to get file size for {} : {}", retryPolicy.getRetryCount(), path,
-            e.getMessage(), e);
-      }
+    try {
+      FileStatus fs = mFileSystem.getFileStatus(tPath);
+      return fs.getLen();
+    } catch (IOException e) {
+      LOG.error("Error fetching file size, assuming file does not exist", e);
+      throw new FileNotFoundException(path);
     }
-    return -1;
   }
 
   @Override
@@ -189,7 +172,6 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
     }
     FileStatus fs = mFileSystem.getFileStatus(tPath);
     return fs.getModificationTime();
-
   }
 
   // This call is currently only used for the web ui, where a negative value implies unknown.
@@ -216,7 +198,7 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
       int i = 0;
       for (FileStatus status : files) {
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i++] =  status.getPath().getName();
+        rtn[i++] = status.getPath().getName();
       }
       return rtn;
     } else {
@@ -237,19 +219,14 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
   @Override
   public FSDataInputStream open(String path) throws IOException {
     LOG.debug("Open file {}", path);
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        FSDataInputStream in = mFileSystem.open(new Path(path));
-        LOG.debug("Got input stream for {}", path);
-        return in;
-      } catch (IOException e) {
-        LOG.error("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage(), e);
-        te = e;
-      }
+    try {
+      FSDataInputStream in = mFileSystem.open(new Path(path));
+      LOG.debug("Got input stream for {}", path);
+      return in;
+    } catch (IOException e) {
+      LOG.error("Failed to open {} : {}", path, e.getMessage(), e);
+      throw e;
     }
-    throw te;
   }
 
   /**
