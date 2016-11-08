@@ -281,13 +281,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     LOG.debug("Check if {} exists", path);
-    // TODO(adit): remove special treatment of the _temporary suffix
-    // To get better performance Swift driver does not create a _temporary folder.
-    // This optimization should be hidden from Spark, therefore exists _temporary will return true.
-    if (isRoot(path) || path.endsWith("_temporary")) {
-      return true;
-    }
-
     if (path.endsWith(FOLDER_SUFFIX)) {
       // If path ends with the folder suffix, we do not check for the existence of a file
       return isDirectory(path);
@@ -585,14 +578,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return false;
   }
 
-  /**
-   * Checks if the path corresponds to a Swift directory.
-   *
-   * @param path the path to check
-   * @return boolean indicating if the path is a directory
-   * @throws IOException if an error occurs listing the directory
-   */
-  private boolean isDirectory(String path) throws IOException {
+  @Override
+  public boolean isDirectory(String path) throws IOException {
     // Root is always a folder
     if (isRoot(path)) {
       return true;

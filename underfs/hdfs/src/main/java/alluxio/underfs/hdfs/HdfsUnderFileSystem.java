@@ -170,7 +170,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean fileExists(String path) throws IOException {
+  public boolean isFile(String path) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
@@ -186,7 +186,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean directoryExists(String path) throws IOException {
+  public boolean isDirectory(String path) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
@@ -202,7 +202,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean fileOrFolderExists(String path) throws IOException {
+  public boolean exists(String path) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
@@ -312,7 +312,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     } catch (FileNotFoundException e) {
       return null;
     }
-    if (files != null && !fileExists(path)) {
+    if (files != null && !isFile(path)) {
       String[] rtn = new String[files.length];
       int i = 0;
       for (FileStatus status : files) {
@@ -418,12 +418,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean rename(String src, String dst) throws IOException {
     LOG.debug("Renaming from {} to {}", src, dst);
-    if (!fileOrFolderExists(src)) {
+    if (!exists(src)) {
       LOG.error("File {} does not exist. Therefore rename to {} failed.", src, dst);
       return false;
     }
 
-    if (fileOrFolderExists(dst)) {
+    if (exists(dst)) {
       LOG.error("File {} does exist. Therefore rename from {} failed.", dst, src);
       return false;
     }

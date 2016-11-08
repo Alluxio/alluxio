@@ -188,7 +188,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
       }
-      if (isFolder(path) && children.length != 0) {
+      if (isDirectory(path) && children.length != 0) {
         LOG.error("Unable to delete {} because it is a non empty directory. Specify "
                 + "recursive as true in order to delete non empty directories.", path);
         return false;
@@ -279,13 +279,13 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    return exists(path) && !isFolder(path);
+    return exists(path) && !isDirectory(path);
   }
 
   @Override
   public String[] list(String path) throws IOException {
     // if the path not exists, or it is a file, then should return null
-    if (!exists(path) || isFile(path)) {
+    if (!isDirectory(path) || isFile(path)) {
       return null;
     }
     // Non recursive list
@@ -303,10 +303,10 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     if (path == null) {
       return false;
     }
-    if (isFolder(path)) {
+    if (isDirectory(path)) {
       return true;
     }
-    if (exists(path)) {
+    if (isFile(path)) {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
@@ -370,7 +370,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
       return false;
     }
     // Source exists and destination does not exist
-    if (isFolder(src)) {
+    if (isDirectory(src)) {
       // Rename the source folder first
       if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
         return false;
@@ -476,7 +476,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    */
   private boolean deleteInternal(String key) {
     try {
-      if (isFolder(key)) {
+      if (isDirectory(key)) {
         String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
         mClient.deleteObject(mBucketName, keyAsFolder);
       } else {
@@ -511,7 +511,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    */
   private GSObject getObjectDetails(String key) {
     try {
-      if (isFolder(key)) {
+      if (isDirectory(key)) {
         String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
         return mClient.getObjectDetails(mBucketName, keyAsFolder);
       } else {
@@ -538,14 +538,8 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     return key.substring(0, separatorIndex);
   }
 
-  /**
-   * Determines if the key represents a folder. If false is returned, it is not guaranteed that the
-   * path exists.
-   *
-   * @param key the key to check
-   * @return whether the given key identifies a folder
-   */
-  private boolean isFolder(String key) {
+  @Override
+  public boolean isDirectory(String key) {
     // Root is always a folder
     if (isRoot(key)) {
       return true;
@@ -691,7 +685,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
       return true;
     }
     String parentKey = getParentKey(key);
-    return parentKey != null && isFolder(parentKey);
+    return parentKey != null && isDirectory(parentKey);
   }
 
   /**

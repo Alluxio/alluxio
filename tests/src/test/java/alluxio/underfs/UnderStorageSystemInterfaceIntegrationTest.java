@@ -64,7 +64,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   public void createEmpty() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
-    Assert.assertTrue(mUfs.fileExists(testFile));
+    Assert.assertTrue(mUfs.isFile(testFile));
   }
 
   /**
@@ -88,7 +88,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
     mUfs.delete(testFile, false);
-    Assert.assertFalse(mUfs.fileExists(testFile));
+    Assert.assertFalse(mUfs.isFile(testFile));
   }
 
   /**
@@ -110,18 +110,18 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     createEmptyFile(testDirNonEmptyChildFile);
     createEmptyFile(testDirNonEmptyChildDirFile);
     mUfs.delete(testDirEmpty, false);
-    Assert.assertFalse(mUfs.directoryExists(testDirEmpty));
+    Assert.assertFalse(mUfs.isDirectory(testDirEmpty));
     try {
       mUfs.delete(testDirNonEmpty, false);
     } catch (IOException e) {
       // Some File systems may throw IOException
     }
-    Assert.assertTrue(mUfs.directoryExists(testDirNonEmpty));
+    Assert.assertTrue(mUfs.isDirectory(testDirNonEmpty));
     mUfs.delete(testDirNonEmpty, true);
-    Assert.assertFalse(mUfs.directoryExists(testDirNonEmpty));
-    Assert.assertFalse(mUfs.directoryExists(testDirNonEmptyChildDir));
-    Assert.assertFalse(mUfs.fileExists(testDirNonEmptyChildFile));
-    Assert.assertFalse(mUfs.fileExists(testDirNonEmptyChildDirFile));
+    Assert.assertFalse(mUfs.isDirectory(testDirNonEmpty));
+    Assert.assertFalse(mUfs.isDirectory(testDirNonEmptyChildDir));
+    Assert.assertFalse(mUfs.isFile(testDirNonEmptyChildFile));
+    Assert.assertFalse(mUfs.isFile(testDirNonEmptyChildDirFile));
   }
 
   /**
@@ -140,7 +140,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
       boolean childDeleted = false;
       for (int i = 0; i < 20; i++) {
-        childDeleted = !mUfs.fileOrFolderExists(child);
+        childDeleted = !mUfs.exists(child);
         if (childDeleted) {
           break;
         }
@@ -157,13 +157,13 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @Test
   public void exists() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
-    Assert.assertFalse(mUfs.fileExists(testFile));
+    Assert.assertFalse(mUfs.isFile(testFile));
     createEmptyFile(testFile);
-    Assert.assertTrue(mUfs.fileExists(testFile));
+    Assert.assertTrue(mUfs.isFile(testFile));
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
-    Assert.assertFalse(mUfs.directoryExists(testDir));
+    Assert.assertFalse(mUfs.isDirectory(testDir));
     mUfs.mkdirs(testDir, false);
-    Assert.assertTrue(mUfs.directoryExists(testDir));
+    Assert.assertTrue(mUfs.isDirectory(testDir));
   }
 
   /**
@@ -195,18 +195,18 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests if {@link UnderFileSystem#fileExists(String)} returns true for files and false
+   * Tests if {@link UnderFileSystem#isFile(String)} returns true for files and false
    * otherwise.
    */
   @Test
   public void fileExists() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
-    Assert.assertFalse(mUfs.fileExists(testFile));
+    Assert.assertFalse(mUfs.isFile(testFile));
     createEmptyFile(testFile);
     mUfs.mkdirs(testDir, false);
-    Assert.assertTrue(mUfs.fileExists(testFile));
-    Assert.assertFalse(mUfs.fileExists(testDir));
+    Assert.assertTrue(mUfs.isFile(testFile));
+    Assert.assertFalse(mUfs.isFile(testDir));
   }
 
   /**
@@ -330,12 +330,12 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testDir3 = PathUtils.concatPath(testDir2, "3");
     String testDirDeep = PathUtils.concatPath(testDir3, "testDirDeep");
     mUfs.mkdirs(testDirTop, false);
-    Assert.assertTrue(mUfs.directoryExists(testDirTop));
+    Assert.assertTrue(mUfs.isDirectory(testDirTop));
     mUfs.mkdirs(testDirDeep, true);
-    Assert.assertTrue(mUfs.directoryExists(testDir1));
-    Assert.assertTrue(mUfs.directoryExists(testDir2));
-    Assert.assertTrue(mUfs.directoryExists(testDir3));
-    Assert.assertTrue(mUfs.directoryExists(testDirDeep));
+    Assert.assertTrue(mUfs.isDirectory(testDir1));
+    Assert.assertTrue(mUfs.isDirectory(testDir2));
+    Assert.assertTrue(mUfs.isDirectory(testDir3));
+    Assert.assertTrue(mUfs.isDirectory(testDirDeep));
   }
 
   /**
@@ -347,8 +347,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFileDst = PathUtils.concatPath(mUnderfsAddress, "testFileDst");
     createEmptyFile(testFileSrc);
     mUfs.rename(testFileSrc, testFileDst);
-    Assert.assertFalse(mUfs.fileExists(testFileSrc));
-    Assert.assertTrue(mUfs.fileExists(testFileDst));
+    Assert.assertFalse(mUfs.isFile(testFileSrc));
+    Assert.assertTrue(mUfs.isFile(testFileDst));
   }
 
   /**
@@ -362,8 +362,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     createEmptyFile(testFileSrc);
     mUfs.mkdirs(testFileDst, false);
     if (mUfs.rename(testFileSrc, testFileDst)) {
-      Assert.assertFalse(mUfs.fileExists(testFileSrc));
-      Assert.assertTrue(mUfs.fileExists(testFileFinalDst));
+      Assert.assertFalse(mUfs.isFile(testFileSrc));
+      Assert.assertTrue(mUfs.isFile(testFileFinalDst));
     }
   }
 
@@ -379,10 +379,10 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     mUfs.mkdirs(testDirSrc, false);
     createEmptyFile(testDirSrcChild);
     mUfs.rename(testDirSrc, testDirDst);
-    Assert.assertFalse(mUfs.directoryExists(testDirSrc));
-    Assert.assertFalse(mUfs.fileExists(testDirSrcChild));
-    Assert.assertTrue(mUfs.directoryExists(testDirDst));
-    Assert.assertTrue(mUfs.fileExists(testDirDstChild));
+    Assert.assertFalse(mUfs.isDirectory(testDirSrc));
+    Assert.assertFalse(mUfs.isFile(testDirSrcChild));
+    Assert.assertTrue(mUfs.isDirectory(testDirDst));
+    Assert.assertTrue(mUfs.isFile(testDirDstChild));
   }
 
   /**
@@ -402,12 +402,12 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     createEmptyFile(testDirDstChild);
     createEmptyFile(testDirSrcChild);
     if (mUfs.rename(testDirSrc, testDirDst)) {
-      Assert.assertFalse(mUfs.directoryExists(testDirSrc));
-      Assert.assertFalse(mUfs.fileExists(testDirSrcChild));
-      Assert.assertTrue(mUfs.directoryExists(testDirDst));
-      Assert.assertTrue(mUfs.fileExists(testDirDstChild));
-      Assert.assertTrue(mUfs.directoryExists(testDirFinalDst));
-      Assert.assertTrue(mUfs.fileExists(testDirChildFinalDst));
+      Assert.assertFalse(mUfs.isDirectory(testDirSrc));
+      Assert.assertFalse(mUfs.isFile(testDirSrcChild));
+      Assert.assertTrue(mUfs.isDirectory(testDirDst));
+      Assert.assertTrue(mUfs.isFile(testDirDstChild));
+      Assert.assertTrue(mUfs.isDirectory(testDirFinalDst));
+      Assert.assertTrue(mUfs.isFile(testDirChildFinalDst));
     }
   }
 

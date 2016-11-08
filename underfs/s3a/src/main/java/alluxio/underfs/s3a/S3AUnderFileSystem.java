@@ -262,7 +262,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
       }
-      if (directoryExists(path) && children.length != 0) {
+      if (isDirectory(path) && children.length != 0) {
         LOG.error("Unable to delete {} because it is a non empty directory. Specify "
                 + "recursive as true in order to delete non empty directories.", path);
         return false;
@@ -286,7 +286,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean fileOrFolderExists(String path) throws IOException {
+  public boolean exists(String path) throws IOException {
     // Root path always exists.
     return isRoot(path) || getObjectDetails(path) != null;
   }
@@ -354,7 +354,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean fileExists(String path) throws IOException {
+  public boolean isFile(String path) throws IOException {
     // Directly try to get the file metadata, if we fail it either is a folder or does not exist
     try {
       mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path));
@@ -367,7 +367,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   @Override
   public String[] list(String path) throws IOException {
     // if the path not exists, or it is a file, then should return null
-    if (!directoryExists(path) || fileExists(path)) {
+    if (!isDirectory(path) || isFile(path)) {
       return null;
     }
     // Non recursive list
@@ -385,10 +385,10 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     if (path == null) {
       return false;
     }
-    if (directoryExists(path)) {
+    if (isDirectory(path)) {
       return true;
     }
-    if (fileExists(path)) {
+    if (isFile(path)) {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
@@ -448,23 +448,23 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     if (PathUtils.isTemporaryFileName(src)) {
       // If the user has enabled direct writes, skip the rename of Alluxio temporary files if the
       // temporary file does not exist and the destination exists.
-      if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_DIRECT_WRITES_ENABLED) && !fileOrFolderExists(src)) {
+      if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_DIRECT_WRITES_ENABLED) && !exists(src)) {
         ensureExists(dst);
         return true;
       } else {
         ensureExists(src);
       }
     }
-    if (!fileOrFolderExists(src)) {
+    if (!exists(src)) {
       LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
       return false;
     }
-    if (fileOrFolderExists(dst)) {
+    if (exists(dst)) {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }
     // Source exists and destination does not exist
-    if (directoryExists(src)) {
+    if (isDirectory(src)) {
       // Rename the source folder first
       if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
         return false;
@@ -573,7 +573,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    */
   private boolean deleteInternal(String key) {
     try {
-      if (directoryExists(key)) {
+      if (isDirectory(key)) {
         String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
         mClient.deleteObject(mBucketName, keyAsFolder);
       } else {
@@ -595,7 +595,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   private void ensureExists(String key) throws IOException {
     long startMs = System.currentTimeMillis();
     long timeoutMs = Configuration.getLong(PropertyKey.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS);
-    while (!fileOrFolderExists(key)) {
+    while (!exists(key)) {
       if (System.currentTimeMillis() - startMs < timeoutMs) {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       } else {
@@ -686,7 +686,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean directoryExists(String key) {
+  public boolean isDirectory(String key) {
     // Root is always a folder
     return isRoot(key) || getFolderMetadata(key) != null;
   }
@@ -812,7 +812,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       return true;
     }
     String parentKey = getParentKey(key);
-    return parentKey != null && directoryExists(parentKey);
+    return parentKey != null && isDirectory(parentKey);
   }
 
   /**

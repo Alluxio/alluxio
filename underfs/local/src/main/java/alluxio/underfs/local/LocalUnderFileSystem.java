@@ -105,21 +105,21 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean fileOrFolderExists(String path) throws IOException {
+  public boolean exists(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     return file.exists();
   }
 
   @Override
-  public boolean fileExists(String path) throws IOException {
+  public boolean isFile(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     return file.exists() && file.isFile();
   }
 
   @Override
-  public boolean directoryExists(String path) throws IOException {
+  public boolean isDirectory(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     return file.exists() && file.isDirectory();

@@ -314,7 +314,7 @@ public abstract class UnderFileSystem {
    * @return true if succeed, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean fileExists(String path) throws IOException;
+  public abstract boolean isFile(String path) throws IOException;
 
   /**
    * Checks if a folder exists in under file system.
@@ -323,7 +323,7 @@ public abstract class UnderFileSystem {
    * @return true if succeed, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean directoryExists(String path) throws IOException;
+  public abstract boolean isDirectory(String path) throws IOException;
 
   /**
    * Check if the file or folder exists.
@@ -332,8 +332,8 @@ public abstract class UnderFileSystem {
    * @return true if the path exists
    * @throws IOException if a non-Alluxio error occurs
    */
-  public boolean fileOrFolderExists(String path) throws IOException {
-    return fileExists(path) || directoryExists(path);
+  public boolean exists(String path) throws IOException {
+    return isFile(path) || isDirectory(path);
   }
 
   /**
