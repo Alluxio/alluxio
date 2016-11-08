@@ -74,7 +74,7 @@ public class LocalUnderFileSystem extends UnderFileSystem
   }
 
   @Override
-  public OutputStream createTemporary(String path, CreateOptions options) throws IOException {
+  public OutputStream createInternal(String path, CreateOptions options) throws IOException {
     path = stripPath(path);
     OutputStream stream = new FileOutputStream(path);
     try {

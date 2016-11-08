@@ -52,7 +52,7 @@ public class NonAtomicFileOutputStream extends OutputStream {
      * @return a non atomic output stream
      * @throws IOException when create fails
      */
-    OutputStream createTemporary(String path, CreateOptions options) throws IOException;
+    OutputStream createInternal(String path, CreateOptions options) throws IOException;
 
     /**
      * Delete temporary path.
@@ -97,7 +97,7 @@ public class NonAtomicFileOutputStream extends OutputStream {
     mOptions = options;
     mPermanentPath = path;
     mTemporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
-    mTemporaryOutputStream = ufs.createTemporary(mTemporaryPath, options);
+    mTemporaryOutputStream = ufs.createInternal(mTemporaryPath, options);
     mUfs = ufs;
   }
 

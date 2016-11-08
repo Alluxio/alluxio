@@ -136,7 +136,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem
   }
 
   @Override
-  public OutputStream createTemporary(String path, CreateOptions options) throws IOException {
+  public OutputStream createInternal(String path, CreateOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     Permission perm = options.getPermission();
