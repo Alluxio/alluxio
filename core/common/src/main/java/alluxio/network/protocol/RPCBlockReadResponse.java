@@ -70,6 +70,16 @@ public final class RPCBlockReadResponse extends RPCResponse {
   }
 
   /**
+   * Creates a {@link RPCBlockReadResponse} object that indicates a success for the given
+   * {@link RPCBlockReadRequest}.
+   *
+   * @return The generated {@link RPCBlockReadResponse} object
+   */
+  public static RPCBlockReadResponse createSuccessResponse(long blockId) {
+    return new RPCBlockReadResponse(blockId, -1, 0, null, Status.SUCCESS);
+  }
+
+  /**
    * Decodes the input {@link ByteBuf} into a {@link RPCBlockReadResponse} object and returns it.
    *
    * @param in the input {@link ByteBuf}
