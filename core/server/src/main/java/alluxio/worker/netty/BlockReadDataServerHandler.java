@@ -12,11 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.Constants;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.DataTransferException;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.netty.MessageQueue;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCResponse;
@@ -28,7 +24,7 @@ import alluxio.worker.block.io.BlockReader;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -40,6 +36,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -47,227 +44,194 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This class handles {@link RPCBlockReadRequest}s.
  */
-// TODO(peis): We should not throw runtime exception in this class. Fix it.
 @NotThreadSafe
 final public class BlockReadDataServerHandler
     extends SimpleChannelInboundHandler<RPCBlockReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  private static final Exception BLOCK_READ_CANCEL_EXCEPTION =
-      new DataTransferException("Block read is cancelled.");
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
   /** The transfer type used by the data server. */
   private final FileTransferType mTransferType;
 
-  private volatile ChannelHandlerContext mContext = null;
-  private volatile Long mBlockId = null;
   private volatile BlockReader mBlockReader = null;
+  private volatile long mBlockId = -1;
+  private volatile long mStart = -1;
+  private volatile long mEnd = -1;
 
   private static final int PACKET_SIZE = 64 * 1024;
+  private static final long MAX_PACKETS_IN_FLIGHT = 128;
 
-  public final class ResponseQueue extends MessageQueue<RPCBlockReadResponse> {
-    public ResponseQueue() {
-      super(MessageQueue.Options.defaultOptions());
-    }
-
-    @Override
-    protected void signal() {
-      mPacketReader.activate();
-    }
-  }
+  private ReentrantLock mLock = new ReentrantLock();
+  @GuardedBy("mLock")
+  private boolean mPacketReaderActive = false;
+  // The next pos to queue.
+  @GuardedBy("mLock")
+  private long mPos = -1;
+  // The next pos to ack.
+  @GuardedBy("mLock")
+  private long mPosToAck = -1;
+  @GuardedBy("mLock")
+  private Throwable mThrowable = null;
 
   // TODO(now): init these.
   private static final ExecutorService PACKET_READERS = null;
-  private static final ExecutorService PACKET_WRITERS = null;
 
-  public enum Status {
-    ACTIVE, BLOCKED, STOPPING, DONE,
+  private boolean validate(RPCBlockReadRequest request) {
+    if (request.isCancelRequest()) {
+      if (request.getBlockId() != mBlockId) {
+        return false;
+      }
+      return true;
+    }
+    if (request.getOffset() < 0 || request.getLength() < 0) {
+      return false;
+    }
+
+    // Everything must be reset.
+    try {
+      mLock.lock();
+      if (mBlockId != -1 || mBlockReader != null || mStart != -1 || mEnd != -1
+          || mPacketReaderActive || mPos != -1 || mPosToAck != -1 || mThrowable != null) {
+        return false;
+      }
+    } finally {
+      mLock.unlock();
+    }
+    return true;
   }
 
-  private volatile PacketReader mPacketReader = null;
-  private volatile PacketWriter mPacketWriter = null;
-  private ResponseQueue mResponseQueue = new ResponseQueue();
+  private void cleanup() throws Exception {
+    mLock.lock();
+    mBlockId = -1;
+    if (mBlockReader != null) {
+      mBlockReader.close();
+    }
+    mBlockReader = null;
+    mStart = -1;
+    mEnd = -1;
+    mPacketReaderActive = false;
+    mPos = -1;
+    mPosToAck = -1;
+    mThrowable = null;
+  }
+
+  private void init(RPCBlockReadRequest request) throws Exception {
+    mBlockId = request.getBlockId();
+    mBlockReader = mWorker.readBlockRemote(request.getSessionId(), mBlockId, request.getLockId());
+    mWorker.accessBlock(request.getSessionId(), mBlockId);
+
+    validateBounds(request, mBlockReader.getLength());
+
+    mStart = request.getOffset();
+    mEnd = mStart + request.getLength();
+    mPos = mStart;
+    mPosToAck = mStart;
+  }
+
+  private final class WriteListener implements ChannelFutureListener {
+    private final long mPosToAckUncommitted;
+
+    public WriteListener(long pos) {
+      mPosToAckUncommitted = pos;
+    }
+
+    @Override
+    public void operationComplete(ChannelFuture future) {
+      if (!future.isSuccess()) {
+        future.channel().close();
+      }
+
+      try {
+        mLock.lock();
+        Preconditions.checkState(mPosToAck - mPosToAckUncommitted <= PACKET_SIZE,
+            "Some packet is not acked.");
+        mPosToAck = mPosToAckUncommitted;
+
+        if (future.cause() != null) {
+          mThrowable = future.cause();
+          return;
+        }
+
+        if (shouldStartPacketReader()) {
+          mPacketReaderActive = true;
+          PACKET_READERS.submit(new PacketReader(future.channel()));
+        }
+        long blockId = mBlockId;
+        if (mPosToAck >= mEnd) {
+          try {
+            cleanup();
+          } catch (Exception e) {
+            future.channel().pipeline().fireExceptionCaught(e);
+            return;
+          }
+          future.channel().writeAndFlush(RPCBlockReadResponse.createSuccessResponse(blockId));
+        }
+      } finally {
+        mLock.unlock();
+      }
+    }
+  }
 
   private class PacketReader implements Runnable {
-    private final RPCBlockReadRequest mRequest;
+    Channel mChannel;
 
-    @GuardedBy("this")
-    private Status mStatus = Status.ACTIVE;
-
-    public PacketReader(RPCBlockReadRequest request) {
-      mRequest = request;
-    }
-
-    public synchronized void waitFor(Status status) {
-      try {
-        while (mStatus != status) {
-          wait();
-        }
-      } catch (InterruptedException e) {
-        Throwables.propagate(e);
-      }
-    }
-
-    public synchronized void waitFor2(Status status1, Status status2) {
-      try {
-        while (mStatus != status1 && mStatus != status2) {
-          wait();
-        }
-      } catch (InterruptedException e) {
-        Throwables.propagate(e);
-      }
-    }
-
-    public synchronized void stop() {
-      if (mStatus == Status.DONE) {
-        return;
-      }
-      mResponseQueue.exceptionCaught(BLOCK_READ_CANCEL_EXCEPTION);
-      mStatus = Status.STOPPING;
-      notify();
-    }
-
-    public synchronized void activate() {
-      if (mStatus != Status.BLOCKED) {
-        return;
-      }
-      mStatus = Status.ACTIVE;
-      notify();
-    }
-
-    public synchronized void toBlocked() {
-      if (mStatus == Status.ACTIVE) {
-        mStatus = Status.BLOCKED;
-      }
-    }
-
-    public synchronized boolean done() {
-      return mStatus == Status.DONE;
+    public PacketReader(Channel channel) {
+      mChannel = channel;
     }
 
     @Override
     public void run() {
-      try {
-        if (mBlockId == null || mBlockId != mRequest.getBlockId()) {
-          mBlockId = mRequest.getBlockId();
-          if (mBlockReader != null) {
-            mBlockReader.close();
+      while (true) {
+        final long start;
+        final int packet_size;
+        try {
+          mLock.lock();
+          start = mPos;
+          long remaining = mEnd - mPos;
+          if (tooManyPendingPackets() || mThrowable != null || remaining <= 0) {
+            mPacketReaderActive = false;
+            break;
           }
-          mBlockReader = mWorker.readBlockRemote(mRequest.getSessionId(), mRequest.getBlockId(),
-              mRequest.getLockId());
-          mWorker.accessBlock(mRequest.getSessionId(), mRequest.getBlockId());
+
+          packet_size = (int) Math.min(remaining, (long) PACKET_SIZE);
+          mPos += packet_size;
+        } finally {
+          mLock.unlock();
         }
 
-        mRequest.validate();
-        long blockLength = mBlockReader.getLength();
-        validateBounds(mRequest, blockLength);
-
-        long offset = mRequest.getOffset();
-        long readLength = returnLength(offset, mRequest.getLength(), blockLength);
-        while (readLength > 0) {
-          // This can block. If the number of threads becomes a concern, we should consider
-          // avoiding consuming a thread while waiting.
-          waitFor2(Status.ACTIVE, Status.STOPPING);
-          synchronized (this) {
-            if (mStatus == Status.STOPPING) {
-              break;
+        try {
+          DataBuffer packet = getDataBuffer(start, packet_size);
+          final RPCBlockReadResponse response =
+              new RPCBlockReadResponse(mBlockId, start, packet_size, packet,
+                  RPCResponse.Status.SUCCESS);
+          mChannel.eventLoop().submit(new Runnable() {
+            @Override
+            public void run() {
+              mChannel.write(response).addListener(new WriteListener(start + packet_size));
             }
-          }
-          toBlocked();
-
-          int packet_size = (int) Math.min(readLength, (long) PACKET_SIZE);
-          boolean isLastPacket = readLength <= PACKET_SIZE;
-          DataBuffer packet = getDataBuffer(offset, packet_size);
-          RPCBlockReadResponse response =
-              new RPCBlockReadResponse(mBlockId, offset, packet_size, packet,
-                  isLastPacket ? RPCResponse.Status.SUCCESS : RPCResponse.Status.STREAM_PACKET);
+          });
+        } catch (IOException e) {
           try {
-            mResponseQueue.offerMessage(response, isLastPacket);
-          } catch (Throwable e) {
-            // This should not happen.
-            throw new RuntimeException(e);
+            mLock.lock();
+            mThrowable = e;
+            mPacketReaderActive = false;
+          } finally {
+            mLock.unlock();
           }
-          readLength -= PACKET_SIZE;
-          offset += PACKET_SIZE;
+          break;
         }
-      } catch (IOException | AlluxioException e) {
-        mResponseQueue.exceptionCaught(e);
-      }
-      synchronized (this) {
-        mStatus = Status.DONE;
-        notifyAll();
       }
     }
   }
 
-  private class PacketWriter implements Runnable {
-    @GuardedBy("this")
-    private boolean mDone = false;
+  private boolean tooManyPendingPackets() {
+    return mPos - mPosToAck > MAX_PACKETS_IN_FLIGHT * PACKET_SIZE;
+  }
 
-    private RPCBlockReadRequest mRequest;
-
-    public PacketWriter(RPCBlockReadRequest request) {
-      mRequest = request;
-    }
-
-    @Override
-    public void run() {
-      RPCResponse response;
-
-      boolean done = false;
-      do {
-        try {
-          response = mResponseQueue.pollMessage();
-          if (response.getStatus() == RPCResponse.Status.SUCCESS) {
-            done = true;
-          }
-        } catch (Throwable e) {
-          if (e instanceof BlockDoesNotExistException) {
-            response = RPCBlockReadResponse
-                .createErrorResponse(mRequest.getBlockId(), RPCResponse.Status.FILE_DNE);
-          } else {
-            response = RPCBlockReadResponse
-                .createErrorResponse(mRequest.getBlockId(), RPCResponse.Status.UFS_READ_FAILED);
-          }
-          done = true;
-        }
-        try {
-          // TODO(peis): Investigate whether we should make use of the netty outbound buffer here.
-          ChannelFuture channelFuture = mContext.writeAndFlush(response).sync();
-          channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-          if (!channelFuture.isSuccess()) {
-            Preconditions.checkNotNull(channelFuture.cause());
-            mResponseQueue.exceptionCaught(channelFuture.cause());
-          }
-        } catch (InterruptedException e) {
-          Throwables.propagate(e);
-        }
-
-        if (done) {
-          synchronized (this) {
-            mDone = true;
-            notify();
-            break;
-          }
-        }
-      } while (true);
-    }
-
-    public synchronized boolean done() {
-      return mDone;
-    }
-
-    public synchronized void waitForDone() {
-      while (!mDone) {
-        try {
-          wait();
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
-      }
-    }
+  private boolean shouldStartPacketReader() {
+    return !mPacketReaderActive && mPos - mPosToAck < MAX_PACKETS_IN_FLIGHT * PACKET_SIZE
+        && mPos < mEnd;
   }
 
   public BlockReadDataServerHandler(BlockWorker worker, FileTransferType transferType) {
@@ -276,47 +240,58 @@ final public class BlockReadDataServerHandler
   }
 
   @Override
-  public void channelInactive(ChannelHandlerContext ctx) {
-    if (mPacketReader != null) {
-      mPacketReader.stop();
-      mPacketReader.waitFor(Status.DONE);
-    }
-    if (mPacketWriter != null) {
-      mPacketWriter.waitForDone();
-    }
-    try {
+  public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+    if (mBlockReader != null) {
       mBlockReader.close();
-    } catch (IOException e) {
-      LOG.error("Failed to close block reader in channelInactive() call.", e);
-      // Cannot do anything here. The exception is ignored.
+      mBlockReader = null;
     }
+  }
 
-    mResponseQueue.reset();
+  private void replyError(ChannelHandlerContext ctx) {
+    ctx.writeAndFlush(RPCBlockReadResponse.createErrorResponse(mBlockId, RPCResponse.Status.FAILED))
+        .addListener(ChannelFutureListener.CLOSE);
   }
 
   @Override
-  public void channelRead0(ChannelHandlerContext ctx, RPCBlockReadRequest msg) {
-    if (mContext != null) {
-      mContext = ctx;
+  public void channelRead0(ChannelHandlerContext ctx, RPCBlockReadRequest msg) throws Exception {
+    if (!validate(msg)) {
+      replyError(ctx);
+      return;
     }
+
     if (msg.isCancelRequest()) {
-      mPacketReader.stop();
-    } else {
-      Preconditions.checkState(mPacketReader.done() && mPacketWriter.done(),
-          "Block read request {} received on a busy channel.", msg);
-      mResponseQueue.reset();
-      mPacketReader = new PacketReader(msg);
-      mPacketWriter = new PacketWriter(msg);
-      PACKET_READERS.submit(mPacketReader);
-      PACKET_WRITERS.submit(mPacketWriter);
+      // Simply set mEnd to -1 to stop reading more. The client needs to read everything remaining
+      // in the channel if the client wants to reuse the channel. Otherwise, the client can
+      // simply close the channel to cancel.
+      mEnd = -1;
+      return;
     }
+
+    init(msg);
+
+    try {
+      mLock.lock();
+      mPacketReaderActive = true;
+      PACKET_READERS.submit(new PacketReader(ctx.channel()));
+    } finally {
+      mLock.unlock();
+    }
+
+    // 1. init
+    // 2. validate
+    // 3. process cancel request.
+    // 4. process normal request. Start packet reader.
+
+    // Very similar as block writer implementation.
+
+    // Packet reader.
+    // Read a packet and write to the netty buffer. If buffer is full, pause.
   }
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Exception caught {} in BlockReadDataServerHandler.", cause);
-    // This is likely a read error, close the channel to be safe.
-    ctx.close();
+    replyError(ctx);
   }
 
   /**
@@ -339,7 +314,7 @@ final public class BlockReadDataServerHandler
         .checkArgument(req.getOffset() <= fileLength, "Offset(%s) is larger than file length(%s)",
             req.getOffset(), fileLength);
     Preconditions
-        .checkArgument(req.getLength() == -1 || req.getOffset() + req.getLength() <= fileLength,
+        .checkArgument(req.getOffset() + req.getLength() <= fileLength,
             "Offset(%s) plus length(%s) is larger than file length(%s)", req.getOffset(),
             req.getLength(), fileLength);
   }

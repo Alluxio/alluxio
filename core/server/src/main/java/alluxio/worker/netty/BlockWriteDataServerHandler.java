@@ -77,8 +77,6 @@ final public class BlockWriteDataServerHandler
   // The next pos to write to disk.
   private volatile long mPosWrite = 0;
 
-
-
   public BlockWriteDataServerHandler(BlockWorker blockWorker) {
     mWorker = blockWorker;
   }
@@ -112,8 +110,6 @@ final public class BlockWriteDataServerHandler
         // This is the last packet.
         if (buf.readableBytes() == 0) {
           replySuccess(mCtx);
-          mCtx.writeAndFlush(new RPCBlockWriteResponse(mSessionId, mBlockId, mPosQueue, 0,
-              RPCResponse.Status.SUCCESS));
         }
         try {
           if (mPosWrite == 0) {
@@ -137,6 +133,7 @@ final public class BlockWriteDataServerHandler
           } finally {
             mLock.unlock();
           }
+          break;
         } finally {
           ReferenceCountUtil.release(buf);
         }
@@ -219,16 +216,15 @@ final public class BlockWriteDataServerHandler
   private void replyError(ChannelHandlerContext ctx) {
     ctx.writeAndFlush(
         new RPCBlockWriteResponse(mSessionId, mBlockId, mPosQueue, 0, RPCResponse.Status.FAILED))
-        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-    ctx.channel().config().setAutoRead(true);
+        .addListener(ChannelFutureListener.CLOSE);
   }
 
   private void replySuccess(ChannelHandlerContext ctx) {
-    ctx.writeAndFlush(
-        new RPCBlockWriteResponse(mSessionId, mBlockId, mPosQueue, 0, RPCResponse.Status.SUCCESS))
-        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+    RPCBlockWriteResponse response =
+        new RPCBlockWriteResponse(mSessionId, mBlockId, mPosQueue, 0, RPCResponse.Status.SUCCESS);
     cleanUp();
     ctx.channel().config().setAutoRead(true);
+    ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
   private void cleanUp() {

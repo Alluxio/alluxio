@@ -47,6 +47,7 @@ public abstract class RPCResponse extends RPCMessage {
 
     // TODO(now): Redesign the error codes. For now, treat all the errors the same.
     FAILED(106),
+    CANCELLED(107),
     ;
 
     private static final String DEFAULT_ERROR_STRING = "Unknown error.";
