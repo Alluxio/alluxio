@@ -477,10 +477,12 @@ public final class FileInfo implements Serializable {
       fileBlockInfos.add(fileBlockInfo.toThrift());
     }
 
-    return new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
+    alluxio.thrift.FileInfo info =
+        new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, fileBlockInfos, ThriftUtils.toThrift(mTtlAction));
+    return info;
   }
 
   @Override
