@@ -627,8 +627,8 @@ public class JournalIntegrationTest {
     // Restart the master once so that it creates a checkpoint file.
     mLocalAlluxioCluster.stopFS();
     createFsMasterFromJournal();
-    try (UnderFileSystemSpy ufsSpy =
-        new UnderFileSystemSpy("/", new LocalUnderFileSystem(new AlluxioURI("/")))) {
+    UnderFileSystem ufs = UnderFileSystem.get("/");
+    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy("/", ufs)) {
       doThrow(new RuntimeException("Failed to delete")).when(ufsSpy.get())
           .delete(Mockito.contains("FileSystemMaster/checkpoint.data"), anyBoolean());
       try {
