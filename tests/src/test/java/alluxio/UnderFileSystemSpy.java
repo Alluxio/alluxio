@@ -42,7 +42,9 @@ public final class UnderFileSystemSpy implements Closeable {
    * @param prefix the path prefix to intercept UFS calls on
    * @param ufs the under file system to spy
    */
-  public UnderFileSystemSpy(final String prefix, UnderFileSystem ufs) {
+  public UnderFileSystemSpy(AlluxioURI uri) {
+    UnderFileSystem ufs = UnderFileSystem.get(uri.toString());
+    final String prefix = uri.getScheme() == null ? "/" : uri.getScheme();
     mUfsSpy = Mockito.spy(ufs);
     mFactory = new UnderFileSystemFactory() {
       @Override

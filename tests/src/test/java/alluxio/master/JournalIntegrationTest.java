@@ -601,9 +601,7 @@ public class JournalIntegrationTest {
     // Restart the master once so that it creates a checkpoint file.
     mLocalAlluxioCluster.stopFS();
     createFsMasterFromJournal();
-    AlluxioURI journalUri = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
-    UnderFileSystem ufs = UnderFileSystem.get(journalUri.toString());
-    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journalUri.getScheme(), ufs)) {
+    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))) {
       doThrow(new RuntimeException("Failed to rename")).when(ufsSpy.get())
           .rename(Mockito.contains("FileSystemMaster/checkpoint.data.tmp"), anyString());
       try {
@@ -627,9 +625,7 @@ public class JournalIntegrationTest {
     // Restart the master once so that it creates a checkpoint file.
     mLocalAlluxioCluster.stopFS();
     createFsMasterFromJournal();
-    AlluxioURI journalUri = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
-    UnderFileSystem ufs = UnderFileSystem.get(journalUri.toString());
-    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journalUri.getScheme(), ufs)) {
+    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))) {
       doThrow(new RuntimeException("Failed to delete")).when(ufsSpy.get())
           .delete(Mockito.contains("FileSystemMaster/checkpoint.data"), anyBoolean());
       try {
@@ -650,9 +646,7 @@ public class JournalIntegrationTest {
   public void failWhileDeletingCompletedLogs() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     mFileSystem.createFile(file).close();
-    AlluxioURI journalUri = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
-    UnderFileSystem ufs = UnderFileSystem.get(journalUri.toString());
-    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journalUri.getScheme(), ufs)) {
+    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))) {
       doThrow(new RuntimeException("Failed to delete completed log")).when(ufsSpy.get())
           .delete(Mockito.contains("FileSystemMaster/completed"), anyBoolean());
       try {
