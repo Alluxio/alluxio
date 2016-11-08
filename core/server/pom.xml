@@ -248,7 +248,7 @@
           </analysis>
           <!-- insert other configuration here (optional) -->
         </configuration>
-      </plugin>      
+      </plugin>
     </plugins>
   </build>
 </project>
