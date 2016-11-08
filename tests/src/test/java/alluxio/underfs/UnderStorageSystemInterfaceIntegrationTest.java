@@ -195,11 +195,11 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests if {@link UnderFileSystem#isFile(String)} returns true for files and false
+   * Tests if {@link UnderFileSystem#isFile(String)} correctly returns true for files and false
    * otherwise.
    */
   @Test
-  public void fileExists() throws IOException {
+  public void isFile() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
     Assert.assertFalse(mUfs.isFile(testFile));

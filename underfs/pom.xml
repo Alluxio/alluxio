@@ -33,15 +33,6 @@
     <module>gcs</module>
   </modules>
 
-  <profiles>
-    <profile>
-      <id>ufs-all</id>
-      <modules>
-
-      </modules>
-    </profile>
-  </profiles>
-
   <dependencyManagement>
     <dependencies>
       <dependency>

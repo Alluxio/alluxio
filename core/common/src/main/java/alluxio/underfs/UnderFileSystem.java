@@ -308,27 +308,9 @@ public abstract class UnderFileSystem {
   public abstract boolean delete(String path, boolean recursive) throws IOException;
 
   /**
-   * Checks if a file exists in under file system.
+   * Check if a file or directory exists in under file system.
    *
-   * @param path the file name
-   * @return true if succeed, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public abstract boolean isFile(String path) throws IOException;
-
-  /**
-   * Checks if a folder exists in under file system.
-   *
-   * @param path the folder name
-   * @return true if succeed, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public abstract boolean isDirectory(String path) throws IOException;
-
-  /**
-   * Check if the file or folder exists.
-   *
-   * @param path of file or folder
+   * @param path the absolute path of file or directory
    * @return true if the path exists
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -406,6 +388,24 @@ public abstract class UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract long getSpace(String path, SpaceType type) throws IOException;
+
+  /**
+   * Checks if a directory exists in under file system.
+   *
+   * @param path the absolute directory path
+   * @return true if the path exists and is a directory, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract boolean isDirectory(String path) throws IOException;
+
+  /**
+   * Checks if a file exists in under file system.
+   *
+   * @param path the absolute file path
+   * @return true if the path exists and is a file, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract boolean isFile(String path) throws IOException;
 
   /**
    * Returns an array of strings naming the files and directories in the directory denoted by this

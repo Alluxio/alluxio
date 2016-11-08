@@ -1148,7 +1148,7 @@ public final class FileSystemMaster extends AbstractMaster {
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
               if (!ufs.delete(ufsUri, true)) {
-                if (delInode.isFile() ? ufs.isFile(ufsUri) : ufs.isDirectory(ufsUri)) {
+                if (ufs.exists(ufsUri)) {
                   LOG.error("Failed to delete {} from the under file system", ufsUri);
                   throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
                 }
