@@ -240,6 +240,38 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public boolean isDirectory(String key) {
+    // Root is a folder
+    if (isRoot(key)) {
+      return true;
+    }
+    try {
+      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
+      mClient.getObjectMetadata(mBucketName, keyAsFolder);
+      // If no exception is thrown, the key exists as a folder
+      return true;
+    } catch (ServiceException s) {
+      // It is possible that the folder has not been encoded as a _$folder$ file
+      try {
+        // Check if anything begins with <path>/
+        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
+        listObjectsRequest.setPrefix(path);
+        listObjectsRequest.setDelimiter(PATH_SEPARATOR);
+        ObjectListing listing = mClient.listObjects(listObjectsRequest);
+        if (!listing.getObjectSummaries().isEmpty()) {
+          mkdirsInternal(path);
+          return true;
+        } else {
+          return false;
+        }
+      } catch (ServiceException s2) {
+        return false;
+      }
+    }
+  }
+
+  @Override
   public boolean isFile(String path) throws IOException {
     return exists(path) && !isDirectory(path);
   }
@@ -473,38 +505,6 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     ossClientConf.setConnectionTTL(Configuration.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
-  }
-
-  @Override
-  public boolean isDirectory(String key) {
-    // Root is a folder
-    if (isRoot(key)) {
-      return true;
-    }
-    try {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-      mClient.getObjectMetadata(mBucketName, keyAsFolder);
-      // If no exception is thrown, the key exists as a folder
-      return true;
-    } catch (ServiceException s) {
-      // It is possible that the folder has not been encoded as a _$folder$ file
-      try {
-        // Check if anything begins with <path>/
-        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
-        ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
-        listObjectsRequest.setPrefix(path);
-        listObjectsRequest.setDelimiter(PATH_SEPARATOR);
-        ObjectListing listing = mClient.listObjects(listObjectsRequest);
-        if (!listing.getObjectSummaries().isEmpty()) {
-          mkdirsInternal(path);
-          return true;
-        } else {
-          return false;
-        }
-      } catch (ServiceException s2) {
-        return false;
-      }
-    }
   }
 
   /**

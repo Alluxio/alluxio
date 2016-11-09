@@ -281,6 +281,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     LOG.debug("Check if {} exists", path);
+    if (isRoot(path)) {
+      return true;
+    }
+
     if (path.endsWith(FOLDER_SUFFIX)) {
       // If path ends with the folder suffix, we do not check for the existence of a file
       return isDirectory(path);
@@ -339,6 +343,17 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     return -1;
+  }
+
+  @Override
+  public boolean isDirectory(String path) throws IOException {
+    // Root is always a folder
+    if (isRoot(path)) {
+      return true;
+    }
+
+    final String pathAsFolder = addFolderSuffixIfNotPresent(path);
+    return doesObjectExist(pathAsFolder);
   }
 
   @Override
@@ -576,17 +591,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
     LOG.error("Failed to copy file {} to {}, after {} retries", source, destination, NUM_RETRIES);
     return false;
-  }
-
-  @Override
-  public boolean isDirectory(String path) throws IOException {
-    // Root is always a folder
-    if (isRoot(path)) {
-      return true;
-    }
-
-    final String pathAsFolder = addFolderSuffixIfNotPresent(path);
-    return doesObjectExist(pathAsFolder);
   }
 
   /**

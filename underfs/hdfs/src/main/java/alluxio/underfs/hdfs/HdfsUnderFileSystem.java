@@ -170,38 +170,6 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean isFile(String path) throws IOException {
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        return mFileSystem.isFile(new Path(path));
-      } catch (IOException e) {
-        LOG.error("{} try to check if {} exists : {}", retryPolicy.getRetryCount(), path,
-            e.getMessage(), e);
-        te = e;
-      }
-    }
-    throw te;
-  }
-
-  @Override
-  public boolean isDirectory(String path) throws IOException {
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        return mFileSystem.isDirectory(new Path(path));
-      } catch (IOException e) {
-        LOG.error("{} try to check if {} exists : {}", retryPolicy.getRetryCount(), path,
-            e.getMessage(), e);
-        te = e;
-      }
-    }
-    throw te;
-  }
-
-  @Override
   public boolean exists(String path) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
@@ -302,6 +270,16 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       }
     }
     return -1;
+  }
+
+  @Override
+  public boolean isDirectory(String path) throws IOException {
+    return mFileSystem.isDirectory(new Path(path));
+  }
+
+  @Override
+  public boolean isFile(String path) throws IOException {
+    return mFileSystem.isFile(new Path(path));
   }
 
   @Override

@@ -278,6 +278,35 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public boolean isDirectory(String key) {
+    // Root is always a folder
+    if (isRoot(key)) {
+      return true;
+    }
+    try {
+      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
+      mClient.getObjectDetails(mBucketName, keyAsFolder);
+      // If no exception is thrown, the key exists as a folder
+      return true;
+    } catch (ServiceException s) {
+      // It is possible that the folder has not been encoded as a _$folder$ file
+      try {
+        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
+        // Check if anything begins with <path>/
+        GSObject[] objs = mClient.listObjects(mBucketName, path, "");
+        if (objs.length > 0) {
+          mkdirsInternal(path);
+          return true;
+        } else {
+          return false;
+        }
+      } catch (ServiceException s2) {
+        return false;
+      }
+    }
+  }
+
+  @Override
   public boolean isFile(String path) throws IOException {
     return exists(path) && !isDirectory(path);
   }
@@ -536,35 +565,6 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
       return null;
     }
     return key.substring(0, separatorIndex);
-  }
-
-  @Override
-  public boolean isDirectory(String key) {
-    // Root is always a folder
-    if (isRoot(key)) {
-      return true;
-    }
-    try {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-      mClient.getObjectDetails(mBucketName, keyAsFolder);
-      // If no exception is thrown, the key exists as a folder
-      return true;
-    } catch (ServiceException s) {
-      // It is possible that the folder has not been encoded as a _$folder$ file
-      try {
-        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
-        // Check if anything begins with <path>/
-        GSObject[] objs = mClient.listObjects(mBucketName, path, "");
-        if (objs.length > 0) {
-          mkdirsInternal(path);
-          return true;
-        } else {
-          return false;
-        }
-      } catch (ServiceException s2) {
-        return false;
-      }
-    }
   }
 
   /**

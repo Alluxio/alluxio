@@ -354,6 +354,12 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public boolean isDirectory(String key) {
+    // Root is always a folder
+    return isRoot(key) || getFolderMetadata(key) != null;
+  }
+
+  @Override
   public boolean isFile(String path) throws IOException {
     // Directly try to get the file metadata, if we fail it either is a folder or does not exist
     try {
@@ -683,12 +689,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       return null;
     }
     return key.substring(0, separatorIndex);
-  }
-
-  @Override
-  public boolean isDirectory(String key) {
-    // Root is always a folder
-    return isRoot(key) || getFolderMetadata(key) != null;
   }
 
   /**
