@@ -189,7 +189,7 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void openUfsFile() throws Exception {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
-    Mockito.when(mMockUfs.isDirectory(mUri.toString())).thenReturn(true);
+    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     mManager.openFile(SESSION_ID, new AlluxioURI(mUri.toString()));
     Mockito.verify(mMockUfs).exists(mUri.toString());
     Mockito.verify(mMockUfs).connectFromWorker(Mockito.anyString());
@@ -200,7 +200,6 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void openNonExistentUfsFile() throws Exception {
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(false);
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(false);
     Mockito.when(mMockUfs.isDirectory(mUri.toString())).thenReturn(false);
     mThrown.expect(FileDoesNotExistException.class);
@@ -316,6 +315,7 @@ public final class UnderFileSystemManagerTest {
 
     long position = FILE_LENGTH - 1;
     Mockito.when(ufs.exists(mUri.toString())).thenReturn(true);
+    Mockito.when(ufs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     Mockito.when(mMockInputStream.read()).thenReturn(5);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
@@ -396,6 +396,9 @@ public final class UnderFileSystemManagerTest {
     long sessionId2 = SESSION_ID + 1;
     long position = 0L;
     Mockito.when(mMockUfs.exists(Mockito.anyString())).thenReturn(true);
+    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
+    Mockito.when(mMockUfs.isFile(uniqPath2)).thenReturn(true);
+    Mockito.when(mMockUfs.isDirectory(Mockito.anyString())).thenReturn(true);
     long id1 = mManager.openFile(SESSION_ID, mUri);
     long id2 = mManager.openFile(sessionId2, new AlluxioURI(uniqPath2));
     // Both files should be accessible
