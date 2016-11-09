@@ -81,6 +81,18 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests if file creation is atomic.
+   */
+  @Test
+  public void createAtomic() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    OutputStream stream = mUfs.create(testFile);
+    stream.write(TEST_BYTES);
+    Assert.assertFalse(mUfs.exists(testFile));
+    stream.close();
+  }
+
+  /**
    * Tests a file can be deleted.
    */
   @Test

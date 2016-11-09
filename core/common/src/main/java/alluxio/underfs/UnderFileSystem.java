@@ -143,6 +143,10 @@ public abstract class UnderFileSystem {
       }
       return cachedFs;
     }
+
+    void clear() {
+      mUnderFileSystemMap.clear();
+    }
   }
 
   /**
@@ -182,6 +186,7 @@ public abstract class UnderFileSystem {
       return mScheme + "://" + mAuthority;
     }
   }
+
   /**
    * Gets the UnderFileSystem instance according to its schema.
    *
@@ -203,6 +208,13 @@ public abstract class UnderFileSystem {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     return UFS_CACHE.get(path, ufsConf);
+  }
+
+  /**
+   * Clears the under file system cache.
+   */
+  public static void clearCache() {
+    UFS_CACHE.clear();
   }
 
   /**
@@ -283,19 +295,34 @@ public abstract class UnderFileSystem {
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path) throws IOException;
+  public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
 
   /**
-   * Creates a file in the under file system with the specified
-   * {@link CreateOptions}.
+   * Creates a file in the under file system with the specified {@link CreateOptions}.
+   * Implementations should make sure that the path under creation appears in listings only
+   * after a successful close and that contents are written in its entirety or not at all.
    *
    * @param path the file name
    * @param options the options for create
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path, CreateOptions options)
-      throws IOException;
+  public OutputStream create(String path, CreateOptions options) throws IOException {
+    return new NonAtomicFileOutputStream(path, options, this);
+  }
+
+  /**
+   * Creates a file in the under file system with the specified {@link CreateOptions}. This stream
+   * writes directly to the underlying storage without any atomicity guarantees.
+   *
+   * @param path the file name
+   * @param options the options for create
+   * @return A {@code OutputStream} object
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract OutputStream createDirect(String path, CreateOptions options) throws IOException;
 
   /**
    * Deletes a file or folder from the under file system with the indicated name.

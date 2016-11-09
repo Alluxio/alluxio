@@ -237,19 +237,14 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path) throws IOException {
-    return create(path, new CreateOptions());
+  public OutputStream create(String path, CreateOptions options) throws IOException {
+    return createDirect(path, options);
   }
 
   @Override
-  public OutputStream create(String path, CreateOptions options) throws IOException {
+  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
-      // Return the direct stream if the user has enabled direct writes
-      if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_DIRECT_WRITES_ENABLED)) {
-        return new S3ADirectOutputStream(mBucketName, stripPrefixIfPresent(path), mManager);
-      } else {
-        return new S3AOutputStream(mBucketName, stripPrefixIfPresent(path), mManager);
-      }
+      return new S3AOutputStream(mBucketName, stripPrefixIfPresent(path), mManager);
     }
     return null;
   }
@@ -449,18 +444,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
-    // For a rename when the source is an Alluxio temporary file, we can assume the operation is
-    // free of user error and use ensureExists.
-    if (PathUtils.isTemporaryFileName(src)) {
-      // If the user has enabled direct writes, skip the rename of Alluxio temporary files if the
-      // temporary file does not exist and the destination exists.
-      if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_DIRECT_WRITES_ENABLED) && !exists(src)) {
-        ensureExists(dst);
-        return true;
-      } else {
-        ensureExists(src);
-      }
-    }
     if (!exists(src)) {
       LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
       return false;
@@ -590,24 +573,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       return false;
     }
     return true;
-  }
-
-  /**
-   * Waits until the given key exists or the timeout is exceeded. This should only be used when
-   * the key is expected to exist.
-   *
-   * @throws IOException if the timeout is exceeded
-   */
-  private void ensureExists(String key) throws IOException {
-    long startMs = System.currentTimeMillis();
-    long timeoutMs = Configuration.getLong(PropertyKey.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS);
-    while (!exists(key)) {
-      if (System.currentTimeMillis() - startMs < timeoutMs) {
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-      } else {
-        throw new IOException("Timeout exceeded while waiting for " + key + " to exist.");
-      }
-    }
   }
 
   /**
