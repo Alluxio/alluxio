@@ -188,10 +188,9 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void openUfsFile() throws Exception {
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     mManager.openFile(SESSION_ID, new AlluxioURI(mUri.toString()));
-    Mockito.verify(mMockUfs).exists(mUri.toString());
+    Mockito.verify(mMockUfs).isFile(mUri.toString());
     Mockito.verify(mMockUfs).connectFromWorker(Mockito.anyString());
   }
 
