@@ -23,12 +23,14 @@
 # and Alluxio servers (or shell).
 
 # The directory where Alluxio deployment is installed. (Default: the parent directory of libexec/).
+# E.g. export ALLUXIO_HOME=/home/ALLUXIO_HOME_DIR
 # ALLUXIO_HOME
 
 # The directory where log files are stored. (Default: ${ALLUXIO_HOME}/logs).
 # ALLUXIO_LOGS_DIR
 
 # Hostname of the master.
+# E.g. export  ALLUXIO_MASTER_HOSTNAME=Master
 # ALLUXIO_MASTER_HOSTNAME
 
 # This is now deprecated. Support will be removed in v2.0
