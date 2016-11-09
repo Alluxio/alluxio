@@ -70,15 +70,14 @@ public final class UnderFileSystemUtils {
   }
 
   /**
-   * Deletes the specified path from the specified under file system if it exists. This will not
-   * delete nonempty directories.
+   * Deletes the specified path from the specified under file system if it is a file and exists.
    *
    * @param ufs the under file system to delete from
    * @param path the path to delete
    */
-  public static void deleteIfExists(UnderFileSystem ufs, String path) {
+  public static void deleteFileIfExists(UnderFileSystem ufs, String path) {
     try {
-      if (ufs.exists(path)) {
+      if (ufs.isFile(path)) {
         ufs.delete(path, false);
       }
     } catch (IOException e) {
