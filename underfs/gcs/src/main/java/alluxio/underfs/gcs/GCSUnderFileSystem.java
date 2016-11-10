@@ -211,12 +211,6 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     return deleteInternal(path);
   }
 
-  @Override
-  public boolean exists(String path) throws IOException {
-    // Root path always exists.
-    return isRoot(path) || getObjectDetails(path) != null;
-  }
-
   /**
    * Gets the block size in bytes. There is no concept of a block in GCS and the maximum size of
    * one file is 5 TB. This method defaults to the default user block size in Alluxio.
@@ -308,7 +302,11 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    return exists(path) && !isDirectory(path);
+    try {
+      return mClient.getObjectDetails(mBucketName, stripPrefixIfPresent(path)) != null;
+    } catch (ServiceException e) {
+    }
+    return false;
   }
 
   @Override
@@ -390,11 +388,11 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
-    if (!exists(src)) {
+    if (!isFile(src) && !isDirectory(src)) {
       LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
       return false;
     }
-    if (exists(dst)) {
+    if (isFile(dst) || isDirectory(dst)) {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }

@@ -280,12 +280,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     return deleteInternal(path);
   }
 
-  @Override
-  public boolean exists(String path) throws IOException {
-    // Root path always exists.
-    return isRoot(path) || getObjectDetails(path) != null;
-  }
-
   /**
    * Gets the block size in bytes. There is no concept of a block in S3 and the maximum size of
    * one put is 5 GB, and the max size of a multi-part upload is 5 TB. This method defaults to the
@@ -444,11 +438,11 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
-    if (!exists(src)) {
+    if (!isFile(src) && isDirectory(src)) {
       LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
       return false;
     }
-    if (exists(dst)) {
+    if (isFile(dst) || isFile(dst)) {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }

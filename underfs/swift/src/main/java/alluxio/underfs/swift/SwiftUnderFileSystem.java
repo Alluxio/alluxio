@@ -278,22 +278,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return true;
   }
 
-  @Override
-  public boolean exists(String path) throws IOException {
-    LOG.debug("Check if {} exists", path);
-    if (isRoot(path)) {
-      return true;
-    }
-
-    if (path.endsWith(FOLDER_SUFFIX)) {
-      // If path ends with the folder suffix, we do not check for the existence of a file
-      return isDirectory(path);
-    }
-
-    // If path does not have folder suffix we check for both a file or a folder
-    return isFile(path) || isDirectory(path);
-  }
-
   /**
    * Gets the block size in bytes. There is no concept of a block in Swift and the maximum size of
    * one file is 4 GB. This method defaults to the default user block size in Alluxio.

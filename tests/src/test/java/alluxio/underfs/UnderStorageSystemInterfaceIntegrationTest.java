@@ -88,7 +88,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     OutputStream stream = mUfs.create(testFile);
     stream.write(TEST_BYTES);
-    Assert.assertFalse(mUfs.exists(testFile));
+    Assert.assertFalse(mUfs.isFile(testFile));
     stream.close();
   }
 
@@ -152,7 +152,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
       boolean childDeleted = false;
       for (int i = 0; i < 20; i++) {
-        childDeleted = !mUfs.exists(child);
+        childDeleted = !mUfs.isFile(child) && !mUfs.isDirectory(child);
         if (childDeleted) {
           break;
         }

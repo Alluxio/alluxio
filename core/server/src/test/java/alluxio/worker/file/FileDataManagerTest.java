@@ -138,7 +138,6 @@ public final class FileDataManagerTest {
     }
 
     String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    Mockito.when(mUfs.exists(ufsRoot)).thenReturn(true);
     Mockito.when(mUfs.isDirectory(ufsRoot)).thenReturn(true);
 
     OutputStream outputStream = Mockito.mock(OutputStream.class);
@@ -221,7 +220,6 @@ public final class FileDataManagerTest {
     }
 
     String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    Mockito.when(mUfs.exists(ufsRoot)).thenReturn(true);
     Mockito.when(mUfs.isDirectory(ufsRoot)).thenReturn(true);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
 
@@ -258,7 +256,6 @@ public final class FileDataManagerTest {
     }
 
     String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    Mockito.when(mUfs.exists(ufsRoot)).thenReturn(true);
     Mockito.when(mUfs.isDirectory(ufsRoot)).thenReturn(true);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
 

@@ -100,13 +100,6 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean exists(String path) throws IOException {
-    path = stripPath(path);
-    File file = new File(path);
-    return file.exists();
-  }
-
-  @Override
   public long getBlockSizeByte(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);

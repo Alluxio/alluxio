@@ -156,8 +156,8 @@ public final class UnderFileSystemManagerTest {
   }
 
   /**
-   * Tests opening a file will call {@link UnderFileSystem#exists} and
-   * {@link UnderFileSystem#connectFromWorker}and succeeds when the file exists.
+   * Tests opening a file will call {@link UnderFileSystem#isFile(String)} and
+   * {@link UnderFileSystem#connectFromWorker} and succeeds when the file exists.
    */
   @Test
   public void openUfsFile() throws Exception {
@@ -172,8 +172,7 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void openNonExistentUfsFile() throws Exception {
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(false);
-    Mockito.when(mMockUfs.isDirectory(mUri.toString())).thenReturn(false);
+    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(false);
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mUri.toString()));
     mManager.openFile(SESSION_ID, mUri);
@@ -184,7 +183,6 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void closeUfsFile() throws Exception {
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, new AlluxioURI(mUri.toString()));
     mManager.closeFile(SESSION_ID, id);
@@ -208,7 +206,6 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void closeUfsFileInvalidSession() throws Exception {
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(SESSION_ID, mUri);
@@ -243,7 +240,6 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void getInputStream() throws Exception {
     long position = 0L;
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     Mockito.when(mMockInputStream.read()).thenReturn(5);
@@ -259,7 +255,6 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void getInputStreamAtPosition() throws Exception {
     long position = FILE_LENGTH - 1;
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     Mockito.when(mMockInputStream.read()).thenReturn(5);
@@ -286,7 +281,6 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(UnderFileSystem.get(Mockito.anyString())).thenReturn(ufs);
 
     long position = FILE_LENGTH - 1;
-    Mockito.when(ufs.exists(mUri.toString())).thenReturn(true);
     Mockito.when(ufs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     Mockito.when(mMockInputStream.read()).thenReturn(5);
@@ -305,7 +299,6 @@ public final class UnderFileSystemManagerTest {
   public void getInputStreamAtPositionCache() throws Exception {
     long position = 0;
     long nextPosition = 100;
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
@@ -324,7 +317,6 @@ public final class UnderFileSystemManagerTest {
   public void getInputStreamAtPositionInvalidCache() throws Exception {
     long position = 0;
     long nextPosition = 100;
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
@@ -341,7 +333,6 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void getInputStreamAtEOF() throws Exception {
     long position = FILE_LENGTH;
-    Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
@@ -367,7 +358,6 @@ public final class UnderFileSystemManagerTest {
     String uniqPath2 = PathUtils.uniqPath();
     long sessionId2 = SESSION_ID + 1;
     long position = 0L;
-    Mockito.when(mMockUfs.exists(Mockito.anyString())).thenReturn(true);
     Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
     Mockito.when(mMockUfs.isFile(uniqPath2)).thenReturn(true);
     Mockito.when(mMockUfs.isDirectory(Mockito.anyString())).thenReturn(true);

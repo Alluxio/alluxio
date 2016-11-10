@@ -136,7 +136,7 @@ public final class FileSystemAclIntegrationTest {
 
     create(sTFS, fileA);
     FileStatus fs = sTFS.getFileStatus(fileA);
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
     if (sUfs instanceof HdfsUnderFileSystem && HadoopClientTestUtils.isHadoop1x()) {
       // If the UFS is hadoop 1.0, the org.apache.hadoop.fs.FileSystem.create uses default
@@ -443,7 +443,7 @@ public final class FileSystemAclIntegrationTest {
     alluxio.Configuration.set(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "");
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
     // Without providing "alluxio.underfs.s3.canonical.owner.id.to.username.mapping", the default
     // display name of the S3 owner account is NOT empty.
@@ -459,7 +459,7 @@ public final class FileSystemAclIntegrationTest {
     alluxio.Configuration.set(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, "");
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
     // Without providing "alluxio.underfs.gcs.owner.id.to.username.mapping", the default
     // display name of the GCS owner account is empty. The owner will be the GCS account id, which
@@ -475,7 +475,7 @@ public final class FileSystemAclIntegrationTest {
 
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
     Assert.assertNotEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertNotEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
@@ -488,7 +488,7 @@ public final class FileSystemAclIntegrationTest {
 
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
     // Verify the owner, group and permission of OSS UFS is not supported and thus returns default
     // values.
