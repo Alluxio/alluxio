@@ -445,7 +445,7 @@ public final class FileSystemAclIntegrationTest {
       Path file = new Path("/loadFileMetadataMode" + value);
       // Create a file directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, file);
-      sUfs.create(ufsPath);
+      sUfs.create(ufsPath).close();
       sUfs.setMode(ufsPath, (short) value);
       Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, file)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
