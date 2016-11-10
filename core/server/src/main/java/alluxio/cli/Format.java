@@ -40,7 +40,7 @@ public final class Format {
   private static boolean formatFolder(String name, String folder) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
-    if (ufs.exists(folder)) {
+    if (ufs.isDirectory(folder)) {
       for (String file : ufs.list(folder)) {
         if (!ufs.delete(PathUtils.concatPath(folder, file), true)) {
           LOG.info("Failed to remove {}:{}", name, file);
@@ -95,7 +95,7 @@ public final class Format {
         for (String dirPath : dirPaths) {
           String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
           UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder);
-          if (ufs.exists(dirWorkerDataFolder)) {
+          if (ufs.isDirectory(dirWorkerDataFolder)) {
             if (!formatFolder(name, dirWorkerDataFolder)) {
               System.exit(-1);
             }

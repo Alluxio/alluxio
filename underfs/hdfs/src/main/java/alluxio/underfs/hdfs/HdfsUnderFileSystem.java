@@ -164,22 +164,6 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean exists(String path) throws IOException {
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        return mFileSystem.exists(new Path(path));
-      } catch (IOException e) {
-        LOG.error("{} try to check if {} exists : {}", retryPolicy.getRetryCount(), path,
-            e.getMessage(), e);
-        te = e;
-      }
-    }
-    throw te;
-  }
-
-  @Override
   public long getBlockSizeByte(String path) throws IOException {
     Path tPath = new Path(path);
     if (!mFileSystem.exists(tPath)) {
@@ -264,6 +248,11 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       }
     }
     return -1;
+  }
+
+  @Override
+  public boolean isDirectory(String path) throws IOException {
+    return mFileSystem.isDirectory(new Path(path));
   }
 
   @Override
@@ -385,12 +374,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean rename(String src, String dst) throws IOException {
     LOG.debug("Renaming from {} to {}", src, dst);
-    if (!exists(src)) {
+    if (!isFile(src) && !isDirectory(src)) {
       LOG.error("File {} does not exist. Therefore rename to {} failed.", src, dst);
       return false;
     }
 
-    if (exists(dst)) {
+    if (isFile(dst) || isDirectory(dst)) {
       LOG.error("File {} does exist. Therefore rename from {} failed.", dst, src);
       return false;
     }

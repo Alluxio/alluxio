@@ -36,7 +36,7 @@ public final class UnderFileSystemUtils {
   public static void deleteDir(final String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
-    if (ufs.exists(path) && !ufs.delete(path, true)) {
+    if (ufs.isDirectory(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
     }
   }
@@ -50,7 +50,7 @@ public final class UnderFileSystemUtils {
   public static void mkdirIfNotExists(final String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
-    if (!ufs.exists(path)) {
+    if (!ufs.isDirectory(path)) {
       if (!ufs.mkdirs(path, true)) {
         throw new IOException("Failed to make folder: " + path);
       }
@@ -70,15 +70,14 @@ public final class UnderFileSystemUtils {
   }
 
   /**
-   * Deletes the specified path from the specified under file system if it exists. This will not
-   * delete nonempty directories.
+   * Deletes the specified path from the specified under file system if it is a file and exists.
    *
    * @param ufs the under file system to delete from
    * @param path the path to delete
    */
-  public static void deleteIfExists(UnderFileSystem ufs, String path) {
+  public static void deleteFileIfExists(UnderFileSystem ufs, String path) {
     try {
-      if (ufs.exists(path)) {
+      if (ufs.isFile(path)) {
         ufs.delete(path, false);
       }
     } catch (IOException e) {

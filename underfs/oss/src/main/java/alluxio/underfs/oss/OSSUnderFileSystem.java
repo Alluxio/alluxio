@@ -150,7 +150,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
       }
-      if (isFolder(path) && children.length != 0) {
+      if (isDirectory(path) && children.length != 0) {
         LOG.error("Unable to delete {} because it is a non empty directory. Specify "
                 + "recursive as true in order to delete non empty directories.", path);
         return false;
@@ -171,11 +171,6 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       }
     }
     return deleteInternal(path);
-  }
-
-  @Override
-  public boolean exists(String path) throws IOException {
-    return isRoot(path) || getObjectDetails(path) != null;
   }
 
   /**
@@ -240,14 +235,50 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public boolean isDirectory(String key) {
+    // Root is a folder
+    if (isRoot(key)) {
+      return true;
+    }
+    try {
+      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
+      mClient.getObjectMetadata(mBucketName, keyAsFolder);
+      // If no exception is thrown, the key exists as a folder
+      return true;
+    } catch (ServiceException s) {
+      // It is possible that the folder has not been encoded as a _$folder$ file
+      try {
+        // Check if anything begins with <path>/
+        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
+        listObjectsRequest.setPrefix(path);
+        listObjectsRequest.setDelimiter(PATH_SEPARATOR);
+        ObjectListing listing = mClient.listObjects(listObjectsRequest);
+        if (!listing.getObjectSummaries().isEmpty()) {
+          mkdirsInternal(path);
+          return true;
+        } else {
+          return false;
+        }
+      } catch (ServiceException s2) {
+        return false;
+      }
+    }
+  }
+
+  @Override
   public boolean isFile(String path) throws IOException {
-    return exists(path) && !isFolder(path);
+    try {
+      return mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path)) != null;
+    } catch (ServiceException e) {
+      return false;
+    }
   }
 
   @Override
   public String[] list(String path) throws IOException {
     // if the path not exists, or it is a file, then should return null
-    if (!exists(path) || isFile(path)) {
+    if (!isDirectory(path) || isFile(path)) {
       return null;
     }
     // Non recursive list
@@ -266,10 +297,10 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     if (path == null) {
       return false;
     }
-    if (isFolder(path)) {
+    if (isDirectory(path)) {
       return true;
     }
-    if (exists(path)) {
+    if (isFile(path)) {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
@@ -306,16 +337,16 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
-    if (!exists(src)) {
+    if (!isFile(src) && !isDirectory(src)) {
       LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
       return false;
     }
-    if (exists(dst)) {
+    if (isFile(dst) || isDirectory(dst)) {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }
     // Source exists and destination does not exist
-    if (isFolder(src)) {
+    if (isDirectory(src)) {
       // Rename the source folder first
       if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
         return false;
@@ -412,7 +443,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    */
   private boolean deleteInternal(String key) {
     try {
-      if (isFolder(key)) {
+      if (isDirectory(key)) {
         String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
         mClient.deleteObject(mBucketName, keyAsFolder);
       } else {
@@ -431,7 +462,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    */
   private ObjectMetadata getObjectDetails(String key) {
     try {
-      if (isFolder(key)) {
+      if (isDirectory(key)) {
         String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
         return mClient.getObjectMetadata(mBucketName, keyAsFolder);
       } else {
@@ -473,44 +504,6 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     ossClientConf.setConnectionTTL(Configuration.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
-  }
-
-  /**
-   * Determines if the key represents a folder. If false is returned, it is not guaranteed that the
-   * path exists.
-   *
-   * @param key the key to check
-   * @return true if the key exists and is a directory
-   */
-  private boolean isFolder(String key) {
-    // Root is a folder
-    if (isRoot(key)) {
-      return true;
-    }
-    try {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-      mClient.getObjectMetadata(mBucketName, keyAsFolder);
-      // If no exception is thrown, the key exists as a folder
-      return true;
-    } catch (ServiceException s) {
-      // It is possible that the folder has not been encoded as a _$folder$ file
-      try {
-        // Check if anything begins with <path>/
-        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
-        ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
-        listObjectsRequest.setPrefix(path);
-        listObjectsRequest.setDelimiter(PATH_SEPARATOR);
-        ObjectListing listing = mClient.listObjects(listObjectsRequest);
-        if (!listing.getObjectSummaries().isEmpty()) {
-          mkdirsInternal(path);
-          return true;
-        } else {
-          return false;
-        }
-      } catch (ServiceException s2) {
-        return false;
-      }
-    }
   }
 
   /**
@@ -640,7 +633,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       return true;
     }
     String parentKey = getParentKey(key);
-    return parentKey != null && isFolder(parentKey);
+    return parentKey != null && isDirectory(parentKey);
   }
 
   /**

@@ -100,13 +100,6 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean exists(String path) throws IOException {
-    path = stripPath(path);
-    File file = new File(path);
-    return file.exists();
-  }
-
-  @Override
   public long getBlockSizeByte(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
@@ -161,6 +154,13 @@ public class LocalUnderFileSystem extends UnderFileSystem {
       default:
         throw new IOException("Unknown getSpace parameter: " + type);
     }
+  }
+
+  @Override
+  public boolean isDirectory(String path) throws IOException {
+    path = stripPath(path);
+    File file = new File(path);
+    return file.isDirectory();
   }
 
   @Override

@@ -162,7 +162,7 @@ public final class FileDataManager {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
 
-    return mUfs.exists(dstPath);
+    return mUfs.isFile(dstPath);
   }
 
   /**
@@ -302,19 +302,19 @@ public final class FileDataManager {
     LOG.info("persist file {} at {}", fileId, dstPath);
     String parentPath = PathUtils.concatPath(ufsRoot, uri.getParent().getPath());
     // creates the parent folder if it does not exist
-    if (!mUfs.exists(parentPath)) {
+    if (!mUfs.isDirectory(parentPath)) {
       final int maxRetry = 10;
       int numRetry = 0;
       // TODO(peis): Retry only if we are making progress.
       // TODO(chaomin): figure out a way to get parent permission in Alluxio namespace.
       for (; numRetry < maxRetry; numRetry++) {
-        if (mUfs.mkdirs(parentPath, true) || mUfs.exists(parentPath)) {
+        if (mUfs.mkdirs(parentPath, true) || mUfs.isDirectory(parentPath)) {
           break;
         }
         // The parentPath can be created between the exists check and mkdirs call by other threads.
         LOG.warn("Failed to create dir: {}, retrying", parentPath);
       }
-      if (numRetry == maxRetry && !mUfs.exists(parentPath)) {
+      if (numRetry == maxRetry && !mUfs.isDirectory(parentPath)) {
         throw new IOException(
             String.format("Failed to create dir: %s after %d retries.", parentPath, numRetry));
       }
