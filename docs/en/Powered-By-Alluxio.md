@@ -27,6 +27,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [PerceptIn](http://www.perceptin.io/)
 * [Qunar](http://www.qunar.com/)
 * [Radicalbit](http://www.radicalbit.io)
+* [Talend](https://www.talend.com/)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 * [Ultra Tendency](http://ultratendency.com/)
 
