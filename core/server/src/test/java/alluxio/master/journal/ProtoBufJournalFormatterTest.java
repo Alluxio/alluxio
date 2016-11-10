@@ -37,7 +37,7 @@ public final class ProtoBufJournalFormatterTest extends AbstractJournalFormatter
     formatter.serialize(JournalEntry.newBuilder().setCompleteFile(
         CompleteFileEntry.newBuilder().setId(10)).build(), baos);
     byte[] serializedEntry = baos.toByteArray();
-    for (int i = 1; i < serializedEntry.length; i ++) {
+    for (int i = 1; i < serializedEntry.length; i++) {
       byte[] truncated = ArrayUtils.subarray(serializedEntry, 0, serializedEntry.length - i);
       Assert.assertEquals(null,
           formatter.deserialize(new ByteArrayInputStream(truncated)).getNextEntry());
