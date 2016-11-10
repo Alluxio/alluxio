@@ -48,17 +48,18 @@ public final class ProtoBufJournalFormatter implements JournalFormatter {
   @Override
   public JournalInputStream deserialize(final InputStream inputStream) throws IOException {
     return new JournalInputStream() {
-      private final byte[] BUFFER = new byte[1024];
+      private final byte[] mBuffer = new byte[1024];
       private long mLatestSequenceNumber;
 
       @Override
       public JournalEntry getNextEntry() throws IOException {
         try {
-          CodedInputStream codedInputStream = CodedInputStream.newInstance(inputStream);
-          // If the message was truncated while writing the size varint, this will throw an
-          // InvalidProtocolBufferException exception.
-          int size = codedInputStream.readRawVarint32();
-          byte[] buffer = size <= BUFFER.length ? BUFFER : new byte[size];
+          int firstByte = inputStream.read();
+          if (firstByte == -1) {
+            return null;
+          }
+          int size = CodedInputStream.readRawVarint32(firstByte, inputStream);
+          byte[] buffer = size <= mBuffer.length ? mBuffer : new byte[size];
           int bytes = inputStream.read(buffer, 0, size);
           if (bytes < size) {
             throw new InvalidProtocolBufferException(
