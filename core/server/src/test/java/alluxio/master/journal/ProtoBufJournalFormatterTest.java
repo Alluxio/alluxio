@@ -11,6 +11,16 @@
 
 package alluxio.master.journal;
 
+import alluxio.proto.journal.File.CompleteFileEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+
 /**
  * Unit tests for {@link ProtoBufJournalFormatter}.
  */
@@ -18,5 +28,19 @@ public final class ProtoBufJournalFormatterTest extends AbstractJournalFormatter
   @Override
   protected JournalFormatter getFormatter() {
     return new ProtoBufJournalFormatter();
+  }
+
+  @Test
+  public void truncatedEntryDoesntFail() throws Exception {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ProtoBufJournalFormatter formatter = new ProtoBufJournalFormatter();
+    formatter.serialize(JournalEntry.newBuilder().setCompleteFile(
+        CompleteFileEntry.newBuilder().setId(10)).build(), baos);
+    byte[] serializedEntry = baos.toByteArray();
+    for (int i = 1; i < serializedEntry.length; i ++) {
+      byte[] truncated = ArrayUtils.subarray(serializedEntry, 0, serializedEntry.length - i);
+      Assert.assertEquals(null,
+          formatter.deserialize(new ByteArrayInputStream(truncated)).getNextEntry());
+    }
   }
 }
