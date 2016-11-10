@@ -38,6 +38,11 @@ if [[ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]]; then
   ALLUXIO_JARS="${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
+if [[ -z "$(which java)" ]]; then
+  echo "Cannot find `java` command"
+  exit 1
+fi
+
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 
