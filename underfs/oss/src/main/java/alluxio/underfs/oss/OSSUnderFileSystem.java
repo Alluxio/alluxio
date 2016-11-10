@@ -271,8 +271,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     try {
       return mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path)) != null;
     } catch (ServiceException e) {
+      return false;
     }
-    return false;
   }
 
   @Override

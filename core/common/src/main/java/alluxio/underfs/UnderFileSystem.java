@@ -335,17 +335,6 @@ public abstract class UnderFileSystem {
   public abstract boolean delete(String path, boolean recursive) throws IOException;
 
   /**
-   * Check if a file or directory exists in under file system.
-   *
-   * @param path the absolute path of file or directory
-   * @return true if the path exists
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public boolean exists(String path) throws IOException {
-    return isFile(path) || isDirectory(path);
-  }
-
-  /**
    * Gets the block size of a file in under file system, in bytes.
    *
    * @param path the file name

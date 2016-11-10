@@ -305,8 +305,8 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     try {
       return mClient.getObjectDetails(mBucketName, stripPrefixIfPresent(path)) != null;
     } catch (ServiceException e) {
+      return false;
     }
-    return false;
   }
 
   @Override

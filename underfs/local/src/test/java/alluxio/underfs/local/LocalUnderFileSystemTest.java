@@ -49,11 +49,11 @@ public class LocalUnderFileSystemTest {
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     mLocalUfs.create(filepath).close();
 
-    Assert.assertTrue(mLocalUfs.exists(filepath));
+    Assert.assertTrue(mLocalUfs.isFile(filepath));
 
     mLocalUfs.delete(filepath, true);
 
-    Assert.assertFalse(mLocalUfs.exists(filepath));
+    Assert.assertFalse(mLocalUfs.isFile(filepath));
   }
 
   @Test
@@ -61,11 +61,11 @@ public class LocalUnderFileSystemTest {
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     OutputStream os = mLocalUfs.create(filepath);
 
-    Assert.assertFalse(mLocalUfs.exists(filepath));
+    Assert.assertFalse(mLocalUfs.isFile(filepath));
 
     os.close();
 
-    Assert.assertTrue(mLocalUfs.exists(filepath));
+    Assert.assertTrue(mLocalUfs.isFile(filepath));
 
     File file = new File(filepath);
     Assert.assertTrue(file.exists());
@@ -77,7 +77,7 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.create(filepath).close();
     mLocalUfs.delete(filepath, true);
 
-    Assert.assertFalse(mLocalUfs.exists(filepath));
+    Assert.assertFalse(mLocalUfs.isFile(filepath));
 
     File file = new File(filepath);
     Assert.assertFalse(file.exists());
@@ -91,7 +91,7 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.create(filepath).close();
     mLocalUfs.delete(dirpath, true);
 
-    Assert.assertFalse(mLocalUfs.exists(dirpath));
+    Assert.assertFalse(mLocalUfs.isDirectory(dirpath));
 
     File file = new File(filepath);
     Assert.assertFalse(file.exists());
@@ -105,7 +105,7 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.create(filepath).close();
     mLocalUfs.delete(dirpath, false);
 
-    Assert.assertTrue(mLocalUfs.exists(dirpath));
+    Assert.assertTrue(mLocalUfs.isDirectory(dirpath));
 
     File file = new File(filepath);
     Assert.assertTrue(file.exists());
@@ -117,7 +117,7 @@ public class LocalUnderFileSystemTest {
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
     mLocalUfs.mkdirs(dirpath, true);
 
-    Assert.assertTrue(mLocalUfs.exists(dirpath));
+    Assert.assertTrue(mLocalUfs.isDirectory(dirpath));
 
     File file = new File(dirpath);
     Assert.assertTrue(file.exists());
@@ -129,7 +129,7 @@ public class LocalUnderFileSystemTest {
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
     mLocalUfs.mkdirs(dirpath, false);
 
-    Assert.assertFalse(mLocalUfs.exists(dirpath));
+    Assert.assertFalse(mLocalUfs.isDirectory(dirpath));
 
     File file = new File(dirpath);
     Assert.assertFalse(file.exists());

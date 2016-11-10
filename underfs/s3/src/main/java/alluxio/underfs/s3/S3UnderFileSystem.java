@@ -349,9 +349,8 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     try {
       return mClient.getObjectDetails(mBucketName, stripPrefixIfPresent(path)) != null;
     } catch (ServiceException e) {
-      e.printStackTrace();
+      return false;
     }
-    return false;
   }
 
   @Override
