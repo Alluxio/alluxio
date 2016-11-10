@@ -666,11 +666,6 @@ public class JournalIntegrationTest {
     Assert.assertTrue(fsMaster.getInMemoryFiles().contains(file));
   }
 
-  @Test
-  public void recoverFromTruncatedJournal() throws Exception {
-
-  }
-
   private void aclTestUtil(URIStatus status, String user) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
