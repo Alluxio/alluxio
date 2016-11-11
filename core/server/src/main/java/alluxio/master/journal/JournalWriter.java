@@ -340,7 +340,7 @@ public final class JournalWriter {
      * @param journalFormatter the journal formatter to use when writing journal entries
      * @param journalWriter the journal writer to use to get journal entry sequence numbers and
      *        complete the log when it needs to be rotated
-     * @throws IOException
+     * @throws IOException if the ufs can't create an outstream to logPath
      */
     public EntryOutputStream(UnderFileSystem ufs, String logPath, JournalFormatter journalFormatter,
         JournalWriter journalWriter) throws IOException {
@@ -440,7 +440,7 @@ public final class JournalWriter {
     }
 
     /**
-     * Completes the current log and rotates in a new log
+     * Completes the current log and rotates in a new log.
      *
      * @throws IOException if an IO exception occurs during the log rotation
      */

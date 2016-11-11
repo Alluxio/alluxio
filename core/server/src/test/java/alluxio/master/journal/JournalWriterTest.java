@@ -71,12 +71,10 @@ public class JournalWriterTest {
       entryOutStream.flush();
       Assert.fail("Should have thrown an exception");
     } catch (IOException ignored) {
+      // expected
     }
     // The rotation happens the next time an entry is written.
-    try {
-      entryOutStream.writeEntry(JournalEntry.newBuilder().build());
-    } catch (IOException ignored) {
-    }
+    entryOutStream.writeEntry(JournalEntry.newBuilder().build());
     verify(mockJournalWriter).completeCurrentLog();
   }
 
@@ -96,12 +94,10 @@ public class JournalWriterTest {
       entryOutStream.flush();
       Assert.fail("Should have thrown an exception");
     } catch (IOException ignored) {
+      // expected
     }
     // The rotation happens the next time an entry is written.
-    try {
-      entryOutStream.writeEntry(JournalEntry.newBuilder().build());
-    } catch (IOException ignored) {
-    }
+    entryOutStream.writeEntry(JournalEntry.newBuilder().build());
     verify(mockJournalWriter).completeCurrentLog();
   }
 
@@ -121,11 +117,14 @@ public class JournalWriterTest {
       entryOutStream.writeEntry(JournalEntry.newBuilder().setSequenceNumber(10).build());
       Assert.fail("Should have thrown an exception");
     } catch (IOException ignored) {
+      // expected
     }
     // The rotation happens the next time an entry is written.
     try {
       entryOutStream.writeEntry(JournalEntry.newBuilder().build());
+      Assert.fail("Should have thrown an exception");
     } catch (IOException ignored) {
+      // expected
     }
     verify(mockJournalWriter).completeCurrentLog();
   }
