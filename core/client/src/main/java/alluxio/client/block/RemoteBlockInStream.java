@@ -104,10 +104,6 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       mClosed = true;
       mCloser.close();
     }
-
-    if (mReader != null) {
-      mReader.close();
-    }
   }
 
   @Override
@@ -155,7 +151,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     int bytesLeft = toRead;
 
     if (mReader == null) {
-      mReader = RemoteBlockReader.Factory.create();
+      mReader = mCloser.register(RemoteBlockReader.Factory.create());
     }
 
     while (bytesLeft > 0) {
