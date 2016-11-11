@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.clock.SystemClock;
+import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -1533,26 +1534,28 @@ public final class FileSystemMaster extends AbstractMaster {
       String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
       // Create ancestor directories from top to the bottom. We cannot use recursive create parents
       // here because the permission for the ancestors can be different.
-      Stack<String> ufsDirsToMake = new Stack<>();
-      AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
-      while (!ufs.exists(curUfsDirPath.toString())) {
-        ufsDirsToMake.push(curUfsDirPath.toString());
-        curUfsDirPath = curUfsDirPath.getParent();
-      }
       List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
+      Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
+      AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
       // The dst inode does not exist yet, so the last inode in the list is the existing parent.
-      int index = dstInodeList.size() - ufsDirsToMake.size();
-      while (!ufsDirsToMake.empty()) {
-        String ufsDirToMake = ufsDirsToMake.pop();
-        Inode<?> curInode = dstInodeList.get(index);
+      for (int i = dstInodeList.size() - 1; i >= 0; i--) {
+        if (ufs.exists(curUfsDirPath.toString())) {
+          break;
+        }
+        Inode<?> curInode = dstInodeList.get(i);
         Permission perm = new Permission(curInode.getOwner(), curInode.getGroup(),
             curInode.getMode());
         MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(false)
             .setPermission(perm);
-        if (!ufs.mkdirs(ufsDirToMake, mkdirsOptions)) {
-          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirToMake));
+        ufsDirsToMakeWithOptions.push(new Pair<>(curUfsDirPath.toString(), mkdirsOptions));
+        curUfsDirPath = curUfsDirPath.getParent();
+      }
+      while (!ufsDirsToMakeWithOptions.empty()) {
+        Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
+        if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
+          throw new IOException(
+              ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirAndPerm.getFirst()));
         }
-        ++index;
       }
       if (!ufs.rename(ufsSrcUri, ufsDstUri)) {
         throw new IOException(
