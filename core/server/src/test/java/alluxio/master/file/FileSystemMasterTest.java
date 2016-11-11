@@ -268,7 +268,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#getPersistenceState(AlluxioURI)} method.
+   * Tests the {@link FileSystemMaster#getPersistenceState(long)} method.
    */
   @Test
   public void getPersistenceState() throws Exception {
