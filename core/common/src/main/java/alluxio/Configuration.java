@@ -108,19 +108,6 @@ public final class Configuration {
     defaultProps.setProperty(PropertyKey.USER_NETWORK_NETTY_CHANNEL.toString(),
         String.valueOf(ChannelType.defaultType()));
 
-    String confPaths;
-    // If site conf is overwritten in system properties, overwrite the default setting
-    if (System.getProperty(PropertyKey.SITE_CONF_DIR.toString()) != null) {
-      confPaths = System.getProperty(PropertyKey.SITE_CONF_DIR.toString());
-    } else {
-      confPaths = defaultProps.getProperty(PropertyKey.SITE_CONF_DIR.toString());
-    }
-    String[] confPathList = confPaths.split(",");
-
-    // Load site specific properties file
-    Properties siteProps = ConfigurationUtils
-        .searchPropertiesFile(sitePropertiesFile, confPathList);
-
     // Load system properties
     Properties systemProps = new Properties();
     systemProps.putAll(System.getProperties());
@@ -128,10 +115,19 @@ public final class Configuration {
     // Now lets combine, order matters here
     PROPERTIES.clear();
     merge(defaultProps);
-    if (siteProps != null) {
-      merge(siteProps);
-    }
     merge(systemProps);
+
+    // Load site specific properties file if not in test mode
+    if (!getBoolean(PropertyKey.TEST_MODE)) {
+      String confPaths = get(PropertyKey.SITE_CONF_DIR);
+      String[] confPathList = confPaths.split(",");
+      Properties siteProps = ConfigurationUtils
+          .searchPropertiesFile(sitePropertiesFile, confPathList);
+      if (siteProps != null) {
+        merge(siteProps);
+        merge(systemProps);
+      }
+    }
 
     String masterHostname = get(PropertyKey.MASTER_HOSTNAME);
     String masterPort = get(PropertyKey.MASTER_RPC_PORT);
