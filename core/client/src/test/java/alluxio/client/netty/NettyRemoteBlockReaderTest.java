@@ -25,9 +25,14 @@ import io.netty.channel.ChannelPipeline;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -37,6 +42,8 @@ import java.nio.ByteBuffer;
 /**
  * Tests for the {@link NettyRemoteBlockReader} class.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(NettyClient.class)
 public class NettyRemoteBlockReaderTest {
 
   private NettyRemoteBlockReader mNettyRemoteBlockReader;
@@ -58,8 +65,9 @@ public class NettyRemoteBlockReaderTest {
    */
   @Before
   public void before() throws InterruptedException {
-    mNettyRemoteBlockReader = new NettyRemoteBlockReader(sBootstrap);
-
+    PowerMockito.mockStatic(NettyClient.class);
+    BDDMockito.given(NettyClient.createClientBootstrap()).willReturn(sBootstrap);
+    mNettyRemoteBlockReader = new NettyRemoteBlockReader();
     mChannel = Mockito.mock(Channel.class);
     mChannelFuture = Mockito.mock(ChannelFuture.class);
     mChannelPipeline = Mockito.mock(ChannelPipeline.class);
@@ -75,8 +83,7 @@ public class NettyRemoteBlockReaderTest {
     Mockito.when(sBootstrap.remoteAddress(Mockito.any(InetSocketAddress.class)))
         .thenReturn(sBootstrap);
     Mockito.when(mChannel.pipeline()).thenReturn(mChannelPipeline);
-    Mockito.when(mChannelPipeline.get(Mockito.any(Class.class))).thenReturn(sClientHandler);
-
+    Mockito.when(mChannelPipeline.last()).thenReturn(sClientHandler);
   }
 
   /**

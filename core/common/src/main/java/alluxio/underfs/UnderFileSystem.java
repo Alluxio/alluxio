@@ -295,19 +295,34 @@ public abstract class UnderFileSystem {
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path) throws IOException;
+  public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
 
   /**
-   * Creates a file in the under file system with the specified
-   * {@link CreateOptions}.
+   * Creates a file in the under file system with the specified {@link CreateOptions}.
+   * Implementations should make sure that the path under creation appears in listings only
+   * after a successful close and that contents are written in its entirety or not at all.
    *
    * @param path the file name
    * @param options the options for create
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path, CreateOptions options)
-      throws IOException;
+  public OutputStream create(String path, CreateOptions options) throws IOException {
+    return new NonAtomicFileOutputStream(path, options, this);
+  }
+
+  /**
+   * Creates a file in the under file system with the specified {@link CreateOptions}. This stream
+   * writes directly to the underlying storage without any atomicity guarantees.
+   *
+   * @param path the file name
+   * @param options the options for create
+   * @return A {@code OutputStream} object
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract OutputStream createDirect(String path, CreateOptions options) throws IOException;
 
   /**
    * Deletes a file or folder from the under file system with the indicated name.

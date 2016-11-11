@@ -49,6 +49,7 @@ public enum PropertyKey {
   // UFS related properties
   //
   UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR)),
+  UNDERFS_ALLOW_SET_OWNER_FAILURE(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE, false),
   UNDERFS_LISTING_LENGTH(Name.UNDERFS_LISTING_LENGTH, 1000),
   UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ""),
   UNDERFS_GLUSTERFS_IMPL(Name.UNDERFS_GLUSTERFS_IMPL,
@@ -79,7 +80,6 @@ public enum PropertyKey {
   UNDERFS_S3_UPLOAD_THREADS_MAX(Name.UNDERFS_S3_UPLOAD_THREADS_MAX, 2),
   UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, 60000),
   UNDERFS_S3A_INHERIT_ACL(Name.UNDERFS_S3A_INHERIT_ACL, true),
-  UNDERFS_S3A_DIRECT_WRITES_ENABLED(Name.UNDERFS_S3A_DIRECT_WRITES_ENABLED, "true"),
   UNDERFS_S3A_SECURE_HTTP_ENABLED(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED, false),
   UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED,
       false),
@@ -382,6 +382,8 @@ public enum PropertyKey {
     // UFS related properties
     //
     public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
+    public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
+        "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
@@ -403,8 +405,6 @@ public enum PropertyKey {
     public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout.ms";
-    public static final String UNDERFS_S3A_DIRECT_WRITES_ENABLED =
-        "alluxio.underfs.s3a.direct.writes.enabled";
     public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
         "alluxio.underfs.s3a.secure.http.enabled";
     public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =

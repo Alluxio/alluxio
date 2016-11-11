@@ -13,7 +13,6 @@ package alluxio.worker;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +35,6 @@ public final class AlluxioWorker {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
           AlluxioWorker.class.getCanonicalName());
-      System.exit(-1);
-    }
-
-    // validate the configuration
-    if (!ConfigurationUtils.validateConf()) {
-      LOG.error("Invalid configuration found");
       System.exit(-1);
     }
 

@@ -26,7 +26,6 @@ import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -38,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -129,13 +129,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public FSDataOutputStream create(String path) throws IOException {
-    return create(path, new CreateOptions());
-  }
-
-  @Override
-  public FSDataOutputStream create(String path, CreateOptions options)
-      throws IOException {
+  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     Permission perm = options.getPermission();
@@ -358,9 +352,19 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
           parent = parent.getParent();
         }
         while (!dirsToMake.empty()) {
-          if (!FileSystem.mkdirs(mFileSystem, dirsToMake.pop(),
+          Path dirToMake = dirsToMake.pop();
+          if (!FileSystem.mkdirs(mFileSystem, dirToMake,
               new FsPermission(options.getPermission().getMode().toShort()))) {
             return false;
+          }
+          // Set the owner to the Alluxio client user to achieve permission delegation.
+          // Alluxio server-side user is required to be a HDFS superuser. If it fails to set owner,
+          // proceeds with mkdirs and print out an warning message.
+          try {
+            setOwner(dirToMake.toString(), options.getPermission().getOwner(),
+                options.getPermission().getGroup());
+          } catch (IOException e) {
+            LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
           }
         }
         return true;
@@ -429,9 +433,14 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       mFileSystem.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
       LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group, e);
-      LOG.warn("In order for Alluxio to create HDFS files with the correct user and groups, "
+      LOG.warn("In order for Alluxio to set HDFS files with the correct user and groups, "
           + "Alluxio should be added to the HDFS superusers.");
-      throw e;
+      if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
+        throw e;
+      } else {
+        LOG.warn("Proceeding... but this may cause permission inconsistency between Alluxio and "
+            + "HDFS.");
+      }
     }
   }
 

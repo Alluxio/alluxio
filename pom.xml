@@ -372,9 +372,10 @@
           <version>2.19.1</version>
           <configuration>
             <argLine>-Djava.net.preferIPv4Stack=true -XX:MaxPermSize=512M</argLine>
+            <forkCount>2</forkCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
-            <!-- Alphabetical order on even hours, reverse-alphabetical on odd hours  -->
-            <runOrder>hourly</runOrder>
+            <reuseForks>false</reuseForks>
+            <runOrder>alphabetical</runOrder>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>

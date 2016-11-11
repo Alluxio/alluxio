@@ -52,6 +52,7 @@ import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -123,6 +124,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -613,6 +615,78 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public FileSystemMasterView getFileSystemMasterView() {
     return new FileSystemMasterView(this);
+  }
+
+  /**
+   * Checks the consistency of the files and directories in the subtree under the path.
+   *
+   * @param path the root of the subtree to check
+   * @param options the options to use for the checkConsistency method
+   * @return a list of paths in Alluxio which are not consistent with the under storage
+   * @throws AccessControlException if the permission checking fails
+   * @throws FileDoesNotExistException if the path does not exist
+   * @throws InvalidPathException if the path is invalid
+   * @throws IOException if an error occurs interacting with the under storage
+   */
+  public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
+    List<AlluxioURI> inconsistentUris = new ArrayList<>();
+    try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkPermission(Mode.Bits.READ, parent);
+      try (InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
+        if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
+          inconsistentUris.add(parent.getUri());
+        }
+        for (Inode child : children.getInodes()) {
+          AlluxioURI currentPath = mInodeTree.getPath(child);
+          if (!checkConsistencyInternal(child, currentPath)) {
+            inconsistentUris.add(currentPath);
+          }
+        }
+      }
+    }
+    return inconsistentUris;
+  }
+
+  /**
+   * Checks if a path is consistent between Alluxio and the underlying storage.
+   *
+   * A path without a backing under storage is always consistent.
+   *
+   * A not persisted path is considered consistent if:
+   *   1. It does not shadow an object in the underlying storage.
+   *
+   * A persisted path is considered consistent if:
+   *   1. An equivalent object exists for its under storage path.
+   *   2. The metadata of the Alluxio and under storage object are equal.
+   *
+   * @param inode the inode to check
+   * @param path the current path associated with the inode
+   * @return true if the path is consistent, false otherwise
+   * @throws FileDoesNotExistException if the path cannot be found in the Alluxio inode tree
+   * @throws InvalidPathException if the path is not well formed
+   */
+  private boolean checkConsistencyInternal(Inode inode, AlluxioURI path)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
+    MountTable.Resolution resolution = mMountTable.resolve(path);
+    UnderFileSystem ufs = resolution.getUfs();
+    String ufsPath = resolution.getUri().getPath();
+    if (ufs == null) {
+      return true;
+    }
+    if (!inode.isPersisted()) {
+      return !ufs.exists(ufsPath);
+    }
+    // TODO(calvin): Evaluate which other metadata fields should be validated.
+    if (inode.isDirectory()) {
+      return ufs.exists(ufsPath)
+          && !ufs.isFile(ufsPath);
+    } else {
+      InodeFile file = (InodeFile) inode;
+      return ufs.exists(ufsPath)
+          && ufs.isFile(ufsPath)
+          && ufs.getFileSize(ufsPath) == file.getLength();
+    }
   }
 
   /**
@@ -1532,15 +1606,28 @@ public final class FileSystemMaster extends AbstractMaster {
       String ufsSrcUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
       String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
-      String parentUri = new AlluxioURI(ufsDstUri).getParent().toString();
-      if (!ufs.exists(parentUri)) {
-        Permission parentPerm = new Permission(srcParentInode.getOwner(), srcParentInode.getGroup(),
-            srcParentInode.getMode());
-        MkdirsOptions parentMkdirsOptions = new MkdirsOptions().setCreateParent(true)
-            .setPermission(parentPerm);
-        if (!ufs.mkdirs(parentUri, parentMkdirsOptions)) {
-          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentUri));
+      // Create ancestor directories from top to the bottom. We cannot use recursive create parents
+      // here because the permission for the ancestors can be different.
+      Stack<String> ufsDirsToMake = new Stack<>();
+      AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
+      while (!ufs.exists(curUfsDirPath.toString())) {
+        ufsDirsToMake.push(curUfsDirPath.toString());
+        curUfsDirPath = curUfsDirPath.getParent();
+      }
+      List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
+      // The dst inode does not exist yet, so the last inode in the list is the existing parent.
+      int index = dstInodeList.size() - ufsDirsToMake.size();
+      while (!ufsDirsToMake.empty()) {
+        String ufsDirToMake = ufsDirsToMake.pop();
+        Inode<?> curInode = dstInodeList.get(index);
+        Permission perm = new Permission(curInode.getOwner(), curInode.getGroup(),
+            curInode.getMode());
+        MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(false)
+            .setPermission(perm);
+        if (!ufs.mkdirs(ufsDirToMake, mkdirsOptions)) {
+          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirToMake));
         }
+        ++index;
       }
       if (!ufs.rename(ufsSrcUri, ufsDstUri)) {
         throw new IOException(
@@ -1916,7 +2003,9 @@ public final class FileSystemMaster extends AbstractMaster {
       Mode mode = permission.getMode();
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createFileOptions = createFileOptions.setPermission(permission);
+    // This file is loaded from UFS. By setting default mode to false, umask will not be
+    // applied to loaded mode.
+    createFileOptions = createFileOptions.setPermission(permission).setDefaultMode(false);
 
     try {
       long counter = createFileAndJournal(inodePath, createFileOptions);
@@ -1967,7 +2056,9 @@ public final class FileSystemMaster extends AbstractMaster {
       Mode mode = permission.getMode();
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createDirectoryOptions = createDirectoryOptions.setPermission(permission);
+    // This directory is loaded from UFS. By setting default mode to false, umask will not be
+    // applied to loaded mode.
+    createDirectoryOptions = createDirectoryOptions.setPermission(permission).setDefaultMode(false);
 
     try {
       return createDirectoryAndJournal(inodePath, createDirectoryOptions);
