@@ -177,7 +177,7 @@ public class LocalUnderFileSystemTest {
   }
 
   @Test
-  public void rename() throws IOException {
+  public void renameFile() throws IOException {
     byte[] bytes = getBytes();
     String filepath1 = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
 
@@ -186,7 +186,7 @@ public class LocalUnderFileSystemTest {
     os.close();
 
     String filepath2 = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.rename(filepath1, filepath2);
+    mLocalUfs.renameFile(filepath1, filepath2);
 
     InputStream is = mLocalUfs.open(filepath2);
     byte[] bytes1 = new byte[bytes.length];

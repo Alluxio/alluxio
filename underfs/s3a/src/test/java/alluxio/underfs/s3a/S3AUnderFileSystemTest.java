@@ -78,14 +78,14 @@ public class S3AUnderFileSystemTest {
   }
 
   /**
-   * Test case for {@link S3AUnderFileSystem#rename(String, String)}.
+   * Test case for {@link S3AUnderFileSystem#renameFile(String, String)}.
    */
   @Test
   public void renameOnAmazonClientException() throws IOException {
     Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
-    boolean result = mS3UnderFileSystem.rename(SRC, DST);
+    boolean result = mS3UnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
 }

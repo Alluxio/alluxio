@@ -75,14 +75,14 @@ public class OSSUnderFileSystemTest {
   }
 
   /**
-   * Test case for {@link OSSUnderFileSystem#rename(String, String)}.
+   * Test case for {@link OSSUnderFileSystem#renameFile(String, String)}.
    */
   @Test
   public void renameOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
         .thenThrow(ServiceException.class);
 
-    boolean result = mOSSUnderFileSystem.rename(SRC, DST);
+    boolean result = mOSSUnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
 }

@@ -351,20 +351,20 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests {@link UnderFileSystem#rename(String, String)} works file to new location.
+   * Tests {@link UnderFileSystem#renameFile(String, String)} works file to new location.
    */
   @Test
   public void renameFile() throws IOException {
     String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "testFileSrc");
     String testFileDst = PathUtils.concatPath(mUnderfsAddress, "testFileDst");
     createEmptyFile(testFileSrc);
-    mUfs.rename(testFileSrc, testFileDst);
+    mUfs.renameFile(testFileSrc, testFileDst);
     Assert.assertFalse(mUfs.isFile(testFileSrc));
     Assert.assertTrue(mUfs.isFile(testFileDst));
   }
 
   /**
-   * Tests {@link UnderFileSystem#rename(String, String)} works file to a folder if supported.
+   * Tests {@link UnderFileSystem#renameFile(String, String)} works file to a folder if supported.
    */
   @Test
   public void renameFileToFolder() throws IOException {
@@ -373,14 +373,14 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFileFinalDst = PathUtils.concatPath(testFileDst, "testFileSrc");
     createEmptyFile(testFileSrc);
     mUfs.mkdirs(testFileDst, false);
-    if (mUfs.rename(testFileSrc, testFileDst)) {
+    if (mUfs.renameFile(testFileSrc, testFileDst)) {
       Assert.assertFalse(mUfs.isFile(testFileSrc));
       Assert.assertTrue(mUfs.isFile(testFileFinalDst));
     }
   }
 
   /**
-   * Tests {@link UnderFileSystem#rename(String, String)} works folder to new location.
+   * Tests {@link UnderFileSystem#renameDirectory(String, String)} works folder to new location.
    */
   @Test
   public void renameFolder() throws IOException {
@@ -390,7 +390,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testDirDstChild = PathUtils.concatPath(testDirDst, "testFile");
     mUfs.mkdirs(testDirSrc, false);
     createEmptyFile(testDirSrcChild);
-    mUfs.rename(testDirSrc, testDirDst);
+    mUfs.renameDirectory(testDirSrc, testDirDst);
     Assert.assertFalse(mUfs.isDirectory(testDirSrc));
     Assert.assertFalse(mUfs.isFile(testDirSrcChild));
     Assert.assertTrue(mUfs.isDirectory(testDirDst));
@@ -398,8 +398,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests {@link UnderFileSystem#rename(String, String)} works folder to another folder if
-   * supported.
+   * Tests {@link UnderFileSystem#renameDirectory(String, String)} works folder to another folder
+   * if supported.
    */
   @Test
   public void renameFolderToFolder() throws IOException {
@@ -413,7 +413,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     mUfs.mkdirs(testDirDst, false);
     createEmptyFile(testDirDstChild);
     createEmptyFile(testDirSrcChild);
-    if (mUfs.rename(testDirSrc, testDirDst)) {
+    if (mUfs.renameDirectory(testDirSrc, testDirDst)) {
       Assert.assertFalse(mUfs.isDirectory(testDirSrc));
       Assert.assertFalse(mUfs.isFile(testDirSrcChild));
       Assert.assertTrue(mUfs.isDirectory(testDirDst));

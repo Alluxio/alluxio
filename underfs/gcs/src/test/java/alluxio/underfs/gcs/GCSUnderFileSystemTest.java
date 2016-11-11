@@ -77,7 +77,7 @@ public class GCSUnderFileSystemTest {
   }
 
   /**
-   * Test case for {@link GCSUnderFileSystem#rename(String, String)}.
+   * Test case for {@link GCSUnderFileSystem#renameFile(String, String)}.
    */
   @Test
   public void renameOnServiceException() throws IOException, ServiceException {
@@ -85,7 +85,7 @@ public class GCSUnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mGCSUnderFileSystem.rename(SRC, DST);
+    boolean result = mGCSUnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
 }

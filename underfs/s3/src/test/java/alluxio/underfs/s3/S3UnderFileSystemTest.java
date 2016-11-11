@@ -78,7 +78,7 @@ public class S3UnderFileSystemTest {
   }
 
   /**
-   * Test case for {@link S3UnderFileSystem#rename(String, String)}.
+   * Test case for {@link S3UnderFileSystem#renameFile(String, String)}.
    */
   @Test
   public void renameOnServiceException() throws IOException, ServiceException {
@@ -86,7 +86,7 @@ public class S3UnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mS3UnderFileSystem.rename(SRC, DST);
+    boolean result = mS3UnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
 }
