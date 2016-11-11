@@ -33,8 +33,6 @@ import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.util.IdUtils;
-import alluxio.util.io.PathUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -72,7 +70,6 @@ public class FileOutStream extends AbstractOutStream {
   private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
-  private final long mNonce;
   /** Whether this stream should delegate operations to the ufs to a worker. */
   private final boolean mUfsDelegation;
   /** The client to a file system worker, null if mUfsDelegation is false. */
@@ -114,7 +111,6 @@ public class FileOutStream extends AbstractOutStream {
       UnderFileSystemFileOutStream.Factory underOutStreamFactory) throws IOException {
     mCloser = Closer.create();
     mUri = Preconditions.checkNotNull(path);
-    mNonce = IdUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
@@ -147,11 +143,10 @@ public class FileOutStream extends AbstractOutStream {
           mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
               .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
         } else {
-          String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-          UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
+          UnderFileSystem ufs = UnderFileSystem.get(mUfsPath);
           // TODO(jiri): Implement collection of temporary files left behind by dead clients.
           CreateOptions createOptions = new CreateOptions().setPermission(options.getPermission());
-          mUnderStorageOutputStream = mCloser.register(ufs.create(tmpPath, createOptions));
+          mUnderStorageOutputStream = mCloser.register(ufs.create(mUfsPath, createOptions));
 
           // Set delegation related vars to null as we are not using worker delegation for ufs ops
           mFileSystemWorkerClient = null;
@@ -193,19 +188,14 @@ public class FileOutStream extends AbstractOutStream {
             options.setUfsLength(len);
           }
         } else {
-          String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-          UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
+          UnderFileSystem ufs = UnderFileSystem.get(mUfsPath);
           if (mCanceled) {
             // TODO(yupeng): Handle this special case in under storage integrations.
             mUnderStorageOutputStream.close();
-            ufs.delete(tmpPath, false);
+            ufs.delete(mUfsPath, false);
           } else {
             mUnderStorageOutputStream.flush();
             mUnderStorageOutputStream.close();
-            if (!ufs.rename(tmpPath, mUfsPath)) { // Failed to commit file
-              ufs.delete(tmpPath, false);
-              throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
-            }
             options.setUfsLength(ufs.getFileSize(mUfsPath));
           }
         }

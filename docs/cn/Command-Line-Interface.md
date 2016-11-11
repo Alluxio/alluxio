@@ -58,6 +58,16 @@ fs命令中的所有“路径”都应该以以下开头：
 
 {% include Command-Line-Interface/cat.md %}
 
+## checkConsistency
+
+`checkConsistency`命令会对比一给定路径下Alluxio以及底层存储系统的元数据，如果该路径是一个目录，那么其所有子内容都会被对比。该命令返回包含所有不一致的文件和目录的列表，系统管理员决定是否对这些不一致数据进行调整。为了防止Alluxio与底层存储系统的元数据不一致，应将你的系统设置为通过Alluxio来修改文件和目录，而不是直接访问底层存储系统进行修改。
+
+注意：该命令需要请求将要被检查的目录子树的读锁，这意味着在该命令完成之前无法对该目录子树的文件或者目录进行写操作或者更新操作。
+
+例如，`checkConsistency`命令可以用来周期性地检查命名空间的完整性：
+
+{% include Command-Line-Interface/checkConsistency.md %}
+
 ## checksum
 
 `checksum`命令输出某个Alluxio文件的md5值。

@@ -12,11 +12,9 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -101,31 +99,6 @@ public final class UnderFileSystemManagerTest {
     Mockito.verify(mMockUfs).create(Mockito.contains(mUri.toString()),
         Mockito.any(CreateOptions.class));
     Mockito.verify(mMockUfs).connectFromWorker(Mockito.anyString());
-  }
-
-  /**
-   * Tests completing a file with the manager will call {@link UnderFileSystem#rename}.
-   */
-  @Test
-  public void completeUfsFile() throws Exception {
-    long id = mManager.createFile(SESSION_ID, mUri,
-        new Permission("", "", Constants.DEFAULT_FILE_SYSTEM_MODE));
-    mManager.completeFile(SESSION_ID, id,
-        new Permission("", "", Constants.DEFAULT_FILE_SYSTEM_MODE));
-    Mockito.verify(mMockUfs).rename(Mockito.contains(mUri.toString()), Mockito.eq(mUri.toString()));
-  }
-
-  /**
-   * Tests completing a file with user and group.
-   */
-  @Test
-  public void completeUfsFileWithOwner() throws Exception {
-    String user = "User";
-    String group = "Group";
-    long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
-    mManager.completeFile(SESSION_ID, id,
-        new Permission(user, group, Mode.createFullAccess()));
-    Mockito.verify(mMockUfs).setOwner(mUri.toString(), user, group);
   }
 
   /**

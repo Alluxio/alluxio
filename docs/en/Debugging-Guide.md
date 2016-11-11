@@ -96,7 +96,7 @@ $ export HADOOP_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-cli
 $ export SPARK_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${SPARK_CLASSPATH}
 ```
 
-Alternatively, add the following lines to `spark/conf/spark-defaults.conf` to
+Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
 
 ```bash
 spark.driver.extraClassPath /<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar

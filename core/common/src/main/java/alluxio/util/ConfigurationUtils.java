@@ -104,20 +104,4 @@ public final class ConfigurationUtils {
     return loadPropertiesFromResource(propertiesFile);
   }
 
-  /**
-   * Validates the configurations.
-   *
-   * @return true if the validation succeeds, false otherwise
-   */
-  public static boolean validateConf() {
-    boolean valid = true;
-    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      String propertyName = entry.getKey();
-      if (!PropertyKey.isValid(propertyName)) {
-        LOG.error("Unsupported property " + propertyName);
-        valid = false;
-      }
-    }
-    return valid;
-  }
 }
