@@ -26,7 +26,6 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -74,12 +73,6 @@ public class AlluxioMaster implements Server {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
           AlluxioMaster.class.getCanonicalName());
-      System.exit(-1);
-    }
-
-    // validate the configuration
-    if (!ConfigurationUtils.validateConf()) {
-      LOG.error("Invalid configuration found");
       System.exit(-1);
     }
 
