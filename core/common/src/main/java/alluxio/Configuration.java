@@ -61,9 +61,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** File to set customized properties for Alluxio server (both master and worker) and client. */
-  private static final String SITE_PROPERTIES = "alluxio-site.properties";
-
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution. */
@@ -72,26 +69,20 @@ public final class Configuration {
   private static final ConcurrentHashMapV8<String, String> PROPERTIES =
       new ConcurrentHashMapV8<>();
 
+  /** File to set customized properties for Alluxio server (both master and worker) and client. */
+  public static final String SITE_PROPERTIES = "alluxio-site.properties";
+
   static {
     defaultInit();
   }
 
   /**
-   * The default configuration.
-   */
-  public static void defaultInit() {
-    init(SITE_PROPERTIES);
-  }
-
-  /**
-   * Initializes the {@link Configuration} class with Alluxio configuration properties.
+   * Initializes the default {@link Configuration}.
    *
    * The order of preference is (1) system properties, (2) properties in the specified file, (3)
    * default property values.
-   *
-   * @param sitePropertiesFile path to a file containing site-wide Alluxio properties
    */
-  public static void init(String sitePropertiesFile) {
+  public static void defaultInit() {
     // Load default
     Properties defaultProps = new Properties();
     for (PropertyKey key : PropertyKey.values()) {
@@ -121,8 +112,7 @@ public final class Configuration {
     if (!getBoolean(PropertyKey.TEST_MODE)) {
       String confPaths = get(PropertyKey.SITE_CONF_DIR);
       String[] confPathList = confPaths.split(",");
-      Properties siteProps = ConfigurationUtils
-          .searchPropertiesFile(sitePropertiesFile, confPathList);
+      Properties siteProps = ConfigurationUtils.searchPropertiesFile(SITE_PROPERTIES, confPathList);
       if (siteProps != null) {
         merge(siteProps);
         merge(systemProps);
