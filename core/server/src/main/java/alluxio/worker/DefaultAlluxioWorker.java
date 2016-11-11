@@ -298,12 +298,14 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
         .transportFactory(tTransportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    args.executorService(new ExecutorServiceWithCallback(args.executorService, new Runnable() {
-      @Override
-      public void run() {
-       // do nothing.
-      }
-    }));
+    args.executorService(
+        ExecutorServiceWithCallback.createDefaultExecutorService(args, new Runnable() {
+          @Override
+          public void run() {
+            // do nothing.
+            return;
+          }
+        }));
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       args.stopTimeoutVal = 0;
     } else {

@@ -13,6 +13,7 @@ package alluxio.concurrent;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.thrift.server.TThreadPoolServer;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +21,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -42,6 +45,21 @@ public class ExecutorServiceWithCallback implements ExecutorService {
     Preconditions.checkNotNull(runnable);
     mExecutor = executor;
     mRunnable = runnable;
+  }
+
+  /**
+   * Creates a default instance of {@link ExecutorServiceWithCallback}.
+   *
+   * @param args the ThreadPoolServer args
+   * @param runnable the callback
+   * @return the executor service instance
+   */
+  public static ExecutorService createDefaultExecutorService(
+      TThreadPoolServer.Args args, Runnable runnable) {
+    SynchronousQueue<Runnable> executorQueue = new SynchronousQueue<Runnable>();
+    return new ExecutorServiceWithCallback(
+        new ThreadPoolExecutor(args.minWorkerThreads, args.maxWorkerThreads, args.stopTimeoutVal,
+            TimeUnit.SECONDS, executorQueue), runnable);
   }
 
   @Override
@@ -74,13 +92,11 @@ public class ExecutorServiceWithCallback implements ExecutorService {
     return mExecutor.submit(new Callable<T>() {
       @Override
       public T call() throws Exception {
-        T t;
         try {
-          t = task.call();
+          return task.call();
         } finally {
           mRunnable.run();
         }
-        return t;
       }
     });
   }
@@ -138,11 +154,16 @@ public class ExecutorServiceWithCallback implements ExecutorService {
   }
 
   @Override
-  public void execute(Runnable command) {
-    try {
-      command.run();
-    } finally {
-      mRunnable.run();
-    }
+  public void execute(final Runnable command) {
+    mExecutor.execute(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          command.run();
+        } finally {
+          mRunnable.run();
+        }
+      }
+    });
   }
 }
