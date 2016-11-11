@@ -230,7 +230,7 @@ public final class JournalWriter {
     }
 
     String completedLog = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
-    mUfs.rename(currentLog, completedLog);
+    mUfs.renameFile(currentLog, completedLog);
     LOG.info("Completed current log: {} to completed log: {}", currentLog, completedLog);
 
     mNextCompleteLogNumber++;

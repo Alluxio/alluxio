@@ -528,14 +528,24 @@ public abstract class UnderFileSystem {
   public abstract InputStream open(String path) throws IOException;
 
   /**
-   * Renames a file or folder from {@code src} to {@code dst} in under file system.
+   * Renames a file from {@code src} to {@code dst} in under file system.
    *
-   * @param src the source file or folder name
-   * @param dst the destination file or folder name
+   * @param src the source file path
+   * @param dst the destination file path
    * @return true if succeed, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean rename(String src, String dst) throws IOException;
+  public abstract boolean renameFile(String src, String dst) throws IOException;
+
+  /**
+   * Renames a directory from {@code src} to {@code dst} in under file system.
+   *
+   * @param src the source directory path
+   * @param dst the destination directory path
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract boolean renameDirectory(String src, String dst) throws IOException;
 
   /**
    * Returns an {@link AlluxioURI} representation for the {@link UnderFileSystem} given a base

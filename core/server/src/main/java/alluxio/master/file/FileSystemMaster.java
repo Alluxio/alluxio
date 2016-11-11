@@ -1604,20 +1604,33 @@ public final class FileSystemMaster extends AbstractMaster {
     if (!replayed && srcInode.isPersisted()) {
       MountTable.Resolution resolution = mMountTable.resolve(srcPath);
 
-      String ufsSrcUri = resolution.getUri().toString();
+      AlluxioURI ufsSrcUri = resolution.getUri();
       UnderFileSystem ufs = resolution.getUfs();
-      String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
-      String parentUri = new AlluxioURI(ufsDstUri).getParent().toString();
-      if (!ufs.isDirectory(parentUri)) {
+      AlluxioURI ufsDstUri = mMountTable.resolve(dstPath).getUri();
+      String parentPath = ufsDstUri.getParent().toString();
+      if (!ufs.isDirectory(parentPath)) {
         Permission parentPerm = new Permission(srcParentInode.getOwner(), srcParentInode.getGroup(),
             srcParentInode.getMode());
         MkdirsOptions parentMkdirsOptions = new MkdirsOptions().setCreateParent(true)
             .setPermission(parentPerm);
-        if (!ufs.mkdirs(parentUri, parentMkdirsOptions)) {
-          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentUri));
+        if (!ufs.mkdirs(parentPath, parentMkdirsOptions)) {
+          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentPath));
         }
       }
-      if (!ufs.rename(ufsSrcUri, ufsDstUri)) {
+
+      boolean success = false;
+      if (srcInode.isFile()) {
+        if (dstInodePath.getInode().isDirectory()) {
+          // If dst is a directory concat src file name
+          ufsDstUri = ufsDstUri.join(ufsSrcUri.getName());
+        }
+
+        // Src and dst is a file
+        success = ufs.renameFile(ufsSrcUri.toString(), ufsDstUri.toString());
+      } else if (dstInodePath.getInode().isDirectory()) {
+        success = ufs.renameDirectory(ufsSrcUri.toString(), ufsDstUri.toString());
+      }
+      if (!success) {
         throw new IOException(
             ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcUri, ufsDstUri));
       }
