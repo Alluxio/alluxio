@@ -16,7 +16,7 @@ if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
 BIN=$(cd "$( dirname "$0" )"; pwd)
-echo $BIN
+
 #start up alluxio
 
 USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
