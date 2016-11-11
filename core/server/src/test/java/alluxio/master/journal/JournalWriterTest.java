@@ -11,6 +11,8 @@
 
 package alluxio.master.journal;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -92,6 +94,31 @@ public class JournalWriterTest {
     doThrow(new IOException("sync failed")).when(mockOutStream).sync();
     try {
       entryOutStream.flush();
+      Assert.fail("Should have thrown an exception");
+    } catch (IOException ignored) {
+    }
+    // The rotation happens the next time an entry is written.
+    try {
+      entryOutStream.writeEntry(JournalEntry.newBuilder().build());
+    } catch (IOException ignored) {
+    }
+    verify(mockJournalWriter).completeCurrentLog();
+  }
+
+  @Test
+  public void rotateLogOnWriteException() throws Exception {
+    // Setup so that we can trigger an IOException when sync is called on the underlying stream.
+    JournalWriter mockJournalWriter = PowerMockito.mock(JournalWriter.class);
+    FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
+    UnderFileSystem mockUfs = mock(UnderFileSystem.class);
+    doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath());
+
+    EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
+        mJournal.getCurrentLogFilePath(), mJournal.getJournalFormatter(), mockJournalWriter);
+    doThrow(new IOException("write failed")).when(mockOutStream).write(any(byte[].class), anyInt(),
+        anyInt());
+    try {
+      entryOutStream.writeEntry(JournalEntry.newBuilder().setSequenceNumber(10).build());
       Assert.fail("Should have thrown an exception");
     } catch (IOException ignored) {
     }
