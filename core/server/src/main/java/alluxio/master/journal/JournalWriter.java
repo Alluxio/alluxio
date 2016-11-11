@@ -337,9 +337,14 @@ public final class JournalWriter {
       if (mIsClosed) {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
-      mJournal.getJournalFormatter().serialize(
-          entry.toBuilder().setSequenceNumber(mNextEntrySequenceNumber++).build(),
-          mDataOutputStream);
+      try {
+        mJournal.getJournalFormatter().serialize(
+            entry.toBuilder().setSequenceNumber(mNextEntrySequenceNumber++).build(),
+            mDataOutputStream);
+      } catch (IOException e) {
+        rotateLog();
+        throw e;
+      }
     }
 
     @Override
@@ -361,13 +366,18 @@ public final class JournalWriter {
         // There is nothing to flush.
         return;
       }
-      mDataOutputStream.flush();
-      if (mRawOutputStream instanceof FSDataOutputStream) {
-        // The output stream directly created by {@link UnderFileSystem} may be
-        // {@link FSDataOutputStream}, which means the under filesystem is HDFS, but
-        // {@link DataOutputStream#flush} won't flush the data to HDFS, so we need to call
-        // {@link FSDataOutputStream#sync} to actually flush data to HDFS.
-        ((FSDataOutputStream) mRawOutputStream).sync();
+      try {
+        mDataOutputStream.flush();
+        if (mRawOutputStream instanceof FSDataOutputStream) {
+          // The output stream directly created by {@link UnderFileSystem} may be
+          // {@link FSDataOutputStream}, which means the under filesystem is HDFS, but
+          // {@link DataOutputStream#flush} won't flush the data to HDFS, so we need to call
+          // {@link FSDataOutputStream#sync} to actually flush data to HDFS.
+          ((FSDataOutputStream) mRawOutputStream).sync();
+        }
+      } catch (IOException e) {
+        rotateLog();
+        throw e;
       }
       boolean overSize = mDataOutputStream.size() >= mMaxLogSize;
       if (overSize || !mUfs.supportsFlush()) {
@@ -379,12 +389,15 @@ public final class JournalWriter {
           LOG.info("Rotating log file. size: {} maxSize: {}", mDataOutputStream.size(),
               mMaxLogSize);
         }
-        // rotate the current log.
-        mDataOutputStream.close();
-        completeCurrentLog();
-        mRawOutputStream = openCurrentLog();
-        mDataOutputStream = new DataOutputStream(mRawOutputStream);
+        rotateLog();
       }
+    }
+
+    private void rotateLog() throws IOException {
+      mDataOutputStream.close();
+      completeCurrentLog();
+      mRawOutputStream = openCurrentLog();
+      mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
   }
 }
