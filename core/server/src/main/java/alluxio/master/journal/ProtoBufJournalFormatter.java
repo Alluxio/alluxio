@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,30 +52,24 @@ public final class ProtoBufJournalFormatter implements JournalFormatter {
 
       @Override
       public JournalEntry getNextEntry() throws IOException {
-        try {
-          int firstByte = inputStream.read();
-          if (firstByte == -1) {
-            return null;
-          }
-          int size = CodedInputStream.readRawVarint32(firstByte, inputStream);
-          byte[] buffer = size <= mBuffer.length ? mBuffer : new byte[size];
-          int bytes = inputStream.read(buffer, 0, size);
-          if (bytes < size) {
-            throw new InvalidProtocolBufferException(
-                "Journal entry was truncated. Expected to read " + size + " bytes but only got "
-                    + bytes);
-          }
-          JournalEntry entry = JournalEntry.parseFrom(new ByteArrayInputStream(buffer, 0, size));
-          if (entry != null) {
-            mLatestSequenceNumber = entry.getSequenceNumber();
-          }
-          return entry;
-        } catch (InvalidProtocolBufferException e) {
-          LOG.warn("Failed to read journal entry", e);
-          // Barring IO corruption, this means that the master crashed while writing the last
-          // journal entry, so we can ignore this last entry.
+        int firstByte = inputStream.read();
+        if (firstByte == -1) {
           return null;
         }
+        int size = CodedInputStream.readRawVarint32(firstByte, inputStream);
+        byte[] buffer = size <= mBuffer.length ? mBuffer : new byte[size];
+        int bytes = inputStream.read(buffer, 0, size);
+        if (bytes < size) {
+          LOG.warn("Journal entry was truncated. Expected to read " + size + " bytes but only got "
+              + bytes);
+          return null;
+        }
+
+        JournalEntry entry = JournalEntry.parseFrom(new ByteArrayInputStream(buffer, 0, size));
+        if (entry != null) {
+          mLatestSequenceNumber = entry.getSequenceNumber();
+        }
+        return entry;
       }
 
       @Override
