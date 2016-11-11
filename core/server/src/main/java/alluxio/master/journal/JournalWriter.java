@@ -58,7 +58,6 @@ public final class JournalWriter {
   private final String mTempCheckpointPath;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
-  private final long mMaxLogSize;
 
   /** The log number to assign to the next complete log. */
   private long mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
@@ -85,7 +84,6 @@ public final class JournalWriter {
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
     mUfs = UnderFileSystem.get(mJournalDirectory);
-    mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
     mCheckpointManager = new CheckpointManager(mUfs, mJournal.getCheckpointFilePath(), this);
   }
 
@@ -148,9 +146,17 @@ public final class JournalWriter {
       throw new IOException("The checkpoint must be written and closed before writing entries.");
     }
     if (mEntryOutputStream == null) {
-      mEntryOutputStream = new EntryOutputStream(openCurrentLog());
+      mEntryOutputStream = new EntryOutputStream(mUfs, mJournal.getCurrentLogFilePath(),
+          mJournal.getJournalFormatter(), this);
     }
     return mEntryOutputStream;
+  }
+
+  /**
+   * @return the next entry sequence number
+   */
+  public long allocateNextEntrySequenceNumber() {
+    return mNextEntrySequenceNumber++;
   }
 
   /**
@@ -167,19 +173,6 @@ public final class JournalWriter {
     }
     // Close the ufs.
     mUfs.close();
-  }
-
-  /**
-   * Returns the current log file output stream.
-   *
-   * @return the output stream for the current log file
-   * @throws IOException if an I/O error occurs
-   */
-  private synchronized OutputStream openCurrentLog() throws IOException {
-    String currentLogFile = mJournal.getCurrentLogFilePath();
-    OutputStream os = mUfs.create(currentLogFile);
-    LOG.info("Opened current log file: {}", currentLogFile);
-    return os;
   }
 
   /**
@@ -218,7 +211,7 @@ public final class JournalWriter {
    *
    * @throws IOException if an I/O error occurs
    */
-  private synchronized void completeCurrentLog() throws IOException {
+  public synchronized void completeCurrentLog() throws IOException {
     String currentLog = mJournal.getCurrentLogFilePath();
     if (!mUfs.exists(currentLog)) {
       // All logs are already complete, so nothing to do.
@@ -324,16 +317,40 @@ public final class JournalWriter {
    * </pre>
    */
   @ThreadSafe
-  private class EntryOutputStream implements JournalOutputStream {
+  public static class EntryOutputStream implements JournalOutputStream {
+    private final UnderFileSystem mUfs;
+    private final String mCurrentLogPath;
+    private final JournalFormatter mJournalFormatter;
+    private final JournalWriter mJournalWriter;
+    private final long mMaxLogSize;
     /** The direct output stream created by {@link UnderFileSystem}. */
     private OutputStream mRawOutputStream;
     /** The output stream that wraps around {@link #mRawOutputStream}. */
     private DataOutputStream mDataOutputStream;
     private boolean mIsClosed = false;
+    /**
+     * When true, the current log must be rotated before writing the next entry. This is set when
+     * the previous write failed and may have left a corrupted entry at the end of the current log.
+     */
+    private boolean mRotateLogForNextWrite = false;
 
-    EntryOutputStream(OutputStream outputStream) {
-      mRawOutputStream = outputStream;
-      mDataOutputStream = new DataOutputStream(outputStream);
+    /**
+     * @param ufs the under storage holding the journal
+     * @param logPath the path to write the log to
+     * @param journalFormatter the journal formatter to use when writing journal entries
+     * @param journalWriter the journal writer to use to get journal entry sequence numbers and
+     *        complete the log when it needs to be rotated
+     * @throws IOException
+     */
+    public EntryOutputStream(UnderFileSystem ufs, String logPath, JournalFormatter journalFormatter,
+        JournalWriter journalWriter) throws IOException {
+      mUfs = ufs;
+      mCurrentLogPath = logPath;
+      mJournalFormatter = journalFormatter;
+      mJournalWriter = journalWriter;
+      mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+      mRawOutputStream = openCurrentLog();
+      mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
 
     /**
@@ -348,12 +365,18 @@ public final class JournalWriter {
       if (mIsClosed) {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
-      try {
-        mJournal.getJournalFormatter().serialize(
-            entry.toBuilder().setSequenceNumber(mNextEntrySequenceNumber++).build(),
-            mDataOutputStream);
-      } catch (IOException e) {
+      if (mRotateLogForNextWrite) {
         rotateLog();
+        mRotateLogForNextWrite = false;
+      }
+      try {
+        mJournalFormatter
+            .serialize(
+                entry.toBuilder()
+                    .setSequenceNumber(mJournalWriter.allocateNextEntrySequenceNumber()).build(),
+                mDataOutputStream);
+      } catch (IOException e) {
+        mRotateLogForNextWrite = true;
         throw e;
       }
     }
@@ -387,7 +410,7 @@ public final class JournalWriter {
           ((FSDataOutputStream) mRawOutputStream).sync();
         }
       } catch (IOException e) {
-        rotateLog();
+        mRotateLogForNextWrite = true;
         throw e;
       }
       boolean overSize = mDataOutputStream.size() >= mMaxLogSize;
@@ -404,9 +427,26 @@ public final class JournalWriter {
       }
     }
 
+    /**
+     * Returns the current log file output stream.
+     *
+     * @return the output stream for the current log file
+     * @throws IOException if an I/O error occurs
+     */
+    private synchronized OutputStream openCurrentLog() throws IOException {
+      OutputStream os = mUfs.create(mCurrentLogPath);
+      LOG.info("Opened current log file: {}", mCurrentLogPath);
+      return os;
+    }
+
+    /**
+     * Completes the current log and rotates in a new log
+     *
+     * @throws IOException if an IO exception occurs during the log rotation
+     */
     private void rotateLog() throws IOException {
       mDataOutputStream.close();
-      completeCurrentLog();
+      mJournalWriter.completeCurrentLog();
       mRawOutputStream = openCurrentLog();
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
