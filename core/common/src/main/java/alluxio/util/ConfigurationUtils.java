@@ -13,7 +13,6 @@ package alluxio.util;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -23,7 +22,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.Properties;
 
 /**
