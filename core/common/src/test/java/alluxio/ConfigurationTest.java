@@ -32,7 +32,7 @@ public class ConfigurationTest {
   public final ExpectedException mThrown = ExpectedException.none();
 
   @Rule
-  public final TemporaryFolder mFolder= new TemporaryFolder();
+  public final TemporaryFolder mFolder = new TemporaryFolder();
 
   @After
   public void after() {
@@ -43,7 +43,7 @@ public class ConfigurationTest {
   public void defaultLoggerCorrectlyLoaded() throws Exception {
     // Avoid interference from system properties. site-properties will not be loaded during tests
     try (SetAndRestoreSystemProperty p =
-        new SetAndRestoreSystemProperty(PropertyKey.LOGGER_TYPE.toString(), null)){
+        new SetAndRestoreSystemProperty(PropertyKey.LOGGER_TYPE.toString(), null)) {
       String loggerType = Configuration.get(PropertyKey.LOGGER_TYPE);
       Assert.assertEquals("Console", loggerType);
     }
@@ -317,7 +317,7 @@ public class ConfigurationTest {
   public void sitePropertiesNotLoadedInTest() throws Exception {
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "wrong_logger");
-    File propsFile= mFolder.newFile(Configuration.SITE_PROPERTIES);
+    File propsFile = mFolder.newFile(Configuration.SITE_PROPERTIES);
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
@@ -336,7 +336,7 @@ public class ConfigurationTest {
   public void sitePropertiesLoadedNotInTest() throws Exception {
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "wrong_logger");
-    File propsFile= mFolder.newFile(Configuration.SITE_PROPERTIES);
+    File propsFile = mFolder.newFile(Configuration.SITE_PROPERTIES);
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
