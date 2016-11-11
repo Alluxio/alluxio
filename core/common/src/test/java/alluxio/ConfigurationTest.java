@@ -316,7 +316,7 @@ public class ConfigurationTest {
   @Test
   public void sitePropertiesNotLoadedInTest() throws Exception {
     Properties props = new Properties();
-    props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "wrong_logger");
+    props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "TEST_LOGGER");
     File propsFile = mFolder.newFile(Configuration.SITE_PROPERTIES);
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
@@ -335,7 +335,7 @@ public class ConfigurationTest {
   @Test
   public void sitePropertiesLoadedNotInTest() throws Exception {
     Properties props = new Properties();
-    props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "wrong_logger");
+    props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "TEST_LOGGER");
     File propsFile = mFolder.newFile(Configuration.SITE_PROPERTIES);
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
@@ -348,8 +348,7 @@ public class ConfigurationTest {
          SetAndRestoreSystemProperty p3 =
              new SetAndRestoreSystemProperty(PropertyKey.TEST_MODE.toString(), "false")) {
       Configuration.defaultInit();
-      Assert.assertEquals("wrong_logger", Configuration.get(PropertyKey.LOGGER_TYPE));
+      Assert.assertEquals("TEST_LOGGER", Configuration.get(PropertyKey.LOGGER_TYPE));
     }
   }
-
 }

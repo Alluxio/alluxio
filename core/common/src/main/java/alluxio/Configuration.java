@@ -108,11 +108,14 @@ public final class Configuration {
     merge(defaultProps);
     merge(systemProps);
 
-    // Load site specific properties file if not in test mode
+    // Load site specific properties file if not in test mode. Note that we decide whether in test
+    // mode by default properties and system properties (via getBoolean). If it is not in test mode
+    // the PROPERTIES will be updated again.
     if (!getBoolean(PropertyKey.TEST_MODE)) {
       String confPaths = get(PropertyKey.SITE_CONF_DIR);
       String[] confPathList = confPaths.split(",");
       Properties siteProps = ConfigurationUtils.searchPropertiesFile(SITE_PROPERTIES, confPathList);
+      // Update site properties and system properties in order
       if (siteProps != null) {
         merge(siteProps);
         merge(systemProps);
