@@ -310,7 +310,18 @@ public final class JournalWriter {
 
   /**
    * This is the output stream for the journal entries after the checkpoint. This output stream
-   * handles rotating full log files, and creating the next log file.
+   * handles rotating log files, and creating the next log file.
+   *
+   * Log files are rotated in the following scenarios:
+   *
+   * <pre>
+   * 1. The log size reaches {@link mMaxSize}
+   * 2. {@link #flush()} is called but the journal is in a UFS which doesn't support flush.
+   *    Closing the file is the only way to simulate a flush.
+   * 3. An IO exception occurs while writing to or flushing an entry. We must rotate here in case
+   *    corrupted data was written. When reading the log we will detect corruption and assume that
+   *    it's at the end of the log.
+   * </pre>
    */
   @ThreadSafe
   private class EntryOutputStream implements JournalOutputStream {
