@@ -260,7 +260,8 @@ public final class JournalWriter {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
-          entry.toBuilder().setSequenceNumber(allocateNextEntrySequenceNumber()).build(), mOutputStream);
+          entry.toBuilder().setSequenceNumber(allocateNextEntrySequenceNumber()).build(),
+          mOutputStream);
     }
 
     /**
