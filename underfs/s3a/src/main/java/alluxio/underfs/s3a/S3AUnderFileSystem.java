@@ -438,11 +438,11 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
-    if (!isFile(src) && isDirectory(src)) {
+    if (!isFile(src) && !isDirectory(src)) {
       LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
       return false;
     }
-    if (isFile(dst) || isFile(dst)) {
+    if (isFile(dst) || isDirectory(dst)) {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }

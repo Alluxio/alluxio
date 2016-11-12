@@ -1618,16 +1618,10 @@ public final class FileSystemMaster extends AbstractMaster {
         }
       }
 
-      boolean success = false;
+      boolean success;
       if (srcInode.isFile()) {
-        if (dstInodePath.getInode().isDirectory()) {
-          // If dst is a directory concat src file name
-          ufsDstUri = ufsDstUri.join(ufsSrcUri.getName());
-        }
-
-        // Src and dst is a file
         success = ufs.renameFile(ufsSrcUri.toString(), ufsDstUri.toString());
-      } else if (dstInodePath.getInode().isDirectory()) {
+      } else {
         success = ufs.renameDirectory(ufsSrcUri.toString(), ufsDstUri.toString());
       }
       if (!success) {

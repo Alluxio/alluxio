@@ -232,11 +232,13 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean rename(String src, String dst) throws IOException {
-    src = stripPath(src);
-    dst = stripPath(dst);
-    File file = new File(src);
-    return file.renameTo(new File(dst));
+  public boolean renameDirectory(String src, String dst) throws IOException {
+    return rename(src, dst);
+  }
+
+  @Override
+  public boolean renameFile(String src, String dst) throws IOException {
+    return rename(src, dst);
   }
 
   @Override
@@ -286,6 +288,21 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public void connectFromWorker(String hostname) throws IOException {
     // No-op
+  }
+
+  /**
+   * Rename a file or folder to a file or folder.
+   *
+   * @param src path of source file or directory
+   * @param dst path of destination file or directory
+   * @return true if rename succeeds
+   * @throws IOException
+   */
+  private boolean rename(String src, String dst) throws IOException {
+    src = stripPath(src);
+    dst = stripPath(dst);
+    File file = new File(src);
+    return file.renameTo(new File(dst));
   }
 
   /**
