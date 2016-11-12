@@ -166,7 +166,8 @@ public final class FileSystemUtils {
       Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
       AlluxioURI curAlluxioPath = uri.getParent();
       AlluxioURI curUfsPath = dstPath.getParent();
-      while (!ufs.exists(curUfsPath.toString())) {
+      // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not exist.
+      while (!ufs.exists(curUfsPath.toString()) && curAlluxioPath != null) {
         URIStatus curDirStatus = fs.getStatus(curAlluxioPath);
         Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
             (short) curDirStatus.getMode());
