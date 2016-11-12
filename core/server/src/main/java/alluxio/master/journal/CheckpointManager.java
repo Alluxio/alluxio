@@ -102,7 +102,7 @@ public final class CheckpointManager {
       if (tempBackupCheckpointExists) {
         // If mCheckpointPath also exists, step 2 must have implemented rename as copy + delete, and
         // failed during the delete.
-        UnderFileSystemUtils.deleteFileIfExists(mUfs, mCheckpointPath);
+        UnderFileSystemUtils.deleteFileIfExists(mCheckpointPath);
         mUfs.rename(mTempBackupCheckpointPath, mCheckpointPath);
       }
       if (backupCheckpointExists) {

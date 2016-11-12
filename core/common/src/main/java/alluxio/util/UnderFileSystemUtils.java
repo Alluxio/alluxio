@@ -72,7 +72,6 @@ public final class UnderFileSystemUtils {
   /**
    * Deletes the specified path from the specified under file system if it is a file and exists.
    *
-   * @param ufs the under file system to delete from
    * @param path the path to delete
    */
   public static void deleteFileIfExists(final String path) {
