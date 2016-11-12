@@ -155,7 +155,7 @@ public final class JournalWriter {
   /**
    * @return the next entry sequence number
    */
-  public long allocateNextEntrySequenceNumber() {
+  public synchronized long allocateNextEntrySequenceNumber() {
     return mNextEntrySequenceNumber++;
   }
 
@@ -260,7 +260,7 @@ public final class JournalWriter {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
-          entry.toBuilder().setSequenceNumber(mNextEntrySequenceNumber++).build(), mOutputStream);
+          entry.toBuilder().setSequenceNumber(allocateNextEntrySequenceNumber()).build(), mOutputStream);
     }
 
     /**
@@ -323,6 +323,7 @@ public final class JournalWriter {
     private final JournalFormatter mJournalFormatter;
     private final JournalWriter mJournalWriter;
     private final long mMaxLogSize;
+
     /** The direct output stream created by {@link UnderFileSystem}. */
     private OutputStream mRawOutputStream;
     /** The output stream that wraps around {@link #mRawOutputStream}. */
@@ -349,7 +350,8 @@ public final class JournalWriter {
       mJournalFormatter = journalFormatter;
       mJournalWriter = journalWriter;
       mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
-      mRawOutputStream = openCurrentLog();
+      mRawOutputStream = mUfs.create(mCurrentLogPath);
+      LOG.info("Opened current log file: {}", mCurrentLogPath);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
 
@@ -423,20 +425,8 @@ public final class JournalWriter {
           LOG.info("Rotating log file. size: {} maxSize: {}", mDataOutputStream.size(),
               mMaxLogSize);
         }
-        rotateLog();
+        mRotateLogForNextWrite = true;
       }
-    }
-
-    /**
-     * Returns the current log file output stream.
-     *
-     * @return the output stream for the current log file
-     * @throws IOException if an I/O error occurs
-     */
-    private synchronized OutputStream openCurrentLog() throws IOException {
-      OutputStream os = mUfs.create(mCurrentLogPath);
-      LOG.info("Opened current log file: {}", mCurrentLogPath);
-      return os;
     }
 
     /**
@@ -447,7 +437,8 @@ public final class JournalWriter {
     private void rotateLog() throws IOException {
       mDataOutputStream.close();
       mJournalWriter.completeCurrentLog();
-      mRawOutputStream = openCurrentLog();
+      mRawOutputStream = mUfs.create(mCurrentLogPath);
+      LOG.info("Opened current log file: {}", mCurrentLogPath);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
   }
