@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
@@ -51,12 +52,14 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
    * @param blockSize the block size
    * @param workerNetAddress the address of the local worker
    * @param blockStoreContext the block store context
+   * @param options the options
    * @throws IOException if an I/O error occurs
    */
   public LocalBlockOutStream(long blockId,
       long blockSize,
       WorkerNetAddress workerNetAddress,
-      BlockStoreContext blockStoreContext) throws IOException {
+      BlockStoreContext blockStoreContext,
+      OutStreamOptions options) throws IOException {
     super(blockId, blockSize, blockStoreContext);
     if (!NetworkAddressUtils.getLocalHostName().equals(workerNetAddress.getHost())) {
       throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerNetAddress));

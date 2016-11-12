@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.client.RemoteBlockWriter;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.WorkerNetAddress;
@@ -41,12 +42,14 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
    * @param blockSize the block size
    * @param address the address of the preferred worker
    * @param blockStoreContext the block store context
+   * @param options the options
    * @throws IOException if I/O error occurs
    */
   public RemoteBlockOutStream(long blockId,
       long blockSize,
       WorkerNetAddress address,
-      BlockStoreContext blockStoreContext) throws IOException {
+      BlockStoreContext blockStoreContext,
+      OutStreamOptions options) throws IOException {
     super(blockId, blockSize, blockStoreContext);
     mCloser = Closer.create();
     try {
