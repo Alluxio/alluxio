@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.concurrent.ExecutorServiceWithCallback;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
@@ -298,14 +297,6 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
         .transportFactory(tTransportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    args.executorService(
-        ExecutorServiceWithCallback.createDefaultExecutorService(args, new Runnable() {
-          @Override
-          public void run() {
-            // do nothing.
-            return;
-          }
-        }));
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       args.stopTimeoutVal = 0;
     } else {
