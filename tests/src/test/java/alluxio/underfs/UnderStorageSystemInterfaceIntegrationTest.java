@@ -412,7 +412,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(mUfs.isFile(testDirDstChild));
     Assert.assertTrue(mUfs.isDirectory(testDirDstNested));
     Assert.assertTrue(mUfs.isFile(testDirDstNestedChild));
-
   }
 
   /**

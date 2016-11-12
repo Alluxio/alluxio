@@ -291,7 +291,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Rename a file or folder to a file or folder.
+   * Rename a file to a file or a directory to a directory.
    *
    * @param src path of source file or directory
    * @param dst path of destination file or directory
