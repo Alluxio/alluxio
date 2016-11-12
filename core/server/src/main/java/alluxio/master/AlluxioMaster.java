@@ -390,7 +390,6 @@ public class AlluxioMaster implements Server {
       }
 
     } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
