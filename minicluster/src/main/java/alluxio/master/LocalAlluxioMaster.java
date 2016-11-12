@@ -83,7 +83,7 @@ public final class LocalAlluxioMaster {
    */
   public static LocalAlluxioMaster create() throws IOException {
     String workDirectory = uniquePath();
-    UnderFileSystemUtils.deleteDir(workDirectory);
+    UnderFileSystemUtils.deleteDirIfExists(workDirectory);
     UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
 
     Configuration.set(PropertyKey.WORK_DIR, workDirectory);

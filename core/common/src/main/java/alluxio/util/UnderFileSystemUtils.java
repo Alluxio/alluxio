@@ -28,12 +28,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UnderFileSystemUtils {
 
   /**
-   * Deletes the directory at the given path.
+   * Deletes the directory at the given path if it exists.
    *
    * @param path path to the directory
    * @throws IOException if the directory cannot be deleted
    */
-  public static void deleteDir(final String path) throws IOException {
+  public static void deleteDirIfExists(final String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.isDirectory(path) && !ufs.delete(path, true)) {
@@ -75,7 +75,8 @@ public final class UnderFileSystemUtils {
    * @param ufs the under file system to delete from
    * @param path the path to delete
    */
-  public static void deleteFileIfExists(UnderFileSystem ufs, String path) {
+  public static void deleteFileIfExists(final String path) {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
     try {
       if (ufs.isFile(path)) {
         ufs.delete(path, false);
