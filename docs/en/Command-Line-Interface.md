@@ -135,7 +135,7 @@ For example, `chown` can be used as a quick way to change the owner of file:
 ## copyFromLocal
 The `copyFromLocal` command copies the contents of a file in your local file system into Alluxio.
 If the node you run the command from has an Alluxio worker, the data will be available on that
-worker. Otherwise, the data will be placed in a random remote node running an Alluxio worker. If a
+worker. Otherwise, the data will be copied to a random remote node running an Alluxio worker. If a
 directory is specified, the directory and all its contents will be uploaded recursively.
 
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for
