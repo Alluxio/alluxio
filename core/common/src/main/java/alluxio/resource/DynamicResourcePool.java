@@ -235,7 +235,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param options the options
    */
   public DynamicResourcePool(Options options) {
-    mExecutor = Preconditions.checkNotNull(options.getGcExecutor());
+    mExecutor = Preconditions.checkNotNull(options.getGcExecutor(), "executor");
 
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
