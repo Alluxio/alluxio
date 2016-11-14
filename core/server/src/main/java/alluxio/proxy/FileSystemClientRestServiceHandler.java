@@ -122,9 +122,10 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary create a directory
    * @param path the file path
+   * @param allowExists whether the operation should succeed even if the directory already exists
+   * @param mode the octal mode to used for directory permissions
    * @param persisted whether directory should be persisted
    * @param recursive whether parent directories should be created if they do not already exist
-   * @param allowExists whether the operation should succeed even if the directory already exists
    * @return the response object
    */
   @POST
@@ -424,11 +425,13 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary upload a file
    * @param path the file path
+   * @param blockSizeBytes the target block size in bytes
+   * @param mode the octal mode to used for file permissions
    * @param persisted whether directory should be persisted
    * @param recursive whether parent directories should be created if they do not already exist
-   * @param blockSizeBytes the target block size in bytes
    * @param ttl the time-to-live (in milliseconds)
    * @param ttlAction action to take after TTL is expired
+   * @param is the input stream
    * @return the response object
    */
   @POST

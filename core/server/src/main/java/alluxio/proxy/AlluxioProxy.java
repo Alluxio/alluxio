@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.ProxyWebServer;

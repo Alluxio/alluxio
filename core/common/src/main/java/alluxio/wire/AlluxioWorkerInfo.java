@@ -22,6 +22,7 @@ import java.util.Map;
 public class AlluxioWorkerInfo {
   private Capacity mCapacity;
   private Map<String, String> mConfiguration;
+  private Map<String, Long> mMetrics;
   private String mRpcAddress;
   private long mStartTimeMs;
   private Map<String, Capacity> mTierCapacity;
@@ -46,6 +47,13 @@ public class AlluxioWorkerInfo {
    */
   public Map<String, String> getConfiguration() {
     return mConfiguration;
+  }
+
+  /**
+   * @return the metrics
+   */
+  public Map<String, Long> getMetrics() {
+    return mMetrics;
   }
 
   /**
@@ -105,6 +113,15 @@ public class AlluxioWorkerInfo {
    */
   public AlluxioWorkerInfo setConfiguration(Map<String, String> configuration) {
     mConfiguration = configuration;
+    return this;
+  }
+
+  /**
+   * @param metrics the metrics to use
+   * @return the Alluxio master descriptor
+   */
+  public AlluxioWorkerInfo setMetrics(Map<String, Long> metrics) {
+    mMetrics = metrics;
     return this;
   }
 
@@ -173,6 +190,7 @@ public class AlluxioWorkerInfo {
     AlluxioWorkerInfo that = (AlluxioWorkerInfo) o;
     return Objects.equal(mCapacity, that.mCapacity)
         && Objects.equal(mConfiguration, that.mConfiguration)
+        && Objects.equal(mMetrics, that.mMetrics)
         && Objects.equal(mRpcAddress, that.mRpcAddress)
         && mStartTimeMs == that.mStartTimeMs
         && Objects.equal(mTierCapacity, that.mTierCapacity)
@@ -184,8 +202,8 @@ public class AlluxioWorkerInfo {
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mCapacity, mConfiguration, mRpcAddress, mStartTimeMs, mTierCapacity, mTierPaths,
-            mUptimeMs, mVersion);
+        .hashCode(mCapacity, mConfiguration, mMetrics, mRpcAddress, mStartTimeMs, mTierCapacity,
+            mTierPaths, mUptimeMs, mVersion);
   }
 
   @Override
@@ -193,6 +211,7 @@ public class AlluxioWorkerInfo {
     return Objects.toStringHelper(this)
         .add("capacity", mCapacity)
         .add("configuration", mConfiguration)
+        .add("metrics", mMetrics)
         .add("rpc address", mRpcAddress)
         .add("start time", mStartTimeMs)
         .add("tier capacity", mTierCapacity)

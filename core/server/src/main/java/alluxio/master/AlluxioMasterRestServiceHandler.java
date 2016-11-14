@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.RestUtils;
@@ -30,8 +29,6 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.qmino.miredot.annotations.ReturnType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -57,7 +54,6 @@ import javax.ws.rs.core.Response;
 @Path(AlluxioMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioMasterRestServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   public static final String SERVICE_PREFIX = "master";
 
   public static final String GET_INFO = "info";
@@ -140,7 +136,6 @@ public final class AlluxioMasterRestServiceHandler {
       }
     });
   }
-
 
   /**
    * @summary get the master metrics, the keys are ordered alphabetically.
