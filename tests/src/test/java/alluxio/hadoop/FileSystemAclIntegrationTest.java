@@ -441,8 +441,9 @@ public final class FileSystemAclIntegrationTest {
    */
   @Test
   public void loadFileMetadataMode() throws Exception {
-    if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
-      // Skip non-local and non-HDFS UFSs.
+    if (!(sUfs instanceof LocalUnderFileSystem)
+        && !(sUfs instanceof HdfsUnderFileSystem && HadoopClientTestUtils.isHadoop2x())) {
+      // Skip non-local and non-HDFS-2 UFSs.
       return;
     }
     List<Integer> permissionValues =
