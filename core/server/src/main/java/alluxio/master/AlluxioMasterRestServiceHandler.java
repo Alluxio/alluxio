@@ -245,7 +245,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return getCapacityInternal().getTotal();
+        return mBlockMaster.getCapacityBytes();
       }
     });
   }
@@ -263,7 +263,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return getCapacityInternal().getUsed();
+        return mBlockMaster.getUsedBytes();
       }
     });
   }
@@ -281,8 +281,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        Capacity capacity = getCapacityInternal();
-        return capacity.getTotal() - capacity.getUsed();
+        return mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes();
       }
     });
   }
@@ -300,7 +299,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return getUfsCapacityInternal().getTotal();
+        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL);
       }
     });
   }
@@ -318,7 +317,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return getUfsCapacityInternal().getUsed();
+        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED);
       }
     });
   }
@@ -336,8 +335,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        Capacity capacity = getUfsCapacityInternal();
-        return capacity.getTotal() - capacity.getUsed();
+        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_FREE);
       }
     });
   }
