@@ -468,46 +468,43 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean renameDirectory(String source, String destination) throws IOException {
+  public boolean renameDirectory(String src, String dst) throws IOException {
     //TODO(adit): This operation may fail with partial updates
-    String strippedSourcePath = stripContainerPrefixIfPresent(source);
-    String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
-
-    // Since the destination is a directory, the target path is a folder within that directory.
-    strippedDestinationPath = PathUtils.concatPath(strippedDestinationPath,
-        FilenameUtils.getName(stripFolderSuffixIfPresent(strippedSourcePath)));
-
-    strippedSourcePath = addFolderSuffixIfNotPresent(strippedSourcePath);
-    strippedDestinationPath = addFolderSuffixIfNotPresent(strippedDestinationPath);
-
     // Rename the source folder first
-    if (!copy(strippedSourcePath, strippedDestinationPath)) {
+    if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
       return false;
     }
     // Rename each child in the source folder to destination/child
-    String [] children = list(source);
-    for (String child: children) {
-      // TODO(adit): See how we can do this with better performance
-      String childSrcPath = PathUtils.concatPath(source, child);
-      String childDstPath = PathUtils.concatPath(mContainerPrefix,
-              PathUtils.concatPath(strippedDestinationPath, child));
+    String [] children = list(src);
+    if (children == null) {
+      LOG.error("Failed to list path {}, aborting rename.", src);
+      return false;
+    }
+    for (String child : children) {
+      String childSrcPath = PathUtils.concatPath(src, child);
+      String childDstPath = PathUtils.concatPath(dst, child);
       // Recursive call
+      boolean success;
       if (isDirectory(childSrcPath)) {
-        return renameDirectory(childSrcPath, childDstPath);
+        success = renameDirectory(childSrcPath, childDstPath);
       } else {
-        return renameFile(childSrcPath, childDstPath);
+        success = renameFile(childSrcPath, childDstPath);
+      }
+      if (!success) {
+        LOG.error("Failed to rename path {}, aborting rename.", child);
+        return false;
       }
     }
-    // Delete source and everything under source
-    return delete(source, true);
+    // Delete src and everything under src
+    return delete(src, true);
   }
 
   @Override
-  public boolean renameFile(String source, String destination) throws IOException {
-    String strippedSourcePath = stripContainerPrefixIfPresent(source);
-    String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
+  public boolean renameFile(String src, String dst) throws IOException {
+    String strippedSourcePath = stripContainerPrefixIfPresent(src);
+    String strippedDestinationPath = stripContainerPrefixIfPresent(dst);
 
-    return copy(strippedSourcePath, strippedDestinationPath) && delete(source, false);
+    return copy(strippedSourcePath, strippedDestinationPath) && delete(src, false);
   }
 
   @Override
@@ -569,6 +566,17 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
     LOG.error("Failed to copy file {} to {}, after {} retries", source, destination, NUM_RETRIES);
     return false;
+  }
+
+
+  /**
+   * Appends the directory suffix ands strips container prefix from path.
+   *
+   * @param  path the path to convert
+   * @return path as a directory path
+   */
+  private String convertToFolderName(String path) {
+    return addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
   }
 
   /**

@@ -1613,7 +1613,6 @@ public final class FileSystemMaster extends AbstractMaster {
           throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentPath));
         }
       }
-
       boolean success;
       if (srcInode.isFile()) {
         success = ufs.renameFile(ufsSrcUri.toString(), ufsDstUri.toString());
