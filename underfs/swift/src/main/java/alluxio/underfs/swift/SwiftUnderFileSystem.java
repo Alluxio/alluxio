@@ -517,10 +517,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }
-
     String strippedSourcePath = stripContainerPrefixIfPresent(src);
     String strippedDestinationPath = stripContainerPrefixIfPresent(dst);
-
     return copy(strippedSourcePath, strippedDestinationPath) && delete(src, false);
   }
 
