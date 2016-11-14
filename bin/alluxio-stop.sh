@@ -21,7 +21,7 @@ USAGE="Usage: alluxio-stop.sh [-h] [component]
 Where component is one of:
   all     \tStop local master/worker and remote workers. Default.
   master  \tStop local master.
-  master  \tStop local proxy.
+  proxy   \tStop local proxy.
   worker  \tStop local worker.
   workers \tStop local worker and all remote workers.
 

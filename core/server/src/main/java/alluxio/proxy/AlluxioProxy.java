@@ -47,12 +47,6 @@ public final class AlluxioProxy implements Server {
       System.exit(-1);
     }
 
-    // validate the configuration
-    if (!ConfigurationUtils.validateConf()) {
-      LOG.error("Invalid configuration found");
-      System.exit(-1);
-    }
-
     AlluxioProxy proxy = new AlluxioProxy();
     try {
       proxy.start();
