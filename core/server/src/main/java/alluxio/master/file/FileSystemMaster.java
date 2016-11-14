@@ -434,16 +434,15 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * @return The list of inconsistent files at start up, null if the check has not completed or
-   *         failed.
+   * @return the list of inconsistent files at start up, null if the check has not completed or
+   *         failed
    */
   public List<AlluxioURI> getStartupConsistencyCheck() {
-    boolean isDone = mStartupConsistencyCheck.isDone();
-    if (isDone) {
+    if (mStartupConsistencyCheck.isDone()) {
       try {
         return mStartupConsistencyCheck.get();
       } catch (Exception e) {
-        // fall through
+        LOG.warn("Failed to complete start up consistency check.", e);
       }
     }
     return null;

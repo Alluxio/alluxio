@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
@@ -34,7 +35,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Test the consistency check which happens on master start up.
+ * Tests the consistency check which happens on master start up.
  */
 public class StartupConsistencyCheckTest {
   private static final AlluxioURI TOP_LEVEL_FILE = new AlluxioURI("/file");
@@ -101,15 +102,15 @@ public class StartupConsistencyCheckTest {
 
   /**
    * Waits for the startup consistency check to complete with a limit of 1 minute.
+   *
    * @param master the file system master which is starting up
    */
   private void waitForStartupConsistencyCheck(final FileSystemMaster master) {
     CommonUtils.waitFor("Startup consistency check completion", new Function<Void, Boolean>() {
-      @Nullable
       @Override
       public Boolean apply(Void aVoid) {
         return master.getStartupConsistencyCheck() != null;
       }
-    }, 60000);
+    }, Constants.SECOND_MS);
   }
 }
