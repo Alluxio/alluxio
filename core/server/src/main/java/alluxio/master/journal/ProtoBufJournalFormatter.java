@@ -56,6 +56,7 @@ public final class ProtoBufJournalFormatter implements JournalFormatter {
         if (firstByte == -1) {
           return null;
         }
+        // All journal entries start with their size in bytes written as a varint.
         int size = CodedInputStream.readRawVarint32(firstByte, inputStream);
         byte[] buffer = size <= mBuffer.length ? mBuffer : new byte[size];
         int bytes = inputStream.read(buffer, 0, size);
