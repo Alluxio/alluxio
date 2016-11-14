@@ -302,7 +302,7 @@ public final class PermissionChecker {
             .append(", ").append("path=").append(path).append(": ").append("failed at ")
             .append(inode.getName().equals("") ? "/" : inode.getName()).append(", inode owner=")
             .append(inode.getOwner()).append(", inode group=").append(inode.getGroup())
-            .append(", inode mode=").append(inode.getMode());
+            .append(", inode mode=").append(new Mode(inode.getMode()).toString());
     return stringBuilder.toString();
   }
 }
