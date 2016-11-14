@@ -147,7 +147,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   private void deleteDir(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
-    if (ufs.exists(path) && !ufs.delete(path, true)) {
+    if (ufs.isDirectory(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
     }
   }
@@ -155,7 +155,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   private void mkdir(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
-    if (ufs.exists(path)) {
+    if (ufs.isDirectory(path)) {
       ufs.delete(path, true);
     }
     if (!ufs.mkdirs(path, true)) {

@@ -149,7 +149,7 @@ public final class UnderFileSystemManager {
       UnderFileSystem ufs = UnderFileSystem.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-      if (!ufs.exists(mUri)) {
+      if (!ufs.isFile(mUri)) {
         throw new FileDoesNotExistException(
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mUri));
       }

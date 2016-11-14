@@ -160,7 +160,7 @@ public final class FileSystemUtils {
       AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
       UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString());
       String parentPath = dstPath.getParent().toString();
-      if (!ufs.exists(parentPath)) {
+      if (!ufs.isDirectory(parentPath)) {
         URIStatus parentStatus = fs.getStatus(uri.getParent());
         Permission parentPerm = new Permission(parentStatus.getOwner(), parentStatus.getGroup(),
             (short) parentStatus.getMode());

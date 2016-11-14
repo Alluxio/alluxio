@@ -278,25 +278,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return true;
   }
 
-  @Override
-  public boolean exists(String path) throws IOException {
-    LOG.debug("Check if {} exists", path);
-    // TODO(adit): remove special treatment of the _temporary suffix
-    // To get better performance Swift driver does not create a _temporary folder.
-    // This optimization should be hidden from Spark, therefore exists _temporary will return true.
-    if (isRoot(path) || path.endsWith("_temporary")) {
-      return true;
-    }
-
-    if (path.endsWith(FOLDER_SUFFIX)) {
-      // If path ends with the folder suffix, we do not check for the existence of a file
-      return isDirectory(path);
-    }
-
-    // If path does not have folder suffix we check for both a file or a folder
-    return isFile(path) || isDirectory(path);
-  }
-
   /**
    * Gets the block size in bytes. There is no concept of a block in Swift and the maximum size of
    * one file is 4 GB. This method defaults to the default user block size in Alluxio.
@@ -346,6 +327,17 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     return -1;
+  }
+
+  @Override
+  public boolean isDirectory(String path) throws IOException {
+    // Root is always a folder
+    if (isRoot(path)) {
+      return true;
+    }
+
+    final String pathAsFolder = addFolderSuffixIfNotPresent(path);
+    return doesObjectExist(pathAsFolder);
   }
 
   @Override
@@ -583,23 +575,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
     LOG.error("Failed to copy file {} to {}, after {} retries", source, destination, NUM_RETRIES);
     return false;
-  }
-
-  /**
-   * Checks if the path corresponds to a Swift directory.
-   *
-   * @param path the path to check
-   * @return boolean indicating if the path is a directory
-   * @throws IOException if an error occurs listing the directory
-   */
-  private boolean isDirectory(String path) throws IOException {
-    // Root is always a folder
-    if (isRoot(path)) {
-      return true;
-    }
-
-    final String pathAsFolder = addFolderSuffixIfNotPresent(path);
-    return doesObjectExist(pathAsFolder);
   }
 
   /**
