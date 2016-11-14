@@ -528,7 +528,9 @@ public abstract class UnderFileSystem {
   public abstract InputStream open(String path) throws IOException;
 
   /**
-   * Renames a directory from {@code src} to {@code dst} in under file system.
+   * Renames a directory from {@code src} to {@code dst} in under file system. This operation
+   * should fail if the destination path already exists. If src is a file the behavior is
+   * undefined.
    *
    * @param src the source directory path
    * @param dst the destination directory path
@@ -538,7 +540,9 @@ public abstract class UnderFileSystem {
   public abstract boolean renameDirectory(String src, String dst) throws IOException;
 
   /**
-   * Renames a file from {@code src} to {@code dst} in under file system.
+   * Renames a file from {@code src} to {@code dst} in under file system. This operation should
+   * fail if the destination path already exists. If the src is directory, the behavior is
+   * undefined.
    *
    * @param src the source file path
    * @param dst the destination file path
