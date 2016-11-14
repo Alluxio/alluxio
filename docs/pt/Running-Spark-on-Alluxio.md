@@ -25,7 +25,7 @@ projeto inteiro a partir do diretório raiz do Alluxio com o comando:
 
 {% include Running-Spark-on-Alluxio/spark-profile-build.md %}
 
-* Adicione a linha seguinte para `spark/conf/spark-env.sh`:
+* Adicione a linha seguinte para `spark/conf/spark-defaults.conf`:
 
 {% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
 

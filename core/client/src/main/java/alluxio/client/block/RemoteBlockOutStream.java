@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.client.RemoteBlockWriter;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.WorkerNetAddress;
@@ -41,12 +42,14 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
    * @param blockSize the block size
    * @param address the address of the preferred worker
    * @param blockStoreContext the block store context
+   * @param options the options
    * @throws IOException if I/O error occurs
    */
   public RemoteBlockOutStream(long blockId,
       long blockSize,
       WorkerNetAddress address,
-      BlockStoreContext blockStoreContext) throws IOException {
+      BlockStoreContext blockStoreContext,
+      OutStreamOptions options) throws IOException {
     super(blockId, blockSize, blockStoreContext);
     mCloser = Closer.create();
     try {
@@ -69,7 +72,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     try {
       mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (AlluxioException e) {
-      throw new IOException(e);
+      throw mCloser.rethrow(new IOException(e));
     } finally {
       mClosed = true;
       mCloser.close();
@@ -85,19 +88,15 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     try {
       flush();
       if (mFlushedBytes > 0) {
-        try {
-          mBlockWorkerClient.cacheBlock(mBlockId);
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        }
+        mBlockWorkerClient.cacheBlock(mBlockId);
         Metrics.BLOCKS_WRITTEN_REMOTE.inc();
       } else {
-        try {
-          mBlockWorkerClient.cancelBlock(mBlockId);
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        }
+        mBlockWorkerClient.cancelBlock(mBlockId);
       }
+    } catch (AlluxioException e) {
+      throw mCloser.rethrow(new IOException(e));
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is
     } finally {
       mClosed = true;
       mCloser.close();

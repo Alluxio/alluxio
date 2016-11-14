@@ -1075,16 +1075,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   private static final class TraversalResult {
+    /** True if the traversal found the target inode, false otherwise. */
     private final boolean mFound;
 
-    /**
-     * The list of non-persisted inodes encountered during the traversal.
-     */
+    /** The list of non-persisted inodes encountered during the traversal. */
     private final List<Inode<?>> mNonPersisted;
 
-    /**
-     * The list of all inodes encountered during the traversal.
-     */
+    /** The list of all inodes encountered during the traversal. */
     private final List<Inode<?>> mInodes;
 
     /** The {@link InodeLockList} managing the locks for the inodes. */
@@ -1109,6 +1106,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
       mLockList = lockList;
     }
 
+    /**
+     * @return true if target inode was found, false otherwise
+     */
     boolean isFound() {
       return mFound;
     }

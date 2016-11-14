@@ -165,7 +165,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   @Override
   public boolean add(T object) {
-    Preconditions.checkNotNull(object);
+    Preconditions.checkNotNull(object, "object");
 
     // Locking this object protects against removing the exact object, but does not protect against
     // removing a distinct, but equivalent object.

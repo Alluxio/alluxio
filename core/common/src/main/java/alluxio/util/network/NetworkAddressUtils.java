@@ -14,7 +14,7 @@ package alluxio.util.network;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.LeaderInquireClient;
+import alluxio.MasterInquireClient;
 import alluxio.PropertyKey;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -34,6 +34,7 @@ import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -594,15 +595,44 @@ public final class NetworkAddressUtils {
    * @param zkLeaderPath the Zookeeper path containing the leader master address
    * @return InetSocketAddress the active master address retrieved from zookeeper
    */
-  public static InetSocketAddress getMasterAddressFromZK(String zkLeaderPath) {
+  public static InetSocketAddress getLeaderAddressFromZK(String zkLeaderPath) {
     Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
-    LeaderInquireClient leaderInquireClient = LeaderInquireClient
-        .getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS), zkLeaderPath);
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ELECTION_PATH));
+    MasterInquireClient masterInquireClient = MasterInquireClient.getClient(
+        Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
+        Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH), zkLeaderPath);
     try {
-      String temp = leaderInquireClient.getMasterAddress();
+      String temp = masterInquireClient.getLeaderAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * @return InetSocketAddress the list of all master addresses from zookeeper
+   */
+  public static List<InetSocketAddress> getMasterAddressesFromZK() {
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ELECTION_PATH));
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_LEADER_PATH));
+    MasterInquireClient masterInquireClient = MasterInquireClient.getClient(
+        Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
+        Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+        Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+    List<String> addresses = masterInquireClient.getMasterAddresses();
+    if (addresses == null) {
+      throw new RuntimeException(String.format("Failed to get the master addresses from zookeeper, "
+          + "zookeeper address: %s", Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS)));
+    }
+    List<InetSocketAddress> ret = new ArrayList<>(addresses.size());
+    try {
+      for (String address : addresses) {
+        ret.add(NetworkAddressUtils.parseInetSocketAddress(address));
+      }
+      return ret;
+    } catch (IOException e) {
       throw Throwables.propagate(e);
     }
   }

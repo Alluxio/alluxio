@@ -36,7 +36,7 @@ public final class BlockWorkerInfo {
    * @param usedBytes the used bytes of the worker
    */
   public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes) {
-    mNetAddress = Preconditions.checkNotNull(netAddress);
+    mNetAddress = Preconditions.checkNotNull(netAddress, "netAddress");
     mCapacityBytes = capacityBytes;
     mUsedBytes = usedBytes;
   }

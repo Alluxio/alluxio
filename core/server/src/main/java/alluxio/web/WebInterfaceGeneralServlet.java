@@ -11,6 +11,7 @@
 
 package alluxio.web;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -188,6 +189,14 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
         .setAttribute("freeCapacity",
             FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
                 - mMaster.getBlockMaster().getUsedBytes()));
+
+    List<AlluxioURI> inconsistentUris = mMaster.getFileSystemMaster().getStartupConsistencyCheck();
+    if (inconsistentUris == null) { // incomplete
+      request.setAttribute("consistencyCheckComplete", false);
+    } else { // complete
+      request.setAttribute("consistencyCheckComplete", true);
+      request.setAttribute("inconsistentPaths", inconsistentUris.size());
+    }
 
     String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot);

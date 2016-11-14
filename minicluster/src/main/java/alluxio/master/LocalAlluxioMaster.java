@@ -152,7 +152,7 @@ public final class LocalAlluxioMaster {
   }
 
   /**
-   * @return the externally resolvable address of the master (used by unit test only)
+   * @return the externally resolvable address of the master
    */
   public InetSocketAddress getAddress() {
     return mAlluxioMaster.getMasterAddress();
@@ -166,39 +166,12 @@ public final class LocalAlluxioMaster {
   }
 
   /**
-   * Gets the actual bind hostname on RPC service (used by unit test only).
-   *
-   * @return the RPC bind hostname
-   */
-  public String getRPCBindHost() {
-    return mAlluxioMaster.getRPCBindHost();
-  }
-
-  /**
-   * Gets the actual port that the RPC service is listening on (used by unit test only).
+   * Gets the actual port that the RPC service is listening on.
    *
    * @return the RPC local port
    */
   public int getRPCLocalPort() {
     return mAlluxioMaster.getRPCLocalPort();
-  }
-
-  /**
-   * Gets the actual bind hostname on web service (used by unit test only).
-   *
-   * @return the Web bind hostname
-   */
-  public String getWebBindHost() {
-    return mAlluxioMaster.getWebBindHost();
-  }
-
-  /**
-   * Gets the actual port that the web service is listening on (used by unit test only).
-   *
-   * @return the Web local port
-   */
-  public int getWebLocalPort() {
-    return mAlluxioMaster.getWebLocalPort();
   }
 
   /**

@@ -1,0 +1,115 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.master;
+
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.options.CreateFileOptions;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Tests the consistency check which happens on master start up.
+ */
+public class StartupConsistencyCheckTest {
+  private static final AlluxioURI TOP_LEVEL_FILE = new AlluxioURI("/file");
+  private static final AlluxioURI TOP_LEVEL_DIR = new AlluxioURI("/dir");
+  private static final AlluxioURI SECOND_LEVEL_FILE = new AlluxioURI("/dir/file");
+  private static final AlluxioURI SECOND_LEVEL_DIR = new AlluxioURI("/dir/dir");
+  private static final AlluxioURI THIRD_LEVEL_FILE = new AlluxioURI("/dir/dir/file");
+
+  private LocalAlluxioCluster mCluster;
+  private FileSystem mFileSystem;
+
+  @Rule
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+          .build();
+
+  @Before
+  public void before() throws Exception {
+    CreateFileOptions fileOptions = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
+    CreateDirectoryOptions dirOptions =
+        CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH);
+
+    mCluster = mLocalAlluxioClusterResource.get();
+    mFileSystem = mCluster.getClient();
+    mFileSystem.createFile(TOP_LEVEL_FILE, fileOptions).close();
+    mFileSystem.createDirectory(TOP_LEVEL_DIR, dirOptions);
+    mFileSystem.createDirectory(SECOND_LEVEL_DIR, dirOptions);
+    mFileSystem.createFile(SECOND_LEVEL_FILE, fileOptions).close();
+    mFileSystem.createFile(THIRD_LEVEL_FILE, fileOptions).close();
+  }
+
+  /**
+   * Tests that a consistent Alluxio system's startup check does not detect any inconsistencies
+   * and completes within 1 minute.
+   */
+  @Test
+  public void consistent() throws Exception {
+    mCluster.stopFS();
+    final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    waitForStartupConsistencyCheck(master);
+    Assert.assertTrue(master.getStartupConsistencyCheck().isEmpty());
+  }
+
+  /**
+   * Tests that an inconsistent Alluxio system's startup check correctly detects the inconsistent
+   * files.
+   */
+  public void inconsistent() throws Exception {
+    String topLevelFileUfsPath = mFileSystem.getStatus(TOP_LEVEL_FILE).getUfsPath();
+    String secondLevelDirUfsPath = mFileSystem.getStatus(SECOND_LEVEL_DIR).getUfsPath();
+    mCluster.stopFS();
+    UnderFileSystem ufs = UnderFileSystem.get(topLevelFileUfsPath);
+    ufs.delete(topLevelFileUfsPath, true);
+    ufs.delete(secondLevelDirUfsPath, true);
+    final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    waitForStartupConsistencyCheck(master);
+    List expected = Lists.newArrayList(TOP_LEVEL_FILE, SECOND_LEVEL_DIR, THIRD_LEVEL_FILE);
+    List result = master.getStartupConsistencyCheck();
+    Collections.sort(expected);
+    Collections.sort(result);
+    Assert.assertEquals(expected, result);
+  }
+
+  /**
+   * Waits for the startup consistency check to complete with a limit of 1 minute.
+   *
+   * @param master the file system master which is starting up
+   */
+  private void waitForStartupConsistencyCheck(final FileSystemMaster master) {
+    CommonUtils.waitFor("Startup consistency check completion", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void aVoid) {
+        return master.getStartupConsistencyCheck() != null;
+      }
+    }, Constants.SECOND_MS);
+  }
+}

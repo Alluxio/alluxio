@@ -1,5 +1,6 @@
 operation,syntax
 cat,"cat ""path"""
+checkConsistency,"checkConsistency ""path"""
 checksum,"checksum ""path"""
 chgrp,"chgrp ""group"" ""path"""
 chmod,"chmod ""permission"" ""path"""

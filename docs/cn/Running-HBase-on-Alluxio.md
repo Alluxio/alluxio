@@ -41,15 +41,15 @@ Apache HBase可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 # 分发Alluxio客户端Jar包
 
-接下来需要让Alluxio `jar`文件对HBase可用，因为其中包含了配置好的`alluxio.hadoop.FileSystem`类。
+接下来需要让Alluxio client `jar`文件对HBase可用，因为其中包含了配置好的`alluxio.hadoop.FileSystem`类。
 
 有2种方式实现：
 
 - 将`alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件放在HBase的`lib`目录下。
-- 在`HBASE_CLASSPATH`环境变量中指定该jar文件的路径（要保证该路径对集群中的所有节点都有效）。例如：
+- 在`$HBASE_CLASSPATH`环境变量中指定该jar文件的路径（要保证该路径对集群中的所有节点都有效）。例如：
 
 ```bash
-export HBASE_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${HBASE_CLASSPATH}
+export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
 #### 添加Alluxio site中额外属性到HBase

@@ -221,7 +221,11 @@ public final class OutStreamOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBlockSizeBytes, mTtl, mTtlAction, mLocationPolicy, mWriteType,
+    return Objects.hashCode(mBlockSizeBytes,
+        mTtl,
+        mTtlAction,
+        mLocationPolicy,
+        mWriteType,
         mPermission);
   }
 

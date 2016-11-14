@@ -156,6 +156,7 @@
     <build.path>build</build.path>
     <log4j.version>1.2.17</log4j.version>
     <metrics.version>3.1.2</metrics.version>
+    <gmetric4j.version>1.0.7</gmetric4j.version>
     <powermock.version>1.6.1</powermock.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
@@ -371,9 +372,13 @@
           <version>2.19.1</version>
           <configuration>
             <argLine>-Djava.net.preferIPv4Stack=true -XX:MaxPermSize=512M</argLine>
+            <forkCount>2</forkCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
-            <!-- Alphabetical order on even hours, reverse-alphabetical on odd hours  -->
-            <runOrder>hourly</runOrder>
+            <reuseForks>false</reuseForks>
+            <runOrder>alphabetical</runOrder>
+            <systemPropertyVariables>
+              <alluxio.test.mode>true</alluxio.test.mode>
+            </systemPropertyVariables>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>

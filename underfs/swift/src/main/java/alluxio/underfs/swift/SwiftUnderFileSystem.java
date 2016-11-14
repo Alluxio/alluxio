@@ -209,12 +209,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path) throws IOException {
-    return create(path, new CreateOptions());
+  public OutputStream create(String path, CreateOptions options) throws IOException {
+    return createDirect(path, options);
   }
 
   @Override
-  public OutputStream create(String path, CreateOptions options) throws IOException {
+  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
 
     // create will attempt to create the parent directory if it does not already exist
@@ -763,6 +763,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the container name from the given uri
    */
   protected static String getContainerName(AlluxioURI uri) {
+    //Authority contains the user, host and port portion of a URI
     return uri.getAuthority();
   }
 
