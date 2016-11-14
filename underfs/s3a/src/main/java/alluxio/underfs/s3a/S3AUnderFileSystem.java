@@ -362,7 +362,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   @Override
   public String[] list(String path) throws IOException {
     // if the path not exists, or it is a file, then should return null
-    if (!isDirectory(path) || isFile(path)) {
+    if (!isDirectory(path)) {
       return null;
     }
     // Non recursive list
