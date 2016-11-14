@@ -454,7 +454,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * @return true if rename succeeds
    * @throws IOException
    */
-  private boolean rename(String src, String dst) throws IOException{
+  private boolean rename(String src, String dst) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {

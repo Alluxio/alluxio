@@ -22,7 +22,6 @@ import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
-import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.javaswift.joss.client.factory.AccountConfig;
@@ -469,7 +468,16 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
-    //TODO(adit): This operation may fail with partial updates
+    if (!isDirectory(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
+      return false;
+    }
+    if (isFile(dst) || isDirectory(dst)) {
+      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
+      return false;
+    }
+
+    // Source exists and is a directory, and destination does not exist
     // Rename the source folder first
     if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
       return false;
@@ -483,9 +491,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     for (String child : children) {
       String childSrcPath = PathUtils.concatPath(src, child);
       String childDstPath = PathUtils.concatPath(dst, child);
-      // Recursive call
       boolean success;
       if (isDirectory(childSrcPath)) {
+        // Recursive call
         success = renameDirectory(childSrcPath, childDstPath);
       } else {
         success = renameFile(childSrcPath, childDstPath);
@@ -501,6 +509,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean renameFile(String src, String dst) throws IOException {
+    if (!isFile(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
+      return false;
+    }
+    if (isFile(dst) || isDirectory(dst)) {
+      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
+      return false;
+    }
+
     String strippedSourcePath = stripContainerPrefixIfPresent(src);
     String strippedDestinationPath = stripContainerPrefixIfPresent(dst);
 
@@ -567,7 +584,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     LOG.error("Failed to copy file {} to {}, after {} retries", source, destination, NUM_RETRIES);
     return false;
   }
-
 
   /**
    * Appends the directory suffix ands strips container prefix from path.
