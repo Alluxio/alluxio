@@ -32,7 +32,7 @@ kill_master() {
 }
 
 kill_proxy() {
-  ${LAUNCHER} ${BIN}/alluxio killAll alluxio.master.AlluxioProxy
+  ${LAUNCHER} ${BIN}/alluxio killAll alluxio.proxy.AlluxioProxy
 }
 
 kill_worker() {

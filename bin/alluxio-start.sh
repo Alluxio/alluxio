@@ -286,6 +286,7 @@ main() {
       start_master "${FORMAT}"
       sleep 2
       start_worker "${MOPT}"
+      start_proxy
       ;;
     master)
       start_master "${FORMAT}"
