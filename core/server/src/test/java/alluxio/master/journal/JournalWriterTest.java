@@ -74,6 +74,7 @@ public class JournalWriterTest {
     } catch (IOException ignored) {
       // expected
     }
+    // Undo the earlier mocking so that the writeEntry doesn't fail.
     doNothing().when(mockOutStream).flush();
     // The rotation happens the next time an entry is written.
     entryOutStream.writeEntry(JournalEntry.newBuilder().build());
@@ -98,6 +99,7 @@ public class JournalWriterTest {
     } catch (IOException ignored) {
       // expected
     }
+    // Undo the earlier mocking so that the writeEntry doesn't fail.
     doNothing().when(mockOutStream).sync();
     // The rotation happens the next time an entry is written.
     entryOutStream.writeEntry(JournalEntry.newBuilder().build());
@@ -125,6 +127,7 @@ public class JournalWriterTest {
     }
     // Undo the earlier mocking so that the writeEntry doesn't fail.
     doNothing().when(mockOutStream).write(any(byte[].class), anyInt(), anyInt());
+    // The rotation happens the next time an entry is written.
     entryOutStream.writeEntry(JournalEntry.newBuilder().build());
 
     verify(mockJournalWriter).completeCurrentLog();
