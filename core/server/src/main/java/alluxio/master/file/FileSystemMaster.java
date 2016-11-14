@@ -674,11 +674,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return true;
     }
     if (!inode.isPersisted()) {
-      if (inode.isDirectory()) {
-        return !ufs.isDirectory(ufsPath);
-      } else {
-        return !ufs.isFile(ufsPath);
-      }
+      return !ufs.isDirectory(ufsPath) && !ufs.isFile(ufsPath);
     }
     // TODO(calvin): Evaluate which other metadata fields should be validated.
     if (inode.isDirectory()) {
