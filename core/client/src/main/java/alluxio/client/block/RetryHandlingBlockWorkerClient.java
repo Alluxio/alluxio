@@ -86,7 +86,7 @@ public final class RetryHandlingBlockWorkerClient
       throws IOException {
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
-    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
+    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
     if (sessionId != null) {
