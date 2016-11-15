@@ -42,6 +42,7 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -56,6 +57,7 @@ import java.util.List;
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
  * alluxio.security.authorization.permission.enabled=true.
  */
+@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2426")
 public final class PermissionCheckTest {
   private static final String TEST_SUPER_GROUP = "test-supergroup";
 
