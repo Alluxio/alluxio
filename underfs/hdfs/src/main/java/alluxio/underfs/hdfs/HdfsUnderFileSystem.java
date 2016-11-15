@@ -20,7 +20,9 @@ import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
@@ -129,6 +131,41 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    if (options.getRecursive()) {
+      if (!options.getChildrenOnly()) {
+        return delete(path, true);
+      }
+      // Delete only children
+      String[] files = list(path);
+      if (files == null) {
+        return false;
+      }
+      for (String child : files) {
+        String childPath = PathUtils.concatPath(path, child);
+        boolean success;
+        if (isDirectory(childPath)) {
+          success = deleteDirectory(childPath, new DeleteOptions().setRecursive(true));
+        } else {
+          success = deleteFile(PathUtils.concatPath(path, child));
+        }
+        if (!success) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Do not delete children but only the directory
+    return delete(path, false);
+  }
+
+  @Override
+  public boolean deleteFile(String path) throws IOException {
+    return delete(path, false);
+  }
+
+  @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
@@ -141,22 +178,6 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
             new FsPermission(perm.getMode().toShort()));
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
-        te = e;
-      }
-    }
-    throw te;
-  }
-
-  @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
-    LOG.debug("deleting {} {}", path, recursive);
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        return mFileSystem.delete(new Path(path), recursive);
-      } catch (IOException e) {
-        LOG.error("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
       }
     }
@@ -453,6 +474,29 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       LOG.error("Fail to get permission for {} ", path, e);
       throw e;
     }
+  }
+
+  /**
+   * Delete a file or directory at path.
+   *
+   * @param path file or directory path
+   * @param recursive whether to delete path recursively
+   * @return true, if succeed
+   * @throws IOException when a non-alluxio error occurs
+   */
+  private boolean delete(String path, boolean recursive) throws IOException {
+    LOG.debug("deleting {} {}", path, recursive);
+    IOException te = null;
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
+      try {
+        return mFileSystem.delete(new Path(path), recursive);
+      } catch (IOException e) {
+        LOG.error("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage(), e);
+        te = e;
+      }
+    }
+    throw te;
   }
 
   /**

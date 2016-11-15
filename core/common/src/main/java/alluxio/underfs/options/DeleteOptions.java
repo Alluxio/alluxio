@@ -11,11 +11,11 @@
 
 package alluxio.underfs.options;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
 
-import alluxio.annotation.PublicApi;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for deleting a directory in UnderFileSystem.
@@ -25,7 +25,7 @@ import alluxio.annotation.PublicApi;
 public final class DeleteOptions {
   // Whether to not delete the directory itself
   private boolean mChildrenOnly;
-  // Whether to delete a directory recursively
+  // Whether to delete a directory with children
   private boolean mRecursive;
 
   /**
@@ -53,7 +53,7 @@ public final class DeleteOptions {
   /**
    * Sets whether to delete children only.
    *
-   * @param  whether to delete children only
+   * @param childrenOnly whether to delete children only
    * @return the updated option object
    */
   public DeleteOptions setChildrenOnly(boolean childrenOnly) {

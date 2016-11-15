@@ -236,46 +236,50 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
-    LOG.debug("Delete method: {}, recursive {}", path, recursive);
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    LOG.debug("Delete directory {}, recursive {}", path, options.getRecursive());
     final String strippedPath = stripContainerPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
-    if (recursive) {
-      boolean deletedSelf = false;
-
-      // For a file, recursive delete will not find any children
-      PaginationMap paginationMap = container.getPaginationMap(
-          PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), LISTING_LENGTH);
-      for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-        for (StoredObject childObject : container.list(paginationMap, page)) {
+    if (!options.getRecursive()) {
+      String[] children = list(path);
+      if (children == null) {
+        LOG.error("Unable to delete {} because list returns null", path);
+        return false;
+      }
+      if (children.length != 0) {
+        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
+                + "recursive as true in order to delete non empty directories.", path);
+        return false;
+      }
+    }
+    boolean foundSelf = false;
+    // For a file, recursive delete will not find any children
+    PaginationMap paginationMap = container.getPaginationMap(
+        PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), LISTING_LENGTH);
+    for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
+      for (StoredObject childObject : container.list(paginationMap, page)) {
+        if (!options.getChildrenOnly()) {
           deleteObject(childObject);
-          if (childObject.getName().equals(addFolderSuffixIfNotPresent(strippedPath))) {
-            // As PATH_SEPARATOR and FOLDER_SUFFIX are the same the folder would be fetched
-            deletedSelf = true;
-          }
+        }
+        if (childObject.getName().equals(addFolderSuffixIfNotPresent(strippedPath))) {
+          // As PATH_SEPARATOR and FOLDER_SUFFIX are the same the folder would be fetched
+          foundSelf = true;
         }
       }
-      if (deletedSelf) {
-        return true;
-      }
-    } else {
-      String[] children = list(path);
-      if (children != null && children.length != 0) {
-        LOG.error("Attempting to non-recursively delete a non-empty directory.");
-        return false;
-      }
     }
+    if (foundSelf || options.getChildrenOnly()) {
+      return true;
+    }
+    String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
+    return deleteObject(container.getObject(strippedFolderPath));
+  }
 
-    // Path is a file or folder with no children
-    if (!deleteObject(container.getObject(strippedPath))) {
-      // Path may be a folder
-      final String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
-      if (strippedFolderPath.equals(strippedPath)) {
-        return false;
-      }
-      return deleteObject(container.getObject(strippedFolderPath));
-    }
-    return true;
+  @Override
+  public boolean deleteFile(String path) throws IOException {
+    LOG.debug("Delete file {}", path);
+    final String strippedPath = stripContainerPrefixIfPresent(path);
+    Container container = mAccount.getContainer(mContainerName);
+    return deleteObject(container.getObject(strippedPath));
   }
 
   /**

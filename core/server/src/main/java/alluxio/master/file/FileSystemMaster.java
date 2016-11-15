@@ -1161,8 +1161,8 @@ public final class FileSystemMaster extends AbstractMaster {
                 LOG.warn("The directory to delete does not exist in under filesystem: {}", ufsUri);
               }
               if (fail) {
-                  LOG.error("Failed to delete {} from the under filesystem", ufsUri);
-                  throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
+                LOG.error("Failed to delete {} from the under filesystem", ufsUri);
+                throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
               }
             }
           } catch (InvalidPathException e) {

@@ -251,14 +251,14 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
-    if (!recursive) {
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    if (!options.getRecursive()) {
       String[] children = listInternal(path, false);
       if (children == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
       }
-      if (isDirectory(path) && children.length != 0) {
+      if (children.length != 0) {
         LOG.error("Unable to delete {} because it is a non empty directory. Specify "
                 + "recursive as true in order to delete non empty directories.", path);
         return false;
@@ -278,6 +278,14 @@ public class S3AUnderFileSystem extends UnderFileSystem {
         return false;
       }
     }
+    if (!options.getChildrenOnly()) {
+      return deleteInternal(path);
+    }
+    return true;
+  }
+
+  @Override
+  public boolean deleteFile(String path) throws IOException {
     return deleteInternal(path);
   }
 
