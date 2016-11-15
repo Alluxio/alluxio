@@ -409,7 +409,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     }
     for (String child : children) {
       String childSrcPath = PathUtils.concatPath(src, child);
-      String childDstPath = PathUtils.concatPath(src, child);
+      String childDstPath = PathUtils.concatPath(dst, child);
       boolean success;
       if (isDirectory(childSrcPath)) {
         // Recursive call
