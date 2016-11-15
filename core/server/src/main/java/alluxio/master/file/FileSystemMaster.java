@@ -437,22 +437,59 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * This method should only be called if the consistency check is enabled.
-   *
-   * @return the list of inconsistent files at start up, null if the check has not completed or
-   *         failed
+   * @return the status of the startup consistency check and inconsistent paths if it is complete
    */
-  public List<AlluxioURI> getStartupConsistencyCheck() {
-    Preconditions.checkState(Configuration
-        .getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED));
-    if (mStartupConsistencyCheck.isDone()) {
-      try {
-        return mStartupConsistencyCheck.get();
-      } catch (Exception e) {
-        LOG.warn("Failed to complete start up consistency check.", e);
-      }
+  public StartupConsistencyCheck getStartupConsistencyCheck() {
+    if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
+      return new StartupConsistencyCheck(StartupConsistencyCheck.Status.DISABLED, null);
     }
-    return null;
+    if (!mStartupConsistencyCheck.isDone()) {
+      return new StartupConsistencyCheck(StartupConsistencyCheck.Status.RUNNING, null);
+    }
+    try {
+      List<AlluxioURI> inconsistentUris = mStartupConsistencyCheck.get();
+      return new StartupConsistencyCheck(StartupConsistencyCheck.Status.COMPLETE, inconsistentUris);
+    } catch (Exception e) {
+      LOG.warn("Failed to complete start up consistency check.", e);
+      return new StartupConsistencyCheck(StartupConsistencyCheck.Status.FAILED, null);
+    }
+  }
+
+  /**
+   * Class to represent the status and result of the startup consistency check.
+   */
+  public static class StartupConsistencyCheck {
+    public enum Status {
+      DISABLED, RUNNING, FAILED, COMPLETE
+    }
+
+    private Status mStatus;
+    private List<AlluxioURI> mInconsistentUris;
+
+    /**
+     * Create a new startup consistency check result.
+     *
+     * @param status the state of the check
+     * @param inconsistentUris the uris which are inconsistent with the underlying storage
+     */
+    public StartupConsistencyCheck(Status status, List<AlluxioURI> inconsistentUris) {
+      mStatus = status;
+      mInconsistentUris = inconsistentUris;
+    }
+
+    /**
+     * @return the state of the check
+     */
+    public Status getStatus() {
+      return mStatus;
+    }
+
+    /**
+     * @return the uris which are inconsistent with the underlying storage
+     */
+    public List<AlluxioURI> getInconsistentUris() {
+      return mInconsistentUris;
+    }
   }
 
   /**
