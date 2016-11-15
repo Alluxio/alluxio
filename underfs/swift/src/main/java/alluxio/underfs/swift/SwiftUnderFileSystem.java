@@ -253,7 +253,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       }
     }
     boolean foundSelf = false;
-    // For a file, recursive delete will not find any children
     PaginationMap paginationMap = container.getPaginationMap(
         PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), LISTING_LENGTH);
     for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
