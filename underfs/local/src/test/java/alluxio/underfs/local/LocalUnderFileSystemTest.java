@@ -12,6 +12,7 @@
 package alluxio.underfs.local;
 
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -50,7 +51,7 @@ public class LocalUnderFileSystemTest {
 
     Assert.assertTrue(mLocalUfs.isFile(filepath));
 
-    mLocalUfs.delete(filepath, true);
+    mLocalUfs.deleteFile(filepath);
 
     Assert.assertFalse(mLocalUfs.isFile(filepath));
   }
@@ -71,10 +72,10 @@ public class LocalUnderFileSystemTest {
   }
 
   @Test
-  public void delete() throws IOException {
+  public void deleteFile() throws IOException {
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     mLocalUfs.create(filepath).close();
-    mLocalUfs.delete(filepath, true);
+    mLocalUfs.deleteFile(filepath);
 
     Assert.assertFalse(mLocalUfs.isFile(filepath));
 
@@ -88,7 +89,7 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.mkdirs(dirpath, true);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
     mLocalUfs.create(filepath).close();
-    mLocalUfs.delete(dirpath, true);
+    mLocalUfs.deleteDirectory(dirpath, new DeleteOptions().setRecursive(true));
 
     Assert.assertFalse(mLocalUfs.isDirectory(dirpath));
 
@@ -102,7 +103,7 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.mkdirs(dirpath, true);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
     mLocalUfs.create(filepath).close();
-    mLocalUfs.delete(dirpath, false);
+    mLocalUfs.deleteDirectory(dirpath, new DeleteOptions().setRecursive(false));
 
     Assert.assertTrue(mLocalUfs.isDirectory(dirpath));
 

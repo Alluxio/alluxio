@@ -12,6 +12,7 @@
 package alluxio.underfs.gcs;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.options.DeleteOptions;
 
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
@@ -51,7 +52,7 @@ public class GCSUnderFileSystemTest {
   }
 
   /**
-   * Test case for {@link GCSUnderFileSystem#delete(String, boolean)}.
+   * Test case for {@link GCSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException, ServiceException {
@@ -59,12 +60,13 @@ public class GCSUnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mGCSUnderFileSystem.delete(PATH, false);
+    boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
+        new DeleteOptions().setRecursive(false));
     Assert.assertFalse(result);
   }
 
   /**
-   * Test case for {@link GCSUnderFileSystem#delete(String, boolean)}.
+   * Test case for {@link GCSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException, ServiceException {
@@ -72,7 +74,8 @@ public class GCSUnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mGCSUnderFileSystem.delete(PATH, true);
+    boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
+        new DeleteOptions().setRecursive(true));
     Assert.assertFalse(result);
   }
 

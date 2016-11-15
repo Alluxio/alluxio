@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -419,7 +420,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
       }
     }
     // Delete src and everything under src
-    return delete(src, true);
+    return deleteDirectory(src, new DeleteOptions().setRecursive(true));
   }
 
   @Override

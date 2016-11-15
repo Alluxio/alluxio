@@ -12,6 +12,7 @@
 package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.options.DeleteOptions;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -61,7 +62,8 @@ public class S3AUnderFileSystemTest {
     Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
-    boolean result = mS3UnderFileSystem.delete(PATH, false);
+    boolean result = mS3UnderFileSystem.deleteDirectory(PATH,
+        new DeleteOptions().setRecursive(false));
     Assert.assertFalse(result);
   }
 
@@ -73,7 +75,8 @@ public class S3AUnderFileSystemTest {
     Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
-    boolean result = mS3UnderFileSystem.delete(PATH, true);
+    boolean result = mS3UnderFileSystem.deleteDirectory(PATH,
+        new DeleteOptions().setRecursive(true));
     Assert.assertFalse(result);
   }
 

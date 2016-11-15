@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.CommonUtils;
@@ -500,7 +501,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       }
     }
     // Delete src and everything under src
-    return delete(src, true);
+    return deleteDirectory(src, new DeleteOptions().setRecursive(true));
   }
 
   @Override
@@ -516,7 +517,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
     String strippedSourcePath = stripContainerPrefixIfPresent(src);
     String strippedDestinationPath = stripContainerPrefixIfPresent(dst);
-    return copy(strippedSourcePath, strippedDestinationPath) && delete(src, false);
+    return copy(strippedSourcePath, strippedDestinationPath) && deleteFile(src);
   }
 
   @Override

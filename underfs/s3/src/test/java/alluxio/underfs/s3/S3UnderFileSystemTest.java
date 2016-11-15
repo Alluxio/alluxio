@@ -12,6 +12,7 @@
 package alluxio.underfs.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.options.DeleteOptions;
 
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -60,7 +61,8 @@ public class S3UnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mS3UnderFileSystem.delete(PATH, false);
+    boolean result = mS3UnderFileSystem.deleteDirectory(PATH,
+        new DeleteOptions().setRecursive(false));
     Assert.assertFalse(result);
   }
 
@@ -73,7 +75,8 @@ public class S3UnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mS3UnderFileSystem.delete(PATH, true);
+    boolean result = mS3UnderFileSystem.deleteDirectory(PATH,
+        new DeleteOptions().setRecursive(true));
     Assert.assertFalse(result);
   }
 
