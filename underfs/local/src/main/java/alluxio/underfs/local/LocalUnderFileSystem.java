@@ -90,11 +90,12 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     path = stripPath(path);
     File file = new File(path);
     boolean success = true;
-    if (options.getRecursive()) {
+    if (options.isRecursive()) {
       String[] files = file.list();
+
+      // File.list() will return null if an I/O error occurs.
+      // e.g.: Reading an non-readable directory
       if (files != null) {
-        // File.list() will return null if an I/O error occurs.
-        // e.g.: Reading an non-readable directory
         for (String child : files) {
           String childPath = PathUtils.concatPath(path, child);
           if (isDirectory(childPath)) {

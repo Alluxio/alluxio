@@ -237,10 +237,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
-    LOG.debug("Delete directory {}, recursive {}", path, options.getRecursive());
+    LOG.debug("Delete directory {}, recursive {}", path, options.isRecursive());
     final String strippedPath = stripContainerPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
-    if (!options.getRecursive()) {
+    if (!options.isRecursive()) {
       String[] children = list(path);
       if (children == null) {
         LOG.error("Unable to delete {} because list returns null", path);
@@ -251,26 +251,26 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
                 + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
-    }
-    boolean foundSelf = false;
-    PaginationMap paginationMap = container.getPaginationMap(
-        PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), LISTING_LENGTH);
-    for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-      for (StoredObject childObject : container.list(paginationMap, page)) {
-        if (!options.getChildrenOnly()) {
+    } else {
+      // Delete children
+      PaginationMap paginationMap = container.getPaginationMap(
+          PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), LISTING_LENGTH);
+      for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
+        for (StoredObject childObject : container.list(paginationMap, page)) {
+          if (childObject.getName().equals(addFolderSuffixIfNotPresent(strippedPath))) {
+            // As PATH_SEPARATOR=FOLDER_SUFFIX, the folder itself might be fetched
+            continue;
+          }
           deleteObject(childObject);
-        }
-        if (childObject.getName().equals(addFolderSuffixIfNotPresent(strippedPath))) {
-          // As PATH_SEPARATOR and FOLDER_SUFFIX are the same the folder would be fetched
-          foundSelf = true;
         }
       }
     }
-    if (foundSelf || options.getChildrenOnly()) {
-      return true;
+    if (!options.getChildrenOnly()) {
+      // Delete the directory itself
+      String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
+      return deleteObject(container.getObject(strippedFolderPath));
     }
-    String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
-    return deleteObject(container.getObject(strippedFolderPath));
+    return true;
   }
 
   @Override

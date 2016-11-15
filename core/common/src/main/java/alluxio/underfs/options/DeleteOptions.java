@@ -44,9 +44,9 @@ public final class DeleteOptions {
   }
 
   /**
-   * @return recursive
+   * @return whether to delete a non-empty directory
    */
-  public boolean getRecursive() {
+  public boolean isRecursive() {
     return mRecursive;
   }
 

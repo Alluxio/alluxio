@@ -131,11 +131,30 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
-    if (options.getRecursive()) {
-      if (!options.getChildrenOnly()) {
-        return delete(path, true);
+  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
+    IOException te = null;
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    Permission perm = options.getPermission();
+    while (retryPolicy.attemptRetry()) {
+      try {
+        LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
+        // TODO(chaomin): support creating HDFS files with specified block size and replication.
+        return FileSystem.create(mFileSystem, new Path(path),
+            new FsPermission(perm.getMode().toShort()));
+      } catch (IOException e) {
+        LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
+        te = e;
       }
+    }
+    throw te;
+  }
+
+  @Override
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    if (options.isRecursive() && !options.getChildrenOnly()) {
+      return delete(path, true);
+    }
+    if (options.isRecursive()) {
       // Delete only children
       String[] files = list(path);
       if (files == null) {
@@ -155,33 +174,13 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       }
       return true;
     }
-
-    // Do not delete children but only the directory
+    // Delete the directory itself
     return delete(path, false);
   }
 
   @Override
   public boolean deleteFile(String path) throws IOException {
     return delete(path, false);
-  }
-
-  @Override
-  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    Permission perm = options.getPermission();
-    while (retryPolicy.attemptRetry()) {
-      try {
-        LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
-        // TODO(chaomin): support creating HDFS files with specified block size and replication.
-        return FileSystem.create(mFileSystem, new Path(path),
-            new FsPermission(perm.getMode().toShort()));
-      } catch (IOException e) {
-        LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
-        te = e;
-      }
-    }
-    throw te;
   }
 
   @Override

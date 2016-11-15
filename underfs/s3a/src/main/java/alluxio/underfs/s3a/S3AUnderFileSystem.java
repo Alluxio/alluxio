@@ -252,7 +252,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
-    if (!options.getRecursive()) {
+    if (!options.isRecursive()) {
       String[] children = listInternal(path, false);
       if (children == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
@@ -263,22 +263,23 @@ public class S3AUnderFileSystem extends UnderFileSystem {
                 + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
-      return deleteInternal(path);
-    }
-    // Get all relevant files
-    String[] pathsToDelete = listInternal(path, true);
-    if (pathsToDelete == null) {
-      LOG.error("Unable to delete {} because listInternal returns null", path);
-      return false;
-    }
-    for (String pathToDelete : pathsToDelete) {
-      // If we fail to deleteInternal one file, stop
-      if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
-        LOG.error("Failed to delete path {}, aborting delete.", pathToDelete);
+    } else {
+      // Delete children
+      String[] pathsToDelete = listInternal(path, true);
+      if (pathsToDelete == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
+      }
+      for (String pathToDelete : pathsToDelete) {
+        // If we fail to deleteInternal one file, stop
+        if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
+          LOG.error("Failed to delete path {}, aborting delete.", pathToDelete);
+          return false;
+        }
       }
     }
     if (!options.getChildrenOnly()) {
+      // Delete the directory itself
       return deleteInternal(path);
     }
     return true;
