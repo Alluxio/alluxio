@@ -76,13 +76,14 @@ public class StartupConsistencyCheckTest {
     mCluster.stopFS();
     final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     waitForStartupConsistencyCheck(master);
-    Assert.assertTrue(master.getStartupConsistencyCheck().isEmpty());
+    Assert.assertTrue(master.getStartupConsistencyCheck().getInconsistentUris().isEmpty());
   }
 
   /**
    * Tests that an inconsistent Alluxio system's startup check correctly detects the inconsistent
    * files.
    */
+  @Test
   public void inconsistent() throws Exception {
     String topLevelFileUfsPath = mFileSystem.getStatus(TOP_LEVEL_FILE).getUfsPath();
     String secondLevelDirUfsPath = mFileSystem.getStatus(SECOND_LEVEL_DIR).getUfsPath();
@@ -93,7 +94,7 @@ public class StartupConsistencyCheckTest {
     final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     waitForStartupConsistencyCheck(master);
     List expected = Lists.newArrayList(TOP_LEVEL_FILE, SECOND_LEVEL_DIR, THIRD_LEVEL_FILE);
-    List result = master.getStartupConsistencyCheck();
+    List result = master.getStartupConsistencyCheck().getInconsistentUris();
     Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);

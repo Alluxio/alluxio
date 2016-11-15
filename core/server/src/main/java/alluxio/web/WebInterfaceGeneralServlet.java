@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
 import alluxio.master.AlluxioMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.FormatUtils;
 
@@ -190,12 +191,13 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
             FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
                 - mMaster.getBlockMaster().getUsedBytes()));
 
-    List<AlluxioURI> inconsistentUris = mMaster.getFileSystemMaster().getStartupConsistencyCheck();
-    if (inconsistentUris == null) { // incomplete
-      request.setAttribute("consistencyCheckComplete", false);
-    } else { // complete
-      request.setAttribute("consistencyCheckComplete", true);
-      request.setAttribute("inconsistentPaths", inconsistentUris.size());
+    FileSystemMaster.StartupConsistencyCheck check =
+        mMaster.getFileSystemMaster().getStartupConsistencyCheck();
+    request.setAttribute("consistencyCheckStatus", check.getStatus());
+    if (check.getStatus() == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE) {
+      request.setAttribute("inconsistentPaths", check.getInconsistentUris().size());
+    } else {
+      request.setAttribute("inconsistentPaths", 0);
     }
 
     String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
