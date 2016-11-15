@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 

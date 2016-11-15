@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
