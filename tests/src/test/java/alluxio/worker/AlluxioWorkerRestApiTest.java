@@ -17,6 +17,7 @@ import alluxio.RuntimeConstants;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
 
@@ -63,9 +64,14 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getMetrics() throws Exception {
+    Assert.assertEquals(Long.valueOf(0), getInfo().getMetrics().get("master.CompleteFileOps"));
+  }
+
+  @Test
   public void getRpcAddress() throws Exception {
-    Assert.assertTrue(getInfo().getRpcAddress().contains(
-        String.valueOf(NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.WORKER_RPC))));
+    Assert.assertTrue(getInfo().getRpcAddress()
+        .contains(String.valueOf(NetworkAddressUtils.getPort(ServiceType.WORKER_RPC))));
   }
 
   @Test

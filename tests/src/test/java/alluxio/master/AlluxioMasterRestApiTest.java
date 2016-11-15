@@ -81,15 +81,14 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getRpcAddress() throws Exception {
-    Assert.assertTrue(getInfo().getRpcAddress()
-        .contains(String.valueOf(NetworkAddressUtils.getPort(ServiceType.MASTER_RPC))));
+  public void getMetrics() throws Exception {
+    Assert.assertEquals(Long.valueOf(0), getInfo().getMetrics().get("master.CompleteFileOps"));
   }
 
   @Test
-  public void getMetrics() throws Exception {
-    Assert
-        .assertEquals(Long.valueOf(0), getInfo().getMetrics().get("master.CompleteFileOps"));
+  public void getRpcAddress() throws Exception {
+    Assert.assertTrue(getInfo().getRpcAddress()
+        .contains(String.valueOf(NetworkAddressUtils.getPort(ServiceType.MASTER_RPC))));
   }
 
   @Test
