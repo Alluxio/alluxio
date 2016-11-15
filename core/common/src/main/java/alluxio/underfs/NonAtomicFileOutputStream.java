@@ -80,7 +80,7 @@ public class NonAtomicFileOutputStream extends OutputStream {
     mTemporaryOutputStream.close();
 
     if (!mUfs.renameFile(mTemporaryPath, mPermanentPath)) {
-      if (!mUfs.deleteFile(mTemporaryPath)) {
+      if (!mUfs.delete(mTemporaryPath, false)) {
         LOG.error("Failed to delete temporary file {}", mTemporaryPath);
       }
       throw new IOException(

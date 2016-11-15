@@ -18,7 +18,6 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
 import alluxio.worker.AlluxioWorkerService;
 
 import com.google.common.base.Throwables;
@@ -148,8 +147,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   private void deleteDir(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
-    if (ufs.isDirectory(path)
-        && !ufs.deleteDirectory(path, new DeleteOptions().setRecursive(true))) {
+    if (ufs.isDirectory(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
     }
   }
@@ -158,7 +156,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.isDirectory(path)) {
-      ufs.deleteDirectory(path, new DeleteOptions().setRecursive(true));
+      ufs.delete(path, true);
     }
     if (!ufs.mkdirs(path, true)) {
       throw new IOException("Failed to make folder: " + path);

@@ -204,7 +204,7 @@ public final class JournalWriter {
     for (long i = logNumber - 1; i >= 0; i--) {
       String logFilename = mJournal.getCompletedLogFilePath(i);
       LOG.info("Deleting completed log: {}", logFilename);
-      mUfs.deleteFile(logFilename);
+      mUfs.delete(logFilename, true);
     }
     LOG.info("Finished deleting all completed log files.");
 
