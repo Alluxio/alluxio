@@ -1153,14 +1153,14 @@ public final class FileSystemMaster extends AbstractMaster {
                 if (!ufs.deleteFile(ufsUri)) {
                   fail = ufs.isFile(ufsUri);
                   if (!fail) {
-                    LOG.warn("The file to delete does not exist in under filesystem: {}", ufsUri);
+                    LOG.warn("The file to delete does not exist in ufs: {}", ufsUri);
                   }
                 }
               } else {
                 if (!ufs.deleteDirectory(ufsUri, new DeleteOptions().setRecursive(true))) {
                   fail = ufs.isDirectory(ufsUri);
                   if (!fail) {
-                    LOG.warn("The directory to delete does not exist in under filesystem: {}", ufsUri);
+                    LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
                   }
                 }
               }
