@@ -292,7 +292,7 @@ public class FileOutStreamTest {
     // Don't persist or complete the file if the stream was canceled
     verify(mFileSystemMasterClient, times(0)).completeFile(FILE_NAME,
         CompleteFileOptions.defaults());
-    verify(mUnderFileSystem).delete(anyString(), eq(false));
+    verify(mUnderFileSystem).deleteFile(anyString());
   }
 
   /**

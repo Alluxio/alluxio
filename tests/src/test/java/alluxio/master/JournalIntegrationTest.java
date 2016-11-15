@@ -104,8 +104,7 @@ public class JournalIntegrationTest {
     String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
     Journal journal = new ReadWriteJournal(
         PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
-    UnderFileSystem.get(journalFolder).delete(journal.getCurrentLogFilePath(),
-        true);
+    UnderFileSystem.get(journalFolder).deleteFile(journal.getCurrentLogFilePath());
   }
 
   private void addBlockTestUtil(URIStatus status)
@@ -629,7 +628,7 @@ public class JournalIntegrationTest {
     AlluxioURI journal = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
     try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journal)) {
       doThrow(new RuntimeException("Failed to delete")).when(ufsSpy.get())
-          .delete(Mockito.contains("FileSystemMaster/checkpoint.data"), anyBoolean());
+          .deleteFile(Mockito.contains("FileSystemMaster/checkpoint.data"));
       try {
         // Restart the master again, but with deleting the checkpoint file failing.
         mLocalAlluxioCluster.stopFS();
@@ -651,7 +650,7 @@ public class JournalIntegrationTest {
     AlluxioURI journal = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
     try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journal)) {
       doThrow(new RuntimeException("Failed to delete completed log")).when(ufsSpy.get())
-          .delete(Mockito.contains("FileSystemMaster/completed"), anyBoolean());
+          .deleteFile(Mockito.contains("FileSystemMaster/completed"));
       try {
         // Restart the master again, but with deleting the checkpoint file failing.
         mLocalAlluxioCluster.stopFS();

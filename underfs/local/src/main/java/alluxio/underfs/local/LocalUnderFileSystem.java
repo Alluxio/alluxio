@@ -19,6 +19,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -85,23 +86,37 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     boolean success = true;
-    if (recursive && file.isDirectory()) {
+    if (options.getRecursive()) {
       String[] files = file.list();
-
+      if (files == null) {
+        return false;
+      }
       // File.list() will return null if an I/O error occurs.
       // e.g.: Reading an non-readable directory
-      if (files != null) {
-        for (String child : files) {
-          success = success && delete(PathUtils.concatPath(path, child), true);
+      for (String child : files) {
+        String childPath = PathUtils.concatPath(path, child);
+        if (isDirectory(childPath)) {
+          success = success && deleteDirectory(childPath, new DeleteOptions().setRecursive(true));
+        } else {
+          success = success && deleteFile(PathUtils.concatPath(path, child));
         }
       }
     }
+    if (!options.getChildrenOnly()) {
+      success = success && file.delete();
+    }
+    return success;
+  }
 
-    return success && file.delete();
+  @Override
+  public boolean deleteFile(String path) throws IOException {
+    path = stripPath(path);
+    File file = new File(path);
+    return file.delete();
   }
 
   @Override
