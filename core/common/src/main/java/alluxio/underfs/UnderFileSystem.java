@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
@@ -325,14 +326,23 @@ public abstract class UnderFileSystem {
   public abstract OutputStream createDirect(String path, CreateOptions options) throws IOException;
 
   /**
-   * Deletes a file or folder from the under file system with the indicated name.
+   * Deletes a directory from the under file system with the indicated name.
    *
-   * @param path the file or folder name
-   * @param recursive the boolean indicates whether we delete folder and its children
+   * @param path the path of the directory to delete
+   * @param options delete options
    * @return true if succeed, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean delete(String path, boolean recursive) throws IOException;
+  public abstract boolean deleteDirectory(String path, DeleteOptions options) throws IOException;
+
+  /**
+   * Deletes a file from the under file system with the indicated name.
+   *
+   * @param path the path of the file to delete
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract boolean deleteFile(String path) throws IOException;
 
   /**
    * Gets the block size of a file in under file system, in bytes.

@@ -12,6 +12,7 @@
 package alluxio.util;
 
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 
 import com.google.common.base.Throwables;
 
@@ -36,7 +37,8 @@ public final class UnderFileSystemUtils {
   public static void deleteDirIfExists(final String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
-    if (ufs.isDirectory(path) && !ufs.delete(path, true)) {
+    if (ufs.isDirectory(path)
+        && !ufs.deleteDirectory(path, new DeleteOptions().setRecursive(true))) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
     }
   }
@@ -78,7 +80,7 @@ public final class UnderFileSystemUtils {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     try {
       if (ufs.isFile(path)) {
-        ufs.delete(path, false);
+        ufs.deleteFile(path);
       }
     } catch (IOException e) {
       throw Throwables.propagate(e);

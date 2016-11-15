@@ -192,7 +192,7 @@ public class FileOutStream extends AbstractOutStream {
           if (mCanceled) {
             // TODO(yupeng): Handle this special case in under storage integrations.
             mUnderStorageOutputStream.close();
-            ufs.delete(mUfsPath, false);
+            ufs.deleteFile(mUfsPath);
           } else {
             mUnderStorageOutputStream.flush();
             mUnderStorageOutputStream.close();
