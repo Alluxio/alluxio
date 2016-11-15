@@ -50,6 +50,7 @@ public class StartupConsistencyCheckTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+          .setProperty(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "true")
           .build();
 
   @Before
@@ -109,8 +110,9 @@ public class StartupConsistencyCheckTest {
     CommonUtils.waitFor("Startup consistency check completion", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void aVoid) {
-        return master.getStartupConsistencyCheck() != null;
+        return master.getStartupConsistencyCheck().getStatus()
+            == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE;
       }
-    }, Constants.SECOND_MS);
+    }, Constants.MINUTE_MS);
   }
 }

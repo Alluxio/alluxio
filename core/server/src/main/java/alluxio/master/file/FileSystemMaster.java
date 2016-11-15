@@ -440,6 +440,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * Class to represent the status and result of the startup consistency check.
    */
   public static class StartupConsistencyCheck {
+    /**
+     * State of the check.
+     */
     public enum Status {
       DISABLED, RUNNING, FAILED, COMPLETE
     }
@@ -477,7 +480,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the status of the startup consistency check and inconsistent paths if it is complete
    */
   public StartupConsistencyCheck getStartupConsistencyCheck() {
-    if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
+    if (!Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
       return new StartupConsistencyCheck(StartupConsistencyCheck.Status.DISABLED, null);
     }
     if (!mStartupConsistencyCheck.isDone()) {

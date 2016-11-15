@@ -11,7 +11,6 @@
 
 package alluxio.web;
 
-import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
