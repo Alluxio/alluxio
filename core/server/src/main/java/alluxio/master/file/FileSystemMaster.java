@@ -425,20 +425,26 @@ public final class FileSystemMaster extends AbstractMaster {
       mLostFilesDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_FILES_DETECTION, new LostFilesDetectionHeartbeatExecutor(),
           Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
-      mStartupConsistencyCheck = getExecutorService().submit(new Callable<List<AlluxioURI>>() {
-        @Override
-        public List<AlluxioURI> call() throws Exception {
-          return checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
-        }
-      });
+      if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
+        mStartupConsistencyCheck = getExecutorService().submit(new Callable<List<AlluxioURI>>() {
+          @Override
+          public List<AlluxioURI> call() throws Exception {
+            return checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+          }
+        });
+      }
     }
   }
 
   /**
+   * This method should only be called if the consistency check is enabled.
+   *
    * @return the list of inconsistent files at start up, null if the check has not completed or
    *         failed
    */
   public List<AlluxioURI> getStartupConsistencyCheck() {
+    Preconditions.checkState(Configuration
+        .getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED));
     if (mStartupConsistencyCheck.isDone()) {
       try {
         return mStartupConsistencyCheck.get();

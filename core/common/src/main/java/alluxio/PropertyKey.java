@@ -136,6 +136,7 @@ public enum PropertyKey {
   MASTER_PRINCIPAL(Name.MASTER_PRINCIPAL, null),
   MASTER_RETRY(Name.MASTER_RETRY, 29),
   MASTER_RPC_PORT(Name.MASTER_RPC_PORT, 19998),
+  MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, true),
   MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS, "MEM"),
   MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS, "SSD"),
   MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS, "HDD"),
@@ -485,6 +486,8 @@ public enum PropertyKey {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
+    public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
+        "alluxio.master.startup.consistencycheck.enabled";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
