@@ -281,7 +281,7 @@ public final class UnderFileSystemManager {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mUri);
       // TODO(calvin): Log a warning if the delete fails
-      ufs.delete(mUri, false);
+      ufs.deleteFile(mUri);
     }
 
     /**
