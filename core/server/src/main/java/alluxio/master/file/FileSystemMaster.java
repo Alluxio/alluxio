@@ -570,7 +570,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission denied
    */
-  // Currently used by Lineage Master and WebUI
   // TODO(binfan): Add permission checking for internal APIs
   public FileInfo getFileInfo(long fileId)
       throws FileDoesNotExistException, AccessControlException {
