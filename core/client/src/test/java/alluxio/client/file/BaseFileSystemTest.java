@@ -89,7 +89,9 @@ public final class BaseFileSystemTest {
   public void createFile() throws Exception {
     Mockito.doNothing().when(mFileSystemMasterClient)
         .createFile(Mockito.any(AlluxioURI.class), Mockito.any(CreateFileOptions.class));
+    URIStatus status = new URIStatus(new FileInfo());
     AlluxioURI file = new AlluxioURI("/file");
+    Mockito.when(mFileSystemMasterClient.getStatus(file)).thenReturn(status);
     CreateFileOptions options = CreateFileOptions.defaults();
     FileOutStream out = mFileSystem.createFile(file, options);
     Mockito.verify(mFileSystemMasterClient).createFile(file, options);
