@@ -24,6 +24,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class CreateOptions {
+  // Ensure writes are not readable till close.
+  private boolean mEnsureAtomic;
+
   // Permission to set for the file being created.
   private Permission mPermission;
 
@@ -31,7 +34,15 @@ public final class CreateOptions {
    * Constructs a default {@link CreateOptions}.
    */
   public CreateOptions() {
+    mEnsureAtomic = true;
     mPermission = Permission.defaults().applyFileUMask();
+  }
+
+  /**
+   * @return ensure atomic
+   */
+  public boolean getEnsureAtomic() {
+    return mEnsureAtomic;
   }
 
   /**
@@ -39,6 +50,17 @@ public final class CreateOptions {
    */
   public Permission getPermission() {
     return mPermission;
+  }
+
+  /**
+   * Sets ensure atomic.
+   *
+   * @param atomic whether to ensure created stream is atomic
+   * @return the updated option object
+   */
+  public CreateOptions setEnsureAtomic(boolean atomic) {
+    mEnsureAtomic = atomic;
+    return this;
   }
 
   /**
@@ -61,17 +83,19 @@ public final class CreateOptions {
       return false;
     }
     CreateOptions that = (CreateOptions) o;
-    return Objects.equal(mPermission, that.mPermission);
+    return (mEnsureAtomic == that.mEnsureAtomic)
+        && Objects.equal(mPermission, that.mPermission);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPermission);
+    return Objects.hashCode(mEnsureAtomic, mPermission);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("ensure_atomic", mEnsureAtomic)
         .add("permission", mPermission)
         .toString();
   }
