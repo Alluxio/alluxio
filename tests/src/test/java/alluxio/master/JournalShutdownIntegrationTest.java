@@ -13,9 +13,12 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
+import alluxio.client.WriteType;
 import alluxio.client.block.BlockStoreContextTestUtils;
 import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
@@ -134,6 +137,7 @@ public class JournalShutdownIntegrationTest {
    * Reproduce the journal and check if the state is correct.
    */
   private void reproduceAndCheckState(int successFiles) throws Exception {
+    Assert.assertNotEquals(successFiles, 0);
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     int actualFiles =
@@ -164,6 +168,7 @@ public class JournalShutdownIntegrationTest {
     // Setup and start the local alluxio cluster.
     LocalAlluxioCluster cluster = new LocalAlluxioCluster();
     cluster.initConfiguration();
+    Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
     cluster.start();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
@@ -171,7 +176,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   @Test
-  public void singleMasterJournalCrashIntegration() throws Exception {
+  public void singleMasterJournalStopIntegration() throws Exception {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Shutdown the cluster
@@ -186,7 +191,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   @Test
-  public void singleMasterJournalKillIntegration() throws Exception {
+  public void singleMasterJournalCrashIntegration() throws Exception {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
     CommonUtils.sleepMs(TEST_TIME_MS);
     cluster.stopWorkers();
@@ -203,7 +208,7 @@ public class JournalShutdownIntegrationTest {
 
   @Ignore
   @Test
-  public void multiMasterJournalCrashIntegration() throws Exception {
+  public void multiMasterJournalStopIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
