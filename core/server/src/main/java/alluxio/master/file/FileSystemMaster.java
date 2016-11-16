@@ -439,14 +439,14 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Class to represent the status and result of the startup consistency check.
    */
-  public static class StartupConsistencyCheckResult {
-    /** Result for a disabled check */
+  public static final class StartupConsistencyCheckResult {
+    /** Result for a disabled check. */
     private static final StartupConsistencyCheckResult DISABLED =
         new StartupConsistencyCheckResult(Status.DISABLED, null);
-    /** Result for a failed check */
+    /** Result for a failed check. */
     private static final StartupConsistencyCheckResult FAILED =
         new StartupConsistencyCheckResult(Status.FAILED, null);
-    /** Result for a running check */
+    /** Result for a running check. */
     private static final StartupConsistencyCheckResult RUNNING =
         new StartupConsistencyCheckResult(Status.RUNNING, null);
 
