@@ -63,17 +63,6 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getWorkers() throws Exception {
-    List<WorkerInfo> workerInfos = getInfo().getWorkers();
-
-    Assert.assertEquals(1, workerInfos.size());
-    WorkerInfo workerInfo = workerInfos.get(0);
-    Assert.assertEquals(0, workerInfo.getUsedBytes());
-    long bytes = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
-    Assert.assertEquals(bytes, workerInfo.getCapacityBytes());
-  }
-
-  @Test
   public void getConfiguration() throws Exception {
     Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
     Assert.assertEquals("abc",
@@ -97,13 +86,16 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getUptimeMs() throws Exception {
-    Assert.assertTrue(getInfo().getUptimeMs() > 0);
+  public void getTierCapacity() throws Exception {
+    long total = Configuration.getLong(PropertyKey.WORKER_MEMORY_SIZE);
+    Capacity capacity = getInfo().getTierCapacity().get("MEM");
+    Assert.assertEquals(total, capacity.getTotal());
+    Assert.assertEquals(0, capacity.getUsed());
   }
 
   @Test
-  public void getVersion() throws Exception {
-    Assert.assertEquals(RuntimeConstants.VERSION, getInfo().getVersion());
+  public void getUptimeMs() throws Exception {
+    Assert.assertTrue(getInfo().getUptimeMs() > 0);
   }
 
   @Test
@@ -113,10 +105,17 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getTierCapacity() throws Exception {
-    long total = Configuration.getLong(PropertyKey.WORKER_MEMORY_SIZE);
-    Capacity capacity = getInfo().getTierCapacity().get("MEM");
-    Assert.assertEquals(total, capacity.getTotal());
-    Assert.assertEquals(0, capacity.getUsed());
+  public void getWorkers() throws Exception {
+    List<WorkerInfo> workerInfos = getInfo().getWorkers();
+    Assert.assertEquals(1, workerInfos.size());
+    WorkerInfo workerInfo = workerInfos.get(0);
+    Assert.assertEquals(0, workerInfo.getUsedBytes());
+    long bytes = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
+    Assert.assertEquals(bytes, workerInfo.getCapacityBytes());
+  }
+
+  @Test
+  public void getVersion() throws Exception {
+    Assert.assertEquals(RuntimeConstants.VERSION, getInfo().getVersion());
   }
 }

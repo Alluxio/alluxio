@@ -21,6 +21,7 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
+import alluxio.rest.TestCaseOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -33,6 +34,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,9 +78,9 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI("/file");
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
+    params.put("allowExists", "false");
     params.put("persisted", "false");
     params.put("recursive", "false");
-    params.put("allowExists", "false");
     new TestCase(mHostname, mPort,
         getEndpoint(FileSystemClientRestServiceHandler.CREATE_DIRECTORY), params,
         HttpMethod.POST, null).run();
@@ -106,13 +109,28 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void download() throws Exception  {
-    // TODO(jsimsa): Implement.
+  public void download() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/file");
+    String message = "Greetings traveller!";
+    uploadFile(uri, message.getBytes());
+    Map<String, String> params = new HashMap<>();
+    params.put("path", uri.toString());
+    String result =
+        new TestCase(mHostname, mPort, getEndpoint(FileSystemClientRestServiceHandler.DOWNLOAD),
+            params, HttpMethod.GET, null).call();
+    Assert.assertEquals(message, result);
   }
 
   @Test
   public void exists() throws Exception  {
-    // TODO(jsimsa): Implement.
+    AlluxioURI uri = new AlluxioURI("/file");
+    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    mFileSystemMaster.completeFile(uri, CompleteFileOptions.defaults());
+
+    Map<String, String> params = new HashMap<>();
+    params.put("path", uri.toString());
+    new TestCase(mHostname, mPort, getEndpoint(FileSystemClientRestServiceHandler.EXISTS),
+        params, HttpMethod.GET, true).run();
   }
 
   @Test
@@ -239,6 +257,25 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
 
   @Test
   public void upload() throws Exception  {
-    // TODO(jsimsa): Implement.
+    AlluxioURI uri = new AlluxioURI("/file");
+    String message = "Greetings traveller!";
+    uploadFile(uri, message.getBytes());
+    Map<String, String> params = new HashMap<>();
+    params.put("path", uri.toString());
+    String result =
+        new TestCase(mHostname, mPort, getEndpoint(FileSystemClientRestServiceHandler.GET_STATUS),
+            params, HttpMethod.GET, null).call();
+    FileInfo fileInfo = new ObjectMapper().readValue(result, FileInfo.class);
+    Assert.assertEquals(message.length(), fileInfo.getLength());
+  }
+
+  private void uploadFile(AlluxioURI path, byte[] input) throws Exception {
+    Map<String, String> params = new HashMap<>();
+    params.put("path", path.toString());
+    params.put("persisted", "false");
+    params.put("recursive", "false");
+    InputStream inputStream = new ByteArrayInputStream(input);
+    new TestCase(mHostname, mPort, getEndpoint(FileSystemClientRestServiceHandler.UPLOAD), params,
+        HttpMethod.POST, null, TestCaseOptions.defaults().setInputStream(inputStream)).run();
   }
 }

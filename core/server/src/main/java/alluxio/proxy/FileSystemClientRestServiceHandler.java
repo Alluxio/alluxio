@@ -211,12 +211,11 @@ public final class FileSystemClientRestServiceHandler {
   @Path(EXISTS)
   @ReturnType("java.lang.Boolean")
   public Response exists(@QueryParam("path") final String path) {
-    return RestUtils.call(new RestUtils.RestCallable<Void>() {
+    return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
       @Override
-      public Void call() throws Exception {
+      public Boolean call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        mFileSystem.exists(new AlluxioURI(path));
-        return null;
+        return mFileSystem.exists(new AlluxioURI(path));
       }
     });
   }
