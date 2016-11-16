@@ -563,7 +563,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Returns the {@link FileInfo} for a given file id. This method is not user-facing but supposed
-   * to be called by other internal servers (e.g., block workers and web UI servers).
+   * to be called by other internal servers (e.g., block workers, lineage master, web UI).
    *
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file
