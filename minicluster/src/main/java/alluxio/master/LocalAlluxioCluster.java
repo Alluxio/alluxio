@@ -120,11 +120,8 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   @Override
   public void stopFS() throws Exception {
     LOG.info("stop Alluxio filesystem");
-
     // Stopping Workers before stopping master speeds up tests
-    for (AlluxioWorkerService worker : mWorkers) {
-      worker.stop();
-    }
+    stopWorkers();
     mMaster.stop();
   }
 
@@ -133,5 +130,12 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     super.stop();
     // clear HDFS client caching
     System.clearProperty("fs.hdfs.impl.disable.cache");
+  }
+
+  @Override
+  public void stopWorkers() throws Exception {
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
   }
 }
