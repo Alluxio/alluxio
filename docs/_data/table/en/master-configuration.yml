@@ -37,6 +37,9 @@ alluxio.master.port:
   The port that Alluxio master node runs on.
 alluxio.master.retry:
   The number of retries that the client connects to master
+alluxio.master.startup.consistency.check.enabled:
+  Whether the system should be checked for consistency with the underlying storage on startup.
+  During the time the check is running, Alluxio will be in read only mode. Enabled by default.
 alluxio.master.ttl.checker.interval.ms:
   Time interval (in milliseconds) to periodically delete the files with expired ttl value.
 alluxio.master.web.bind.host:

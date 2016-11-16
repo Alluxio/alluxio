@@ -133,7 +133,7 @@ public final class FileSystemClientRestServiceHandler {
   @ReturnType("java.lang.Void")
   public Response createDirectory(@QueryParam("path") final String path,
       @QueryParam("allowExists") final Boolean allowExists,
-      @QueryParam("mode") final Integer mode,
+      @QueryParam("mode") final Short mode,
       @QueryParam("persisted") final Boolean persisted,
       @QueryParam("recursive") final Boolean recursive) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
@@ -145,7 +145,7 @@ public final class FileSystemClientRestServiceHandler {
           options.setAllowExists(allowExists);
         }
         if (mode != null) {
-          options.setMode(new Mode(mode.shortValue()));
+          options.setMode(new Mode(mode));
         }
         if (persisted != null) {
           options.setWriteType(
@@ -264,7 +264,6 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary get the file descriptors for a path
    * @param path the file path
-   * @param loadDirectChildren whether to load direct children of path
    * @param loadMetadataType the {@link LoadMetadataType}. It overrides loadDirectChildren if it
    *        is set.
    * @return the response object
@@ -273,17 +272,12 @@ public final class FileSystemClientRestServiceHandler {
   @Path(LIST_STATUS)
   @ReturnType("java.util.List<alluxio.client.file.URIStatus>")
   public Response listStatus(@QueryParam("path") final String path,
-      @Deprecated @QueryParam("loadDirectChildren") final boolean loadDirectChildren,
       @DefaultValue("") @QueryParam("loadMetadataType") final String loadMetadataType) {
     return RestUtils.call(new RestUtils.RestCallable<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
-        if (!loadDirectChildren) {
-          listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
-        }
-        // loadMetadataType overrides loadDirectChildren if it is set.
         if (!loadMetadataType.isEmpty()) {
           listStatusOptions.setLoadMetadataType(LoadMetadataType.valueOf(loadMetadataType));
         }
@@ -354,7 +348,7 @@ public final class FileSystemClientRestServiceHandler {
    * @param persisted the persisted flag value to use
    * @param owner the file owner
    * @param group the file group
-   * @param permission the file permission bits
+   * @param mode the file permission bits
    * @param recursive whether the attribute should be set recursively
    * @param ttlAction action to take after TTL is expired
    * @return the response object
@@ -365,7 +359,7 @@ public final class FileSystemClientRestServiceHandler {
   public Response setAttribute(@QueryParam("path") final String path,
       @QueryParam("pinned") final Boolean pinned, @QueryParam("ttl") final Long ttl,
       @QueryParam("persisted") final Boolean persisted, @QueryParam("owner") final String owner,
-      @QueryParam("group") final String group, @QueryParam("permission") final Short permission,
+      @QueryParam("group") final String group, @QueryParam("mode") final Short mode,
       @QueryParam("recursive") final Boolean recursive,
       @QueryParam("ttxAction") final TtlAction ttlAction) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
@@ -385,8 +379,8 @@ public final class FileSystemClientRestServiceHandler {
         if (owner != null) {
           options.setOwner(owner);
         }
-        if (permission != null) {
-          options.setMode(permission);
+        if (mode != null) {
+          options.setMode(mode);
         }
         if (recursive != null) {
           options.setRecursive(recursive);
