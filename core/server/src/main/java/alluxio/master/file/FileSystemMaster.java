@@ -131,7 +131,6 @@ import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-
 /**
  * The master that handles all file system metadata management.
  */
@@ -530,7 +529,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws AccessControlException if the access is not allowed
+   * @throws AccessControlException if permission denied
    */
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
       throws FileDoesNotExistException, AccessControlException {

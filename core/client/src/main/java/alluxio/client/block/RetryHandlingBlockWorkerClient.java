@@ -53,7 +53,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * server.
  *
  * Note: Every client instance is associated with a session which is usually created for each block
- * stream. So be careful when resue this client for multiple blocks.
+ * stream. So be careful when reusing this client for multiple blocks.
  */
 @ThreadSafe
 public final class RetryHandlingBlockWorkerClient
