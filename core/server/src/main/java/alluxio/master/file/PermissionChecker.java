@@ -35,6 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Base class to provide permission check logic.
  */
+// TODO(peis): Migrate this class to a set of static functions.
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class PermissionChecker {
   /** The file system inode structure. */
@@ -334,12 +335,12 @@ public final class PermissionChecker {
     Mode.Bits mode = Mode.Bits.NONE;
     short permission = inode.getMode();
     if (user.equals(inode.getOwner())) {
-      mode.or(Mode.extractOwnerBits(permission));
+      mode = mode.or(Mode.extractOwnerBits(permission));
     }
     if (groups.contains(inode.getGroup())) {
-      mode.or(Mode.extractGroupBits(permission));
+      mode = mode.or(Mode.extractGroupBits(permission));
     }
-    mode.or(Mode.extractOtherBits(permission));
+    mode = mode.or(Mode.extractOtherBits(permission));
     return mode;
   }
 
