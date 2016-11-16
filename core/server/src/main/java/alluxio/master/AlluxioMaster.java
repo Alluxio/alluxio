@@ -32,6 +32,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -531,12 +532,12 @@ public class AlluxioMaster implements Server {
    * Blocks until the master is ready to serve requests.
    */
   public void waitForReady() {
-    while (true) {
-      if (mMasterServiceServer != null && mMasterServiceServer.isServing()
-          && mWebServer != null && mWebServer.getServer().isRunning()) {
-        return;
+    CommonUtils.waitFor("master web server", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        return mMasterServiceServer != null && mMasterServiceServer.isServing()
+            && mWebServer != null && mWebServer.getServer().isRunning();
       }
-      CommonUtils.sleepMs(10);
-    }
+    });
   }
 }

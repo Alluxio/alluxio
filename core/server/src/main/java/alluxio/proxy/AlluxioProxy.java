@@ -22,6 +22,8 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.ProxyWebServer;
 import alluxio.web.WebServer;
 
+import com.google.common.base.Function;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,11 +111,11 @@ public final class AlluxioProxy implements Server {
    * Blocks until the proxy is ready to serve requests.
    */
   public void waitForReady() {
-    while (true) {
-      if (mWebServer != null && mWebServer.getServer().isRunning()) {
-        return;
+    CommonUtils.waitFor("proxy web server", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        return mWebServer != null && mWebServer.getServer().isRunning();
       }
-      CommonUtils.sleepMs(10);
-    }
+    });
   }
 }

@@ -272,8 +272,6 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   private void uploadFile(AlluxioURI path, byte[] input) throws Exception {
     Map<String, String> params = new HashMap<>();
     params.put("path", path.toString());
-    params.put("persisted", "false");
-    params.put("recursive", "false");
     InputStream inputStream = new ByteArrayInputStream(input);
     new TestCase(mHostname, mPort, getEndpoint(FileSystemClientRestServiceHandler.UPLOAD), params,
         HttpMethod.POST, null, TestCaseOptions.defaults().setInputStream(inputStream)).run();

@@ -19,7 +19,7 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-stop.sh [-h] [component]
 Where component is one of:
-  all     \tStop local master/worker and remote workers.
+  all     \tStop master, proxy and all workers.
   master  \tStop local master.
   proxy   \tStop local proxy.
   worker  \tStop local worker.

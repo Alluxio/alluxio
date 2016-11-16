@@ -12,7 +12,9 @@
 package alluxio.proxy;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -26,7 +28,9 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
 import alluxio.web.ProxyWebServer;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
@@ -124,8 +128,8 @@ public final class FileSystemClientRestServiceHandler {
    * @param path the file path
    * @param allowExists whether the operation should succeed even if the directory already exists
    * @param mode the octal mode to used for directory permissions
-   * @param persisted whether directory should be persisted
    * @param recursive whether parent directories should be created if they do not already exist
+   * @param writeType the write type to use
    * @return the response object
    */
   @POST
@@ -134,8 +138,8 @@ public final class FileSystemClientRestServiceHandler {
   public Response createDirectory(@QueryParam("path") final String path,
       @QueryParam("allowExists") final Boolean allowExists,
       @QueryParam("mode") final Short mode,
-      @QueryParam("persisted") final Boolean persisted,
-      @QueryParam("recursive") final Boolean recursive) {
+      @QueryParam("recursive") final Boolean recursive,
+      @QueryParam("writeType") final WriteType writeType) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -147,9 +151,8 @@ public final class FileSystemClientRestServiceHandler {
         if (mode != null) {
           options.setMode(new Mode(mode));
         }
-        if (persisted != null) {
-          options.setWriteType(
-              persisted ? WriteType.CACHE_THROUGH : WriteType.MUST_CACHE);
+        if (writeType != null) {
+          options.setWriteType(writeType);
         }
         if (recursive != null) {
           options.setRecursive(recursive);
@@ -161,7 +164,7 @@ public final class FileSystemClientRestServiceHandler {
   }
 
   /**
-   * @summary remove a path
+   * @summary delete a path
    * @param path the path to remove
    * @param recursive whether to remove paths recursively
    * @return the response object
@@ -169,7 +172,7 @@ public final class FileSystemClientRestServiceHandler {
   @POST
   @Path(DELETE)
   @ReturnType("java.lang.Void")
-  public Response remove(@QueryParam("path") final String path,
+  public Response delete(@QueryParam("path") final String path,
       @QueryParam("recursive") final boolean recursive) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
@@ -185,19 +188,31 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary download a file
    * @param path the file path
+   * @param readType the read type to use
    * @return the response object
    */
   @GET
   @Path(DOWNLOAD)
   @ReturnType("java.io.InputStream")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
-  public Response download(@QueryParam("path") final String path) {
+  public Response download(@QueryParam("path") final String path,
+      @QueryParam("locationPolicy") final String locationPolicy,
+      @QueryParam("readType") final ReadType readType) {
     // TODO(jiri): Support range downloads.
     return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
       @Override
       public InputStream call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+        OpenFileOptions options = OpenFileOptions.defaults();
+        if (locationPolicy != null) {
+          @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
+              (Class<FileWriteLocationPolicy>) Class.forName(locationPolicy);
+          options.setLocationPolicy(
+              CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {}));
+        }
+        if (readType != null) {
+          options.setReadType(readType);
+        }
         return mFileSystem.openFile(new AlluxioURI(path), options);
       }
     });
@@ -421,10 +436,10 @@ public final class FileSystemClientRestServiceHandler {
    * @param path the file path
    * @param blockSizeBytes the target block size in bytes
    * @param mode the octal mode to used for file permissions
-   * @param persisted whether directory should be persisted
    * @param recursive whether parent directories should be created if they do not already exist
    * @param ttl the time-to-live (in milliseconds)
    * @param ttlAction action to take after TTL is expired
+   * @param writeType the write type to use
    * @param is the input stream
    * @return the response object
    */
@@ -434,11 +449,12 @@ public final class FileSystemClientRestServiceHandler {
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response upload(@QueryParam("path") final String path,
       @QueryParam("blockSizeBytes") final Long blockSizeBytes,
+      @QueryParam("locationPolicy") final String locationPolicy,
       @QueryParam("mode") final Integer mode,
-      @QueryParam("persisted") final Boolean persisted,
       @QueryParam("recursive") final Boolean recursive,
       @QueryParam("ttl") final Long ttl,
       @QueryParam("ttlAction") final TtlAction ttlAction,
+      @QueryParam("writeType") final WriteType writeType,
       final InputStream is) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
@@ -448,12 +464,17 @@ public final class FileSystemClientRestServiceHandler {
         if (blockSizeBytes != null) {
           options.setBlockSizeBytes(blockSizeBytes);
         }
+        if (locationPolicy != null) {
+          @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
+              (Class<FileWriteLocationPolicy>) Class.forName(locationPolicy);
+          options.setLocationPolicy(
+              CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {}));
+        }
         if (mode != null) {
           options.setMode(new Mode(mode.shortValue()));
         }
-        if (persisted != null) {
-          options.setWriteType(
-              persisted ? WriteType.CACHE_THROUGH : WriteType.MUST_CACHE);
+        if (writeType != null) {
+          options.setWriteType(writeType);
         }
         if (recursive != null) {
           options.setRecursive(recursive);

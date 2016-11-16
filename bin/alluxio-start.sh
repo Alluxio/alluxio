@@ -21,7 +21,7 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
 Where ACTION is one of:
-  all [MOPT]     \tStart master and all workers.
+  all [MOPT]     \tStart master, proxy and all workers.
   local [MOPT]   \tStart a master and worker locally.
   master         \tStart the master on this node.
   proxy          \tStart the proxy on this node.
