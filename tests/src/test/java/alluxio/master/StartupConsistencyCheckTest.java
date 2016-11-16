@@ -111,7 +111,7 @@ public class StartupConsistencyCheckTest {
       @Override
       public Boolean apply(Void aVoid) {
         return master.getStartupConsistencyCheck().getStatus()
-            == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE;
+            == FileSystemMaster.StartupConsistencyCheckResult.Status.COMPLETE;
       }
     }, Constants.MINUTE_MS);
   }

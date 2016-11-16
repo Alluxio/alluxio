@@ -487,7 +487,7 @@ public enum PropertyKey {
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
-        "alluxio.master.startup.consistencycheck.enabled";
+        "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =

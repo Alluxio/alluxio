@@ -439,7 +439,7 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Class to represent the status and result of the startup consistency check.
    */
-  public static class StartupConsistencyCheck {
+  public static class StartupConsistencyCheckResult {
     /**
      * State of the check.
      */
@@ -456,7 +456,7 @@ public final class FileSystemMaster extends AbstractMaster {
      * @param status the state of the check
      * @param inconsistentUris the uris which are inconsistent with the underlying storage
      */
-    public StartupConsistencyCheck(Status status, List<AlluxioURI> inconsistentUris) {
+    public StartupConsistencyCheckResult(Status status, List<AlluxioURI> inconsistentUris) {
       mStatus = status;
       mInconsistentUris = inconsistentUris;
     }
@@ -479,19 +479,20 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * @return the status of the startup consistency check and inconsistent paths if it is complete
    */
-  public StartupConsistencyCheck getStartupConsistencyCheck() {
+  public StartupConsistencyCheckResult getStartupConsistencyCheck() {
     if (!Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
-      return new StartupConsistencyCheck(StartupConsistencyCheck.Status.DISABLED, null);
+      return new StartupConsistencyCheckResult(StartupConsistencyCheckResult.Status.DISABLED, null);
     }
     if (!mStartupConsistencyCheck.isDone()) {
-      return new StartupConsistencyCheck(StartupConsistencyCheck.Status.RUNNING, null);
+      return new StartupConsistencyCheckResult(StartupConsistencyCheckResult.Status.RUNNING, null);
     }
     try {
       List<AlluxioURI> inconsistentUris = mStartupConsistencyCheck.get();
-      return new StartupConsistencyCheck(StartupConsistencyCheck.Status.COMPLETE, inconsistentUris);
+      return new StartupConsistencyCheckResult(StartupConsistencyCheckResult.Status.COMPLETE,
+          inconsistentUris);
     } catch (Exception e) {
       LOG.warn("Failed to complete start up consistency check.", e);
-      return new StartupConsistencyCheck(StartupConsistencyCheck.Status.FAILED, null);
+      return new StartupConsistencyCheckResult(StartupConsistencyCheckResult.Status.FAILED, null);
     }
   }
 

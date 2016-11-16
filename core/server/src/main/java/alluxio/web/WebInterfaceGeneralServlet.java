@@ -190,10 +190,10 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
             FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
                 - mMaster.getBlockMaster().getUsedBytes()));
 
-    FileSystemMaster.StartupConsistencyCheck check =
+    FileSystemMaster.StartupConsistencyCheckResult check =
         mMaster.getFileSystemMaster().getStartupConsistencyCheck();
     request.setAttribute("consistencyCheckStatus", check.getStatus());
-    if (check.getStatus() == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE) {
+    if (check.getStatus() == FileSystemMaster.StartupConsistencyCheckResult.Status.COMPLETE) {
       request.setAttribute("inconsistentPaths", check.getInconsistentUris().size());
     } else {
       request.setAttribute("inconsistentPaths", 0);
