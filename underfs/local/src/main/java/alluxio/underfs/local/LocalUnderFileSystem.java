@@ -273,7 +273,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
       }
     } catch (IOException e) {
       LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group);
-      LOG.debug(e);
+      LOG.debug("Exception: ", e);
       LOG.warn("In order for Alluxio to set local files with the correct user and groups, "
           + "Alluxio should be the local file system superusers.");
       if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
