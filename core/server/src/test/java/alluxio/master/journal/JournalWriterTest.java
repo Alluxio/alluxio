@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -64,7 +65,7 @@ public class JournalWriterTest {
     OutputStream mockOutStream = mock(OutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
     doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath());
-    doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath(),
+    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
         any(CreateOptions.class));
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
@@ -91,7 +92,7 @@ public class JournalWriterTest {
     FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
     doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath());
-    doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath(),
+    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
         any(CreateOptions.class));
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
@@ -119,7 +120,7 @@ public class JournalWriterTest {
     FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
     doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath());
-    doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath(),
+    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
         any(CreateOptions.class));
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
