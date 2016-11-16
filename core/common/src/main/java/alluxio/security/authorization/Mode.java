@@ -51,6 +51,16 @@ public final class Mode {
       mString = s;
     }
 
+    /**
+     * Creates a {@link Bits} from a short.
+     *
+     * @param bits {@link Bits} in short
+     * @return the {@link Bits} created
+     */
+    public static Bits fromShort(short bits) {
+      return SVALS[bits];
+    }
+
     @Override
     public String toString() {
       return mString;

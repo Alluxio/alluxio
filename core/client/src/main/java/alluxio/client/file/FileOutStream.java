@@ -123,18 +123,14 @@ public class FileOutStream extends AbstractOutStream {
     mCanceled = false;
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     mBytesWritten = 0;
-    if (!mUnderStorageType.isSyncPersist()) {
-      mUfsPath = null;
-      mUnderStorageOutputStream = null;
-      mFileSystemWorkerClient = null;
-      mUfsFileId = null;
-    } else {
-      try {
-        // Get the ufs path from the master.
-        try (CloseableResource<FileSystemMasterClient> client = mContext
-            .acquireMasterClientResource()) {
-          mUfsPath = client.get().getStatus(mUri).getUfsPath();
-        }
+    try {
+      if (!mUnderStorageType.isSyncPersist()) {
+        mUfsPath = null;
+        mUnderStorageOutputStream = null;
+        mFileSystemWorkerClient = null;
+        mUfsFileId = null;
+      } else {
+        mUfsPath = options.getUfsPath();
         if (mUfsDelegation) {
           mFileSystemWorkerClient = mCloser.register(mContext.createWorkerClient());
           Permission perm = options.getPermission();
@@ -152,11 +148,11 @@ public class FileOutStream extends AbstractOutStream {
           mFileSystemWorkerClient = null;
           mUfsFileId = null;
         }
-      } catch (AlluxioException | IOException e) {
-        mCloser.close();
-        Throwables.propagateIfInstanceOf(e, IOException.class);
-        throw new IOException(e);
       }
+    } catch (AlluxioException | IOException e) {
+      mCloser.close();
+      Throwables.propagateIfInstanceOf(e, IOException.class);
+      throw new IOException(e);
     }
   }
 
