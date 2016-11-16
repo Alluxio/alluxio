@@ -425,28 +425,113 @@ public final class FileSystemMaster extends AbstractMaster {
       mLostFilesDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_FILES_DETECTION, new LostFilesDetectionHeartbeatExecutor(),
           Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
-      mStartupConsistencyCheck = getExecutorService().submit(new Callable<List<AlluxioURI>>() {
-        @Override
-        public List<AlluxioURI> call() throws Exception {
-          return checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
-        }
-      });
+      if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
+        mStartupConsistencyCheck = getExecutorService().submit(new Callable<List<AlluxioURI>>() {
+          @Override
+          public List<AlluxioURI> call() throws Exception {
+            return checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+          }
+        });
+      }
     }
   }
 
   /**
-   * @return the list of inconsistent files at start up, null if the check has not completed or
-   *         failed
+   * Class to represent the status and result of the startup consistency check.
    */
-  public List<AlluxioURI> getStartupConsistencyCheck() {
-    if (mStartupConsistencyCheck.isDone()) {
-      try {
-        return mStartupConsistencyCheck.get();
-      } catch (Exception e) {
-        LOG.warn("Failed to complete start up consistency check.", e);
-      }
+  public static final class StartupConsistencyCheckResult {
+    /** Result for a disabled check. */
+    private static final StartupConsistencyCheckResult DISABLED =
+        new StartupConsistencyCheckResult(Status.DISABLED, null);
+    /** Result for a failed check. */
+    private static final StartupConsistencyCheckResult FAILED =
+        new StartupConsistencyCheckResult(Status.FAILED, null);
+    /** Result for a running check. */
+    private static final StartupConsistencyCheckResult RUNNING =
+        new StartupConsistencyCheckResult(Status.RUNNING, null);
+
+    /**
+     * State of the check.
+     */
+    public enum Status {
+      COMPLETE, DISABLED, FAILED, RUNNING
     }
-    return null;
+
+    /**
+     * @param inconsistentUris the uris which are inconsistent with the underlying storage
+     * @return a result set to the complete status
+     */
+    public static StartupConsistencyCheckResult complete(List<AlluxioURI> inconsistentUris) {
+      return new StartupConsistencyCheckResult(Status.COMPLETE, inconsistentUris);
+    }
+
+    /**
+     * @return a result set to the disabled status
+     */
+    public static StartupConsistencyCheckResult disabled() {
+      return DISABLED;
+    }
+
+    /**
+     * @return a result set to the failed status
+     */
+    public static StartupConsistencyCheckResult failed() {
+      return FAILED;
+    }
+
+    /**
+     * @return a result set to the running status
+     */
+    public static StartupConsistencyCheckResult running() {
+      return RUNNING;
+    }
+
+    private Status mStatus;
+    private List<AlluxioURI> mInconsistentUris;
+
+    /**
+     * Create a new startup consistency check result.
+     *
+     * @param status the state of the check
+     * @param inconsistentUris the uris which are inconsistent with the underlying storage
+     */
+    private StartupConsistencyCheckResult(Status status, List<AlluxioURI> inconsistentUris) {
+      mStatus = status;
+      mInconsistentUris = inconsistentUris;
+    }
+
+    /**
+     * @return the state of the check
+     */
+    public Status getStatus() {
+      return mStatus;
+    }
+
+    /**
+     * @return the uris which are inconsistent with the underlying storage
+     */
+    public List<AlluxioURI> getInconsistentUris() {
+      return mInconsistentUris;
+    }
+  }
+
+  /**
+   * @return the status of the startup consistency check and inconsistent paths if it is complete
+   */
+  public StartupConsistencyCheckResult getStartupConsistencyCheck() {
+    if (!Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
+      return StartupConsistencyCheckResult.disabled();
+    }
+    if (!mStartupConsistencyCheck.isDone()) {
+      return StartupConsistencyCheckResult.running();
+    }
+    try {
+      List<AlluxioURI> inconsistentUris = mStartupConsistencyCheck.get();
+      return StartupConsistencyCheckResult.complete(inconsistentUris);
+    } catch (Exception e) {
+      LOG.warn("Failed to complete start up consistency check.", e);
+      return StartupConsistencyCheckResult.failed();
+    }
   }
 
   /**

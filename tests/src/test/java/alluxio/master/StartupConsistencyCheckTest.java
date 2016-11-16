@@ -50,6 +50,7 @@ public class StartupConsistencyCheckTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+          .setProperty(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "true")
           .build();
 
   @Before
@@ -76,13 +77,14 @@ public class StartupConsistencyCheckTest {
     mCluster.stopFS();
     final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     waitForStartupConsistencyCheck(master);
-    Assert.assertTrue(master.getStartupConsistencyCheck().isEmpty());
+    Assert.assertTrue(master.getStartupConsistencyCheck().getInconsistentUris().isEmpty());
   }
 
   /**
    * Tests that an inconsistent Alluxio system's startup check correctly detects the inconsistent
    * files.
    */
+  @Test
   public void inconsistent() throws Exception {
     String topLevelFileUfsPath = mFileSystem.getStatus(TOP_LEVEL_FILE).getUfsPath();
     String secondLevelDirUfsPath = mFileSystem.getStatus(SECOND_LEVEL_DIR).getUfsPath();
@@ -93,7 +95,7 @@ public class StartupConsistencyCheckTest {
     final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     waitForStartupConsistencyCheck(master);
     List expected = Lists.newArrayList(TOP_LEVEL_FILE, SECOND_LEVEL_DIR, THIRD_LEVEL_FILE);
-    List result = master.getStartupConsistencyCheck();
+    List result = master.getStartupConsistencyCheck().getInconsistentUris();
     Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
@@ -108,8 +110,9 @@ public class StartupConsistencyCheckTest {
     CommonUtils.waitFor("Startup consistency check completion", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void aVoid) {
-        return master.getStartupConsistencyCheck() != null;
+        return master.getStartupConsistencyCheck().getStatus()
+            == FileSystemMaster.StartupConsistencyCheckResult.Status.COMPLETE;
       }
-    }, Constants.SECOND_MS);
+    }, Constants.MINUTE_MS);
   }
 }
