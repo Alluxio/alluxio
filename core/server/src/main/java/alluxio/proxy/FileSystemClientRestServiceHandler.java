@@ -192,6 +192,7 @@ public final class FileSystemClientRestServiceHandler {
   @ReturnType("java.io.InputStream")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response download(@QueryParam("path") final String path) {
+    // TODO(jiri): Support range downloads.
     return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
       @Override
       public InputStream call() throws Exception {

@@ -148,7 +148,7 @@ public final class TestCase {
     String expected = "";
     if (mExpectedResult != null) {
       ObjectMapper mapper = new ObjectMapper();
-      if (mOptions.getPrettyPrint()) {
+      if (mOptions.isPrettyPrint()) {
         expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
       } else {
         expected = mapper.writeValueAsString(mExpectedResult);

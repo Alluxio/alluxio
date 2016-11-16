@@ -50,10 +50,13 @@ import javax.ws.rs.core.Response;
 
 /**
  * This class is a REST handler for file system master requests.
+ *
+ * @deprecated since version 1.4 and will be removed in version 2.0
  */
 @NotThreadSafe
 @Path(FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
+@Deprecated
 public final class FileSystemMasterClientRestServiceHandler {
   public static final String SERVICE_PREFIX = "master/file";
   public static final String SERVICE_NAME = "service_name";

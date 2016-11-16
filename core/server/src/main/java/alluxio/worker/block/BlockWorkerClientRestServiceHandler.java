@@ -41,9 +41,12 @@ import javax.ws.rs.core.Response;
 
 /**
  * This class is a REST handler for block worker requests.
+ *
+ * @deprecated since version 1.4 and will be removed in version 2.0
  */
 @NotThreadSafe
 @Path(BlockWorkerClientRestServiceHandler.SERVICE_PREFIX)
+@Deprecated
 public final class BlockWorkerClientRestServiceHandler {
   public static final String SERVICE_PREFIX = "worker/block";
   public static final String SERVICE_NAME = "service_name";

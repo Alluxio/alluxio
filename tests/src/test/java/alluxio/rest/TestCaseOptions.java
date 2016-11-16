@@ -56,7 +56,7 @@ public final class TestCaseOptions {
   /**
    * @return the pretty print flag
    */
-  public boolean getPrettyPrint() {
+  public boolean isPrettyPrint() {
     return mPrettyPrint;
   }
 

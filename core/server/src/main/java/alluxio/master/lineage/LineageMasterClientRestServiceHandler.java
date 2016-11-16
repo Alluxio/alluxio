@@ -40,10 +40,13 @@ import javax.ws.rs.core.Response;
 
 /**
  * This class is a REST handler for lineage master requests.
+ *
+ * @deprecated since version 1.4 and will be removed in version 2.0
  */
 @NotThreadSafe
 @Path(LineageMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
+@Deprecated
 public final class LineageMasterClientRestServiceHandler {
   public static final String SERVICE_PREFIX = "master/lineage";
   public static final String SERVICE_NAME = "service_name";
