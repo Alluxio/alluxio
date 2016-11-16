@@ -64,7 +64,6 @@ public class JournalWriterTest {
     JournalWriter mockJournalWriter = PowerMockito.mock(JournalWriter.class);
     OutputStream mockOutStream = mock(OutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
-    doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath());
     doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
         any(CreateOptions.class));
 
@@ -91,7 +90,6 @@ public class JournalWriterTest {
     JournalWriter mockJournalWriter = PowerMockito.mock(JournalWriter.class);
     FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
-    doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath());
     doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
         any(CreateOptions.class));
 
@@ -119,7 +117,6 @@ public class JournalWriterTest {
     JournalWriter mockJournalWriter = PowerMockito.mock(JournalWriter.class);
     FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
-    doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath());
     doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
         any(CreateOptions.class));
 

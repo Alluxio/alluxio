@@ -39,17 +39,17 @@ public final class CreateOptions {
   }
 
   /**
-   * @return ensure atomic
-   */
-  public boolean getEnsureAtomic() {
-    return mEnsureAtomic;
-  }
-
-  /**
    * @return the permission
    */
   public Permission getPermission() {
     return mPermission;
+  }
+
+  /**
+   * @return ensure atomic
+   */
+  public boolean isEnsureAtomic() {
+    return mEnsureAtomic;
   }
 
   /**
@@ -95,7 +95,7 @@ public final class CreateOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("ensure_atomic", mEnsureAtomic)
+        .add("ensureAtomic", mEnsureAtomic)
         .add("permission", mPermission)
         .toString();
   }
