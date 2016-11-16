@@ -440,11 +440,50 @@ public final class FileSystemMaster extends AbstractMaster {
    * Class to represent the status and result of the startup consistency check.
    */
   public static class StartupConsistencyCheckResult {
+    /** Result for a disabled check */
+    private static final StartupConsistencyCheckResult DISABLED =
+        new StartupConsistencyCheckResult(Status.DISABLED, null);
+    /** Result for a failed check */
+    private static final StartupConsistencyCheckResult FAILED =
+        new StartupConsistencyCheckResult(Status.FAILED, null);
+    /** Result for a running check */
+    private static final StartupConsistencyCheckResult RUNNING =
+        new StartupConsistencyCheckResult(Status.RUNNING, null);
+
     /**
      * State of the check.
      */
     public enum Status {
-      DISABLED, RUNNING, FAILED, COMPLETE
+      COMPLETE, DISABLED, FAILED, RUNNING
+    }
+
+    /**
+     * @param inconsistentUris the uris which are inconsistent with the underlying storage
+     * @return a result set to the complete status
+     */
+    public static StartupConsistencyCheckResult complete(List<AlluxioURI> inconsistentUris) {
+      return new StartupConsistencyCheckResult(Status.COMPLETE, inconsistentUris);
+    }
+
+    /**
+     * @return a result set to the disabled status
+     */
+    public static StartupConsistencyCheckResult disabled() {
+      return DISABLED;
+    }
+
+    /**
+     * @return a result set to the failed status
+     */
+    public static StartupConsistencyCheckResult failed() {
+      return FAILED;
+    }
+
+    /**
+     * @return a result set to the running status
+     */
+    public static StartupConsistencyCheckResult running() {
+      return RUNNING;
     }
 
     private Status mStatus;
@@ -456,7 +495,7 @@ public final class FileSystemMaster extends AbstractMaster {
      * @param status the state of the check
      * @param inconsistentUris the uris which are inconsistent with the underlying storage
      */
-    public StartupConsistencyCheckResult(Status status, List<AlluxioURI> inconsistentUris) {
+    private StartupConsistencyCheckResult(Status status, List<AlluxioURI> inconsistentUris) {
       mStatus = status;
       mInconsistentUris = inconsistentUris;
     }
@@ -481,18 +520,17 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public StartupConsistencyCheckResult getStartupConsistencyCheck() {
     if (!Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
-      return new StartupConsistencyCheckResult(StartupConsistencyCheckResult.Status.DISABLED, null);
+      return StartupConsistencyCheckResult.disabled();
     }
     if (!mStartupConsistencyCheck.isDone()) {
-      return new StartupConsistencyCheckResult(StartupConsistencyCheckResult.Status.RUNNING, null);
+      return StartupConsistencyCheckResult.running();
     }
     try {
       List<AlluxioURI> inconsistentUris = mStartupConsistencyCheck.get();
-      return new StartupConsistencyCheckResult(StartupConsistencyCheckResult.Status.COMPLETE,
-          inconsistentUris);
+      return StartupConsistencyCheckResult.complete(inconsistentUris);
     } catch (Exception e) {
       LOG.warn("Failed to complete start up consistency check.", e);
-      return new StartupConsistencyCheckResult(StartupConsistencyCheckResult.Status.FAILED, null);
+      return StartupConsistencyCheckResult.failed();
     }
   }
 
