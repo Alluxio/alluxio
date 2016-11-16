@@ -563,14 +563,13 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Returns the {@link FileInfo} for a given file id. This method is not user-facing but supposed
-   * to be called by other internal servers (e.g., block workers and web UI servers).
+   * to be called by other internal servers (e.g., block workers, lineage master, web UI).
    *
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission denied
    */
-  // Currently used by Lineage Master and WebUI
   // TODO(binfan): Add permission checking for internal APIs
   public FileInfo getFileInfo(long fileId)
       throws FileDoesNotExistException, AccessControlException {
@@ -645,11 +644,12 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * Returns the persistence state for a file id. This method is used by the lineage master.
+   *
    * @param fileId the file id
-   * @return the persistence state for the given file
+   * @return the {@link PersistenceState} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
    */
-  // Internal facing, currently used by Lineage master
   // TODO(binfan): Add permission checking for internal APIs
   public PersistenceState getPersistenceState(long fileId) throws FileDoesNotExistException {
     try (
