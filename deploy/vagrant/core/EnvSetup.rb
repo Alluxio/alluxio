@@ -88,8 +88,10 @@ class AlluxioVersion
     # Determine if the version is less than 1.1, only for release and github release branch types
     major = Integer(major) rescue nil
     minor = Integer(minor) rescue nil
+    @v_lt_0_8 = false
     @v_lt_1_1 = false
     if not major.nil? and not minor.nil?
+      @v_lt_0_8 = ((major == 0) and (minor < 8))
       @v_lt_1_1 = ((major < 1) or (major == 1 and minor < 1))
     end
 
@@ -111,6 +113,10 @@ class AlluxioVersion
 
   def masters
     return @masters
+  end
+
+  def v_lt_0_8
+    return @v_lt_0_8
   end
 
   def v_lt_1_1
