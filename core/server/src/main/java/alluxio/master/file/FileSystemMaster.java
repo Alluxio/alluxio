@@ -647,7 +647,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * Returns the persistence state for a file id. This method is used by the lineage master.
    *
    * @param fileId the file id
-   * @return the persistence state for the given file
+   * @return the {@link PersistenceState} for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
   // TODO(binfan): Add permission checking for internal APIs
