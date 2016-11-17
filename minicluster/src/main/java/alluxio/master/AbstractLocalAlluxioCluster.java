@@ -195,6 +195,13 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
+   * Stop the workers only.
+   *
+   * @throws Exception when operation fails
+   */
+  public abstract void stopWorkers() throws Exception;
+
+  /**
    * Creates a default {@link Configuration} for testing.
    *
    * @throws IOException when the operation fails

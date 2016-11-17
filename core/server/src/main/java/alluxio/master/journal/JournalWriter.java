@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Preconditions;
@@ -351,7 +352,7 @@ public final class JournalWriter {
       mJournalFormatter = journalFormatter;
       mJournalWriter = journalWriter;
       mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
-      mRawOutputStream = mUfs.create(mCurrentLogPath);
+      mRawOutputStream = mUfs.create(mCurrentLogPath, new CreateOptions().setEnsureAtomic(false));
       LOG.info("Opened current log file: {}", mCurrentLogPath);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
@@ -438,7 +439,7 @@ public final class JournalWriter {
     private void rotateLog() throws IOException {
       mDataOutputStream.close();
       mJournalWriter.completeCurrentLog();
-      mRawOutputStream = mUfs.create(mCurrentLogPath);
+      mRawOutputStream = mUfs.create(mCurrentLogPath, new CreateOptions().setEnsureAtomic(false));
       LOG.info("Opened current log file: {}", mCurrentLogPath);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }

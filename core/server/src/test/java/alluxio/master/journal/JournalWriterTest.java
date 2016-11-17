@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import alluxio.master.journal.JournalWriter.EntryOutputStream;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.junit.Assert;
@@ -62,7 +64,8 @@ public class JournalWriterTest {
     JournalWriter mockJournalWriter = PowerMockito.mock(JournalWriter.class);
     OutputStream mockOutStream = mock(OutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
-    doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath());
+    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
+        any(CreateOptions.class));
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
         mJournal.getCurrentLogFilePath(), mJournal.getJournalFormatter(), mockJournalWriter);
@@ -87,7 +90,8 @@ public class JournalWriterTest {
     JournalWriter mockJournalWriter = PowerMockito.mock(JournalWriter.class);
     FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
-    doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath());
+    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
+        any(CreateOptions.class));
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
         mJournal.getCurrentLogFilePath(), mJournal.getJournalFormatter(), mockJournalWriter);
@@ -113,7 +117,8 @@ public class JournalWriterTest {
     JournalWriter mockJournalWriter = PowerMockito.mock(JournalWriter.class);
     FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
-    doReturn(mockOutStream).when(mockUfs).create(mJournal.getCurrentLogFilePath());
+    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
+        any(CreateOptions.class));
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
         mJournal.getCurrentLogFilePath(), mJournal.getJournalFormatter(), mockJournalWriter);
