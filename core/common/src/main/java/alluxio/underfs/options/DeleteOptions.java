@@ -93,7 +93,7 @@ public final class DeleteOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("children_only", mChildrenOnly)
+        .add("childrenOnly", mChildrenOnly)
         .add("recursive", mRecursive)
         .toString();
   }

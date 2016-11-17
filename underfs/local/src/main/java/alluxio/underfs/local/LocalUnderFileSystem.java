@@ -89,6 +89,9 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     path = stripPath(path);
     File file = new File(path);
+    if (!file.isDirectory()) {
+      return false;
+    }
     boolean success = true;
     if (options.isRecursive()) {
       String[] files = file.list();
@@ -116,7 +119,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   public boolean deleteFile(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
-    return file.delete();
+    return file.isFile() && file.delete();
   }
 
   @Override

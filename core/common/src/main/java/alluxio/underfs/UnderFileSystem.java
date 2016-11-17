@@ -328,9 +328,9 @@ public abstract class UnderFileSystem {
   /**
    * Deletes a directory from the under file system with the indicated name.
    *
-   * @param path the path of the directory to delete
-   * @param options delete options
-   * @return true if succeed, false otherwise
+   * @param path of the directory to delete
+   * @param options for directory delete semantics
+   * @return true if directory was found and deleted, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract boolean deleteDirectory(String path, DeleteOptions options) throws IOException;
@@ -338,8 +338,8 @@ public abstract class UnderFileSystem {
   /**
    * Deletes a file from the under file system with the indicated name.
    *
-   * @param path the path of the file to delete
-   * @return true if succeed, false otherwise
+   * @param path of the file to delete
+   * @return true if file was found and deleted, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract boolean deleteFile(String path) throws IOException;
