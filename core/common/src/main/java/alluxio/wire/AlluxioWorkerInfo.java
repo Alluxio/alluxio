@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Alluxio worker descriptor.
+ * Alluxio worker information.
  */
 public class AlluxioWorkerInfo {
   private Capacity mCapacity;
@@ -100,7 +100,7 @@ public class AlluxioWorkerInfo {
 
   /**
    * @param capacity the capacity to use
-   * @return the Alluxio worker descriptor
+   * @return the Alluxio worker information
    */
   public AlluxioWorkerInfo setCapacity(Capacity capacity) {
     mCapacity = capacity;
@@ -109,7 +109,7 @@ public class AlluxioWorkerInfo {
 
   /**
    * @param configuration the configuration to use
-   * @return the Alluxio worker descriptor
+   * @return the Alluxio worker information
    */
   public AlluxioWorkerInfo setConfiguration(Map<String, String> configuration) {
     mConfiguration = configuration;
@@ -118,7 +118,7 @@ public class AlluxioWorkerInfo {
 
   /**
    * @param metrics the metrics to use
-   * @return the Alluxio master descriptor
+   * @return the Alluxio worker information
    */
   public AlluxioWorkerInfo setMetrics(Map<String, Long> metrics) {
     mMetrics = metrics;
@@ -127,7 +127,7 @@ public class AlluxioWorkerInfo {
 
   /**
    * @param rpcAddress the RPC address to use
-   * @return the Alluxio worker descriptor
+   * @return the Alluxio worker information
    */
   public AlluxioWorkerInfo setRpcAddress(String rpcAddress) {
     mRpcAddress = rpcAddress;
@@ -136,7 +136,7 @@ public class AlluxioWorkerInfo {
 
   /**
    * @param startTimeMs the start time to use (in milliseconds)
-   * @return the Alluxio worker descriptor
+   * @return the Alluxio worker information
    */
   public AlluxioWorkerInfo setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
@@ -145,7 +145,7 @@ public class AlluxioWorkerInfo {
 
   /**
    * @param tierCapacity the capacity per tier to use
-   * @return the Alluxio worker descriptor
+   * @return the Alluxio worker information
    */
   public AlluxioWorkerInfo setTierCapacity(Map<String, Capacity> tierCapacity) {
     mTierCapacity = tierCapacity;
@@ -154,7 +154,7 @@ public class AlluxioWorkerInfo {
 
   /**
    * @param tierPaths the tier paths to use
-   * @return the Alluxio worker descriptor
+   * @return the Alluxio worker information
    */
   public AlluxioWorkerInfo setTierPaths(Map<String, List<String>> tierPaths) {
     mTierPaths = tierPaths;
@@ -163,7 +163,7 @@ public class AlluxioWorkerInfo {
 
   /**
    * @param uptimeMs the uptime to use (in milliseconds)
-   * @return the Alluxio worker descriptor
+   * @return the Alluxio worker information
    */
   public AlluxioWorkerInfo setUptimeMs(long uptimeMs) {
     mUptimeMs = uptimeMs;
@@ -172,7 +172,7 @@ public class AlluxioWorkerInfo {
 
   /**
    * @param version the version to use
-   * @return the Alluxio worker descriptor
+   * @return the Alluxio worker information
    */
   public AlluxioWorkerInfo setVersion(String version) {
     mVersion = version;

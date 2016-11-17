@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Alluxio master descriptor.
+ * Alluxio master information.
  */
 public class AlluxioMasterInfo {
   private Capacity mCapacity;
@@ -108,7 +108,7 @@ public class AlluxioMasterInfo {
 
   /**
    * @param capacity the capacity to use
-   * @return the Alluxio master descriptor
+   * @return the Alluxio master information
    */
   public AlluxioMasterInfo setCapacity(Capacity capacity) {
     mCapacity = capacity;
@@ -117,7 +117,7 @@ public class AlluxioMasterInfo {
 
   /**
    * @param configuration the configuration to use
-   * @return the Alluxio master descriptor
+   * @return the Alluxio master information
    */
   public AlluxioMasterInfo setConfiguration(Map<String, String> configuration) {
     mConfiguration = configuration;
@@ -126,7 +126,7 @@ public class AlluxioMasterInfo {
 
   /**
    * @param metrics the metrics to use
-   * @return the Alluxio master descriptor
+   * @return the Alluxio master information
    */
   public AlluxioMasterInfo setMetrics(Map<String, Long> metrics) {
     mMetrics = metrics;
@@ -135,7 +135,7 @@ public class AlluxioMasterInfo {
 
   /**
    * @param rpcAddress the RPC address to use
-   * @return the Alluxio master descriptor
+   * @return the Alluxio master information
    */
   public AlluxioMasterInfo setRpcAddress(String rpcAddress) {
     mRpcAddress = rpcAddress;
@@ -144,7 +144,7 @@ public class AlluxioMasterInfo {
 
   /**
    * @param startTimeMs the start time to use (in milliseconds)
-   * @return the Alluxio master descriptor
+   * @return the Alluxio master information
    */
   public AlluxioMasterInfo setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
@@ -153,7 +153,7 @@ public class AlluxioMasterInfo {
 
   /**
    * @param tierCapacity the capacity per tier to use
-   * @return the Alluxio master descriptor
+   * @return the Alluxio master information
    */
   public AlluxioMasterInfo setTierCapacity(Map<String, Capacity> tierCapacity) {
     mTierCapacity = tierCapacity;
@@ -162,7 +162,7 @@ public class AlluxioMasterInfo {
 
   /**
    * @param ufsCapacity the UFS capacity to use
-   * @return the Alluxio master descriptor
+   * @return the Alluxio master information
    */
   public AlluxioMasterInfo setUfsCapacity(Capacity ufsCapacity) {
     mUfsCapacity = ufsCapacity;
@@ -171,7 +171,7 @@ public class AlluxioMasterInfo {
 
   /**
    * @param uptimeMs the uptime to use (in milliseconds)
-   * @return the Alluxio master descriptor
+   * @return the Alluxio master information
    */
   public AlluxioMasterInfo setUptimeMs(long uptimeMs) {
     mUptimeMs = uptimeMs;
@@ -180,7 +180,7 @@ public class AlluxioMasterInfo {
 
   /**
    * @param version the version to use
-   * @return the Alluxio master descriptor
+   * @return the Alluxio master information
    */
   public AlluxioMasterInfo setVersion(String version) {
     mVersion = version;
@@ -189,7 +189,7 @@ public class AlluxioMasterInfo {
 
   /**
    * @param workers the list of workers to use
-   * @return the Alluxio master descriptor
+   * @return the Alluxio master information
    */
   public AlluxioMasterInfo setWorkers(List<WorkerInfo> workers) {
     mWorkers = workers;

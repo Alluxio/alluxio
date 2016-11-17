@@ -58,6 +58,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   public static final String GET_INFO = "info";
 
+  // the following endpoints are deprecated
   public static final String GET_RPC_ADDRESS = "rpc_address";
   public static final String GET_CONFIGURATION = "configuration";
   public static final String GET_CAPACITY_BYTES = "capacity_bytes";
