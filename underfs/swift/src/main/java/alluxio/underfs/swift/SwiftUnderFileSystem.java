@@ -506,7 +506,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean renameFile(String src, String dst) throws IOException {
     if (!isFile(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
+      LOG.error("Unable to rename {} to {} because source does not exist or is a directory.",
+          src, dst);
       return false;
     }
     if (isFile(dst) || isDirectory(dst)) {
