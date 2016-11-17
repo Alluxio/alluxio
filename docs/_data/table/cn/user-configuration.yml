@@ -1,7 +1,7 @@
 alluxio.user.block.master.client.threads:
   数据块master client与数据块master通信使用的线程数目。
 alluxio.user.block.worker.client.threads:
-  数据块worker client池从本地数据块worker处读取时使用的线程数目。
+  数据块worker client向worker发送心跳的线程池大小，如果某些worker宕机会影响client与其他正常worker的通信，那就增大该值。
 alluxio.user.block.worker.client.pool.size.max:
   数据块worker client池中缓存的worker client的最大数目。
 alluxio.user.block.worker.client.pool.gc.threshold.ms:
