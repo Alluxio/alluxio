@@ -311,7 +311,7 @@ public abstract class UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    return new NonAtomicFileOutputStream(path, options, this);
+    return new AtomicFileOutputStream(path, options, this);
   }
 
   /**
