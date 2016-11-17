@@ -438,8 +438,9 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
-    if (!isDirectory(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
+    String[] children = list(src);
+    if (children == null) {
+      LOG.error("Failed to list directory {}, aborting rename.", src);
       return false;
     }
     if (isFile(dst) || isDirectory(dst)) {
@@ -452,11 +453,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       return false;
     }
     // Rename each child in the src folder to destination/child
-    String[] children = list(src);
-    if (children == null) {
-      LOG.error("Failed to list path {}, aborting rename.", src);
-      return false;
-    }
     for (String child : children) {
       String childSrcPath = PathUtils.concatPath(src, child);
       String childDstPath = PathUtils.concatPath(dst, child);
