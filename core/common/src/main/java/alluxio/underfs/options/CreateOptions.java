@@ -46,14 +46,16 @@ public final class CreateOptions {
   }
 
   /**
-   * @return ensure atomic
+   * @return true, if writes are guaranteed to be atomic
    */
   public boolean isEnsureAtomic() {
     return mEnsureAtomic;
   }
 
   /**
-   * Sets ensure atomic.
+   * Set atomicity guarantees. When true, writes to the created stream must become readable all at
+   * once or not at all. The destination path is created only after closing the given stream. When,
+   * false the stream may or may not be atomic.
    *
    * @param atomic whether to ensure created stream is atomic
    * @return the updated option object
