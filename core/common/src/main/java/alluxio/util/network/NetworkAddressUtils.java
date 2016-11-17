@@ -68,43 +68,37 @@ public final class NetworkAddressUtils {
      * Master RPC service (Thrift).
      */
     MASTER_RPC("Alluxio Master RPC service", PropertyKey.MASTER_HOSTNAME,
-        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_RPC_PORT,
-        Constants.DEFAULT_MASTER_RPC_PORT),
+        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_RPC_PORT),
 
     /**
      * Master web service (Jetty).
      */
     MASTER_WEB("Alluxio Master Web service", PropertyKey.MASTER_WEB_HOSTNAME,
-        PropertyKey.MASTER_WEB_BIND_HOST, PropertyKey.MASTER_WEB_PORT,
-        Constants.DEFAULT_MASTER_WEB_PORT),
+        PropertyKey.MASTER_WEB_BIND_HOST, PropertyKey.MASTER_WEB_PORT),
 
     /**
      * Worker RPC service (Thrift).
      */
     WORKER_RPC("Alluxio Worker RPC service", PropertyKey.WORKER_HOSTNAME,
-        PropertyKey.WORKER_BIND_HOST, PropertyKey.WORKER_RPC_PORT,
-        Constants.DEFAULT_WORKER_RPC_PORT),
+        PropertyKey.WORKER_BIND_HOST, PropertyKey.WORKER_RPC_PORT),
 
     /**
      * Worker data service (Netty).
      */
     WORKER_DATA("Alluxio Worker data service", PropertyKey.WORKER_DATA_HOSTNAME,
-        PropertyKey.WORKER_DATA_BIND_HOST, PropertyKey.WORKER_DATA_PORT,
-        Constants.DEFAULT_WORKER_DATA_PORT),
+        PropertyKey.WORKER_DATA_BIND_HOST, PropertyKey.WORKER_DATA_PORT),
 
     /**
      * Worker web service (Jetty).
      */
     WORKER_WEB("Alluxio Worker Web service", PropertyKey.WORKER_WEB_HOSTNAME,
-        PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_WEB_PORT,
-        Constants.DEFAULT_WORKER_WEB_PORT),
+        PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_WEB_PORT),
 
     /**
      * Proxy web service (Jetty).
      */
     PROXY_WEB("Alluxio Proxy Web service", PropertyKey.PROXY_WEB_HOSTNAME,
-        PropertyKey.PROXY_WEB_BIND_HOST, PropertyKey.PROXY_WEB_PORT,
-        Constants.DEFAULT_PROXY_WEB_PORT),
+        PropertyKey.PROXY_WEB_BIND_HOST, PropertyKey.PROXY_WEB_PORT),
     ;
 
     // service name
@@ -119,16 +113,12 @@ public final class NetworkAddressUtils {
     // the key of service port
     private final PropertyKey mPortKey;
 
-    // default port number
-    private final int mDefaultPort;
-
     ServiceType(String serviceName, PropertyKey hostNameKey, PropertyKey bindHostKey,
-        PropertyKey portKey, int defaultPort) {
+        PropertyKey portKey) {
       mServiceName = serviceName;
       mHostNameKey = hostNameKey;
       mBindHostKey = bindHostKey;
       mPortKey = portKey;
-      mDefaultPort = defaultPort;
     }
 
     /**
@@ -173,7 +163,7 @@ public final class NetworkAddressUtils {
      * @return default port
      */
     public int getDefaultPort() {
-      return mDefaultPort;
+      return Integer.parseInt(mPortKey.getDefaultValue());
     }
   }
 

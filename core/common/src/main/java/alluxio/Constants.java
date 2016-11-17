@@ -80,14 +80,6 @@ public final class Constants {
 
   public static final int MAX_PORT = 65535;
 
-  public static final int DEFAULT_MASTER_RPC_PORT = 19998;
-  public static final int DEFAULT_MASTER_WEB_PORT = 19999;
-  public static final int DEFAULT_WORKER_RPC_PORT = 29998;
-  public static final int DEFAULT_WORKER_DATA_PORT = 29999;
-  public static final int DEFAULT_WORKER_WEB_PORT = 30000;
-  public static final int DEFAULT_PROXY_RPC_PORT = 39998; // reserved, currently unused
-  public static final int DEFAULT_PROXY_WEB_PORT = 39999;
-
   // Service versions should be incremented every time a backwards incompatible change occurs.
   public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 1;

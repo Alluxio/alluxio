@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.CommonTestUtils;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,13 +29,18 @@ public class CapacityTest {
     checkEquality(capacity, other);
   }
 
-  public void checkEquality(Capacity a, Capacity b) {
+  @Test
+  public void equals() {
+    CommonTestUtils.testEquals(AlluxioMasterInfo.class);
+  }
+
+  private void checkEquality(Capacity a, Capacity b) {
     Assert.assertEquals(a.getTotal(), b.getTotal());
     Assert.assertEquals(a.getUsed(), b.getUsed());
     Assert.assertEquals(a, b);
   }
 
-  public static Capacity createRandom() {
+  protected static Capacity createRandom() {
     Capacity result = new Capacity();
     Random random = new Random();
 

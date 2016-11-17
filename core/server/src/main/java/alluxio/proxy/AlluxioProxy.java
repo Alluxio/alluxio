@@ -23,7 +23,6 @@ import alluxio.web.ProxyWebServer;
 import alluxio.web.WebServer;
 
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,16 +69,6 @@ public final class AlluxioProxy implements Server {
    * Creates an instance of {@link AlluxioProxy}.
    */
   public AlluxioProxy() {}
-
-  /**
-   * @return the actual bind hostname on web service (used by unit test only)
-   */
-  public String getWebBindHost() {
-    if (mWebServer != null) {
-      return mWebServer.getBindHost();
-    }
-    return "";
-  }
 
   /**
    * @return the actual port that the web service is listening on (used by unit test only)

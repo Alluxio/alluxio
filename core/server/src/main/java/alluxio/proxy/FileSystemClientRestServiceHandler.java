@@ -12,9 +12,7 @@
 package alluxio.proxy;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -46,7 +44,6 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -188,6 +185,7 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary download a file
    * @param path the file path
+   * @param locationPolicy the location policy
    * @param readType the read type to use
    * @return the response object
    */
@@ -287,7 +285,7 @@ public final class FileSystemClientRestServiceHandler {
   @Path(LIST_STATUS)
   @ReturnType("java.util.List<alluxio.client.file.URIStatus>")
   public Response listStatus(@QueryParam("path") final String path,
-      @DefaultValue("") @QueryParam("loadMetadataType") final String loadMetadataType) {
+      @QueryParam("loadMetadataType") final String loadMetadataType) {
     return RestUtils.call(new RestUtils.RestCallable<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws Exception {
@@ -358,13 +356,13 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary set an attribute
    * @param path the file path
-   * @param pinned the pinned flag value to use
-   * @param ttl the time-to-live (in seconds) to use
    * @param persisted the persisted flag value to use
+   * @param pinned the pinned flag value to use
    * @param owner the file owner
    * @param group the file group
    * @param mode the file permission bits
    * @param recursive whether the attribute should be set recursively
+   * @param ttl the time-to-live (in seconds) to use
    * @param ttlAction action to take after TTL is expired
    * @return the response object
    */
@@ -372,11 +370,14 @@ public final class FileSystemClientRestServiceHandler {
   @Path(SET_ATTRIBUTE)
   @ReturnType("java.lang.Void")
   public Response setAttribute(@QueryParam("path") final String path,
-      @QueryParam("pinned") final Boolean pinned, @QueryParam("ttl") final Long ttl,
-      @QueryParam("persisted") final Boolean persisted, @QueryParam("owner") final String owner,
-      @QueryParam("group") final String group, @QueryParam("mode") final Short mode,
+      @QueryParam("persisted") final Boolean persisted,
+      @QueryParam("pinned") final Boolean pinned,
+      @QueryParam("owner") final String owner,
+      @QueryParam("group") final String group,
+      @QueryParam("mode") final Short mode,
       @QueryParam("recursive") final Boolean recursive,
-      @QueryParam("ttxAction") final TtlAction ttlAction) {
+      @QueryParam("ttl") final Long ttl,
+      @QueryParam("ttlAction") final TtlAction ttlAction) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -435,6 +436,7 @@ public final class FileSystemClientRestServiceHandler {
    * @summary upload a file
    * @param path the file path
    * @param blockSizeBytes the target block size in bytes
+   * @param locationPolicy the location policy
    * @param mode the octal mode to used for file permissions
    * @param recursive whether parent directories should be created if they do not already exist
    * @param ttl the time-to-live (in milliseconds)

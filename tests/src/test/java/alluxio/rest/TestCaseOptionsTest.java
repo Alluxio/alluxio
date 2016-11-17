@@ -60,7 +60,7 @@ public class TestCaseOptionsTest {
   }
 
   @Test
-  public void equalsTest() throws Exception {
+  public void equals() throws Exception {
     CommonTestUtils.testEquals(TestCaseOptions.class, "mInputStream");
   }
 }

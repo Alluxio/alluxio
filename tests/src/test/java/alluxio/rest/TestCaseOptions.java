@@ -40,14 +40,14 @@ public final class TestCaseOptions {
   }
 
   /**
-   * @return the input stream
+   * @return the input stream representing data to be sent to the web server
    */
   public InputStream getInputStream() {
     return mInputStream;
   }
 
   /**
-   * @return the JSON string
+   * @return the JSON string representing data to be sent to the web server
    */
   public String getJsonString() {
     return mJsonString;

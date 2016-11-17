@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import alluxio.CommonTestUtils;
 import alluxio.util.CommonUtils;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -34,7 +35,12 @@ public class AlluxioMasterInfoTest {
     checkEquality(alluxioMasterInfo, other);
   }
 
-  public void checkEquality(AlluxioMasterInfo a, AlluxioMasterInfo b) {
+  @Test
+  public void equals() {
+    CommonTestUtils.testEquals(AlluxioMasterInfo.class);
+  }
+
+  private void checkEquality(AlluxioMasterInfo a, AlluxioMasterInfo b) {
     Assert.assertEquals(a.getCapacity(), b.getCapacity());
     Assert.assertEquals(a.getConfiguration(), b.getConfiguration());
     Assert.assertEquals(a.getMetrics(), b.getMetrics());
@@ -48,7 +54,7 @@ public class AlluxioMasterInfoTest {
     Assert.assertEquals(a, b);
   }
 
-  public static AlluxioMasterInfo createRandom() {
+  private static AlluxioMasterInfo createRandom() {
     AlluxioMasterInfo result = new AlluxioMasterInfo();
     Random random = new Random();
 
