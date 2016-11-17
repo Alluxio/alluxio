@@ -73,21 +73,21 @@ master和worker日志对于理解Alluxio master节点和worker节点的运行过
 - 对于MapReduce应用，可以将客户端jar包添加到`$HADOOP_CLASSPATH`：
 
 ```bash
-$ export HADOOP_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${HADOOP_CLASSPATH}
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 - 对于Spark应用，可以将客户端jar包添加到`$SPARK_CLASSPATH`：
 
 ```bash
-$ export SPARK_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${SPARK_CLASSPATH}
+$ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 ```
 
 除了上述方法，还可以将以下配置添加到`spark/conf/spark-defaults.conf`中：
 
 ```bash
-spark.driver.extraClassPath /<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
+spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath
-/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
+{{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
 #### 问题: 出现类似如下的错误信息: "Frame size (67108864) larger than max length (16777216)",这种类型错误信息出现的原因是什么?
