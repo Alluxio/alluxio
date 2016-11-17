@@ -372,30 +372,24 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean rename(String src, String dst) throws IOException {
-    LOG.debug("Renaming from {} to {}", src, dst);
-    if (!isFile(src) && !isDirectory(src)) {
-      LOG.error("File {} does not exist. Therefore rename to {} failed.", src, dst);
+  public boolean renameDirectory(String src, String dst) throws IOException {
+    LOG.debug("Renaming directory from {} to {}", src, dst);
+    if (!isDirectory(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist or is a file", src, dst);
       return false;
     }
+    return rename(src, dst);
+  }
 
-    if (isFile(dst) || isDirectory(dst)) {
-      LOG.error("File {} does exist. Therefore rename from {} failed.", dst, src);
+  @Override
+  public boolean renameFile(String src, String dst) throws IOException {
+    if (!isFile(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist or is a directory",
+          src, dst);
       return false;
     }
-
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        return mFileSystem.rename(new Path(src), new Path(dst));
-      } catch (IOException e) {
-        LOG.error("{} try to rename {} to {} : {}", retryPolicy.getRetryCount(), src, dst,
-            e.getMessage(), e);
-        te = e;
-      }
-    }
-    throw te;
+    LOG.debug("Renaming file from {} to {}", src, dst);
+    return rename(src, dst);
   }
 
   @Override
@@ -461,4 +455,26 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     }
   }
 
+  /**
+   * Rename a file or folder to a file or folder.
+   *
+   * @param src path of source file or directory
+   * @param dst path of destination file or directory
+   * @return true if rename succeeds
+   * @throws IOException
+   */
+  private boolean rename(String src, String dst) throws IOException {
+    IOException te = null;
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
+      try {
+        return mFileSystem.rename(new Path(src), new Path(dst));
+      } catch (IOException e) {
+        LOG.error("{} try to rename {} to {} : {}", retryPolicy.getRetryCount(), src, dst,
+            e.getMessage(), e);
+        te = e;
+      }
+    }
+    throw te;
+  }
 }

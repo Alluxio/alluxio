@@ -356,7 +356,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public String[] list(String path) throws IOException {
     // if the path not exists, or it is a file, then should return null
-    if (!isDirectory(path) || isFile(path)) {
+    if (!isDirectory(path)) {
       return null;
     }
     // Non recursive list
@@ -431,35 +431,51 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean rename(String src, String dst) throws IOException {
-    if (!isFile(src) && !isDirectory(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
+  public boolean renameDirectory(String src, String dst) throws IOException {
+    String[] children = list(src);
+    if (children == null) {
+      LOG.error("Failed to list directory {}, aborting rename.", src);
       return false;
     }
     if (isFile(dst) || isDirectory(dst)) {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }
-    // Source exists and destination does not exist
-    if (isDirectory(src)) {
-      // Rename the source folder first
-      if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
+    // Source exists and is a directory, and destination does not exist
+    // Rename the source folder first
+    if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
+      return false;
+    }
+    // Rename each child in the src folder to destination/child
+    for (String child : children) {
+      String childSrcPath = PathUtils.concatPath(src, child);
+      String childDstPath = PathUtils.concatPath(dst, child);
+      boolean success;
+      if (isDirectory(childSrcPath)) {
+        // Recursive call
+        success = renameDirectory(childSrcPath, childDstPath);
+      } else {
+        success = renameFile(childSrcPath, childDstPath);
+      }
+      if (!success) {
+        LOG.error("Failed to rename path {}, aborting rename.", child);
         return false;
       }
-      // Rename each child in the src folder to destination/child
-      String [] children = list(src);
-      if (children == null) {
-        LOG.error("Failed to list path {}, aborting rename.", src);
-        return false;
-      }
-      for (String child : children) {
-        if (!rename(PathUtils.concatPath(src, child), PathUtils.concatPath(dst, child))) {
-          LOG.error("Failed to rename path {}, aborting rename.", child);
-          return false;
-        }
-      }
-      // Delete src and everything under src
-      return delete(src, true);
+    }
+    // Delete src and everything under src
+    return delete(src, true);
+  }
+
+  @Override
+  public boolean renameFile(String src, String dst) throws IOException {
+    if (!isFile(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist or is a directory.",
+          src, dst);
+      return false;
+    }
+    if (isFile(dst) || isDirectory(dst)) {
+      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
+      return false;
     }
     // Source is a file and Destination does not exist
     return copy(src, dst) && deleteInternal(src);

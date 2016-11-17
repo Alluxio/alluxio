@@ -604,7 +604,7 @@ public class JournalIntegrationTest {
     AlluxioURI journal = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
     try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journal)) {
       doThrow(new RuntimeException("Failed to rename")).when(ufsSpy.get())
-          .rename(Mockito.contains("FileSystemMaster/checkpoint.data.tmp"), anyString());
+          .renameFile(Mockito.contains("FileSystemMaster/checkpoint.data.tmp"), anyString());
       try {
         // Restart the master again, but with renaming the checkpoint file failing.
         mLocalAlluxioCluster.stopFS();

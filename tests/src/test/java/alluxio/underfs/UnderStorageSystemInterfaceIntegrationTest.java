@@ -351,46 +351,30 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests {@link UnderFileSystem#rename(String, String)} works file to new location.
+   * Tests {@link UnderFileSystem#renameFile(String, String)} renames file to new location.
    */
   @Test
   public void renameFile() throws IOException {
     String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "testFileSrc");
     String testFileDst = PathUtils.concatPath(mUnderfsAddress, "testFileDst");
     createEmptyFile(testFileSrc);
-    mUfs.rename(testFileSrc, testFileDst);
+    mUfs.renameFile(testFileSrc, testFileDst);
     Assert.assertFalse(mUfs.isFile(testFileSrc));
     Assert.assertTrue(mUfs.isFile(testFileDst));
   }
 
   /**
-   * Tests {@link UnderFileSystem#rename(String, String)} works file to a folder if supported.
+   * Tests {@link UnderFileSystem#renameDirectory(String, String)} renames folder to new location.
    */
   @Test
-  public void renameFileToFolder() throws IOException {
-    String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "testFileSrc");
-    String testFileDst = PathUtils.concatPath(mUnderfsAddress, "testDirDst");
-    String testFileFinalDst = PathUtils.concatPath(testFileDst, "testFileSrc");
-    createEmptyFile(testFileSrc);
-    mUfs.mkdirs(testFileDst, false);
-    if (mUfs.rename(testFileSrc, testFileDst)) {
-      Assert.assertFalse(mUfs.isFile(testFileSrc));
-      Assert.assertTrue(mUfs.isFile(testFileFinalDst));
-    }
-  }
-
-  /**
-   * Tests {@link UnderFileSystem#rename(String, String)} works folder to new location.
-   */
-  @Test
-  public void renameFolder() throws IOException {
+  public void renameDirectory() throws IOException {
     String testDirSrc = PathUtils.concatPath(mUnderfsAddress, "testDirSrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
     String testDirDst = PathUtils.concatPath(mUnderfsAddress, "testDirDst");
     String testDirDstChild = PathUtils.concatPath(testDirDst, "testFile");
     mUfs.mkdirs(testDirSrc, false);
     createEmptyFile(testDirSrcChild);
-    mUfs.rename(testDirSrc, testDirDst);
+    mUfs.renameDirectory(testDirSrc, testDirDst);
     Assert.assertFalse(mUfs.isDirectory(testDirSrc));
     Assert.assertFalse(mUfs.isFile(testDirSrcChild));
     Assert.assertTrue(mUfs.isDirectory(testDirDst));
@@ -398,29 +382,36 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests {@link UnderFileSystem#rename(String, String)} works folder to another folder if
-   * supported.
+   * Tests {@link UnderFileSystem#renameDirectory(String, String)} works with nested folders.
    */
   @Test
-  public void renameFolderToFolder() throws IOException {
+  public void renameDirectoryDeep() throws IOException {
     String testDirSrc = PathUtils.concatPath(mUnderfsAddress, "testDirSrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
+    String testDirSrcNested = PathUtils.concatPath(testDirSrc, "testNested");
+    String testDirSrcNestedChild = PathUtils.concatPath(testDirSrcNested, "testNestedFile");
+
     String testDirDst = PathUtils.concatPath(mUnderfsAddress, "testDirDst");
     String testDirDstChild = PathUtils.concatPath(testDirDst, "testFile");
-    String testDirFinalDst = PathUtils.concatPath(testDirDst, "testDirSrc");
-    String testDirChildFinalDst = PathUtils.concatPath(testDirFinalDst, "testFile");
+    String testDirDstNested = PathUtils.concatPath(testDirDst, "testNested");
+    String testDirDstNestedChild = PathUtils.concatPath(testDirDstNested, "testNestedFile");
+
     mUfs.mkdirs(testDirSrc, false);
-    mUfs.mkdirs(testDirDst, false);
-    createEmptyFile(testDirDstChild);
     createEmptyFile(testDirSrcChild);
-    if (mUfs.rename(testDirSrc, testDirDst)) {
-      Assert.assertFalse(mUfs.isDirectory(testDirSrc));
-      Assert.assertFalse(mUfs.isFile(testDirSrcChild));
-      Assert.assertTrue(mUfs.isDirectory(testDirDst));
-      Assert.assertTrue(mUfs.isFile(testDirDstChild));
-      Assert.assertTrue(mUfs.isDirectory(testDirFinalDst));
-      Assert.assertTrue(mUfs.isFile(testDirChildFinalDst));
-    }
+    mUfs.mkdirs(testDirSrcNested, false);
+    createEmptyFile(testDirSrcNestedChild);
+
+    mUfs.renameDirectory(testDirSrc, testDirDst);
+
+    Assert.assertFalse(mUfs.isDirectory(testDirSrc));
+    Assert.assertFalse(mUfs.isFile(testDirSrcChild));
+    Assert.assertFalse(mUfs.isDirectory(testDirSrcNested));
+    Assert.assertFalse(mUfs.isFile(testDirSrcNestedChild));
+
+    Assert.assertTrue(mUfs.isDirectory(testDirDst));
+    Assert.assertTrue(mUfs.isFile(testDirDstChild));
+    Assert.assertTrue(mUfs.isDirectory(testDirDstNested));
+    Assert.assertTrue(mUfs.isFile(testDirDstNestedChild));
   }
 
   /**

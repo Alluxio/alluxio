@@ -22,7 +22,6 @@ import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
-import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.javaswift.joss.client.factory.AccountConfig;
@@ -467,53 +466,57 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return PathUtils.normalizePath(path, FOLDER_SUFFIX);
   }
 
-  /**
-   * {@inheritDoc}
-   * Rename will overwrite destination if it already exists.
-   *
-   * @param source the source file or folder name
-   * @param destination the destination file or folder name
-   * @return true if succeed, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
   @Override
-  public boolean rename(String source, String destination) throws IOException {
-    String strippedSourcePath = stripContainerPrefixIfPresent(source);
-    String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
-
-    if (isDirectory(destination)) {
-      // If the destination is a directory, the target path is a file or a folder within that
-      // directory.
-      strippedDestinationPath = PathUtils.concatPath(strippedDestinationPath,
-          FilenameUtils.getName(stripFolderSuffixIfPresent(strippedSourcePath)));
+  public boolean renameDirectory(String src, String dst) throws IOException {
+    String[] children = list(src);
+    if (children == null) {
+      LOG.error("Failed to list directory {}, aborting rename.", src);
+      return false;
+    }
+    if (isFile(dst) || isDirectory(dst)) {
+      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
+      return false;
     }
 
-    if (isDirectory(source)) {
-      // Source is a directory
-      strippedSourcePath = addFolderSuffixIfNotPresent(strippedSourcePath);
-      strippedDestinationPath = addFolderSuffixIfNotPresent(strippedDestinationPath);
-
-      // Rename the source folder first
-      if (!copy(strippedSourcePath, strippedDestinationPath)) {
+    // Source exists and is a directory, and destination does not exist
+    // Rename the source folder first
+    if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
+      return false;
+    }
+    // Rename each child in the source folder to destination/child
+    for (String child : children) {
+      String childSrcPath = PathUtils.concatPath(src, child);
+      String childDstPath = PathUtils.concatPath(dst, child);
+      boolean success;
+      if (isDirectory(childSrcPath)) {
+        // Recursive call
+        success = renameDirectory(childSrcPath, childDstPath);
+      } else {
+        success = renameFile(childSrcPath, childDstPath);
+      }
+      if (!success) {
+        LOG.error("Failed to rename path {}, aborting rename.", child);
         return false;
       }
-      // Rename each child in the source folder to destination/child
-      String [] children = list(source);
-      for (String child: children) {
-        // TODO(adit): See how we can do this with better performance
-        // Recursive call
-        if (!rename(PathUtils.concatPath(source, child),
-            PathUtils.concatPath(mContainerPrefix,
-                PathUtils.concatPath(strippedDestinationPath, child)))) {
-          return false;
-        }
-      }
-      // Delete source and everything under source
-      return delete(source, true);
     }
+    // Delete src and everything under src
+    return delete(src, true);
+  }
 
-    // Source is a file and destination is also a file
-    return copy(strippedSourcePath, strippedDestinationPath) && delete(source, false);
+  @Override
+  public boolean renameFile(String src, String dst) throws IOException {
+    if (!isFile(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist or is a directory.",
+          src, dst);
+      return false;
+    }
+    if (isFile(dst) || isDirectory(dst)) {
+      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
+      return false;
+    }
+    String strippedSourcePath = stripContainerPrefixIfPresent(src);
+    String strippedDestinationPath = stripContainerPrefixIfPresent(dst);
+    return copy(strippedSourcePath, strippedDestinationPath) && delete(src, false);
   }
 
   @Override
@@ -575,6 +578,16 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
     LOG.error("Failed to copy file {} to {}, after {} retries", source, destination, NUM_RETRIES);
     return false;
+  }
+
+  /**
+   * Appends the directory suffix ands strips container prefix from path.
+   *
+   * @param  path the path to convert
+   * @return path as a directory path
+   */
+  private String convertToFolderName(String path) {
+    return addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
   }
 
   /**
