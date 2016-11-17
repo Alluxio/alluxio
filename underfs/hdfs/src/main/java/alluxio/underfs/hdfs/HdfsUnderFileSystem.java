@@ -156,17 +156,17 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     }
     if (options.isRecursive()) {
       // Delete only children
-      String[] files = list(path);
+      FileStatus[] files = listStatus(path);
       if (files == null) {
         return false;
       }
-      for (String child : files) {
-        String childPath = PathUtils.concatPath(path, child);
+      for (FileStatus childStatus : files) {
+        String childPath = PathUtils.concatPath(path, childStatus.getPath().getName());
         boolean success;
-        if (isDirectory(childPath)) {
+        if (childStatus.isDirectory()) {
           success = deleteDirectory(childPath, new DeleteOptions().setRecursive(true));
         } else {
-          success = deleteFile(PathUtils.concatPath(path, child));
+          success = deleteFile(childPath);
         }
         if (!success) {
           return false;
@@ -285,12 +285,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
-    FileStatus[] files;
-    try {
-      files = mFileSystem.listStatus(new Path(path));
-    } catch (FileNotFoundException e) {
-      return null;
-    }
+    FileStatus[] files = listStatus(path);
     if (files != null && !isFile(path)) {
       String[] rtn = new String[files.length];
       int i = 0;
@@ -499,6 +494,24 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       }
     }
     throw te;
+  }
+
+  /**
+   * List status for given path. Returns an array of {@link FileStatus} with an entry for each file
+   * and directory in the directory denoted by this path.
+   *
+   * @param path the pathname to list
+   * @return {@code null} if the path is not a directory
+   * @throws IOException
+   */
+  private FileStatus[] listStatus(String path) throws IOException {
+    FileStatus[] files;
+    try {
+      files = mFileSystem.listStatus(new Path(path));
+    } catch (FileNotFoundException e) {
+      return null;
+    }
+    return files;
   }
 
   /**
