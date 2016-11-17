@@ -374,11 +374,20 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
     LOG.debug("Renaming directory from {} to {}", src, dst);
+    if (!isDirectory(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist or is a file", src, dst);
+      return false;
+    }
     return rename(src, dst);
   }
 
   @Override
   public boolean renameFile(String src, String dst) throws IOException {
+    if (!isFile(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist or is a directory",
+          src, dst);
+      return false;
+    }
     LOG.debug("Renaming file from {} to {}", src, dst);
     return rename(src, dst);
   }

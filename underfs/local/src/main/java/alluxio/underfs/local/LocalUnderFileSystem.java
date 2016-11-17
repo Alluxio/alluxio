@@ -13,6 +13,7 @@ package alluxio.underfs.local;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
@@ -23,6 +24,9 @@ import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,6 +52,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class LocalUnderFileSystem extends UnderFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Constructs a new {@link LocalUnderFileSystem}.
@@ -233,11 +238,20 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
+    if (!isDirectory(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist or is a file", src, dst);
+      return false;
+    }
     return rename(src, dst);
   }
 
   @Override
   public boolean renameFile(String src, String dst) throws IOException {
+    if (!isFile(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist or is a directory",
+          src, dst);
+      return false;
+    }
     return rename(src, dst);
   }
 
