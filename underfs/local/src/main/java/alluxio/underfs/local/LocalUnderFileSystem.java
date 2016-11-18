@@ -109,7 +109,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
         }
       }
     }
-    if (!options.getChildrenOnly()) {
+    if (!options.isChildrenOnly()) {
       success = success && file.delete();
     }
     return success;

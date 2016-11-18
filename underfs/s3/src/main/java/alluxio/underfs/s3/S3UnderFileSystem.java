@@ -251,7 +251,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
         }
       }
     }
-    if (!options.getChildrenOnly()) {
+    if (!options.isChildrenOnly()) {
       // Delete the directory itself
       return deleteInternal(path);
     }

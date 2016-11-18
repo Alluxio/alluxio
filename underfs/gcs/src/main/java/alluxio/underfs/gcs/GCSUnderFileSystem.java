@@ -216,7 +216,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
         }
       }
     }
-    if (!options.getChildrenOnly()) {
+    if (!options.isChildrenOnly()) {
       // Delete the directory itself
       return deleteInternal(convertToFolderName(path));
     }

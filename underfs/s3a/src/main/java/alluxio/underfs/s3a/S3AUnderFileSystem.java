@@ -278,7 +278,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
         }
       }
     }
-    if (!options.getChildrenOnly()) {
+    if (!options.isChildrenOnly()) {
       // Delete the directory itself
       return deleteInternal(path);
     }

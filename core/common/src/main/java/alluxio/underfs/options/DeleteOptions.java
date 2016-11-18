@@ -39,7 +39,7 @@ public final class DeleteOptions {
   /**
    * @return whether to delete children only
    */
-  public boolean getChildrenOnly() {
+  public boolean isChildrenOnly() {
     return mChildrenOnly;
   }
 
