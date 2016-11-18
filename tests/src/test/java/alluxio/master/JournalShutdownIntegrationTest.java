@@ -128,6 +128,57 @@ public class JournalShutdownIntegrationTest {
     mExecutorsForClient = Executors.newFixedThreadPool(1);
   }
 
+  @Test
+  public void singleMasterJournalStopIntegration() throws Exception {
+    LocalAlluxioCluster cluster = setupSingleMasterCluster();
+    CommonUtils.sleepMs(TEST_TIME_MS);
+    // Shutdown the cluster
+    cluster.stopFS();
+    CommonUtils.sleepMs(TEST_TIME_MS);
+    awaitClientTermination();
+    reproduceAndCheckState(mCreateFileThread.getSuccessNum());
+    // clean up
+    cluster.stopUFS();
+  }
+
+  @Test
+  public void singleMasterJournalCrashIntegration() throws Exception {
+    LocalAlluxioCluster cluster = setupSingleMasterCluster();
+    CommonUtils.sleepMs(TEST_TIME_MS);
+    cluster.stopWorkers();
+    // Crash the master
+    cluster.getMaster().kill();
+    CommonUtils.sleepMs(TEST_TIME_MS);
+    awaitClientTermination();
+    reproduceAndCheckState(mCreateFileThread.getSuccessNum());
+    // clean up
+    cluster.stopUFS();
+  }
+
+  @Test
+  public void multiMasterJournalStopIntegration() throws Exception {
+    MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
+    // Kill the leader one by one.
+    for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
+      CommonUtils.sleepMs(TEST_TIME_MS);
+      Assert.assertTrue(cluster.killLeader());
+    }
+    cluster.stopFS();
+    CommonUtils.sleepMs(TEST_TIME_MS);
+    awaitClientTermination();
+    reproduceAndCheckState(mCreateFileThread.getSuccessNum());
+    // clean up
+    cluster.stopUFS();
+  }
+
+  private void awaitClientTermination() throws Exception {
+    // Ensure the client threads are stopped.
+    mExecutorsForClient.shutdownNow();
+    if (!mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS)) {
+      throw new Exception("Client thread did not terminate");
+    }
+  }
+
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
@@ -172,54 +223,5 @@ public class JournalShutdownIntegrationTest {
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
-  }
-
-  @Test
-  public void singleMasterJournalStopIntegration() throws Exception {
-    LocalAlluxioCluster cluster = setupSingleMasterCluster();
-    CommonUtils.sleepMs(TEST_TIME_MS);
-    // Shutdown the cluster
-    cluster.stopFS();
-    CommonUtils.sleepMs(TEST_TIME_MS);
-    // Ensure the client threads are stopped.
-    mExecutorsForClient.shutdownNow();
-    mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS);
-    reproduceAndCheckState(mCreateFileThread.getSuccessNum());
-    // clean up
-    cluster.stopUFS();
-  }
-
-  @Test
-  public void singleMasterJournalCrashIntegration() throws Exception {
-    LocalAlluxioCluster cluster = setupSingleMasterCluster();
-    CommonUtils.sleepMs(TEST_TIME_MS);
-    cluster.stopWorkers();
-    // Crash the master
-    cluster.getMaster().kill();
-    CommonUtils.sleepMs(TEST_TIME_MS);
-    // Ensure the client threads are stopped.
-    mExecutorsForClient.shutdownNow();
-    mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS);
-    reproduceAndCheckState(mCreateFileThread.getSuccessNum());
-    // clean up
-    cluster.stopUFS();
-  }
-
-  @Test
-  public void multiMasterJournalStopIntegration() throws Exception {
-    MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
-    // Kill the leader one by one.
-    for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
-      CommonUtils.sleepMs(TEST_TIME_MS);
-      Assert.assertTrue(cluster.killLeader());
-    }
-    cluster.stopFS();
-    CommonUtils.sleepMs(TEST_TIME_MS);
-    // Ensure the client threads are stopped.
-    mExecutorsForClient.shutdownNow();
-    mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS);
-    reproduceAndCheckState(mCreateFileThread.getSuccessNum());
-    // clean up
-    cluster.stopUFS();
   }
 }
