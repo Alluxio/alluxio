@@ -1148,23 +1148,23 @@ public final class FileSystemMaster extends AbstractMaster {
               MountTable.Resolution resolution = mMountTable.resolve(alluxioUriToDel);
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
-              boolean fail = false;
+              boolean failedToDelete = false;
               if (delInode.isFile()) {
                 if (!ufs.deleteFile(ufsUri)) {
-                  fail = ufs.isFile(ufsUri);
-                  if (!fail) {
+                  failedToDelete = ufs.isFile(ufsUri);
+                  if (!failedToDelete) {
                     LOG.warn("The file to delete does not exist in ufs: {}", ufsUri);
                   }
                 }
               } else {
                 if (!ufs.deleteDirectory(ufsUri, new DeleteOptions().setRecursive(true))) {
-                  fail = ufs.isDirectory(ufsUri);
-                  if (!fail) {
+                  failedToDelete = ufs.isDirectory(ufsUri);
+                  if (!failedToDelete) {
                     LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
                   }
                 }
               }
-              if (fail) {
+              if (failedToDelete) {
                 LOG.error("Failed to delete {} from the under filesystem", ufsUri);
                 throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
               }
