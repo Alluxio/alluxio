@@ -451,13 +451,13 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private List<AlluxioURI> startupCheckConsistency(final ExecutorService service)
       throws InterruptedException, IOException {
-    /** A poison pill {@link StartupConsistencyChecker}s add to the queue to signal completion */
+    /** A marker {@link StartupConsistencyChecker}s add to the queue to signal completion */
     final long completionMarker = -1;
     /** A shared queue of directories which have yet to be checked */
     final BlockingQueue<Long> dirsToCheck = new LinkedBlockingQueue<>();
 
     /**
-     * {@link Callable} wrapper which checks the consistency of a directory.
+     * A {@link Callable} which checks the consistency of a directory.
      */
     final class StartupConsistencyChecker implements Callable<List<AlluxioURI>> {
       /** The path to check, guaranteed to be a directory in Alluxio. */
