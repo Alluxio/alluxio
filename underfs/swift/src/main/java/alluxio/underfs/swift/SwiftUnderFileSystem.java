@@ -237,6 +237,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    // TODO(adit): use bulk delete API
     LOG.debug("Delete directory {}, recursive {}", path, options.isRecursive());
     final String strippedPath = stripContainerPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);

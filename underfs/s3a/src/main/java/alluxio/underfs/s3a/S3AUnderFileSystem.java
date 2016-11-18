@@ -252,6 +252,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    // TODO(adit): use bulk delete API
     if (!options.isRecursive()) {
       String[] children = listInternal(path, false);
       if (children == null) {
