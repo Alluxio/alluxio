@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.worker.AlluxioWorkerService;
 
@@ -146,7 +147,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystemCache.get(path);
 
     if (ufs.isDirectory(path)
         && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
@@ -155,7 +156,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystemCache.get(path);
 
     if (ufs.isDirectory(path)) {
       ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));

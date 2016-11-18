@@ -14,6 +14,7 @@ package alluxio.underfs.gcs;
 import alluxio.Constants;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.io.PathUtils;
@@ -67,7 +68,7 @@ public class GCSUnderStorageCluster extends UnderFileSystemCluster {
   @Override
   public void shutdown() throws IOException {
     LOG.info("Shutting down GCS testing cluster, deleting bucket contents in: " + mGCSBucket);
-    UnderFileSystem ufs = UnderFileSystem.get(mGCSBucket);
+    UnderFileSystem ufs = UnderFileSystemCache.get(mGCSBucket);
     ufs.deleteDirectory(mGCSBucket, DeleteOptions.defaults().setRecursive(true));
   }
 

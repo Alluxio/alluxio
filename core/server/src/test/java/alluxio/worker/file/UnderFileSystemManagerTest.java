@@ -17,6 +17,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.util.io.PathUtils;
@@ -80,7 +81,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.renameFile(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
     PowerMockito.mockStatic(UnderFileSystem.class);
-    Mockito.when(UnderFileSystem.get(Mockito.anyString())).thenReturn(mMockUfs);
+    Mockito.when(UnderFileSystemCache.get(Mockito.anyString())).thenReturn(mMockUfs);
     Mockito.when(mMockInputStream.skip(Mockito.anyInt())).thenAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
@@ -278,7 +279,7 @@ public final class UnderFileSystemManagerTest {
         mMockInputStream);
     Mockito.when(ufs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
     PowerMockito.mockStatic(UnderFileSystem.class);
-    Mockito.when(UnderFileSystem.get(Mockito.anyString())).thenReturn(ufs);
+    Mockito.when(UnderFileSystemCache.get(Mockito.anyString())).thenReturn(ufs);
 
     long position = FILE_LENGTH - 1;
     Mockito.when(ufs.isFile(mUri.toString())).thenReturn(true);

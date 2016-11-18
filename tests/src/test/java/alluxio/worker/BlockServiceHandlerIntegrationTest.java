@@ -31,6 +31,7 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockId;
 import alluxio.thrift.AlluxioTException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockWorkerClientServiceHandler;
@@ -158,7 +159,7 @@ public class BlockServiceHandlerIntegrationTest {
     // The local path should exist
     Assert.assertNotNull(localPath);
 
-    UnderFileSystem ufs = UnderFileSystem.get(localPath);
+    UnderFileSystem ufs = UnderFileSystemCache.get(localPath);
     byte[] data = new byte[blockSize];
     int bytesRead = ufs.open(localPath).read(data);
 
@@ -285,7 +286,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
-    UnderFileSystem ufs = UnderFileSystem.get(filename);
+    UnderFileSystem ufs = UnderFileSystemCache.get(filename);
     ufs.mkdirs(PathUtils.getParent(filename), true);
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(len), 0, len);

@@ -23,6 +23,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
@@ -158,7 +159,7 @@ public final class FileSystemUtils {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream in = closer.register(fs.openFile(uri, options));
       AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
-      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString());
+      UnderFileSystem ufs = UnderFileSystemCache.get(dstPath.toString());
       String parentPath = dstPath.getParent().toString();
       if (!ufs.isDirectory(parentPath)) {
         URIStatus parentStatus = fs.getStatus(uri.getParent());

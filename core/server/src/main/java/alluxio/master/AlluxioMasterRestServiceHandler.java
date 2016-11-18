@@ -21,6 +21,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 import alluxio.web.MasterUIWebServer;
 import alluxio.wire.WorkerInfo;
 
@@ -75,7 +76,7 @@ public final class AlluxioMasterRestServiceHandler {
   private final AlluxioMaster mMaster;
   private final BlockMaster mBlockMaster;
   private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-  private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot);
+  private final UnderFileSystem mUfs = UnderFileSystemCache.get(mUfsRoot);
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.

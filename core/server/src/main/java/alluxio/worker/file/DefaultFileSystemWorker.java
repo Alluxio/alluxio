@@ -23,6 +23,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -82,7 +83,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
     mWorkerId = workerId;
     mSessions = new Sessions();
-    UnderFileSystem ufs = UnderFileSystem.get(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystemCache.get(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker), ufs,
         RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
     mUnderFileSystemManager = new UnderFileSystemManager();

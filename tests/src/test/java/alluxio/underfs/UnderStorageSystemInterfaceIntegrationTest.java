@@ -50,7 +50,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   public final void before() throws Exception {
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
+    mUfs = UnderFileSystemCache.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
   }
 
   @After

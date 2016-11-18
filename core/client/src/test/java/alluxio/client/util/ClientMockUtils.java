@@ -12,6 +12,7 @@
 package alluxio.client.util;
 
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -30,7 +31,7 @@ public final class ClientMockUtils {
   }
 
   /**
-   * When {@link UnderFileSystem#get(String)} is called to get an {@link UnderFileSystem}, it
+   * When {@link UnderFileSystemCache#get(String)} is called to get an {@link UnderFileSystem}, it
    * will instead return the mock returned by this method, as long as `filename` matches
    * `ufsPathMatcher`.
    *
@@ -43,7 +44,7 @@ public final class ClientMockUtils {
   public static UnderFileSystem mockUnderFileSystem(String ufsPathMatcher) {
     UnderFileSystem ufs = PowerMockito.mock(UnderFileSystem.class);
     PowerMockito.mockStatic(UnderFileSystem.class);
-    PowerMockito.when(UnderFileSystem.get(ufsPathMatcher)).thenReturn(ufs);
+    PowerMockito.when(UnderFileSystemCache.get(ufsPathMatcher)).thenReturn(ufs);
     return ufs;
   }
 

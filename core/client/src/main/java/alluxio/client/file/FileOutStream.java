@@ -32,6 +32,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.options.CreateOptions;
 
 import com.codahale.metrics.Counter;
@@ -143,7 +144,7 @@ public class FileOutStream extends AbstractOutStream {
           mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
               .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
         } else {
-          UnderFileSystem ufs = UnderFileSystem.get(mUfsPath);
+          UnderFileSystem ufs = UnderFileSystemCache.get(mUfsPath);
           // TODO(jiri): Implement collection of temporary files left behind by dead clients.
           CreateOptions createOptions =
               CreateOptions.defaults().setPermission(options.getPermission());
@@ -189,7 +190,7 @@ public class FileOutStream extends AbstractOutStream {
             options.setUfsLength(len);
           }
         } else {
-          UnderFileSystem ufs = UnderFileSystem.get(mUfsPath);
+          UnderFileSystem ufs = UnderFileSystemCache.get(mUfsPath);
           if (mCanceled) {
             // TODO(yupeng): Handle this special case in under storage integrations.
             mUnderStorageOutputStream.close();

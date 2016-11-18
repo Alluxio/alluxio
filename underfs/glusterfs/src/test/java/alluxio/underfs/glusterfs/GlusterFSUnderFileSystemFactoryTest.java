@@ -14,6 +14,7 @@ package alluxio.underfs.glusterfs;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 
@@ -53,7 +54,7 @@ public class GlusterFSUnderFileSystemFactoryTest {
     Assume.assumeTrue(!StringUtils.isEmpty(mMount));
     Assume.assumeTrue(!StringUtils.isEmpty(mVolume));
 
-    UnderFileSystem gfs = UnderFileSystem.get("glusterfs:///");
+    UnderFileSystem gfs = UnderFileSystemCache.get("glusterfs:///");
     Assert.assertNotNull(gfs.create("alluxio_test"));
   }
 

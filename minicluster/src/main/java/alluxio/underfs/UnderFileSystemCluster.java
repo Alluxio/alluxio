@@ -137,7 +137,7 @@ public abstract class UnderFileSystemCluster {
   public void cleanup() throws IOException {
     if (isStarted()) {
       String path = getUnderFilesystemAddress() + AlluxioURI.SEPARATOR;
-      UnderFileSystem ufs = UnderFileSystem.get(path);
+      UnderFileSystem ufs = UnderFileSystemCache.get(path);
       for (String p : ufs.list(path)) {
         String childPath = PathUtils.concatPath(path, p);
         // TODO(adit); eliminate this isDirectory call after list is updated to listStatus
