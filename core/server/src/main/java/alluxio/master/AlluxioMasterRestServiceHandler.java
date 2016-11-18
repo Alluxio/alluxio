@@ -100,6 +100,7 @@ public final class AlluxioMasterRestServiceHandler {
   @GET
   @Path(GET_INFO)
   public Response getInfo() {
+    // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(new RestUtils.RestCallable<AlluxioMasterInfo>() {
       @Override
       public AlluxioMasterInfo call() throws Exception {
