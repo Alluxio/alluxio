@@ -266,12 +266,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         }
       }
     }
-    if (!options.isChildrenOnly()) {
-      // Delete the directory itself
-      String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
-      return deleteObject(container.getObject(strippedFolderPath));
-    }
-    return true;
+    // Delete the directory itself
+    String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
+    return deleteObject(container.getObject(strippedFolderPath));
   }
 
   @Override

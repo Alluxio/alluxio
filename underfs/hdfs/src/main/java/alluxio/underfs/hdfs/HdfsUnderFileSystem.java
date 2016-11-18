@@ -151,34 +151,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
-    if (options.isRecursive() && !options.isChildrenOnly()) {
-      return isDirectory(path) && delete(path, true);
-    }
-    if (options.isRecursive()) {
-      // Delete only children
-      FileStatus[] files = listStatus(path);
-      if (files == null) {
-        return false;
-      }
-      for (FileStatus childStatus : files) {
-        String childPath = PathUtils.concatPath(path, childStatus.getPath().getName());
-        boolean success;
-        if (childStatus.isDirectory()) {
-          success = deleteDirectory(childPath, new DeleteOptions().setRecursive(true));
-        } else {
-          success = deleteFile(childPath);
-        }
-        if (!success) {
-          return false;
-        }
-      }
-      return true;
-    }
-    if (!options.isChildrenOnly()) {
-      // Delete the directory itself
-      return delete(path, false);
-    }
-    return true;
+    return isDirectory(path) && delete(path, options.isRecursive());
   }
 
   @Override

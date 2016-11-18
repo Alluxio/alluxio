@@ -23,8 +23,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class DeleteOptions {
-  // Whether to not delete the directory itself
-  private boolean mChildrenOnly;
   // Whether to delete a directory with children
   private boolean mRecursive;
 
@@ -32,15 +30,7 @@ public final class DeleteOptions {
    * Constructs a default {@link DeleteOptions}.
    */
   public DeleteOptions() {
-    mChildrenOnly = false;
     mRecursive = false;
-  }
-
-  /**
-   * @return whether to delete children only
-   */
-  public boolean isChildrenOnly() {
-    return mChildrenOnly;
   }
 
   /**
@@ -48,17 +38,6 @@ public final class DeleteOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
-  }
-
-  /**
-   * Sets whether to delete children only.
-   *
-   * @param childrenOnly whether to delete children only
-   * @return the updated option object
-   */
-  public DeleteOptions setChildrenOnly(boolean childrenOnly) {
-    mChildrenOnly = childrenOnly;
-    return this;
   }
 
   /**
@@ -81,19 +60,17 @@ public final class DeleteOptions {
       return false;
     }
     DeleteOptions that = (DeleteOptions) o;
-    return Objects.equal(mChildrenOnly, that.mChildrenOnly)
-        && Objects.equal(mRecursive, that.mRecursive);
+    return Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mChildrenOnly, mRecursive);
+    return Objects.hashCode(mRecursive);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("childrenOnly", mChildrenOnly)
         .add("recursive", mRecursive)
         .toString();
   }

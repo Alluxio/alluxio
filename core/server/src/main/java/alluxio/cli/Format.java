@@ -42,9 +42,19 @@ public final class Format {
     UnderFileSystem ufs = UnderFileSystem.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.isDirectory(folder)) {
-      if (!ufs.deleteDirectory(folder,
-          new DeleteOptions().setChildrenOnly(true).setRecursive(true))) {
-        return false;
+      for (String p : ufs.list(folder)) {
+        String childPath = PathUtils.concatPath(folder, p);
+        boolean failedToDelete;
+        // TODO (adit); eliminate this isDirectory call after list is updated to listStatus
+        if (ufs.isDirectory(childPath)) {
+          failedToDelete = !ufs.deleteDirectory(childPath, new DeleteOptions().setRecursive(true));
+        } else {
+          failedToDelete = !ufs.deleteFile(childPath);
+        }
+        if (failedToDelete) {
+          LOG.info("Failed to delete {}", childPath);
+          return false;
+        }
       }
     } else if (!ufs.mkdirs(folder, true)) {
       LOG.info("Failed to create {}:{}", name, folder);

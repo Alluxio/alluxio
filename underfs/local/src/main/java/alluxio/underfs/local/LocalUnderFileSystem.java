@@ -109,10 +109,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
         }
       }
     }
-    if (!options.isChildrenOnly()) {
-      success = success && file.delete();
-    }
-    return success;
+    return success && file.delete();
   }
 
   @Override

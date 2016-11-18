@@ -171,11 +171,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
         }
       }
     }
-    if (!options.isChildrenOnly()) {
-      // Delete the directory itself
-      return deleteInternal(path);
-    }
-    return true;
+    // Delete the directory itself
+    return deleteInternal(path);
   }
 
   @Override
