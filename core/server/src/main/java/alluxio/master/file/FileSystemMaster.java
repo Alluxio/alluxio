@@ -131,7 +131,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -442,7 +441,9 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Checks the consistency of the root in a multi-threaded and incremental fashion.
+   * Checks the consistency of the root in a multi-threaded and incremental fashion. This method
+   * will only READ lock the directories and files actively being checked and release them after the
+   * check on the file / directory is complete.
    *
    * @return a list of paths in Alluxio which are not consistent with the under storage
    * @throws InterruptedException if the thread is interrupted during execution
@@ -450,8 +451,8 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private List<AlluxioURI> startupCheckConsistency(final ExecutorService service)
       throws InterruptedException, IOException {
-    /** A poison pill StartupConsistencyCheckers add to the queue to signal completion */
-    final long poison = -1;
+    /** A poison pill {@link StartupConsistencyChecker}s add to the queue to signal completion */
+    final long completionMarker = -1;
     /** A shared queue of directories which have yet to be checked */
     final BlockingQueue<Long> dirsToCheck = new LinkedBlockingQueue<>();
 
@@ -510,7 +511,7 @@ public final class FileSystemMaster extends AbstractMaster {
           // This should not happen.
           LOG.error("An invalid path was discovered during the consistency check, skipping.", e);
         }
-        dirsToCheck.add(poison);
+        dirsToCheck.add(completionMarker);
         return inconsistentUris;
       }
     }
@@ -518,15 +519,13 @@ public final class FileSystemMaster extends AbstractMaster {
     // Add the root to the directories to check.
     dirsToCheck.add(mInodeTree.getRoot().getId());
     List<Future<List<AlluxioURI>>> results = new ArrayList<>();
-    // Tracks how many threads have been forked.
+    // Tracks how many checkers have been started.
     long started = 0;
-    // Tracks how many threads have completed.
+    // Tracks how many checkers have completed.
     long completed = 0;
     do {
-      final Long fileId = dirsToCheck.poll(10, TimeUnit.SECONDS);
-      if (fileId == null) { // Nothing in the queue.
-        continue;
-      } else if (fileId == poison) { // A thread signaled completion.
+      Long fileId = dirsToCheck.take();
+      if (fileId == completionMarker) { // A thread signaled completion.
         completed++;
       } else { // A new directory needs to be checked.
         StartupConsistencyChecker checker = new StartupConsistencyChecker(fileId);
