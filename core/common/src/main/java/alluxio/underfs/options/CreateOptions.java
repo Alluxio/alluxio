@@ -28,9 +28,16 @@ public final class CreateOptions {
   private Permission mPermission;
 
   /**
+   * @return the default {@link CreateOptions}
+   */
+  public static CreateOptions defaults() {
+    return new CreateOptions();
+  }
+
+  /**
    * Constructs a default {@link CreateOptions}.
    */
-  public CreateOptions() {
+  private CreateOptions() {
     mPermission = Permission.defaults().applyFileUMask();
   }
 

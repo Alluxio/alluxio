@@ -27,9 +27,16 @@ public final class DeleteOptions {
   private boolean mRecursive;
 
   /**
+   * @return the default {@link DeleteOptions}
+   */
+  public static DeleteOptions defaults() {
+    return new DeleteOptions();
+  }
+
+  /**
    * Constructs a default {@link DeleteOptions}.
    */
-  public DeleteOptions() {
+  private DeleteOptions() {
     mRecursive = false;
   }
 

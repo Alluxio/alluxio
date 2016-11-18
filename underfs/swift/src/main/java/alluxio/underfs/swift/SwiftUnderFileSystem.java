@@ -361,7 +361,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
   }
 
   @Override
@@ -502,7 +502,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       }
     }
     // Delete src and everything under src
-    return deleteDirectory(src, new DeleteOptions().setRecursive(true));
+    return deleteDirectory(src, DeleteOptions.defaults().setRecursive(true));
   }
 
   @Override

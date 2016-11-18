@@ -102,7 +102,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
         for (String child : files) {
           String childPath = PathUtils.concatPath(path, child);
           if (isDirectory(childPath)) {
-            success = success && deleteDirectory(childPath, new DeleteOptions().setRecursive(true));
+            success = success && deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true));
           } else {
             success = success && deleteFile(PathUtils.concatPath(path, child));
           }
@@ -209,7 +209,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
   }
 
   @Override
