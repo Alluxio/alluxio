@@ -1,0 +1,66 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.underfs;
+
+import javax.annotation.concurrent.NotThreadSafe;
+
+/**
+ * Information about a file or a directory in the under file system.
+ */
+@NotThreadSafe
+public class UnderFileStatus {
+  private final boolean mIsDirectory;
+  private final String mName;
+
+  /**
+   * Create new instance for under file information.
+   *
+   * @param name relative path of file or directory
+   * @param isDirectory whether the path is a directory
+   */
+  public UnderFileStatus(String name, boolean isDirectory) {
+    mIsDirectory = isDirectory;
+    mName = name;
+  }
+
+  public boolean isDirectory() {
+    return mIsDirectory;
+  }
+
+  public boolean isFile() {
+    return !mIsDirectory;
+  }
+
+  public String getName() {
+    return mName;
+  }
+
+  @Override
+  public String toString() {
+    return getName();
+  }
+
+  /**
+   * Convert an array of UFS file status to a listing result where each element in the array is
+   * a file or directory name.
+   *
+   * @param children array of internal listing
+   * @return array of file or directory names
+   */
+  public static String[] toListingResult(UnderFileStatus[] children) {
+    String[] ret = new String[children.length];
+    for (int i = 0; i < children.length; ++i) {
+      ret[i] = children[i].getName();
+    }
+    return ret;
+  }
+}
