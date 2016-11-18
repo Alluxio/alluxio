@@ -32,14 +32,23 @@ public class UnderFileStatus {
     mName = name;
   }
 
+  /**
+   * @return true, if the path is a directory
+   */
   public boolean isDirectory() {
     return mIsDirectory;
   }
 
+  /**
+   * @return true, if the path is a file
+   */
   public boolean isFile() {
     return !mIsDirectory;
   }
 
+  /**
+   * @return name of file or directory
+   */
   public String getName() {
     return mName;
   }

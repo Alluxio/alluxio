@@ -140,7 +140,7 @@ public abstract class UnderFileSystemCluster {
       UnderFileSystem ufs = UnderFileSystem.get(path);
       for (String p : ufs.list(path)) {
         String childPath = PathUtils.concatPath(path, p);
-        // TODO (adit); eliminate this isDirectory call after list is updated to listStatus
+        // TODO(adit); eliminate this isDirectory call after list is updated to listStatus
         if (ufs.isDirectory(childPath)) {
           ufs.deleteDirectory(childPath, new DeleteOptions().setRecursive(true));
         } else {

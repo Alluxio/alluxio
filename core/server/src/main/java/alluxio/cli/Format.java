@@ -45,7 +45,7 @@ public final class Format {
       for (String p : ufs.list(folder)) {
         String childPath = PathUtils.concatPath(folder, p);
         boolean failedToDelete;
-        // TODO (adit); eliminate this isDirectory call after list is updated to listStatus
+        // TODO(adit); eliminate this isDirectory call after list is updated to listStatus
         if (ufs.isDirectory(childPath)) {
           failedToDelete = !ufs.deleteDirectory(childPath, new DeleteOptions().setRecursive(true));
         } else {

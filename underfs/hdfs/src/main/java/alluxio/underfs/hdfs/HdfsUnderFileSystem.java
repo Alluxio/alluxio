@@ -22,7 +22,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
