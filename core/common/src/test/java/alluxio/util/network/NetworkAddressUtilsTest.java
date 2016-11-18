@@ -166,6 +166,9 @@ public class NetworkAddressUtilsTest {
       case MASTER_WEB:
         Configuration.set(PropertyKey.MASTER_WEB_PORT, "20000");
         break;
+      case PROXY_WEB:
+        Configuration.set(PropertyKey.PROXY_WEB_PORT, "20000");
+        break;
       case WORKER_RPC:
         Configuration.set(PropertyKey.WORKER_RPC_PORT, "20000");
         break;

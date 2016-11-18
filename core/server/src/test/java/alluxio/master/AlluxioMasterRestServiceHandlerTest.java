@@ -37,7 +37,7 @@ import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.WorkerInfo;
-import alluxio.web.MasterUIWebServer;
+import alluxio.web.MasterWebServer;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
@@ -117,7 +117,7 @@ public class AlluxioMasterRestServiceHandlerTest {
             ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mBlockMaster.start(true);
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
-    when(mContext.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
+    when(mContext.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMaster);
     registerFileSystemMock();
     mHandler = new AlluxioMasterRestServiceHandler(mContext);

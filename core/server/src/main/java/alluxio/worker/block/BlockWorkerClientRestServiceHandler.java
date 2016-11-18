@@ -16,7 +16,7 @@ import alluxio.RestUtils;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.web.WorkerUIWebServer;
+import alluxio.web.WorkerWebServer;
 import alluxio.wire.LockBlockResult;
 import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.block.io.BlockReader;
@@ -41,9 +41,12 @@ import javax.ws.rs.core.Response;
 
 /**
  * This class is a REST handler for block worker requests.
+ *
+ * @deprecated since version 1.4 and will be removed in version 2.0
  */
 @NotThreadSafe
 @Path(BlockWorkerClientRestServiceHandler.SERVICE_PREFIX)
+@Deprecated
 public final class BlockWorkerClientRestServiceHandler {
   public static final String SERVICE_PREFIX = "worker/block";
   public static final String SERVICE_NAME = "service_name";
@@ -67,7 +70,7 @@ public final class BlockWorkerClientRestServiceHandler {
    */
   public BlockWorkerClientRestServiceHandler(@Context ServletContext context) {
     mBlockWorker = ((AlluxioWorkerService) context
-        .getAttribute(WorkerUIWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY)).getBlockWorker();
+        .getAttribute(WorkerWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY)).getBlockWorker();
     mStorageTierAssoc = new WorkerStorageTierAssoc();
   }
   /**

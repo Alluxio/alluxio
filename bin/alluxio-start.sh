@@ -21,9 +21,10 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
 Where ACTION is one of:
-  all [MOPT]     \tStart master and all workers.
+  all [MOPT]     \tStart master, proxy and all workers.
   local [MOPT]   \tStart a master and worker locally.
   master         \tStart the master on this node.
+  proxy          \tStart the proxy on this node.
   safe           \tScript will run continuously and start the master if it's not running.
   worker [MOPT]  \tStart a worker on this node.
   workers [MOPT] \tStart workers on worker nodes.
@@ -154,6 +155,17 @@ start_master() {
    alluxio.master.AlluxioMaster > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
 }
 
+start_proxy() {
+  if [[ -z ${ALLUXIO_PROXY_JAVA_OPTS} ]]; then
+    ALLUXIO_PROXY_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+  fi
+
+  echo "Starting proxy @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
+  (nohup ${JAVA} -cp ${CLASSPATH} \
+   ${ALLUXIO_PROXY_JAVA_OPTS} \
+   alluxio.proxy.AlluxioProxy > ${ALLUXIO_LOGS_DIR}/proxy.out 2>&1) &
+}
+
 start_worker() {
   do_mount $1
   if  [ ${MOUNT_FAILED} -ne 0 ] ; then
@@ -263,8 +275,8 @@ main() {
       fi
       start_master "${FORMAT}"
       sleep 2
-
       ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}"
+      start_proxy
       ;;
     local)
       if [[ "${killonstart}" != "no" ]]; then
@@ -274,9 +286,13 @@ main() {
       start_master "${FORMAT}"
       sleep 2
       start_worker "${MOPT}"
+      start_proxy
       ;;
     master)
       start_master "${FORMAT}"
+      ;;
+    proxy)
+      start_proxy
       ;;
     worker)
       start_worker "${MOPT}"

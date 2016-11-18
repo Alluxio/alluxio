@@ -22,7 +22,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.web.MasterUIWebServer;
+import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
@@ -50,10 +50,13 @@ import javax.ws.rs.core.Response;
 
 /**
  * This class is a REST handler for file system master requests.
+ *
+ * @deprecated since version 1.4 and will be removed in version 2.0
  */
 @NotThreadSafe
 @Path(FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
+@Deprecated
 public final class FileSystemMasterClientRestServiceHandler {
   public static final String SERVICE_PREFIX = "master/file";
   public static final String SERVICE_NAME = "service_name";
@@ -83,7 +86,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
     AlluxioMaster master =
-        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+        (AlluxioMaster) context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mFileSystemMaster = master.getFileSystemMaster();
   }
 

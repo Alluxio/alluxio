@@ -39,6 +39,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-testlib</artifactId>
+      <version>19.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
@@ -100,7 +106,6 @@
           <artifactId>jsp-api</artifactId>
         </exclusion>
       </exclusions>
-
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

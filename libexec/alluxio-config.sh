@@ -94,6 +94,10 @@ ALLUXIO_JAVA_OPTS+=" -Djava.net.preferIPv4Stack=true"
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=MASTER_LOGGER"
 
+# Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
+ALLUXIO_PROXY_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.logger.type=PROXY_LOGGER"
+
 # Worker specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_WORKER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=WORKER_LOGGER"

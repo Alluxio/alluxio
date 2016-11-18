@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.worker.AlluxioWorkerService;
 
@@ -164,7 +163,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void startWorkers() throws IOException, ConnectionFailedException {
+  protected void startWorkers() throws Exception {
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
     runWorkers();
   }
