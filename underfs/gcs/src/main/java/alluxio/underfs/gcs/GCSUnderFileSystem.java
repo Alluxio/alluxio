@@ -184,7 +184,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     if (!options.isRecursive()) {
-      UnderFileInfo[] children = listInternal(path, false);
+      UnderFileStatus[] children = listInternal(path, false);
       if (children == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
@@ -196,12 +196,12 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
       }
     } else {
       // Delete children
-      UnderFileInfo[] pathsToDelete = listInternal(path, true);
+      UnderFileStatus[] pathsToDelete = listInternal(path, true);
       if (pathsToDelete == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
       }
-      for (UnderFileInfo pathToDelete : pathsToDelete) {
+      for (UnderFileStatus pathToDelete : pathsToDelete) {
         // If we fail to deleteInternal one file, stop
         String pathKey = PathUtils.concatPath(path, pathToDelete.getName());
         boolean success;
@@ -334,7 +334,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     }
     // Non recursive list
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-    return getListingResult(listInternal(path, false));
+    return UnderFileStatus.toListingResult(listInternal(path, false));
   }
 
   @Override
@@ -405,7 +405,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
-    UnderFileInfo[] children = listInternal(src, false);
+    UnderFileStatus[] children = listInternal(src, false);
     if (children == null) {
       LOG.error("Failed to list directory {}, aborting rename.", src);
       return false;
@@ -420,7 +420,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
       return false;
     }
     // Rename each child in the src folder to destination/child
-    for (UnderFileInfo child : children) {
+    for (UnderFileStatus child : children) {
       String childSrcPath = PathUtils.concatPath(src, child.getName());
       String childDstPath = PathUtils.concatPath(dst, child.getName());
       boolean success;
@@ -613,7 +613,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    * @return an array of the file and folder names in this directory
    * @throws IOException if an I/O error occurs
    */
-  private UnderFileInfo[] listInternal(String path, boolean recursive) throws IOException {
+  private UnderFileStatus[] listInternal(String path, boolean recursive) throws IOException {
     path = stripPrefixIfPresent(path);
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     path = path.equals(PATH_SEPARATOR) ? "" : path;
@@ -673,10 +673,10 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
         done = chunk.isListingComplete();
         priorLastKey = chunk.getPriorLastKey();
       }
-      UnderFileInfo[] ret = new UnderFileInfo[children.size()];
+      UnderFileStatus[] ret = new UnderFileStatus[children.size()];
       int pos = 0;
       for (Map.Entry<String, Boolean> entry : children.entrySet()) {
-        ret[pos++] = new UnderFileInfo(entry.getKey(), entry.getValue());
+        ret[pos++] = new UnderFileStatus(entry.getKey(), entry.getValue());
       }
       return ret;
     } catch (ServiceException e) {
