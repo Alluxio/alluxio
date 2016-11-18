@@ -53,12 +53,6 @@ public abstract class UnderFileSystem {
   /** A map of property names to values. */
   protected HashMap<String, String> mProperties = new HashMap<>();
 
-  /**
-   * This variable indicates whether the underFS actually provides storage. Most UnderFS should
-   * provide storage, but a dummyFS for example does not.
-   */
-  private boolean mProvidesStorage = true;
-
   /** Maximum length for a single listing query. */
   private static final int MAX_LISTING_LENGTH = 1000;
 
@@ -226,15 +220,6 @@ public abstract class UnderFileSystem {
    * @return name of the under filesystem implementation
    */
   public abstract String getUnderFSType();
-
-  /**
-   * Checks whether the underFS provides storage.
-   *
-   * @return true if the under filesystem provides storage, false otherwise
-   */
-  public boolean providesStorage() {
-    return mProvidesStorage;
-  }
 
   /**
    * Constructs an {@link UnderFileSystem}.

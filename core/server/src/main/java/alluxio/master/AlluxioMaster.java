@@ -509,12 +509,6 @@ public class AlluxioMaster implements Server {
    */
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(journalDirectory);
-    if (!ufs.providesStorage()) {
-      // TODO(gene): Should the journal really be allowed on a ufs without storage?
-      // This ufs doesn't provide storage. Allow the master to use this ufs for the journal.
-      LOG.info("Journal directory doesn't provide storage: {}", journalDirectory);
-      return true;
-    }
     String[] files = ufs.list(journalDirectory);
     if (files == null) {
       return false;
