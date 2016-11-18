@@ -189,6 +189,56 @@ public abstract class UnderFileSystem {
   }
 
   /**
+   * Information about a file or a directory in the under file system.
+   */
+  protected static class UnderFileInfo {
+    private final boolean mIsDirectory;
+    private final String mName;
+
+    /**
+     * Create new instance for under file information.
+     *
+     * @param name relative path of file or directory
+     * @param isDirectory whether the path is a directory
+     */
+    public UnderFileInfo(String name, boolean isDirectory) {
+      mIsDirectory = isDirectory;
+      mName = name;
+    }
+
+    public boolean isDirectory() {
+      return mIsDirectory;
+    }
+
+    public boolean isFile() {
+      return !mIsDirectory;
+    }
+
+    public String getName() {
+      return mName;
+    }
+
+    @Override
+    public String toString() {
+      return getName();
+    }
+  }
+
+  /**
+   * Convert an internal listing result to UFS API result.
+   *
+   * @param children array of internal listing
+   * @return array of file or directory names
+   */
+  protected String[] getListingResult(UnderFileInfo[] children) {
+    String[] ret = new String[children.length];
+    for (int i = 0; i < children.length; ++i) {
+      ret[i] = children[i].getName();
+    }
+    return ret;
+  }
+
+  /**
    * Gets the UnderFileSystem instance according to its schema.
    *
    * @param path the file path storing over the ufs
