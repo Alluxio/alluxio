@@ -458,7 +458,7 @@ public final class FileSystemMaster extends AbstractMaster {
     /**
      * {@link Callable} wrapper which checks the consistency of a directory.
      */
-    class StartupConsistencyChecker implements Callable<List<AlluxioURI>> {
+    final class StartupConsistencyChecker implements Callable<List<AlluxioURI>> {
       /** The path to check, guaranteed to be a directory in Alluxio. */
       private final Long mFileId;
 
