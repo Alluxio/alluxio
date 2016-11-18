@@ -63,7 +63,7 @@ public class S3AUnderFileSystemTest {
         .thenThrow(AmazonClientException.class);
 
     boolean result = mS3UnderFileSystem.deleteDirectory(PATH,
-        new DeleteOptions().setRecursive(false));
+        DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(result);
   }
 
@@ -76,7 +76,7 @@ public class S3AUnderFileSystemTest {
         .thenThrow(AmazonClientException.class);
 
     boolean result = mS3UnderFileSystem.deleteDirectory(PATH,
-        new DeleteOptions().setRecursive(true));
+        DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(result);
   }
 

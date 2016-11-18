@@ -149,7 +149,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.isDirectory(path)
-        && !ufs.deleteDirectory(path, new DeleteOptions().setRecursive(true))) {
+        && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
     }
   }
@@ -158,7 +158,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.isDirectory(path)) {
-      ufs.deleteDirectory(path, new DeleteOptions().setRecursive(true));
+      ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
     }
     if (!ufs.mkdirs(path, true)) {
       throw new IOException("Failed to make folder: " + path);

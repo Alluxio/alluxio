@@ -47,7 +47,7 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
         WriteType.CACHE_THROUGH, 20);
     String ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir")).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath);
-    ufs.deleteDirectory(ufsPath, new DeleteOptions().setRecursive(true));
+    ufs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(true));
     mFsShell.run("checkConsistency", "/testRoot");
     StringBuilder expected = new StringBuilder();
     expected.append("The following files are inconsistent:\n");

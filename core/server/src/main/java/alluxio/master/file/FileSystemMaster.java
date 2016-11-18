@@ -1157,7 +1157,7 @@ public final class FileSystemMaster extends AbstractMaster {
                   }
                 }
               } else {
-                if (!ufs.deleteDirectory(ufsUri, new DeleteOptions().setRecursive(true))) {
+                if (!ufs.deleteDirectory(ufsUri, DeleteOptions.defaults().setRecursive(true))) {
                   failedToDelete = ufs.isDirectory(ufsUri);
                   if (!failedToDelete) {
                     LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
@@ -1622,7 +1622,7 @@ public final class FileSystemMaster extends AbstractMaster {
       if (!ufs.isDirectory(parentPath)) {
         Permission parentPerm = new Permission(srcParentInode.getOwner(), srcParentInode.getGroup(),
             srcParentInode.getMode());
-        MkdirsOptions parentMkdirsOptions = new MkdirsOptions().setCreateParent(true)
+        MkdirsOptions parentMkdirsOptions = MkdirsOptions.defaults().setCreateParent(true)
             .setPermission(parentPerm);
         if (!ufs.mkdirs(parentPath, parentMkdirsOptions)) {
           throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentPath));

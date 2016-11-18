@@ -269,7 +269,7 @@ public final class UnderFileSystemManager {
       UnderFileSystem ufs = UnderFileSystem.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-      mStream = ufs.create(mUri, new CreateOptions().setPermission(mPermission));
+      mStream = ufs.create(mUri, CreateOptions.defaults().setPermission(mPermission));
     }
 
     /**

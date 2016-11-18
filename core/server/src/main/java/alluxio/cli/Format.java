@@ -47,7 +47,8 @@ public final class Format {
         boolean failedToDelete;
         // TODO(adit); eliminate this isDirectory call after list is updated to listStatus
         if (ufs.isDirectory(childPath)) {
-          failedToDelete = !ufs.deleteDirectory(childPath, new DeleteOptions().setRecursive(true));
+          failedToDelete = !ufs.deleteDirectory(childPath,
+              DeleteOptions.defaults().setRecursive(true));
         } else {
           failedToDelete = !ufs.deleteFile(childPath);
         }

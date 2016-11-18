@@ -164,7 +164,7 @@ public final class FileSystemUtils {
         URIStatus parentStatus = fs.getStatus(uri.getParent());
         Permission parentPerm = new Permission(parentStatus.getOwner(), parentStatus.getGroup(),
             (short) parentStatus.getMode());
-        MkdirsOptions parentMkdirsOptions = new MkdirsOptions().setCreateParent(true)
+        MkdirsOptions parentMkdirsOptions = MkdirsOptions.defaults().setCreateParent(true)
             .setPermission(parentPerm);
         if (!ufs.mkdirs(parentPath, parentMkdirsOptions)) {
           throw new IOException("Failed to create " + parentPath);
@@ -174,7 +174,7 @@ public final class FileSystemUtils {
       Permission perm = new Permission(uriStatus.getOwner(), uriStatus.getGroup(),
           (short) uriStatus.getMode());
       OutputStream out = closer.register(ufs.create(dstPath.toString(),
-          new CreateOptions().setPermission(perm)));
+          CreateOptions.defaults().setPermission(perm)));
       ret = IOUtils.copyLarge(in, out);
     } catch (Exception e) {
       throw closer.rethrow(e);

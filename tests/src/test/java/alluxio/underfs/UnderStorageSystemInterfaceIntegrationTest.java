@@ -122,15 +122,15 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     mUfs.mkdirs(testDirNonEmptyChildDir, false);
     createEmptyFile(testDirNonEmptyChildFile);
     createEmptyFile(testDirNonEmptyChildDirFile);
-    mUfs.deleteDirectory(testDirEmpty, new DeleteOptions().setRecursive(false));
+    mUfs.deleteDirectory(testDirEmpty, DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(mUfs.isDirectory(testDirEmpty));
     try {
-      mUfs.deleteDirectory(testDirNonEmpty, new DeleteOptions().setRecursive(false));
+      mUfs.deleteDirectory(testDirNonEmpty, DeleteOptions.defaults().setRecursive(false));
     } catch (IOException e) {
       // Some File systems may throw IOException
     }
     Assert.assertTrue(mUfs.isDirectory(testDirNonEmpty));
-    mUfs.deleteDirectory(testDirNonEmpty, new DeleteOptions().setRecursive(true));
+    mUfs.deleteDirectory(testDirNonEmpty, DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(mUfs.isDirectory(testDirNonEmpty));
     Assert.assertFalse(mUfs.isDirectory(testDirNonEmptyChildDir));
     Assert.assertFalse(mUfs.isFile(testDirNonEmptyChildFile));
@@ -143,7 +143,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @Test
   public void deleteLargeDirectory() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectoryTest();
-    mUfs.deleteDirectory(config.getTopLevelDirectory(), new DeleteOptions().setRecursive(true));
+    mUfs.deleteDirectory(config.getTopLevelDirectory(),
+        DeleteOptions.defaults().setRecursive(true));
 
     String[] children = config.getChildren();
     for (String child : children) {

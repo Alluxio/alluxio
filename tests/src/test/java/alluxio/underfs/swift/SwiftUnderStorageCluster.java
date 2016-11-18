@@ -67,7 +67,7 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
     String oldDir = mBaseDir;
     mBaseDir = mSwiftContainer + UUID.randomUUID();
     UnderFileSystem ufs = UnderFileSystem.get(mBaseDir);
-    ufs.deleteDirectory(oldDir, new DeleteOptions().setRecursive(true));
+    ufs.deleteDirectory(oldDir, DeleteOptions.defaults().setRecursive(true));
   }
 
   @Override

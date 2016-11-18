@@ -38,7 +38,7 @@ public final class UnderFileSystemUtils {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.isDirectory(path)
-        && !ufs.deleteDirectory(path, new DeleteOptions().setRecursive(true))) {
+        && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
     }
   }

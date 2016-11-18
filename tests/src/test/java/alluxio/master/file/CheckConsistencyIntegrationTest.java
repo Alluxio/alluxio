@@ -89,7 +89,7 @@ public class CheckConsistencyIntegrationTest {
   public void inconsistent() throws Exception {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
-    ufs.deleteDirectory(ufsDirectory, new DeleteOptions().setRecursive(true));
+    ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
 
     List<AlluxioURI> expected = Lists.newArrayList(FILE, DIRECTORY);
     List<AlluxioURI> result =
@@ -131,7 +131,7 @@ public class CheckConsistencyIntegrationTest {
     mFileSystem.createFile(thirdLevelFile, fileOptions).close();
     String ufsDirectory = mFileSystem.getStatus(nestedDir).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
-    ufs.deleteDirectory(ufsDirectory, new DeleteOptions().setRecursive(true));
+    ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
 
     List<AlluxioURI> expected = Lists.newArrayList(nestedDir, thirdLevelFile);
     List<AlluxioURI> result =
@@ -166,7 +166,7 @@ public class CheckConsistencyIntegrationTest {
   public void notADirectory() throws Exception {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.get(ufsDirectory);
-    ufs.deleteDirectory(ufsDirectory, new DeleteOptions().setRecursive(true));
+    ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
     ufs.create(ufsDirectory).close();
     List<AlluxioURI> expected = Lists.newArrayList(DIRECTORY, FILE);
     List<AlluxioURI> result =

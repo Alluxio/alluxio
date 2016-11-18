@@ -38,7 +38,7 @@ public final class MkdirsOptionsTest {
    */
   @Test
   public void defaults() throws IOException {
-    MkdirsOptions options = new MkdirsOptions();
+    MkdirsOptions options = MkdirsOptions.defaults();
 
     Permission expectedPs = Permission.defaults().applyDirectoryUMask();
     // Verify the default createParent is true.
@@ -62,7 +62,7 @@ public final class MkdirsOptionsTest {
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
 
-    MkdirsOptions options = new MkdirsOptions();
+    MkdirsOptions options = MkdirsOptions.defaults();
 
     Permission expectedPs = Permission.defaults().applyDirectoryUMask();
 
@@ -82,7 +82,7 @@ public final class MkdirsOptionsTest {
   public void fields() {
     boolean createParent = false;
     Permission perm = Permission.defaults();
-    MkdirsOptions options = new MkdirsOptions();
+    MkdirsOptions options = MkdirsOptions.defaults();
     options.setCreateParent(createParent);
     options.setPermission(perm);
 

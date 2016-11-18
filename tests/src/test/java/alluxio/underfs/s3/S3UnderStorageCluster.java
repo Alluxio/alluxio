@@ -67,7 +67,7 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   public void shutdown() throws IOException {
     LOG.info("Shutting down S3 testing cluster, deleting bucket contents in: " + mS3Bucket);
     UnderFileSystem ufs = UnderFileSystem.get(mS3Bucket);
-    ufs.deleteDirectory(mS3Bucket, new DeleteOptions().setRecursive(true));
+    ufs.deleteDirectory(mS3Bucket, DeleteOptions.defaults().setRecursive(true));
   }
 
   @Override

@@ -61,7 +61,7 @@ public class GCSUnderFileSystemTest {
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
-        new DeleteOptions().setRecursive(false));
+        DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(result);
   }
 
@@ -75,7 +75,7 @@ public class GCSUnderFileSystemTest {
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
-        new DeleteOptions().setRecursive(true));
+        DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(result);
   }
 

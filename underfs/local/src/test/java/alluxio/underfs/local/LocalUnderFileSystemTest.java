@@ -89,7 +89,7 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.mkdirs(dirpath, true);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
     mLocalUfs.create(filepath).close();
-    mLocalUfs.deleteDirectory(dirpath, new DeleteOptions().setRecursive(true));
+    mLocalUfs.deleteDirectory(dirpath, DeleteOptions.defaults().setRecursive(true));
 
     Assert.assertFalse(mLocalUfs.isDirectory(dirpath));
 
@@ -103,7 +103,7 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.mkdirs(dirpath, true);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
     mLocalUfs.create(filepath).close();
-    mLocalUfs.deleteDirectory(dirpath, new DeleteOptions().setRecursive(false));
+    mLocalUfs.deleteDirectory(dirpath, DeleteOptions.defaults().setRecursive(false));
 
     Assert.assertTrue(mLocalUfs.isDirectory(dirpath));
 
