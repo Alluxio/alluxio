@@ -33,7 +33,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -78,7 +77,7 @@ public class JournalShutdownIntegrationTest {
       try {
         // This infinity loop will be broken if something crashes or fail to create. This is
         // expected since the master will shutdown at a certain time.
-        while (true) {
+        while (!Thread.interrupted()) {
           if (mOpType == 0) {
             try {
               mFileSystem.createFile(new AlluxioURI(TEST_FILE_DIR + mSuccessNum)).close();
@@ -183,7 +182,7 @@ public class JournalShutdownIntegrationTest {
     cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Ensure the client threads are stopped.
-    mExecutorsForClient.shutdown();
+    mExecutorsForClient.shutdownNow();
     mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS);
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
     // clean up
@@ -199,14 +198,13 @@ public class JournalShutdownIntegrationTest {
     cluster.getMaster().kill();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Ensure the client threads are stopped.
-    mExecutorsForClient.shutdown();
+    mExecutorsForClient.shutdownNow();
     mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS);
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
     // clean up
     cluster.stopUFS();
   }
 
-  @Ignore
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
@@ -218,9 +216,8 @@ public class JournalShutdownIntegrationTest {
     cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Ensure the client threads are stopped.
-    mExecutorsForClient.shutdown();
-    while (!mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS)) {
-    }
+    mExecutorsForClient.shutdownNow();
+    mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS);
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
     // clean up
     cluster.stopUFS();
