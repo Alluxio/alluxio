@@ -135,7 +135,7 @@ public class JournalShutdownIntegrationTest {
     // Shutdown the cluster
     cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
-    awaitClientTermination();
+    awaitClientTermination(TEST_TIME_MS);
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
     // clean up
     cluster.stopUFS();
@@ -149,7 +149,7 @@ public class JournalShutdownIntegrationTest {
     // Crash the master
     cluster.getMaster().kill();
     CommonUtils.sleepMs(TEST_TIME_MS);
-    awaitClientTermination();
+    awaitClientTermination(TEST_TIME_MS);
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
     // clean up
     cluster.stopUFS();
@@ -165,16 +165,16 @@ public class JournalShutdownIntegrationTest {
     }
     cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
-    awaitClientTermination();
+    awaitClientTermination(3 * TEST_TIME_MS);
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
     // clean up
     cluster.stopUFS();
   }
 
-  private void awaitClientTermination() throws Exception {
+  private void awaitClientTermination(long timeInMs) throws Exception {
     // Ensure the client threads are stopped.
     mExecutorsForClient.shutdownNow();
-    if (!mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS)) {
+    if (!mExecutorsForClient.awaitTermination(timeInMs, TimeUnit.MILLISECONDS)) {
       throw new Exception("Client thread did not terminate");
     }
   }
