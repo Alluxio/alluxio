@@ -19,7 +19,7 @@ import alluxio.master.lineage.LineageMaster;
 import java.net.InetSocketAddress;
 
 /**
- * A worker in the Alluxio system.
+ * A master in the Alluxio system.
  */
 public interface AlluxioMasterService extends Server {
   /**
@@ -43,22 +43,22 @@ public interface AlluxioMasterService extends Server {
   InetSocketAddress getRpcAddress();
 
   /**
-   * @return the start time of the worker in milliseconds
+   * @return the start time of the master in milliseconds
    */
   long getStartTimeMs();
 
   /**
-   * @return the uptime of the worker in milliseconds
+   * @return the uptime of the master in milliseconds
    */
   long getUptimeMs();
 
   /**
-   * @return the worker web service bind host (used by unit test only)
+   * @return the master web service bind host (used by unit test only)
    */
   String getWebBindHost();
 
   /**
-   * @return the worker web service port (used by unit test only)
+   * @return the master web service port (used by unit test only)
    */
   int getWebLocalPort();
 
@@ -68,7 +68,7 @@ public interface AlluxioMasterService extends Server {
   boolean isServing();
 
   /**
-   * Waits until the worker is ready to server requests.
+   * Waits until the master is ready to server requests.
    */
   void waitForReady();
 }
