@@ -50,9 +50,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > MAX_LISTING_LENGTH
           ? MAX_LISTING_LENGTH : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
 
-  @Override
-  public abstract String getUnderFSType();
-
   /**
    * Constructs an {@link BaseUnderFileSystem}.
    *

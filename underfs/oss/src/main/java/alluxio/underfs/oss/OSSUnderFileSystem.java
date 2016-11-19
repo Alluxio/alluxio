@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -49,7 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Aliyun OSS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public final class OSSUnderFileSystem extends BaseUnderFileSystem {
+public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
@@ -688,10 +688,5 @@ public final class OSSUnderFileSystem extends BaseUnderFileSystem {
       return stripedKey;
     }
     return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
-  }
-
-  @Override
-  public boolean supportsFlush() {
-    return false;
   }
 }

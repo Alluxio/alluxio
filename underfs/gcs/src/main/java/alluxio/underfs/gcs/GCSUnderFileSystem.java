@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -53,7 +53,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * GCS FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
-public final class GCSUnderFileSystem extends BaseUnderFileSystem {
+public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
@@ -736,10 +736,5 @@ public final class GCSUnderFileSystem extends BaseUnderFileSystem {
       return stripedKey;
     }
     return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
-  }
-
-  @Override
-  public boolean supportsFlush() {
-    return false;
   }
 }

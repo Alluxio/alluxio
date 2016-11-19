@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -58,7 +58,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * JOSS directory listing API requires that the suffix be a single character.
  */
 @ThreadSafe
-public class SwiftUnderFileSystem extends BaseUnderFileSystem {
+public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Value used to indicate nested structure in Swift. */
@@ -760,10 +760,5 @@ public class SwiftUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public String getUnderFSType() {
     return "swift";
-  }
-
-  @Override
-  public boolean supportsFlush() {
-    return false;
   }
 }
