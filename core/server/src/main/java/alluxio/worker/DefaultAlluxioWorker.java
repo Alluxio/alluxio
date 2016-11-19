@@ -100,7 +100,9 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   private AtomicReference<Long> mWorkerId;
 
   /**
-   * Constructs a {@link DefaultAlluxioWorker}.
+   * Creates a new instance of {@link DefaultAlluxioWorker}.
+   *
+   * @throws Exception if the creation fails
    */
   public DefaultAlluxioWorker() throws Exception {
     mWorkerId = new AtomicReference<>();
