@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
@@ -61,12 +60,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Value used to indicate nested structure in Swift. */
-  private static final char PATH_SEPARATOR_CHAR = '/';
-
-  /** Value used to indicate nested structure in Swift. */
-  private static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
-
   /** Regexp for Swift container ACL separator, including optional whitespaces. */
   private static final String ACL_SEPARATOR_REGEXP = "\\s*,\\s*";
 
@@ -81,9 +74,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
 
   /** Container name of user's configured Alluxio container. */
   private final String mContainerName;
-
-  /** Prefix of the container, for example swift://my-container-name/ . */
-  private final String mContainerPrefix;
 
   /** JOSS access object. */
   private final Access mAccess;
@@ -168,7 +158,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     if (!container.exists()) {
       container.create();
     }
-    mContainerPrefix = Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
 
     // Assume the Swift user name has 1-1 mapping to Alluxio username.
     mAccountOwner = Configuration.get(PropertyKey.SWIFT_USER_KEY);
@@ -191,28 +180,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       mode = (short) 0700;
     }
     mAccountMode = mode;
-  }
-
-  @Override
-  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
-    LOG.debug("Create method: {}", path);
-
-    // create will attempt to create the parent directory if it does not already exist
-    if (!mkdirs(getParentPath(path), true)) {
-      // fail if the parent directory does not exist and creation was unsuccessful
-      LOG.error("Parent directory creation unsuccessful for {}", path);
-      return null;
-    }
-
-    // TODO(adit): remove special handling of */_SUCCESS objects
-    if (path.endsWith("_SUCCESS")) {
-      // when path/_SUCCESS is created, there is need to create path as
-      // an empty object. This is required by Spark in case Spark
-      // accesses path directly, bypassing Alluxio
-      createOutputStream(CommonUtils.stripSuffixIfPresent(path, "_SUCCESS")).close();
-    }
-
-    return createOutputStream(path);
   }
 
   @Override
@@ -324,7 +291,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
         LOG.error("Cannot create directory {} because parent does not exist", path);
         return false;
       }
-      final String parentPath = getParentPath(path);
+      final String parentPath = getParentKey(path);
       // TODO(adit): See how we can do this with better performance
       // Recursively make the parent folders
       if (!mkdirs(parentPath, true)) {
@@ -361,36 +328,13 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    * @return true if the parent exists or if the path is root, false otherwise
    */
   private boolean parentExists(String path) throws IOException {
-    final String parentPath = getParentPath(path);
+    final String parentPath = getParentKey(path);
     return parentPath != null && isDirectory(parentPath);
   }
 
-  /**
-   * @param path the path to get the parent of
-   * @return the parent path, or null if path is root
-   */
-  private String getParentPath(String path) {
-    // Root does not have a parent.
-    if (isRoot(path)) {
-      return null;
-    }
-    int separatorIndex = path.lastIndexOf(PATH_SEPARATOR);
-    if (separatorIndex < 0) {
-      LOG.error("Path {} is malformed", path);
-      return null;
-    }
-    return path.substring(0, separatorIndex);
-  }
-
-  /**
-   * Checks if the path is the root.
-   *
-   * @param path the path to check
-   * @return true if the path is the root, false otherwise
-   */
-  private boolean isRoot(final String path) {
-    final String pathWithSuffix = addFolderSuffixIfNotPresent(path);
-    return pathWithSuffix.equals(mContainerPrefix) || pathWithSuffix.equals(PATH_SEPARATOR);
+  @Override
+  protected String getRootKey() {
+    return Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
   }
 
   @Override
@@ -556,7 +500,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       }
     }
 
-    if (isRoot(self)) {
+    if (isRoot(path)) {
       foundSelf = true;
     }
 
@@ -624,7 +568,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    * @return the path without the Swift container prefix
    */
   private String stripContainerPrefixIfPresent(final String path) {
-    return CommonUtils.stripPrefixIfPresent(path, mContainerPrefix);
+    return CommonUtils.stripPrefixIfPresent(path, getRootKey());
   }
 
   /**
@@ -674,7 +618,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    * @throws IOException if failed to create path
    * @return new OutputStream
    */
-  private OutputStream createOutputStream(String path) throws IOException {
+  @Override
+  protected OutputStream createOutputStream(String path) throws IOException {
     if (mSimulationMode) {
       return new SwiftMockOutputStream(mAccount, mContainerName,
           stripContainerPrefixIfPresent(path));

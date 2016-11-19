@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
@@ -58,9 +57,6 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
 
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
-
-  /** Value used to indicate folder structure in S3. */
-  private static final String PATH_SEPARATOR = "/";
 
   private static final byte[] DIR_HASH;
 
@@ -197,11 +193,8 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
-    if (mkdirs(getParentKey(path), true)) {
-      return new S3OutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
-    }
-    return null;
+  protected OutputStream createOutputStream(String path) throws IOException {
+    return new S3OutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
   }
 
   @Override
@@ -552,31 +545,9 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
     }
   }
 
-  /**
-   * @param key the key to get the parent of
-   * @return the parent key, or null if the parent does not exist
-   */
-  private String getParentKey(String key) {
-    // Root does not have a parent.
-    if (isRoot(key)) {
-      return null;
-    }
-    int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
-    if (separatorIndex < 0) {
-      return null;
-    }
-    return key.substring(0, separatorIndex);
-  }
-
-  /**
-   * Checks if the key is the root.
-   *
-   * @param key the key to check
-   * @return true if the key is the root, false otherwise
-   */
-  private boolean isRoot(String key) {
-    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
-        PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR));
+  @Override
+  protected String getRootKey() {
+    return Constants.HEADER_S3N + mBucketName;
   }
 
   /**

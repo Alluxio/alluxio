@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
@@ -53,9 +52,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
-
-  /** Value used to indicate folder structure in OSS. */
-  private static final String PATH_SEPARATOR = "/";
 
   /** Aliyun OSS client. */
   private final OSSClient mClient;
@@ -116,12 +112,8 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
-    path = toURIPath(path);
-    if (mkdirs(getParentKey(path), true)) {
-      return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
-    }
-    return null;
+  protected OutputStream createOutputStream(String path) throws IOException {
+    return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
   }
 
   @Override
@@ -434,22 +426,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * @param key the key to get the parent of
-   * @return the parent key, or null if the parent does not exist
-   */
-  private String getParentKey(String key) {
-    // Root does not have a parent.
-    if (isRoot(key)) {
-      return null;
-    }
-    int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
-    if (separatorIndex < 0) {
-      return null;
-    }
-    return key.substring(0, separatorIndex);
-  }
-
-  /**
    * Creates an OSS {@code ClientConfiguration} using an Alluxio Configuration.
    *
    * @return the OSS {@link ClientConfiguration}
@@ -465,15 +441,9 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     return ossClientConf;
   }
 
-  /**
-   * Checks if the key is the root.
-   *
-   * @param key the key to check
-   * @return true if the key is the root, false otherwise
-   */
-  private boolean isRoot(String key) {
-    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
-          PathUtils.normalizePath(Constants.HEADER_OSS + mBucketName, PATH_SEPARATOR));
+  @Override
+  protected String getRootKey() {
+    return Constants.HEADER_OSS + mBucketName;
   }
 
   /**
@@ -593,19 +563,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     }
     String parentKey = getParentKey(key);
     return parentKey != null && isDirectory(parentKey);
-  }
-
-  /**
-   * Adds oss prefix if the given path is not a URI path.
-   *
-   * @param path the path to process
-   * @return the path with oss prefix
-   */
-  private String toURIPath(String path) {
-    if (!path.startsWith(Constants.HEADER_OSS)) {
-      path = Constants.HEADER_OSS + mBucketName + path;
-    }
-    return path;
   }
 
   /**

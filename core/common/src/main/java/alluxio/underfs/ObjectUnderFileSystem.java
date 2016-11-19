@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  /** Value used to indicate nested structure. */
+  protected static final char PATH_SEPARATOR_CHAR = '/';
+
+  /** Value used to indicate nested structure. */
+  protected static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
@@ -59,6 +66,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
     return createDirect(path, options);
+  }
+
+  @Override
+  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
+    if (mkdirs(getParentKey(path), true)) {
+      return createOutputStream(path);
+    }
+    return null;
   }
 
   /**
@@ -108,4 +123,46 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   public boolean supportsFlush() {
     return false;
   }
+
+  /**
+   * Creates an {@link OutputStream} for object uploads.
+   *
+   * @throws IOException if failed to create stream
+   * @return new OutputStream
+   */
+  protected abstract OutputStream createOutputStream(String path) throws IOException;
+
+  /**
+   * @param key the key to get the parent of
+   * @return the parent key, or null if the parent does not exist
+   */
+  protected String getParentKey(String key) {
+    // Root does not have a parent.
+    if (isRoot(key)) {
+      return null;
+    }
+    int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
+    if (separatorIndex < 0) {
+      return null;
+    }
+    return key.substring(0, separatorIndex);
+  }
+
+  /**
+   * Checks if the key is the root.
+   *
+   * @param key the key to check
+   * @return true if the key is the root, false otherwise
+   */
+  protected boolean isRoot(String key) {
+    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
+        PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
+  }
+
+  /**
+   * Get full path of root in object store.
+   *
+   * @return full path including header and bucket
+   */
+  protected abstract String getRootKey();
 }
