@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
+import alluxio.underfs.BaseUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -50,7 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * HDFS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public class HdfsUnderFileSystem extends UnderFileSystem {
+public class HdfsUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
   // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.
@@ -507,5 +508,10 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       }
     }
     throw te;
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return true;
   }
 }

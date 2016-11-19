@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
+import alluxio.underfs.BaseUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -52,7 +53,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * </p>
  */
 @ThreadSafe
-public class LocalUnderFileSystem extends UnderFileSystem {
+public class LocalUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -341,5 +342,10 @@ public class LocalUnderFileSystem extends UnderFileSystem {
    */
   private String stripPath(String path) {
     return new AlluxioURI(path).getPath();
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return true;
   }
 }
