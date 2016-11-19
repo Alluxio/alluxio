@@ -15,8 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -40,9 +42,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -181,33 +183,46 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
-    if (!recursive) {
-      String[] children = listInternal(path, false);
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    if (!options.isRecursive()) {
+      UnderFileStatus[] children = listInternal(path, false);
       if (children == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
       }
-      if (isDirectory(path) && children.length != 0) {
+      if (children.length != 0) {
         LOG.error("Unable to delete {} because it is a non empty directory. Specify "
                 + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
-      return deleteInternal(path);
-    }
-    // Get all relevant files
-    String[] pathsToDelete = listInternal(path, true);
-    if (pathsToDelete == null) {
-      LOG.error("Unable to delete {} because listInternal returns null", path);
-      return false;
-    }
-    for (String pathToDelete : pathsToDelete) {
-      // If we fail to deleteInternal one file, stop
-      if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
-        LOG.error("Failed to delete path {}, aborting delete.", pathToDelete);
+    } else {
+      // Delete children
+      UnderFileStatus[] pathsToDelete = listInternal(path, true);
+      if (pathsToDelete == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
       }
+      for (UnderFileStatus pathToDelete : pathsToDelete) {
+        // If we fail to deleteInternal one file, stop
+        String pathKey = PathUtils.concatPath(path, pathToDelete.getName());
+        boolean success;
+        if (pathToDelete.isDirectory()) {
+          success = deleteInternal(convertToFolderName(pathKey));
+        } else {
+          success = deleteInternal(pathKey);
+        }
+        if (!success) {
+          LOG.error("Failed to delete path {}, aborting delete.", pathToDelete.getName());
+          return false;
+        }
+      }
     }
+    // Delete the directory itself
+    return deleteInternal(convertToFolderName(path));
+  }
+
+  @Override
+  public boolean deleteFile(String path) throws IOException {
     return deleteInternal(path);
   }
 
@@ -317,12 +332,12 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     }
     // Non recursive list
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-    return listInternal(path, false);
+    return UnderFileStatus.toListingResult(listInternal(path, false));
   }
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
   }
 
   @Override
@@ -388,7 +403,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
-    String[] children = list(src);
+    UnderFileStatus[] children = listInternal(src, false);
     if (children == null) {
       LOG.error("Failed to list directory {}, aborting rename.", src);
       return false;
@@ -403,23 +418,23 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
       return false;
     }
     // Rename each child in the src folder to destination/child
-    for (String child : children) {
-      String childSrcPath = PathUtils.concatPath(src, child);
-      String childDstPath = PathUtils.concatPath(dst, child);
+    for (UnderFileStatus child : children) {
+      String childSrcPath = PathUtils.concatPath(src, child.getName());
+      String childDstPath = PathUtils.concatPath(dst, child.getName());
       boolean success;
-      if (isDirectory(childSrcPath)) {
+      if (child.isDirectory()) {
         // Recursive call
         success = renameDirectory(childSrcPath, childDstPath);
       } else {
         success = renameFile(childSrcPath, childDstPath);
       }
       if (!success) {
-        LOG.error("Failed to rename path {}, aborting rename.", child);
+        LOG.error("Failed to rename path {}, aborting rename.", child.getName());
         return false;
       }
     }
     // Delete src and everything under src
-    return delete(src, true);
+    return deleteDirectory(src, DeleteOptions.defaults().setRecursive(true));
   }
 
   @Override
@@ -519,12 +534,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    */
   private boolean deleteInternal(String key) {
     try {
-      if (isDirectory(key)) {
-        String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-        mClient.deleteObject(mBucketName, keyAsFolder);
-      } else {
-        mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
-      }
+      mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
     } catch (ServiceException e) {
       LOG.error("Failed to delete {}", key, e);
       return false;
@@ -601,13 +611,13 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    * @return an array of the file and folder names in this directory
    * @throws IOException if an I/O error occurs
    */
-  private String[] listInternal(String path, boolean recursive) throws IOException {
+  private UnderFileStatus[] listInternal(String path, boolean recursive) throws IOException {
     path = stripPrefixIfPresent(path);
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     path = path.equals(PATH_SEPARATOR) ? "" : path;
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     String priorLastKey = null;
-    Set<String> children = new HashSet<>();
+    Map<String, Boolean> children = new HashMap<>();
     try {
       boolean done = false;
       while (!done) {
@@ -633,10 +643,11 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
+          boolean isDir = child.endsWith(FOLDER_SUFFIX);
           child = CommonUtils.stripSuffixIfPresent(child, FOLDER_SUFFIX);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
-            children.add(child);
+            children.put(child, isDir);
           }
         }
         // Handle case (2)
@@ -648,17 +659,24 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
             // Remove any portion after the last path delimiter
             int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
             child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-            if (!child.isEmpty() && !children.contains(child)) {
+            if (!child.isEmpty() && !children.containsKey(child)) {
               // This directory has not been created through Alluxio.
               mkdirsInternal(commonPrefix);
-              children.add(child);
+              // If both a file and a directory existed with the same name, the path will be
+              // treated as a directory
+              children.put(child, true);
             }
           }
         }
         done = chunk.isListingComplete();
         priorLastKey = chunk.getPriorLastKey();
       }
-      return children.toArray(new String[children.size()]);
+      UnderFileStatus[] ret = new UnderFileStatus[children.size()];
+      int pos = 0;
+      for (Map.Entry<String, Boolean> entry : children.entrySet()) {
+        ret[pos++] = new UnderFileStatus(entry.getKey(), entry.getValue());
+      }
+      return ret;
     } catch (ServiceException e) {
       LOG.error("Failed to list path {}", path, e);
       return null;

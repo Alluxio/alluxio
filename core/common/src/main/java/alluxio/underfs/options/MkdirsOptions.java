@@ -30,9 +30,16 @@ public final class MkdirsOptions {
   private boolean mCreateParent;
 
   /**
+   * @return the default {@link CreateDirectoryOptions}
+   */
+  public static MkdirsOptions defaults() {
+    return new MkdirsOptions();
+  }
+
+  /**
    * Constructs a default {@link MkdirsOptions}.
    */
-  public MkdirsOptions() {
+  private MkdirsOptions() {
     mPermission = Permission.defaults().applyDirectoryUMask();
     // By default create parent is true.
     mCreateParent = true;

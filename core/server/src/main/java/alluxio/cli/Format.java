@@ -18,6 +18,7 @@ import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.master.AlluxioMaster;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
@@ -41,9 +42,18 @@ public final class Format {
     UnderFileSystem ufs = UnderFileSystem.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.isDirectory(folder)) {
-      for (String file : ufs.list(folder)) {
-        if (!ufs.delete(PathUtils.concatPath(folder, file), true)) {
-          LOG.info("Failed to remove {}:{}", name, file);
+      for (String p : ufs.list(folder)) {
+        String childPath = PathUtils.concatPath(folder, p);
+        boolean failedToDelete;
+        // TODO(adit); eliminate this isDirectory call after list is updated to listStatus
+        if (ufs.isDirectory(childPath)) {
+          failedToDelete = !ufs.deleteDirectory(childPath,
+              DeleteOptions.defaults().setRecursive(true));
+        } else {
+          failedToDelete = !ufs.deleteFile(childPath);
+        }
+        if (failedToDelete) {
+          LOG.info("Failed to delete {}", childPath);
           return false;
         }
       }

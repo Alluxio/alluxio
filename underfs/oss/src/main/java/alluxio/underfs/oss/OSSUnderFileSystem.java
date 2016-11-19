@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -143,33 +144,39 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
-    if (!recursive) {
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    if (!options.isRecursive()) {
       String[] children = listInternal(path, false);
       if (children == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
       }
-      if (isDirectory(path) && children.length != 0) {
+      if (children.length != 0) {
         LOG.error("Unable to delete {} because it is a non empty directory. Specify "
                 + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
-      return deleteInternal(path);
-    }
-    // Get all relevant files
-    String[] pathsToDelete = listInternal(path, true);
-    if (pathsToDelete == null) {
-      LOG.error("Unable to delete {} because listInternal returns null", path);
-      return false;
-    }
-    for (String pathToDelete : pathsToDelete) {
-      // If we fail to deleteInternal one file, stop
-      if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
-        LOG.error("Failed to delete path {}, aborting delete.", pathToDelete);
+    } else {
+      // Delete children
+      String[] pathsToDelete = listInternal(path, true);
+      if (pathsToDelete == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
       }
+      for (String pathToDelete : pathsToDelete) {
+        // If we fail to deleteInternal one file, stop
+        if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
+          LOG.error("Failed to delete path {}, aborting delete.", pathToDelete);
+          return false;
+        }
+      }
     }
+    // Delete the directory itself
+    return deleteInternal(path);
+  }
+
+  @Override
+  public boolean deleteFile(String path) throws IOException {
     return deleteInternal(path);
   }
 
@@ -288,7 +295,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
 
   }
 
@@ -368,7 +375,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       }
     }
     // Delete src and everything under src
-    return delete(src, true);
+    return deleteDirectory(src, DeleteOptions.defaults().setRecursive(true));
   }
 
   @Override

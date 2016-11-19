@@ -91,6 +91,7 @@ import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -1147,12 +1148,25 @@ public final class FileSystemMaster extends AbstractMaster {
               MountTable.Resolution resolution = mMountTable.resolve(alluxioUriToDel);
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
-              if (!ufs.delete(ufsUri, true)) {
-                if (delInode.isFile() ? ufs.isFile(ufsUri) : ufs.isDirectory(ufsUri)) {
-                  LOG.error("Failed to delete {} from the under file system", ufsUri);
-                  throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
+              boolean failedToDelete = false;
+              if (delInode.isFile()) {
+                if (!ufs.deleteFile(ufsUri)) {
+                  failedToDelete = ufs.isFile(ufsUri);
+                  if (!failedToDelete) {
+                    LOG.warn("The file to delete does not exist in ufs: {}", ufsUri);
+                  }
                 }
-                LOG.warn("The file to delete does not exist in under file system: {}", ufsUri);
+              } else {
+                if (!ufs.deleteDirectory(ufsUri, DeleteOptions.defaults().setRecursive(true))) {
+                  failedToDelete = ufs.isDirectory(ufsUri);
+                  if (!failedToDelete) {
+                    LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
+                  }
+                }
+              }
+              if (failedToDelete) {
+                LOG.error("Failed to delete {} from the under filesystem", ufsUri);
+                throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
               }
             }
           } catch (InvalidPathException e) {
@@ -1608,7 +1622,7 @@ public final class FileSystemMaster extends AbstractMaster {
       if (!ufs.isDirectory(parentPath)) {
         Permission parentPerm = new Permission(srcParentInode.getOwner(), srcParentInode.getGroup(),
             srcParentInode.getMode());
-        MkdirsOptions parentMkdirsOptions = new MkdirsOptions().setCreateParent(true)
+        MkdirsOptions parentMkdirsOptions = MkdirsOptions.defaults().setCreateParent(true)
             .setPermission(parentPerm);
         if (!ufs.mkdirs(parentPath, parentMkdirsOptions)) {
           throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentPath));

@@ -22,6 +22,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
@@ -99,7 +100,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   public void deleteFile() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
-    mUfs.delete(testFile, false);
+    mUfs.deleteFile(testFile);
     Assert.assertFalse(mUfs.isFile(testFile));
   }
 
@@ -121,15 +122,15 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     mUfs.mkdirs(testDirNonEmptyChildDir, false);
     createEmptyFile(testDirNonEmptyChildFile);
     createEmptyFile(testDirNonEmptyChildDirFile);
-    mUfs.delete(testDirEmpty, false);
+    mUfs.deleteDirectory(testDirEmpty, DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(mUfs.isDirectory(testDirEmpty));
     try {
-      mUfs.delete(testDirNonEmpty, false);
+      mUfs.deleteDirectory(testDirNonEmpty, DeleteOptions.defaults().setRecursive(false));
     } catch (IOException e) {
       // Some File systems may throw IOException
     }
     Assert.assertTrue(mUfs.isDirectory(testDirNonEmpty));
-    mUfs.delete(testDirNonEmpty, true);
+    mUfs.deleteDirectory(testDirNonEmpty, DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(mUfs.isDirectory(testDirNonEmpty));
     Assert.assertFalse(mUfs.isDirectory(testDirNonEmptyChildDir));
     Assert.assertFalse(mUfs.isFile(testDirNonEmptyChildFile));
@@ -142,7 +143,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @Test
   public void deleteLargeDirectory() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectoryTest();
-    mUfs.delete(config.getTopLevelDirectory(), true);
+    mUfs.deleteDirectory(config.getTopLevelDirectory(),
+        DeleteOptions.defaults().setRecursive(true));
 
     String[] children = config.getChildren();
     for (String child : children) {

@@ -12,50 +12,49 @@
 package alluxio.underfs.options;
 
 import alluxio.annotation.PublicApi;
-import alluxio.security.authorization.Permission;
 
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for creating a file in UnderFileSystem.
+ * Method options for deleting a directory in UnderFileSystem.
  */
 @PublicApi
 @NotThreadSafe
-public final class CreateOptions {
-  // Permission to set for the file being created.
-  private Permission mPermission;
+public final class DeleteOptions {
+  // Whether to delete a directory with children
+  private boolean mRecursive;
 
   /**
-   * @return the default {@link CreateOptions}
+   * @return the default {@link DeleteOptions}
    */
-  public static CreateOptions defaults() {
-    return new CreateOptions();
+  public static DeleteOptions defaults() {
+    return new DeleteOptions();
   }
 
   /**
-   * Constructs a default {@link CreateOptions}.
+   * Constructs a default {@link DeleteOptions}.
    */
-  private CreateOptions() {
-    mPermission = Permission.defaults().applyFileUMask();
+  private DeleteOptions() {
+    mRecursive = false;
   }
 
   /**
-   * @return the permission
+   * @return whether to delete a non-empty directory
    */
-  public Permission getPermission() {
-    return mPermission;
+  public boolean isRecursive() {
+    return mRecursive;
   }
 
   /**
-   * Sets the permission.
+   * Sets recursive delete.
    *
-   * @param permission the permission stats to set
+   * @param recursive whether to delete recursively
    * @return the updated option object
    */
-  public CreateOptions setPermission(Permission permission) {
-    mPermission = permission;
+  public DeleteOptions setRecursive(boolean recursive) {
+    mRecursive = recursive;
     return this;
   }
 
@@ -64,22 +63,22 @@ public final class CreateOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof CreateOptions)) {
+    if (!(o instanceof DeleteOptions)) {
       return false;
     }
-    CreateOptions that = (CreateOptions) o;
-    return Objects.equal(mPermission, that.mPermission);
+    DeleteOptions that = (DeleteOptions) o;
+    return Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPermission);
+    return Objects.hashCode(mRecursive);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("permission", mPermission)
+        .add("recursive", mRecursive)
         .toString();
   }
 }

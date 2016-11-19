@@ -110,7 +110,7 @@ public final class CheckpointManager {
         if (checkpointExists) {
           // We crashed after step 4, so we can finish steps 5 and 6.
           mWriter.deleteCompletedLogs();
-          mUfs.delete(mBackupCheckpointPath, false);
+          mUfs.deleteFile(mBackupCheckpointPath);
         } else {
           // We crashed before step 4, so we roll back to the backup checkpoint.
           mUfs.renameFile(mBackupCheckpointPath, mCheckpointPath);

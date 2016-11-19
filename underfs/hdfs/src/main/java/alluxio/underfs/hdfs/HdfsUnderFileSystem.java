@@ -20,6 +20,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 
 import com.google.common.base.Throwables;
@@ -148,19 +149,13 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
-    LOG.debug("deleting {} {}", path, recursive);
-    IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        return mFileSystem.delete(new Path(path), recursive);
-      } catch (IOException e) {
-        LOG.error("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage(), e);
-        te = e;
-      }
-    }
-    throw te;
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    return isDirectory(path) && delete(path, options.isRecursive());
+  }
+
+  @Override
+  public boolean deleteFile(String path) throws IOException {
+    return isFile(path) && delete(path, false);
   }
 
   @Override
@@ -262,12 +257,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
-    FileStatus[] files;
-    try {
-      files = mFileSystem.listStatus(new Path(path));
-    } catch (FileNotFoundException e) {
-      return null;
-    }
+    FileStatus[] files = listStatus(path);
     if (files != null && !isFile(path)) {
       String[] rtn = new String[files.length];
       int i = 0;
@@ -317,7 +307,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
   }
 
   @Override
@@ -453,6 +443,47 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       LOG.error("Fail to get permission for {} ", path, e);
       throw e;
     }
+  }
+
+  /**
+   * Delete a file or directory at path.
+   *
+   * @param path file or directory path
+   * @param recursive whether to delete path recursively
+   * @return true, if succeed
+   * @throws IOException when a non-alluxio error occurs
+   */
+  private boolean delete(String path, boolean recursive) throws IOException {
+    LOG.debug("deleting {} {}", path, recursive);
+    IOException te = null;
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
+      try {
+        return mFileSystem.delete(new Path(path), recursive);
+      } catch (IOException e) {
+        LOG.error("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage(), e);
+        te = e;
+      }
+    }
+    throw te;
+  }
+
+  /**
+   * List status for given path. Returns an array of {@link FileStatus} with an entry for each file
+   * and directory in the directory denoted by this path.
+   *
+   * @param path the pathname to list
+   * @return {@code null} if the path is not a directory
+   * @throws IOException
+   */
+  private FileStatus[] listStatus(String path) throws IOException {
+    FileStatus[] files;
+    try {
+      files = mFileSystem.listStatus(new Path(path));
+    } catch (FileNotFoundException e) {
+      return null;
+    }
+    return files;
   }
 
   /**

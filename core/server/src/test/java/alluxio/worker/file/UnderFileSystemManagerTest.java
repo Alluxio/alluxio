@@ -124,13 +124,13 @@ public final class UnderFileSystemManagerTest {
   }
 
   /**
-   * Tests canceling a file with the manager will call {@link UnderFileSystem#delete}.
+   * Tests canceling a file with the manager will call {@link UnderFileSystem#deleteFile(String)}.
    */
   @Test
   public void cancelUfsFile() throws Exception {
     long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     mManager.cancelFile(SESSION_ID, id);
-    Mockito.verify(mMockUfs).delete(Mockito.contains(mUri.toString()), Mockito.eq(false));
+    Mockito.verify(mMockUfs).deleteFile(Mockito.contains(mUri.toString()));
   }
 
   /**

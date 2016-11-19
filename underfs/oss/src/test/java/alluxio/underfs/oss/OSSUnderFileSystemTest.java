@@ -12,6 +12,7 @@
 package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.options.DeleteOptions;
 
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.ServiceException;
@@ -51,26 +52,28 @@ public class OSSUnderFileSystemTest {
   }
 
   /**
-   * Test case for {@link OSSUnderFileSystem#delete(String, boolean)}.
+   * Test case for {@link OSSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
         .thenThrow(ServiceException.class);
 
-    boolean result = mOSSUnderFileSystem.delete(PATH, false);
+    boolean result = mOSSUnderFileSystem.deleteDirectory(PATH,
+        DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(result);
   }
 
   /**
-   * Test case for {@link OSSUnderFileSystem#delete(String, boolean)}.
+   * Test case for {@link OSSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
         .thenThrow(ServiceException.class);
 
-    boolean result = mOSSUnderFileSystem.delete(PATH, true);
+    boolean result = mOSSUnderFileSystem.deleteDirectory(PATH,
+        DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(result);
   }
 

@@ -145,7 +145,8 @@ public class FileOutStream extends AbstractOutStream {
         } else {
           UnderFileSystem ufs = UnderFileSystem.get(mUfsPath);
           // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-          CreateOptions createOptions = new CreateOptions().setPermission(options.getPermission());
+          CreateOptions createOptions =
+              CreateOptions.defaults().setPermission(options.getPermission());
           mUnderStorageOutputStream = mCloser.register(ufs.create(mUfsPath, createOptions));
 
           // Set delegation related vars to null as we are not using worker delegation for ufs ops
@@ -192,7 +193,7 @@ public class FileOutStream extends AbstractOutStream {
           if (mCanceled) {
             // TODO(yupeng): Handle this special case in under storage integrations.
             mUnderStorageOutputStream.close();
-            ufs.delete(mUfsPath, false);
+            ufs.deleteFile(mUfsPath);
           } else {
             mUnderStorageOutputStream.flush();
             mUnderStorageOutputStream.close();

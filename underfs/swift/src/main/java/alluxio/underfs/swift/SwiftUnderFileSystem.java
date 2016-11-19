@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.CommonUtils;
@@ -235,46 +236,47 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
-    LOG.debug("Delete method: {}, recursive {}", path, recursive);
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    // TODO(adit): use bulk delete API
+    LOG.debug("Delete directory {}, recursive {}", path, options.isRecursive());
     final String strippedPath = stripContainerPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
-    if (recursive) {
-      boolean deletedSelf = false;
-
-      // For a file, recursive delete will not find any children
+    if (!options.isRecursive()) {
+      String[] children = list(path);
+      if (children == null) {
+        LOG.error("Unable to delete {} because list returns null", path);
+        return false;
+      }
+      if (children.length != 0) {
+        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
+                + "recursive as true in order to delete non empty directories.", path);
+        return false;
+      }
+    } else {
+      // Delete children
       PaginationMap paginationMap = container.getPaginationMap(
           PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), LISTING_LENGTH);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
         for (StoredObject childObject : container.list(paginationMap, page)) {
-          deleteObject(childObject);
           if (childObject.getName().equals(addFolderSuffixIfNotPresent(strippedPath))) {
-            // As PATH_SEPARATOR and FOLDER_SUFFIX are the same the folder would be fetched
-            deletedSelf = true;
+            // As PATH_SEPARATOR=FOLDER_SUFFIX, the folder itself might be fetched
+            continue;
           }
+          deleteObject(childObject);
         }
       }
-      if (deletedSelf) {
-        return true;
-      }
-    } else {
-      String[] children = list(path);
-      if (children != null && children.length != 0) {
-        LOG.error("Attempting to non-recursively delete a non-empty directory.");
-        return false;
-      }
     }
+    // Delete the directory itself
+    String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
+    return deleteObject(container.getObject(strippedFolderPath));
+  }
 
-    // Path is a file or folder with no children
-    if (!deleteObject(container.getObject(strippedPath))) {
-      // Path may be a folder
-      final String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
-      if (strippedFolderPath.equals(strippedPath)) {
-        return false;
-      }
-      return deleteObject(container.getObject(strippedFolderPath));
-    }
-    return true;
+  @Override
+  public boolean deleteFile(String path) throws IOException {
+    LOG.debug("Delete file {}", path);
+    final String strippedPath = stripContainerPrefixIfPresent(path);
+    Container container = mAccount.getContainer(mContainerName);
+    return deleteObject(container.getObject(strippedPath));
   }
 
   /**
@@ -359,7 +361,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
   }
 
   @Override
@@ -500,7 +502,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       }
     }
     // Delete src and everything under src
-    return delete(src, true);
+    return deleteDirectory(src, DeleteOptions.defaults().setRecursive(true));
   }
 
   @Override
@@ -516,7 +518,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
     String strippedSourcePath = stripContainerPrefixIfPresent(src);
     String strippedDestinationPath = stripContainerPrefixIfPresent(dst);
-    return copy(strippedSourcePath, strippedDestinationPath) && delete(src, false);
+    return copy(strippedSourcePath, strippedDestinationPath) && deleteFile(src);
   }
 
   @Override
