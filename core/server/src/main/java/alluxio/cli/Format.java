@@ -109,5 +109,5 @@ public final class Format {
     System.exit(0);
   }
 
-  private Format() {}  // Prevent instantiation.
+  private Format() {}  // prevent instantiation
 }

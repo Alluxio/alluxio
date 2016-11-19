@@ -102,48 +102,42 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   /**
    * Constructs a {@link DefaultAlluxioWorker}.
    */
-  public DefaultAlluxioWorker() {
+  public DefaultAlluxioWorker() throws Exception {
     mWorkerId = new AtomicReference<>();
-    try {
-      mStartTimeMs = System.currentTimeMillis();
-      mBlockWorker = new DefaultBlockWorker(mWorkerId);
-      mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker, mWorkerId);
+    mStartTimeMs = System.currentTimeMillis();
+    mBlockWorker = new DefaultBlockWorker(mWorkerId);
+    mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker, mWorkerId);
 
-      mAdditionalWorkers = new ArrayList<>();
-      List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
-      // Discover and register the available factories
-      // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
-      ServiceLoader<WorkerFactory> discoveredMasterFactories =
-          ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
-      for (WorkerFactory factory : discoveredMasterFactories) {
-        Worker worker = factory.create(workers);
-        if (worker != null) {
-          mAdditionalWorkers.add(worker);
-        }
+    mAdditionalWorkers = new ArrayList<>();
+    List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
+    // Discover and register the available factories
+    // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
+    ServiceLoader<WorkerFactory> discoveredMasterFactories =
+        ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
+    for (WorkerFactory factory : discoveredMasterFactories) {
+      Worker worker = factory.create(workers);
+      if (worker != null) {
+        mAdditionalWorkers.add(worker);
       }
-
-      // Setup web server
-      mWebServer = new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB),
-          this, mBlockWorker, NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC),
-          mStartTimeMs);
-
-      // Setup Thrift server
-      mTransportProvider = TransportProvider.Factory.create();
-      mThriftServerSocket = createThriftServerSocket();
-      int rpcPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
-      String rpcHost = NetworkAddressUtils.getThriftSocket(mThriftServerSocket)
-          .getInetAddress().getHostAddress();
-      mRpcAddress = new InetSocketAddress(rpcHost, rpcPort);
-      mThriftServer = createThriftServer();
-
-      // Setup Data server
-      mDataServer =
-          DataServer.Factory.create(
-              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
-    } catch (Exception e) {
-      LOG.error("Failed to initialize {}", this.getClass().getName(), e);
-      System.exit(-1);
     }
+
+    // Setup web server
+    mWebServer =
+        new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this,
+            mBlockWorker, NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC), mStartTimeMs);
+
+    // Setup Thrift server
+    mTransportProvider = TransportProvider.Factory.create();
+    mThriftServerSocket = createThriftServerSocket();
+    int rpcPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
+    String rpcHost =
+        NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress().getHostAddress();
+    mRpcAddress = new InetSocketAddress(rpcHost, rpcPort);
+    mThriftServer = createThriftServer();
+
+    // Setup Data server
+    mDataServer = DataServer.Factory
+        .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
   }
 
   @Override
