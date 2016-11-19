@@ -194,26 +194,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public void close() throws IOException {
-    LOG.debug("close");
-  }
-
-  @Override
-  public void connectFromMaster(String hostname) {
-    LOG.debug("connect from master");
-  }
-
-  @Override
-  public void connectFromWorker(String hostname) {
-    LOG.debug("connect from worker");
-  }
-
-  @Override
-  public OutputStream create(String path, CreateOptions options) throws IOException {
-    return createDirect(path, options);
-  }
-
-  @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
 
@@ -279,40 +259,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return deleteObject(container.getObject(strippedPath));
   }
 
-  /**
-   * Gets the block size in bytes. There is no concept of a block in Swift and the maximum size of
-   * one file is 4 GB. This method defaults to the default user block size in Alluxio.
-   *
-   * @param path the path to the object
-   * @return the default Alluxio user block size
-   * @throws IOException this implementation will not throw this exception, but subclasses may
-   */
-  @Override
-  public long getBlockSizeByte(String path) throws IOException {
-    LOG.debug("Get block size for {}", path);
-    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-  }
-
-  @Override
-  public Object getConf() {
-    LOG.debug("getConf is not supported when using SwiftDirectUnderFileSystem, returning null.");
-    return null;
-  }
-
-  @Override
-  public List<String> getFileLocations(String path) throws IOException {
-    LOG.debug("getFileLocations is not supported when using "
-        + "SwiftDirectUnderFileSystem, returning null.");
-    return null;
-  }
-
-  @Override
-  public List<String> getFileLocations(String path, long offset) throws IOException {
-    LOG.debug("getFileLocations is not supported when using "
-        + "SwiftDirectUnderFileSystem, returning null.");
-    return null;
-  }
-
   @Override
   public long getFileSize(String path) throws IOException {
     return getObject(path).getContentLength();
@@ -322,12 +268,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   public long getModificationTimeMs(String path) throws IOException {
     LOG.debug("Get modification time for {}", path);
     return getObject(path).getLastModifiedAsDate().getTime();
-  }
-
-  // This call is currently only used for the web ui, where a negative value implies unknown.
-  @Override
-  public long getSpace(String path, SpaceType type) throws IOException {
-    return -1;
   }
 
   @Override
@@ -520,9 +460,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     String strippedDestinationPath = stripContainerPrefixIfPresent(dst);
     return copy(strippedSourcePath, strippedDestinationPath) && deleteFile(src);
   }
-
-  @Override
-  public void setConf(Object conf) {}
 
   // Setting Swift owner via Alluxio is not supported yet. This is a no-op.
   @Override

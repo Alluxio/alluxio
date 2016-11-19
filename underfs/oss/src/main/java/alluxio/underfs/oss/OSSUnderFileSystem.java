@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -117,25 +116,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(String hostname) throws IOException {
-    // Authentication is taken care of in the constructor
-  }
-
-  @Override
-  public void connectFromWorker(String hostname) throws IOException {
-    // Authentication is taken care of in the constructor
-  }
-
-  @Override
-  public void close() throws IOException {
-  }
-
-  @Override
-  public OutputStream create(String path, CreateOptions options) throws IOException {
-    return createDirect(path, options);
-  }
-
-  @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     path = toURIPath(path);
     if (mkdirs(getParentKey(path), true)) {
@@ -181,41 +161,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     return deleteInternal(path);
   }
 
-  /**
-   * Gets the block size in bytes. There is no concept of a block in OSS and the maximum size of
-   * one put is 5 GB and the maximum size of a multipart upload is 48.8 TB. This method defaults to
-   * the default user block size in Alluxio.
-   *
-   * @param path the file name
-   * @return the default Alluxio user block size
-   * @throws IOException this implementation will not throw this exception, but subclasses may
-   */
-  @Override
-  public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-  }
-
-  // Not supported
-  @Override
-  public Object getConf() {
-    LOG.debug("getConf is not supported when using OSSUnderFileSystem, returning null.");
-    return null;
-  }
-
-  // Not supported
-  @Override
-  public List<String> getFileLocations(String path) throws IOException {
-    LOG.debug("getFileLocations is not supported when using OSSUnderFileSystem, returning null.");
-    return null;
-  }
-
-  // Not supported
-  @Override
-  public List<String> getFileLocations(String path, long offset) throws IOException {
-    LOG.debug("getFileLocations is not supported when using OSSUnderFileSystem, returning null.");
-    return null;
-  }
-
   @Override
   public long getFileSize(String path) throws IOException {
     ObjectMetadata objectMeta = getObjectDetails(path);
@@ -234,12 +179,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     } else {
       throw new FileNotFoundException(path);
     }
-  }
-
-  // This call is currently only used for the web ui, where a negative value implies unknown.
-  @Override
-  public long getSpace(String path, SpaceType type) throws IOException {
-    return -1;
   }
 
   @Override
@@ -392,10 +331,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     }
     // Source is a file and Destination does not exist
     return copy(src, dst) && deleteInternal(src);
-  }
-
-  @Override
-  public void setConf(Object conf) {
   }
 
   // No ACL integration currently, no-op
