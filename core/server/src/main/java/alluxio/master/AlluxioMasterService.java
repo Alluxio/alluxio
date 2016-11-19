@@ -9,46 +9,36 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.master;
 
 import alluxio.Server;
-import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.file.FileSystemWorker;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.lineage.LineageMaster;
 
 import java.net.InetSocketAddress;
 
 /**
  * A worker in the Alluxio system.
  */
-public interface AlluxioWorkerService extends Server {
+public interface AlluxioMasterService extends Server {
   /**
-   * @return the connect information for this worker
+   * @return the block master for this Alluxio master
    */
-  WorkerNetAddress getAddress();
+  BlockMaster getBlockMaster();
 
   /**
-   * @return the block worker for this Alluxio worker
+   * @return the file system master for this Alluxio master
    */
-  BlockWorker getBlockWorker();
+  FileSystemMaster getFileSystemMaster();
 
   /**
-   * @return the worker's data service bind host (used by unit test only)
+   * @return the lineage master for this Alluxio master
    */
-  String getDataBindHost();
+  LineageMaster getLineageMaster();
 
   /**
-   * @return the worker's data service port (used by unit test only)
-   */
-  int getDataLocalPort();
-
-  /**
-   * @return the file system worker for this Alluxio worker
-   */
-  FileSystemWorker getFileSystemWorker();
-
-  /**
-   * @return this worker's rpc address
+   * @return this master's rpc address
    */
   InetSocketAddress getRpcAddress();
 
@@ -71,6 +61,11 @@ public interface AlluxioWorkerService extends Server {
    * @return the worker web service port (used by unit test only)
    */
   int getWebLocalPort();
+
+  /**
+   * @return true if the system is the leader (serving the rpc server), false otherwise
+   */
+  boolean isServing();
 
   /**
    * Waits until the worker is ready to server requests.

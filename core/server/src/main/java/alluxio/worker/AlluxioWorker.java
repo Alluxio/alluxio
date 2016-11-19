@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class for running an Alluxio worker.
+ * Entry point for the Alluxio worker.
  */
 public final class AlluxioWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -38,13 +38,16 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
 
-    AlluxioWorkerService worker = new DefaultAlluxioWorker();
+    AlluxioWorkerService worker = null;
     try {
+      worker = new DefaultAlluxioWorker();
       worker.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception while running Alluxio worker, stopping it and exiting.", e);
       try {
-        worker.stop();
+        if (worker != null) {
+          worker.stop();
+        }
       } catch (Exception e2) {
         // continue to exit
         LOG.error("Uncaught exception while stopping Alluxio worker, simply exiting.", e2);
@@ -53,5 +56,5 @@ public final class AlluxioWorker {
     }
   }
 
-  private AlluxioWorker() {} // Not intended for instantiation
+  private AlluxioWorker() {} // prevent instantiation
 }

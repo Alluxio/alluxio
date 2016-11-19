@@ -24,7 +24,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.AlluxioMaster;
+import alluxio.master.AlluxioMasterService;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -55,14 +55,14 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
 
   private static final long serialVersionUID = 6121623049981468871L;
 
-  private final transient AlluxioMaster mMaster;
+  private final transient AlluxioMasterService mMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceBrowseServlet}.
    *
    * @param master the Alluxio master
    */
-  public WebInterfaceBrowseServlet(AlluxioMaster master) {
+  public WebInterfaceBrowseServlet(AlluxioMasterService master) {
     mMaster = master;
   }
 
@@ -138,7 +138,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("showPermissions",
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
-    request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
+    request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
     request.setAttribute("invalidPathError", "");
     List<FileInfo> filesInfo;
     String requestPath = request.getParameter("path");

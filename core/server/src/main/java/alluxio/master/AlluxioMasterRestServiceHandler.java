@@ -76,7 +76,7 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String GET_WORKER_COUNT = "worker_count";
   public static final String GET_WORKER_INFO_LIST = "worker_info_list";
 
-  private final AlluxioMaster mMaster;
+  private final AlluxioMasterService mMaster;
   private final BlockMaster mBlockMaster;
   private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
   private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot);
@@ -88,8 +88,8 @@ public final class AlluxioMasterRestServiceHandler {
    */
   public AlluxioMasterRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mMaster =
-        (AlluxioMaster) context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mMaster = (AlluxioMasterService) context
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMaster.getBlockMaster();
   }
 
@@ -109,7 +109,7 @@ public final class AlluxioMasterRestServiceHandler {
                 .setCapacity(getCapacityInternal())
                 .setConfiguration(getConfigurationInternal())
                 .setMetrics(getMetricsInternal())
-                .setRpcAddress(mMaster.getMasterAddress().toString())
+                .setRpcAddress(mMaster.getRpcAddress().toString())
                 .setStartTimeMs(mMaster.getStartTimeMs())
                 .setTierCapacity(getTierCapacityInternal())
                 .setUfsCapacity(getUfsCapacityInternal())
@@ -173,7 +173,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
       public String call() throws Exception {
-        return mMaster.getMasterAddress().toString();
+        return mMaster.getRpcAddress().toString();
       }
     });
   }

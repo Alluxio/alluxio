@@ -43,7 +43,7 @@ public final class LocalAlluxioMaster {
 
   private final String mJournalFolder;
 
-  private final AlluxioMaster mAlluxioMaster;
+  private final AlluxioMasterService mAlluxioMaster;
   private final Thread mMasterThread;
 
   private final Supplier<String> mClientSupplier = new Supplier<String>() {
@@ -155,13 +155,13 @@ public final class LocalAlluxioMaster {
    * @return the externally resolvable address of the master
    */
   public InetSocketAddress getAddress() {
-    return mAlluxioMaster.getMasterAddress();
+    return mAlluxioMaster.getRpcAddress();
   }
 
   /**
    * @return the internal {@link AlluxioMaster}
    */
-  public AlluxioMaster getInternalMaster() {
+  public AlluxioMasterService getInternalMaster() {
     return mAlluxioMaster;
   }
 
@@ -170,15 +170,15 @@ public final class LocalAlluxioMaster {
    *
    * @return the RPC local port
    */
-  public int getRPCLocalPort() {
-    return mAlluxioMaster.getRPCLocalPort();
+  public int getRpcLocalPort() {
+    return mAlluxioMaster.getRpcAddress().getPort();
   }
 
   /**
    * @return the URI of the master
    */
   public String getUri() {
-    return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
+    return Constants.HEADER + mHostname + ":" + getRpcLocalPort();
   }
 
   /**

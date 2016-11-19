@@ -52,9 +52,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Entry point for the Alluxio worker program. This class is responsible for initializing the
- * different workers that are configured to run. It also creates the data server which listens
- * for all remote I/O requests for the workers.
+ * This class encapsulates the different worker services that are configured to run.
  */
 @NotThreadSafe
 public final class DefaultAlluxioWorker implements AlluxioWorkerService {

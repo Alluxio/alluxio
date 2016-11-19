@@ -36,7 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The fault tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.
  */
 @NotThreadSafe
-final class FaultTolerantAlluxioMaster extends AlluxioMaster {
+final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The zookeeper client that handles selecting the leader. */
@@ -52,7 +52,7 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
     try {
       // InetSocketAddress.toString causes test issues, so build the string by hand
       String zkName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC) + ":"
-          + getMasterAddress().getPort();
+          + getRpcAddress().getPort();
       String zkAddress = Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
       String zkElectionPath = Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH);
       String zkLeaderPath = Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
