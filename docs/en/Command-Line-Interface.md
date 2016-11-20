@@ -65,6 +65,21 @@ output:
 
 {% include Command-Line-Interface/cat.md %}
 
+## checkConsistency
+The `checkConsistency` command compares Alluxio and under storage metadata for a given path. If the
+path is a directory, the entire subtree will be compared. The command returns a message listing each
+inconsistent file or directory. The system administrator should reconcile the differences of these
+files at their discretion. To avoid metadata inconsistencies between Alluxio and under storages,
+design your systems to modify files and directories through the Alluxio and avoid directly modifying
+state in the underlying storage.
+
+NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates
+to files or directories in the subtree cannot be completed until this command completes.
+
+For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
+
+{% include Command-Line-Interface/checkConsistency.md %}
+
 ## checksum
 The `checksum` command outputs the md5 value of a file in Alluxio.
 
@@ -120,8 +135,8 @@ For example, `chown` can be used as a quick way to change the owner of file:
 ## copyFromLocal
 The `copyFromLocal` command copies the contents of a file in your local file system into Alluxio.
 If the node you run the command from has an Alluxio worker, the data will be available on that
-worker. Otherwise, the data will be placed in a random remote node running an Alluxio worker. If a
-directory is specified, the directory and all its contents will be uploaded recursively.
+worker. Otherwise, the data will be copied to a random remote node running an Alluxio worker. If a
+directory is specified, the directory and all its contents will be copied recursively.
 
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for
 processing:
@@ -140,8 +155,8 @@ investigation or debugging.
 
 ## count
 The `count` command outputs the number of files and folders matching a prefix as well as the
-total size of the files. `Count` works recursively and accounts for any nested directories and
-files. `Count` is best utilized when the user has some predefined naming conventions for their
+total size of the files. `count` works recursively and accounts for any nested directories and
+files. `count` is best utilized when the user has some predefined naming conventions for their
 files.
 
 For example, if data files are stored by their date, `count` can be used to determine the number of

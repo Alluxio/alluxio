@@ -150,7 +150,11 @@ public final class InStreamOptions {
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mLocationPolicy, mReadType, mCachePartiallyReadBlock, mSeekBufferSizeBytes);
+        .hashCode(
+            mLocationPolicy,
+            mReadType,
+            mCachePartiallyReadBlock,
+            mSeekBufferSizeBytes);
   }
 
   @Override

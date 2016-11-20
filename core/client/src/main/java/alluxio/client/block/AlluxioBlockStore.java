@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.Constants;
 import alluxio.client.ClientContext;
+import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
@@ -122,10 +123,12 @@ public final class AlluxioBlockStore {
    * Gets a stream to read the data of a block. The stream is backed by Alluxio storage.
    *
    * @param blockId the block to read from
+   * @param options the options
    * @return a {@link BlockInStream} which can be used to read the data in a streaming fashion
    * @throws IOException if the block does not exist
    */
-  public BufferedBlockInStream getInStream(long blockId) throws IOException {
+  public BufferedBlockInStream getInStream(long blockId, InStreamOptions options)
+      throws IOException {
     BlockInfo blockInfo;
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireMasterClientResource()) {
@@ -149,7 +152,8 @@ public final class AlluxioBlockStore {
       if (workerNetAddress.getHost().equals(mLocalHostName)) {
         // There is a local worker and the block is local.
         try {
-          return new LocalBlockInStream(blockId, blockInfo.getLength(), workerNetAddress, mContext);
+          return new LocalBlockInStream(blockId, blockInfo.getLength(), workerNetAddress, mContext,
+              options);
         } catch (IOException e) {
           LOG.warn("Failed to open local stream for block " + blockId + ". " + e.getMessage());
           // Getting a local stream failed, do not try again
@@ -159,7 +163,8 @@ public final class AlluxioBlockStore {
     }
     // No local worker/block, get the first location since it's nearest to memory tier.
     WorkerNetAddress workerNetAddress = blockInfo.getLocations().get(0).getWorkerAddress();
-    return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerNetAddress, mContext);
+    return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerNetAddress, mContext,
+        options);
   }
 
   /**
@@ -170,12 +175,13 @@ public final class AlluxioBlockStore {
    *        stream is just storing the block in Alluxio again)
    * @param address the address of the worker to write the block to, fails if the worker cannot
    *        serve the request
+   * @param options the output stream options
    * @return a {@link BufferedBlockOutStream} which can be used to write data to the block in a
    *         streaming fashion
    * @throws IOException if the block cannot be written
    */
-  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address)
-      throws IOException {
+  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
+      OutStreamOptions options) throws IOException {
     if (blockSize == -1) {
       try (CloseableResource<BlockMasterClient> blockMasterClientResource =
           mContext.acquireMasterClientResource()) {
@@ -190,10 +196,10 @@ public final class AlluxioBlockStore {
     }
     // Location is local.
     if (mLocalHostName.equals(address.getHost())) {
-      return new LocalBlockOutStream(blockId, blockSize, address, mContext);
+      return new LocalBlockOutStream(blockId, blockSize, address, mContext, options);
     }
     // Location is specified and it is remote.
-    return new RemoteBlockOutStream(blockId, blockSize, address, mContext);
+    return new RemoteBlockOutStream(blockId, blockSize, address, mContext, options);
   }
 
   /**
@@ -218,7 +224,7 @@ public final class AlluxioBlockStore {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-    return getOutStream(blockId, blockSize, address);
+    return getOutStream(blockId, blockSize, address, options);
   }
 
   /**

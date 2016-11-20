@@ -251,7 +251,8 @@ public final class NettyDataServerTest {
     Channel channel = f.channel();
     try {
       SingleResponseListener listener = new SingleResponseListener();
-      channel.pipeline().get(ClientHandler.class).addListener(listener);
+      ((ClientHandler) channel.pipeline().addLast(new ClientHandler()).last())
+          .addListener(listener);
       channel.writeAndFlush(rpcBlockWriteRequest);
       return listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
     } finally {

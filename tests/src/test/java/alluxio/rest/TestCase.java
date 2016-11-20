@@ -14,6 +14,7 @@ package alluxio.rest;
 import alluxio.Constants;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 
 import java.io.BufferedReader;
@@ -23,20 +24,21 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.core.Response;
 
 /**
  * Represents a REST API test case.
  */
+@NotThreadSafe
 public final class TestCase {
+  private String mHostname;
+  private int mPort;
   private String mEndpoint;
   private Map<String, String> mParameters;
   private String mMethod;
   private Object mExpectedResult;
-  private String mHostname;
-  private int mPort;
-  private String mJsonString;
-  private boolean mPrettyPrint;
+  private TestCaseOptions mOptions;
 
   /**
    * Creates a new instance of {@link TestCase}.
@@ -50,7 +52,7 @@ public final class TestCase {
    */
   public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
       String method, Object expectedResult) {
-    this(hostname, port, endpoint, parameters, method, expectedResult, null, false);
+    this(hostname, port, endpoint, parameters, method, expectedResult, TestCaseOptions.defaults());
   }
 
   /**
@@ -62,19 +64,17 @@ public final class TestCase {
    * @param parameters the parameters to use
    * @param method the method to use
    * @param expectedResult the expected result to use
-   * @param jsonString the json payload in string
-   * @param prettyPrint if pretty prints the JSON response
+   * @param options the test case options to use
    */
   public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
-      String method, Object expectedResult, String jsonString, boolean prettyPrint) {
+      String method, Object expectedResult, TestCaseOptions options) {
     mHostname = hostname;
     mPort = port;
     mEndpoint = endpoint;
     mParameters = parameters;
     mMethod = method;
     mExpectedResult = expectedResult;
-    mJsonString = jsonString;
-    mPrettyPrint = prettyPrint;
+    mOptions = options;
   }
 
   /**
@@ -122,17 +122,22 @@ public final class TestCase {
   public String call() throws Exception {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);
-    if (mJsonString != null) {
+    if (mOptions.getInputStream() != null) {
+      connection.setDoOutput(true);
+      connection.setRequestProperty("Content-Type", "application/octet-stream");
+      ByteStreams.copy(mOptions.getInputStream(), connection.getOutputStream());
+    }
+    if (mOptions.getJsonString() != null) {
       connection.setDoOutput(true);
       connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
       OutputStream os = connection.getOutputStream();
-      os.write(mJsonString.getBytes("UTF-8"));
+      os.write(mOptions.getJsonString().getBytes("UTF-8"));
       os.close();
     }
 
     connection.connect();
-    Assert.assertEquals(mEndpoint, Response.Status.OK.getStatusCode(),
-        connection.getResponseCode());
+    Assert
+        .assertEquals(mEndpoint, Response.Status.OK.getStatusCode(), connection.getResponseCode());
     return getResponse(connection);
   }
 
@@ -143,11 +148,12 @@ public final class TestCase {
     String expected = "";
     if (mExpectedResult != null) {
       ObjectMapper mapper = new ObjectMapper();
-      expected =
-          mPrettyPrint ? mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult)
-              : mapper.writeValueAsString(mExpectedResult);
+      if (mOptions.isPrettyPrint()) {
+        expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+      } else {
+        expected = mapper.writeValueAsString(mExpectedResult);
+      }
     }
-
     String result = call();
     Assert.assertEquals(mEndpoint, expected, result);
   }

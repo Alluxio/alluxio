@@ -73,12 +73,10 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
   }
 
   /**
-   * Removes a {@link ResponseListener} listener from the client handler.
-   *
-   * @param listener the listener to remove
+   * Removes all {@link ResponseListener} listeners from the client handler.
    */
-  public void removeListener(ResponseListener listener) {
-    mListeners.remove(listener);
+  public void removeListeners() {
+    mListeners.clear();
   }
 
   @Override

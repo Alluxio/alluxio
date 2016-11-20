@@ -43,6 +43,7 @@ public final class OutStreamOptions {
   private FileWriteLocationPolicy mLocationPolicy;
   private WriteType mWriteType;
   private Permission mPermission;
+  private String mUfsPath;
 
   /**
    * @return the default {@link OutStreamOptions}
@@ -124,6 +125,13 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @return the ufs path
+   */
+  public String getUfsPath() {
+    return mUfsPath;
+  }
+
+  /**
    * Sets the size of the block in bytes.
    *
    * @param blockSizeBytes the block size to use
@@ -178,6 +186,15 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @param ufsPath the ufs path
+   * @return the updated options object
+   */
+  public OutStreamOptions setUfsPath(String ufsPath) {
+    mUfsPath = ufsPath;
+    return this;
+  }
+
+  /**
    * Sets the {@link Permission}.
    *
    * @param perm the permission
@@ -216,12 +233,18 @@ public final class OutStreamOptions {
         && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mWriteType, that.mWriteType)
+        && Objects.equal(mUfsPath, that.mUfsPath)
         && Objects.equal(mPermission, that.mPermission);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBlockSizeBytes, mTtl, mTtlAction, mLocationPolicy, mWriteType,
+    return Objects.hashCode(mBlockSizeBytes,
+        mTtl,
+        mTtlAction,
+        mLocationPolicy,
+        mWriteType,
+        mUfsPath,
         mPermission);
   }
 
@@ -234,6 +257,7 @@ public final class OutStreamOptions {
         .add("locationPolicy", mLocationPolicy)
         .add("writeType", mWriteType)
         .add("permission", mPermission)
+        .add("ufsPath", mUfsPath)
         .toString();
   }
 }

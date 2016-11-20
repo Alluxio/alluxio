@@ -281,6 +281,7 @@ function main {
   ;;
   "readJournal")
     CLASS="alluxio.master.journal.JournalTool"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "killAll")

@@ -249,4 +249,21 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
         files[3].isFolder());
     Assert.assertEquals(expected, mOutput.toString());
   }
+
+  /**
+   * Tests ls command with a file where the file name includes a specifier character.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsWithFormatSpecifierCharacter() throws IOException, AlluxioException {
+    String fileName = "/localhost%2C61764%2C1476207067267..meta.1476207073442.meta";
+    FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
+    URIStatus file = mFileSystem.getStatus(new AlluxioURI(fileName));
+    mFsShell.run("ls", "/");
+    String expected = getLsNoAclResultStr(fileName, file.getCreationTimeMs(), 10,
+        LsCommand.STATE_FILE_IN_MEMORY);
+    Assert.assertEquals(expected, mOutput.toString());
+  }
 }

@@ -77,22 +77,20 @@ alluxio.underfs.s3.upload.threads.max:
   The maximum number of threads to use for uploading data to S3 for multipart uploads. These
   operations can be fairly expensive, however having too many threads may cause bandwidth starvation
   for some threads causing errors. The default value is 2.
+alluxio.underfs.s3.disable.dns.buckets:
+  Optionally, specify to make all S3 requests path style. The default value is false.
 alluxio.underfs.s3a.consistency.timeout.ms:
   The duration to wait for metadata consistency from the under storage. This is only used by
   internal Alluxio operations which should be successful, but may appear unsuccessful due to
   eventual consistency. The default value is 60000 milliseconds (1 minute).
-alluxio.underfs.s3a.direct.writes.enabled:
-  Whether to directly commit files to S3 instead of first uploading a temporary file and then
-  renaming the file to the final path name. Enabling this option will increase the write performance
-  to S3. Because S3 provides a PUT API with checksum validation, data corruption is prevented. If
-  your application relies on the underlying behavior of writing a temporary file before committing,
-  you can revert to the old behavior by turning this option off. The default value is true.
 alluxio.underfs.s3a.secure.http.enabled:
   Whether or not to use HTTPS protocol when communicating with s3. The default value is false.
 alluxio.underfs.s3a.server.side.encryption.enabled:
   Whether or not to encrypt data stored in s3. The default value is false.
 alluxio.underfs.s3a.socket.timeout.ms:
   Length of the socket timeout when communicating with s3. The default value is 50000.
+alluxio.underfs.s3a.inherit_acl:
+  Optionally disable this to disable inheriting bucket ACLs on objects. The default value is true.
 alluxio.web.resources:
   Path to the web application resources.
 alluxio.web.threads:

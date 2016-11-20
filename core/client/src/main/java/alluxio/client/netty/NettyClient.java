@@ -27,8 +27,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 
-import java.util.concurrent.Callable;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -80,26 +78,9 @@ public final class NettyClient {
         pipeline.addLast(RPCMessage.createFrameDecoder());
         pipeline.addLast(ENCODER);
         pipeline.addLast(DECODER);
-        // ClientHandler is not sharable.
-        pipeline.addLast(new ClientHandler());
       }
     });
 
     return boot;
-  }
-
-  /**
-   * Creates a callable which returns a new bootstrap upon called. This is needed
-   * because Bootstrap#clone doesn't do deep handler deep copy.
-   *
-   * @return a {@link Callable} to build a fresh new bootstrap
-   */
-  public static Callable<Bootstrap> bootstrapBuilder() {
-    return new Callable<Bootstrap>() {
-      @Override
-      public Bootstrap call() {
-        return createClientBootstrap();
-      }
-    };
   }
 }

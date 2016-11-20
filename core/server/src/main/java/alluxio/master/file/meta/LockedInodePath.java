@@ -63,7 +63,7 @@ public abstract class LockedInodePath implements AutoCloseable {
    * @return the target inode
    * @throws FileDoesNotExistException if the target inode does not exist
    */
-  public synchronized Inode getInode() throws FileDoesNotExistException {
+  public synchronized Inode<?> getInode() throws FileDoesNotExistException {
     if (!fullPathExists()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
     }

@@ -59,5 +59,5 @@ these blocks; the actual mapping from file to blocks is only stored in the maste
 The Alluxio client provides users a gateway to interact with the Alluxio servers. It exposes a
 [file system API](File-System-API.html). It initiates communication with master to carry out
 metadata operations and with workers to read and write data that exist in Alluxio. Data that exists
-in the  under storage but is not available in Alluxio is accessed directly through an under storage
+in the under storage but is not available in Alluxio is accessed directly through an under storage
 client.

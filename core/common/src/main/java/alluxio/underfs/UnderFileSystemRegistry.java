@@ -200,7 +200,7 @@ public final class UnderFileSystemRegistry {
    * Factories are registered at the start of the factories list so they can override the existing
    * automatically discovered factories. Generally if you use the {@link ServiceLoader} mechanism
    * properly it should be unnecessary to call this, however since ServiceLoader discovery order
-   * may be susceptible to class loader behavioural differences there may be rare cases when you
+   * may be susceptible to class loader behavioral differences there may be rare cases when you
    * need to manually register the desired factory.
    * </p>
    *

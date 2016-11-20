@@ -54,4 +54,9 @@ public final class NoSaslTransportProvider implements TransportProvider {
   public TTransportFactory getServerTransportFactory() throws SaslException {
     return new TFramedTransport.Factory(mThriftFrameSizeMax);
   }
+
+  @Override
+  public TTransportFactory getServerTransportFactory(Runnable runnable) throws SaslException {
+    return new TFramedTransport.Factory(mThriftFrameSizeMax);
+  }
 }

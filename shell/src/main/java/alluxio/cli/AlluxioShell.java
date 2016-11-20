@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.shell.command.ShellCommand;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
@@ -55,10 +54,6 @@ public final class AlluxioShell implements Closeable {
    * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
-    if (!ConfigurationUtils.validateConf()) {
-      System.out.println("Invalid configuration found, please check user log for details");
-      System.exit(-1);
-    }
     int ret;
     try (AlluxioShell shell = new AlluxioShell()) {
       ret = shell.run(argv);
@@ -130,8 +125,7 @@ public final class AlluxioShell implements Closeable {
   }
 
   /**
-   * Method which determines how to handle the user's request, will display usage help to the user
-   * if command format is incorrect.
+   * Handles the specified shell command request, displaying usage if the command format is invalid.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred

@@ -59,6 +59,16 @@
                   <!-- <th>${liveWorkerNodes}</th> -->
                   <th><%= request.getAttribute("liveWorkerNodes") %></th>
                 </tr>
+                <tr>
+                  <th>Startup Consistency Check:</th>
+                  <th><%= request.getAttribute("consistencyCheckStatus") %></th>
+                </tr>
+                <% if ((Integer) request.getAttribute("inconsistentPaths") != 0) { %>
+                  <tr>
+                    <th><font color="red">Inconsistent Files on Startup (run fs checkConsistency for details):</font></th>
+                    <th><font color="red"><%= request.getAttribute("inconsistentPaths") %></font></th>
+                  </tr>
+                <% } %>
               </tbody>
             </table>
           </div>

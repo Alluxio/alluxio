@@ -21,7 +21,7 @@ import java.util.Properties;
 /**
  * Unit tests for {@link MetricsConfig}.
  */
-public class MetricsConfigTest {
+public final class MetricsConfigTest {
   private Properties mMetricsProps;
 
   /**

@@ -20,8 +20,6 @@ import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -32,7 +30,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Constructs a new {@link OSSUnderFileSystemFactory}.
@@ -47,13 +44,11 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
       try {
         return OSSUnderFileSystem.createInstance(new AlluxioURI(path));
       } catch (Exception e) {
-        LOG.error("Failed to create OSSUnderFileSystem.", e);
         throw Throwables.propagate(e);
       }
     }
 
     String err = "OSS Credentials not available, cannot create OSS Under File System.";
-    LOG.error(err);
     throw Throwables.propagate(new IOException(err));
   }
 

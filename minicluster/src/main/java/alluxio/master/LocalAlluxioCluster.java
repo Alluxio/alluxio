@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.client.file.FileSystem;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AlluxioWorkerService;
 
@@ -105,13 +104,13 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  protected void startMaster() throws IOException {
+  protected void startMaster() throws Exception {
     mMaster = LocalAlluxioMaster.create(mWorkDirectory);
     mMaster.start();
   }
 
   @Override
-  protected void startWorkers() throws IOException, ConnectionFailedException {
+  protected void startWorkers() throws Exception {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
     runWorkers();
@@ -120,11 +119,8 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   @Override
   public void stopFS() throws Exception {
     LOG.info("stop Alluxio filesystem");
-
     // Stopping Workers before stopping master speeds up tests
-    for (AlluxioWorkerService worker : mWorkers) {
-      worker.stop();
-    }
+    stopWorkers();
     mMaster.stop();
   }
 
@@ -133,5 +129,12 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     super.stop();
     // clear HDFS client caching
     System.clearProperty("fs.hdfs.impl.disable.cache");
+  }
+
+  @Override
+  public void stopWorkers() throws Exception {
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
   }
 }

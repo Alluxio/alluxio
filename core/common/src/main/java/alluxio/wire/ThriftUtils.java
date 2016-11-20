@@ -26,8 +26,8 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param blockInfo the thrift representation of a block descriptor
-   * @return wire representation of the block descriptor
+   * @param blockInfo the thrift representation of a block information
+   * @return wire representation of the block information
    */
   public static BlockInfo fromThrift(alluxio.thrift.BlockInfo blockInfo) {
     return new BlockInfo(blockInfo);
@@ -46,8 +46,8 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param jobInfo the thrift representation of a command-line job descriptor
-   * @return wire representation of the command-line job descriptor
+   * @param jobInfo the thrift representation of a command-line job information
+   * @return wire representation of the command-line job information
    */
   public static CommandLineJobInfo fromThrift(alluxio.thrift.CommandLineJobInfo jobInfo) {
     return new CommandLineJobInfo(jobInfo);
@@ -56,8 +56,8 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param fileBlockInfo the thrift representation of a file block descriptor
-   * @return wire representation of the file block descriptor
+   * @param fileBlockInfo the thrift representation of a file block information
+   * @return wire representation of the file block information
    */
   public static FileBlockInfo fromThrift(alluxio.thrift.FileBlockInfo fileBlockInfo) {
     return new FileBlockInfo(fileBlockInfo);
@@ -66,8 +66,8 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param fileInfo the thrift representation of a file descriptor
-   * @return wire representation of the file descriptor
+   * @param fileInfo the thrift representation of a file information
+   * @return wire representation of the file information
    */
   public static FileInfo fromThrift(alluxio.thrift.FileInfo fileInfo) {
     return new FileInfo(fileInfo);
@@ -86,8 +86,8 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param lineageInfo the thrift representation of a lineage descriptor
-   * @return wire representation of the lineage descriptor
+   * @param lineageInfo the thrift representation of a lineage information
+   * @return wire representation of the lineage information
    */
   public static LineageInfo fromThrift(alluxio.thrift.LineageInfo lineageInfo) {
     return new LineageInfo(lineageInfo);
@@ -106,8 +106,8 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param workerInfo the thrift representation of a worker descriptor
-   * @return wire representation of the worker descriptor
+   * @param workerInfo the thrift representation of a worker information
+   * @return wire representation of the worker information
    */
   public static WorkerInfo fromThrift(alluxio.thrift.WorkerInfo workerInfo) {
     return new WorkerInfo(workerInfo);
@@ -130,15 +130,14 @@ public final class ThriftUtils {
    * @return {@link TtlAction} equivalent
    */
   public static TtlAction fromThrift(TTtlAction tTtlAction) {
-
     return TtlAction.fromThrift(tTtlAction);
   }
 
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param blockInfo the wire representation of a block descriptor
-   * @return thrift representation of the block descriptor
+   * @param blockInfo the wire representation of a block information
+   * @return thrift representation of the block information
    */
   public static alluxio.thrift.BlockInfo toThrift(BlockInfo blockInfo) {
     return blockInfo.toThrift();
@@ -157,8 +156,8 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param jobInfo the wire representation of a command-line job descriptor
-   * @return thrift representation of the command-line job descriptor
+   * @param jobInfo the wire representation of a command-line job information
+   * @return thrift representation of the command-line job information
    */
   public static alluxio.thrift.CommandLineJobInfo toThrift(CommandLineJobInfo jobInfo) {
     return jobInfo.toThrift();
@@ -167,8 +166,8 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param fileBlockInfo the wire representation of a file block descriptor
-   * @return thrift representation of the command-line job descriptor
+   * @param fileBlockInfo the wire representation of a file block information
+   * @return thrift representation of the command-line job information
    */
   public static alluxio.thrift.FileBlockInfo toThrift(FileBlockInfo fileBlockInfo) {
     return fileBlockInfo.toThrift();
@@ -177,8 +176,8 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param fileInfo the wire representation of a file descriptor
-   * @return thrift representation of the file descriptor
+   * @param fileInfo the wire representation of a file information
+   * @return thrift representation of the file information
    */
   public static alluxio.thrift.FileInfo toThrift(FileInfo fileInfo) {
     return fileInfo.toThrift();
@@ -197,8 +196,8 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param lineageInfo the wire representation of a lineage descriptor
-   * @return thrift representation of the lineage descriptor
+   * @param lineageInfo the wire representation of a lineage information
+   * @return thrift representation of the lineage information
    */
   public static alluxio.thrift.LineageInfo toThrift(LineageInfo lineageInfo) {
     return lineageInfo.toThrift();
@@ -217,8 +216,8 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param workerInfo the wire representation of a worker descriptor
-   * @return thrift representation of the worker descriptor
+   * @param workerInfo the wire representation of a worker information
+   * @return thrift representation of the worker information
    */
   public static alluxio.thrift.WorkerInfo toThrift(WorkerInfo workerInfo) {
     return workerInfo.toThrift();

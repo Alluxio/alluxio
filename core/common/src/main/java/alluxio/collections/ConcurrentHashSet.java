@@ -99,20 +99,6 @@ public final class ConcurrentHashSet<T> extends AbstractSet<T> {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    // allow equality with any Set.
-    return mMap.keySet().equals(o);
-  }
-
-  @Override
-  public int hashCode() {
-    return mMap.keySet().hashCode();
-  }
-
-  @Override
   public boolean isEmpty() {
     return mMap.isEmpty();
   }

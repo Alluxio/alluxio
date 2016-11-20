@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.client.WriteType;
+import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.PreconditionMessage;
@@ -113,8 +114,8 @@ public final class AlluxioBlockStoreTest {
   }
 
   /**
-   * Tests {@link AlluxioBlockStore#getInStream(long)} when a local block exists, making sure that
-   * the local block is preferred.
+   * Tests {@link AlluxioBlockStore#getInStream(long, InStreamOptions)} when a local block
+   * exists, making sure that the local block is preferred.
    */
   @Test
   public void getInStreamLocal() throws Exception {
@@ -126,13 +127,14 @@ public final class AlluxioBlockStoreTest {
     Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
         new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
-    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
+    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
     Assert.assertEquals(LocalBlockInStream.class, stream.getClass());
   }
 
   /**
-   * Tests {@link AlluxioBlockStore#getInStream(long)} when no local block exists, making sure that
-   * the first {@link BlockLocation} in the {@link BlockInfo} list is chosen.
+   * Tests {@link AlluxioBlockStore#getInStream(long, InStreamOptions)} when no local block
+   * exists, making sure that the first {@link BlockLocation} in the {@link BlockInfo} list is
+   * chosen.
    */
   @Test
   public void getInStreamRemote() throws Exception {
@@ -144,7 +146,7 @@ public final class AlluxioBlockStoreTest {
     Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
         new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
-    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
+    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
     Assert.assertEquals(RemoteBlockInStream.class, stream.getClass());
   }
 

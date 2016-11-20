@@ -86,4 +86,9 @@ public final class PlainSaslTransportProvider implements TransportProvider {
             new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider));
     return saslFactory;
   }
+
+  @Override
+  public TTransportFactory getServerTransportFactory(Runnable runnable) throws SaslException {
+    return getServerTransportFactory();
+  }
 }

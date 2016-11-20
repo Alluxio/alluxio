@@ -42,7 +42,7 @@ Alluxio可以由Apache YARN启动并管理。该指南介绍如何使用Alluxio�
 
 要在EC2上运行Alluxio集群，首先在[Amazon Web Services site](http://aws.amazon.com/)注册一个Amazon EC2帐号。
 
-接着创建[access keys](https://aws.amazon.com/developers/access-keys/)并且设置`AWS_ACCESS_KEY_ID`和`AWS_SECRET_ACCESS_KEY`shell环境变量:
+接着创建[access keys](https://aws.amazon.com/developers/access-keys/)并且设置`AWS_ACCESS_KEY_ID`和`AWS_SECRET_ACCESS_KEY` shell环境变量:
 
 {% include Running-Alluxio-on-EC2-Yarn/access-key.md %}
 
@@ -51,12 +51,14 @@ Alluxio可以由Apache YARN启动并管理。该指南介绍如何使用Alluxio�
 
 {% include Running-Alluxio-on-EC2-Yarn/generate-key-pair.md %}
 
-在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
+将`deploy/vagrant/conf/ec2.yml.template`文件复制一份，命名为`deploy/vagrant/conf/ec2.yml`，并在其中将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
 
 Vagrant脚本默认会在[区域(**us-east-1**)和可用区域(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)中创建一个名为*alluxio-vagrant-test*的[安全组](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)。
-该安全组会在区域中自动建立，而且所有入站及出站的网络流量都将打开。你可以在`ec2.yml`配置文件中设置*security group*、*region*以及*availability zone*的值。
+该安全组会在区域中自动建立，而且所有入站及出站的网络流量都将打开。你可以在`ec2.yml`配置文件中更改安全组、区域以及可用区域。
 
-现在可以启动Alluxio集群，该集群在in us-east-1b中以Hadoop2.4.1为底层文件系统，运行`deploy/vagrant`下的脚本：
+最后，在`deploy/vagrant/conf/ufs.yml`文件中设置"Type"的值为`hadoop2`。
+
+现在你可以运行`deploy/vagrant`下的脚本在us-east-1b区域启动Alluxio集群，该集群以Hadoop2.4.1作为底层文件系统：
 
 {% include Running-Alluxio-on-EC2-Yarn/launch-Alluxio.md %}
 
@@ -98,8 +100,7 @@ Hadoop Web UI的默认端口为**50070**。
 
 {% include Running-Alluxio-on-EC2-Yarn/stop-install-yarn.md %}
 
-添加`-DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.skip`不是严格必须的，但是添加后可以
-使构建过程快很多。
+添加`-DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.skip`不是严格必须的，但是添加后可以使构建过程快很多。
 
 定制Alluxio master和worker的特定属性(例如，每个worker建立分层存储)，参考
 [配置设置](Configuration-Settings.html)获取更多信息。为了确保你的配置可以被ApplicationMaster和

@@ -45,6 +45,7 @@ import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authorization.Permission;
@@ -118,7 +119,8 @@ public class FileOutStreamTest {
     mFactory = PowerMockito.mock(UnderFileSystemFileOutStream.Factory.class);
 
     when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
-    when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
+    when(mFileSystemContext.acquireMasterClientResource())
+        .thenReturn(new DummyCloseableResource<>(mFileSystemMasterClient));
     when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class))).thenReturn(
         new URIStatus(new FileInfo()));
 
@@ -179,9 +181,9 @@ public class FileOutStreamTest {
     when(mUnderFileSystem.create(anyString(), any(CreateOptions.class)))
         .thenReturn(mUnderStorageOutputStream);
 
-    OutStreamOptions options =
-        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults());
+    OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+        .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults())
+        .setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
@@ -425,7 +427,8 @@ public class FileOutStreamTest {
   public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
     for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
-          OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type);
+          OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type)
+              .setUfsPath(FILE_NAME.getPath());
       mTestStream = createTestStream(FILE_NAME, options);
       mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
       mTestStream.flush();

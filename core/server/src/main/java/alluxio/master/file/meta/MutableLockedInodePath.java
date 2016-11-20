@@ -26,8 +26,16 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MutableLockedInodePath extends LockedInodePath {
+  /**
+   * Creates an instance of {@link MutableLockedInodePath}.
+   *
+   * @param uri the URI
+   * @param inodes the inodes
+   * @param lockList the lock list of the inodes
+   * @throws InvalidPathException if the path passed is invalid
+   */
   // TODO(gpang): restructure class hierarchy, rename class
-  MutableLockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList)
+  public MutableLockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList)
       throws InvalidPathException {
     super(uri, inodes, lockList);
   }
@@ -38,7 +46,7 @@ public class MutableLockedInodePath extends LockedInodePath {
    * @return the closest ancestor inode
    * @throws FileDoesNotExistException if an ancestor does not exist
    */
-  public synchronized Inode getAncestorInode() throws FileDoesNotExistException {
+  public synchronized Inode<?> getAncestorInode() throws FileDoesNotExistException {
     int ancestorIndex = mPathComponents.length - 2;
     if (ancestorIndex < 0) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));

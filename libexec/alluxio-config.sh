@@ -38,6 +38,11 @@ if [[ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]]; then
   ALLUXIO_JARS="${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
+if [[ -z "$(which java)" ]]; then
+  echo "Cannot find `java` command"
+  exit 1
+fi
+
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 
@@ -88,6 +93,10 @@ ALLUXIO_JAVA_OPTS+=" -Djava.net.preferIPv4Stack=true"
 # Master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=MASTER_LOGGER"
+
+# Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
+ALLUXIO_PROXY_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.logger.type=PROXY_LOGGER"
 
 # Worker specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_WORKER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}

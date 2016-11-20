@@ -55,7 +55,7 @@ public class JournalReader {
    * @param journal the handle to the journal
    */
   JournalReader(Journal journal) {
-    mJournal = Preconditions.checkNotNull(journal);
+    mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = UnderFileSystem.get(mJournal.getDirectory());
     mCheckpointPath = mJournal.getCheckpointFilePath();
   }

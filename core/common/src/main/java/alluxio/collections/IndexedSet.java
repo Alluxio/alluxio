@@ -165,7 +165,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   @Override
   public boolean add(T object) {
-    Preconditions.checkNotNull(object);
+    Preconditions.checkNotNull(object, "object");
 
     // Locking this object protects against removing the exact object, but does not protect against
     // removing a distinct, but equivalent object.
@@ -187,7 +187,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * order. It is to implement {@link Iterable} so that users can foreach the {@link IndexedSet}
    * directly.
    *
-   * Note that the behaviour of the iterator is unspecified if the underlying collection is
+   * Note that the behavior of the iterator is unspecified if the underlying collection is
    * modified while a thread is going through the iterator.
    *
    * @return an iterator over the elements in this {@link IndexedSet}

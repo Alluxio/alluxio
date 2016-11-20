@@ -251,7 +251,7 @@ public final class SetAttributeOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("mPinned", mPinned)
+        .add("pinned", mPinned)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)
         .add("persisted", mPersisted)

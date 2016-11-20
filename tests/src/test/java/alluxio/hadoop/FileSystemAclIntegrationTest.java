@@ -137,8 +137,15 @@ public final class FileSystemAclIntegrationTest {
     create(sTFS, fileA);
     FileStatus fs = sTFS.getFileStatus(fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
-    // Default permission should be 0644
-    Assert.assertEquals((short) 0644, fs.getPermission().toShort());
+
+    if (sUfs instanceof HdfsUnderFileSystem && HadoopClientTestUtils.isHadoop1x()) {
+      // If the UFS is hadoop 1.0, the org.apache.hadoop.fs.FileSystem.create uses default
+      // permission option 0777.
+      Assert.assertEquals((short) 0777, fs.getPermission().toShort());
+    } else {
+      // Default permission should be 0644.
+      Assert.assertEquals((short) 0644, fs.getPermission().toShort());
+    }
 
     sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
     Assert.assertEquals((short) 0755, sTFS.getFileStatus(fileA).getPermission().toShort());
@@ -427,6 +434,55 @@ public final class FileSystemAclIntegrationTest {
     sTFS.rename(dirA, dirB);
     Assert.assertEquals((int) parentMode,
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileB.getParent())));
+  }
+
+  /**
+   * Tests the loaded file metadata from UFS having the same mode as that in the UFS.
+   */
+  @Test
+  public void loadFileMetadataMode() throws Exception {
+    if (!(sUfs instanceof LocalUnderFileSystem)
+        && !(sUfs instanceof HdfsUnderFileSystem && HadoopClientTestUtils.isHadoop2x())) {
+      // Skip non-local and non-HDFS-2 UFSs.
+      return;
+    }
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+
+    for (int value : permissionValues) {
+      Path file = new Path("/loadFileMetadataMode" + value);
+      // Create a file directly in UFS and set the corresponding mode.
+      String ufsPath = PathUtils.concatPath(sUfsRoot, file);
+      sUfs.create(ufsPath).close();
+      sUfs.setMode(ufsPath, (short) value);
+      Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, file)));
+      // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
+      Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
+    }
+  }
+
+  /**
+   * Tests the loaded directory metadata from UFS having the same mode as that in the UFS.
+   */
+  @Test
+  public void loadDirMetadataMode() throws Exception {
+    if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
+      // Skip non-local and non-HDFS UFSs.
+      return;
+    }
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+
+    for (int value : permissionValues) {
+      Path file = new Path("/loadDirMetadataMode" + value);
+      // Create a directory directly in UFS and set the corresponding mode.
+      String ufsPath = PathUtils.concatPath(sUfsRoot, file);
+      sUfs.mkdirs(ufsPath, false);
+      sUfs.setMode(ufsPath, (short) value);
+      Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, file)));
+      // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
+      Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
+    }
   }
 
   @Test

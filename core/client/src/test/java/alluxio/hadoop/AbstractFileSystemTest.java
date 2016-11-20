@@ -37,7 +37,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -45,12 +44,9 @@ import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,12 +74,13 @@ public class AbstractFileSystemTest {
   public void before() throws Exception {
     mockUserGroupInformation();
 
-    if (isHadoop1x()) {
+    if (HadoopClientTestUtils.isHadoop1x()) {
       LOG.debug("Running Alluxio FS tests against hadoop 1x");
-    } else if (isHadoop2x()) {
+    } else if (HadoopClientTestUtils.isHadoop2x()) {
       LOG.debug("Running Alluxio FS tests against hadoop 2x");
     } else {
-      LOG.warn("Running Alluxio FS tests against untargeted Hadoop version: " + getHadoopVersion());
+      LOG.warn("Running Alluxio FS tests against untargeted Hadoop version: "
+          + HadoopClientTestUtils.getHadoopVersion());
     }
   }
 
@@ -93,43 +90,13 @@ public class AbstractFileSystemTest {
     ClientTestUtils.resetClient();
   }
 
-  private ClassLoader getClassLoader(Class<?> clazz) {
-    // Power Mock makes this hard, so try to hack it
-    ClassLoader cl = clazz.getClassLoader();
-    if (cl instanceof MockClassLoader) {
-      cl = cl.getParent();
-    }
-    return cl;
-  }
-
-  private String getHadoopVersion() {
-    try {
-      final URL url = getSourcePath(org.apache.hadoop.fs.FileSystem.class);
-      final File path = new File(url.toURI());
-      final String[] splits = path.getName().split("-");
-      final String last = splits[splits.length - 1];
-      return last.substring(0, last.lastIndexOf("."));
-    } catch (URISyntaxException e) {
-      throw new AssertionError(e);
-    }
-  }
-
-  private URL getSourcePath(Class<?> clazz) {
-    try {
-      clazz = getClassLoader(clazz).loadClass(clazz.getName());
-      return clazz.getProtectionDomain().getCodeSource().getLocation();
-    } catch (ClassNotFoundException e) {
-      throw new AssertionError("Unable to find class " + clazz.getName());
-    }
-  }
-
   /**
    * Ensures that Hadoop loads {@link FaultTolerantFileSystem} when configured.
    */
   @Test
   public void hadoopShouldLoadFaultTolerantFileSystemWhenConfigured() throws Exception {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    if (isHadoop1x()) {
+    if (HadoopClientTestUtils.isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
     }
 
@@ -244,17 +211,9 @@ public class AbstractFileSystemTest {
     Assert.assertTrue(modificationTime == 111L);
   }
 
-  private boolean isHadoop1x() {
-    return getHadoopVersion().startsWith("1");
-  }
-
-  private boolean isHadoop2x() {
-    return getHadoopVersion().startsWith("2");
-  }
-
   private org.apache.hadoop.conf.Configuration getConf() throws Exception {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    if (isHadoop1x()) {
+    if (HadoopClientTestUtils.isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
     }
     return conf;
