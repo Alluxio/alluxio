@@ -208,7 +208,7 @@ public class AbstractFileSystemTest {
 
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(p);
     long modificationTime = fileStatuses[0].getModificationTime();
-    Assert.assertTrue(modificationTime == 111L);
+    Assert.assertEquals(111L, modificationTime);
   }
 
   private org.apache.hadoop.conf.Configuration getConf() throws Exception {
