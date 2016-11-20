@@ -20,6 +20,12 @@ import org.slf4j.LoggerFactory;
 public final class RunUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Runs the given server.
+   *
+   * @param server the server to run
+   * @param name the server name
+   */
   public static void run(Server server, String name) {
     try {
       server.start();
