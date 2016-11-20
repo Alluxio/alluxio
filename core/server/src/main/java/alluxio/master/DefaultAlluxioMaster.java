@@ -165,7 +165,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
       mAdditionalMasters = new ArrayList<>();
       List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
-      for (MasterFactory factory : AlluxioMaster.getServiceLoader()) {
+      for (MasterFactory factory : AlluxioMasterService.Factory.getServiceLoader()) {
         Master master = factory.create(masters, journalDirectory);
         if (master != null) {
           mAdditionalMasters.add(master);

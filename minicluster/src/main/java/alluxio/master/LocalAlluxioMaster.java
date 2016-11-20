@@ -57,7 +57,7 @@ public final class LocalAlluxioMaster {
   private LocalAlluxioMaster() throws IOException {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
     mJournalFolder = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    mAlluxioMaster = AlluxioMaster.Factory.create();
+    mAlluxioMaster = AlluxioMasterService.Factory.create();
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -159,7 +159,7 @@ public final class LocalAlluxioMaster {
   }
 
   /**
-   * @return the internal {@link AlluxioMaster}
+   * @return the internal {@link AlluxioMasterService}
    */
   public AlluxioMasterService getInternalMaster() {
     return mAlluxioMaster;

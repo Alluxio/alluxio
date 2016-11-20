@@ -12,14 +12,18 @@
 package alluxio.worker;
 
 import alluxio.Constants;
+import alluxio.RunUtils;
 import alluxio.RuntimeConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Entry point for the Alluxio worker.
  */
+@ThreadSafe
 public final class AlluxioWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -38,22 +42,8 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
 
-    AlluxioWorkerService worker = null;
-    try {
-      worker = new DefaultAlluxioWorker();
-      worker.start();
-    } catch (Exception e) {
-      LOG.error("Uncaught exception while running Alluxio worker, stopping it and exiting.", e);
-      try {
-        if (worker != null) {
-          worker.stop();
-        }
-      } catch (Exception e2) {
-        // continue to exit
-        LOG.error("Uncaught exception while stopping Alluxio worker, simply exiting.", e2);
-      }
-      System.exit(-1);
-    }
+    AlluxioWorkerService worker = new DefaultAlluxioWorker();
+    RunUtils.run(worker, "Alluxio worker");
   }
 
   private AlluxioWorker() {} // prevent instantiation

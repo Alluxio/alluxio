@@ -149,7 +149,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Formats the journal
     UnderFileSystemUtils.mkdirIfNotExists(journalFolder);
-    for (String masterServiceName : AlluxioMaster.getServiceNames()) {
+    for (String masterServiceName : AlluxioMasterService.Factory.getServiceNames()) {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName));
     }
     UnderFileSystemUtils

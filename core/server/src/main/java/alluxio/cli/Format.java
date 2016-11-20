@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.master.AlluxioMaster;
+import alluxio.master.AlluxioMasterService;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -73,7 +74,7 @@ public final class Format {
         System.exit(-1);
       }
 
-      for (String masterServiceName : AlluxioMaster.getServiceNames()) {
+      for (String masterServiceName : AlluxioMasterService.Factory.getServiceNames()) {
         if (!formatFolder(masterServiceName + "_JOURNAL_FOLDER", PathUtils.concatPath(masterJournal,
             masterServiceName))) {
           System.exit(-1);
