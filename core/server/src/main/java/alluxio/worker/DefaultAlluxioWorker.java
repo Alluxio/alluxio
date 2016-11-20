@@ -125,13 +125,15 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       // Setup web server
       mWebServer =
           new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this,
-              mBlockWorker, NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC), mStartTimeMs);
+              mBlockWorker, NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC),
+              mStartTimeMs);
 
       // Setup Thrift server
       mTransportProvider = TransportProvider.Factory.create();
       mThriftServerSocket = createThriftServerSocket();
       int rpcPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
-      String rpcHost = NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress().getHostAddress();
+      String rpcHost = NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
+          .getHostAddress();
       mRpcAddress = new InetSocketAddress(rpcHost, rpcPort);
       mThriftServer = createThriftServer();
 

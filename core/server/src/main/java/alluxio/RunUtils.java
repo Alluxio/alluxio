@@ -39,6 +39,7 @@ public final class RunUtils {
       }
       System.exit(-1);
     }
-
   }
+
+  private RunUtils() {} // prevent instantiation
 }

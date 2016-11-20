@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
-import alluxio.master.AlluxioMaster;
 import alluxio.master.AlluxioMasterService;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;

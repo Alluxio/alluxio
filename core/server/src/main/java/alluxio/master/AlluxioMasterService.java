@@ -60,7 +60,8 @@ public interface AlluxioMasterService extends Server {
       }
       // Discover and register the available factories.
       // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader.
-      sServiceLoader = ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
+      sServiceLoader =
+          ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
       return sServiceLoader;
     }
 
