@@ -26,7 +26,6 @@ import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -190,25 +189,50 @@ public class AbstractFileSystemTest {
    * {@link URIStatus#getLastModificationTimeMs()} correctly.
    */
   @Test
-  public void listStatusModificationTimeTest() throws Exception {
+  public void listStatus() throws Exception {
     URI uri = URI.create(Constants.HEADER + "localhost:19998/");
     org.apache.hadoop.fs.FileSystem alluxioHadoopFs =
         org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
-    FileInfo fileInfo = new FileInfo();
-    fileInfo.setLastModificationTimeMs(111L);
-    List<URIStatus> uris = Lists.newArrayList(new URIStatus(fileInfo));
+    FileInfo fileInfo1 = new FileInfo()
+        .setLastModificationTimeMs(111L)
+        .setFolder(false)
+        .setOwner("user1")
+        .setGroup("group1")
+        .setMode(00755);
+    FileInfo fileInfo2 = new FileInfo()
+        .setLastModificationTimeMs(222L)
+        .setFolder(true)
+        .setOwner("user2")
+        .setGroup("group2")
+        .setMode(00644);
 
     Path p = new Path("/dir");
-    alluxio.client.file.FileSystem alluxioFs =
-        Mockito.mock(alluxio.client.file.FileSystem.class);
-    Whitebox.setInternalState(FileSystem.class, "sFileSystem", alluxioFs);
-    Mockito.when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(p))))
-        .thenReturn(uris);
+    mockAlluxioFsListStatusHelper(p, fileInfo1, fileInfo2);
 
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(p);
-    long modificationTime = fileStatuses[0].getModificationTime();
-    Assert.assertEquals(111L, modificationTime);
+    assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
+    assertFileInfoEqualsFileStatus(fileInfo2, fileStatuses[1]);
+  }
+
+  @Test
+  public void getStatus() throws Exception {
+    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
+    org.apache.hadoop.fs.FileSystem alluxioHadoopFs =
+        org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+
+    FileInfo fileInfo = new FileInfo()
+        .setLastModificationTimeMs(111L)
+        .setFolder(false)
+        .setOwner("user1")
+        .setGroup("group1")
+        .setMode(00755);
+
+    Path p = new Path("/dir");
+    mockAlluxioFsGetStatusHelper(p, fileInfo);
+
+    FileStatus fileStatus = alluxioHadoopFs.getFileStatus(p);
+    assertFileInfoEqualsFileStatus(fileInfo, fileStatus);
   }
 
   private org.apache.hadoop.conf.Configuration getConf() throws Exception {
@@ -224,5 +248,45 @@ public class AbstractFileSystemTest {
     PowerMockito.mockStatic(UserGroupInformation.class);
     final UserGroupInformation ugi = Mockito.mock(UserGroupInformation.class);
     Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
+  }
+
+  /**
+   * Sets returned status when listStatus is called in Alluxio FS.
+   *
+   * @param path the path to list status
+   * @param infos the list of file infos
+   */
+  private void mockAlluxioFsListStatusHelper(Path path, FileInfo... infos) throws Exception {
+    List<URIStatus> uris = new ArrayList<>();
+    for (FileInfo info : infos) {
+      uris.add(new URIStatus(info));
+    }
+    alluxio.client.file.FileSystem alluxioFs =
+        Mockito.mock(alluxio.client.file.FileSystem.class);
+    Whitebox.setInternalState(FileSystem.class, "sFileSystem", alluxioFs);
+    Mockito.when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        .thenReturn(uris);
+  }
+
+  /**
+   * Sets returned status when getStatus is called in Alluxio FS.
+   *
+   * @param path the path to get status
+   * @param info the file info returned
+   */
+  private void mockAlluxioFsGetStatusHelper(Path path, FileInfo info) throws Exception {
+    alluxio.client.file.FileSystem alluxioFs =
+        Mockito.mock(alluxio.client.file.FileSystem.class);
+    Whitebox.setInternalState(FileSystem.class, "sFileSystem", alluxioFs);
+    Mockito.when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        .thenReturn(new URIStatus(info));
+  }
+
+  private void assertFileInfoEqualsFileStatus(FileInfo info, FileStatus status) {
+    Assert.assertEquals(info.getOwner(), status.getOwner());
+    Assert.assertEquals(info.getGroup(), status.getGroup());
+    Assert.assertEquals(info.getMode(), status.getPermission().toShort());
+    Assert.assertEquals(info.getLastModificationTimeMs(), status.getModificationTime());
+    Assert.assertEquals(info.isFolder(), status.isDirectory());
   }
 }
