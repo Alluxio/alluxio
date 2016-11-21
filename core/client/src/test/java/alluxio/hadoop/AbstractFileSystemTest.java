@@ -11,6 +11,7 @@
 
 package alluxio.hadoop;
 
+import alluxio.AlluxioURI;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -20,9 +21,14 @@ import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.URIStatus;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.wire.FileInfo;
 
+import com.google.common.collect.Lists;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
 import org.junit.Assert;
@@ -177,6 +183,32 @@ public class AbstractFileSystemTest {
       t.join();
     }
     Mockito.verify(fileSystemContext).reset();
+  }
+
+  /**
+   * Tests that the {@link AbstractFileSystem#listStatus(Path)} method uses
+   * {@link URIStatus#getLastModificationTimeMs()} correctly.
+   */
+  @Test
+  public void listStatusModificationTimeTest() throws Exception {
+    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
+    org.apache.hadoop.fs.FileSystem alluxioHadoopFs =
+        org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.setLastModificationTimeMs(111L);
+    List<URIStatus> uris = Lists.newArrayList(new URIStatus(fileInfo));
+
+    Path p = new Path("/dir");
+    alluxio.client.file.FileSystem alluxioFs =
+        Mockito.mock(alluxio.client.file.FileSystem.class);
+    Whitebox.setInternalState(FileSystem.class, "sFileSystem", alluxioFs);
+    Mockito.when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(p))))
+        .thenReturn(uris);
+
+    FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(p);
+    long modificationTime = fileStatuses[0].getModificationTime();
+    Assert.assertEquals(111L, modificationTime);
   }
 
   private org.apache.hadoop.conf.Configuration getConf() throws Exception {

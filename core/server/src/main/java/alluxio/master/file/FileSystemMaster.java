@@ -126,8 +126,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -429,11 +432,120 @@ public final class FileSystemMaster extends AbstractMaster {
         mStartupConsistencyCheck = getExecutorService().submit(new Callable<List<AlluxioURI>>() {
           @Override
           public List<AlluxioURI> call() throws Exception {
-            return checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+            return startupCheckConsistency(ExecutorServiceFactories
+                .fixedThreadPoolExecutorServiceFactory("startup-consistency-check", 32).create());
           }
         });
       }
     }
+  }
+
+  /**
+   * Checks the consistency of the root in a multi-threaded and incremental fashion. This method
+   * will only READ lock the directories and files actively being checked and release them after the
+   * check on the file / directory is complete.
+   *
+   * @return a list of paths in Alluxio which are not consistent with the under storage
+   * @throws InterruptedException if the thread is interrupted during execution
+   * @throws IOException if an error occurs interacting with the under storage
+   */
+  private List<AlluxioURI> startupCheckConsistency(final ExecutorService service)
+      throws InterruptedException, IOException {
+    /** A marker {@link StartupConsistencyChecker}s add to the queue to signal completion */
+    final long completionMarker = -1;
+    /** A shared queue of directories which have yet to be checked */
+    final BlockingQueue<Long> dirsToCheck = new LinkedBlockingQueue<>();
+
+    /**
+     * A {@link Callable} which checks the consistency of a directory.
+     */
+    final class StartupConsistencyChecker implements Callable<List<AlluxioURI>> {
+      /** The path to check, guaranteed to be a directory in Alluxio. */
+      private final Long mFileId;
+
+      /**
+       * Creates a new callable which checks the consistency of a directory.
+       * @param fileId the path to check
+       */
+      private StartupConsistencyChecker(Long fileId) {
+        mFileId = fileId;
+      }
+
+      /**
+       * Checks the consistency of the directory and all immediate children which are files. All
+       * immediate children which are directories are added to the shared queue of directories to
+       * check. The parent directory is READ locked during the entire call while the children are
+       * READ locked only during the consistency check of the children files.
+       *
+       * @return a list of inconsistent uris
+       * @throws IOException if an error occurs interacting with the under storage
+       */
+      @Override
+      public List<AlluxioURI> call() throws IOException {
+        List<AlluxioURI> inconsistentUris = new ArrayList<>();
+        try (LockedInodePath dir = mInodeTree.lockFullInodePath(mFileId, InodeTree.LockMode.READ)) {
+          Inode parentInode = dir.getInode();
+          AlluxioURI parentUri = dir.getUri();
+          if (!checkConsistencyInternal(parentInode, parentUri)) {
+            inconsistentUris.add(parentUri);
+          }
+          for (Inode childInode : ((InodeDirectory) parentInode).getChildren()) {
+            AlluxioURI childUri = parentUri.join(childInode.getName());
+            if (childInode.isDirectory()) {
+              dirsToCheck.add(childInode.getId());
+            } else {
+              childInode.lockRead();
+              try {
+                if (!checkConsistencyInternal(childInode, childUri)) {
+                  inconsistentUris.add(childUri);
+                }
+              } finally {
+                childInode.unlockRead();
+              }
+            }
+          }
+        } catch (FileDoesNotExistException e) {
+          // This should be safe, continue.
+          LOG.debug("A file scheduled for consistency check was deleted before the check.");
+        } catch (InvalidPathException e) {
+          // This should not happen.
+          LOG.error("An invalid path was discovered during the consistency check, skipping.", e);
+        }
+        dirsToCheck.add(completionMarker);
+        return inconsistentUris;
+      }
+    }
+
+    // Add the root to the directories to check.
+    dirsToCheck.add(mInodeTree.getRoot().getId());
+    List<Future<List<AlluxioURI>>> results = new ArrayList<>();
+    // Tracks how many checkers have been started.
+    long started = 0;
+    // Tracks how many checkers have completed.
+    long completed = 0;
+    do {
+      Long fileId = dirsToCheck.take();
+      if (fileId == completionMarker) { // A thread signaled completion.
+        completed++;
+      } else { // A new directory needs to be checked.
+        StartupConsistencyChecker checker = new StartupConsistencyChecker(fileId);
+        results.add(service.submit(checker));
+        started++;
+      }
+    } while (started != completed);
+
+    // Return the total set of inconsistent paths discovered.
+    List<AlluxioURI> inconsistentUris = new ArrayList<>();
+    for (Future<List<AlluxioURI>> result : results) {
+      try {
+        inconsistentUris.addAll(result.get());
+      } catch (Exception e) {
+        // This shouldn't happen, all futures should be complete.
+        Throwables.propagate(e);
+      }
+    }
+    service.shutdown();
+    return inconsistentUris;
   }
 
   /**
