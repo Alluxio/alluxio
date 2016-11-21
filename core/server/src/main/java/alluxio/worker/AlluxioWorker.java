@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Constants;
-import alluxio.RunUtils;
+import alluxio.ServerUtils;
 import alluxio.RuntimeConstants;
 
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ public final class AlluxioWorker {
     }
 
     AlluxioWorkerService worker = AlluxioWorkerService.Factory.create();
-    RunUtils.run(worker, "Alluxio worker");
+    ServerUtils.run(worker, "Alluxio worker");
   }
 
   private AlluxioWorker() {} // prevent instantiation

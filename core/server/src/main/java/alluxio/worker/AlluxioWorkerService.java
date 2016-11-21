@@ -18,7 +18,6 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
 
 import java.net.InetSocketAddress;
-import java.util.ServiceLoader;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,28 +30,11 @@ public interface AlluxioWorkerService extends Server {
    */
   @ThreadSafe
   final class Factory {
-    /** The worker service loaders. */
-    private static ServiceLoader<WorkerFactory> sServiceLoader;
-
     /**
      * @return a new instance of {@link AlluxioWorkerService}
      */
     public static AlluxioWorkerService create() {
       return new DefaultAlluxioWorker();
-    }
-
-    /**
-     * @return the (cached) worker service loader
-     */
-    static synchronized ServiceLoader<WorkerFactory> getServiceLoader() {
-      if (sServiceLoader != null) {
-        return sServiceLoader;
-      }
-      // Discover and register the available factories.
-      // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader.
-      sServiceLoader =
-          ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
-      return sServiceLoader;
     }
 
     private Factory() {} // prevent instantiation

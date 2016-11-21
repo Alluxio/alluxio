@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.ServerUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
@@ -110,7 +111,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
       mAdditionalWorkers = new ArrayList<>();
       List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
-      for (WorkerFactory factory : AlluxioWorkerService.Factory.getServiceLoader()) {
+      for (WorkerFactory factory : ServerUtils.getWorkerServiceLoader()) {
         Worker worker = factory.create(workers);
         if (worker != null) {
           mAdditionalWorkers.add(worker);
