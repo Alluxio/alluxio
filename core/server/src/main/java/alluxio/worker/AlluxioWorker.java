@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Constants;
-import alluxio.RunUtils;
+import alluxio.ServerUtils;
 import alluxio.RuntimeConstants;
 
 import org.slf4j.Logger;
@@ -30,9 +30,6 @@ public final class AlluxioWorker {
   /**
    * Starts the Alluxio worker.
    *
-   * A block worker will be started and the Alluxio worker will continue to run until the block
-   * worker thread exits.
-   *
    * @param args command line arguments, should be empty
    */
   public static void main(String[] args) {
@@ -42,8 +39,8 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
 
-    AlluxioWorkerService worker = new DefaultAlluxioWorker();
-    RunUtils.run(worker, "Alluxio worker");
+    AlluxioWorkerService worker = AlluxioWorkerService.Factory.create();
+    ServerUtils.run(worker, "Alluxio worker");
   }
 
   private AlluxioWorker() {} // prevent instantiation
