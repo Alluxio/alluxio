@@ -100,7 +100,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
 
           // When transitioning from master to standby, recreate the masters with a read-only
           // journal.
-          initMasters(new JournalFactory.ReadOnly(getJournalDirectory()));
+          createMasters(new JournalFactory.ReadOnly(getJournalDirectory()));
 
           startMasters(false);
           started = true;

@@ -134,7 +134,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
       // Create the journals.
-      initMasters(new JournalFactory.ReadWrite(getJournalDirectory()));
+      createMasters(new JournalFactory.ReadWrite(getJournalDirectory()));
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
@@ -157,7 +157,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   /**
    * @param journalFactory the factory to use for creating journals
    */
-  protected void initMasters(JournalFactory journalFactory) {
+  protected void createMasters(JournalFactory journalFactory) {
     mBlockMaster = new BlockMaster(journalFactory);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
     if (LineageUtils.isLineageEnabled()) {
