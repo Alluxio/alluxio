@@ -182,6 +182,11 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     mAccountMode = mode;
   }
 
+  @Override
+  public String getUnderFSType() {
+    return "swift";
+  }
+
   /**
    * Creates a simulated or actual OutputStream for object uploads.
    * @throws IOException if failed to create path
@@ -318,54 +323,9 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return mkdirsInternal(path);
   }
 
-  /**
-   * Creates a directory flagged file with the folder suffix.
-   *
-   * @param path the path to create a folder
-   * @return true if the operation was successful, false otherwise
-   */
-  private boolean mkdirsInternal(String path) {
-    try {
-      // We do not check if a file with same name exists, i.e. a file with name
-      // 'swift://swift-container/path' and a folder with name 'swift://swift-container/path/'
-      // may both exist simultaneously
-      createOutputStream(addFolderSuffixIfNotPresent(path)).close();
-      return true;
-    } catch (IOException e) {
-      LOG.error("Failed to create directory: {}", path, e);
-      return false;
-    }
-  }
-
-  /**
-   * Checks if the parent directory exists, treating Swift as a file system.
-   *
-   * @param path the path to check
-   * @return true if the parent exists or if the path is root, false otherwise
-   */
-  private boolean parentExists(String path) throws IOException {
-    final String parentPath = getParentKey(path);
-    return parentPath != null && isDirectory(parentPath);
-  }
-
-  @Override
-  protected String getRootKey() {
-    return Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
-  }
-
   @Override
   public InputStream open(String path) throws IOException {
     return new SwiftInputStream(mAccount, mContainerName, stripContainerPrefixIfPresent(path));
-  }
-
-  /**
-   * A trailing {@link SwiftUnderFileSystem#FOLDER_SUFFIX} is added if not present.
-   *
-   * @param path URI to the object
-   * @return folder path
-   */
-  private String addFolderSuffixIfNotPresent(final String path) {
-    return PathUtils.normalizePath(path, FOLDER_SUFFIX);
   }
 
   @Override
@@ -448,6 +408,26 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
+   * A trailing {@link SwiftUnderFileSystem#FOLDER_SUFFIX} is added if not present.
+   *
+   * @param path URI to the object
+   * @return folder path
+   */
+  private String addFolderSuffixIfNotPresent(final String path) {
+    return PathUtils.normalizePath(path, FOLDER_SUFFIX);
+  }
+
+  /**
+   * Appends the directory suffix ands strips container prefix from path.
+   *
+   * @param  path the path to convert
+   * @return path as a directory path
+   */
+  private String convertToFolderName(String path) {
+    return addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
+  }
+
+  /**
    * Copies an object to another name. Destination will be overwritten if it already exists.
    *
    * @param source the source path to copy
@@ -479,14 +459,62 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return false;
   }
 
+
   /**
-   * Appends the directory suffix ands strips container prefix from path.
+   * Deletes an object if it exists.
    *
-   * @param  path the path to convert
-   * @return path as a directory path
+   * @param object object handle to delete
+   * @return true if object deletion was successful
    */
-  private String convertToFolderName(String path) {
-    return addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
+  private boolean deleteObject(final StoredObject object) {
+    try {
+      object.delete();
+      return true;
+    } catch (CommandException e) {
+      LOG.debug("Object {} not found", object.getPath());
+    }
+    return false;
+  }
+
+  /**
+   * Check if the object at given path exists. The object could be either a file or directory.
+   * @param path path of object
+   * @return true if the object exists
+   */
+  private boolean doesObjectExist(String path) {
+    boolean exist = false;
+    try {
+      exist = getObject(path).exists();
+    } catch (CommandException e) {
+      LOG.debug("Error getting object details for {}", path);
+    }
+    return exist;
+  }
+
+  /**
+   * Get container name from AlluxioURI.
+   * @param uri URI used to construct Swift UFS
+   * @return the container name from the given uri
+   */
+  protected static String getContainerName(AlluxioURI uri) {
+    //Authority contains the user, host and port portion of a URI
+    return uri.getAuthority();
+  }
+
+  /**
+   * Retrieves a handle to an object identified by the given path.
+   *
+   * @param path the path to retrieve an object handle for
+   * @return the object handle
+   */
+  private StoredObject getObject(final String path) {
+    Container container = mAccount.getContainer(mContainerName);
+    return container.getObject(stripContainerPrefixIfPresent(path));
+  }
+
+  @Override
+  protected String getRootKey() {
+    return Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
   }
 
   /**
@@ -565,6 +593,36 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
+   * Creates a directory flagged file with the folder suffix.
+   *
+   * @param path the path to create a folder
+   * @return true if the operation was successful, false otherwise
+   */
+  private boolean mkdirsInternal(String path) {
+    try {
+      // We do not check if a file with same name exists, i.e. a file with name
+      // 'swift://swift-container/path' and a folder with name 'swift://swift-container/path/'
+      // may both exist simultaneously
+      createOutputStream(addFolderSuffixIfNotPresent(path)).close();
+      return true;
+    } catch (IOException e) {
+      LOG.error("Failed to create directory: {}", path, e);
+      return false;
+    }
+  }
+
+  /**
+   * Checks if the parent directory exists, treating Swift as a file system.
+   *
+   * @param path the path to check
+   * @return true if the parent exists or if the path is root, false otherwise
+   */
+  private boolean parentExists(String path) throws IOException {
+    final String parentPath = getParentKey(path);
+    return parentPath != null && isDirectory(parentPath);
+  }
+
+  /**
    * Strips the folder suffix if it exists. This is a string manipulation utility and does not
    * guarantee the existence of the folder. This method will leave paths without a suffix unaltered.
    *
@@ -585,62 +643,5 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    */
   private String stripContainerPrefixIfPresent(final String path) {
     return CommonUtils.stripPrefixIfPresent(path, getRootKey());
-  }
-
-  /**
-   * Retrieves a handle to an object identified by the given path.
-   *
-   * @param path the path to retrieve an object handle for
-   * @return the object handle
-   */
-  private StoredObject getObject(final String path) {
-    Container container = mAccount.getContainer(mContainerName);
-    return container.getObject(stripContainerPrefixIfPresent(path));
-  }
-
-  /**
-   * Check if the object at given path exists. The object could be either a file or directory.
-   * @param path path of object
-   * @return true if the object exists
-   */
-  private boolean doesObjectExist(String path) {
-    boolean exist = false;
-    try {
-      exist = getObject(path).exists();
-    } catch (CommandException e) {
-      LOG.debug("Error getting object details for {}", path);
-    }
-    return exist;
-  }
-
-  /**
-   * Deletes an object if it exists.
-   *
-   * @param object object handle to delete
-   * @return true if object deletion was successful
-   */
-  private boolean deleteObject(final StoredObject object) {
-    try {
-      object.delete();
-      return true;
-    } catch (CommandException e) {
-      LOG.debug("Object {} not found", object.getPath());
-    }
-    return false;
-  }
-
-  /**
-   * Get container name from AlluxioURI.
-   * @param uri URI used to construct Swift UFS
-   * @return the container name from the given uri
-   */
-  protected static String getContainerName(AlluxioURI uri) {
-    //Authority contains the user, host and port portion of a URI
-    return uri.getAuthority();
-  }
-
-  @Override
-  public String getUnderFSType() {
-    return "swift";
   }
 }

@@ -676,9 +676,4 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
     }
     return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
   }
-
-  @Override
-  public boolean supportsFlush() {
-    return false;
-  }
 }
