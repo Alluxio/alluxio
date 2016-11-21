@@ -184,8 +184,9 @@ public final class AlluxioBlockStoreTest {
 
   @Test
   public void getOutStreamLocal() throws Exception {
+    File tmp = File.createTempFile("alluxio-test", "tmp");
     Mockito.when(mBlockWorkerClient.requestBlockLocation(Matchers.eq(BLOCK_ID), Matchers.anyLong()))
-        .thenReturn("test_path");
+        .thenReturn(tmp.getAbsolutePath());
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setLocationPolicy(new MockFileWriteLocationPolicy(
