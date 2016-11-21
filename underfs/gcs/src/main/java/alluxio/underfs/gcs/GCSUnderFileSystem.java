@@ -42,8 +42,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -482,98 +480,73 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  protected String getFolderSuffix() {
+    return FOLDER_SUFFIX;
+  }
+
+  @Override
+  protected ObjectListingResult getObjectListing(String path, boolean recursive)
+      throws IOException {
+    return new GCSObjectListingResult(path, recursive);
+  }
+
+  /**
+   * Wrapper over GCS {@link StorageObjectsChunk}.
+   */
+  final class GCSObjectListingResult implements ObjectListingResult {
+    StorageObjectsChunk mChunk;
+    String mDelimiter;
+    boolean mDone;
+    String mPath;
+    String mPriorLastKey;
+
+    public GCSObjectListingResult(String path, boolean recursive) {
+      mDelimiter = recursive ? "" : PATH_SEPARATOR;
+      mDone = false;
+      mPath = path;
+      mPriorLastKey = null;
+    }
+
+    @Override
+    public String[] getObjectNames() {
+      StorageObject[] objects = mChunk.getObjects();
+      String[] ret = new String[objects.length];
+      for (int i = 0; i < objects.length; ++i) {
+        ret[i] = objects[i].getKey();
+      }
+      return ret;
+    }
+
+    @Override
+    public String[] getCommonPrefixes() {
+      return mChunk.getCommonPrefixes();
+    }
+
+    @Override
+    public ObjectListingResult getNextChunk() throws IOException {
+      if (mDone) {
+        return null;
+      }
+      try {
+        mChunk = mClient.listObjectsChunked(mBucketName, mPath, mDelimiter,
+            LISTING_LENGTH, mPriorLastKey);
+      } catch (ServiceException e) {
+        LOG.error("Failed to list path {}", mPath, e);
+        return null;
+      }
+      mDone = mChunk.isListingComplete();
+      mPriorLastKey = mChunk.getPriorLastKey();
+      return this;
+    }
+  }
+
+  @Override
   protected String getRootKey() {
     return Constants.HEADER_GCS + mBucketName;
   }
 
-  /**
-   * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix. Note that, the list results are unsorted.
-   *
-   * @param path the key to list
-   * @param recursive if true will list children directories as well
-   * @return an array of the file and folder names in this directory
-   * @throws IOException if an I/O error occurs
-   */
-  private UnderFileStatus[] listInternal(String path, boolean recursive) throws IOException {
-    path = stripPrefixIfPresent(path);
-    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-    path = path.equals(PATH_SEPARATOR) ? "" : path;
-    String delimiter = recursive ? "" : PATH_SEPARATOR;
-    String priorLastKey = null;
-    Map<String, Boolean> children = new HashMap<>();
-    try {
-      boolean done = false;
-      while (!done) {
-        // Directories in GCS UFS can be possibly encoded in two different ways:
-        // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
-        // (2) as "common prefixes" of other files objects for directories not created through
-        // Alluxio
-        //
-        // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
-        // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
-        //
-        // An example, with prefix="ufs" and delimiter="/" and LISTING_LENGTH=5
-        // - objects.key = ufs/, child =
-        // - objects.key = ufs/dir1_$folder$, child = dir1
-        // - objects.key = ufs/file, child = file
-        // - commonPrefix = ufs/dir1/, child = dir1
-        // - commonPrefix = ufs/dir2/, child = dir2
-        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
-            LISTING_LENGTH, priorLastKey);
-
-        // Handle case (1)
-        for (StorageObject obj : chunk.getObjects()) {
-          // Remove parent portion of the key
-          String child = getChildName(obj.getKey(), path);
-          // Prune the special folder suffix
-          boolean isDir = child.endsWith(FOLDER_SUFFIX);
-          child = CommonUtils.stripSuffixIfPresent(child, FOLDER_SUFFIX);
-          // Only add if the path is not empty (removes results equal to the path)
-          if (!child.isEmpty()) {
-            children.put(child, isDir);
-          }
-        }
-        // Handle case (2)
-        for (String commonPrefix : chunk.getCommonPrefixes()) {
-          // Remove parent portion of the key
-          String child = getChildName(commonPrefix, path);
-
-          if (child != null) {
-            // Remove any portion after the last path delimiter
-            int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
-            child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-            if (!child.isEmpty() && !children.containsKey(child)) {
-              // This directory has not been created through Alluxio.
-              mkdirsInternal(commonPrefix);
-              // If both a file and a directory existed with the same name, the path will be
-              // treated as a directory
-              children.put(child, true);
-            }
-          }
-        }
-        done = chunk.isListingComplete();
-        priorLastKey = chunk.getPriorLastKey();
-      }
-      UnderFileStatus[] ret = new UnderFileStatus[children.size()];
-      int pos = 0;
-      for (Map.Entry<String, Boolean> entry : children.entrySet()) {
-        ret[pos++] = new UnderFileStatus(entry.getKey(), entry.getValue());
-      }
-      return ret;
-    } catch (ServiceException e) {
-      LOG.error("Failed to list path {}", path, e);
-      return null;
-    }
-  }
-
-  /**
-   * Creates a directory flagged file with the key and folder suffix.
-   *
-   * @param key the key to create a folder
-   * @return true if the operation was successful, false otherwise
-   */
-  private boolean mkdirsInternal(String key) {
+  @Override
+  protected boolean mkdirsInternal(String key) {
     try {
       String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
       GSObject obj = new GSObject(keyAsFolder);

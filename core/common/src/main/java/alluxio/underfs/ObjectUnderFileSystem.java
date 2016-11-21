@@ -24,7 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,6 +50,33 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected ObjectUnderFileSystem(AlluxioURI uri) {
     super(uri);
+  }
+
+  /**
+   * A chunk of listing results.
+   */
+  public interface ObjectListingResult {
+    /**
+     * Objects in a pseudo-directory which may be a file or a directory.
+     *
+     * @return a list of objects
+     */
+    String[] getObjectNames();
+
+    /**
+     * Use common prefixes to infer pseudo-directories in object store.
+     *
+     * @return a list of common prefixes
+     */
+    String[] getCommonPrefixes();
+
+    /**
+     * Get next chunk of object listings.
+     *
+     * @return null if done with listing, otherwise return next chunk
+     * @throws IOException
+     */
+    ObjectListingResult getNextChunk() throws IOException;
   }
 
   @Override
@@ -178,11 +207,112 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
+   * Get suffix used to encode a directory.
+   *
+   * @return folder suffix
+   */
+  protected abstract String getFolderSuffix();
+
+  /**
+   * Get object listing for given path.
+   *
+   * @param path pseudo-directory path excluding header and bucket
+   * @param recursive whether to request immediate children only, or all descendants
+   * @return chunked object listing
+   * @throws IOException if a non-alluxio error occurs
+   */
+  protected abstract ObjectListingResult getObjectListing(String path, boolean recursive)
+      throws IOException;
+
+  /**
    * Get full path of root in object store.
    *
    * @return full path including scheme and bucket
    */
   protected abstract String getRootKey();
+
+  /**
+   * Lists the files in the given path, the paths will be their logical names and not contain the
+   * folder suffix. Note that, the list results are unsorted.
+   *
+   * @param path the key to list
+   * @param recursive if true will list children directories as well
+   * @return an array of the file and folder names in this directory
+   * @throws IOException if an I/O error occurs
+   */
+  protected UnderFileStatus[] listInternal(String path, boolean recursive) throws IOException {
+    path = stripPrefixIfPresent(path);
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    path = path.equals(PATH_SEPARATOR) ? "" : path;
+    Map<String, Boolean> children = new HashMap<>();
+    ObjectListingResult chunk = getObjectListing(path, recursive);
+    chunk = chunk.getNextChunk();
+    if (chunk == null) {
+      return null;
+    }
+    while (chunk != null) {
+      // Directories in UFS can be possibly encoded in two different ways:
+      // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
+      // (2) as "common prefixes" of other files objects for directories not created through
+      // Alluxio
+      //
+      // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
+      // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
+      //
+      // An example, with prefix="ufs" and delimiter="/" and LISTING_LENGTH=5
+      // - objects.key = ufs/, child =
+      // - objects.key = ufs/dir1<FOLDER_SUFFIX>, child = dir1
+      // - objects.key = ufs/file, child = file
+      // - commonPrefix = ufs/dir1/, child = dir1
+      // - commonPrefix = ufs/dir2/, child = dir2
+
+      // Handle case (1)
+      for (String obj : chunk.getObjectNames()) {
+        // Remove parent portion of the key
+        String child = getChildName(obj, path);
+        // Prune the special folder suffix
+        boolean isDir = child.endsWith(getFolderSuffix());
+        child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
+        // Only add if the path is not empty (removes results equal to the path)
+        if (!child.isEmpty()) {
+          children.put(child, isDir);
+        }
+      }
+      // Handle case (2)
+      for (String commonPrefix : chunk.getCommonPrefixes()) {
+        // Remove parent portion of the key
+        String child = getChildName(commonPrefix, path);
+
+        if (child != null) {
+          // Remove any portion after the last path delimiter
+          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+          if (!child.isEmpty() && !children.containsKey(child)) {
+            // This directory has not been created through Alluxio.
+            mkdirsInternal(commonPrefix);
+            // If both a file and a directory existed with the same name, the path will be
+            // treated as a directory
+            children.put(child, true);
+          }
+        }
+      }
+      chunk = chunk.getNextChunk();
+    }
+    UnderFileStatus[] ret = new UnderFileStatus[children.size()];
+    int pos = 0;
+    for (Map.Entry<String, Boolean> entry : children.entrySet()) {
+      ret[pos++] = new UnderFileStatus(entry.getKey(), entry.getValue());
+    }
+    return ret;
+  }
+
+  /**
+   * Creates a directory flagged file with the key and folder suffix.
+   *
+   * @param key the key to create a folder
+   * @return true if the operation was successful, false otherwise
+   */
+  protected abstract boolean mkdirsInternal(String key);
 
   /**
    * Treating the object store as a file system, checks if the parent directory exists.
