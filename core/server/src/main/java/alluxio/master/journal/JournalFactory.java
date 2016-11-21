@@ -79,7 +79,7 @@ public interface JournalFactory {
 
     @Override
     public Journal get(String directory) {
-      return new ReadWriteJournal(PathUtils.concatPath(mBaseDirectory, directory));
+      return new ReadOnlyJournal(PathUtils.concatPath(mBaseDirectory, directory));
     }
   }
 }
