@@ -446,6 +446,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
     }
   }
 
+  @Override
+  public boolean supportsFlush() {
+    return true;
+  }
+
   /**
    * Delete a file or directory at path.
    *
@@ -508,10 +513,5 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
       }
     }
     throw te;
-  }
-
-  @Override
-  public boolean supportsFlush() {
-    return true;
   }
 }

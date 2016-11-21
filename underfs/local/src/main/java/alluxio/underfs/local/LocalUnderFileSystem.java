@@ -321,6 +321,11 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem {
     // No-op
   }
 
+  @Override
+  public boolean supportsFlush() {
+    return true;
+  }
+
   /**
    * Rename a file to a file or a directory to a directory.
    *
@@ -342,10 +347,5 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem {
    */
   private String stripPath(String path) {
     return new AlluxioURI(path).getPath();
-  }
-
-  @Override
-  public boolean supportsFlush() {
-    return true;
   }
 }
