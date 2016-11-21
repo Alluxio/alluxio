@@ -75,14 +75,16 @@ public interface Master extends JournalCheckpointStreamable {
   /**
    * Updates the master state for being a leader master.
    *
-   * This hook is called when the master becomes a leader.
+   * This hook is called when the master becomes a leader. The master should not be running when
+   * this method is called.
    */
   void transitionToLeader();
 
   /**
    * Updates the master state for being a standby master.
    *
-   * This hook is called when the master becomes a standby master.
+   * This hook is called when the master becomes a standby master. The master should not be running
+   * when this method is called.
    */
   void transitionToStandby();
 }
