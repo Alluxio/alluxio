@@ -77,10 +77,11 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
         stopServing();
         stopMasters();
 
-        // Transitioning from standby to master, replace read-only journal with writable journal.
         mBlockMaster.transitionToLeader();
         mFileSystemMaster.transitionToLeader();
-        mLineageMaster.transitionToLeader();
+        if (mLineageMaster != null) {
+          mLineageMaster.transitionToLeader();
+        }
         for (Master master : mAdditionalMasters) {
           master.transitionToLeader();
         }
@@ -95,11 +96,11 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
           stopServing();
           stopMasters();
 
-          // When transitioning from master to standby, recreate the masters with a read-only
-          // journal.
           mBlockMaster.transitionToStandby();
           mFileSystemMaster.transitionToStandby();
-          mLineageMaster.transitionToStandby();
+          if (mLineageMaster != null) {
+            mLineageMaster.transitionToStandby();
+          }
           for (Master master : mAdditionalMasters) {
             master.transitionToStandby();
           }
