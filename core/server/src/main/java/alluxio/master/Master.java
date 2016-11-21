@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalInputStream;
-import alluxio.master.journal.ReadWriteJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.apache.thrift.TProcessor;
@@ -74,11 +73,16 @@ public interface Master extends JournalCheckpointStreamable {
   void stop() throws IOException;
 
   /**
-   * Provides the master with a {@link ReadWriteJournal} capable of writing, in preparation to
-   * starting as the leader. This enables transitioning from standby master to leader master without
-   * having to construct a new master object.
+   * Updates the master state for being a leader master.
    *
-   * @param journal the {@link ReadWriteJournal} capable of writing
+   * This hook is called when the master becomes a leader.
    */
-  void upgradeToReadWriteJournal(ReadWriteJournal journal);
+  void transitionToLeader();
+
+  /**
+   * Updates the master state for being a standby master.
+   *
+   * This hook is called when the master becomes a standby master.
+   */
+  void transitionToStandby();
 }
