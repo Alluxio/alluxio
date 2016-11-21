@@ -182,6 +182,22 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     mAccountMode = mode;
   }
 
+  /**
+   * Creates a simulated or actual OutputStream for object uploads.
+   * @throws IOException if failed to create path
+   * @return new OutputStream
+   */
+  @Override
+  protected OutputStream createOutputStream(String path) throws IOException {
+    if (mSimulationMode) {
+      return new SwiftMockOutputStream(mAccount, mContainerName,
+          stripContainerPrefixIfPresent(path));
+    }
+
+    return SwiftDirectClient.put(mAccess,
+        CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
+  }
+
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     // TODO(adit): use bulk delete API
@@ -611,22 +627,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       LOG.debug("Object {} not found", object.getPath());
     }
     return false;
-  }
-
-  /**
-   * Creates a simulated or actual OutputStream for object uploads.
-   * @throws IOException if failed to create path
-   * @return new OutputStream
-   */
-  @Override
-  protected OutputStream createOutputStream(String path) throws IOException {
-    if (mSimulationMode) {
-      return new SwiftMockOutputStream(mAccount, mContainerName,
-          stripContainerPrefixIfPresent(path));
-    }
-
-    return SwiftDirectClient.put(mAccess,
-        CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
   }
 
   /**
