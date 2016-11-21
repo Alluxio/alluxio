@@ -153,7 +153,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRPCAddr =
-        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getMaster().getRPCLocalPort());
+        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getMaster().getRpcLocalPort());
     mBlockMasterClient = new RetryHandlingBlockMasterClient(masterRPCAddr);
     try {
       mBlockMasterClient.connect();

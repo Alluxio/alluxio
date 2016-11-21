@@ -9,39 +9,37 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
-
-import alluxio.Constants;
-import alluxio.RunUtils;
-import alluxio.RuntimeConstants;
+package alluxio;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * Entry point for the Alluxio master.
+ * Utility methods for running server binaries.
  */
-@ThreadSafe
-public final class AlluxioMaster {
+public final class RunUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Starts the Alluxio master.
+   * Runs the given server.
    *
-   * @param args command line arguments, should be empty
+   * @param server the server to run
+   * @param name the server name
    */
-  public static void main(String[] args) {
-    if (args.length != 0) {
-      LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
-          AlluxioMaster.class.getCanonicalName());
+  public static void run(Server server, String name) {
+    try {
+      server.start();
+    } catch (Exception e) {
+      LOG.error("Uncaught exception while running {}, stopping it and exiting.", name, e);
+      try {
+        server.stop();
+      } catch (Exception e2) {
+        // continue to exit
+        LOG.error("Uncaught exception while stopping {}, simply exiting.", name, e2);
+      }
       System.exit(-1);
     }
-
-    AlluxioMasterService master = AlluxioMasterService.Factory.create();
-    RunUtils.run(master, "Alluxio master");
   }
 
-  private AlluxioMaster() {} // prevent instantiation
+  private RunUtils() {} // prevent instantiation
 }

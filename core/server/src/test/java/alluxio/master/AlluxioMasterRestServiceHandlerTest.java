@@ -88,7 +88,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 100L,
       "SSD", 200L);
 
-  private AlluxioMaster mMaster;
+  private AlluxioMasterService mMaster;
   private ServletContext mContext;
   private BlockMaster mBlockMaster;
   private AlluxioMasterRestServiceHandler mHandler;
@@ -106,7 +106,7 @@ public class AlluxioMasterRestServiceHandlerTest {
 
   @Before
   public void before() throws Exception {
-    mMaster = mock(AlluxioMaster.class);
+    mMaster = mock(AlluxioMasterService.class);
     mContext = mock(ServletContext.class);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mClock = new ManualClock();
@@ -170,7 +170,7 @@ public class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getRpcAddress() {
-    when(mMaster.getMasterAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
+    when(mMaster.getRpcAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
     Response response = mHandler.getRpcAddress();
     try {
       assertNotNull("Response must be not null!", response);

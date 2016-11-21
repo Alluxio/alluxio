@@ -23,6 +23,11 @@ import java.net.InetSocketAddress;
  */
 public interface AlluxioWorkerService extends Server {
   /**
+   * @return the connect information for this worker
+   */
+  WorkerNetAddress getAddress();
+
+  /**
    * @return the block worker for this Alluxio worker
    */
   BlockWorker getBlockWorker();
@@ -41,6 +46,11 @@ public interface AlluxioWorkerService extends Server {
    * @return the file system worker for this Alluxio worker
    */
   FileSystemWorker getFileSystemWorker();
+
+  /**
+   * @return this worker's rpc address
+   */
+  InetSocketAddress getRpcAddress();
 
   /**
    * @return the start time of the worker in milliseconds
@@ -63,17 +73,7 @@ public interface AlluxioWorkerService extends Server {
   int getWebLocalPort();
 
   /**
-   * @return this worker's rpc address
-   */
-  InetSocketAddress getRpcAddress();
-
-  /**
    * Waits until the worker is ready to server requests.
    */
   void waitForReady();
-
-  /**
-   * @return the connect information for this worker
-   */
-  WorkerNetAddress getAddress();
 }

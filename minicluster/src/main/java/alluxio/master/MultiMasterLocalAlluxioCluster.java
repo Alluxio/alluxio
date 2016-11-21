@@ -73,7 +73,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @return the URI of the master
    */
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRPCLocalPort();
+    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRpcLocalPort();
   }
 
   @Override
@@ -203,7 +203,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     // Use first master port
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getMaster().getRpcLocalPort()));
   }
 
   @Override
