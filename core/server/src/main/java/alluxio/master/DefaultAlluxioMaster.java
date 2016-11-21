@@ -94,13 +94,13 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   protected List<Master> mAdditionalMasters;
 
   /** The journal for the block master. */
-  protected final ReadWriteJournal mBlockMasterJournal;
+  private final ReadWriteJournal mBlockMasterJournal;
 
   /** The journal for the file system master. */
-  protected final ReadWriteJournal mFileSystemMasterJournal;
+  private final ReadWriteJournal mFileSystemMasterJournal;
 
   /** The journal for the lineage master. */
-  protected final ReadWriteJournal mLineageMasterJournal;
+  private final ReadWriteJournal mLineageMasterJournal;
 
   /** The web ui server. */
   private WebServer mWebServer = null;
