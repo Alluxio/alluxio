@@ -604,19 +604,4 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
   }
-
-  /**
-   * Treating GCS as a file system, checks if the parent directory exists.
-   *
-   * @param key the key to check
-   * @return true if the parent exists or if the key is root, false otherwise
-   */
-  private boolean parentExists(String key) {
-    // Assume root always has a parent
-    if (isRoot(key)) {
-      return true;
-    }
-    String parentKey = getParentKey(key);
-    return parentKey != null && isDirectory(parentKey);
-  }
 }

@@ -277,7 +277,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public boolean isDirectory(String key) {
+  public boolean isDirectory(String key) throws IOException {
     // Root is always a folder
     return isRoot(key) || getFolderMetadata(key) != null;
   }
@@ -500,7 +500,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param key the key to delete
    * @return true if successful, false if an exception is thrown
    */
-  private boolean deleteInternal(String key) {
+  private boolean deleteInternal(String key) throws IOException {
     try {
       if (isDirectory(key)) {
         String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
@@ -681,20 +681,5 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       LOG.error("Failed to create directory: {}", key, e);
       return false;
     }
-  }
-
-  /**
-   * Treating S3 as a file system, checks if the parent directory exists.
-   *
-   * @param key the key to check
-   * @return true if the parent exists or if the key is root, false otherwise
-   */
-  private boolean parentExists(String key) {
-    // Assume root always has a parent
-    if (isRoot(key)) {
-      return true;
-    }
-    String parentKey = getParentKey(key);
-    return parentKey != null && isDirectory(parentKey);
   }
 }

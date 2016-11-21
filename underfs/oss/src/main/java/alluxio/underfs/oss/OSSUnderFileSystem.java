@@ -541,21 +541,5 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
       LOG.error("Failed to create directory: {}", key, e);
       return false;
     }
-
-  }
-
-  /**
-   * Treating OSS as a file system, checks if the parent directory exists.
-   *
-   * @param key the key to check
-   * @return true if the parent exists or if the key is root, false otherwise
-   */
-  private boolean parentExists(String key) {
-    // Assume root always has a parent
-    if (isRoot(key)) {
-      return true;
-    }
-    String parentKey = getParentKey(key);
-    return parentKey != null && isDirectory(parentKey);
   }
 }

@@ -169,6 +169,21 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected abstract String getRootKey();
 
   /**
+   * Treating the object store as a file system, checks if the parent directory exists.
+   *
+   * @param key the key to check
+   * @return true if the parent exists or if the key is root, false otherwise
+   */
+  protected boolean parentExists(String key) throws IOException {
+    // Assume root always has a parent
+    if (isRoot(key)) {
+      return true;
+    }
+    String parentKey = getParentKey(key);
+    return parentKey != null && isDirectory(parentKey);
+  }
+
+  /**
    * Strips the bucket prefix or the preceding path separator from the key if it is present. For
    * example, for input key ufs://my-bucket-name/my-path/file, the output would be my-path/file. If
    * key is an absolute path like /my-path/file, the output would be my-path/file. This method will

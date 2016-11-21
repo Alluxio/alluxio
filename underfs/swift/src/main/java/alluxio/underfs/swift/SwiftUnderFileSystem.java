@@ -611,17 +611,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Checks if the parent directory exists, treating Swift as a file system.
-   *
-   * @param path the path to check
-   * @return true if the parent exists or if the path is root, false otherwise
-   */
-  private boolean parentExists(String path) throws IOException {
-    final String parentPath = getParentKey(path);
-    return parentPath != null && isDirectory(parentPath);
-  }
-
-  /**
    * Strips the folder suffix if it exists. This is a string manipulation utility and does not
    * guarantee the existence of the folder. This method will leave paths without a suffix unaltered.
    *
