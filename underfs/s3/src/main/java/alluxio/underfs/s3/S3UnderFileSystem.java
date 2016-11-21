@@ -66,9 +66,6 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
-  /** Prefix of the bucket, for example s3n://my-bucket-name/ . */
-  private final String mBucketPrefix;
-
   /** The name of the account owner. */
   private final String mAccountOwner;
 
@@ -141,8 +138,6 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     RestS3Service restS3Service = new RestS3Service(awsCredentials, null, null, props);
-    String bucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + bucketName,
-        PATH_SEPARATOR);
 
     String accountOwnerId = restS3Service.getAccountOwner().getId();
     // Gets the owner from user-defined static mapping from S3 canonical user id to Alluxio
@@ -159,8 +154,7 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
     AccessControlList acl = restS3Service.getBucketAcl(bucketName);
     short bucketMode = S3Utils.translateBucketAcl(acl, accountOwnerId);
 
-    return new S3UnderFileSystem(uri, restS3Service, bucketName, bucketPrefix,
-        bucketMode, accountOwner);
+    return new S3UnderFileSystem(uri, restS3Service, bucketName, bucketMode, accountOwner);
   }
 
   /**
@@ -176,13 +170,11 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
   protected S3UnderFileSystem(AlluxioURI uri,
       S3Service s3Service,
       String bucketName,
-      String bucketPrefix,
       short bucketMode,
       String accountOwner) {
     super(uri);
     mClient = s3Service;
     mBucketName = bucketName;
-    mBucketPrefix = bucketPrefix;
     mBucketMode = bucketMode;
     mAccountOwner = accountOwner;
   }
@@ -658,22 +650,5 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
     }
     String parentKey = getParentKey(key);
     return parentKey != null && isDirectory(parentKey);
-  }
-
-  /**
-   * Strips the s3 bucket prefix or the preceding path separator from the key if it is present. For
-   * example, for input key s3n://my-bucket-name/my-path/file, the output would be my-path/file. If
-   * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
-   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
-   *
-   * @param key the key to strip
-   * @return the key without the s3 bucket prefix
-   */
-  private String stripPrefixIfPresent(String key) {
-    String stripedKey = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
-    if (!stripedKey.equals(key)) {
-      return stripedKey;
-    }
-    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
   }
 }

@@ -59,9 +59,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
-  /** Prefix of the bucket, for example oss://bucket-name/ . */
-  private final String mBucketPrefix;
-
   /**
    * Constructs a new instance of {@link OSSUnderFileSystem}.
    *
@@ -79,13 +76,12 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
         "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
     String accessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY);
     String accessKey = Configuration.get(PropertyKey.OSS_SECRET_KEY);
-    String bucketPrefix = Constants.HEADER_OSS + bucketName + PATH_SEPARATOR;
     String endPoint = Configuration.get(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
     OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
 
-    return new OSSUnderFileSystem(uri, ossClient, bucketName, bucketPrefix);
+    return new OSSUnderFileSystem(uri, ossClient, bucketName);
   }
 
   /**
@@ -98,12 +94,10 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
    */
   protected OSSUnderFileSystem(AlluxioURI uri,
       OSSClient ossClient,
-      String bucketName,
-      String bucketPrefix) {
+      String bucketName) {
     super(uri);
     mClient = ossClient;
     mBucketName = bucketName;
-    mBucketPrefix = bucketPrefix;
   }
 
   @Override
@@ -563,22 +557,5 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     }
     String parentKey = getParentKey(key);
     return parentKey != null && isDirectory(parentKey);
-  }
-
-  /**
-   * Strips the OSS bucket prefix or the preceding path separator from the key if it is present. For
-   * example, for input key oss://my-bucket-name/my-path/file, the output would be my-path/file. If
-   * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
-   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
-   *
-   * @param key the key to strip
-   * @return the key without the oss bucket prefix
-   */
-  private String stripPrefixIfPresent(String key) {
-    String stripedKey = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
-    if (!stripedKey.equals(key)) {
-      return stripedKey;
-    }
-    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
   }
 }

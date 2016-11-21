@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -127,13 +128,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Creates an {@link OutputStream} for object uploads.
    *
+   * @param path ufs path including scheme and bucket
    * @throws IOException if failed to create stream
    * @return new OutputStream
    */
   protected abstract OutputStream createOutputStream(String path) throws IOException;
 
   /**
-   * @param key the key to get the parent of
+   * @param key ufs path including scheme and bucket
    * @return the parent key, or null if the parent does not exist
    */
   protected String getParentKey(String key) {
@@ -151,7 +153,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Checks if the key is the root.
    *
-   * @param key the key to check
+   * @param key ufs path including scheme and bucket
    * @return true if the key is the root, false otherwise
    */
   protected boolean isRoot(String key) {
@@ -162,7 +164,24 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Get full path of root in object store.
    *
-   * @return full path including header and bucket
+   * @return full path including scheme and bucket
    */
   protected abstract String getRootKey();
+
+  /**
+   * Strips the bucket prefix or the preceding path separator from the key if it is present. For
+   * example, for input key ufs://my-bucket-name/my-path/file, the output would be my-path/file. If
+   * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
+   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
+   *
+   * @param key the key to strip
+   * @return the key without the bucket prefix
+   */
+  protected String stripPrefixIfPresent(String key) {
+    String stripedKey = CommonUtils.stripPrefixIfPresent(key, getRootKey());
+    if (!stripedKey.equals(key)) {
+      return stripedKey;
+    }
+    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
+  }
 }

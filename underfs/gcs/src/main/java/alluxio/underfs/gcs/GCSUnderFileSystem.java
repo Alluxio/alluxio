@@ -65,9 +65,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
-  /** Prefix of the bucket, for example gs://my-bucket-name/ . */
-  private final String mBucketPrefix;
-
   /** The name of the account owner. */
   private final String mAccountOwner;
 
@@ -102,8 +99,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
     // TODO(chaomin): maybe add proxy support for GCS.
     GoogleStorageService googleStorageService = new GoogleStorageService(googleCredentials);
-    String bucketPrefix = PathUtils.normalizePath(Constants.HEADER_GCS + bucketName,
-        PATH_SEPARATOR);
 
     String accountOwnerId = googleStorageService.getAccountOwner().getId();
     // Gets the owner from user-defined static mapping from GCS account id to Alluxio user name.
@@ -118,8 +113,7 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     GSAccessControlList acl = googleStorageService.getBucketAcl(bucketName);
     short bucketMode = GCSUtils.translateBucketAcl(acl, accountOwnerId);
 
-    return new GCSUnderFileSystem(uri, googleStorageService, bucketName,
-        bucketPrefix, bucketMode, accountOwner);
+    return new GCSUnderFileSystem(uri, googleStorageService, bucketName, bucketMode, accountOwner);
   }
 
   /**
@@ -135,13 +129,11 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   protected GCSUnderFileSystem(AlluxioURI uri,
       GoogleStorageService googleStorageService,
       String bucketName,
-      String bucketPrefix,
       short bucketMode,
       String accountOwner) {
     super(uri);
     mClient = googleStorageService;
     mBucketName = bucketName;
-    mBucketPrefix = bucketPrefix;
     mBucketMode = bucketMode;
     mAccountOwner = accountOwner;
   }
@@ -626,22 +618,5 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     }
     String parentKey = getParentKey(key);
     return parentKey != null && isDirectory(parentKey);
-  }
-
-  /**
-   * Strips the GCS bucket prefix or the preceding path separator from the key if it is present. For
-   * example, for input key gs://my-bucket-name/my-path/file, the output would be my-path/file. If
-   * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
-   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
-   *
-   * @param key the key to strip
-   * @return the key without the gcs bucket prefix
-   */
-  private String stripPrefixIfPresent(String key) {
-    String stripedKey = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
-    if (!stripedKey.equals(key)) {
-      return stripedKey;
-    }
-    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
   }
 }

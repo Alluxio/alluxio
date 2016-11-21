@@ -196,7 +196,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   protected OutputStream createOutputStream(String path) throws IOException {
     if (mSimulationMode) {
       return new SwiftMockOutputStream(mAccount, mContainerName,
-          stripContainerPrefixIfPresent(path));
+          stripPrefixIfPresent(path));
     }
 
     return SwiftDirectClient.put(mAccess,
@@ -207,7 +207,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     // TODO(adit): use bulk delete API
     LOG.debug("Delete directory {}, recursive {}", path, options.isRecursive());
-    final String strippedPath = stripContainerPrefixIfPresent(path);
+    final String strippedPath = stripPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
     if (!options.isRecursive()) {
       String[] children = list(path);
@@ -242,7 +242,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public boolean deleteFile(String path) throws IOException {
     LOG.debug("Delete file {}", path);
-    final String strippedPath = stripContainerPrefixIfPresent(path);
+    final String strippedPath = stripPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
     return deleteObject(container.getObject(strippedPath));
   }
@@ -325,7 +325,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public InputStream open(String path) throws IOException {
-    return new SwiftInputStream(mAccount, mContainerName, stripContainerPrefixIfPresent(path));
+    return new SwiftInputStream(mAccount, mContainerName, stripPrefixIfPresent(path));
   }
 
   @Override
@@ -376,8 +376,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }
-    String strippedSourcePath = stripContainerPrefixIfPresent(src);
-    String strippedDestinationPath = stripContainerPrefixIfPresent(dst);
+    String strippedSourcePath = stripPrefixIfPresent(src);
+    String strippedDestinationPath = stripPrefixIfPresent(dst);
     return copy(strippedSourcePath, strippedDestinationPath) && deleteFile(src);
   }
 
@@ -424,7 +424,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    * @return path as a directory path
    */
   private String convertToFolderName(String path) {
-    return addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
+    return addFolderSuffixIfNotPresent(stripPrefixIfPresent(path));
   }
 
   /**
@@ -436,8 +436,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    */
   private boolean copy(String source, String destination) {
     LOG.debug("copy from {} to {}", source, destination);
-    final String strippedSourcePath = stripContainerPrefixIfPresent(source);
-    final String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
+    final String strippedSourcePath = stripPrefixIfPresent(source);
+    final String strippedDestinationPath = stripPrefixIfPresent(destination);
     // Retry copy for a few times, in case some Swift internal errors happened during copy.
     for (int i = 0; i < NUM_RETRIES; i++) {
       try {
@@ -458,7 +458,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     LOG.error("Failed to copy file {} to {}, after {} retries", source, destination, NUM_RETRIES);
     return false;
   }
-
 
   /**
    * Deletes an object if it exists.
@@ -509,7 +508,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    */
   private StoredObject getObject(final String path) {
     Container container = mAccount.getContainer(mContainerName);
-    return container.getObject(stripContainerPrefixIfPresent(path));
+    return container.getObject(stripPrefixIfPresent(path));
   }
 
   @Override
@@ -527,7 +526,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    * @throws IOException if path is not accessible, e.g. network issues
    */
   private String[] listHelper(String path, boolean recursive) throws IOException {
-    String prefix = PathUtils.normalizePath(stripContainerPrefixIfPresent(path), PATH_SEPARATOR);
+    String prefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
     prefix = CommonUtils.stripPrefixIfPresent(prefix, PATH_SEPARATOR);
 
     Collection<DirectoryOrObject> objects = listInternal(prefix, recursive);
@@ -631,17 +630,5 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    */
   private String stripFolderSuffixIfPresent(final String path) {
     return CommonUtils.stripSuffixIfPresent(path, FOLDER_SUFFIX);
-  }
-
-  /**
-   * Strips the Swift container prefix from the path if it is present. For example, for input path
-   * swift://my-container-name/my-path/file, the output would be my-path/file. This method will
-   * leave paths without a prefix unaltered, ie. my-path/file returns my-path/file.
-   *
-   * @param path the path to strip
-   * @return the path without the Swift container prefix
-   */
-  private String stripContainerPrefixIfPresent(final String path) {
-    return CommonUtils.stripPrefixIfPresent(path, getRootKey());
   }
 }
