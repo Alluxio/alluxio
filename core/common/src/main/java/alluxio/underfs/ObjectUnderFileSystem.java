@@ -162,6 +162,22 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
+   * Gets the child name based on the parent name.
+   *
+   * @param child the key of the child
+   * @param parent the key of the parent
+   * @return the child key with the parent prefix removed, null if the parent prefix is invalid
+   */
+  protected String getChildName(String child, String parent) {
+    if (child.startsWith(parent)) {
+      return child.substring(parent.length());
+    }
+    LOG.error("Attempted to get childname with an invalid parent argument. Parent: {} Child: {}",
+        parent, child);
+    return null;
+  }
+
+  /**
    * Get full path of root in object store.
    *
    * @return full path including scheme and bucket

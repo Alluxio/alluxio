@@ -516,22 +516,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Gets the child name based on the parent name.
-   *
-   * @param child the key of the child
-   * @param parent the key of the parent
-   * @return the child key with the parent prefix removed, null if the parent prefix is invalid
-   */
-  private String getChildName(String child, String parent) {
-    if (child.startsWith(parent)) {
-      return child.substring(parent.length());
-    }
-    LOG.error("Attempted to get childname with an invalid parent argument. Parent: {} Child: {}",
-        parent, child);
-    return null;
-  }
-
-  /**
    * Gets the metadata associated with a non-root key if it represents a folder. This method will
    * return null if the key is not a folder. If the key exists as a prefix but does not have the
    * folder dummy file, a folder dummy file will be created.
