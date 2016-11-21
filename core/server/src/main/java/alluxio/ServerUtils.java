@@ -27,10 +27,6 @@ import java.util.ServiceLoader;
 public final class ServerUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static ServiceLoader<MasterFactory> sMasterServiceLoader;
-  private static List<String> sMasterServiceNames;
-  private static ServiceLoader<WorkerFactory> sWorkerServiceLoader;
-
   /**
    * Runs the given server.
    *
@@ -56,41 +52,30 @@ public final class ServerUtils {
    * @return service loader for master factories
    */
   public static synchronized ServiceLoader<MasterFactory> getMasterServiceLoader() {
-    if (sMasterServiceLoader == null) {
-      sMasterServiceLoader =
-          ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
-    }
-    return sMasterServiceLoader;
-
+    return ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
   }
 
   /**
    * @return the list of master service names
    */
   public static List<String> getMasterServiceNames() {
-    if (sMasterServiceNames == null) {
-      sMasterServiceNames = new ArrayList<>();
-      sMasterServiceNames.add(Constants.BLOCK_MASTER_NAME);
-      sMasterServiceNames.add(Constants.FILE_SYSTEM_MASTER_NAME);
-      sMasterServiceNames.add(Constants.LINEAGE_MASTER_NAME);
-      for (MasterFactory factory : getMasterServiceLoader()) {
-        if (factory.isEnabled()) {
-          sMasterServiceNames.add(factory.getName());
-        }
+    List<String> masterServiceNames = new ArrayList<>();
+    masterServiceNames.add(Constants.BLOCK_MASTER_NAME);
+    masterServiceNames.add(Constants.FILE_SYSTEM_MASTER_NAME);
+    masterServiceNames.add(Constants.LINEAGE_MASTER_NAME);
+    for (MasterFactory factory : getMasterServiceLoader()) {
+      if (factory.isEnabled()) {
+        masterServiceNames.add(factory.getName());
       }
     }
-    return sMasterServiceNames;
+    return masterServiceNames;
   }
 
   /**
    * @return service loader for worker factories
    */
   public static synchronized ServiceLoader<WorkerFactory> getWorkerServiceLoader() {
-    if (sWorkerServiceLoader == null) {
-      sWorkerServiceLoader =
-          ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
-    }
-    return sWorkerServiceLoader;
+    return ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
   }
 
   private ServerUtils() {} // prevent instantiation
