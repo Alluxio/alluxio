@@ -21,7 +21,6 @@ import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalTailer;
 import alluxio.master.journal.JournalTailerThread;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.ReadOnlyJournal;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -207,11 +206,6 @@ public abstract class AbstractMaster implements Master {
   @Override
   public void transitionToLeader() {
     mJournal = new ReadWriteJournal(mJournal.getDirectory());
-  }
-
-  @Override
-  public void transitionToStandby() {
-    mJournal = new ReadOnlyJournal(mJournal.getDirectory());
   }
 
   /**

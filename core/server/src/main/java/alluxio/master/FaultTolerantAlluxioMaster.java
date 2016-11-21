@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LeaderSelectorClient;
 import alluxio.PropertyKey;
+import alluxio.master.journal.JournalFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -77,6 +78,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
         stopServing();
         stopMasters();
 
+        // Transitioning from standby to master, replace read-only journal with writable journal.
         mBlockMaster.transitionToLeader();
         mFileSystemMaster.transitionToLeader();
         if (mLineageMaster != null) {
@@ -96,14 +98,9 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
           stopServing();
           stopMasters();
 
-          mBlockMaster.transitionToStandby();
-          mFileSystemMaster.transitionToStandby();
-          if (mLineageMaster != null) {
-            mLineageMaster.transitionToStandby();
-          }
-          for (Master master : mAdditionalMasters) {
-            master.transitionToStandby();
-          }
+          // When transitioning from master to standby, recreate the masters with a read-only
+          // journal.
+          initMasters(new JournalFactory.ReadOnly(getJournalDirectory()));
 
           startMasters(false);
           started = true;

@@ -22,6 +22,7 @@ import alluxio.job.JobConf;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -68,11 +69,12 @@ public final class LineageMasterTest {
    */
   @Before
   public void before() throws Exception {
-    Journal journal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
+    JournalFactory journalFactory =
+        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
-    mLineageMaster = new LineageMaster(mFileSystemMaster, journal,
+    mLineageMaster = new LineageMaster(mFileSystemMaster, journalFactory,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mJob = new CommandLineJob("test", new JobConf("output"));
   }

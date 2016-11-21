@@ -201,8 +201,8 @@ public class JournalIntegrationTest {
     }
     mLocalAlluxioCluster.stopFS();
 
-    String journalFolder =
-        FileSystemMaster.getJournalDirectory(mLocalAlluxioCluster.getMaster().getJournalFolder());
+    String journalFolder = PathUtils.concatPath(mLocalAlluxioCluster.getMaster().getJournalFolder(),
+        Constants.FILE_SYSTEM_MASTER_NAME);
     Journal journal = new ReadWriteJournal(journalFolder);
     String completedPath = journal.getCompletedDirectory();
     Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length > 1);

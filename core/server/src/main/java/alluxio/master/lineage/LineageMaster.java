@@ -32,7 +32,7 @@ import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalProtoUtils;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
@@ -51,7 +51,6 @@ import alluxio.thrift.LineageMasterClientService;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
@@ -83,21 +82,13 @@ public final class LineageMaster extends AbstractMaster {
   private final LineageIdGenerator mLineageIdGenerator;
 
   /**
-   * @param baseDirectory the base journal directory
-   * @return the journal directory for this master
-   */
-  public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_NAME);
-  }
-
-  /**
    * Creates a new instance of {@link LineageMaster}.
    *
    * @param fileSystemMaster the file system master
-   * @param journal the journal
+   * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    this(fileSystemMaster, journal, ExecutorServiceFactories
+  public LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory) {
+    this(fileSystemMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
 
@@ -105,13 +96,13 @@ public final class LineageMaster extends AbstractMaster {
    * Creates a new instance of {@link LineageMaster}.
    *
    * @param fileSystemMaster the file system master
-   * @param journal the journal
+   * @param journalFactory the factory for the journal to use for tracking master operations
    * @param executorServiceFactory a factory for creating the executor service to use for
    *        running maintenance threads
    */
   public LineageMaster(FileSystemMaster fileSystemMaster,
-      Journal journal, ExecutorServiceFactory executorServiceFactory) {
-    super(journal, new SystemClock(), executorServiceFactory);
+      JournalFactory journalFactory, ExecutorServiceFactory executorServiceFactory) {
+    super(journalFactory.get(Constants.LINEAGE_MASTER_NAME), new SystemClock(), executorServiceFactory);
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();
