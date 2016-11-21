@@ -46,7 +46,6 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -111,11 +110,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
       mAdditionalWorkers = new ArrayList<>();
       List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
-      // Discover and register the available factories
-      // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
-      ServiceLoader<WorkerFactory> discoveredWorkerFactories =
-          ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
-      for (WorkerFactory factory : discoveredWorkerFactories) {
+      for (WorkerFactory factory : AlluxioWorkerService.Factory.getServiceLoader()) {
         Worker worker = factory.create(workers);
         if (worker != null) {
           mAdditionalWorkers.add(worker);
