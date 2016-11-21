@@ -90,6 +90,11 @@ public interface AlluxioMasterService extends Server {
   }
 
   /**
+   * @return the additional masters for this Alluxio master
+   */
+  List<Master> getAdditionalMasters();
+
+  /**
    * @return the block master for this Alluxio master
    */
   BlockMaster getBlockMaster();

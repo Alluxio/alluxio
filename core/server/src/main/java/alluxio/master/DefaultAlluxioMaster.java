@@ -177,6 +177,11 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   }
 
   @Override
+  public List<Master> getAdditionalMasters() {
+    return mAdditionalMasters;
+  }
+
+  @Override
   public BlockMaster getBlockMaster() {
     return mBlockMaster;
   }
