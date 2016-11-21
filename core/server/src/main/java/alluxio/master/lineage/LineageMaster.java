@@ -97,12 +97,13 @@ public final class LineageMaster extends AbstractMaster {
    *
    * @param fileSystemMaster the file system master
    * @param journalFactory the factory for the journal to use for tracking master operations
-   * @param executorServiceFactory a factory for creating the executor service to use for
-   *        running maintenance threads
+   * @param executorServiceFactory a factory for creating the executor service to use for running
+   *        maintenance threads
    */
-  public LineageMaster(FileSystemMaster fileSystemMaster,
-      JournalFactory journalFactory, ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.get(Constants.LINEAGE_MASTER_NAME), new SystemClock(), executorServiceFactory);
+  public LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
+      ExecutorServiceFactory executorServiceFactory) {
+    super(journalFactory.get(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
+        executorServiceFactory);
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();

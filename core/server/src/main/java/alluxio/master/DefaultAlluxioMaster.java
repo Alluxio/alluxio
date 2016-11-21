@@ -155,7 +155,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   }
 
   /**
-   * @param journalFactory the factory to use for creating journals.
+   * @param journalFactory the factory to use for creating journals
    */
   protected void initMasters(JournalFactory journalFactory) {
     mBlockMaster = new BlockMaster(journalFactory);

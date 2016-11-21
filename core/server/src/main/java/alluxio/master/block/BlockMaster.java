@@ -179,10 +179,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    *
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
-   * @param executorServiceFactory a factory for creating the executor service to use for
-   *        running maintenance threads
+   * @param executorServiceFactory a factory for creating the executor service to use for running
+   *        maintenance threads
    */
-  public BlockMaster(JournalFactory journalFactory, Clock clock, ExecutorServiceFactory executorServiceFactory) {
+  public BlockMaster(JournalFactory journalFactory, Clock clock,
+      ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.get(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
     Metrics.registerGauges(this);
   }

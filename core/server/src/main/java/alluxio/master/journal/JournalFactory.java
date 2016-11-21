@@ -23,30 +23,28 @@ public interface JournalFactory {
    */
   Journal get(String directory);
 
-  abstract class AbstractJournalFactory implements JournalFactory {
-    protected final String mBaseDirectory;
+  /**
+   * A factory which creates read-write journals.
+   */
+  final class ReadWrite implements JournalFactory{
+    private final String mBaseDirectory;
 
     /**
      * Creates a journal factory with the specified directory as the root. When journals are
      * created, their paths are appended to the base path, e.g.
      *
-     * basesDirectory journalDirectory1 journalDirectory2
+     *<pre>
+     * baseDirectory
+     *   journalDirectory1
+     *   journalDirectory2
+     *</pre>
      *
-     * @param baseDirectory the base directory for journals created by this factory
-     */
-    public AbstractJournalFactory(String baseDirectory) {
-      mBaseDirectory = baseDirectory;
-    }
-  }
-
-  final class ReadWrite extends AbstractJournalFactory {
-    /**
-     * {@inheritDoc}
+     * Journals created by this factory support both reading and writing.
      *
      * @param baseDirectory the base directory for journals created by this factory
      */
     public ReadWrite(String baseDirectory) {
-      super(baseDirectory);
+      mBaseDirectory = baseDirectory;
     }
 
     @Override
@@ -55,14 +53,28 @@ public interface JournalFactory {
     }
   }
 
-  final class ReadOnly extends AbstractJournalFactory {
+  /**
+   * A factory which creates read-only journals.
+   */
+  final class ReadOnly implements JournalFactory {
+    private final String mBaseDirectory;
+
     /**
-     * {@inheritDoc}
+     * Creates a journal factory with the specified directory as the root. When journals are
+     * created, their paths are appended to the base path, e.g.
+     *
+     *<pre>
+     * baseDirectory
+     *   journalDirectory1
+     *   journalDirectory2
+     *</pre>
+     *
+     * Journals created by this factory only support reads.
      *
      * @param baseDirectory the base directory for journals created by this factory
      */
     public ReadOnly(String baseDirectory) {
-      super(baseDirectory);
+      mBaseDirectory = baseDirectory;
     }
 
     @Override
