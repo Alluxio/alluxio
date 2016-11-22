@@ -46,6 +46,9 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
 
     MetricsSystem.resetAllCounters();
+    // Reset Configuration in case some properties are set to custom values during the tests,
+    // e.g. getConfiguration().
+    Configuration.defaultInit();
   }
 
   private AlluxioMasterInfo getInfo(Map<String, String> params) throws Exception {
