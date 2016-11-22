@@ -18,7 +18,6 @@ import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.swift.http.SwiftDirectClient;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.codehaus.jackson.map.ObjectMapper;
