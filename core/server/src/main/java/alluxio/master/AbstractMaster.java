@@ -204,8 +204,8 @@ public abstract class AbstractMaster implements Master {
   }
 
   @Override
-  public void upgradeToReadWriteJournal(ReadWriteJournal journal) {
-    mJournal = Preconditions.checkNotNull(journal);
+  public void transitionToLeader() {
+    mJournal = new ReadWriteJournal(mJournal.getDirectory());
   }
 
   /**

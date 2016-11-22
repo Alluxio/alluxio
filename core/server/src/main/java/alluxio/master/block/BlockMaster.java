@@ -32,7 +32,7 @@ import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.AsyncJournalWriter;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalProtoUtils;
@@ -46,7 +46,6 @@ import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
@@ -166,35 +165,26 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   private long mJournaledNextContainerId = 0;
 
   /**
-   * @param baseDirectory the base journal directory
-   * @return the journal directory for this master
-   */
-  public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_NAME);
-  }
-
-  /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param journal the journal to use for tracking master operations
+   * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public BlockMaster(Journal journal) {
-    super(journal, new SystemClock(), ExecutorServiceFactories
+  public BlockMaster(JournalFactory journalFactory) {
+    this(journalFactory, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
-
-    Metrics.registerGauges(this);
   }
 
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param journal the journal to use for tracking master operations
+   * @param journalFactory the factory for the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
-   * @param executorServiceFactory a factory for creating the executor service to use for
-   *        running maintenance threads
+   * @param executorServiceFactory a factory for creating the executor service to use for running
+   *        maintenance threads
    */
-  public BlockMaster(Journal journal, Clock clock, ExecutorServiceFactory executorServiceFactory) {
-    super(journal, clock, executorServiceFactory);
+  public BlockMaster(JournalFactory journalFactory, Clock clock,
+      ExecutorServiceFactory executorServiceFactory) {
+    super(journalFactory.get(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
     Metrics.registerGauges(this);
   }
 

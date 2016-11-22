@@ -17,7 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.master.MasterFactory;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -50,15 +51,14 @@ public final class KeyValueMasterFactory implements MasterFactory {
   }
 
   @Override
-  public KeyValueMaster create(List<? extends Master> masters, String journalDirectory) {
+  public KeyValueMaster create(List<? extends Master> masters, JournalFactory journalFactory) {
     if (!isEnabled()) {
       return null;
     }
-    Preconditions.checkArgument(journalDirectory != null, "journal path may not be null");
+    Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", KeyValueMaster.class.getName());
 
-    ReadWriteJournal journal =
-        new ReadWriteJournal(KeyValueMaster.getJournalDirectory(journalDirectory));
+    Journal journal = journalFactory.get(getName());
 
     for (Master master : masters) {
       if (master instanceof FileSystemMaster) {

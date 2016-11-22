@@ -11,6 +11,8 @@
 
 package alluxio.master;
 
+import alluxio.master.journal.JournalFactory;
+
 import java.util.List;
 
 /**
@@ -30,9 +32,9 @@ public interface MasterFactory {
   /**
    * Factory method to create a new master instance.
    * @param masters a list of other masters created
-   * @param journalDirectory base directory of journals
+   * @param journalFactory a factory for creating the journal
    *
    * @return a new {@link Master} instance or null if failed to launch the master
    */
-  Master create(List<? extends Master> masters, String journalDirectory);
+  Master create(List<? extends Master> masters, JournalFactory journalFactory);
 }

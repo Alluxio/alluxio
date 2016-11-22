@@ -31,8 +31,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
@@ -158,11 +157,11 @@ public final class PermissionCheckTest {
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
 
-    Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    BlockMaster blockMaster = new BlockMaster(blockJournal);
+    JournalFactory journalFactory =
+        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
+    BlockMaster blockMaster = new BlockMaster(journalFactory);
 
-    mFileSystemMaster = new FileSystemMaster(blockMaster, fsJournal);
+    mFileSystemMaster = new FileSystemMaster(blockMaster, journalFactory);
 
     blockMaster.start(true);
     mFileSystemMaster.start(true);

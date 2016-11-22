@@ -63,7 +63,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.AsyncJournalWriter;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalProtoUtils;
 import alluxio.metrics.MetricsSystem;
@@ -241,21 +241,13 @@ public final class FileSystemMaster extends AbstractMaster {
   private Future<List<AlluxioURI>> mStartupConsistencyCheck;
 
   /**
-   * @param baseDirectory the base journal directory
-   * @return the journal directory for this master
-   */
-  public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_NAME);
-  }
-
-  /**
    * Creates a new instance of {@link FileSystemMaster}.
    *
    * @param blockMaster the {@link BlockMaster} to use
-   * @param journal the journal to use for tracking master operations
+   * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
-    this(blockMaster, journal, ExecutorServiceFactories
+  public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory) {
+    this(blockMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
   }
 
@@ -263,13 +255,14 @@ public final class FileSystemMaster extends AbstractMaster {
    * Creates a new instance of {@link FileSystemMaster}.
    *
    * @param blockMaster the {@link BlockMaster} to use
-   * @param journal the journal to use for tracking master operations
-   * @param executorServiceFactory a factory for creating the executor service to use for
-   *        running maintenance threads
+   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param executorServiceFactory a factory for creating the executor service to use for running
+   *        maintenance threads
    */
-  public FileSystemMaster(BlockMaster blockMaster, Journal journal,
+  public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journal, new SystemClock(), executorServiceFactory);
+    super(journalFactory.get(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
+        executorServiceFactory);
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);

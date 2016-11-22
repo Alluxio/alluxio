@@ -15,10 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LeaderSelectorClient;
 import alluxio.PropertyKey;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.ReadOnlyJournal;
-import alluxio.master.lineage.LineageMaster;
+import alluxio.master.journal.JournalFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -82,9 +79,14 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
         stopMasters();
 
         // Transitioning from standby to master, replace read-only journal with writable journal.
-        mBlockMaster.upgradeToReadWriteJournal(mBlockMasterJournal);
-        mFileSystemMaster.upgradeToReadWriteJournal(mFileSystemMasterJournal);
-        mLineageMaster.upgradeToReadWriteJournal(mLineageMasterJournal);
+        mBlockMaster.transitionToLeader();
+        mFileSystemMaster.transitionToLeader();
+        if (mLineageMaster != null) {
+          mLineageMaster.transitionToLeader();
+        }
+        for (Master master : mAdditionalMasters) {
+          master.transitionToLeader();
+        }
 
         startMasters(true);
         started = true;
@@ -98,11 +100,8 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
 
           // When transitioning from master to standby, recreate the masters with a read-only
           // journal.
-          mBlockMaster = new BlockMaster(new ReadOnlyJournal(mBlockMasterJournal.getDirectory()));
-          mFileSystemMaster = new FileSystemMaster(mBlockMaster,
-              new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()));
-          mLineageMaster = new LineageMaster(
-              mFileSystemMaster, new ReadOnlyJournal(mLineageMasterJournal.getDirectory()));
+          createMasters(new JournalFactory.ReadOnly(getJournalDirectory()));
+
           startMasters(false);
           started = true;
         }

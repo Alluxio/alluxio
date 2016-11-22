@@ -16,8 +16,7 @@ import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.util.ThreadFactoryUtils;
@@ -79,11 +78,12 @@ public class BlockMasterTest {
    */
   @Before
   public void before() throws Exception {
-    Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
+    JournalFactory journalFactory =
+        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mMaster = new BlockMaster(blockJournal, mClock,
+    mMaster = new BlockMaster(journalFactory, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mMaster.start(true);
   }
@@ -252,11 +252,6 @@ public class BlockMasterTest {
   public void stopTerminatesExecutorService() throws Exception {
     mMaster.stop();
     Assert.assertTrue(mExecutorService.isTerminated());
-  }
-
-  @Test
-  public void getJournalDirectory() {
-    Assert.assertEquals("/base/BlockMaster", BlockMaster.getJournalDirectory("/base"));
   }
 
   @Test

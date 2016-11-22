@@ -19,7 +19,7 @@ import alluxio.ServerUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
@@ -94,15 +94,6 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   /** A list of extra masters to launch based on service loader. */
   protected List<Master> mAdditionalMasters;
 
-  /** The journal for the block master. */
-  protected final ReadWriteJournal mBlockMasterJournal;
-
-  /** The journal for the file system master. */
-  protected final ReadWriteJournal mFileSystemMasterJournal;
-
-  /** The journal for the lineage master. */
-  protected final ReadWriteJournal mLineageMasterJournal;
-
   /** The web ui server. */
   private WebServer mWebServer = null;
 
@@ -143,37 +134,44 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
-      // Check the journal directory
-      String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-      if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
-        journalDirectory += AlluxioURI.SEPARATOR;
-      }
-      Preconditions.checkState(isJournalFormatted(journalDirectory),
-          "Alluxio master was not formatted! The journal folder is " + journalDirectory);
-
       // Create the journals.
-      mBlockMasterJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(journalDirectory));
-      mFileSystemMasterJournal =
-          new ReadWriteJournal(FileSystemMaster.getJournalDirectory(journalDirectory));
-      mLineageMasterJournal =
-          new ReadWriteJournal(LineageMaster.getJournalDirectory(journalDirectory));
-
-      mBlockMaster = new BlockMaster(mBlockMasterJournal);
-      mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
-      if (LineageUtils.isLineageEnabled()) {
-        mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
-      }
-
-      mAdditionalMasters = new ArrayList<>();
-      List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
-      for (MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
-        Master master = factory.create(masters, journalDirectory);
-        if (master != null) {
-          mAdditionalMasters.add(master);
-        }
-      }
+      createMasters(new JournalFactory.ReadWrite(getJournalDirectory()));
     } catch (Exception e) {
       throw Throwables.propagate(e);
+    }
+  }
+
+  protected String getJournalDirectory() {
+    String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
+      journalDirectory += AlluxioURI.SEPARATOR;
+    }
+    try {
+      Preconditions.checkState(isJournalFormatted(journalDirectory),
+          "Alluxio master was not formatted! The journal folder is %s", journalDirectory);
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
+    return journalDirectory;
+  }
+
+  /**
+   * @param journalFactory the factory to use for creating journals
+   */
+  protected void createMasters(JournalFactory journalFactory) {
+    mBlockMaster = new BlockMaster(journalFactory);
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
+    if (LineageUtils.isLineageEnabled()) {
+      mLineageMaster = new LineageMaster(mFileSystemMaster, journalFactory);
+    }
+
+    mAdditionalMasters = new ArrayList<>();
+    List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
+    for (MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
+      Master master = factory.create(masters, journalFactory);
+      if (master != null) {
+        mAdditionalMasters.add(master);
+      }
     }
   }
 
