@@ -17,8 +17,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -233,59 +231,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return new SwiftInputStream(mAccount, mContainerName, stripPrefixIfPresent(path));
   }
 
-  @Override
-  public boolean renameDirectory(String src, String dst) throws IOException {
-    String[] children = list(src);
-    if (children == null) {
-      LOG.error("Failed to list directory {}, aborting rename.", src);
-      return false;
-    }
-    if (isFile(dst) || isDirectory(dst)) {
-      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
-      return false;
-    }
-
-    // Source exists and is a directory, and destination does not exist
-    // Rename the source folder first
-    if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
-      return false;
-    }
-    // Rename each child in the source folder to destination/child
-    for (String child : children) {
-      String childSrcPath = PathUtils.concatPath(src, child);
-      String childDstPath = PathUtils.concatPath(dst, child);
-      boolean success;
-      if (isDirectory(childSrcPath)) {
-        // Recursive call
-        success = renameDirectory(childSrcPath, childDstPath);
-      } else {
-        success = renameFile(childSrcPath, childDstPath);
-      }
-      if (!success) {
-        LOG.error("Failed to rename path {}, aborting rename.", child);
-        return false;
-      }
-    }
-    // Delete src and everything under src
-    return deleteDirectory(src, DeleteOptions.defaults().setRecursive(true));
-  }
-
-  @Override
-  public boolean renameFile(String src, String dst) throws IOException {
-    if (!isFile(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist or is a directory.",
-          src, dst);
-      return false;
-    }
-    if (isFile(dst) || isDirectory(dst)) {
-      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
-      return false;
-    }
-    String strippedSourcePath = stripPrefixIfPresent(src);
-    String strippedDestinationPath = stripPrefixIfPresent(dst);
-    return copy(strippedSourcePath, strippedDestinationPath) && deleteFile(src);
-  }
-
   // Setting Swift owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
@@ -322,14 +267,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return PathUtils.normalizePath(path, FOLDER_SUFFIX);
   }
 
-  /**
-   * Copies an object to another name. Destination will be overwritten if it already exists.
-   *
-   * @param source the source path to copy
-   * @param destination the destination path to copy to
-   * @return true if the operation was successful, false otherwise
-   */
-  private boolean copy(String source, String destination) {
+  @Override
+  protected boolean copy(String source, String destination) {
     LOG.debug("copy from {} to {}", source, destination);
     final String strippedSourcePath = stripPrefixIfPresent(source);
     final String strippedDestinationPath = stripPrefixIfPresent(destination);

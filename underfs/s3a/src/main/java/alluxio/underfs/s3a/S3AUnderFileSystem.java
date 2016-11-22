@@ -17,8 +17,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -283,57 +281,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
   }
 
-  @Override
-  public boolean renameDirectory(String src, String dst) throws IOException {
-    String[] children = list(src);
-    if (children == null) {
-      LOG.error("Failed to list directory {}, aborting rename.", src);
-      return false;
-    }
-    if (isFile(dst) || isDirectory(dst)) {
-      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
-      return false;
-    }
-    // Source exists and is a file, and destination does not exist
-    // Rename the source folder first
-    if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
-      return false;
-    }
-    // Rename each child in the src folder to destination/child
-    for (String child : children) {
-      String childSrcPath = PathUtils.concatPath(src, child);
-      String childDstPath = PathUtils.concatPath(dst, child);
-      boolean success;
-      if (isDirectory(childSrcPath)) {
-        // Recursive call
-        success = renameDirectory(childSrcPath, childDstPath);
-      } else {
-        success = renameFile(childSrcPath, childDstPath);
-      }
-      if (!success) {
-        LOG.error("Failed to rename path {}, aborting rename.", child);
-        return false;
-      }
-    }
-    // Delete src and everything under src
-    return deleteDirectory(src, DeleteOptions.defaults().setRecursive(true));
-  }
-
-  @Override
-  public boolean renameFile(String src, String dst) throws IOException {
-    if (!isFile(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist or is a directory.",
-          src, dst);
-      return false;
-    }
-    if (isFile(dst) || isDirectory(dst)) {
-      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
-      return false;
-    }
-    // Source is a file and Destination does not exist
-    return copy(src, dst) && deleteInternal(src);
-  }
-
   // Setting S3 owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
@@ -360,14 +307,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return mBucketMode;
   }
 
-  /**
-   * Copies an object to another key.
-   *
-   * @param src the source key to copy
-   * @param dst the destination key to copy to
-   * @return true if the operation was successful, false otherwise
-   */
-  private boolean copy(String src, String dst) {
+  @Override
+  protected boolean copy(String src, String dst) {
     src = stripPrefixIfPresent(src);
     dst = stripPrefixIfPresent(dst);
     LOG.debug("Copying {} to {}", src, dst);
