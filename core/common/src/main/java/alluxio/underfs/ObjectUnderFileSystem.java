@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -74,7 +75,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * Get next chunk of object listings.
      *
      * @return null if done with listing, otherwise return next chunk
-     * @throws IOException
+     * @throws IOException if a non-alluxio error occurs
      */
     ObjectListingResult getNextChunk() throws IOException;
   }
@@ -104,6 +105,45 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return createOutputStream(path);
     }
     return null;
+  }
+
+  @Override
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    if (!options.isRecursive()) {
+      UnderFileStatus[] children = listInternal(path, false);
+      if (children == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
+        return false;
+      }
+      if (children.length != 0) {
+        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
+                + "recursive as true in order to delete non empty directories.", path);
+        return false;
+      }
+    } else {
+      // Delete children
+      UnderFileStatus[] pathsToDelete = listInternal(path, true);
+      if (pathsToDelete == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
+        return false;
+      }
+      for (UnderFileStatus pathToDelete : pathsToDelete) {
+        // If we fail to deleteInternal one file, stop
+        String pathKey = PathUtils.concatPath(path, pathToDelete.getName());
+        boolean success;
+        if (pathToDelete.isDirectory()) {
+          success = deleteInternal(convertToFolderName(pathKey));
+        } else {
+          success = deleteInternal(pathKey);
+        }
+        if (!success) {
+          LOG.error("Failed to delete path {}, aborting delete.", pathToDelete.getName());
+          return false;
+        }
+      }
+    }
+    // Delete the directory itself
+    return deleteInternal(convertToFolderName(path));
   }
 
   /**
@@ -145,6 +185,17 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return -1;
   }
 
+  @Override
+  public String[] list(String path) throws IOException {
+    // if the path not exists, or it is a file, then should return null
+    if (!isDirectory(path)) {
+      return null;
+    }
+    // Non recursive list
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    return UnderFileStatus.toListingResult(listInternal(path, false));
+  }
+
   // Default object UFS does not provide a mechanism for updating the configuration, no-op
   @Override
   public void setConf(Object conf) {}
@@ -162,6 +213,27 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return new OutputStream
    */
   protected abstract OutputStream createOutputStream(String path) throws IOException;
+
+  /**
+   * Appends the directory suffix to the key.
+   *
+   * @param key the key to convert
+   * @return key as a directory path
+   */
+  protected String convertToFolderName(String key) {
+    // Strips the slash if it is the end of the key string. This is because the slash at
+    // the end of the string is not part of the Object key.
+    key = CommonUtils.stripSuffixIfPresent(key, PATH_SEPARATOR);
+    return key + getFolderSuffix();
+  }
+
+  /**
+   * Internal function to delete a key.
+   *
+   * @param key the key to delete
+   * @return true if successful, false if an exception is thrown
+   */
+  protected abstract boolean deleteInternal(String key) throws IOException;
 
   /**
    * @param key ufs path including scheme and bucket

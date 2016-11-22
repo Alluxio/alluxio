@@ -147,45 +147,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
-    if (!options.isRecursive()) {
-      UnderFileStatus[] children = listInternal(path, false);
-      if (children == null) {
-        LOG.error("Unable to delete {} because listInternal returns null", path);
-        return false;
-      }
-      if (children.length != 0) {
-        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
-                + "recursive as true in order to delete non empty directories.", path);
-        return false;
-      }
-    } else {
-      // Delete children
-      UnderFileStatus[] pathsToDelete = listInternal(path, true);
-      if (pathsToDelete == null) {
-        LOG.error("Unable to delete {} because listInternal returns null", path);
-        return false;
-      }
-      for (UnderFileStatus pathToDelete : pathsToDelete) {
-        // If we fail to deleteInternal one file, stop
-        String pathKey = PathUtils.concatPath(path, pathToDelete.getName());
-        boolean success;
-        if (pathToDelete.isDirectory()) {
-          success = deleteInternal(convertToFolderName(pathKey));
-        } else {
-          success = deleteInternal(pathKey);
-        }
-        if (!success) {
-          LOG.error("Failed to delete path {}, aborting delete.", pathToDelete.getName());
-          return false;
-        }
-      }
-    }
-    // Delete the directory itself
-    return deleteInternal(convertToFolderName(path));
-  }
-
-  @Override
   public boolean deleteFile(String path) throws IOException {
     return deleteInternal(path);
   }
@@ -246,17 +207,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     } catch (ServiceException e) {
       return false;
     }
-  }
-
-  @Override
-  public String[] list(String path) throws IOException {
-    // if the path not exists, or it is a file, then should return null
-    if (!isDirectory(path)) {
-      return null;
-    }
-    // Non recursive list
-    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-    return UnderFileStatus.toListingResult(listInternal(path, false));
   }
 
   @Override
@@ -403,21 +353,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Appends the directory suffix to the key.
-   *
-   * @param key the key to convert
-   * @return key as a directory path
-   */
-  private String convertToFolderName(String key) {
-    // Strips the slash if it is the end of the key string. This is because the slash at
-    // the end of the string is not part of the Object key in GCS.
-    if (key.endsWith(PATH_SEPARATOR)) {
-      key = key.substring(0, key.length() - PATH_SEPARATOR.length());
-    }
-    return key + FOLDER_SUFFIX;
-  }
-
-  /**
    * Copies an object to another key.
    *
    * @param src the source key to copy
@@ -446,13 +381,8 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     return false;
   }
 
-  /**
-   * Internal function to delete a key in GCS.
-   *
-   * @param key the key to delete
-   * @return true if successful, false if an exception is thrown
-   */
-  private boolean deleteInternal(String key) {
+  @Override
+  protected boolean deleteInternal(String key) throws IOException {
     try {
       mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
     } catch (ServiceException e) {
@@ -509,9 +439,12 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
     @Override
     public String[] getObjectNames() {
+      if (mChunk == null) {
+        return null;
+      }
       StorageObject[] objects = mChunk.getObjects();
       String[] ret = new String[objects.length];
-      for (int i = 0; i < objects.length; ++i) {
+      for (int i = 0; i < ret.length; ++i) {
         ret[i] = objects[i].getKey();
       }
       return ret;
@@ -519,6 +452,9 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
     @Override
     public String[] getCommonPrefixes() {
+      if (mChunk == null) {
+        return null;
+      }
       return mChunk.getCommonPrefixes();
     }
 

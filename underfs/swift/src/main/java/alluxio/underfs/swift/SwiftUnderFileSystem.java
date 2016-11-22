@@ -204,47 +204,9 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
-    // TODO(adit): use bulk delete API
-    LOG.debug("Delete directory {}, recursive {}", path, options.isRecursive());
-    final String strippedPath = stripPrefixIfPresent(path);
-    Container container = mAccount.getContainer(mContainerName);
-    if (!options.isRecursive()) {
-      String[] children = list(path);
-      if (children == null) {
-        LOG.error("Unable to delete {} because list returns null", path);
-        return false;
-      }
-      if (children.length != 0) {
-        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
-                + "recursive as true in order to delete non empty directories.", path);
-        return false;
-      }
-    } else {
-      // Delete children
-      PaginationMap paginationMap = container.getPaginationMap(
-          PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), LISTING_LENGTH);
-      for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-        for (StoredObject childObject : container.list(paginationMap, page)) {
-          if (childObject.getName().equals(addFolderSuffixIfNotPresent(strippedPath))) {
-            // As PATH_SEPARATOR=FOLDER_SUFFIX, the folder itself might be fetched
-            continue;
-          }
-          deleteObject(childObject);
-        }
-      }
-    }
-    // Delete the directory itself
-    String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
-    return deleteObject(container.getObject(strippedFolderPath));
-  }
-
-  @Override
   public boolean deleteFile(String path) throws IOException {
     LOG.debug("Delete file {}", path);
-    final String strippedPath = stripPrefixIfPresent(path);
-    Container container = mAccount.getContainer(mContainerName);
-    return deleteObject(container.getObject(strippedPath));
+    return deleteInternal(path);
   }
 
   @Override
@@ -418,16 +380,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Appends the directory suffix ands strips container prefix from path.
-   *
-   * @param  path the path to convert
-   * @return path as a directory path
-   */
-  private String convertToFolderName(String path) {
-    return addFolderSuffixIfNotPresent(stripPrefixIfPresent(path));
-  }
-
-  /**
    * Copies an object to another name. Destination will be overwritten if it already exists.
    *
    * @param source the source path to copy
@@ -459,18 +411,17 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return false;
   }
 
-  /**
-   * Deletes an object if it exists.
-   *
-   * @param object object handle to delete
-   * @return true if object deletion was successful
-   */
-  private boolean deleteObject(final StoredObject object) {
+  @Override
+  protected boolean deleteInternal(String path) throws IOException {
     try {
-      object.delete();
-      return true;
+      Container container = mAccount.getContainer(mContainerName);
+      StoredObject object = container.getObject(stripPrefixIfPresent(path));
+      if (object != null) {
+        object.delete();
+        return true;
+      }
     } catch (CommandException e) {
-      LOG.debug("Object {} not found", object.getPath());
+      LOG.debug("Object {} not found", path);
     }
     return false;
   }
@@ -498,6 +449,40 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   protected static String getContainerName(AlluxioURI uri) {
     //Authority contains the user, host and port portion of a URI
     return uri.getAuthority();
+  }
+
+  @Override
+  protected String getFolderSuffix() {
+    return FOLDER_SUFFIX;
+  }
+
+  @Override
+  protected ObjectListingResult getObjectListing(String path, boolean recursive)
+      throws IOException {
+    return new SwiftObjectListingResult(path, recursive);
+  }
+
+  /**
+   * Wrapper over JOSS {@link PaginationMap}.
+   */
+  final class SwiftObjectListingResult implements ObjectListingResult {
+    public SwiftObjectListingResult(String path, boolean recursive) {
+    }
+
+    @Override
+    public String[] getObjectNames() {
+      return null;
+    }
+
+    @Override
+    public String[] getCommonPrefixes() {
+      return null;
+    }
+
+    @Override
+    public ObjectListingResult getNextChunk() throws IOException {
+      return this;
+    }
   }
 
   /**
@@ -529,7 +514,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     String prefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
     prefix = CommonUtils.stripPrefixIfPresent(prefix, PATH_SEPARATOR);
 
-    Collection<DirectoryOrObject> objects = listInternal(prefix, recursive);
+    Collection<DirectoryOrObject> objects = listInternal2(prefix, recursive);
     Set<String> children = new HashSet<>();
     final String self = stripFolderSuffixIfPresent(prefix);
     boolean foundSelf = false;
@@ -573,7 +558,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    * @return a collection of the files or folders matching the prefix, or null if not found
    * @throws IOException if path is not accessible, e.g. network issues
    */
-  private Collection<DirectoryOrObject> listInternal(final String prefix, boolean recursive)
+  private Collection<DirectoryOrObject> listInternal2(final String prefix, boolean recursive)
       throws IOException {
     // TODO(adit): UnderFileSystem interface should be changed to support pagination
     ArrayDeque<DirectoryOrObject> results = new ArrayDeque<>();
@@ -591,13 +576,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return results;
   }
 
-  /**
-   * Creates a directory flagged file with the folder suffix.
-   *
-   * @param path the path to create a folder
-   * @return true if the operation was successful, false otherwise
-   */
-  private boolean mkdirsInternal(String path) {
+  @Override
+  protected boolean mkdirsInternal(String path) {
     try {
       // We do not check if a file with same name exists, i.e. a file with name
       // 'swift://swift-container/path' and a folder with name 'swift://swift-container/path/'
