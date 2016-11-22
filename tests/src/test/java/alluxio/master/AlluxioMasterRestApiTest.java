@@ -24,6 +24,7 @@ import alluxio.wire.Capacity;
 import alluxio.wire.WorkerInfo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,8 +47,13 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
 
     MetricsSystem.resetAllCounters();
+  }
+
+  @After
+  public void after() {
     // Reset Configuration in case some properties are set to custom values during the tests,
-    // e.g. getConfiguration().
+    // e.g. getConfiguration(). Since JVM is shared among tests, if this is not reset, the
+    // changed properties will affect other tests.
     Configuration.defaultInit();
   }
 
