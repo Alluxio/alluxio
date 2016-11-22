@@ -186,13 +186,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public String[] listRecursive(String path) throws IOException {
+    return UnderFileStatus.toListingResult(listInternal(path, true));
+  }
+
+  @Override
   public String[] list(String path) throws IOException {
-    // if the path not exists, or it is a file, then should return null
-    if (!isDirectory(path)) {
-      return null;
-    }
-    // Non recursive list
-    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     return UnderFileStatus.toListingResult(listInternal(path, false));
   }
 
@@ -313,6 +312,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @throws IOException if an I/O error occurs
    */
   protected UnderFileStatus[] listInternal(String path, boolean recursive) throws IOException {
+    // if the path not exists, or it is a file, then should return null
+    if (!isDirectory(path)) {
+      return null;
+    }
     path = stripPrefixIfPresent(path);
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     path = path.equals(PATH_SEPARATOR) ? "" : path;
