@@ -210,14 +210,13 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       return true;
     }
 
-    final String pathAsFolder = addFolderSuffixIfNotPresent(path);
-    return doesObjectExist(pathAsFolder);
+    final String pathAsFolder = PathUtils.normalizePath(path, FOLDER_SUFFIX);
+    return doesObjectExist(stripPrefixIfPresent(pathAsFolder));
   }
 
   @Override
   public boolean isFile(String path) throws IOException {
-    String pathAsFile = stripFolderSuffixIfPresent(path);
-    return doesObjectExist(pathAsFile);
+    return doesObjectExist(stripPrefixIfPresent(path));
   }
 
   @Override
@@ -249,16 +248,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public short getMode(String path) throws IOException {
     return mAccountMode;
-  }
-
-  /**
-   * A trailing {@link SwiftUnderFileSystem#FOLDER_SUFFIX} is added if not present.
-   *
-   * @param path URI to the object
-   * @return folder path
-   */
-  private String addFolderSuffixIfNotPresent(final String path) {
-    return PathUtils.normalizePath(path, FOLDER_SUFFIX);
   }
 
   @Override
@@ -417,16 +406,5 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       LOG.error("Failed to create directory: {}", key, e);
       return false;
     }
-  }
-
-  /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave paths without a suffix unaltered.
-   *
-   * @param path the path to strip the suffix from
-   * @return the path with the suffix removed, or the path unaltered if the suffix is not present
-   */
-  private String stripFolderSuffixIfPresent(final String path) {
-    return CommonUtils.stripSuffixIfPresent(path, FOLDER_SUFFIX);
   }
 }
