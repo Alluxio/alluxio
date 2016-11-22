@@ -147,11 +147,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public boolean deleteFile(String path) throws IOException {
-    return deleteInternal(path);
-  }
-
-  @Override
   public long getFileSize(String path) throws IOException {
     GSObject details = getObjectDetails(path);
     if (details != null) {

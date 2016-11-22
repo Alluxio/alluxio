@@ -188,11 +188,6 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public boolean deleteFile(String path) throws IOException {
-    return deleteInternal(path);
-  }
-
-  @Override
   public long getFileSize(String path) throws IOException {
     StorageObject details = getObjectDetails(path);
     if (details != null) {

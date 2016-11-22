@@ -201,12 +201,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public boolean deleteFile(String path) throws IOException {
-    LOG.debug("Delete file {}", path);
-    return deleteInternal(path);
-  }
-
-  @Override
   public long getFileSize(String path) throws IOException {
     return getObject(path).getContentLength();
   }

@@ -108,6 +108,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public boolean deleteFile(String path) throws IOException {
+    return deleteInternal(path);
+  }
+
+
+  @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     if (!options.isRecursive()) {
       UnderFileStatus[] children = listInternal(path, false);

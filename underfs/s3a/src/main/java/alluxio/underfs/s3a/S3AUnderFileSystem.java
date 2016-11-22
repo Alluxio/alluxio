@@ -217,11 +217,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public boolean deleteFile(String path) throws IOException {
-    return deleteInternal(path);
-  }
-
-  @Override
   public long getFileSize(String path) throws IOException {
     try {
       ObjectMetadata details = mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path));
