@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -198,6 +199,38 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public String[] list(String path) throws IOException {
     return UnderFileStatus.toListingResult(listInternal(path, false));
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
+    if (path == null) {
+      return false;
+    }
+    if (isDirectory(path)) {
+      return true;
+    }
+    if (isFile(path)) {
+      LOG.error("Cannot create directory {} because it is already a file.", path);
+      return false;
+    }
+    if (!options.getCreateParent()) {
+      if (parentExists(path)) {
+        // Parent directory exists
+        return mkdirsInternal(path);
+      } else {
+        LOG.error("Cannot create directory {} because parent does not exist", path);
+        return false;
+      }
+    }
+    // Parent directories should be created
+    if (parentExists(path)) {
+      // Parent directory exists
+      return mkdirsInternal(path);
+    } else {
+      String parentKey = getParentKey(path);
+      // Recursively make the parent folders
+      return mkdirs(parentKey, true) && mkdirsInternal(path);
+    }
   }
 
   // Default object UFS does not provide a mechanism for updating the configuration, no-op

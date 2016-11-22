@@ -229,37 +229,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
-    LOG.debug("Make directory {}", path);
-    if (path == null) {
-      LOG.error("Attempting to create directory with a null path");
-      return false;
-    }
-    if (isDirectory(path)) {
-      return true;
-    }
-    if (isFile(path)) {
-      LOG.error("Cannot create directory {} because it is already a file.", path);
-      return false;
-    }
-
-    if (!parentExists(path)) {
-      if (!options.getCreateParent()) {
-        LOG.error("Cannot create directory {} because parent does not exist", path);
-        return false;
-      }
-      final String parentPath = getParentKey(path);
-      // TODO(adit): See how we can do this with better performance
-      // Recursively make the parent folders
-      if (!mkdirs(parentPath, true)) {
-        LOG.error("Unable to create parent directory {}", path);
-        return false;
-      }
-    }
-    return mkdirsInternal(path);
-  }
-
-  @Override
   public InputStream open(String path) throws IOException {
     return new SwiftInputStream(mAccount, mContainerName, stripPrefixIfPresent(path));
   }
