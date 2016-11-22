@@ -26,7 +26,7 @@ public interface JournalFactory {
   /**
    * A factory which creates read-write journals.
    */
-  final class ReadWrite implements JournalFactory{
+  final class ReadWrite implements JournalFactory {
     private final String mBaseDirectory;
 
     /**
