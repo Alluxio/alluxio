@@ -18,7 +18,6 @@ import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
@@ -34,20 +33,17 @@ import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
-import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.util.Base64;
-import com.google.common.base.Preconditions;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -210,44 +206,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
-    try {
-      ObjectMetadata details = mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path));
-      return details.getContentLength();
-    } catch (AmazonClientException e) {
-      LOG.error("Error fetching file size, assuming file does not exist", e);
-      throw new FileNotFoundException(path);
-    }
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    ObjectMetadata details = getObjectDetails(path);
-    if (details != null) {
-      return details.getLastModified().getTime();
-    } else {
-      throw new FileNotFoundException(path);
-    }
-  }
-
-  @Override
-  public boolean isDirectory(String key) throws IOException {
-    // Root is always a folder
-    return isRoot(key) || getFolderMetadata(key) != null;
-  }
-
-  @Override
-  public boolean isFile(String path) throws IOException {
-    // Directly try to get the file metadata, if we fail it either is a folder or does not exist
-    try {
-      mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path));
-      return true;
-    } catch (AmazonClientException e) {
-      return false;
-    }
-  }
-
-  @Override
   public InputStream open(String path) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
@@ -346,58 +304,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return true;
   }
 
-  /**
-   * Gets the metadata associated with a non-root key if it represents a folder. This method will
-   * return null if the key is not a folder. If the key exists as a prefix but does not have the
-   * folder dummy file, a folder dummy file will be created.
-   *
-   * @param key the key to get the metadata for
-   * @return the metadata of the folder, or null if the key does not represent a folder
-   */
-  private ObjectMetadata getFolderMetadata(String key) {
-    Preconditions.checkArgument(!isRoot(key));
-    String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-    ObjectMetadata meta = null;
-    try {
-      meta = mClient.getObjectMetadata(mBucketName, keyAsFolder);
-      // If no exception is thrown, the key exists as a folder
-    } catch (AmazonClientException e) {
-      // It is possible that the folder has not been encoded as a _$folder$ file
-      try {
-        String dir = stripPrefixIfPresent(key);
-        String dirPrefix = PathUtils.normalizePath(dir, PATH_SEPARATOR);
-        // Check if anything begins with <folder_path>/
-        ObjectListing objs = mClient.listObjects(mBucketName, dirPrefix);
-        // If there are, this is a folder and we can create the necessary metadata
-        if (objs.getObjectSummaries().size() > 0) {
-          mkdirsInternal(dir);
-          meta = mClient.getObjectMetadata(mBucketName, keyAsFolder);
-        }
-      } catch (AmazonClientException ace) {
-        return null;
-      }
-    }
-    return meta;
-  }
-
   @Override
   protected String getFolderSuffix() {
     return FOLDER_SUFFIX;
-  }
-
-  /**
-   * @param key the key to get the object details of
-   * @return {@link ObjectMetadata} of the key, or null if the key does not exist
-   */
-  private ObjectMetadata getObjectDetails(String key) {
-    // We try to get the metadata as a file and then a folder without checking isFolder to reduce
-    // the number of calls to S3.
-    try {
-      return mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(key));
-    } catch (AmazonClientException e) {
-      // Its possible that the object is not a file but a folder
-      return getFolderMetadata(stripPrefixIfPresent(key));
-    }
   }
 
   @Override
@@ -460,6 +369,16 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         return null;
       }
       return this;
+    }
+  }
+
+  @Override
+  protected ObjectStatus getObjectStatus(String key) {
+    try {
+      ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
+      return new ObjectStatus(meta.getContentLength(), meta.getLastModified().getTime());
+    } catch (AmazonClientException e) {
+      return null;
     }
   }
 

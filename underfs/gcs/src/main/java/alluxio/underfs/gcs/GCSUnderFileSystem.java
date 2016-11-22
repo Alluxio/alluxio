@@ -18,7 +18,6 @@ import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.jets3t.service.ServiceException;
@@ -33,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -139,64 +137,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
-    GSObject details = getObjectDetails(path);
-    if (details != null) {
-      return details.getContentLength();
-    } else {
-      throw new FileNotFoundException(path);
-    }
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    GSObject details = getObjectDetails(path);
-    if (details != null) {
-      return details.getLastModifiedDate().getTime();
-    } else {
-      throw new FileNotFoundException(path);
-    }
-  }
-
-  @Override
-  public boolean isDirectory(String key) {
-    // Root is always a folder
-    if (isRoot(key)) {
-      return true;
-    }
-    try {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-      mClient.getObjectDetails(mBucketName, keyAsFolder);
-      // If no exception is thrown, the key exists as a folder
-      return true;
-    } catch (ServiceException s) {
-      // It is possible that the folder has not been encoded as a _$folder$ file
-      try {
-        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
-        // Check if anything begins with <path>/
-        GSObject[] objs = mClient.listObjects(mBucketName, path, "");
-        if (objs.length > 0) {
-          mkdirsInternal(path);
-          return true;
-        } else {
-          return false;
-        }
-      } catch (ServiceException s2) {
-        return false;
-      }
-    }
-  }
-
-  @Override
-  public boolean isFile(String path) throws IOException {
-    try {
-      return mClient.getObjectDetails(mBucketName, stripPrefixIfPresent(path)) != null;
-    } catch (ServiceException e) {
-      return false;
-    }
-  }
-
-  @Override
   public InputStream open(String path) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
@@ -290,23 +230,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     return true;
   }
 
-  /**
-   * @param key the key to get the object details of
-   * @return {@link GSObject} of the key, or null if the key does not exist
-   */
-  private GSObject getObjectDetails(String key) {
-    try {
-      if (isDirectory(key)) {
-        String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-        return mClient.getObjectDetails(mBucketName, keyAsFolder);
-      } else {
-        return mClient.getObjectDetails(mBucketName, stripPrefixIfPresent(key));
-      }
-    } catch (ServiceException e) {
-      return null;
-    }
-  }
-
   @Override
   protected String getFolderSuffix() {
     return FOLDER_SUFFIX;
@@ -371,6 +294,16 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
       mDone = mChunk.isListingComplete();
       mPriorLastKey = mChunk.getPriorLastKey();
       return this;
+    }
+  }
+
+  @Override
+  protected ObjectStatus getObjectStatus(String key) {
+    try {
+      GSObject meta = mClient.getObjectDetails(mBucketName, key);
+      return new ObjectStatus(meta.getContentLength(), meta.getLastModifiedDate().getTime());
+    } catch (ServiceException e) {
+      return null;
     }
   }
 

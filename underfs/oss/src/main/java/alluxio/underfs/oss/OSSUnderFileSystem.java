@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientConfiguration;
 import com.aliyun.oss.OSSClient;
@@ -31,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -102,67 +100,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
-    ObjectMetadata objectMeta = getObjectDetails(path);
-    if (objectMeta != null) {
-      return objectMeta.getContentLength();
-    } else {
-      throw new FileNotFoundException(path);
-    }
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    ObjectMetadata objectMeta = getObjectDetails(path);
-    if (objectMeta != null) {
-      return objectMeta.getLastModified().getTime();
-    } else {
-      throw new FileNotFoundException(path);
-    }
-  }
-
-  @Override
-  public boolean isDirectory(String key) {
-    // Root is a folder
-    if (isRoot(key)) {
-      return true;
-    }
-    try {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-      mClient.getObjectMetadata(mBucketName, keyAsFolder);
-      // If no exception is thrown, the key exists as a folder
-      return true;
-    } catch (ServiceException s) {
-      // It is possible that the folder has not been encoded as a _$folder$ file
-      try {
-        // Check if anything begins with <path>/
-        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
-        ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
-        listObjectsRequest.setPrefix(path);
-        listObjectsRequest.setDelimiter(PATH_SEPARATOR);
-        ObjectListing listing = mClient.listObjects(listObjectsRequest);
-        if (!listing.getObjectSummaries().isEmpty()) {
-          mkdirsInternal(path);
-          return true;
-        } else {
-          return false;
-        }
-      } catch (ServiceException s2) {
-        return false;
-      }
-    }
-  }
-
-  @Override
-  public boolean isFile(String path) throws IOException {
-    try {
-      return mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path)) != null;
-    } catch (ServiceException e) {
-      return false;
-    }
-  }
-
-  @Override
   public InputStream open(String path) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
@@ -227,24 +164,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
     return true;
-  }
-
-  /**
-   * @param key the key to get the object details of
-   * @return {@link ObjectMetadata} of the key, or null if the key does not exist
-   */
-  private ObjectMetadata getObjectDetails(String key) {
-    try {
-      if (isDirectory(key)) {
-        String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-        return mClient.getObjectMetadata(mBucketName, keyAsFolder);
-      } else {
-        return mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(key));
-      }
-    } catch (ServiceException e) {
-      LOG.warn("Failed to get Object {}, return null", key, e);
-      return null;
-    }
   }
 
   @Override
@@ -313,6 +232,22 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     }
   }
 
+  @Override
+  protected ObjectStatus getObjectStatus(String key) {
+    try {
+      ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
+      return new ObjectStatus(meta.getContentLength(), meta.getLastModified().getTime());
+    } catch (ServiceException e) {
+      LOG.warn("Failed to get Object {}, return null", key, e);
+      return null;
+    }
+  }
+
+  @Override
+  protected String getRootKey() {
+    return Constants.HEADER_OSS + mBucketName;
+  }
+
   /**
    * Creates an OSS {@code ClientConfiguration} using an Alluxio Configuration.
    *
@@ -327,11 +262,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     ossClientConf.setConnectionTTL(Configuration.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
-  }
-
-  @Override
-  protected String getRootKey() {
-    return Constants.HEADER_OSS + mBucketName;
   }
 
   @Override

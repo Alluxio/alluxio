@@ -21,9 +21,11 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -52,6 +54,37 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected ObjectUnderFileSystem(AlluxioURI uri) {
     super(uri);
+  }
+
+  /**
+   * Information about a single object in object UFS.
+   */
+  protected class ObjectStatus {
+    long mFileSize;
+    long mLastModifiedTimeMs;
+
+    public ObjectStatus(long fileSize, long lastModifiedTimeMs) {
+      mFileSize = fileSize;
+      mLastModifiedTimeMs = lastModifiedTimeMs;
+    }
+
+    /**
+     * Gets the file size in bytes.
+     *
+     * @return the file size in bytes
+     */
+    public long getContentLength() {
+      return mFileSize;
+    }
+
+    /**
+     * Gets the UTC last modified time in ms.
+     *
+     * @return modification time in milliseconds
+     */
+    public long getLastModifiedTimeMs() {
+      return mLastModifiedTimeMs;
+    }
   }
 
   /**
@@ -189,6 +222,39 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     return -1;
+  }
+
+  @Override
+  public long getFileSize(String path) throws IOException {
+    ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
+    if (details != null) {
+      return details.getContentLength();
+    } else {
+      LOG.error("Error fetching file size, assuming file does not exist");
+      throw new FileNotFoundException(path);
+    }
+  }
+
+  @Override
+  public long getModificationTimeMs(String path) throws IOException {
+    ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
+    if (details != null) {
+      return details.getLastModifiedTimeMs();
+    } else {
+      throw new FileNotFoundException(path);
+    }
+  }
+
+  @Override
+  public boolean isDirectory(String path) throws IOException {
+    // Root is always a folder
+    return isRoot(path) || getFolderMetadata(path) != null;
+  }
+
+  @Override
+  public boolean isFile(String path) throws IOException {
+    // Directly try to get the file metadata, if we fail it either is a folder or does not exist
+    return getObjectStatus(stripPrefixIfPresent(path)) != null;
   }
 
   @Override
@@ -333,6 +399,47 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected abstract boolean deleteObject(String key) throws IOException;
 
   /**
+   * Gets the metadata associated with a non-root path if it represents a folder. This method will
+   * return null if the path is not a folder. If the path exists as a prefix but does not have the
+   * folder dummy file, a folder dummy file will be created.
+   *
+   * @param path the path to get the metadata for
+   * @return the metadata of the folder, or null if the path does not represent a folder
+   */
+  protected ObjectStatus getFolderMetadata(String path) {
+    Preconditions.checkArgument(!isRoot(path));
+    String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
+    ObjectStatus meta = getObjectStatus(keyAsFolder);
+    if (meta == null) {
+      String dir = stripPrefixIfPresent(path);
+      String dirPrefix = PathUtils.normalizePath(dir, PATH_SEPARATOR);
+      // Check if anything begins with <folder_path>/
+      try {
+        ObjectListingResult objs = getObjectListing(dirPrefix, true);
+
+        // If there are, this is a folder and we can create the necessary metadata
+        if (objs.getObjectNames().length > 0) {
+          mkdirsInternal(dir);
+          meta = getObjectStatus(keyAsFolder);
+        }
+      } catch (IOException e) {
+        meta = null;
+      }
+    }
+    return meta;
+  }
+
+  /**
+   * Get metadata information about object.
+   *
+   * @param key
+   * @return
+   */
+  protected abstract ObjectStatus getObjectStatus(String key);
+
+  /**
+   * Get parent key.
+   *
    * @param key ufs path including scheme and bucket
    * @return the parent key, or null if the parent does not exist
    */

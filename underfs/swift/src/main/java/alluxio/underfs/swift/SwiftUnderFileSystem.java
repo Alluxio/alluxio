@@ -182,33 +182,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
-    return getObject(path).getContentLength();
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    LOG.debug("Get modification time for {}", path);
-    return getObject(path).getLastModifiedAsDate().getTime();
-  }
-
-  @Override
-  public boolean isDirectory(String path) throws IOException {
-    // Root is always a folder
-    if (isRoot(path)) {
-      return true;
-    }
-
-    final String pathAsFolder = PathUtils.normalizePath(path, FOLDER_SUFFIX);
-    return doesObjectExist(stripPrefixIfPresent(pathAsFolder));
-  }
-
-  @Override
-  public boolean isFile(String path) throws IOException {
-    return doesObjectExist(stripPrefixIfPresent(path));
-  }
-
-  @Override
   public InputStream open(String path) throws IOException {
     return new SwiftInputStream(mAccount, mContainerName, stripPrefixIfPresent(path));
   }
@@ -291,21 +264,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Check if the object at given path exists. The object could be either a file or directory.
-   * @param path path of object
-   * @return true if the object exists
-   */
-  private boolean doesObjectExist(String path) {
-    boolean exist = false;
-    try {
-      exist = getObject(path).exists();
-    } catch (CommandException e) {
-      LOG.debug("Error getting object details for {}", path);
-    }
-    return exist;
-  }
-
-  /**
    * Get container name from AlluxioURI.
    * @param uri URI used to construct Swift UFS
    * @return the container name from the given uri
@@ -377,15 +335,15 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     }
   }
 
-  /**
-   * Retrieves a handle to an object identified by the given path.
-   *
-   * @param path the path to retrieve an object handle for
-   * @return the object handle
-   */
-  private StoredObject getObject(final String path) {
+  @Override
+  protected ObjectStatus getObjectStatus(String key) {
+
     Container container = mAccount.getContainer(mContainerName);
-    return container.getObject(stripPrefixIfPresent(path));
+    StoredObject meta = container.getObject(key);
+    if (meta.exists()) {
+      return new ObjectStatus(meta.getContentLength(), meta.getLastModifiedAsDate().getTime());
+    }
+    return null;
   }
 
   @Override

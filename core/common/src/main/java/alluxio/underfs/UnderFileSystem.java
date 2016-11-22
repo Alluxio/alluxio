@@ -214,7 +214,7 @@ public interface UnderFileSystem {
   /**
    * Gets the UTC time of when the indicated path was modified recently in ms.
    *
-   * @param path the file or folder name
+   * @param path the file name
    * @return modification time in milliseconds
    * @throws IOException if a non-Alluxio error occurs
    */
