@@ -139,11 +139,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected OutputStream createObject(String key) throws IOException {
-    return new GCSOutputStream(mBucketName, key, mClient);
-  }
-
-  @Override
   public long getFileSize(String path) throws IOException {
     GSObject details = getObjectDetails(path);
     if (details != null) {
@@ -277,6 +272,11 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     }
     LOG.error("Failed to copy file {} to {}, after {} retries", src, dst, retries);
     return false;
+  }
+
+  @Override
+  protected OutputStream createObject(String key) throws IOException {
+    return new GCSOutputStream(mBucketName, key, mClient);
   }
 
   @Override

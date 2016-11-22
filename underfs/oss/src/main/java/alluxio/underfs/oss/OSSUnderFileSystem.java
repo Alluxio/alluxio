@@ -102,11 +102,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected OutputStream createObject(String key) throws IOException {
-    return new OSSOutputStream(mBucketName, key, mClient);
-  }
-
-  @Override
   public long getFileSize(String path) throws IOException {
     ObjectMetadata objectMeta = getObjectDetails(path);
     if (objectMeta != null) {
@@ -216,6 +211,11 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
       LOG.error("Failed to rename file {} to {}", src, dst, e);
       return false;
     }
+  }
+
+  @Override
+  protected OutputStream createObject(String key) throws IOException {
+    return new OSSOutputStream(mBucketName, key, mClient);
   }
 
   @Override

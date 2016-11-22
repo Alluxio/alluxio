@@ -210,11 +210,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected OutputStream createObject(String key) throws IOException {
-    return new S3AOutputStream(mBucketName, key, mManager);
-  }
-
-  @Override
   public long getFileSize(String path) throws IOException {
     try {
       ObjectMetadata details = mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path));
@@ -333,6 +328,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
     LOG.error("Failed to copy file {} to {}, after {} retries", src, dst, retries);
     return false;
+  }
+
+  @Override
+  protected OutputStream createObject(String key) throws IOException {
+    return new S3AOutputStream(mBucketName, key, mManager);
   }
 
   @Override

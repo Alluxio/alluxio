@@ -182,16 +182,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected OutputStream createObject(String key) throws IOException {
-    if (mSimulationMode) {
-      return new SwiftMockOutputStream(mAccount, mContainerName, key);
-    }
-
-    return SwiftDirectClient.put(mAccess,
-        PathUtils.concatPath(PathUtils.normalizePath(mContainerName, PATH_SEPARATOR), key));
-  }
-
-  @Override
   public long getFileSize(String path) throws IOException {
     return getObject(path).getContentLength();
   }
@@ -273,6 +263,16 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     }
     LOG.error("Failed to copy file {} to {}, after {} retries", source, destination, NUM_RETRIES);
     return false;
+  }
+
+  @Override
+  protected OutputStream createObject(String key) throws IOException {
+    if (mSimulationMode) {
+      return new SwiftMockOutputStream(mAccount, mContainerName, key);
+    }
+
+    return SwiftDirectClient.put(mAccess,
+        PathUtils.concatPath(PathUtils.normalizePath(mContainerName, PATH_SEPARATOR), key));
   }
 
   @Override
