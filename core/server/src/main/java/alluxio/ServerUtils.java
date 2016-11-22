@@ -11,13 +11,20 @@
 
 package alluxio;
 
+import alluxio.master.MasterFactory;
+import alluxio.worker.WorkerFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ServiceLoader;
 
 /**
  * Utility methods for running server binaries.
  */
-public final class RunUtils {
+public final class ServerUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -41,5 +48,35 @@ public final class RunUtils {
     }
   }
 
-  private RunUtils() {} // prevent instantiation
+  /**
+   * @return service loader for master factories
+   */
+  public static synchronized ServiceLoader<MasterFactory> getMasterServiceLoader() {
+    return ServiceLoader.load(MasterFactory.class, MasterFactory.class.getClassLoader());
+  }
+
+  /**
+   * @return the list of master service names
+   */
+  public static List<String> getMasterServiceNames() {
+    List<String> masterServiceNames = new ArrayList<>();
+    masterServiceNames.add(Constants.BLOCK_MASTER_NAME);
+    masterServiceNames.add(Constants.FILE_SYSTEM_MASTER_NAME);
+    masterServiceNames.add(Constants.LINEAGE_MASTER_NAME);
+    for (MasterFactory factory : getMasterServiceLoader()) {
+      if (factory.isEnabled()) {
+        masterServiceNames.add(factory.getName());
+      }
+    }
+    return masterServiceNames;
+  }
+
+  /**
+   * @return service loader for worker factories
+   */
+  public static synchronized ServiceLoader<WorkerFactory> getWorkerServiceLoader() {
+    return ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
+  }
+
+  private ServerUtils() {} // prevent instantiation
 }

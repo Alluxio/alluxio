@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.ServerUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -166,12 +167,17 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
     mAdditionalMasters = new ArrayList<>();
     List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
-    for (MasterFactory factory : AlluxioMasterService.Factory.getServiceLoader()) {
+    for (MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
       Master master = factory.create(masters, journalFactory);
       if (master != null) {
         mAdditionalMasters.add(master);
       }
     }
+  }
+
+  @Override
+  public List<Master> getAdditionalMasters() {
+    return mAdditionalMasters;
   }
 
   @Override

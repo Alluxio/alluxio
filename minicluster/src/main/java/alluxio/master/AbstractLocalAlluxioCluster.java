@@ -17,6 +17,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
+import alluxio.ServerUtils;
 import alluxio.client.block.BlockStoreContextTestUtils;
 import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
@@ -149,7 +150,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Formats the journal
     UnderFileSystemUtils.mkdirIfNotExists(journalFolder);
-    for (String masterServiceName : AlluxioMasterService.Factory.getServiceNames()) {
+    for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName));
     }
     UnderFileSystemUtils
