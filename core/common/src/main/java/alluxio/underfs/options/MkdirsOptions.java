@@ -30,7 +30,7 @@ public final class MkdirsOptions {
   private boolean mCreateParent;
 
   /**
-   * @return the default {@link CreateDirectoryOptions}
+   * @return the default {@link MkdirsOptions}
    */
   public static MkdirsOptions defaults() {
     return new MkdirsOptions();
