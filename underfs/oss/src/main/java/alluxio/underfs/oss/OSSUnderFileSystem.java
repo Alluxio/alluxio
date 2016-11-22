@@ -234,6 +234,9 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectStatus getObjectStatus(String key) {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
+      if (meta == null) {
+        return null;
+      }
       return new ObjectStatus(meta.getContentLength(), meta.getLastModified().getTime());
     } catch (ServiceException e) {
       LOG.warn("Failed to get Object {}, return null", key, e);

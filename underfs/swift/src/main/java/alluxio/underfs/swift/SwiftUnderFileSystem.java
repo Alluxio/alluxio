@@ -334,10 +334,9 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected ObjectStatus getObjectStatus(String key) {
-
     Container container = mAccount.getContainer(mContainerName);
     StoredObject meta = container.getObject(key);
-    if (meta.exists()) {
+    if (meta != null && meta.exists()) {
       return new ObjectStatus(meta.getContentLength(), meta.getLastModifiedAsDate().getTime());
     }
     return null;

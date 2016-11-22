@@ -374,6 +374,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectStatus getObjectStatus(String key) {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
+      if (meta == null) {
+        return null;
+      }
       return new ObjectStatus(meta.getContentLength(), meta.getLastModified().getTime());
     } catch (AmazonClientException e) {
       return null;

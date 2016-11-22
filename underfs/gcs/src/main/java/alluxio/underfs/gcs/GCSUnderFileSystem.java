@@ -299,6 +299,9 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectStatus getObjectStatus(String key) {
     try {
       GSObject meta = mClient.getObjectDetails(mBucketName, key);
+      if (meta == null) {
+        return null;
+      }
       return new ObjectStatus(meta.getContentLength(), meta.getLastModifiedDate().getTime());
     } catch (ServiceException e) {
       return null;
