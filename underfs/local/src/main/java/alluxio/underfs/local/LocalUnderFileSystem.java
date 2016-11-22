@@ -210,11 +210,6 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
-  }
-
-  @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     path = stripPath(path);
     File file = new File(path);

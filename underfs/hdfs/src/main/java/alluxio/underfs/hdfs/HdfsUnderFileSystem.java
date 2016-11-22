@@ -307,11 +307,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
-  }
-
-  @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);

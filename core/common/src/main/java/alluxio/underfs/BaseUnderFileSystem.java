@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -108,6 +109,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       }
     }
     return returnPaths.toArray(new String[returnPaths.size()]);
+  }
+
+  @Override
+  public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
   }
 
   @Override

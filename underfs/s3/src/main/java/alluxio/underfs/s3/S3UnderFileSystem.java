@@ -247,11 +247,6 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
-  }
-
-  @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
