@@ -418,9 +418,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       // Check if anything begins with <folder_path>/
       try {
         ObjectListingResult objs = getObjectListing(dirPrefix, true);
-
         // If there are, this is a folder and we can create the necessary metadata
-        if (objs.getObjectNames().length > 0) {
+        if (objs != null && objs.getObjectNames() != null && objs.getObjectNames().length > 0) {
           mkdirsInternal(dir);
           meta = getObjectStatus(keyAsFolder);
         }
