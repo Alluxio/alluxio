@@ -48,60 +48,7 @@ public class JournalShutdownIntegrationTest {
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
 
-  /**
-   * Hold a client and keep creating files.
-   */
-  class ClientThread implements Runnable {
-    /** The number of successfully created files. */
-    private int mSuccessNum = 0;
-
-    private final int mOpType; // 0: create file
-    private final FileSystem mFileSystem;
-
-    public ClientThread(int opType, FileSystem fs) {
-      mOpType = opType;
-      mFileSystem = fs;
-    }
-
-    public int getSuccessNum() {
-      return mSuccessNum;
-    }
-
-    /**
-     * Keep creating files until something crashes or fail to create. Record how many files are
-     * created successfully.
-     */
-    @Override
-    public void run() {
-      try {
-        // This infinity loop will be broken if something crashes or fail to create. This is
-        // expected since the master will shutdown at a certain time.
-        while (!Thread.interrupted()) {
-          if (mOpType == 0) {
-            try {
-              mFileSystem.createFile(new AlluxioURI(TEST_FILE_DIR + mSuccessNum)).close();
-            } catch (IOException e) {
-              break;
-            }
-          } else if (mOpType == 1) {
-            // TODO(gene): Add this back when there is new RawTable client API.
-            // if (mFileSystem.createRawTable(new AlluxioURI(TEST_TABLE_DIR + mSuccessNum), 1) ==
-            // -1) {
-            // break;
-            // }
-          }
-          // The create operation may succeed at the master side but still returns false due to the
-          // shutdown. So the mSuccessNum may be less than the actual success number.
-          mSuccessNum++;
-          CommonUtils.sleepMs(100);
-        }
-      } catch (Exception e) {
-        // Something crashed. Stop the thread.
-      }
-    }
-  }
-
-  private static final long SHUTDOWN_TIME_MS = 3 * Constants.SECOND_MS;
+  private static final long SHUTDOWN_TIME_MS = 15 * Constants.SECOND_MS;
   private static final String TEST_FILE_DIR = "/files/";
   private static final int TEST_NUM_MASTERS = 3;
   private static final long TEST_TIME_MS = Constants.SECOND_MS;
@@ -221,5 +168,58 @@ public class JournalShutdownIntegrationTest {
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
+  }
+
+  /**
+   * Hold a client and keep creating files.
+   */
+  class ClientThread implements Runnable {
+    /** The number of successfully created files. */
+    private int mSuccessNum = 0;
+
+    private final int mOpType; // 0: create file
+    private final FileSystem mFileSystem;
+
+    public ClientThread(int opType, FileSystem fs) {
+      mOpType = opType;
+      mFileSystem = fs;
+    }
+
+    public int getSuccessNum() {
+      return mSuccessNum;
+    }
+
+    /**
+     * Keep creating files until something crashes or fail to create. Record how many files are
+     * created successfully.
+     */
+    @Override
+    public void run() {
+      try {
+        // This infinity loop will be broken if something crashes or fail to create. This is
+        // expected since the master will shutdown at a certain time.
+        while (!Thread.interrupted()) {
+          if (mOpType == 0) {
+            try {
+              mFileSystem.createFile(new AlluxioURI(TEST_FILE_DIR + mSuccessNum)).close();
+            } catch (IOException e) {
+              break;
+            }
+          } else if (mOpType == 1) {
+            // TODO(gene): Add this back when there is new RawTable client API.
+            // if (mFileSystem.createRawTable(new AlluxioURI(TEST_TABLE_DIR + mSuccessNum), 1) ==
+            // -1) {
+            // break;
+            // }
+          }
+          // The create operation may succeed at the master side but still returns false due to the
+          // shutdown. So the mSuccessNum may be less than the actual success number.
+          mSuccessNum++;
+          CommonUtils.sleepMs(100);
+        }
+      } catch (Exception e) {
+        // Something crashed. Stop the thread.
+      }
+    }
   }
 }
