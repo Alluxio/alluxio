@@ -117,7 +117,6 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     for (Map.Entry<String, Counter> entry : counters.entrySet()) {
       operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
     }
-    operations.putAll(counters);
     String filesPinnedProperty =
         MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
     operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
@@ -128,6 +127,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
       rpcInvocationsUpdated
           .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
     }
+
     populateCounterValues(operations, rpcInvocationsUpdated, request);
   }
 }
