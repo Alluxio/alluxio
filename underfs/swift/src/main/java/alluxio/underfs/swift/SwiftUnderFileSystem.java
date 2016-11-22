@@ -43,10 +43,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -235,18 +232,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   public boolean isFile(String path) throws IOException {
     String pathAsFile = stripFolderSuffixIfPresent(path);
     return doesObjectExist(pathAsFile);
-  }
-
-  @Override
-  public String[] listRecursive(String path) throws IOException {
-    LOG.debug("List {} recursively", path);
-    return listHelper(path, true);
-  }
-
-  @Override
-  public String[] list(String path) throws IOException {
-    LOG.debug("List {}", path);
-    return listHelper(path, false);
   }
 
   @Override
@@ -466,21 +451,49 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    * Wrapper over JOSS {@link PaginationMap}.
    */
   final class SwiftObjectListingResult implements ObjectListingResult {
+    int mNumberOfPages;
+    PaginationMap mPaginationMap;
+    int mPage;
+    boolean mRecursive;
+
     public SwiftObjectListingResult(String path, boolean recursive) {
+      Container container = mAccount.getContainer(mContainerName);
+      mPaginationMap = container.getPaginationMap(path, LISTING_LENGTH);
+      mPage = 0;
+      mNumberOfPages = mPaginationMap.getNumberOfPages();
+      mRecursive = recursive;
     }
 
     @Override
     public String[] getObjectNames() {
-      return null;
+      ArrayDeque<DirectoryOrObject> objects = new ArrayDeque<>();
+      Container container = mAccount.getContainer(mContainerName);
+      if (!mRecursive) {
+        objects.addAll(container.listDirectory(mPaginationMap.getPrefix(), PATH_SEPARATOR_CHAR,
+            mPaginationMap.getMarker(mPage), mPaginationMap.getPageSize()));
+      } else {
+        objects.addAll(container.list(mPaginationMap, mPage));
+      }
+      int i = 0;
+      String[] res = new String[objects.size()];
+      for (DirectoryOrObject object : objects) {
+        res[i++] = object.getName();
+      }
+      return res;
     }
 
     @Override
     public String[] getCommonPrefixes() {
-      return null;
+      // TODO(adit): infer directories
+      return new String[0];
     }
 
     @Override
     public ObjectListingResult getNextChunk() throws IOException {
+      if (mPage >= mNumberOfPages) {
+        return null;
+      }
+      mPage++;
       return this;
     }
   }
@@ -499,81 +512,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected String getRootKey() {
     return Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
-  }
-
-  /**
-   * Lists the files or folders in the given path, not including the path itself.
-   *
-   * @param path the folder path whose children are listed
-   * @param recursive whether to do a recursive listing
-   * @return a collection of the files or folders in the given path, or null if path is a file or
-   * does not exist
-   * @throws IOException if path is not accessible, e.g. network issues
-   */
-  private String[] listHelper(String path, boolean recursive) throws IOException {
-    String prefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
-    prefix = CommonUtils.stripPrefixIfPresent(prefix, PATH_SEPARATOR);
-
-    Collection<DirectoryOrObject> objects = listInternal2(prefix, recursive);
-    Set<String> children = new HashSet<>();
-    final String self = stripFolderSuffixIfPresent(prefix);
-    boolean foundSelf = false;
-    for (DirectoryOrObject object : objects) {
-      String child = stripFolderSuffixIfPresent(object.getName());
-      String noPrefix = CommonUtils.stripPrefixIfPresent(child, prefix);
-      if (!noPrefix.equals(self)) {
-        children.add(noPrefix);
-      } else {
-        foundSelf = true;
-      }
-    }
-
-    if (isRoot(path)) {
-      foundSelf = true;
-    }
-
-    if (!foundSelf) {
-      if (mSimulationMode) {
-        if (children.size() != 0 || isDirectory(path)) {
-          // In simulation mode, the JOSS listDirectory call does not return the prefix itself,
-          // so we need the extra isDirectory call
-          foundSelf = true;
-        }
-      }
-
-      if (!foundSelf) {
-        // Path does not exist
-        return null;
-      }
-    }
-
-    return children.toArray(new String[children.size()]);
-  }
-
-  /**
-   * Lists the files or folders which match the given prefix using pagination.
-   *
-   * @param prefix the prefix to match
-   * @param recursive whether to do a recursive listing
-   * @return a collection of the files or folders matching the prefix, or null if not found
-   * @throws IOException if path is not accessible, e.g. network issues
-   */
-  private Collection<DirectoryOrObject> listInternal2(final String prefix, boolean recursive)
-      throws IOException {
-    // TODO(adit): UnderFileSystem interface should be changed to support pagination
-    ArrayDeque<DirectoryOrObject> results = new ArrayDeque<>();
-    Container container = mAccount.getContainer(mContainerName);
-    PaginationMap paginationMap = container.getPaginationMap(prefix, LISTING_LENGTH);
-    for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-      if (!recursive) {
-        // If not recursive, use delimiter to limit results fetched
-        results.addAll(container.listDirectory(paginationMap.getPrefix(), PATH_SEPARATOR_CHAR,
-            paginationMap.getMarker(page), paginationMap.getPageSize()));
-      } else {
-        results.addAll(container.list(paginationMap, page));
-      }
-    }
-    return results;
   }
 
   @Override

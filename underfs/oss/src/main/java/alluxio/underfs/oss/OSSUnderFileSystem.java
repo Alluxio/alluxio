@@ -396,7 +396,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
       if (mResult == null) {
         return null;
       }
-      List<OSSObjectSummary> objects = mResult.getObjectSummaries();
       List<String> res = mResult.getCommonPrefixes();
       return res.toArray(new String[res.size()]);
     }
