@@ -135,7 +135,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
-    if (mkdirs(getParentKey(path), true)) {
+    if (mkdirs(getParentPath(path), true)) {
       return createObject(stripPrefixIfPresent(path));
     }
     return null;
@@ -293,7 +293,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       // Parent directory exists
       return mkdirsInternal(path);
     } else {
-      String parentKey = getParentKey(path);
+      String parentKey = getParentPath(path);
       // Recursively make the parent folders
       return mkdirs(parentKey, true) && mkdirsInternal(path);
     }
@@ -440,21 +440,21 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected abstract ObjectStatus getObjectStatus(String key);
 
   /**
-   * Get parent key.
+   * Get parent path.
    *
-   * @param key ufs path including scheme and bucket
-   * @return the parent key, or null if the parent does not exist
+   * @param path ufs path including scheme and bucket
+   * @return the parent path, or null if the parent does not exist
    */
-  protected String getParentKey(String key) {
+  protected String getParentPath(String path) {
     // Root does not have a parent.
-    if (isRoot(key)) {
+    if (isRoot(path)) {
       return null;
     }
-    int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
+    int separatorIndex = path.lastIndexOf(PATH_SEPARATOR);
     if (separatorIndex < 0) {
       return null;
     }
-    return key.substring(0, separatorIndex);
+    return path.substring(0, separatorIndex);
   }
 
   /**
@@ -601,15 +601,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Treating the object store as a file system, checks if the parent directory exists.
    *
-   * @param key the key to check
-   * @return true if the parent exists or if the key is root, false otherwise
+   * @param path the path to check
+   * @return true if the parent exists or if the path is root, false otherwise
    */
-  protected boolean parentExists(String key) throws IOException {
+  protected boolean parentExists(String path) throws IOException {
     // Assume root always has a parent
-    if (isRoot(key)) {
+    if (isRoot(path)) {
       return true;
     }
-    String parentKey = getParentKey(key);
+    String parentKey = getParentPath(path);
     return parentKey != null && isDirectory(parentKey);
   }
 
@@ -622,19 +622,19 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected abstract boolean putObject(String key);
 
   /**
-   * Strips the bucket prefix or the preceding path separator from the key if it is present. For
-   * example, for input key ufs://my-bucket-name/my-path/file, the output would be my-path/file. If
-   * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
+   * Strips the bucket prefix or the preceding path separator from the path if it is present. For
+   * example, for input path ufs://my-bucket-name/my-path/file, the output would be my-path/file. If
+   * path is an absolute path like /my-path/file, the output would be my-path/file. This method will
    * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
    *
-   * @param key the key to strip
-   * @return the key without the bucket prefix
+   * @param path the path to strip
+   * @return the path without the bucket prefix
    */
-  protected String stripPrefixIfPresent(String key) {
-    String stripedKey = CommonUtils.stripPrefixIfPresent(key, getRootKey());
-    if (!stripedKey.equals(key)) {
+  protected String stripPrefixIfPresent(String path) {
+    String stripedKey = CommonUtils.stripPrefixIfPresent(path, getRootKey());
+    if (!stripedKey.equals(path)) {
       return stripedKey;
     }
-    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
+    return CommonUtils.stripPrefixIfPresent(path, PATH_SEPARATOR);
   }
 }
