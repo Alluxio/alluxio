@@ -1081,7 +1081,7 @@ public final class FileSystemMaster extends AbstractMaster {
       deleteInternal(inodePath, true, replayed, opTimeMs);
     } catch (DirectoryNotEmptyException e) {
       throw new IllegalStateException(
-          "deleteInternal should never throw DirectoryNotEmptyException when recursive is true", e);
+          "deleteObject should never throw DirectoryNotEmptyException when recursive is true", e);
     }
   }
 

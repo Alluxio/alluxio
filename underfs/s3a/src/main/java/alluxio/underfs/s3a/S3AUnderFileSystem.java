@@ -210,8 +210,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected OutputStream createOutputStream(String path) throws IOException {
-    return new S3AOutputStream(mBucketName, stripPrefixIfPresent(path), mManager);
+  protected OutputStream createObject(String key) throws IOException {
+    return new S3AOutputStream(mBucketName, key, mManager);
   }
 
   @Override
@@ -336,9 +336,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean deleteInternal(String key) throws IOException {
+  protected boolean deleteObject(String key) throws IOException {
     try {
-      mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
+      mClient.deleteObject(mBucketName, key);
     } catch (AmazonClientException e) {
       LOG.error("Failed to delete {}", key, e);
       return false;
@@ -469,18 +469,17 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean mkdirsInternal(String key) {
+  protected boolean putObject(String key) {
     try {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
       ObjectMetadata meta = new ObjectMetadata();
       meta.setContentLength(0);
       meta.setContentMD5(DIR_HASH);
       meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
-      mClient.putObject(new PutObjectRequest(mBucketName, keyAsFolder, new ByteArrayInputStream(
+      mClient.putObject(new PutObjectRequest(mBucketName, key, new ByteArrayInputStream(
           new byte[0]), meta));
       return true;
     } catch (AmazonClientException e) {
-      LOG.error("Failed to create directory: {}", key, e);
+      LOG.error("Failed to create object: {}", key, e);
       return false;
     }
   }

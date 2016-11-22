@@ -103,14 +103,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
-      return createOutputStream(path);
+      return createObject(stripPrefixIfPresent(path));
     }
     return null;
   }
 
   @Override
   public boolean deleteFile(String path) throws IOException {
-    return deleteInternal(path);
+    return deleteObject(stripPrefixIfPresent(path));
   }
 
   @Override
@@ -134,13 +134,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         return false;
       }
       for (UnderFileStatus pathToDelete : pathsToDelete) {
-        // If we fail to deleteInternal one file, stop
-        String pathKey = PathUtils.concatPath(path, pathToDelete.getName());
+        // If we fail to deleteObject one file, stop
+        String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
         boolean success;
         if (pathToDelete.isDirectory()) {
-          success = deleteInternal(convertToFolderName(pathKey));
+          success = deleteObject(convertToFolderName(pathKey));
         } else {
-          success = deleteInternal(pathKey);
+          success = deleteObject(pathKey);
         }
         if (!success) {
           LOG.error("Failed to delete path {}, aborting delete.", pathToDelete.getName());
@@ -149,7 +149,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
     }
     // Delete the directory itself
-    return deleteInternal(convertToFolderName(path));
+    return deleteObject(stripPrefixIfPresent(convertToFolderName(path)));
   }
 
   /**
@@ -281,7 +281,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return false;
     }
     // Source is a file and Destination does not exist
-    return copy(src, dst) && deleteInternal(src);
+    return copy(src, dst) && deleteObject(stripPrefixIfPresent(src));
   }
 
   // Default object UFS does not provide a mechanism for updating the configuration, no-op
@@ -296,11 +296,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Creates an {@link OutputStream} for object uploads.
    *
-   * @param path ufs path including scheme and bucket
+   * @param key ufs key including scheme and bucket
    * @throws IOException if failed to create stream
    * @return new OutputStream
    */
-  protected abstract OutputStream createOutputStream(String path) throws IOException;
+  protected abstract OutputStream createObject(String key) throws IOException;
 
   /**
    * Appends the directory suffix to the key.
@@ -330,7 +330,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param key the key to delete
    * @return true if successful, false if an exception is thrown
    */
-  protected abstract boolean deleteInternal(String key) throws IOException;
+  protected abstract boolean deleteObject(String key) throws IOException;
 
   /**
    * @param key ufs path including scheme and bucket
@@ -485,7 +485,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param key the key to create a folder
    * @return true if the operation was successful, false otherwise
    */
-  protected abstract boolean mkdirsInternal(String key);
+  protected boolean mkdirsInternal(String key) {
+    return putObject(convertToFolderName(stripPrefixIfPresent(key)));
+  }
 
   /**
    * Treating the object store as a file system, checks if the parent directory exists.
@@ -501,6 +503,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String parentKey = getParentKey(key);
     return parentKey != null && isDirectory(parentKey);
   }
+
+  /**
+   * Put an object which may be a file or a directory.
+   *
+   * @param key the key to create
+   * @return true if the operation was successful
+   */
+  protected abstract boolean putObject(String key);
 
   /**
    * Strips the bucket prefix or the preceding path separator from the key if it is present. For

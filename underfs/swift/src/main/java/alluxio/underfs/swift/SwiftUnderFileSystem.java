@@ -182,20 +182,14 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return "swift";
   }
 
-  /**
-   * Creates a simulated or actual OutputStream for object uploads.
-   * @throws IOException if failed to create path
-   * @return new OutputStream
-   */
   @Override
-  protected OutputStream createOutputStream(String path) throws IOException {
+  protected OutputStream createObject(String key) throws IOException {
     if (mSimulationMode) {
-      return new SwiftMockOutputStream(mAccount, mContainerName,
-          stripPrefixIfPresent(path));
+      return new SwiftMockOutputStream(mAccount, mContainerName, key);
     }
 
     return SwiftDirectClient.put(mAccess,
-        CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
+        PathUtils.concatPath(PathUtils.normalizePath(mContainerName, PATH_SEPARATOR), key));
   }
 
   @Override
@@ -294,10 +288,10 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean deleteInternal(String path) throws IOException {
+  protected boolean deleteObject(String path) throws IOException {
     try {
       Container container = mAccount.getContainer(mContainerName);
-      StoredObject object = container.getObject(stripPrefixIfPresent(path));
+      StoredObject object = container.getObject(path);
       if (object != null) {
         object.delete();
         return true;
@@ -412,15 +406,15 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean mkdirsInternal(String path) {
+  protected boolean putObject(String key) {
     try {
       // We do not check if a file with same name exists, i.e. a file with name
       // 'swift://swift-container/path' and a folder with name 'swift://swift-container/path/'
       // may both exist simultaneously
-      createOutputStream(addFolderSuffixIfNotPresent(path)).close();
+      createObject(key).close();
       return true;
     } catch (IOException e) {
-      LOG.error("Failed to create directory: {}", path, e);
+      LOG.error("Failed to create directory: {}", key, e);
       return false;
     }
   }

@@ -139,8 +139,8 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected OutputStream createOutputStream(String path) throws IOException {
-    return new GCSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
+  protected OutputStream createObject(String key) throws IOException {
+    return new GCSOutputStream(mBucketName, key, mClient);
   }
 
   @Override
@@ -280,9 +280,9 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean deleteInternal(String key) throws IOException {
+  protected boolean deleteObject(String key) throws IOException {
     try {
-      mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
+      mClient.deleteObject(mBucketName, key);
     } catch (ServiceException e) {
       LOG.error("Failed to delete {}", key, e);
       return false;
@@ -380,10 +380,9 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean mkdirsInternal(String key) {
+  protected boolean putObject(String key) {
     try {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-      GSObject obj = new GSObject(keyAsFolder);
+      GSObject obj = new GSObject(key);
       obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
       obj.setContentLength(0);
       obj.setMd5Hash(DIR_HASH);

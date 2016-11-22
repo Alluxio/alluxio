@@ -102,8 +102,8 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected OutputStream createOutputStream(String path) throws IOException {
-    return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
+  protected OutputStream createObject(String key) throws IOException {
+    return new OSSOutputStream(mBucketName, key, mClient);
   }
 
   @Override
@@ -219,9 +219,9 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean deleteInternal(String key) {
+  protected boolean deleteObject(String key) {
     try {
-      mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
+      mClient.deleteObject(mBucketName, key);
     } catch (ServiceException e) {
       LOG.error("Failed to delete {}", key, e);
       return false;
@@ -335,15 +335,14 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean mkdirsInternal(String key) {
+  protected boolean putObject(String key) {
     try {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
       ObjectMetadata objMeta = new ObjectMetadata();
       objMeta.setContentLength(0);
-      mClient.putObject(mBucketName, keyAsFolder, new ByteArrayInputStream(new byte[0]), objMeta);
+      mClient.putObject(mBucketName, key, new ByteArrayInputStream(new byte[0]), objMeta);
       return true;
     } catch (ServiceException e) {
-      LOG.error("Failed to create directory: {}", key, e);
+      LOG.error("Failed to create object: {}", key, e);
       return false;
     }
   }
