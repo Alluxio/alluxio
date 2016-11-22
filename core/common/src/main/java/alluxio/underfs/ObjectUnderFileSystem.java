@@ -312,7 +312,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
     // Source exists and is a file, and destination does not exist
     // Rename the source folder first
-    if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
+    if (!copyObject(stripPrefixIfPresent(convertToFolderName(src)),
+        stripPrefixIfPresent(convertToFolderName(dst)))) {
       return false;
     }
     // Rename each child in the src folder to destination/child
@@ -347,7 +348,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return false;
     }
     // Source is a file and Destination does not exist
-    return copy(src, dst) && deleteObject(stripPrefixIfPresent(src));
+    return copyObject(stripPrefixIfPresent(src), stripPrefixIfPresent(dst))
+        && deleteObject(stripPrefixIfPresent(src));
   }
 
   // Default object UFS does not provide a mechanism for updating the configuration, no-op
@@ -388,7 +390,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param dst the destination key to copy to
    * @return true if the operation was successful, false otherwise
    */
-  protected abstract boolean copy(String src, String dst) throws IOException;
+  protected abstract boolean copyObject(String src, String dst) throws IOException;
 
   /**
    * Internal function to delete a key.

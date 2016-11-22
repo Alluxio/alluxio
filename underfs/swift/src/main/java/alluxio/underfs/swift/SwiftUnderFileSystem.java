@@ -213,16 +213,13 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean copy(String source, String destination) {
+  protected boolean copyObject(String source, String destination) {
     LOG.debug("copy from {} to {}", source, destination);
-    final String strippedSourcePath = stripPrefixIfPresent(source);
-    final String strippedDestinationPath = stripPrefixIfPresent(destination);
     // Retry copy for a few times, in case some Swift internal errors happened during copy.
     for (int i = 0; i < NUM_RETRIES; i++) {
       try {
         Container container = mAccount.getContainer(mContainerName);
-        container.getObject(strippedSourcePath)
-            .copyObject(container, container.getObject(strippedDestinationPath));
+        container.getObject(source).copyObject(container, container.getObject(destination));
         return true;
       } catch (CommandException e) {
         LOG.error("Source path {} does not exist", source);

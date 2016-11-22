@@ -137,10 +137,8 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean copy(String src, String dst) {
+  protected boolean copyObject(String src, String dst) {
     try {
-      src = stripPrefixIfPresent(src);
-      dst = stripPrefixIfPresent(dst);
       LOG.info("Copying {} to {}", src, dst);
       mClient.copyObject(mBucketName, src, mBucketName, dst);
       return true;

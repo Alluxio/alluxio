@@ -234,9 +234,7 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean copy(String src, String dst) {
-    src = stripPrefixIfPresent(src);
-    dst = stripPrefixIfPresent(dst);
+  protected boolean copyObject(String src, String dst) {
     LOG.debug("Copying {} to {}", src, dst);
     S3Object obj = new S3Object(dst);
     // Retry copy for a few times, in case some Jets3t or AWS internal errors happened during copy.

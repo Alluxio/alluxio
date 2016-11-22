@@ -192,9 +192,7 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean copy(String src, String dst) {
-    src = stripPrefixIfPresent(src);
-    dst = stripPrefixIfPresent(dst);
+  protected boolean copyObject(String src, String dst) {
     LOG.debug("Copying {} to {}", src, dst);
     GSObject obj = new GSObject(dst);
     // Retry copy for a few times, in case some Jets3t or GCS internal errors happened during copy.
