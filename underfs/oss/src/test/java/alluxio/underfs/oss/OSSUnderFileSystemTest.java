@@ -38,7 +38,6 @@ public class OSSUnderFileSystemTest {
   private static final String DST = "dst";
 
   private static final String BUCKET_NAME = "bucket";
-  private static final String BUCKET_PREFIX = "prefix";
 
   /**
    * Set up.
@@ -48,7 +47,7 @@ public class OSSUnderFileSystemTest {
     mClient = Mockito.mock(OSSClient.class);
 
     mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient,
-        BUCKET_NAME, BUCKET_PREFIX);
+        BUCKET_NAME);
   }
 
   /**

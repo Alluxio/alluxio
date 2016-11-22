@@ -39,7 +39,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({UnderFileSystem.class})
+@PrepareForTest({UnderFileSystem.class, UnderFileSystemCache.class})
 public final class UnderFileSystemManagerTest {
   /** An invalid session id. */
   private static final long INVALID_SESSION_ID = -1L;
@@ -80,7 +80,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.open(Mockito.anyString())).thenReturn(mMockInputStream);
     Mockito.when(mMockUfs.renameFile(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
-    PowerMockito.mockStatic(UnderFileSystem.class);
+    PowerMockito.mockStatic(UnderFileSystemCache.class);
     Mockito.when(UnderFileSystemCache.get(Mockito.anyString())).thenReturn(mMockUfs);
     Mockito.when(mMockInputStream.skip(Mockito.anyInt())).thenAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {

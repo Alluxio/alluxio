@@ -50,6 +50,7 @@ import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
@@ -80,7 +81,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, AlluxioBlockStore.class,
-    UnderFileSystem.class, UnderFileSystemFileOutStream.class})
+    UnderFileSystem.class, UnderFileSystemCache.class, UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
   @Rule
   public AuthenticatedUserRule mRule = new AuthenticatedUserRule("Test");

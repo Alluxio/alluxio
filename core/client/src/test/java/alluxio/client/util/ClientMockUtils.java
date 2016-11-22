@@ -43,7 +43,7 @@ public final class ClientMockUtils {
    */
   public static UnderFileSystem mockUnderFileSystem(String ufsPathMatcher) {
     UnderFileSystem ufs = PowerMockito.mock(UnderFileSystem.class);
-    PowerMockito.mockStatic(UnderFileSystem.class);
+    PowerMockito.mockStatic(UnderFileSystemCache.class);
     PowerMockito.when(UnderFileSystemCache.get(ufsPathMatcher)).thenReturn(ufs);
     return ufs;
   }

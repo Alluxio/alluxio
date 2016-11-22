@@ -37,7 +37,6 @@ public class S3UnderFileSystemTest {
   private static final String DST = "dst";
 
   private static final String BUCKET_NAME = "bucket";
-  private static final String BUCKET_PREFIX = "prefix";
   private static final short BUCKET_MODE = 0;
   private static final String ACCOUNT_OWNER = "account owner";
 
@@ -49,7 +48,7 @@ public class S3UnderFileSystemTest {
     mClient = Mockito.mock(S3Service.class);
 
     mS3UnderFileSystem = new S3UnderFileSystem(new AlluxioURI(""),
-        mClient, BUCKET_NAME, BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER);
+        mClient, BUCKET_NAME, BUCKET_MODE, ACCOUNT_OWNER);
   }
 
   /**
