@@ -9,11 +9,6 @@ alluxio.user.block.worker.client.pool.gc.threshold.ms:
   A block worker client is closed if it has been idle for more than this threshold.
 alluxio.user.block.remote.read.buffer.size.bytes:
   The size of the file buffer to read data from remote Alluxio worker.
-alluxio.user.block.remote.reader.class:
-  Selects networking stack to run the client with. Currently only
-  `alluxio.client.netty.NettyRemoteBlockReader` (read remote data using netty) is valid.
-alluxio.user.block.remote.writer.class:
-  Selects networking stack to run the client with for block writes.
 alluxio.user.block.size.bytes.default:
   Default block size for Alluxio files.
 alluxio.user.failed.space.request.limits:
