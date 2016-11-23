@@ -212,19 +212,11 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   }
 
   @Override
-  public String getWebBindHost() {
+  public InetSocketAddress getWebAddress() {
     if (mWebServer != null) {
-      return mWebServer.getBindHost();
+      return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
     }
-    return "";
-  }
-
-  @Override
-  public int getWebLocalPort() {
-    if (mWebServer != null) {
-      return mWebServer.getLocalPort();
-    }
-    return -1;
+    return null;
   }
 
   @Override

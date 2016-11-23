@@ -42,6 +42,8 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
    */
   @Override
   public MasterInfo getMasterInfo(List<String> fieldNames) throws TException {
-    return null;
+    return new alluxio.thrift.MasterInfo()
+        .setRpcPort(mAlluxioMaster.getRpcAddress().getPort())
+        .setWebPort(mAlluxioMaster.getWebAddress().getPort());
   }
 }

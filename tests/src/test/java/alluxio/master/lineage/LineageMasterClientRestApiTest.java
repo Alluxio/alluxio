@@ -52,7 +52,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   @Before
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getMaster().getInternalMaster().getWebLocalPort();
+    mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = LineageMasterClientRestServiceHandler.SERVICE_PREFIX;
     mLineageClient = LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
     mMaster = mResource.get().getMaster().getInternalMaster();

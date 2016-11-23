@@ -50,7 +50,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Before
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getMaster().getInternalMaster().getWebLocalPort();
+    mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX;
     mFileSystemMaster = mResource.get().getMaster().getInternalMaster().getFileSystemMaster();
   }
