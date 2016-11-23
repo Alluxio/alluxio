@@ -323,6 +323,7 @@ public final class NetworkAddressUtils {
 
     try {
       sLocalHost = InetAddress.getByName(getLocalIpAddress(timeoutMs)).getCanonicalHostName();
+      LOG.info("Determined {} as the hostname for this machine", sLocalHost);
       return sLocalHost;
     } catch (UnknownHostException e) {
       throw Throwables.propagate(e);
