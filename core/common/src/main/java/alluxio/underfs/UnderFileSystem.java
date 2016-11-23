@@ -194,13 +194,11 @@ public interface UnderFileSystem {
   }
 
   /**
-   * Returns the name of the under filesystem implementation.
+   * Closes this under file system.
    *
-   * The name should be lowercase and not include any spaces, e.g. "hdfs", "s3".
-   *
-   * @return name of the under filesystem implementation
+   * @throws IOException if a non-Alluxio error occurs
    */
-  String getUnderFSType();
+  void close() throws IOException;
 
   /**
    * Configures and updates the properties. For instance, this method can add new properties or
@@ -235,13 +233,6 @@ public interface UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   void connectFromWorker(String hostname) throws IOException;
-
-  /**
-   * Closes this under file system.
-   *
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  void close() throws IOException;
 
   /**
    * Creates a file in the under file system with the indicated name.
@@ -348,6 +339,25 @@ public interface UnderFileSystem {
   long getFileSize(String path) throws IOException;
 
   /**
+   * Gets the group of the given path. An empty implementation should be provided if not supported.
+   *
+   * @param path the path of the file
+   * @return the group of the file
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  String getGroup(String path) throws IOException;
+
+  /**
+   * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
+   * be provided if not supported.
+   *
+   * @param path the path of the file
+   * @return the mode of the file
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  short getMode(String path) throws IOException;
+
+  /**
    * Gets the UTC time of when the indicated path was modified recently in ms.
    *
    * @param path the file name
@@ -355,6 +365,15 @@ public interface UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   long getModificationTimeMs(String path) throws IOException;
+
+  /**
+   * Gets the owner of the given path. An empty implementation should be provided if not supported.
+   *
+   * @param path the path of the file
+   * @return the owner of the file
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  String getOwner(String path) throws IOException;
 
   /**
    * @return the property map for this {@link UnderFileSystem}
@@ -371,6 +390,15 @@ public interface UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   long getSpace(String path, SpaceType type) throws IOException;
+
+  /**
+   * Returns the name of the under filesystem implementation.
+   *
+   * The name should be lowercase and not include any spaces, e.g. "hdfs", "s3".
+   *
+   * @return name of the under filesystem implementation
+   */
+  String getUnderFSType();
 
   /**
    * Checks if a directory exists in under file system.
@@ -533,34 +561,6 @@ public interface UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   void setMode(String path, short mode) throws IOException;
-
-  /**
-   * Gets the owner of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the owner of the file
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  String getOwner(String path) throws IOException;
-
-  /**
-   * Gets the group of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the group of the file
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  String getGroup(String path) throws IOException;
-
-  /**
-   * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
-   * be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the mode of the file
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  short getMode(String path) throws IOException;
 
   /**
    * Whether this type of UFS supports flush.
