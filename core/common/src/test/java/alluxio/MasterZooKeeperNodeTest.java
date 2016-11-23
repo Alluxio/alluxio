@@ -80,8 +80,8 @@ public final class MasterZooKeeperNodeTest {
   @Test
   public void notEnoughParts() {
     mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage("Master zookeeper nodes must be in the form name:rpcPort:webPort, but " +
-        "the specified node has name 'a:0'");
+    mThrown.expectMessage("Master zookeeper nodes must be in the form name:rpcPort:webPort, but "
+        + "the specified node has name 'a:0'");
     MasterZooKeeperNode.deserialize("a:0");
   }
 

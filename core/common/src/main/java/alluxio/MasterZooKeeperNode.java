@@ -65,6 +65,7 @@ public final class MasterZooKeeperNode {
    * Deserializes a master zookeeper node it's string representation.
    *
    * @param name the string representation
+   * @return the deserialized {@link MasterZooKeeperNode}
    */
   public static MasterZooKeeperNode deserialize(String name) {
     String[] parts = name.split(":");
@@ -84,9 +85,9 @@ public final class MasterZooKeeperNode {
       return false;
     }
     MasterZooKeeperNode that = (MasterZooKeeperNode) o;
-    return Objects.equal(mHostname, that.mHostname) &&
-        Objects.equal(mRpcPort, that.mRpcPort) &&
-        Objects.equal(mWebPort, that.mWebPort);
+    return Objects.equal(mHostname, that.mHostname)
+        && Objects.equal(mRpcPort, that.mRpcPort)
+        && Objects.equal(mWebPort, that.mWebPort);
   }
 
   @Override

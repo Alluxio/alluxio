@@ -597,7 +597,6 @@ public final class NetworkAddressUtils {
     return new InetSocketAddress(node.getHostname(), node.getRpcPort());
   }
 
-
   /**
    * Gets the active master web address from Zookeeper for the fault tolerant masters.
    *
