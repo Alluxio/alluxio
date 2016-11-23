@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
@@ -64,6 +65,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
     return new AtomicFileOutputStream(path, options, this);
+  }
+
+  @Override
+  public boolean deleteDirectory(String path) throws IOException {
+    return deleteDirectory(path, DeleteOptions.defaults());
   }
 
   @Override

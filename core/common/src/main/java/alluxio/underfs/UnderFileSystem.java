@@ -276,6 +276,15 @@ public interface UnderFileSystem {
   OutputStream createDirect(String path, CreateOptions options) throws IOException;
 
   /**
+   * Deletes a directory from the under file system with the indicated name non-recursively.
+   *
+   * @param path of the directory to delete
+   * @return true if directory was found and deleted, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  boolean deleteDirectory(String path) throws IOException;
+
+  /**
    * Deletes a directory from the under file system with the indicated name.
    *
    * @param path of the directory to delete
