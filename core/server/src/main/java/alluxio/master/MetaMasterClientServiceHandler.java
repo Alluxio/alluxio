@@ -13,16 +13,22 @@ package alluxio.master;
 
 import alluxio.Constants;
 import alluxio.thrift.MasterInfo;
+import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
 
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * This class is a Thrift handler for meta master RPCs.
  */
 public final class MetaMasterClientServiceHandler implements MetaMasterClientService.Iface {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final AlluxioMasterService mAlluxioMaster;
 
   /**
@@ -41,9 +47,20 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
    * {@inheritDoc}
    */
   @Override
-  public MasterInfo getMasterInfo(List<String> fieldNames) throws TException {
-    return new alluxio.thrift.MasterInfo()
-        .setRpcPort(mAlluxioMaster.getRpcAddress().getPort())
-        .setWebPort(mAlluxioMaster.getWebAddress().getPort());
+  public MasterInfo getInfo(List<MasterInfoField> fields) throws TException {
+    if (fields == null) {
+      fields = Arrays.asList(MasterInfoField.values());
+    }
+    MasterInfo info = new alluxio.thrift.MasterInfo();
+    for (MasterInfoField field : fields) {
+      switch (field) {
+        case WEB_PORT:
+          info.setWebPort(mAlluxioMaster.getWebAddress().getPort());
+          break;
+        default:
+          LOG.warn("Unrecognized master info field: " + field);
+      }
+    }
+    return info;
   }
 }

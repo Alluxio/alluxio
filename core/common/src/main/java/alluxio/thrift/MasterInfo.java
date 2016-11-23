@@ -38,8 +38,7 @@ import org.slf4j.LoggerFactory;
 public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInfo._Fields>, java.io.Serializable, Cloneable, Comparable<MasterInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("MasterInfo");
 
-  private static final org.apache.thrift.protocol.TField RPC_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("rpcPort", org.apache.thrift.protocol.TType.I64, (short)1);
-  private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I64, (short)2);
+  private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I64, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,13 +46,11 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     schemes.put(TupleScheme.class, new MasterInfoTupleSchemeFactory());
   }
 
-  private long rpcPort; // required
   private long webPort; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    RPC_PORT((short)1, "rpcPort"),
-    WEB_PORT((short)2, "webPort");
+    WEB_PORT((short)1, "webPort");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -68,9 +65,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // RPC_PORT
-          return RPC_PORT;
-        case 2: // WEB_PORT
+        case 1: // WEB_PORT
           return WEB_PORT;
         default:
           return null;
@@ -112,14 +107,11 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   }
 
   // isset id assignments
-  private static final int __RPCPORT_ISSET_ID = 0;
-  private static final int __WEBPORT_ISSET_ID = 1;
+  private static final int __WEBPORT_ISSET_ID = 0;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.RPC_PORT, new org.apache.thrift.meta_data.FieldMetaData("rpcPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.WEB_PORT, new org.apache.thrift.meta_data.FieldMetaData("webPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -130,12 +122,9 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   }
 
   public MasterInfo(
-    long rpcPort,
     long webPort)
   {
     this();
-    this.rpcPort = rpcPort;
-    setRpcPortIsSet(true);
     this.webPort = webPort;
     setWebPortIsSet(true);
   }
@@ -145,7 +134,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
    */
   public MasterInfo(MasterInfo other) {
     __isset_bitfield = other.__isset_bitfield;
-    this.rpcPort = other.rpcPort;
     this.webPort = other.webPort;
   }
 
@@ -155,33 +143,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   @Override
   public void clear() {
-    setRpcPortIsSet(false);
-    this.rpcPort = 0;
     setWebPortIsSet(false);
     this.webPort = 0;
-  }
-
-  public long getRpcPort() {
-    return this.rpcPort;
-  }
-
-  public MasterInfo setRpcPort(long rpcPort) {
-    this.rpcPort = rpcPort;
-    setRpcPortIsSet(true);
-    return this;
-  }
-
-  public void unsetRpcPort() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RPCPORT_ISSET_ID);
-  }
-
-  /** Returns true if field rpcPort is set (has been assigned a value) and false otherwise */
-  public boolean isSetRpcPort() {
-    return EncodingUtils.testBit(__isset_bitfield, __RPCPORT_ISSET_ID);
-  }
-
-  public void setRpcPortIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RPCPORT_ISSET_ID, value);
   }
 
   public long getWebPort() {
@@ -209,14 +172,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case RPC_PORT:
-      if (value == null) {
-        unsetRpcPort();
-      } else {
-        setRpcPort((Long)value);
-      }
-      break;
-
     case WEB_PORT:
       if (value == null) {
         unsetWebPort();
@@ -230,9 +185,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case RPC_PORT:
-      return getRpcPort();
-
     case WEB_PORT:
       return getWebPort();
 
@@ -247,8 +199,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     }
 
     switch (field) {
-    case RPC_PORT:
-      return isSetRpcPort();
     case WEB_PORT:
       return isSetWebPort();
     }
@@ -268,15 +218,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     if (that == null)
       return false;
 
-    boolean this_present_rpcPort = true;
-    boolean that_present_rpcPort = true;
-    if (this_present_rpcPort || that_present_rpcPort) {
-      if (!(this_present_rpcPort && that_present_rpcPort))
-        return false;
-      if (this.rpcPort != that.rpcPort)
-        return false;
-    }
-
     boolean this_present_webPort = true;
     boolean that_present_webPort = true;
     if (this_present_webPort || that_present_webPort) {
@@ -292,11 +233,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   @Override
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
-
-    boolean present_rpcPort = true;
-    list.add(present_rpcPort);
-    if (present_rpcPort)
-      list.add(rpcPort);
 
     boolean present_webPort = true;
     list.add(present_webPort);
@@ -314,16 +250,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetRpcPort()).compareTo(other.isSetRpcPort());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetRpcPort()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.rpcPort, other.rpcPort);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     lastComparison = Boolean.valueOf(isSetWebPort()).compareTo(other.isSetWebPort());
     if (lastComparison != 0) {
       return lastComparison;
@@ -354,10 +280,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     StringBuilder sb = new StringBuilder("MasterInfo(");
     boolean first = true;
 
-    sb.append("rpcPort:");
-    sb.append(this.rpcPort);
-    first = false;
-    if (!first) sb.append(", ");
     sb.append("webPort:");
     sb.append(this.webPort);
     first = false;
@@ -406,15 +328,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
           break;
         }
         switch (schemeField.id) {
-          case 1: // RPC_PORT
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.rpcPort = iprot.readI64();
-              struct.setRpcPortIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 2: // WEB_PORT
+          case 1: // WEB_PORT
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.webPort = iprot.readI64();
               struct.setWebPortIsSet(true);
@@ -437,9 +351,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      oprot.writeFieldBegin(RPC_PORT_FIELD_DESC);
-      oprot.writeI64(struct.rpcPort);
-      oprot.writeFieldEnd();
       oprot.writeFieldBegin(WEB_PORT_FIELD_DESC);
       oprot.writeI64(struct.webPort);
       oprot.writeFieldEnd();
@@ -461,16 +372,10 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     public void write(org.apache.thrift.protocol.TProtocol prot, MasterInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetRpcPort()) {
+      if (struct.isSetWebPort()) {
         optionals.set(0);
       }
-      if (struct.isSetWebPort()) {
-        optionals.set(1);
-      }
-      oprot.writeBitSet(optionals, 2);
-      if (struct.isSetRpcPort()) {
-        oprot.writeI64(struct.rpcPort);
-      }
+      oprot.writeBitSet(optionals, 1);
       if (struct.isSetWebPort()) {
         oprot.writeI64(struct.webPort);
       }
@@ -479,12 +384,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, MasterInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
+      BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
-        struct.rpcPort = iprot.readI64();
-        struct.setRpcPortIsSet(true);
-      }
-      if (incoming.get(1)) {
         struct.webPort = iprot.readI64();
         struct.setWebPortIsSet(true);
       }
