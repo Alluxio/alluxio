@@ -76,9 +76,9 @@ public final class MasterInquireClient {
   }
 
   /**
-   * @return the address of the current leader master
+   * @return the ZooKeeperNode for the current leader master
    */
-  public synchronized String getLeaderAddress() {
+  public synchronized MasterZooKeeperNode getLeader() {
     int tried = 0;
     try {
       while (tried < mMaxTry) {
@@ -87,7 +87,7 @@ public final class MasterInquireClient {
           LOG.info("Master addresses: {}", masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
-              return masters.get(0);
+              return MasterZooKeeperNode.deserialize(masters.get(0));
             }
 
             long maxTime = 0;
@@ -101,7 +101,7 @@ public final class MasterInquireClient {
               }
             }
             LOG.info("The leader master: {}", leader);
-            return leader;
+            return MasterZooKeeperNode.deserialize(leader);
           }
         } else {
           LOG.info("{} does not exist ({})", mLeaderPath, ++tried);

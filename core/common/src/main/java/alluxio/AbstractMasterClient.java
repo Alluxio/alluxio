@@ -56,7 +56,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @param zkLeaderPath the Zookeeper path holding the leader master address
    */
   public AbstractMasterClient(String zkLeaderPath) {
-    super(NetworkAddressUtils.getLeaderAddressFromZK(zkLeaderPath), "master");
+    super(NetworkAddressUtils.getLeaderRpcAddressFromZK(zkLeaderPath), "master");
     Preconditions.checkState(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     mZkLeaderPath = zkLeaderPath;
   }
@@ -69,7 +69,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
     if (mZkLeaderPath == null) {
       return super.getAddress();
     }
-    return NetworkAddressUtils.getLeaderAddressFromZK(mZkLeaderPath);
+    return NetworkAddressUtils.getLeaderRpcAddressFromZK(mZkLeaderPath);
   }
 
   /**
