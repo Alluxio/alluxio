@@ -69,9 +69,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
     mClient = new MetaMasterClientService.Client(mProtocol);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  @Override
   public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields)
       throws ConnectionFailedException {
     try {
