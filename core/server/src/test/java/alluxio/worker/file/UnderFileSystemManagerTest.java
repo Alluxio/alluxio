@@ -79,7 +79,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.open(Mockito.anyString())).thenReturn(mMockInputStream);
     Mockito.when(mMockUfs.renameFile(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
-    PowerMockito.mockStatic(UnderFileSystem.class);
+    PowerMockito.mockStatic(UnderFileSystem.Factory.class);
     Mockito.when(UnderFileSystem.Factory.get(Mockito.anyString())).thenReturn(mMockUfs);
     Mockito.when(mMockInputStream.skip(Mockito.anyInt())).thenAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
@@ -277,7 +277,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(ufs.openAtPosition(Mockito.anyString(), Mockito.anyLong())).thenReturn(
         mMockInputStream);
     Mockito.when(ufs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
-    PowerMockito.mockStatic(UnderFileSystem.class);
+    PowerMockito.mockStatic(UnderFileSystem.Factory.class);
     Mockito.when(UnderFileSystem.Factory.get(Mockito.anyString())).thenReturn(ufs);
 
     long position = FILE_LENGTH - 1;
