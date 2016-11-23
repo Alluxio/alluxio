@@ -48,14 +48,14 @@ public interface UnderFileSystem {
      * A class used to cache UnderFileSystems.
      */
     @ThreadSafe
-    private static class Cache {
+    private static final class Cache {
       /**
        * Maps from {@link Key} to {@link UnderFileSystem} instances.
        */
       private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
           new ConcurrentHashMap<>();
 
-      Cache() {}
+      private Cache() {}
 
       /**
        * Gets a UFS instance from the cache if exists. Otherwise, creates a new instance and adds
@@ -324,7 +324,7 @@ public interface UnderFileSystem {
    * Gets the list of locations of the indicated path given options.
    *
    * @param path the file name
-   * @param options including offset within the file
+   * @param options method options
    * @return The list of locations
    * @throws IOException if a non-Alluxio error occurs
    */
