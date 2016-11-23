@@ -39,12 +39,12 @@ public final class MasterZooKeeperNodeTest {
 
   @Test
   public void sanity() {
-    testSerde("localhost", 1, 2);
+    testSerializationDeserialization("localhost", 1, 2);
   }
 
   @Test
   public void specialChars() {
-    testSerde("abc?/\\$!_~`-", 0, 0);
+    testSerializationDeserialization("abc?/\\$!_~`-.", 0, 0);
   }
 
   @Test
@@ -85,7 +85,7 @@ public final class MasterZooKeeperNodeTest {
     MasterZooKeeperNode.deserialize("a:0");
   }
 
-  private void testSerde(String hostname, int rpcPort, int webPort) {
+  private void testSerializationDeserialization(String hostname, int rpcPort, int webPort) {
     MasterZooKeeperNode node1 = new MasterZooKeeperNode(hostname, rpcPort, webPort);
     MasterZooKeeperNode node2 = MasterZooKeeperNode.deserialize(node1.serialize());
     assertEquals(node1, node2);
