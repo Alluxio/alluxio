@@ -301,7 +301,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     int mNumberOfPages;
     PaginationMap mPaginationMap;
     int mPage;
-    boolean mRecursive;
+    final boolean mRecursive;
 
     public SwiftObjectListingResult(String path, boolean recursive) {
       Container container = mAccount.getContainer(mContainerName);

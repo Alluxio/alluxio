@@ -260,9 +260,9 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
    */
   final class GCSObjectListingResult implements ObjectListingResult {
     StorageObjectsChunk mChunk;
-    String mDelimiter;
+    final String mDelimiter;
     boolean mDone;
-    String mPath;
+    final String mPath;
     String mPriorLastKey;
 
     public GCSObjectListingResult(String path, boolean recursive) {

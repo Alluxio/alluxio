@@ -326,18 +326,18 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected ObjectListingResult getObjectListing(String path, boolean recursive)
       throws IOException {
-    return new S3ObjectListingResult(path, recursive);
+    return new S3AObjectListingResult(path, recursive);
   }
 
   /**
    * Wrapper over S3 {@link ListObjectsV2Request}.
    */
-  final class S3ObjectListingResult implements ObjectListingResult {
-    String mPath;
+  final class S3AObjectListingResult implements ObjectListingResult {
+    final String mPath;
     ListObjectsV2Request mRequest;
     ListObjectsV2Result mResult;
 
-    public S3ObjectListingResult(String path, boolean recursive) {
+    public S3AObjectListingResult(String path, boolean recursive) {
       String delimiter = recursive ? "" : PATH_SEPARATOR;
       mPath = path;
       mRequest =

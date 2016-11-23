@@ -185,18 +185,18 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected ObjectListingResult getObjectListing(String path, boolean recursive)
       throws IOException {
-    return new GCSObjectListingResult(path, recursive);
+    return new OSSObjectListingResult(path, recursive);
   }
 
   /**
-   * Wrapper over GCS {@link StorageObjectsChunk}.
+   * Wrapper over OSS {@link StorageObjectsChunk}.
    */
-  final class GCSObjectListingResult implements ObjectListingResult {
-    String mPath;
+  final class OSSObjectListingResult implements ObjectListingResult {
+    final String mPath;
     ListObjectsRequest mRequest;
     ObjectListing mResult;
 
-    public GCSObjectListingResult(String path, boolean recursive) {
+    public OSSObjectListingResult(String path, boolean recursive) {
       String delimiter = recursive ? "" : PATH_SEPARATOR;
       mPath = path;
       mRequest = new ListObjectsRequest(mBucketName);

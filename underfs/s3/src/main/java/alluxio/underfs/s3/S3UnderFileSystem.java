@@ -294,20 +294,20 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected ObjectListingResult getObjectListing(String path, boolean recursive)
       throws IOException {
-    return new S3ObjectListingResult(path, recursive);
+    return new S3NObjectListingResult(path, recursive);
   }
 
   /**
    * Wrapper over S3 {@link StorageObjectsChunk}.
    */
-  final class S3ObjectListingResult implements ObjectListingResult {
+  final class S3NObjectListingResult implements ObjectListingResult {
     StorageObjectsChunk mChunk;
-    String mDelimiter;
+    final String mDelimiter;
     boolean mDone;
-    String mPath;
+    final String mPath;
     String mPriorLastKey;
 
-    public S3ObjectListingResult(String path, boolean recursive) {
+    public S3NObjectListingResult(String path, boolean recursive) {
       mDelimiter = recursive ? "" : PATH_SEPARATOR;
       mDone = false;
       mPath = path;
