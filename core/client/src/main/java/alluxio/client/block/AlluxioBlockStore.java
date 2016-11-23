@@ -48,7 +48,7 @@ public final class AlluxioBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final BlockStoreContext mContext;
-  private final String mLocalHostName;
+  private String mLocalHostName;
 
   /**
    * Creates a block store using the master address got from config.
@@ -288,5 +288,14 @@ public final class AlluxioBlockStore {
     } finally {
       blockWorkerClient.close();
     }
+  }
+
+  /**
+   * Sets the local host name. This is only used in the test.
+   *
+   * @param localHostName the local host name
+   */
+  public void setLocalHostName(String localHostName) {
+    mLocalHostName = localHostName;
   }
 }

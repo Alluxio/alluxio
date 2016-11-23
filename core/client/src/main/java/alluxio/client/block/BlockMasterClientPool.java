@@ -16,6 +16,8 @@ import alluxio.PropertyKey;
 import alluxio.resource.ResourcePool;
 
 import java.net.InetSocketAddress;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -27,6 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private final InetSocketAddress mMasterAddress;
+  private final Queue<BlockMasterClient> mClientList;
 
   /**
    * Creates a new block master client pool.
@@ -36,6 +39,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
   public BlockMasterClientPool(InetSocketAddress masterAddress) {
     super(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
     mMasterAddress = masterAddress;
+    mClientList = new ConcurrentLinkedQueue<>();
   }
 
   /**
@@ -47,11 +51,15 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
   public BlockMasterClientPool(InetSocketAddress masterAddress, int clientThreads) {
     super(clientThreads);
     mMasterAddress = masterAddress;
+    mClientList = new ConcurrentLinkedQueue<>();
   }
 
   @Override
   public void close() {
-    // TODO(calvin): Consider collecting all the clients and shutting them down.
+    BlockMasterClient client;
+    while ((client = mClientList.poll()) != null) {
+      client.close();
+    }
   }
 
   @Override

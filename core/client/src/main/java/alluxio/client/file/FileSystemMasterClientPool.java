@@ -16,6 +16,8 @@ import alluxio.PropertyKey;
 import alluxio.resource.ResourcePool;
 
 import java.net.InetSocketAddress;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -25,6 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
   private final InetSocketAddress mMasterAddress;
+  private final Queue<FileSystemMasterClient> mClientList;
 
   /**
    * Creates a new file system master client pool.
@@ -34,6 +37,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
   public FileSystemMasterClientPool(InetSocketAddress masterAddress) {
     super(Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
     mMasterAddress = masterAddress;
+    mClientList = new ConcurrentLinkedQueue<>();
   }
 
   /**
@@ -45,15 +49,21 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
   public FileSystemMasterClientPool(InetSocketAddress masterAddress, int clientThreads) {
     super(clientThreads);
     mMasterAddress = masterAddress;
+    mClientList = new ConcurrentLinkedQueue<>();
   }
 
   @Override
   public void close() {
-    // TODO(calvin): Consider collecting all the clients and shutting them down
+    FileSystemMasterClient client;
+    while ((client = mClientList.poll()) != null) {
+      client.close();
+    }
   }
 
   @Override
   protected FileSystemMasterClient createNewResource() {
-    return new FileSystemMasterClient(mMasterAddress);
+    FileSystemMasterClient client = new FileSystemMasterClient(mMasterAddress);
+    mClientList.add(client);
+    return client;
   }
 }
