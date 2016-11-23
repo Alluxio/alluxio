@@ -582,9 +582,9 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets the active master RPC address from Zookeeper for the fault tolerant masters.
+   * Gets the active master RPC address from ZooKeeper for the fault tolerant masters.
    *
-   * @param zkLeaderPath the Zookeeper path containing the leader master address
+   * @param zkLeaderPath the ZooKeeper path containing the leader master address
    * @return InetSocketAddress the active master address retrieved from zookeeper
    */
   public static InetSocketAddress getLeaderRpcAddressFromZK(String zkLeaderPath) {
@@ -598,9 +598,9 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets the active master web address from Zookeeper for the fault tolerant masters.
+   * Gets the active master web address from ZooKeeper for the fault tolerant masters.
    *
-   * @param zkLeaderPath the Zookeeper path containing the leader master address
+   * @param zkLeaderPath the ZooKeeper path containing the leader master address
    * @return InetSocketAddress the active master address retrieved from zookeeper
    */
   public static InetSocketAddress getLeaderWebAddressFromZK(String zkLeaderPath) {

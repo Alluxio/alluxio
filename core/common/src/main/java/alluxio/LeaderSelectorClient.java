@@ -38,16 +38,16 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** The election path in Zookeeper. */
+  /** The election path in ZooKeeper. */
   private final String mElectionPath;
-  /** The path of the leader in Zookeeper. */
+  /** The path of the leader in ZooKeeper. */
   private final String mLeaderFolder;
   /** The LeaderSelector used to elect. */
   private final LeaderSelector mLeaderSelector;
-  /** The name of this master in Zookeeper. */
+  /** The name of this master in ZooKeeper. */
   private final String mName;
-  /** The address to Zookeeper. */
-  private final String mZookeeperAddress;
+  /** The address to ZooKeeper. */
+  private final String mZooKeeperAddress;
 
   /** Whether this master is the leader master now. */
   private AtomicBoolean mIsLeader = new AtomicBoolean(false);
@@ -57,14 +57,14 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   /**
    * Constructs a new {@link LeaderSelectorClient}.
    *
-   * @param zookeeperAddress the address to Zookeeper
+   * @param zookeeperAddress the address to ZooKeeper
    * @param electionPath the election path
    * @param leaderPath the path of the leader
    * @param name the name
    */
   public LeaderSelectorClient(String zookeeperAddress, String electionPath, String leaderPath,
       String name) {
-    mZookeeperAddress = zookeeperAddress;
+    mZooKeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;
     if (leaderPath.endsWith(AlluxioURI.SEPARATOR)) {
       mLeaderFolder = leaderPath;
@@ -196,7 +196,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
    * @return a new {@link CuratorFramework} client to use for leader selection
    */
   private CuratorFramework getNewCuratorClient() {
-    CuratorFramework client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+    CuratorFramework client = CuratorFrameworkFactory.newClient(mZooKeeperAddress,
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     client.start();
 
@@ -204,7 +204,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     // timeout), zookeeper thinks the new client is still an old one. In order to ensure a clean
     // state, explicitly close the "old" client recreate a new one.
     client.close();
-    client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+    client = CuratorFrameworkFactory.newClient(mZooKeeperAddress,
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     client.start();
     return client;

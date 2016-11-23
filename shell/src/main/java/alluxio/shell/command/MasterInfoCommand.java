@@ -66,7 +66,7 @@ public final class MasterInfoCommand extends AbstractShellCommand {
     System.out.println("Alluxio cluster with fault tolerance now");
     printLeader(client);
     System.out.println(String.format("All masters: %s", client.getMasterAddresses()));
-    System.out.println(String.format("Zookeeper address: %s",
+    System.out.println(String.format("ZooKeeper address: %s",
         Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS)));
   }
 

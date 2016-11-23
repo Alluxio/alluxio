@@ -31,8 +31,8 @@ public abstract class AbstractMasterClient extends AbstractClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Identifies the Zookeeper path to use for discovering the master address. This should be null
-   * if Zookeeper is not being used.
+   * Identifies the ZooKeeper path to use for discovering the master address. This should be null
+   * if ZooKeeper is not being used.
    */
   protected final String mZkLeaderPath;
 
@@ -53,7 +53,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
   /**
    * Creates a new master client base.
    *
-   * @param zkLeaderPath the Zookeeper path holding the leader master address
+   * @param zkLeaderPath the ZooKeeper path holding the leader master address
    */
   public AbstractMasterClient(String zkLeaderPath) {
     super(NetworkAddressUtils.getLeaderRpcAddressFromZK(zkLeaderPath), "master");

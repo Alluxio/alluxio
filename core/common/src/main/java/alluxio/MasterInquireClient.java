@@ -34,13 +34,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MasterInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Map from key spliced by the address for Zookeeper and path of leader to created client. */
+  /** Map from key spliced by the address for ZooKeeper and path of leader to created client. */
   private static HashMap<String, MasterInquireClient> sCreatedClients = new HashMap<>();
 
   /**
    * Gets the client.
    *
-   * @param zookeeperAddress the address for Zookeeper
+   * @param zookeeperAddress the address for ZooKeeper
    * @param electionPath the path of the master election
    * @param leaderPath the path of the leader
    *
@@ -55,20 +55,20 @@ public final class MasterInquireClient {
     return sCreatedClients.get(key);
   }
 
-  private final String mZookeeperAddress;
+  private final String mZooKeeperAddress;
   private final String mElectionPath;
   private final String mLeaderPath;
   private final CuratorFramework mClient;
   private final int mMaxTry;
 
   private MasterInquireClient(String zookeeperAddress, String electionPath, String leaderPath) {
-    mZookeeperAddress = zookeeperAddress;
+    mZooKeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;
     mLeaderPath = leaderPath;
 
-    LOG.info("Creating new zookeeper client. address: {}", mZookeeperAddress);
+    LOG.info("Creating new zookeeper client. address: {}", mZooKeeperAddress);
     mClient =
-        CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
+        CuratorFrameworkFactory.newClient(mZooKeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
     mClient.start();
 
@@ -109,8 +109,8 @@ public final class MasterInquireClient {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
     } catch (Exception e) {
-      LOG.error("Error getting the leader master address from zookeeper. Zookeeper address: {}",
-          mZookeeperAddress, e);
+      LOG.error("Error getting the leader master address from zookeeper. ZooKeeper address: {}",
+          mZooKeeperAddress, e);
     }
 
     return null;
@@ -140,8 +140,8 @@ public final class MasterInquireClient {
         }
       }
     } catch (Exception e) {
-      LOG.error("Error getting the master addresses from zookeeper. Zookeeper address: {}",
-          mZookeeperAddress, e);
+      LOG.error("Error getting the master addresses from zookeeper. ZooKeeper address: {}",
+          mZooKeeperAddress, e);
     }
 
     return null;

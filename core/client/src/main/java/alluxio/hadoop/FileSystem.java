@@ -39,7 +39,7 @@ public final class FileSystem extends AbstractFileSystem {
   }
 
   @Override
-  protected boolean isZookeeperMode() {
+  protected boolean isZooKeeperMode() {
     return false;
   }
 }
