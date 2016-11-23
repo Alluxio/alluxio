@@ -3,7 +3,7 @@ namespace java alluxio.thrift
 include "common.thrift"
 
 struct MasterInfo {
-  1: i64 webPort
+  1: i32 webPort
 }
 
 enum MasterInfoField {

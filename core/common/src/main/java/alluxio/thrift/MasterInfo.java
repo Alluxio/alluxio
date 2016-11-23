@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInfo._Fields>, java.io.Serializable, Cloneable, Comparable<MasterInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("MasterInfo");
 
-  private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I64, (short)1);
+  private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I32, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -46,7 +46,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     schemes.put(TupleScheme.class, new MasterInfoTupleSchemeFactory());
   }
 
-  private long webPort; // required
+  private int webPort; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -113,7 +113,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.WEB_PORT, new org.apache.thrift.meta_data.FieldMetaData("webPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(MasterInfo.class, metaDataMap);
   }
@@ -122,7 +122,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   }
 
   public MasterInfo(
-    long webPort)
+    int webPort)
   {
     this();
     this.webPort = webPort;
@@ -147,11 +147,11 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     this.webPort = 0;
   }
 
-  public long getWebPort() {
+  public int getWebPort() {
     return this.webPort;
   }
 
-  public MasterInfo setWebPort(long webPort) {
+  public MasterInfo setWebPort(int webPort) {
     this.webPort = webPort;
     setWebPortIsSet(true);
     return this;
@@ -176,7 +176,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       if (value == null) {
         unsetWebPort();
       } else {
-        setWebPort((Long)value);
+        setWebPort((Integer)value);
       }
       break;
 
@@ -329,8 +329,8 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         }
         switch (schemeField.id) {
           case 1: // WEB_PORT
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.webPort = iprot.readI64();
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.webPort = iprot.readI32();
               struct.setWebPortIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -352,7 +352,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
       oprot.writeStructBegin(STRUCT_DESC);
       oprot.writeFieldBegin(WEB_PORT_FIELD_DESC);
-      oprot.writeI64(struct.webPort);
+      oprot.writeI32(struct.webPort);
       oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -377,7 +377,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       }
       oprot.writeBitSet(optionals, 1);
       if (struct.isSetWebPort()) {
-        oprot.writeI64(struct.webPort);
+        oprot.writeI32(struct.webPort);
       }
     }
 
@@ -386,7 +386,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
-        struct.webPort = iprot.readI64();
+        struct.webPort = iprot.readI32();
         struct.setWebPortIsSet(true);
       }
     }
