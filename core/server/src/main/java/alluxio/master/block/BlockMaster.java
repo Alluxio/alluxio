@@ -843,6 +843,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     public static final String CAPACITY_TOTAL = "CapacityTotal";
     public static final String CAPACITY_USED = "CapacityUsed";
     public static final String CAPACITY_FREE = "CapacityFree";
+    public static final String WORKERS = "Workers";
 
     private static void registerGauges(final BlockMaster master) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_TOTAL),
@@ -869,7 +870,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName("Workers"),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(WORKERS),
           new Gauge<Integer>() {
             @Override
             public Integer getValue() {
