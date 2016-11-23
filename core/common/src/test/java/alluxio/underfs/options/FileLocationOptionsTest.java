@@ -50,7 +50,7 @@ public final class FileLocationOptionsTest {
   }
 
   @Test
-  public void equalsTest() throws Exception {
+  public void equals() throws Exception {
     CommonTestUtils.testEquals(FileLocationOptions.class);
   }
 }
