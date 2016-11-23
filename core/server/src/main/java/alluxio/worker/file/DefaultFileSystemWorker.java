@@ -82,7 +82,8 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
     mWorkerId = workerId;
     mSessions = new Sessions();
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
+    UnderFileSystem ufs =
+        UnderFileSystem.Factory.get(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker), ufs,
         RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
     mUnderFileSystemManager = new UnderFileSystemManager();
