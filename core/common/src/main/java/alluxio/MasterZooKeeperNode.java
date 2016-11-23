@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -38,6 +38,27 @@ public final class MasterZooKeeperNode {
    */
   public String serialize() {
     return String.format("%s:%d:%d", mHostname, mRpcPort, mWebPort);
+  }
+
+  /**
+   * @return the hostname for the master node
+   */
+  public String getHostname() {
+    return mHostname;
+  }
+
+  /**
+   * @return the rpc port for the master node
+   */
+  public int getRpcPort() {
+    return mRpcPort;
+  }
+
+  /**
+   * @return the web port for the master node
+   */
+  public int getWebPort() {
+    return mWebPort;
   }
 
   /**

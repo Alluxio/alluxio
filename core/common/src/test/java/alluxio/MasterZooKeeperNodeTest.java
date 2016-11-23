@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio;
 
 import static org.junit.Assert.assertEquals;
 
@@ -45,6 +45,24 @@ public final class MasterZooKeeperNodeTest {
   @Test
   public void specialChars() {
     testSerde("abc?/\\$!_~`-", 0, 0);
+  }
+
+  @Test
+  public void getHostname() {
+    MasterZooKeeperNode node = new MasterZooKeeperNode("testhost", 1, 2);
+    assertEquals("testhost", node.getHostname());
+  }
+
+  @Test
+  public void getRpcPort() {
+    MasterZooKeeperNode node = new MasterZooKeeperNode("testhost", 1, 2);
+    assertEquals(1, node.getRpcPort());
+  }
+
+  @Test
+  public void getWebPort() {
+    MasterZooKeeperNode node = new MasterZooKeeperNode("testhost", 1, 2);
+    assertEquals(2, node.getWebPort());
   }
 
   @Test
