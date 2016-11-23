@@ -113,10 +113,9 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
           RPCBlockWriteResponse resp = (RPCBlockWriteResponse) response;
           RPCResponse.Status status = resp.getStatus();
           LOG.debug("status: {} from remote machine {} received", status, mAddress);
-
           if (status != RPCResponse.Status.SUCCESS) {
-            throw new IOException(ExceptionMessage.BLOCK_WRITE_ERROR.getMessage(mBlockId,
-                mSessionId, mAddress, status.getMessage()));
+            throw new IOException(ExceptionMessage.BLOCK_WRITE_ERROR
+                .getMessage(mBlockId, mSessionId, mAddress, status.getMessage()));
           }
           mWrittenBytes += length;
           break;

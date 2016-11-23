@@ -79,7 +79,6 @@ public class DataServerIntegrationTest {
   public DataServerIntegrationTest(String className, String nettyTransferType, String blockReader) {
     mLocalAlluxioClusterResource =
         new LocalAlluxioClusterResource.Builder()
-            .setProperty(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS, blockReader)
             .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB)
             .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
             .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, className)
