@@ -17,7 +17,7 @@ Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一�
 
 * Linux kernel 2.6.9及以上
 * JDK 1.8及以上
-* libfuse 2.9.3及以上
+* [libfuse](https://github.com/libfuse/libfuse) 2.9.3及以上
   (2.8.3也能够工作，但会提示一些警告)
 
 # 构建

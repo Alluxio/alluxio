@@ -119,7 +119,7 @@ fs命令中的所有“路径”都应该以以下开头：
 
 ## copyFromLocal
 
-`copyFromLocal`命令将本地文件系统中的文件拷贝到Alluxio中，如果你运行该命令的机器上有Alluxio worker，那么数据便会存放在这个worker上，否则，数据将会随机地存放在一个运行Alluxio worker的远程节点上。如果该命令指定的目标是一个文件夹，那么这个文件夹及其所有内容都会被递归复制到Alluxio中。
+`copyFromLocal`命令将本地文件系统中的文件拷贝到Alluxio中，如果你运行该命令的机器上有Alluxio worker，那么数据便会存放在这个worker上，否则，数据将会随机地复制到一个运行Alluxio worker的远程节点上。如果该命令指定的目标是一个文件夹，那么这个文件夹及其所有内容都会被递归复制到Alluxio中。
 
 使用举例：使用`copyFromLocal`命令可以快速将数据复制到alluxio系统中以便后续处理：
 
