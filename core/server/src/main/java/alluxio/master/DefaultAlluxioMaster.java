@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.ServerUtils;
 import alluxio.RuntimeConstants;
+import alluxio.ServerUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalFactory;
@@ -24,6 +24,7 @@ import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
+import alluxio.thrift.MetaMasterClientService;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.LineageUtils;
@@ -211,19 +212,11 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   }
 
   @Override
-  public String getWebBindHost() {
+  public InetSocketAddress getWebAddress() {
     if (mWebServer != null) {
-      return mWebServer.getBindHost();
+      return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
     }
-    return "";
-  }
-
-  @Override
-  public int getWebLocalPort() {
-    if (mWebServer != null) {
-      return mWebServer.getLocalPort();
-    }
-    return -1;
+    return null;
   }
 
   @Override
@@ -339,6 +332,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     for (Master master : mAdditionalMasters) {
       registerServices(processor, master.getServices());
     }
+    // register meta services
+    processor.registerProcessor(Constants.META_MASTER_SERVICE_NAME,
+        new MetaMasterClientService.Processor<>(
+        new MetaMasterClientServiceHandler(this)));
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;

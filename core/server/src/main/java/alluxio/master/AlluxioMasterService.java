@@ -81,14 +81,9 @@ public interface AlluxioMasterService extends Server {
   long getUptimeMs();
 
   /**
-   * @return the master web service bind host (used by unit test only)
+   * @return the master's web address, or null if the web server hasn't been started yet
    */
-  String getWebBindHost();
-
-  /**
-   * @return the master web service port (used by unit test only)
-   */
-  int getWebLocalPort();
+  InetSocketAddress getWebAddress();
 
   /**
    * @return true if the system is the leader (serving the rpc server), false otherwise

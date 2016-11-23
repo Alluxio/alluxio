@@ -189,7 +189,7 @@ public class ServiceSocketBindIntegrationTest {
     try {
       mMasterWebService = (HttpURLConnection) new URL(
           "http://127.0.0.1:" + mLocalAlluxioCluster.getMaster().getInternalMaster()
-              .getWebLocalPort() + "/home").openConnection();
+              .getWebAddress().getPort() + "/home").openConnection();
       Assert.assertEquals(200, mMasterWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Master Web service.");
     } catch (IOException e) {

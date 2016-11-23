@@ -37,7 +37,7 @@ public final class BlockMasterClientRestApiTest extends RestApiTest {
   @Before
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getMaster().getInternalMaster().getWebLocalPort();
+    mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = BlockMasterClientRestServiceHandler.SERVICE_PREFIX;
   }
 
