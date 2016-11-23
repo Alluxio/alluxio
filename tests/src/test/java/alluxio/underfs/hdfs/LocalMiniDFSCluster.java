@@ -74,7 +74,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   public static boolean mkdirs(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-    return ufs.mkdirs(path, true);
+    return ufs.mkdirs(path);
   }
 
   private org.apache.hadoop.conf.Configuration mConf = new org.apache.hadoop.conf.Configuration();

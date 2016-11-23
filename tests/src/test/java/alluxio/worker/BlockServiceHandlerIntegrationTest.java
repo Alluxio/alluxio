@@ -286,7 +286,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(filename);
-    ufs.mkdirs(PathUtils.getParent(filename), true);
+    ufs.mkdirs(PathUtils.getParent(filename));
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(len), 0, len);
     out.close();

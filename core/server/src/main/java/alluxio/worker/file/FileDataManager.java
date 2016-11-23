@@ -308,7 +308,7 @@ public final class FileDataManager {
       // TODO(peis): Retry only if we are making progress.
       // TODO(chaomin): figure out a way to get parent permission in Alluxio namespace.
       for (; numRetry < maxRetry; numRetry++) {
-        if (mUfs.mkdirs(parentPath, true) || mUfs.isDirectory(parentPath)) {
+        if (mUfs.mkdirs(parentPath) || mUfs.isDirectory(parentPath)) {
           break;
         }
         // The parentPath can be created between the exists check and mkdirs call by other threads.

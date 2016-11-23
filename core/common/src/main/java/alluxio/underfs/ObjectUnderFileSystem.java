@@ -142,7 +142,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
-    if (mkdirs(getParentPath(path), true)) {
+    if (mkdirs(getParentPath(path))) {
       return createObject(stripPrefixIfPresent(path));
     }
     return null;
@@ -303,7 +303,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     } else {
       String parentKey = getParentPath(path);
       // Recursively make the parent folders
-      return mkdirs(parentKey, true) && mkdirsInternal(path);
+      return mkdirs(parentKey) && mkdirsInternal(path);
     }
   }
 

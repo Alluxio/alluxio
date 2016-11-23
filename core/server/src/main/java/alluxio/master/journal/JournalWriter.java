@@ -124,7 +124,7 @@ public final class JournalWriter {
       LOG.info("Creating tmp checkpoint file: {}", mTempCheckpointPath);
       if (!mUfs.isDirectory(mJournalDirectory)) {
         LOG.info("Creating journal folder: {}", mJournalDirectory);
-        mUfs.mkdirs(mJournalDirectory, true);
+        mUfs.mkdirs(mJournalDirectory);
       }
       mNextEntrySequenceNumber = latestSequenceNumber + 1;
       LOG.info("Latest journal sequence number: {} Next journal sequence number: {}",
@@ -226,7 +226,7 @@ public final class JournalWriter {
     }
 
     if (!mUfs.isDirectory(mCompletedDirectory)) {
-      mUfs.mkdirs(mCompletedDirectory, true);
+      mUfs.mkdirs(mCompletedDirectory);
     }
 
     String completedLog = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);

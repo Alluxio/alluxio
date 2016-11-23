@@ -185,7 +185,7 @@ public class CheckConsistencyIntegrationTest {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsFile);
     ufs.deleteFile(ufsFile);
-    ufs.mkdirs(ufsFile, true);
+    ufs.mkdirs(ufsFile);
     List<AlluxioURI> expected = Lists.newArrayList(FILE);
     Assert.assertEquals(expected, mFileSystemMaster
         .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));

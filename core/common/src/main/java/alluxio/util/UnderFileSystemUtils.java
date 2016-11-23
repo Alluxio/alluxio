@@ -53,7 +53,7 @@ public final class UnderFileSystemUtils {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
 
     if (!ufs.isDirectory(path)) {
-      if (!ufs.mkdirs(path, true)) {
+      if (!ufs.mkdirs(path)) {
         throw new IOException("Failed to make folder: " + path);
       }
     }

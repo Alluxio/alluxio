@@ -108,8 +108,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
+  public boolean mkdirs(String path) throws IOException {
+    return mkdirs(path, MkdirsOptions.defaults());
   }
 
   @Override

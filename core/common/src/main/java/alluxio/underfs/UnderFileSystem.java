@@ -465,15 +465,13 @@ public interface UnderFileSystem {
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
-   * returns false.
+   * returns false. The method creates any necessary but nonexistent parent directories.
    *
    * @param path the folder to create
-   * @param createParent if true, the method creates any necessary but nonexistent parent
-   *        directories. Otherwise, the method does not create nonexistent parent directories
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  boolean mkdirs(String path, boolean createParent) throws IOException;
+  boolean mkdirs(String path) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname, with specified

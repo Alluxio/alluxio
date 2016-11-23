@@ -57,7 +57,7 @@ public final class Format {
           return false;
         }
       }
-    } else if (!ufs.mkdirs(folder, true)) {
+    } else if (!ufs.mkdirs(folder)) {
       LOG.info("Failed to create {}:{}", name, folder);
       return false;
     }

@@ -86,7 +86,7 @@ public class LocalUnderFileSystemTest {
   @Test
   public void recursiveDelete() throws IOException {
     String dirpath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, true);
+    mLocalUfs.mkdirs(dirpath);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
     mLocalUfs.create(filepath).close();
     mLocalUfs.deleteDirectory(dirpath, DeleteOptions.defaults().setRecursive(true));
@@ -100,7 +100,7 @@ public class LocalUnderFileSystemTest {
   @Test
   public void nonRecursiveDelete() throws IOException {
     String dirpath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, true);
+    mLocalUfs.mkdirs(dirpath);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
     mLocalUfs.create(filepath).close();
     mLocalUfs.deleteDirectory(dirpath, DeleteOptions.defaults().setRecursive(false));
@@ -115,7 +115,7 @@ public class LocalUnderFileSystemTest {
   public void mkdirs() throws IOException {
     String parentPath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, true);
+    mLocalUfs.mkdirs(dirpath);
 
     Assert.assertTrue(mLocalUfs.isDirectory(dirpath));
 
@@ -127,7 +127,7 @@ public class LocalUnderFileSystemTest {
   public void mkdirsWithCreateParentEqualToFalse() throws IOException {
     String parentPath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, false);
+    mLocalUfs.mkdirs(dirpath);
 
     Assert.assertFalse(mLocalUfs.isDirectory(dirpath));
 
@@ -169,7 +169,7 @@ public class LocalUnderFileSystemTest {
   @Test
   public void isFile() throws IOException {
     String dirpath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, true);
+    mLocalUfs.mkdirs(dirpath);
     Assert.assertFalse(mLocalUfs.isFile(dirpath));
 
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
