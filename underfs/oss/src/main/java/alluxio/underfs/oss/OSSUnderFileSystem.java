@@ -233,7 +233,7 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
       String[] ret = new String[objects.size()];
       int i = 0;
       for (OSSObjectSummary obj : objects) {
-        ret[i] = obj.getKey();
+        ret[i++] = obj.getKey();
       }
       return ret;
     }

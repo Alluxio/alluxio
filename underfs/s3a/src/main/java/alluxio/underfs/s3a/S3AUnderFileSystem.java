@@ -375,7 +375,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       String[] ret = new String[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
-        ret[i] = obj.getKey();
+        ret[i++] = obj.getKey();
       }
       return ret;
     }
