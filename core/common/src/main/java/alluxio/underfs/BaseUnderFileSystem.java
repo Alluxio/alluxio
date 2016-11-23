@@ -12,8 +12,6 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
@@ -42,14 +40,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   /** A map of property names to values. */
   protected HashMap<String, String> mProperties = new HashMap<>();
-
-  /** Maximum length for a single listing query. */
-  private static final int MAX_LISTING_LENGTH = 1000;
-
-  /** Length of each list request. */
-  protected static final int LISTING_LENGTH =
-      Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > MAX_LISTING_LENGTH
-          ? MAX_LISTING_LENGTH : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
 
   /**
    * Constructs an {@link BaseUnderFileSystem}.

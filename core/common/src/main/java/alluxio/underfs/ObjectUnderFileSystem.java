@@ -41,6 +41,14 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Maximum length for a single listing query. */
+  private static final int LISTING_LENGTH_MAX = 1000;
+
+  /** Length of each list request. */
+  protected static final int LISTING_LENGTH =
+      Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > LISTING_LENGTH_MAX
+          ? LISTING_LENGTH_MAX : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
+
   /** Value used to indicate nested structure. */
   protected static final char PATH_SEPARATOR_CHAR = '/';
 
