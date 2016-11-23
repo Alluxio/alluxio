@@ -439,8 +439,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Get metadata information about object.
    *
-   * @param key
-   * @return
+   * @param key ufs key to get metadata for
+   * @return {@link ObjectStatus} if key exists and successful, otherwise null
    */
   protected abstract ObjectStatus getObjectStatus(String key);
 
