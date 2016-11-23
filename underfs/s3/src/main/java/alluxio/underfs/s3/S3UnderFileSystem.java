@@ -158,7 +158,6 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
    * @param uri the {@link AlluxioURI} for this UFS
    * @param s3Service Jets3t S3 client
    * @param bucketName bucket name of user's configured Alluxio bucket
-   * @param bucketPrefix prefix of the bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
    */
@@ -293,33 +292,47 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected ObjectListingResult getObjectListing(String path, boolean recursive)
+  protected ObjectListingResult getObjectListing(String key, boolean recursive)
       throws IOException {
-    return new S3NObjectListingResult(path, recursive);
+    key = PathUtils.normalizePath(key, PATH_SEPARATOR);
+    String delimiter = recursive ? "" : PATH_SEPARATOR;
+    StorageObjectsChunk chunk = getObjectListingChunk(key, delimiter, null);
+    if (chunk != null) {
+      return new S3NObjectListingResult(chunk);
+    }
+    return null;
+  }
+
+  // Get next chunk of listing result
+  private StorageObjectsChunk getObjectListingChunk(String key, String delimiter,
+      String priorLastKey) {
+    StorageObjectsChunk res;
+    try {
+      res = mClient.listObjectsChunked(mBucketName, key, delimiter,
+          LISTING_LENGTH, priorLastKey);
+    } catch (ServiceException e) {
+      LOG.error("Failed to list path {}", key, e);
+      res = null;
+    }
+    return res;
   }
 
   /**
    * Wrapper over S3 {@link StorageObjectsChunk}.
    */
-  final class S3NObjectListingResult implements ObjectListingResult {
-    StorageObjectsChunk mChunk;
-    final String mDelimiter;
-    boolean mDone;
-    final String mPath;
-    String mPriorLastKey;
+  private final class S3NObjectListingResult implements ObjectListingResult {
+    final StorageObjectsChunk mChunk;
 
-    public S3NObjectListingResult(String path, boolean recursive) {
-      mDelimiter = recursive ? "" : PATH_SEPARATOR;
-      mDone = false;
-      mPath = PathUtils.normalizePath(path, PATH_SEPARATOR);
-      mPriorLastKey = null;
+    S3NObjectListingResult(StorageObjectsChunk chunk)
+        throws IOException {
+      mChunk = chunk;
+      if (mChunk == null) {
+        throw new IOException("S3N listing result is null");
+      }
     }
 
     @Override
     public String[] getObjectNames() {
-      if (mChunk == null) {
-        return null;
-      }
       StorageObject[] objects = mChunk.getObjects();
       String[] ret = new String[objects.length];
       for (int i = 0; i < ret.length; ++i) {
@@ -330,27 +343,19 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
 
     @Override
     public String[] getCommonPrefixes() {
-      if (mChunk == null) {
-        return null;
-      }
       return mChunk.getCommonPrefixes();
     }
 
     @Override
     public ObjectListingResult getNextChunk() throws IOException {
-      if (mDone) {
-        return null;
+      if (!mChunk.isListingComplete()) {
+        StorageObjectsChunk nextChunk = getObjectListingChunk(mChunk.getPrefix(),
+            mChunk.getDelimiter(), mChunk.getPriorLastKey());
+        if (nextChunk != null) {
+          return new S3NObjectListingResult(nextChunk);
+        }
       }
-      try {
-        mChunk = mClient.listObjectsChunked(mBucketName, mPath, mDelimiter,
-            LISTING_LENGTH, mPriorLastKey);
-      } catch (ServiceException e) {
-        LOG.error("Failed to list path {}", mPath, e);
-        return null;
-      }
-      mDone = mChunk.isListingComplete();
-      mPriorLastKey = mChunk.getPriorLastKey();
-      return this;
+      return null;
     }
   }
 

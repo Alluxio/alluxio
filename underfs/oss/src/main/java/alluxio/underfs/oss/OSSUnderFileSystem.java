@@ -85,7 +85,6 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param uri the {@link AlluxioURI} for this UFS
    * @param ossClient Aliyun OSS client
    * @param bucketName bucket name of user's configured Alluxio bucket
-   * @param bucketPrefix prefix of the bucket
    */
   protected OSSUnderFileSystem(AlluxioURI uri,
       OSSClient ossClient,
@@ -184,33 +183,52 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected ObjectListingResult getObjectListing(String path, boolean recursive)
+  protected ObjectListingResult getObjectListing(String key, boolean recursive)
       throws IOException {
-    return new OSSObjectListingResult(path, recursive);
+    String delimiter = recursive ? "" : PATH_SEPARATOR;
+    key = PathUtils.normalizePath(key, PATH_SEPARATOR);
+    ListObjectsRequest request = new ListObjectsRequest(mBucketName);
+    request.setPrefix(key);
+    request.setMaxKeys(LISTING_LENGTH);
+    request.setDelimiter(delimiter);
+
+    ObjectListing result = getObjectListingChunk(request);
+    if (result != null) {
+      return new OSSObjectListingResult(request, result);
+    }
+    return null;
+  }
+
+  // Get next chunk of listing result
+  private ObjectListing getObjectListingChunk(ListObjectsRequest request) {
+    ObjectListing result;
+    try {
+      result = mClient.listObjects(request);
+    } catch (ServiceException e) {
+      LOG.error("Failed to list path {}", request.getPrefix(), e);
+      result = null;
+    }
+    return result;
   }
 
   /**
    * Wrapper over OSS {@link StorageObjectsChunk}.
    */
-  final class OSSObjectListingResult implements ObjectListingResult {
-    final String mPath;
-    ListObjectsRequest mRequest;
-    ObjectListing mResult;
+  private final class OSSObjectListingResult implements ObjectListingResult {
+    final ListObjectsRequest mRequest;
+    final ObjectListing mResult;
 
-    public OSSObjectListingResult(String path, boolean recursive) {
-      String delimiter = recursive ? "" : PATH_SEPARATOR;
-      mPath = PathUtils.normalizePath(path, PATH_SEPARATOR);
-      mRequest = new ListObjectsRequest(mBucketName);
-      mRequest.setPrefix(mPath);
-      mRequest.setMaxKeys(LISTING_LENGTH);
-      mRequest.setDelimiter(delimiter);
+    OSSObjectListingResult(ListObjectsRequest request, ObjectListing result)
+        throws IOException {
+      mRequest = request;
+      mResult = result;
+      if (mResult == null) {
+        throw new IOException("S3A listing result is null");
+      }
     }
 
     @Override
     public String[] getObjectNames() {
-      if (mResult == null) {
-        return null;
-      }
       List<OSSObjectSummary> objects = mResult.getObjectSummaries();
       String[] ret = new String[objects.size()];
       int i = 0;
@@ -222,25 +240,19 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
     @Override
     public String[] getCommonPrefixes() {
-      if (mResult == null) {
-        return null;
-      }
       List<String> res = mResult.getCommonPrefixes();
       return res.toArray(new String[res.size()]);
     }
 
     @Override
     public ObjectListingResult getNextChunk() throws IOException {
-      if (mResult != null && !mResult.isTruncated()) {
-        return null;
+      if (mResult.isTruncated()) {
+        ObjectListing nextResult = mClient.listObjects(mRequest);
+        if (nextResult != null) {
+          return new OSSObjectListingResult(mRequest, nextResult);
+        }
       }
-      try {
-        mResult = mClient.listObjects(mRequest);
-      } catch (ServiceException e) {
-        LOG.error("Failed to list path {}", mPath, e);
-        return null;
-      }
-      return this;
+      return null;
     }
   }
 

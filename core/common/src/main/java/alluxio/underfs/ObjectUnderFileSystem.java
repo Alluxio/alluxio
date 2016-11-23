@@ -117,7 +117,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     /**
      * Get next chunk of object listings.
      *
-     * @return null if listing did not find anything or is done, otherwise return next chunk
+     * @return null if listing did not find anything or is done, otherwise return new
+     * {@link ObjectListingResult} for the next chunk
      * @throws IOException if a non-alluxio error occurs
      */
     ObjectListingResult getNextChunk() throws IOException;
@@ -505,14 +506,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected abstract String getFolderSuffix();
 
   /**
-   * Get object listing for given path.
+   * Get object listing for given key.
    *
-   * @param path pseudo-directory path excluding header and bucket
+   * @param key pseudo-directory key excluding header and bucket
    * @param recursive whether to request immediate children only, or all descendants
    * @return chunked object listing
    * @throws IOException if a non-alluxio error occurs
    */
-  protected abstract ObjectListingResult getObjectListing(String path, boolean recursive)
+  protected abstract ObjectListingResult getObjectListing(String key, boolean recursive)
       throws IOException;
 
   /**
@@ -541,7 +542,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     path = path.equals(PATH_SEPARATOR) ? "" : path;
     Map<String, Boolean> children = new HashMap<>();
     ObjectListingResult chunk = getObjectListing(path, recursive);
-    chunk = chunk.getNextChunk();
     if (chunk == null) {
       return null;
     }

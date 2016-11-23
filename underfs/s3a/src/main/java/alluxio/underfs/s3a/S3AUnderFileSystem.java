@@ -182,7 +182,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param uri the {@link AlluxioURI} for this UFS
    * @param amazonS3Client AWS-SDK S3 client
    * @param bucketName bucket name of user's configured Alluxio bucket
-   * @param bucketPrefix prefix of the bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
    * @param transferManager Transfer Manager for efficient I/O to S3
@@ -325,32 +324,53 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected ObjectListingResult getObjectListing(String path, boolean recursive)
+  protected ObjectListingResult getObjectListing(String key, boolean recursive)
       throws IOException {
-    return new S3AObjectListingResult(path, recursive);
+    String delimiter = recursive ? "" : PATH_SEPARATOR;
+    key = PathUtils.normalizePath(key, PATH_SEPARATOR);
+    ListObjectsV2Request request =
+        new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(key)
+            .withDelimiter(delimiter).withMaxKeys(LISTING_LENGTH);
+    ListObjectsV2Result result = getObjectListingChunk(request);
+    if (result != null) {
+      return new S3AObjectListingResult(request, result);
+    }
+    return null;
+  }
+
+  // Get next chunk of listing result
+  private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request) {
+    ListObjectsV2Result result;
+    try {
+      // Query S3 for the next batch of objects
+      result = mClient.listObjectsV2(request);
+      // Advance the request continuation token to the next set of objects
+      request.setContinuationToken(result.getNextContinuationToken());
+    } catch (AmazonClientException e) {
+      LOG.error("Failed to list path {}", request.getPrefix(), e);
+      result = null;
+    }
+    return result;
   }
 
   /**
    * Wrapper over S3 {@link ListObjectsV2Request}.
    */
-  final class S3AObjectListingResult implements ObjectListingResult {
-    final String mPath;
-    ListObjectsV2Request mRequest;
-    ListObjectsV2Result mResult;
+  private final class S3AObjectListingResult implements ObjectListingResult {
+    final ListObjectsV2Request mRequest;
+    final ListObjectsV2Result mResult;
 
-    public S3AObjectListingResult(String path, boolean recursive) {
-      String delimiter = recursive ? "" : PATH_SEPARATOR;
-      mPath = PathUtils.normalizePath(path, PATH_SEPARATOR);
-      mRequest =
-          new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(mPath)
-              .withDelimiter(delimiter).withMaxKeys(LISTING_LENGTH);
+    S3AObjectListingResult(ListObjectsV2Request request, ListObjectsV2Result result)
+        throws IOException {
+      mRequest = request;
+      mResult = result;
+      if (mResult == null) {
+        throw new IOException("S3A listing result is null");
+      }
     }
 
     @Override
     public String[] getObjectNames() {
-      if (mResult == null) {
-        return null;
-      }
       List<S3ObjectSummary> objects = mResult.getObjectSummaries();
       String[] ret = new String[objects.size()];
       int i = 0;
@@ -362,28 +382,19 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     @Override
     public String[] getCommonPrefixes() {
-      if (mResult == null) {
-        return null;
-      }
       List<String> res = mResult.getCommonPrefixes();
       return res.toArray(new String[res.size()]);
     }
 
     @Override
     public ObjectListingResult getNextChunk() throws IOException {
-      if (mResult != null && !mResult.isTruncated()) {
-        return null;
+      if (mResult.isTruncated()) {
+        ListObjectsV2Result nextResult = getObjectListingChunk(mRequest);
+        if (nextResult != null) {
+          return new S3AObjectListingResult(mRequest, nextResult);
+        }
       }
-      try {
-        // Query S3 for the next batch of objects
-        mResult = mClient.listObjectsV2(mRequest);
-        // Advance the request continuation token to the next set of objects
-        mRequest.setContinuationToken(mResult.getNextContinuationToken());
-      } catch (AmazonClientException e) {
-        LOG.error("Failed to list path {}", mPath, e);
-        return null;
-      }
-      return this;
+      return null;
     }
   }
 

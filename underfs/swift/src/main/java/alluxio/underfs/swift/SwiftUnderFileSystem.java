@@ -45,10 +45,10 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.
- * The mkdir operation creates a zero-byte object.
- * A suffix {@link SwiftUnderFileSystem#PATH_SEPARATOR} in the object name denotes a folder.
- * JOSS directory listing API requires that the suffix be a single character.
+ * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library. The mkdir
+ * operation creates a zero-byte object. A suffix {@link SwiftUnderFileSystem#PATH_SEPARATOR} in the
+ * object name denotes a folder. JOSS directory listing API requires that the suffix be a single
+ * character.
  */
 @ThreadSafe
 public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
@@ -156,14 +156,14 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     // Assume the Swift user name has 1-1 mapping to Alluxio username.
     mAccountOwner = Configuration.get(PropertyKey.SWIFT_USER_KEY);
     short mode = (short) 0;
-    List<String> readAcl = Arrays.asList(
-        container.getContainerReadPermission().split(ACL_SEPARATOR_REGEXP));
+    List<String> readAcl =
+        Arrays.asList(container.getContainerReadPermission().split(ACL_SEPARATOR_REGEXP));
     // If there is any container ACL for the Swift user, translates it to Alluxio permission.
     if (readAcl.contains(mAccountOwner) || readAcl.contains("*") || readAcl.contains(".r:*")) {
       mode |= (short) 0500;
     }
-    List<String> writeAcl = Arrays.asList(
-        container.getcontainerWritePermission().split(ACL_SEPARATOR_REGEXP));
+    List<String> writeAcl =
+        Arrays.asList(container.getcontainerWritePermission().split(ACL_SEPARATOR_REGEXP));
     if (writeAcl.contains(mAccountOwner) || writeAcl.contains("*") || writeAcl.contains(".w:*")) {
       mode |= (short) 0200;
     }
@@ -275,11 +275,12 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
 
   /**
    * Get container name from AlluxioURI.
+   *
    * @param uri URI used to construct Swift UFS
    * @return the container name from the given uri
    */
   protected static String getContainerName(AlluxioURI uri) {
-    //Authority contains the user, host and port portion of a URI
+    // Authority contains the user, host and port portion of a URI
     return uri.getAuthority();
   }
 
@@ -289,26 +290,28 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected ObjectListingResult getObjectListing(String path, boolean recursive)
+  protected ObjectListingResult getObjectListing(String key, boolean recursive)
       throws IOException {
-    return new SwiftObjectListingResult(path, recursive);
+    Container container = mAccount.getContainer(mContainerName);
+    PaginationMap paginationMap =
+        container.getPaginationMap(PathUtils.normalizePath(key, PATH_SEPARATOR), LISTING_LENGTH);
+    if (paginationMap != null && paginationMap.getNumberOfPages() > 0) {
+      return new SwiftObjectListingResult(paginationMap, 0, recursive);
+    }
+    return null;
   }
 
   /**
    * Wrapper over JOSS {@link PaginationMap}.
    */
-  final class SwiftObjectListingResult implements ObjectListingResult {
-    int mNumberOfPages;
-    PaginationMap mPaginationMap;
-    int mPage;
+  private final class SwiftObjectListingResult implements ObjectListingResult {
+    final PaginationMap mPaginationMap;
+    final int mPage;
     final boolean mRecursive;
 
-    public SwiftObjectListingResult(String path, boolean recursive) {
-      Container container = mAccount.getContainer(mContainerName);
-      mPaginationMap = container.getPaginationMap(PathUtils.normalizePath(path, PATH_SEPARATOR),
-          LISTING_LENGTH);
-      mPage = 0;
-      mNumberOfPages = mPaginationMap.getNumberOfPages();
+    SwiftObjectListingResult(PaginationMap paginationMap, int page, boolean recursive) {
+      mPaginationMap = paginationMap;
+      mPage = page;
       mRecursive = recursive;
     }
 
@@ -338,11 +341,11 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
 
     @Override
     public ObjectListingResult getNextChunk() throws IOException {
-      if (mPage >= mNumberOfPages) {
+      int nextPage = mPage + 1;
+      if (nextPage >= mPaginationMap.getNumberOfPages()) {
         return null;
       }
-      mPage++;
-      return this;
+      return new SwiftObjectListingResult(mPaginationMap, nextPage, mRecursive);
     }
   }
 
