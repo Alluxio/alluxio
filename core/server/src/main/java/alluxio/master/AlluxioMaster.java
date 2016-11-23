@@ -12,8 +12,8 @@
 package alluxio.master;
 
 import alluxio.Constants;
-import alluxio.ServerUtils;
 import alluxio.RuntimeConstants;
+import alluxio.ServerUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

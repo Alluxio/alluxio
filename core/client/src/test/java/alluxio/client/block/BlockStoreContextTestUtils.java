@@ -11,6 +11,8 @@
 
 package alluxio.client.block;
 
+import alluxio.network.connection.NettyChannelPool;
+
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.powermock.reflect.Whitebox;
 
@@ -37,5 +39,12 @@ public class BlockStoreContextTestUtils {
       pool.close();
     }
     heartbeatPoolMap.clear();
+
+    ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool> nettyPoolMap =
+        Whitebox.getInternalState(BlockStoreContext.class, "NETTY_CHANNEL_POOL_MAP");
+    for (NettyChannelPool pool : nettyPoolMap.values()) {
+      pool.close();
+    }
+    nettyPoolMap.clear();
   }
 }
