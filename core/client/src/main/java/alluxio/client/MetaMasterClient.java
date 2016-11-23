@@ -15,12 +15,13 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
+import java.io.Closeable;
 import java.util.List;
 
 /**
  * Interface for the client to the meta master.
  */
-public interface MetaMasterClient {
+public interface MetaMasterClient extends Closeable {
   /**
    * @param masterInfoFields optional list of fields to query; if null all fields will be queried
    * @return the requested master info

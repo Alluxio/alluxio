@@ -79,8 +79,12 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
         @Override
         public MasterInfo call() throws TException {
           List<alluxio.thrift.MasterInfoField> thriftFields = new ArrayList<>();
-          for (MasterInfoField field : fields) {
-            thriftFields.add(field.toThrift());
+          if (fields == null) {
+            thriftFields = null;
+          } else {
+            for (MasterInfoField field : fields) {
+              thriftFields.add(field.toThrift());
+            }
           }
           return MasterInfo.fromThrift(mClient.getInfo(thriftFields));
         }
