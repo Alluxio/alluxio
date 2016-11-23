@@ -38,6 +38,21 @@ public final class MasterZooKeeperNodeTest {
   }
 
   @Test
+  public void serialize() {
+    MasterZooKeeperNode node = new MasterZooKeeperNode("host", 19998, 19999);
+    assertEquals("host:19998:19999", node.serialize());
+  }
+
+
+  @Test
+  public void deserialize() {
+    MasterZooKeeperNode node = MasterZooKeeperNode.deserialize("host:19998:19999");
+    assertEquals("host", node.getHostname());
+    assertEquals(19998, node.getRpcPort());
+    assertEquals(19999, node.getWebPort());
+  }
+
+  @Test
   public void sanity() {
     testSerializationDeserialization("localhost", 1, 2);
   }
