@@ -135,6 +135,10 @@ The REST API documentation is generated as part of Alluxio build and accessible 
 The HTTP proxy is a standalone server that can be started using `${ALLUXIO_HOME}/bin/alluxio-start.sh proxy`
 and stopped using `${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy`. By default, the REST API is available on port 39999.
 
+There are performance implications of using the HTTP proxy. In particular, using the proxy requires an
+extra hop. For optimal performance, it is recommended to run the proxy server an Alluxio worker on each
+compute node.
+
 # Hadoop API
 
 Alluxio has a wrapper of the native client which provides the Hadoop compatible `FileSystem`
