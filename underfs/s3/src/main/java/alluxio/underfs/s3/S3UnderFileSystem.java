@@ -255,6 +255,22 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  protected boolean createEmptyObject(String key) {
+    try {
+      S3Object obj = new S3Object(key);
+      obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
+      obj.setContentLength(0);
+      obj.setMd5Hash(DIR_HASH);
+      obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
+      mClient.putObject(mBucketName, obj);
+      return true;
+    } catch (ServiceException e) {
+      LOG.error("Failed to create object: {}", key, e);
+      return false;
+    }
+  }
+
+  @Override
   protected OutputStream createObject(String key) throws IOException {
     return new S3OutputStream(mBucketName, key, mClient);
   }
@@ -353,21 +369,5 @@ public final class S3UnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected String getRootKey() {
     return Constants.HEADER_S3N + mBucketName;
-  }
-
-  @Override
-  protected boolean putObject(String key) {
-    try {
-      S3Object obj = new S3Object(key);
-      obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
-      obj.setContentLength(0);
-      obj.setMd5Hash(DIR_HASH);
-      obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
-      mClient.putObject(mBucketName, obj);
-      return true;
-    } catch (ServiceException e) {
-      LOG.error("Failed to create object: {}", key, e);
-      return false;
-    }
   }
 }

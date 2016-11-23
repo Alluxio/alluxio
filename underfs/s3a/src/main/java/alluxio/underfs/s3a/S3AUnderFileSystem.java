@@ -287,6 +287,22 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  protected boolean createEmptyObject(String key) {
+    try {
+      ObjectMetadata meta = new ObjectMetadata();
+      meta.setContentLength(0);
+      meta.setContentMD5(DIR_HASH);
+      meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
+      mClient.putObject(new PutObjectRequest(mBucketName, key, new ByteArrayInputStream(
+          new byte[0]), meta));
+      return true;
+    } catch (AmazonClientException e) {
+      LOG.error("Failed to create object: {}", key, e);
+      return false;
+    }
+  }
+
+  @Override
   protected OutputStream createObject(String key) throws IOException {
     return new S3AOutputStream(mBucketName, key, mManager);
   }
@@ -386,21 +402,5 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected String getRootKey() {
     return Constants.HEADER_S3A + mBucketName;
-  }
-
-  @Override
-  protected boolean putObject(String key) {
-    try {
-      ObjectMetadata meta = new ObjectMetadata();
-      meta.setContentLength(0);
-      meta.setContentMD5(DIR_HASH);
-      meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
-      mClient.putObject(new PutObjectRequest(mBucketName, key, new ByteArrayInputStream(
-          new byte[0]), meta));
-      return true;
-    } catch (AmazonClientException e) {
-      LOG.error("Failed to create object: {}", key, e);
-      return false;
-    }
   }
 }

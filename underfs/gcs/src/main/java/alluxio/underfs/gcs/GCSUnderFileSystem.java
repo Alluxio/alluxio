@@ -213,6 +213,22 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  protected boolean createEmptyObject(String key) {
+    try {
+      GSObject obj = new GSObject(key);
+      obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
+      obj.setContentLength(0);
+      obj.setMd5Hash(DIR_HASH);
+      obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
+      mClient.putObject(mBucketName, obj);
+      return true;
+    } catch (ServiceException e) {
+      LOG.error("Failed to create directory: {}", key, e);
+      return false;
+    }
+  }
+
+  @Override
   protected OutputStream createObject(String key) throws IOException {
     return new GCSOutputStream(mBucketName, key, mClient);
   }
@@ -311,21 +327,5 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected String getRootKey() {
     return Constants.HEADER_GCS + mBucketName;
-  }
-
-  @Override
-  protected boolean putObject(String key) {
-    try {
-      GSObject obj = new GSObject(key);
-      obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
-      obj.setContentLength(0);
-      obj.setMd5Hash(DIR_HASH);
-      obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
-      mClient.putObject(mBucketName, obj);
-      return true;
-    } catch (ServiceException e) {
-      LOG.error("Failed to create directory: {}", key, e);
-      return false;
-    }
   }
 }

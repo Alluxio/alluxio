@@ -368,6 +368,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
+   * Create a zero-byte object used to encode a directory.
+   *
+   * @param key the key to create
+   * @return true if the operation was successful
+   */
+  protected abstract boolean createEmptyObject(String key);
+
+  /**
    * Creates an {@link OutputStream} for object uploads.
    *
    * @param key ufs key including scheme and bucket
@@ -485,7 +493,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (child.startsWith(parent)) {
       return child.substring(parent.length());
     }
-    throw new IOException(String.format("Invalid prefix. Parent: %s Child: %s", parent, child);
+    throw new IOException(String.format("Invalid prefix. Parent: %s Child: %s", parent, child));
   }
 
   /**
@@ -599,7 +607,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return true if the operation was successful, false otherwise
    */
   protected boolean mkdirsInternal(String key) {
-    return putObject(convertToFolderName(stripPrefixIfPresent(key)));
+    return createEmptyObject(convertToFolderName(stripPrefixIfPresent(key)));
   }
 
   /**
@@ -616,14 +624,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String parentKey = getParentPath(path);
     return parentKey != null && isDirectory(parentKey);
   }
-
-  /**
-   * Put an object which may be a file or a directory.
-   *
-   * @param key the key to create
-   * @return true if the operation was successful
-   */
-  protected abstract boolean putObject(String key);
 
   /**
    * Strips the bucket prefix or the preceding path separator from the path if it is present. For

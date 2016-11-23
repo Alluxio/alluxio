@@ -236,6 +236,19 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  protected boolean createEmptyObject(String key) {
+    try {
+      Container container = mAccount.getContainer(mContainerName);
+      StoredObject object = container.getObject(key);
+      object.uploadObject(new byte[0]);
+      return true;
+    } catch (CommandException e) {
+      LOG.error("Failed to create object: {}", key, e);
+      return false;
+    }
+  }
+
+  @Override
   protected OutputStream createObject(String key) throws IOException {
     if (mSimulationMode) {
       return new SwiftMockOutputStream(mAccount, mContainerName, key);
@@ -345,18 +358,5 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected String getRootKey() {
     return Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
-  }
-
-  @Override
-  protected boolean putObject(String key) {
-    try {
-      Container container = mAccount.getContainer(mContainerName);
-      StoredObject object = container.getObject(key);
-      object.uploadObject(new byte[0]);
-      return true;
-    } catch (CommandException e) {
-      LOG.error("Failed to create object: {}", key, e);
-      return false;
-    }
   }
 }

@@ -149,6 +149,19 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  protected boolean createEmptyObject(String key) {
+    try {
+      ObjectMetadata objMeta = new ObjectMetadata();
+      objMeta.setContentLength(0);
+      mClient.putObject(mBucketName, key, new ByteArrayInputStream(new byte[0]), objMeta);
+      return true;
+    } catch (ServiceException e) {
+      LOG.error("Failed to create object: {}", key, e);
+      return false;
+    }
+  }
+
+  @Override
   protected OutputStream createObject(String key) throws IOException {
     return new OSSOutputStream(mBucketName, key, mClient);
   }
@@ -263,18 +276,5 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     ossClientConf.setConnectionTTL(Configuration.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
-  }
-
-  @Override
-  protected boolean putObject(String key) {
-    try {
-      ObjectMetadata objMeta = new ObjectMetadata();
-      objMeta.setContentLength(0);
-      mClient.putObject(mBucketName, key, new ByteArrayInputStream(new byte[0]), objMeta);
-      return true;
-    } catch (ServiceException e) {
-      LOG.error("Failed to create object: {}", key, e);
-      return false;
-    }
   }
 }
