@@ -21,7 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class is a Thrift handler for meta master RPCs.
@@ -47,9 +48,9 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
    * {@inheritDoc}
    */
   @Override
-  public MasterInfo getInfo(List<MasterInfoField> fields) throws TException {
+  public MasterInfo getInfo(Set<MasterInfoField> fields) throws TException {
     if (fields == null) {
-      fields = Arrays.asList(MasterInfoField.values());
+      fields = new HashSet<>(Arrays.asList(MasterInfoField.values()));
     }
     MasterInfo info = new alluxio.thrift.MasterInfo();
     for (MasterInfoField field : fields) {

@@ -47,13 +47,13 @@ public class MetaMasterClientService {
      * 
      * @param fields optional filter for what fields to return, defaults to all
      */
-    public MasterInfo getInfo(List<MasterInfoField> fields) throws org.apache.thrift.TException;
+    public MasterInfo getInfo(Set<MasterInfoField> fields) throws org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
-    public void getInfo(List<MasterInfoField> fields, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getInfo(Set<MasterInfoField> fields, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -77,13 +77,13 @@ public class MetaMasterClientService {
       super(iprot, oprot);
     }
 
-    public MasterInfo getInfo(List<MasterInfoField> fields) throws org.apache.thrift.TException
+    public MasterInfo getInfo(Set<MasterInfoField> fields) throws org.apache.thrift.TException
     {
       send_getInfo(fields);
       return recv_getInfo();
     }
 
-    public void send_getInfo(List<MasterInfoField> fields) throws org.apache.thrift.TException
+    public void send_getInfo(Set<MasterInfoField> fields) throws org.apache.thrift.TException
     {
       getInfo_args args = new getInfo_args();
       args.setFields(fields);
@@ -118,7 +118,7 @@ public class MetaMasterClientService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void getInfo(List<MasterInfoField> fields, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getInfo(Set<MasterInfoField> fields, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       getInfo_call method_call = new getInfo_call(fields, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -126,8 +126,8 @@ public class MetaMasterClientService {
     }
 
     public static class getInfo_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private List<MasterInfoField> fields;
-      public getInfo_call(List<MasterInfoField> fields, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private Set<MasterInfoField> fields;
+      public getInfo_call(Set<MasterInfoField> fields, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fields = fields;
       }
@@ -260,7 +260,7 @@ public class MetaMasterClientService {
   public static class getInfo_args implements org.apache.thrift.TBase<getInfo_args, getInfo_args._Fields>, java.io.Serializable, Cloneable, Comparable<getInfo_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getInfo_args");
 
-    private static final org.apache.thrift.protocol.TField FIELDS_FIELD_DESC = new org.apache.thrift.protocol.TField("fields", org.apache.thrift.protocol.TType.LIST, (short)1);
+    private static final org.apache.thrift.protocol.TField FIELDS_FIELD_DESC = new org.apache.thrift.protocol.TField("fields", org.apache.thrift.protocol.TType.SET, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -268,7 +268,7 @@ public class MetaMasterClientService {
       schemes.put(TupleScheme.class, new getInfo_argsTupleSchemeFactory());
     }
 
-    private List<MasterInfoField> fields; // required
+    private Set<MasterInfoField> fields; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -336,7 +336,7 @@ public class MetaMasterClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FIELDS, new org.apache.thrift.meta_data.FieldMetaData("fields", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+          new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
               new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, MasterInfoField.class))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getInfo_args.class, metaDataMap);
@@ -346,7 +346,7 @@ public class MetaMasterClientService {
     }
 
     public getInfo_args(
-      List<MasterInfoField> fields)
+      Set<MasterInfoField> fields)
     {
       this();
       this.fields = fields;
@@ -357,7 +357,7 @@ public class MetaMasterClientService {
      */
     public getInfo_args(getInfo_args other) {
       if (other.isSetFields()) {
-        List<MasterInfoField> __this__fields = new ArrayList<MasterInfoField>(other.fields.size());
+        Set<MasterInfoField> __this__fields = new HashSet<MasterInfoField>(other.fields.size());
         for (MasterInfoField other_element : other.fields) {
           __this__fields.add(other_element);
         }
@@ -384,7 +384,7 @@ public class MetaMasterClientService {
 
     public void addToFields(MasterInfoField elem) {
       if (this.fields == null) {
-        this.fields = new ArrayList<MasterInfoField>();
+        this.fields = new HashSet<MasterInfoField>();
       }
       this.fields.add(elem);
     }
@@ -392,14 +392,14 @@ public class MetaMasterClientService {
     /**
      * optional filter for what fields to return, defaults to all
      */
-    public List<MasterInfoField> getFields() {
+    public Set<MasterInfoField> getFields() {
       return this.fields;
     }
 
     /**
      * optional filter for what fields to return, defaults to all
      */
-    public getInfo_args setFields(List<MasterInfoField> fields) {
+    public getInfo_args setFields(Set<MasterInfoField> fields) {
       this.fields = fields;
       return this;
     }
@@ -425,7 +425,7 @@ public class MetaMasterClientService {
         if (value == null) {
           unsetFields();
         } else {
-          setFields((List<MasterInfoField>)value);
+          setFields((Set<MasterInfoField>)value);
         }
         break;
 
@@ -580,17 +580,17 @@ public class MetaMasterClientService {
           }
           switch (schemeField.id) {
             case 1: // FIELDS
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                  struct.fields = new ArrayList<MasterInfoField>(_list0.size);
+                  org.apache.thrift.protocol.TSet _set0 = iprot.readSetBegin();
+                  struct.fields = new HashSet<MasterInfoField>(2*_set0.size);
                   MasterInfoField _elem1;
-                  for (int _i2 = 0; _i2 < _list0.size; ++_i2)
+                  for (int _i2 = 0; _i2 < _set0.size; ++_i2)
                   {
                     _elem1 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
                     struct.fields.add(_elem1);
                   }
-                  iprot.readListEnd();
+                  iprot.readSetEnd();
                 }
                 struct.setFieldsIsSet(true);
               } else { 
@@ -615,12 +615,12 @@ public class MetaMasterClientService {
         if (struct.fields != null) {
           oprot.writeFieldBegin(FIELDS_FIELD_DESC);
           {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, struct.fields.size()));
+            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, struct.fields.size()));
             for (MasterInfoField _iter3 : struct.fields)
             {
               oprot.writeI32(_iter3.getValue());
             }
-            oprot.writeListEnd();
+            oprot.writeSetEnd();
           }
           oprot.writeFieldEnd();
         }
@@ -663,10 +663,10 @@ public class MetaMasterClientService {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-            struct.fields = new ArrayList<MasterInfoField>(_list5.size);
+            org.apache.thrift.protocol.TSet _set5 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
+            struct.fields = new HashSet<MasterInfoField>(2*_set5.size);
             MasterInfoField _elem6;
-            for (int _i7 = 0; _i7 < _list5.size; ++_i7)
+            for (int _i7 = 0; _i7 < _set5.size; ++_i7)
             {
               _elem6 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
               struct.fields.add(_elem6);

@@ -20,6 +20,6 @@ service MetaMasterClientService extends common.AlluxioService {
    */
   MasterInfo getInfo(
     /** optional filter for what fields to return, defaults to all */
-    1: list<MasterInfoField> fields,
+    1: set<MasterInfoField> fields,
     )
 }

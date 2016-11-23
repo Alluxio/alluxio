@@ -16,7 +16,7 @@ import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
 import java.io.Closeable;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Interface for the client to the meta master.
@@ -27,5 +27,5 @@ public interface MetaMasterClient extends Closeable {
    * @return the requested master info
    * @throws ConnectionFailedException if the connection fails during the call
    */
-  MasterInfo getInfo(List<MasterInfoField> masterInfoFields) throws ConnectionFailedException;
+  MasterInfo getInfo(Set<MasterInfoField> masterInfoFields) throws ConnectionFailedException;
 }

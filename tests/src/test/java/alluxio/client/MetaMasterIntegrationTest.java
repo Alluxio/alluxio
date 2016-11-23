@@ -21,6 +21,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * Integration tests for the meta master.
@@ -44,7 +45,7 @@ public final class MetaMasterIntegrationTest {
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(mResource.get().getMaster().getAddress())) {
       int webPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
-      MasterInfo info = client.getInfo(Arrays.asList(MasterInfoField.WEB_PORT));
+      MasterInfo info = client.getInfo(new HashSet<>(Arrays.asList(MasterInfoField.WEB_PORT)));
       assertEquals(webPort, info.getWebPort());
     }
   }

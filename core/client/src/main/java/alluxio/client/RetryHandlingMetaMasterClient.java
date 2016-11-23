@@ -24,8 +24,8 @@ import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -72,13 +72,13 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   /**
    * {@inheritDoc}
    */
-  public synchronized MasterInfo getInfo(final List<MasterInfoField> fields)
+  public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields)
       throws ConnectionFailedException {
     try {
       return retryRPC(new RpcCallable<MasterInfo>() {
         @Override
         public MasterInfo call() throws TException {
-          List<alluxio.thrift.MasterInfoField> thriftFields = new ArrayList<>();
+          Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
           if (fields == null) {
             thriftFields = null;
           } else {
