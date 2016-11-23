@@ -43,6 +43,7 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -56,7 +57,11 @@ import javax.ws.rs.core.Response;
 public final class AlluxioMasterRestServiceHandler {
   public static final String SERVICE_PREFIX = "master";
 
+  // endpoints
   public static final String GET_INFO = "info";
+
+  // queries
+  public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
 
   // the following endpoints are deprecated
   public static final String GET_RPC_ADDRESS = "rpc_address";
@@ -95,19 +100,26 @@ public final class AlluxioMasterRestServiceHandler {
 
   /**
    * @summary get the Alluxio master information
+   * @param rawConfiguration if it's true, raw configuration values are returned,
+   *    otherwise, they are looked up; if it's not provided in URL queries, then
+   *    it is null, which means false.
    * @return the response object
    */
   @GET
   @Path(GET_INFO)
-  public Response getInfo() {
+  public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(new RestUtils.RestCallable<AlluxioMasterInfo>() {
       @Override
       public AlluxioMasterInfo call() throws Exception {
+        boolean rawConfig = false;
+        if (rawConfiguration != null) {
+          rawConfig = rawConfiguration;
+        }
         AlluxioMasterInfo result =
             new AlluxioMasterInfo()
                 .setCapacity(getCapacityInternal())
-                .setConfiguration(getConfigurationInternal())
+                .setConfiguration(getConfigurationInternal(rawConfig))
                 .setMetrics(getMetricsInternal())
                 .setRpcAddress(mMaster.getRpcAddress().toString())
                 .setStartTimeMs(mMaster.getStartTimeMs())
@@ -135,7 +147,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Map<String, String>>() {
       @Override
       public Map<String, String> call() throws Exception {
-        return getConfigurationInternal();
+        return getConfigurationInternal(true);
       }
     });
   }
@@ -459,13 +471,17 @@ public final class AlluxioMasterRestServiceHandler {
         .setUsed(mBlockMaster.getUsedBytes());
   }
 
-  private Map<String, String> getConfigurationInternal() {
+  private Map<String, String> getConfigurationInternal(boolean raw) {
     Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
     SortedMap<String, String> configuration = new TreeMap<>();
     for (Map.Entry<String, String> entry : properties) {
       String key = entry.getKey();
       if (PropertyKey.isValid(key)) {
-        configuration.put(key, entry.getValue());
+        if (raw) {
+          configuration.put(key, entry.getValue());
+        } else {
+          configuration.put(key, Configuration.get(PropertyKey.fromString(key)));
+        }
       }
     }
     return configuration;

@@ -24,11 +24,14 @@ import alluxio.wire.Capacity;
 import alluxio.wire.WorkerInfo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
 
@@ -46,10 +49,18 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     MetricsSystem.resetAllCounters();
   }
 
-  private AlluxioMasterInfo getInfo() throws Exception {
+  @After
+  public void after() {
+    // Reset Configuration in case some properties are set to custom values during the tests,
+    // e.g. getConfiguration(). Since JVM is shared among tests, if this is not reset, the
+    // changed properties will affect other tests.
+    Configuration.defaultInit();
+  }
+
+  private AlluxioMasterInfo getInfo(Map<String, String> params) throws Exception {
     String result =
         new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_INFO),
-            NO_PARAMS, HttpMethod.GET, null).call();
+            params, HttpMethod.GET, null).call();
     AlluxioMasterInfo info = new ObjectMapper().readValue(result, AlluxioMasterInfo.class);
     return info;
   }
@@ -57,56 +68,76 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getCapacity() throws Exception {
     long total = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
-    Capacity capacity = getInfo().getCapacity();
+    Capacity capacity = getInfo(NO_PARAMS).getCapacity();
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());
   }
 
   @Test
   public void getConfiguration() throws Exception {
-    Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
-    Assert.assertEquals("abc",
-        getInfo().getConfiguration().get(PropertyKey.METRICS_CONF_FILE.toString()));
+    String home = "home";
+    String rawConfDir = String.format("${%s}/conf", PropertyKey.Name.HOME);
+    String resolvedConfDir = String.format("%s/conf", home);
+    Configuration.set(PropertyKey.HOME, home);
+    Configuration.set(PropertyKey.CONF_DIR, rawConfDir);
+
+    // with out any query parameter, configuration values are resolved.
+    checkConfiguration(PropertyKey.CONF_DIR, resolvedConfDir, NO_PARAMS);
+
+    // with QUERY_RAW_CONFIGURATION=false, configuration values are resolved.
+    Map<String, String> params = new HashMap<>();
+    params.put(AlluxioMasterRestServiceHandler.QUERY_RAW_CONFIGURATION, "false");
+    checkConfiguration(PropertyKey.CONF_DIR, resolvedConfDir, params);
+
+    // with QUERY_RAW_CONFIGURATION=true, configuration values are raw.
+    params.put(AlluxioMasterRestServiceHandler.QUERY_RAW_CONFIGURATION, "true");
+    checkConfiguration(PropertyKey.CONF_DIR, rawConfDir, params);
+  }
+
+  private void checkConfiguration(PropertyKey key, String expectedValue, Map<String, String> params)
+      throws Exception {
+    Assert.assertEquals(expectedValue, getInfo(params).getConfiguration().get(key.toString()));
   }
 
   @Test
   public void getMetrics() throws Exception {
-    Assert.assertEquals(Long.valueOf(0), getInfo().getMetrics().get("master.CompleteFileOps"));
+    Assert.assertEquals(Long.valueOf(0), getInfo(NO_PARAMS).getMetrics()
+        .get("master.CompleteFileOps"));
   }
 
   @Test
   public void getRpcAddress() throws Exception {
-    Assert.assertTrue(getInfo().getRpcAddress()
+    Assert.assertTrue(getInfo(NO_PARAMS).getRpcAddress()
         .contains(String.valueOf(NetworkAddressUtils.getPort(ServiceType.MASTER_RPC))));
   }
 
   @Test
   public void getStartTimeMs() throws Exception {
-    Assert.assertTrue(getInfo().getStartTimeMs() > 0);
+    Assert.assertTrue(getInfo(NO_PARAMS).getStartTimeMs() > 0);
   }
 
   @Test
   public void getTierCapacity() throws Exception {
     long total = Configuration.getLong(PropertyKey.WORKER_MEMORY_SIZE);
-    Capacity capacity = getInfo().getTierCapacity().get("MEM");
+    Capacity capacity = getInfo(NO_PARAMS).getTierCapacity().get("MEM");
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());
   }
 
   @Test
   public void getUptimeMs() throws Exception {
-    Assert.assertTrue(getInfo().getUptimeMs() > 0);
+    Assert.assertTrue(getInfo(NO_PARAMS).getUptimeMs() > 0);
   }
 
   @Test
   public void getUfsCapacity() throws Exception {
-    Capacity ufsCapacity = getInfo().getUfsCapacity();
+    Capacity ufsCapacity = getInfo(NO_PARAMS).getUfsCapacity();
     Assert.assertTrue(ufsCapacity.getTotal() > 0);
   }
 
   @Test
   public void getWorkers() throws Exception {
-    List<WorkerInfo> workerInfos = getInfo().getWorkers();
+    List<WorkerInfo> workerInfos = getInfo(NO_PARAMS).getWorkers();
     Assert.assertEquals(1, workerInfos.size());
     WorkerInfo workerInfo = workerInfos.get(0);
     Assert.assertEquals(0, workerInfo.getUsedBytes());
@@ -116,6 +147,6 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getVersion() throws Exception {
-    Assert.assertEquals(RuntimeConstants.VERSION, getInfo().getVersion());
+    Assert.assertEquals(RuntimeConstants.VERSION, getInfo(NO_PARAMS).getVersion());
   }
 }
