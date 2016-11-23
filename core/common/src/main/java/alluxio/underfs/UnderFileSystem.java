@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 
 import com.google.common.base.Objects;
@@ -320,14 +321,14 @@ public interface UnderFileSystem {
   List<String> getFileLocations(String path) throws IOException;
 
   /**
-   * Gets the list of locations of the indicated path given its offset.
+   * Gets the list of locations of the indicated path given options.
    *
    * @param path the file name
-   * @param offset the offset in bytes
+   * @param options including offset within the file
    * @return The list of locations
    * @throws IOException if a non-Alluxio error occurs
    */
-  List<String> getFileLocations(String path, long offset) throws IOException;
+  List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
    * Gets the file size in bytes.

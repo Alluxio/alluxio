@@ -22,6 +22,7 @@ import alluxio.underfs.BaseUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 
 import com.google.common.base.Throwables;
@@ -176,15 +177,17 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    return getFileLocations(path, 0);
+    return getFileLocations(path, FileLocationOptions.defaults());
   }
 
   @Override
-  public List<String> getFileLocations(String path, long offset) throws IOException {
+  public List<String> getFileLocations(String path, FileLocationOptions options)
+      throws IOException {
     List<String> ret = new ArrayList<>();
     try {
       FileStatus fStatus = mFileSystem.getFileStatus(new Path(path));
-      BlockLocation[] bLocations = mFileSystem.getFileBlockLocations(fStatus, offset, 1);
+      BlockLocation[] bLocations =
+          mFileSystem.getFileBlockLocations(fStatus, options.getOffset(), 1);
       if (bLocations.length > 0) {
         String[] names = bLocations[0].getHosts();
         Collections.addAll(ret, names);
