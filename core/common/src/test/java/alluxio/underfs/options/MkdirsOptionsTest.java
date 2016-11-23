@@ -91,7 +91,7 @@ public final class MkdirsOptionsTest {
   }
 
   @Test
-  public void equals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(MkdirsOptions.class);
   }
 }

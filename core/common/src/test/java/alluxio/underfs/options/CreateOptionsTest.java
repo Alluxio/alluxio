@@ -86,7 +86,7 @@ public final class CreateOptionsTest {
   }
 
   @Test
-  public void equals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(CreateOptions.class);
   }
 }
