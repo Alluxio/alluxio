@@ -630,7 +630,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return the path without the bucket prefix
    */
   protected String stripPrefixIfPresent(String path) {
-    String stripedKey = CommonUtils.stripPrefixIfPresent(path, getRootKey());
+    String stripedKey = CommonUtils.stripPrefixIfPresent(path,
+        PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
     if (!stripedKey.equals(path)) {
       return stripedKey;
     }
