@@ -43,7 +43,6 @@ public final class MasterZooKeeperNodeTest {
     assertEquals("host:19998:19999", node.serialize());
   }
 
-
   @Test
   public void deserialize() {
     MasterZooKeeperNode node = MasterZooKeeperNode.deserialize("host:19998:19999");
