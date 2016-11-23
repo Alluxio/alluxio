@@ -350,13 +350,12 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected boolean putObject(String key) {
     try {
-      // We do not check if a file with same name exists, i.e. a file with name
-      // 'swift://swift-container/path' and a folder with name 'swift://swift-container/path/'
-      // may both exist simultaneously
-      createObject(key).close();
+      Container container = mAccount.getContainer(mContainerName);
+      StoredObject object = container.getObject(key);
+      object.uploadObject(new byte[0]);
       return true;
-    } catch (IOException e) {
-      LOG.error("Failed to create directory: {}", key, e);
+    } catch (CommandException e) {
+      LOG.error("Failed to create object: {}", key, e);
       return false;
     }
   }

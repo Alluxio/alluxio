@@ -66,6 +66,9 @@ public class UnderFileStatus {
    * @return array of file or directory names
    */
   public static String[] toListingResult(UnderFileStatus[] children) {
+    if (children == null) {
+      return null;
+    }
     String[] ret = new String[children.length];
     for (int i = 0; i < children.length; ++i) {
       ret[i] = children[i].getName();
