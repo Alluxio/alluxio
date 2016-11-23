@@ -128,12 +128,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public void connectFromMaster(String hostname) {
-    // Authentication is taken care of in the constructor
   }
 
   @Override
   public void connectFromWorker(String hostname) {
-    // Authentication is taken care of in the constructor
   }
 
   @Override
