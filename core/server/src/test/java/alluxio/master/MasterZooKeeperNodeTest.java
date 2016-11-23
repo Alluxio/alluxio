@@ -19,9 +19,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 /**
- * Tests for {@link MasterZookeeperNode}.
+ * Tests for {@link MasterZooKeeperNode}.
  */
-public final class MasterZookeeperNodeTest {
+public final class MasterZooKeeperNodeTest {
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -29,11 +29,11 @@ public final class MasterZookeeperNodeTest {
   @Test
   public void equals() {
     new EqualsTester()
-        .addEqualityGroup(new MasterZookeeperNode("a", 1, 2), new MasterZookeeperNode("a", 1, 2))
-        .addEqualityGroup(new MasterZookeeperNode("b", 1, 2))
-        .addEqualityGroup(new MasterZookeeperNode("a", 2, 2))
-        .addEqualityGroup(new MasterZookeeperNode("a", 1, 1))
-        .addEqualityGroup(new MasterZookeeperNode("a", 2, 1))
+        .addEqualityGroup(new MasterZooKeeperNode("a", 1, 2), new MasterZooKeeperNode("a", 1, 2))
+        .addEqualityGroup(new MasterZooKeeperNode("b", 1, 2))
+        .addEqualityGroup(new MasterZooKeeperNode("a", 2, 2))
+        .addEqualityGroup(new MasterZooKeeperNode("a", 1, 1))
+        .addEqualityGroup(new MasterZooKeeperNode("a", 2, 1))
         .testEquals();
   }
 
@@ -50,13 +50,13 @@ public final class MasterZookeeperNodeTest {
   @Test
   public void rpcPortNotInteger() {
     mThrown.expect(RuntimeException.class);
-    MasterZookeeperNode.deserialize("a:b:0");
+    MasterZooKeeperNode.deserialize("a:b:0");
   }
 
   @Test
   public void webPortNotInteger() {
     mThrown.expect(RuntimeException.class);
-    MasterZookeeperNode.deserialize("a:0:b");
+    MasterZooKeeperNode.deserialize("a:0:b");
   }
 
   @Test
@@ -64,12 +64,12 @@ public final class MasterZookeeperNodeTest {
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage("Master zookeeper nodes must be in the form name:rpcPort:webPort, but " +
         "the specified node has name 'a:0'");
-    MasterZookeeperNode.deserialize("a:0");
+    MasterZooKeeperNode.deserialize("a:0");
   }
 
   private void testSerde(String hostname, int rpcPort, int webPort) {
-    MasterZookeeperNode node1 = new MasterZookeeperNode(hostname, rpcPort, webPort);
-    MasterZookeeperNode node2 = MasterZookeeperNode.deserialize(node1.serialize());
+    MasterZooKeeperNode node1 = new MasterZooKeeperNode(hostname, rpcPort, webPort);
+    MasterZooKeeperNode node2 = MasterZooKeeperNode.deserialize(node1.serialize());
     assertEquals(node1, node2);
   }
 }

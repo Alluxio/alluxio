@@ -17,7 +17,7 @@ import com.google.common.base.Preconditions;
 /**
  * Utils for serializating and deserializing information to and from zookeeper node names.
  */
-public final class MasterZookeeperNode {
+public final class MasterZooKeeperNode {
   private final String mHostname;
   private final int mRpcPort;
   private final int mWebPort;
@@ -27,7 +27,7 @@ public final class MasterZookeeperNode {
    * @param rpcPort the rpc port
    * @param webPort the web port
    */
-  public MasterZookeeperNode(String hostname, int rpcPort, int webPort) {
+  public MasterZooKeeperNode(String hostname, int rpcPort, int webPort) {
     mHostname = hostname;
     mRpcPort = rpcPort;
     mWebPort = webPort;
@@ -45,13 +45,13 @@ public final class MasterZookeeperNode {
    *
    * @param name the string representation
    */
-  public static MasterZookeeperNode deserialize(String name) {
+  public static MasterZooKeeperNode deserialize(String name) {
     String[] parts = name.split(":");
     Preconditions.checkState(parts.length == 3, "Master zookeeper nodes must be in the form "
         + "name:rpcPort:webPort, but the specified node has name '%s'", name);
     int rpcPort = Integer.parseInt(parts[1]);
     int webPort = Integer.parseInt(parts[2]);
-    return new MasterZookeeperNode(parts[0], rpcPort, webPort);
+    return new MasterZooKeeperNode(parts[0], rpcPort, webPort);
   }
 
   @Override
@@ -59,10 +59,10 @@ public final class MasterZookeeperNode {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof MasterZookeeperNode)) {
+    if (!(o instanceof MasterZooKeeperNode)) {
       return false;
     }
-    MasterZookeeperNode that = (MasterZookeeperNode) o;
+    MasterZooKeeperNode that = (MasterZooKeeperNode) o;
     return Objects.equal(mHostname, that.mHostname) &&
         Objects.equal(mRpcPort, that.mRpcPort) &&
         Objects.equal(mWebPort, that.mWebPort);
