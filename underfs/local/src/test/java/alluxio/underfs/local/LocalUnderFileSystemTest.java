@@ -13,6 +13,7 @@ package alluxio.underfs.local;
 
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -127,7 +128,7 @@ public class LocalUnderFileSystemTest {
   public void mkdirsWithCreateParentEqualToFalse() throws IOException {
     String parentPath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath);
+    mLocalUfs.mkdirs(dirpath, MkdirsOptions.defaults().setCreateParent(false));
 
     Assert.assertFalse(mLocalUfs.isDirectory(dirpath));
 
