@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.jets3t.service.ServiceException;
@@ -268,7 +269,7 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     public GCSObjectListingResult(String path, boolean recursive) {
       mDelimiter = recursive ? "" : PATH_SEPARATOR;
       mDone = false;
-      mPath = path;
+      mPath = PathUtils.normalizePath(path, PATH_SEPARATOR);
       mPriorLastKey = null;
     }
 

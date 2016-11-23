@@ -117,7 +117,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     /**
      * Get next chunk of object listings.
      *
-     * @return null if done with listing, otherwise return next chunk
+     * @return null if listing did not find anything or is done, otherwise return next chunk
      * @throws IOException if a non-alluxio error occurs
      */
     ObjectListingResult getNextChunk() throws IOException;
@@ -430,10 +430,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     ObjectStatus meta = getObjectStatus(keyAsFolder);
     if (meta == null) {
       String dir = stripPrefixIfPresent(path);
-      String dirPrefix = PathUtils.normalizePath(dir, PATH_SEPARATOR);
       // Check if anything begins with <folder_path>/
       try {
-        ObjectListingResult objs = getObjectListing(dirPrefix, true);
+        ObjectListingResult objs = getObjectListing(dir, true);
         // If there are, this is a folder and we can create the necessary metadata
         if (objs != null && objs.getObjectNames() != null && objs.getObjectNames().length > 0) {
           mkdirsInternal(dir);

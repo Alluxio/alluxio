@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientConfiguration;
 import com.aliyun.oss.OSSClient;
@@ -198,9 +199,9 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
     public OSSObjectListingResult(String path, boolean recursive) {
       String delimiter = recursive ? "" : PATH_SEPARATOR;
-      mPath = path;
+      mPath = PathUtils.normalizePath(path, PATH_SEPARATOR);
       mRequest = new ListObjectsRequest(mBucketName);
-      mRequest.setPrefix(path);
+      mRequest.setPrefix(mPath);
       mRequest.setMaxKeys(LISTING_LENGTH);
       mRequest.setDelimiter(delimiter);
     }

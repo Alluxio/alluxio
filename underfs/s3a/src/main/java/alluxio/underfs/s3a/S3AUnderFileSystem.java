@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
@@ -339,9 +340,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     public S3AObjectListingResult(String path, boolean recursive) {
       String delimiter = recursive ? "" : PATH_SEPARATOR;
-      mPath = path;
+      mPath = PathUtils.normalizePath(path, PATH_SEPARATOR);
       mRequest =
-          new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(path)
+          new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(mPath)
               .withDelimiter(delimiter).withMaxKeys(LISTING_LENGTH);
     }
 
