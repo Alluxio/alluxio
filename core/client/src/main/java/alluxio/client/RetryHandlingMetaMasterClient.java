@@ -19,6 +19,7 @@ import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
+import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
@@ -72,16 +73,20 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
    * {@inheritDoc}
    */
   public synchronized MasterInfo getInfo(final List<MasterInfoField> fields)
-      throws ConnectionFailedException, IOException {
-    return retryRPC(new RpcCallable<MasterInfo>() {
-      @Override
-      public MasterInfo call() throws TException {
-        List<alluxio.thrift.MasterInfoField> thriftFields = new ArrayList<>();
-        for (MasterInfoField field : fields) {
-          thriftFields.add(field.toThrift());
+      throws ConnectionFailedException {
+    try {
+      return retryRPC(new RpcCallable<MasterInfo>() {
+        @Override
+        public MasterInfo call() throws TException {
+          List<alluxio.thrift.MasterInfoField> thriftFields = new ArrayList<>();
+          for (MasterInfoField field : fields) {
+            thriftFields.add(field.toThrift());
+          }
+          return MasterInfo.fromThrift(mClient.getInfo(thriftFields));
         }
-        return MasterInfo.fromThrift(mClient.getInfo(thriftFields));
-      }
-    });
+      });
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
   }
 }

@@ -15,7 +15,6 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -25,7 +24,7 @@ public interface MetaMasterClient {
   /**
    * @param masterInfoFields optional list of fields to query; if null all fields will be queried
    * @return the requested master info
+   * @throws ConnectionFailedException if the connection fails during the call
    */
-  MasterInfo getInfo(List<MasterInfoField> masterInfoFields)
-      throws ConnectionFailedException, IOException;
+  MasterInfo getInfo(List<MasterInfoField> masterInfoFields) throws ConnectionFailedException;
 }
