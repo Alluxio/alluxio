@@ -124,6 +124,17 @@ For example, to read a file:
 
 {% include File-System-API/read-file.md %}
 
+# REST API
+
+For portability with other languages, the Alluxio native API is also accessible via an HTTP proxy in
+the form of a REST API.
+
+The REST API documentation is generated as part of Alluxio build and accessible through
+`${ALLUXIO_HOME}/core/server/target/miredot/index.html`.
+
+The HTTP proxy is a standalone server that can be started using `${ALLUXIO_HOME}/bin/alluxio-start.sh proxy`
+and stopped using `${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy`. By default, the REST API is available on port 39999.
+
 # Hadoop API
 
 Alluxio has a wrapper of the native client which provides the Hadoop compatible `FileSystem`
