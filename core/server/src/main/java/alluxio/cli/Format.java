@@ -18,7 +18,6 @@ import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.master.AlluxioMaster;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -40,7 +39,7 @@ public final class Format {
       RuntimeConstants.ALLUXIO_JAR, Format.class.getCanonicalName());
 
   private static boolean formatFolder(String name, String folder) throws IOException {
-    UnderFileSystem ufs = UnderFileSystemCache.get(folder);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.isDirectory(folder)) {
       for (String p : ufs.list(folder)) {
@@ -105,7 +104,7 @@ public final class Format {
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
           String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-          UnderFileSystem ufs = UnderFileSystemCache.get(dirWorkerDataFolder);
+          UnderFileSystem ufs = UnderFileSystem.Factory.get(dirWorkerDataFolder);
           if (ufs.isDirectory(dirWorkerDataFolder)) {
             if (!formatFolder(name, dirWorkerDataFolder)) {
               System.exit(-1);

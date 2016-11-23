@@ -12,7 +12,6 @@
 package alluxio.underfs.local;
 
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -42,7 +41,7 @@ public class LocalUnderFileSystemTest {
   @Before
   public void before() throws IOException {
     mLocalUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    mLocalUfs = UnderFileSystemCache.get(mLocalUfsRoot);
+    mLocalUfs = UnderFileSystem.Factory.get(mLocalUfsRoot);
   }
 
   @Test

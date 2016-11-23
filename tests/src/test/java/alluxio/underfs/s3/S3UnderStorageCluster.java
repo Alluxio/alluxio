@@ -14,7 +14,6 @@ package alluxio.underfs.s3;
 import alluxio.Constants;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.io.PathUtils;
@@ -67,7 +66,7 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   @Override
   public void shutdown() throws IOException {
     LOG.info("Shutting down S3 testing cluster, deleting bucket contents in: " + mS3Bucket);
-    UnderFileSystem ufs = UnderFileSystemCache.get(mS3Bucket);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mS3Bucket);
     ufs.deleteDirectory(mS3Bucket, DeleteOptions.defaults().setRecursive(true));
   }
 

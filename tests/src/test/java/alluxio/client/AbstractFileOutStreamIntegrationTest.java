@@ -22,7 +22,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.underfs.hdfs.LocalMiniDFSCluster;
 import alluxio.underfs.swift.SwiftUnderStorageCluster;
@@ -86,7 +85,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
     if (underStorageType.isSyncPersist() || underStorageType.isAsyncPersist()) {
       URIStatus status = mFileSystem.getStatus(filePath);
       String checkpointPath = status.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystemCache.get(checkpointPath);
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(checkpointPath);
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) status.getLength()];

@@ -13,7 +13,6 @@ package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;
 
@@ -74,7 +73,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   public static boolean mkdirs(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystemCache.get(path);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
     return ufs.mkdirs(path, true);
   }
 

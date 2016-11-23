@@ -20,7 +20,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -43,7 +42,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     super.before();
 
     mUfsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    mUfs = UnderFileSystemCache.get(mUfsRoot);
+    mUfs = UnderFileSystem.Factory.get(mUfsRoot);
   }
 
   @Test

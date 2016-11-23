@@ -91,7 +91,6 @@ import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
@@ -2223,7 +2222,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
     if (!replayed) {
       // Check that the ufsPath exists and is a directory
-      UnderFileSystem ufs = UnderFileSystemCache.get(ufsPath.toString());
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsPath.toString());
       ufs.setProperties(options.getProperties());
       if (!ufs.isDirectory(ufsPath.toString())) {
         throw new IOException(
@@ -2231,7 +2230,7 @@ public final class FileSystemMaster extends AbstractMaster {
       }
       // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
       String defaultUfsPath = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-      UnderFileSystem defaultUfs = UnderFileSystemCache.get(defaultUfsPath);
+      UnderFileSystem defaultUfs = UnderFileSystem.Factory.get(defaultUfsPath);
       String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
       if (defaultUfs.isFile(shadowPath) || defaultUfs.isDirectory(shadowPath)) {
         throw new IOException(
@@ -2837,7 +2836,7 @@ public final class FileSystemMaster extends AbstractMaster {
           });
 
       final String ufsDataFolder = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-      final UnderFileSystem ufs = UnderFileSystemCache.get(ufsDataFolder);
+      final UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsDataFolder);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
           new Gauge<Long>() {

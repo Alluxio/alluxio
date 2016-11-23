@@ -17,7 +17,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.util.io.PathUtils;
@@ -39,7 +38,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({UnderFileSystem.class, UnderFileSystemCache.class})
+@PrepareForTest({UnderFileSystem.class})
 public final class UnderFileSystemManagerTest {
   /** An invalid session id. */
   private static final long INVALID_SESSION_ID = -1L;
@@ -80,8 +79,8 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.open(Mockito.anyString())).thenReturn(mMockInputStream);
     Mockito.when(mMockUfs.renameFile(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
-    PowerMockito.mockStatic(UnderFileSystemCache.class);
-    Mockito.when(UnderFileSystemCache.get(Mockito.anyString())).thenReturn(mMockUfs);
+    PowerMockito.mockStatic(UnderFileSystem.class);
+    Mockito.when(UnderFileSystem.Factory.get(Mockito.anyString())).thenReturn(mMockUfs);
     Mockito.when(mMockInputStream.skip(Mockito.anyInt())).thenAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
@@ -279,7 +278,7 @@ public final class UnderFileSystemManagerTest {
         mMockInputStream);
     Mockito.when(ufs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
     PowerMockito.mockStatic(UnderFileSystem.class);
-    Mockito.when(UnderFileSystemCache.get(Mockito.anyString())).thenReturn(ufs);
+    Mockito.when(UnderFileSystem.Factory.get(Mockito.anyString())).thenReturn(ufs);
 
     long position = FILE_LENGTH - 1;
     Mockito.when(ufs.isFile(mUri.toString())).thenReturn(true);

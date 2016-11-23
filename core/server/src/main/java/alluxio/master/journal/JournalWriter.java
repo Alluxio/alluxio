@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Preconditions;
@@ -85,7 +84,7 @@ public final class JournalWriter {
     mJournalDirectory = mJournal.getDirectory();
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
-    mUfs = UnderFileSystemCache.get(mJournalDirectory);
+    mUfs = UnderFileSystem.Factory.get(mJournalDirectory);
     mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
     mCheckpointManager = new CheckpointManager(mUfs, mJournal.getCheckpointFilePath(), this);
   }

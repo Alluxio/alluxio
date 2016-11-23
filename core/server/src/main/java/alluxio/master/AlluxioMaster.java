@@ -25,7 +25,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.LineageUtils;
@@ -509,7 +508,7 @@ public class AlluxioMaster implements Server {
    * @throws IOException if an I/O error occurs
    */
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
-    UnderFileSystem ufs = UnderFileSystemCache.get(journalDirectory);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(journalDirectory);
     String[] files = ufs.list(journalDirectory);
     if (files == null) {
       return false;
@@ -526,7 +525,7 @@ public class AlluxioMaster implements Server {
 
   private void connectToUFS() throws IOException {
     String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    UnderFileSystem ufs = UnderFileSystemCache.get(ufsAddress);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsAddress);
     ufs.connectFromMaster(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
   }
 

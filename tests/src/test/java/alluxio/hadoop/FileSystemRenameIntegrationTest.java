@@ -14,7 +14,6 @@ package alluxio.hadoop;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.conf.Configuration;
@@ -64,7 +63,7 @@ public final class FileSystemRenameIntegrationTest {
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     sUfsRoot = PathUtils.concatPath(alluxio.Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    sUfs = UnderFileSystemCache.get(sUfsRoot);
+    sUfs = UnderFileSystem.Factory.get(sUfsRoot);
   }
 
   @Test

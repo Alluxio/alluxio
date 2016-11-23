@@ -12,7 +12,6 @@
 package alluxio;
 
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 
@@ -44,7 +43,7 @@ public final class UnderFileSystemSpy implements Closeable {
    * @param ufs the under file system to spy
    */
   public UnderFileSystemSpy(AlluxioURI uri) {
-    UnderFileSystem ufs = UnderFileSystemCache.get(uri.toString());
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(uri.toString());
     final String prefix = uri.getScheme() == null ? "/" : uri.getScheme();
     mUfsSpy = Mockito.spy(ufs);
     mFactory = new UnderFileSystemFactory() {
@@ -59,7 +58,7 @@ public final class UnderFileSystemSpy implements Closeable {
       }
     };
     UnderFileSystemRegistry.register(mFactory);
-    UnderFileSystemCache.clearCache();
+    UnderFileSystem.Factory.clearCache();
   }
 
   /**
@@ -75,6 +74,6 @@ public final class UnderFileSystemSpy implements Closeable {
   @Override
   public void close() throws IOException {
     UnderFileSystemRegistry.unregister(mFactory);
-    UnderFileSystemCache.clearCache();
+    UnderFileSystem.Factory.clearCache();
   }
 }

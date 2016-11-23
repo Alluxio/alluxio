@@ -21,7 +21,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.s3.S3UnderFileSystem;
@@ -147,7 +146,7 @@ public final class UnderFileSystemManager {
       mSessionId = sessionId;
       mAgentId = agentId;
       mUri = ufsUri.toString();
-      UnderFileSystem ufs = UnderFileSystemCache.get(mUri);
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
       if (!ufs.isFile(mUri)) {
@@ -192,7 +191,7 @@ public final class UnderFileSystemManager {
         if (mStream != null) { // Close the existing stream if needed
           mStream.close();
         }
-        UnderFileSystem ufs = UnderFileSystemCache.get(mUri);
+        UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
         // TODO(calvin): Consider making openAtPosition part of the UFS API
         if (ufs instanceof S3AUnderFileSystem) { // Optimization for S3A UFS
           mStream =
@@ -267,7 +266,7 @@ public final class UnderFileSystemManager {
       mAgentId = agentId;
       mUri = Preconditions.checkNotNull(ufsUri).toString();
       mPermission = perm;
-      UnderFileSystem ufs = UnderFileSystemCache.get(mUri);
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
       mStream = ufs.create(mUri, CreateOptions.defaults().setPermission(mPermission));
@@ -280,7 +279,7 @@ public final class UnderFileSystemManager {
      */
     private void cancel() throws IOException {
       mStream.close();
-      UnderFileSystem ufs = UnderFileSystemCache.get(mUri);
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
       // TODO(calvin): Log a warning if the delete fails
       ufs.deleteFile(mUri);
     }
@@ -295,7 +294,7 @@ public final class UnderFileSystemManager {
      */
     private long complete(Permission perm) throws IOException {
       mStream.close();
-      UnderFileSystem ufs = UnderFileSystemCache.get(mUri);
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
       return ufs.getFileSize(mUri);
     }
 

@@ -12,7 +12,6 @@
 package alluxio.wire;
 
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 
 import com.google.common.base.Objects;
 
@@ -162,7 +161,7 @@ public class MountPointInfo implements Serializable {
    */
   public void setUfsInfo(String ufsUri) {
     mUfsUri = ufsUri;
-    UnderFileSystem ufs = UnderFileSystemCache.get(mUfsUri);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsUri);
     mUfsType = ufs.getUnderFSType();
     try {
       mUfsCapacityBytes = ufs.getSpace(mUfsUri, UnderFileSystem.SpaceType.SPACE_TOTAL);

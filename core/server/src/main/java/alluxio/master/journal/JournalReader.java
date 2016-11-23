@@ -13,7 +13,6 @@ package alluxio.master.journal;
 
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCache;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -57,7 +56,7 @@ public class JournalReader {
    */
   JournalReader(Journal journal) {
     mJournal = Preconditions.checkNotNull(journal, "journal");
-    mUfs = UnderFileSystemCache.get(mJournal.getDirectory());
+    mUfs = UnderFileSystem.Factory.get(mJournal.getDirectory());
     mCheckpointPath = mJournal.getCheckpointFilePath();
   }
 
