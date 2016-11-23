@@ -7,7 +7,7 @@ struct MasterInfo {
 }
 
 enum MasterInfoField {
-  WEB_PORT,
+  WEB_PORT
 }
 
 /**
