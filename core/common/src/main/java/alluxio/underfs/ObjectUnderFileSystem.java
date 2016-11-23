@@ -478,15 +478,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @param child the key of the child
    * @param parent the key of the parent
-   * @return the child key with the parent prefix removed, null if the parent prefix is invalid
+   * @return the child key with the parent prefix removed
+   * @throws IOException if parent prefix is invalid
    */
-  protected String getChildName(String child, String parent) {
+  protected String getChildName(String child, String parent) throws IOException {
     if (child.startsWith(parent)) {
       return child.substring(parent.length());
     }
-    LOG.error("Attempted to get childname with an invalid parent argument. Parent: {} Child: {}",
-        parent, child);
-    return null;
+    throw new IOException(String.format("Invalid prefix. Parent: %s Child: %s", parent, child);
   }
 
   /**
