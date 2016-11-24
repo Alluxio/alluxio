@@ -223,7 +223,7 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
       mRequest = request;
       mResult = result;
       if (mResult == null) {
-        throw new IOException("S3A listing result is null");
+        throw new IOException("OSS listing result is null");
       }
     }
 

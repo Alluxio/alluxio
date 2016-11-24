@@ -285,7 +285,7 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
         throws IOException {
       mChunk = chunk;
       if (mChunk == null) {
-        throw new IOException("S3N listing result is null");
+        throw new IOException("GCS listing result is null");
       }
     }
 
