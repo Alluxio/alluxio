@@ -243,12 +243,12 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String [] expectedResTopDir2 = new String[] {"/testDirNonEmpty2", "/testDirNonEmptyF"};
     Arrays.sort(expectedResTopDir);
     Arrays.sort(expectedResTopDir2);
-    UnderFileStatus [] resTopDir = mUfs.list(testDirNonEmpty);
+    UnderFileStatus [] resTopDir = mUfs.listStatus(testDirNonEmpty);
     Arrays.sort(resTopDir);
     Assert.assertTrue(Arrays.equals(expectedResTopDir, resTopDir)
         || Arrays.equals(expectedResTopDir2, resTopDir));
-    Assert.assertTrue(mUfs.list(testDirNonEmptyChildDir)[0].equals("testDirNonEmptyChildDirF")
-        || mUfs.list(testDirNonEmptyChildDir)[0].equals("/testDirNonEmptyChildDirF"));
+    Assert.assertTrue(mUfs.listStatus(testDirNonEmptyChildDir)[0].equals("testDirNonEmptyChildDirF")
+        || mUfs.listStatus(testDirNonEmptyChildDir)[0].equals("/testDirNonEmptyChildDirF"));
   }
 
   /**
@@ -265,7 +265,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
     UnderFileStatus[] results = new UnderFileStatus[] {};
     for (int i = 0; i < 20; i++) {
-      results = mUfs.list(config.getTopLevelDirectory());
+      results = mUfs.listStatus(config.getTopLevelDirectory());
       if (children.length == results.length) {
         break;
       }

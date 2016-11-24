@@ -138,7 +138,7 @@ public abstract class UnderFileSystemCluster {
     if (isStarted()) {
       String path = getUnderFilesystemAddress() + AlluxioURI.SEPARATOR;
       UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-      for (UnderFileStatus p : ufs.list(path)) {
+      for (UnderFileStatus p : ufs.listStatus(path)) {
         String childPath = PathUtils.concatPath(path, p.getName());
         if (p.isDirectory()) {
           ufs.deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true));

@@ -43,7 +43,7 @@ public final class Format {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.isDirectory(folder)) {
-      for (UnderFileStatus p : ufs.list(folder)) {
+      for (UnderFileStatus p : ufs.listStatus(folder)) {
         String childPath = PathUtils.concatPath(folder, p.getName());
         boolean failedToDelete;
         if (p.isDirectory()) {

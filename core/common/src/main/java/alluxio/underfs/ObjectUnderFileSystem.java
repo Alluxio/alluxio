@@ -272,7 +272,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] list(String path) throws IOException {
+  public UnderFileStatus[] listStatus(String path) throws IOException {
     return listInternal(path, false);
   }
 

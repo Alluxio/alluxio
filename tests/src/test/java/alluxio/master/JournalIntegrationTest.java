@@ -144,7 +144,7 @@ public class JournalIntegrationTest {
       writer.getEntryOutputStream().flush();
       writer.getEntryOutputStream().flush();
       UnderFileStatus[] paths = UnderFileSystem.Factory.get(journalFolder)
-          .list(journal.getCompletedDirectory());
+          .listStatus(journal.getCompletedDirectory());
       // Make sure no new empty files were created.
       Assert.assertTrue(paths == null || paths.length == 0);
     } finally {
@@ -204,9 +204,11 @@ public class JournalIntegrationTest {
         FileSystemMaster.getJournalDirectory(mLocalAlluxioCluster.getMaster().getJournalFolder());
     Journal journal = new ReadWriteJournal(journalFolder);
     String completedPath = journal.getCompletedDirectory();
-    Assert.assertTrue(UnderFileSystem.Factory.get(completedPath).list(completedPath).length > 1);
+    Assert.assertTrue(
+        UnderFileSystem.Factory.get(completedPath).listStatus(completedPath).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(UnderFileSystem.Factory.get(completedPath).list(completedPath).length <= 1);
+    Assert.assertTrue(
+        UnderFileSystem.Factory.get(completedPath).listStatus(completedPath).length <= 1);
     multiEditLogTestUtil();
   }
 

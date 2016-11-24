@@ -510,7 +510,7 @@ public class AlluxioMaster implements Server {
    */
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(journalDirectory);
-    UnderFileStatus[] files = ufs.list(journalDirectory);
+    UnderFileStatus[] files = ufs.listStatus(journalDirectory);
     if (files == null) {
       return false;
     }

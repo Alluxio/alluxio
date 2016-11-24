@@ -196,7 +196,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] list(String path) throws IOException {
+  public UnderFileStatus[] listStatus(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     File[] files = file.listFiles();

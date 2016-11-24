@@ -434,12 +434,12 @@ public interface UnderFileSystem {
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
    *
    * @param path the abstract pathname to list
-   * @return An array naming the files and directories in the directory denoted by this
-   *         abstract pathname. The array will be empty if the directory is empty. Returns
+   * @return An array with the statuses of the files and directories in the directory denoted by
+   *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    * @throws IOException if a non-Alluxio error occurs
    */
-  UnderFileStatus[] list(String path) throws IOException;
+  UnderFileStatus[] listStatus(String path) throws IOException;
 
   /**
    * Returns an array of strings naming the files and directories in the directory denoted by this
