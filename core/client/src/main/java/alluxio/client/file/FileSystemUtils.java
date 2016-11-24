@@ -158,7 +158,7 @@ public final class FileSystemUtils {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream in = closer.register(fs.openFile(uri, options));
       AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
-      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString());
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath.toString());
       String parentPath = dstPath.getParent().toString();
       if (!ufs.isDirectory(parentPath)) {
         URIStatus parentStatus = fs.getStatus(uri.getParent());

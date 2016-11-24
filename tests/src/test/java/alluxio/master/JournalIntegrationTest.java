@@ -103,7 +103,7 @@ public class JournalIntegrationTest {
     String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
     Journal journal = new ReadWriteJournal(
         PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
-    UnderFileSystem.get(journalFolder).deleteFile(journal.getCurrentLogFilePath());
+    UnderFileSystem.Factory.get(journalFolder).deleteFile(journal.getCurrentLogFilePath());
   }
 
   private void addBlockTestUtil(URIStatus status)
@@ -142,7 +142,7 @@ public class JournalIntegrationTest {
       writer.getEntryOutputStream().flush();
       writer.getEntryOutputStream().flush();
       writer.getEntryOutputStream().flush();
-      String[] paths = UnderFileSystem.get(journalFolder)
+      String[] paths = UnderFileSystem.Factory.get(journalFolder)
           .list(journal.getCompletedDirectory());
       // Make sure no new empty files were created.
       Assert.assertTrue(paths == null || paths.length == 0);
@@ -158,7 +158,7 @@ public class JournalIntegrationTest {
   @Test
   public void loadMetadata() throws Exception {
     String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
     ufs.create(ufsRoot + "/xyz").close();
     mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
@@ -203,9 +203,9 @@ public class JournalIntegrationTest {
         FileSystemMaster.getJournalDirectory(mLocalAlluxioCluster.getMaster().getJournalFolder());
     Journal journal = new ReadWriteJournal(journalFolder);
     String completedPath = journal.getCompletedDirectory();
-    Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length > 1);
+    Assert.assertTrue(UnderFileSystem.Factory.get(completedPath).list(completedPath).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length <= 1);
+    Assert.assertTrue(UnderFileSystem.Factory.get(completedPath).list(completedPath).length <= 1);
     multiEditLogTestUtil();
   }
 

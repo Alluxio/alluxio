@@ -161,7 +161,7 @@ public class MountPointInfo implements Serializable {
    */
   public void setUfsInfo(String ufsUri) {
     mUfsUri = ufsUri;
-    UnderFileSystem ufs = UnderFileSystem.get(mUfsUri);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsUri);
     mUfsType = ufs.getUnderFSType();
     try {
       mUfsCapacityBytes = ufs.getSpace(mUfsUri, UnderFileSystem.SpaceType.SPACE_TOTAL);

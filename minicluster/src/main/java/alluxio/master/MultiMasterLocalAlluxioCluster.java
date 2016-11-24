@@ -146,7 +146,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
 
     if (ufs.isDirectory(path)
         && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
@@ -155,12 +155,12 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
 
     if (ufs.isDirectory(path)) {
       ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
     }
-    if (!ufs.mkdirs(path, true)) {
+    if (!ufs.mkdirs(path)) {
       throw new IOException("Failed to make folder: " + path);
     }
   }

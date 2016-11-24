@@ -15,12 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
-import alluxio.underfs.options.DeleteOptions;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -43,29 +40,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.
- * The mkdir operation creates a zero-byte object.
- * A suffix {@link SwiftUnderFileSystem#PATH_SEPARATOR} in the object name denotes a folder.
- * JOSS directory listing API requires that the suffix be a single character.
+ * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library. The mkdir
+ * operation creates a zero-byte object. A suffix {@link SwiftUnderFileSystem#PATH_SEPARATOR} in the
+ * object name denotes a folder. JOSS directory listing API requires that the suffix be a single
+ * character.
  */
-// TODO(adit): Abstract out functionality common with other object under storage systems.
 @ThreadSafe
-public class SwiftUnderFileSystem extends UnderFileSystem {
+public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  /** Value used to indicate nested structure in Swift. */
-  private static final char PATH_SEPARATOR_CHAR = '/';
-
-  /** Value used to indicate nested structure in Swift. */
-  private static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
   /** Regexp for Swift container ACL separator, including optional whitespaces. */
   private static final String ACL_SEPARATOR_REGEXP = "\\s*,\\s*";
@@ -81,9 +68,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /** Container name of user's configured Alluxio container. */
   private final String mContainerName;
-
-  /** Prefix of the container, for example swift://my-container-name/ . */
-  private final String mContainerPrefix;
 
   /** JOSS access object. */
   private final Access mAccess;
@@ -168,19 +152,18 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     if (!container.exists()) {
       container.create();
     }
-    mContainerPrefix = Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
 
     // Assume the Swift user name has 1-1 mapping to Alluxio username.
     mAccountOwner = Configuration.get(PropertyKey.SWIFT_USER_KEY);
     short mode = (short) 0;
-    List<String> readAcl = Arrays.asList(
-        container.getContainerReadPermission().split(ACL_SEPARATOR_REGEXP));
+    List<String> readAcl =
+        Arrays.asList(container.getContainerReadPermission().split(ACL_SEPARATOR_REGEXP));
     // If there is any container ACL for the Swift user, translates it to Alluxio permission.
     if (readAcl.contains(mAccountOwner) || readAcl.contains("*") || readAcl.contains(".r:*")) {
       mode |= (short) 0500;
     }
-    List<String> writeAcl = Arrays.asList(
-        container.getcontainerWritePermission().split(ACL_SEPARATOR_REGEXP));
+    List<String> writeAcl =
+        Arrays.asList(container.getcontainerWritePermission().split(ACL_SEPARATOR_REGEXP));
     if (writeAcl.contains(mAccountOwner) || writeAcl.contains("*") || writeAcl.contains(".w:*")) {
       mode |= (short) 0200;
     }
@@ -194,335 +177,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void close() throws IOException {
-    LOG.debug("close");
-  }
-
-  @Override
-  public void connectFromMaster(String hostname) {
-    LOG.debug("connect from master");
-  }
-
-  @Override
-  public void connectFromWorker(String hostname) {
-    LOG.debug("connect from worker");
-  }
-
-  @Override
-  public OutputStream create(String path, CreateOptions options) throws IOException {
-    return createDirect(path, options);
-  }
-
-  @Override
-  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
-    LOG.debug("Create method: {}", path);
-
-    // create will attempt to create the parent directory if it does not already exist
-    if (!mkdirs(getParentPath(path), true)) {
-      // fail if the parent directory does not exist and creation was unsuccessful
-      LOG.error("Parent directory creation unsuccessful for {}", path);
-      return null;
-    }
-
-    // TODO(adit): remove special handling of */_SUCCESS objects
-    if (path.endsWith("_SUCCESS")) {
-      // when path/_SUCCESS is created, there is need to create path as
-      // an empty object. This is required by Spark in case Spark
-      // accesses path directly, bypassing Alluxio
-      createOutputStream(CommonUtils.stripSuffixIfPresent(path, "_SUCCESS")).close();
-    }
-
-    return createOutputStream(path);
-  }
-
-  @Override
-  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
-    // TODO(adit): use bulk delete API
-    LOG.debug("Delete directory {}, recursive {}", path, options.isRecursive());
-    final String strippedPath = stripContainerPrefixIfPresent(path);
-    Container container = mAccount.getContainer(mContainerName);
-    if (!options.isRecursive()) {
-      String[] children = list(path);
-      if (children == null) {
-        LOG.error("Unable to delete {} because list returns null", path);
-        return false;
-      }
-      if (children.length != 0) {
-        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
-                + "recursive as true in order to delete non empty directories.", path);
-        return false;
-      }
-    } else {
-      // Delete children
-      PaginationMap paginationMap = container.getPaginationMap(
-          PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), LISTING_LENGTH);
-      for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-        for (StoredObject childObject : container.list(paginationMap, page)) {
-          if (childObject.getName().equals(addFolderSuffixIfNotPresent(strippedPath))) {
-            // As PATH_SEPARATOR=FOLDER_SUFFIX, the folder itself might be fetched
-            continue;
-          }
-          deleteObject(childObject);
-        }
-      }
-    }
-    // Delete the directory itself
-    String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
-    return deleteObject(container.getObject(strippedFolderPath));
-  }
-
-  @Override
-  public boolean deleteFile(String path) throws IOException {
-    LOG.debug("Delete file {}", path);
-    final String strippedPath = stripContainerPrefixIfPresent(path);
-    Container container = mAccount.getContainer(mContainerName);
-    return deleteObject(container.getObject(strippedPath));
-  }
-
-  /**
-   * Gets the block size in bytes. There is no concept of a block in Swift and the maximum size of
-   * one file is 4 GB. This method defaults to the default user block size in Alluxio.
-   *
-   * @param path the path to the object
-   * @return the default Alluxio user block size
-   * @throws IOException this implementation will not throw this exception, but subclasses may
-   */
-  @Override
-  public long getBlockSizeByte(String path) throws IOException {
-    LOG.debug("Get block size for {}", path);
-    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-  }
-
-  @Override
-  public Object getConf() {
-    LOG.debug("getConf is not supported when using SwiftDirectUnderFileSystem, returning null.");
-    return null;
-  }
-
-  @Override
-  public List<String> getFileLocations(String path) throws IOException {
-    LOG.debug("getFileLocations is not supported when using "
-        + "SwiftDirectUnderFileSystem, returning null.");
-    return null;
-  }
-
-  @Override
-  public List<String> getFileLocations(String path, long offset) throws IOException {
-    LOG.debug("getFileLocations is not supported when using "
-        + "SwiftDirectUnderFileSystem, returning null.");
-    return null;
-  }
-
-  @Override
-  public long getFileSize(String path) throws IOException {
-    return getObject(path).getContentLength();
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    LOG.debug("Get modification time for {}", path);
-    return getObject(path).getLastModifiedAsDate().getTime();
-  }
-
-  // This call is currently only used for the web ui, where a negative value implies unknown.
-  @Override
-  public long getSpace(String path, SpaceType type) throws IOException {
-    return -1;
-  }
-
-  @Override
-  public boolean isDirectory(String path) throws IOException {
-    // Root is always a folder
-    if (isRoot(path)) {
-      return true;
-    }
-
-    final String pathAsFolder = addFolderSuffixIfNotPresent(path);
-    return doesObjectExist(pathAsFolder);
-  }
-
-  @Override
-  public boolean isFile(String path) throws IOException {
-    String pathAsFile = stripFolderSuffixIfPresent(path);
-    return doesObjectExist(pathAsFile);
-  }
-
-  @Override
-  public String[] listRecursive(String path) throws IOException {
-    LOG.debug("List {} recursively", path);
-    return listHelper(path, true);
-  }
-
-  @Override
-  public String[] list(String path) throws IOException {
-    LOG.debug("List {}", path);
-    return listHelper(path, false);
-  }
-
-  @Override
-  public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
-  }
-
-  @Override
-  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
-    LOG.debug("Make directory {}", path);
-    if (path == null) {
-      LOG.error("Attempting to create directory with a null path");
-      return false;
-    }
-    if (isDirectory(path)) {
-      return true;
-    }
-    if (isFile(path)) {
-      LOG.error("Cannot create directory {} because it is already a file.", path);
-      return false;
-    }
-
-    if (!parentExists(path)) {
-      if (!options.getCreateParent()) {
-        LOG.error("Cannot create directory {} because parent does not exist", path);
-        return false;
-      }
-      final String parentPath = getParentPath(path);
-      // TODO(adit): See how we can do this with better performance
-      // Recursively make the parent folders
-      if (!mkdirs(parentPath, true)) {
-        LOG.error("Unable to create parent directory {}", path);
-        return false;
-      }
-    }
-    return mkdirsInternal(path);
-  }
-
-  /**
-   * Creates a directory flagged file with the folder suffix.
-   *
-   * @param path the path to create a folder
-   * @return true if the operation was successful, false otherwise
-   */
-  private boolean mkdirsInternal(String path) {
-    try {
-      // We do not check if a file with same name exists, i.e. a file with name
-      // 'swift://swift-container/path' and a folder with name 'swift://swift-container/path/'
-      // may both exist simultaneously
-      createOutputStream(addFolderSuffixIfNotPresent(path)).close();
-      return true;
-    } catch (IOException e) {
-      LOG.error("Failed to create directory: {}", path, e);
-      return false;
-    }
-  }
-
-  /**
-   * Checks if the parent directory exists, treating Swift as a file system.
-   *
-   * @param path the path to check
-   * @return true if the parent exists or if the path is root, false otherwise
-   */
-  private boolean parentExists(String path) throws IOException {
-    final String parentPath = getParentPath(path);
-    return parentPath != null && isDirectory(parentPath);
-  }
-
-  /**
-   * @param path the path to get the parent of
-   * @return the parent path, or null if path is root
-   */
-  private String getParentPath(String path) {
-    // Root does not have a parent.
-    if (isRoot(path)) {
-      return null;
-    }
-    int separatorIndex = path.lastIndexOf(PATH_SEPARATOR);
-    if (separatorIndex < 0) {
-      LOG.error("Path {} is malformed", path);
-      return null;
-    }
-    return path.substring(0, separatorIndex);
-  }
-
-  /**
-   * Checks if the path is the root.
-   *
-   * @param path the path to check
-   * @return true if the path is the root, false otherwise
-   */
-  private boolean isRoot(final String path) {
-    final String pathWithSuffix = addFolderSuffixIfNotPresent(path);
-    return pathWithSuffix.equals(mContainerPrefix) || pathWithSuffix.equals(PATH_SEPARATOR);
+  public String getUnderFSType() {
+    return "swift";
   }
 
   @Override
   public InputStream open(String path) throws IOException {
-    return new SwiftInputStream(mAccount, mContainerName, stripContainerPrefixIfPresent(path));
+    return new SwiftInputStream(mAccount, mContainerName, stripPrefixIfPresent(path));
   }
-
-  /**
-   * A trailing {@link SwiftUnderFileSystem#FOLDER_SUFFIX} is added if not present.
-   *
-   * @param path URI to the object
-   * @return folder path
-   */
-  private String addFolderSuffixIfNotPresent(final String path) {
-    return PathUtils.normalizePath(path, FOLDER_SUFFIX);
-  }
-
-  @Override
-  public boolean renameDirectory(String src, String dst) throws IOException {
-    String[] children = list(src);
-    if (children == null) {
-      LOG.error("Failed to list directory {}, aborting rename.", src);
-      return false;
-    }
-    if (isFile(dst) || isDirectory(dst)) {
-      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
-      return false;
-    }
-
-    // Source exists and is a directory, and destination does not exist
-    // Rename the source folder first
-    if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
-      return false;
-    }
-    // Rename each child in the source folder to destination/child
-    for (String child : children) {
-      String childSrcPath = PathUtils.concatPath(src, child);
-      String childDstPath = PathUtils.concatPath(dst, child);
-      boolean success;
-      if (isDirectory(childSrcPath)) {
-        // Recursive call
-        success = renameDirectory(childSrcPath, childDstPath);
-      } else {
-        success = renameFile(childSrcPath, childDstPath);
-      }
-      if (!success) {
-        LOG.error("Failed to rename path {}, aborting rename.", child);
-        return false;
-      }
-    }
-    // Delete src and everything under src
-    return deleteDirectory(src, DeleteOptions.defaults().setRecursive(true));
-  }
-
-  @Override
-  public boolean renameFile(String src, String dst) throws IOException {
-    if (!isFile(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist or is a directory.",
-          src, dst);
-      return false;
-    }
-    if (isFile(dst) || isDirectory(dst)) {
-      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
-      return false;
-    }
-    String strippedSourcePath = stripContainerPrefixIfPresent(src);
-    String strippedDestinationPath = stripContainerPrefixIfPresent(dst);
-    return copy(strippedSourcePath, strippedDestinationPath) && deleteFile(src);
-  }
-
-  @Override
-  public void setConf(Object conf) {}
 
   // Setting Swift owner via Alluxio is not supported yet. This is a no-op.
   @Override
@@ -550,23 +212,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return mAccountMode;
   }
 
-  /**
-   * Copies an object to another name. Destination will be overwritten if it already exists.
-   *
-   * @param source the source path to copy
-   * @param destination the destination path to copy to
-   * @return true if the operation was successful, false otherwise
-   */
-  private boolean copy(String source, String destination) {
+  @Override
+  protected boolean copyObject(String source, String destination) {
     LOG.debug("copy from {} to {}", source, destination);
-    final String strippedSourcePath = stripContainerPrefixIfPresent(source);
-    final String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
     // Retry copy for a few times, in case some Swift internal errors happened during copy.
     for (int i = 0; i < NUM_RETRIES; i++) {
       try {
         Container container = mAccount.getContainer(mContainerName);
-        container.getObject(strippedSourcePath)
-            .copyObject(container, container.getObject(strippedDestinationPath));
+        container.getObject(source).copyObject(container, container.getObject(destination));
         return true;
       } catch (CommandException e) {
         LOG.error("Source path {} does not exist", source);
@@ -582,183 +235,132 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return false;
   }
 
-  /**
-   * Appends the directory suffix ands strips container prefix from path.
-   *
-   * @param  path the path to convert
-   * @return path as a directory path
-   */
-  private String convertToFolderName(String path) {
-    return addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
-  }
-
-  /**
-   * Lists the files or folders in the given path, not including the path itself.
-   *
-   * @param path the folder path whose children are listed
-   * @param recursive whether to do a recursive listing
-   * @return a collection of the files or folders in the given path, or null if path is a file or
-   * does not exist
-   * @throws IOException if path is not accessible, e.g. network issues
-   */
-  private String[] listHelper(String path, boolean recursive) throws IOException {
-    String prefix = PathUtils.normalizePath(stripContainerPrefixIfPresent(path), PATH_SEPARATOR);
-    prefix = CommonUtils.stripPrefixIfPresent(prefix, PATH_SEPARATOR);
-
-    Collection<DirectoryOrObject> objects = listInternal(prefix, recursive);
-    Set<String> children = new HashSet<>();
-    final String self = stripFolderSuffixIfPresent(prefix);
-    boolean foundSelf = false;
-    for (DirectoryOrObject object : objects) {
-      String child = stripFolderSuffixIfPresent(object.getName());
-      String noPrefix = CommonUtils.stripPrefixIfPresent(child, prefix);
-      if (!noPrefix.equals(self)) {
-        children.add(noPrefix);
-      } else {
-        foundSelf = true;
-      }
-    }
-
-    if (isRoot(self)) {
-      foundSelf = true;
-    }
-
-    if (!foundSelf) {
-      if (mSimulationMode) {
-        if (children.size() != 0 || isDirectory(path)) {
-          // In simulation mode, the JOSS listDirectory call does not return the prefix itself,
-          // so we need the extra isDirectory call
-          foundSelf = true;
-        }
-      }
-
-      if (!foundSelf) {
-        // Path does not exist
-        return null;
-      }
-    }
-
-    return children.toArray(new String[children.size()]);
-  }
-
-  /**
-   * Lists the files or folders which match the given prefix using pagination.
-   *
-   * @param prefix the prefix to match
-   * @param recursive whether to do a recursive listing
-   * @return a collection of the files or folders matching the prefix, or null if not found
-   * @throws IOException if path is not accessible, e.g. network issues
-   */
-  private Collection<DirectoryOrObject> listInternal(final String prefix, boolean recursive)
-      throws IOException {
-    // TODO(adit): UnderFileSystem interface should be changed to support pagination
-    ArrayDeque<DirectoryOrObject> results = new ArrayDeque<>();
-    Container container = mAccount.getContainer(mContainerName);
-    PaginationMap paginationMap = container.getPaginationMap(prefix, LISTING_LENGTH);
-    for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-      if (!recursive) {
-        // If not recursive, use delimiter to limit results fetched
-        results.addAll(container.listDirectory(paginationMap.getPrefix(), PATH_SEPARATOR_CHAR,
-            paginationMap.getMarker(page), paginationMap.getPageSize()));
-      } else {
-        results.addAll(container.list(paginationMap, page));
-      }
-    }
-    return results;
-  }
-
-  /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave paths without a suffix unaltered.
-   *
-   * @param path the path to strip the suffix from
-   * @return the path with the suffix removed, or the path unaltered if the suffix is not present
-   */
-  private String stripFolderSuffixIfPresent(final String path) {
-    return CommonUtils.stripSuffixIfPresent(path, FOLDER_SUFFIX);
-  }
-
-  /**
-   * Strips the Swift container prefix from the path if it is present. For example, for input path
-   * swift://my-container-name/my-path/file, the output would be my-path/file. This method will
-   * leave paths without a prefix unaltered, ie. my-path/file returns my-path/file.
-   *
-   * @param path the path to strip
-   * @return the path without the Swift container prefix
-   */
-  private String stripContainerPrefixIfPresent(final String path) {
-    return CommonUtils.stripPrefixIfPresent(path, mContainerPrefix);
-  }
-
-  /**
-   * Retrieves a handle to an object identified by the given path.
-   *
-   * @param path the path to retrieve an object handle for
-   * @return the object handle
-   */
-  private StoredObject getObject(final String path) {
-    Container container = mAccount.getContainer(mContainerName);
-    return container.getObject(stripContainerPrefixIfPresent(path));
-  }
-
-  /**
-   * Check if the object at given path exists. The object could be either a file or directory.
-   * @param path path of object
-   * @return true if the object exists
-   */
-  private boolean doesObjectExist(String path) {
-    boolean exist = false;
+  @Override
+  protected boolean createEmptyObject(String key) {
     try {
-      exist = getObject(path).exists();
-    } catch (CommandException e) {
-      LOG.debug("Error getting object details for {}", path);
-    }
-    return exist;
-  }
-
-  /**
-   * Deletes an object if it exists.
-   *
-   * @param object object handle to delete
-   * @return true if object deletion was successful
-   */
-  private boolean deleteObject(final StoredObject object) {
-    try {
-      object.delete();
+      Container container = mAccount.getContainer(mContainerName);
+      StoredObject object = container.getObject(key);
+      object.uploadObject(new byte[0]);
       return true;
     } catch (CommandException e) {
-      LOG.debug("Object {} not found", object.getPath());
+      LOG.error("Failed to create object: {}", key, e);
+      return false;
+    }
+  }
+
+  @Override
+  protected OutputStream createObject(String key) throws IOException {
+    if (mSimulationMode) {
+      return new SwiftMockOutputStream(mAccount, mContainerName, key);
+    }
+
+    return SwiftDirectClient.put(mAccess,
+        PathUtils.concatPath(PathUtils.normalizePath(mContainerName, PATH_SEPARATOR), key));
+  }
+
+  @Override
+  protected boolean deleteObject(String path) throws IOException {
+    try {
+      Container container = mAccount.getContainer(mContainerName);
+      StoredObject object = container.getObject(path);
+      if (object != null) {
+        object.delete();
+        return true;
+      }
+    } catch (CommandException e) {
+      LOG.debug("Object {} not found", path);
     }
     return false;
   }
 
   /**
-   * Creates a simulated or actual OutputStream for object uploads.
-   * @throws IOException if failed to create path
-   * @return new OutputStream
-   */
-  private OutputStream createOutputStream(String path) throws IOException {
-    if (mSimulationMode) {
-      return new SwiftMockOutputStream(mAccount, mContainerName,
-          stripContainerPrefixIfPresent(path));
-    }
-
-    return SwiftDirectClient.put(mAccess,
-        CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
-  }
-
-  /**
    * Get container name from AlluxioURI.
+   *
    * @param uri URI used to construct Swift UFS
    * @return the container name from the given uri
    */
   protected static String getContainerName(AlluxioURI uri) {
-    //Authority contains the user, host and port portion of a URI
+    // Authority contains the user, host and port portion of a URI
     return uri.getAuthority();
   }
 
   @Override
-  public String getUnderFSType() {
-    return "swift";
+  protected String getFolderSuffix() {
+    return FOLDER_SUFFIX;
+  }
+
+  @Override
+  protected ObjectListingResult getObjectListing(String key, boolean recursive)
+      throws IOException {
+    Container container = mAccount.getContainer(mContainerName);
+    PaginationMap paginationMap =
+        container.getPaginationMap(PathUtils.normalizePath(key, PATH_SEPARATOR), LISTING_LENGTH);
+    if (paginationMap != null && paginationMap.getNumberOfPages() > 0) {
+      return new SwiftObjectListingResult(paginationMap, 0, recursive);
+    }
+    return null;
+  }
+
+  /**
+   * Wrapper over JOSS {@link PaginationMap}.
+   */
+  private final class SwiftObjectListingResult implements ObjectListingResult {
+    final PaginationMap mPaginationMap;
+    final int mPage;
+    final boolean mRecursive;
+
+    SwiftObjectListingResult(PaginationMap paginationMap, int page, boolean recursive) {
+      mPaginationMap = paginationMap;
+      mPage = page;
+      mRecursive = recursive;
+    }
+
+    @Override
+    public String[] getObjectNames() {
+      ArrayDeque<DirectoryOrObject> objects = new ArrayDeque<>();
+      Container container = mAccount.getContainer(mContainerName);
+      if (!mRecursive) {
+        objects.addAll(container.listDirectory(mPaginationMap.getPrefix(), PATH_SEPARATOR_CHAR,
+            mPaginationMap.getMarker(mPage), mPaginationMap.getPageSize()));
+      } else {
+        objects.addAll(container.list(mPaginationMap, mPage));
+      }
+      int i = 0;
+      String[] res = new String[objects.size()];
+      for (DirectoryOrObject object : objects) {
+        res[i++] = object.getName();
+      }
+      return res;
+    }
+
+    @Override
+    public String[] getCommonPrefixes() {
+      // TODO(adit): infer directories
+      return new String[0];
+    }
+
+    @Override
+    public ObjectListingResult getNextChunk() throws IOException {
+      int nextPage = mPage + 1;
+      if (nextPage >= mPaginationMap.getNumberOfPages()) {
+        return null;
+      }
+      return new SwiftObjectListingResult(mPaginationMap, nextPage, mRecursive);
+    }
+  }
+
+  @Override
+  protected ObjectStatus getObjectStatus(String key) {
+    Container container = mAccount.getContainer(mContainerName);
+    StoredObject meta = container.getObject(key);
+    if (meta != null && meta.exists()) {
+      return new ObjectStatus(meta.getContentLength(), meta.getLastModifiedAsDate().getTime());
+    }
+    return null;
+  }
+
+  @Override
+  protected String getRootKey() {
+    return Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
   }
 }

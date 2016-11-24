@@ -143,7 +143,7 @@ public class FileOutStream extends AbstractOutStream {
           mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
               .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
         } else {
-          UnderFileSystem ufs = UnderFileSystem.get(mUfsPath);
+          UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
           // TODO(jiri): Implement collection of temporary files left behind by dead clients.
           CreateOptions createOptions =
               CreateOptions.defaults().setPermission(options.getPermission());
@@ -189,7 +189,7 @@ public class FileOutStream extends AbstractOutStream {
             options.setUfsLength(len);
           }
         } else {
-          UnderFileSystem ufs = UnderFileSystem.get(mUfsPath);
+          UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
           if (mCanceled) {
             // TODO(yupeng): Handle this special case in under storage integrations.
             mUnderStorageOutputStream.close();

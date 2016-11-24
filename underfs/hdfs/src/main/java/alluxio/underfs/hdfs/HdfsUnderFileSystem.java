@@ -18,9 +18,11 @@ import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
+import alluxio.underfs.BaseUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 
 import com.google.common.base.Throwables;
@@ -50,7 +52,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * HDFS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public class HdfsUnderFileSystem extends UnderFileSystem {
+public class HdfsUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
   // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.
@@ -175,15 +177,17 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    return getFileLocations(path, 0);
+    return getFileLocations(path, FileLocationOptions.defaults());
   }
 
   @Override
-  public List<String> getFileLocations(String path, long offset) throws IOException {
+  public List<String> getFileLocations(String path, FileLocationOptions options)
+      throws IOException {
     List<String> ret = new ArrayList<>();
     try {
       FileStatus fStatus = mFileSystem.getFileStatus(new Path(path));
-      BlockLocation[] bLocations = mFileSystem.getFileBlockLocations(fStatus, offset, 1);
+      BlockLocation[] bLocations =
+          mFileSystem.getFileBlockLocations(fStatus, options.getOffset(), 1);
       if (bLocations.length > 0) {
         String[] names = bLocations[0].getHosts();
         Collections.addAll(ret, names);
@@ -303,11 +307,6 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     conf.set(keytabFileKey.toString(), keytabFile);
     conf.set(principalKey.toString(), principal);
     SecurityUtil.login(conf, keytabFileKey.toString(), principalKey.toString(), hostname);
-  }
-
-  @Override
-  public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
   }
 
   @Override
@@ -443,6 +442,11 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       LOG.error("Fail to get permission for {} ", path, e);
       throw e;
     }
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return true;
   }
 
   /**

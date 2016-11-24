@@ -35,7 +35,7 @@ public final class UnderFileSystemUtils {
    * @throws IOException if the directory cannot be deleted
    */
   public static void deleteDirIfExists(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
 
     if (ufs.isDirectory(path)
         && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
@@ -50,10 +50,10 @@ public final class UnderFileSystemUtils {
    * @throws IOException if the directory cannot be created
    */
   public static void mkdirIfNotExists(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
 
     if (!ufs.isDirectory(path)) {
-      if (!ufs.mkdirs(path, true)) {
+      if (!ufs.mkdirs(path)) {
         throw new IOException("Failed to make folder: " + path);
       }
     }
@@ -66,7 +66,7 @@ public final class UnderFileSystemUtils {
    * @throws IOException if the file cannot be created
    */
   public static void touch(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
     OutputStream os = ufs.create(path);
     os.close();
   }
@@ -77,7 +77,7 @@ public final class UnderFileSystemUtils {
    * @param path the path to delete
    */
   public static void deleteFileIfExists(final String path) {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
     try {
       if (ufs.isFile(path)) {
         ufs.deleteFile(path);

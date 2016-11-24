@@ -17,9 +17,11 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
+import alluxio.underfs.BaseUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -52,7 +54,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * </p>
  */
 @ThreadSafe
-public class LocalUnderFileSystem extends UnderFileSystem {
+public class LocalUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -143,7 +145,8 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public List<String> getFileLocations(String path, long offset) throws IOException {
+  public List<String> getFileLocations(String path, FileLocationOptions options)
+      throws IOException {
     return getFileLocations(path);
   }
 
@@ -206,11 +209,6 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     } else {
       return null;
     }
-  }
-
-  @Override
-  public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, MkdirsOptions.defaults().setCreateParent(createParent));
   }
 
   @Override
@@ -318,6 +316,11 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public void connectFromWorker(String hostname) throws IOException {
     // No-op
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return true;
   }
 
   /**

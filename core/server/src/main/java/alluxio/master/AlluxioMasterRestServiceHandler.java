@@ -75,7 +75,7 @@ public final class AlluxioMasterRestServiceHandler {
   private final AlluxioMaster mMaster;
   private final BlockMaster mBlockMaster;
   private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-  private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot);
+  private final UnderFileSystem mUfs = UnderFileSystem.Factory.get(mUfsRoot);
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.

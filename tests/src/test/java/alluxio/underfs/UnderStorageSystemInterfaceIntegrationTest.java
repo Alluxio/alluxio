@@ -23,6 +23,7 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
@@ -50,7 +51,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   public final void before() throws Exception {
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
+    mUfs = UnderFileSystem.Factory.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
   }
 
   @After
@@ -117,9 +118,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testDirNonEmptyChildFile = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
     String testDirNonEmptyChildDirFile = PathUtils.concatPath(testDirNonEmptyChildDir,
         "testDirNonEmptyChildDirF");
-    mUfs.mkdirs(testDirEmpty, false);
-    mUfs.mkdirs(testDirNonEmpty, false);
-    mUfs.mkdirs(testDirNonEmptyChildDir, false);
+    mUfs.mkdirs(testDirEmpty, MkdirsOptions.defaults().setCreateParent(false));
+    mUfs.mkdirs(testDirNonEmpty, MkdirsOptions.defaults().setCreateParent(false));
+    mUfs.mkdirs(testDirNonEmptyChildDir, MkdirsOptions.defaults().setCreateParent(false));
     createEmptyFile(testDirNonEmptyChildFile);
     createEmptyFile(testDirNonEmptyChildDirFile);
     mUfs.deleteDirectory(testDirEmpty, DeleteOptions.defaults().setRecursive(false));
@@ -176,7 +177,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(mUfs.isFile(testFile));
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
     Assert.assertFalse(mUfs.isDirectory(testDir));
-    mUfs.mkdirs(testDir, false);
+    mUfs.mkdirs(testDir, MkdirsOptions.defaults().setCreateParent(false));
     Assert.assertTrue(mUfs.isDirectory(testDir));
   }
 
@@ -218,7 +219,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
     Assert.assertFalse(mUfs.isFile(testFile));
     createEmptyFile(testFile);
-    mUfs.mkdirs(testDir, false);
+    mUfs.mkdirs(testDir, MkdirsOptions.defaults().setCreateParent(false));
     Assert.assertTrue(mUfs.isFile(testFile));
     Assert.assertFalse(mUfs.isFile(testDir));
   }
@@ -233,8 +234,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testDirNonEmptyChildFile = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
     String testDirNonEmptyChildDirFile =
         PathUtils.concatPath(testDirNonEmptyChildDir, "testDirNonEmptyChildDirF");
-    mUfs.mkdirs(testDirNonEmpty, false);
-    mUfs.mkdirs(testDirNonEmptyChildDir, false);
+    mUfs.mkdirs(testDirNonEmpty, MkdirsOptions.defaults().setCreateParent(false));
+    mUfs.mkdirs(testDirNonEmptyChildDir, MkdirsOptions.defaults().setCreateParent(false));
     createEmptyFile(testDirNonEmptyChildFile);
     createEmptyFile(testDirNonEmptyChildDirFile);
     String [] expectedResTopDir = new String[] {"testDirNonEmpty2", "testDirNonEmptyF"};
@@ -286,7 +287,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   public void listRecursive() throws IOException {
     String root = mUnderfsAddress;
     // TODO(andrew): Should this directory be created in LocalAlluxioCluster creation code?
-    mUfs.mkdirs(root, true);
+    mUfs.mkdirs(root);
     // Empty lsr should be empty
     Assert.assertEquals(0, mUfs.listRecursive(root).length);
 
@@ -300,9 +301,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // lsr of nonexistent path should be null
     Assert.assertNull(mUfs.listRecursive(sub1));
 
-    mUfs.mkdirs(sub1, false);
-    mUfs.mkdirs(sub2, false);
-    mUfs.mkdirs(sub11, false);
+    mUfs.mkdirs(sub1, MkdirsOptions.defaults().setCreateParent(false));
+    mUfs.mkdirs(sub2, MkdirsOptions.defaults().setCreateParent(false));
+    mUfs.mkdirs(sub11, MkdirsOptions.defaults().setCreateParent(false));
     createEmptyFile(file11);
     createEmptyFile(file2);
     createEmptyFile(file);
@@ -327,14 +328,14 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests {@link UnderFileSystem#mkdirs(String, boolean)} correctly creates a directory.
-   * Tests {@link UnderFileSystem#mkdirs(String, boolean)} correctly makes parent directories if
-   * createParent is specified.
+   * Tests {@link UnderFileSystem#mkdirs(String)} correctly creates a directory.
+   * Tests {@link UnderFileSystem#mkdirs(String, MkdirsOptions)} correctly makes parent directories
+   * if createParent is specified.
    */
   @Test
   public void mkdirs() throws IOException {
     // make sure the underfs address dir exists already
-    mUfs.mkdirs(mUnderfsAddress, true);
+    mUfs.mkdirs(mUnderfsAddress);
     // empty lsr should be empty
     Assert.assertEquals(0, mUfs.listRecursive(mUnderfsAddress).length);
 
@@ -343,9 +344,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testDir2 = PathUtils.concatPath(testDir1, "2");
     String testDir3 = PathUtils.concatPath(testDir2, "3");
     String testDirDeep = PathUtils.concatPath(testDir3, "testDirDeep");
-    mUfs.mkdirs(testDirTop, false);
+    mUfs.mkdirs(testDirTop, MkdirsOptions.defaults().setCreateParent(false));
     Assert.assertTrue(mUfs.isDirectory(testDirTop));
-    mUfs.mkdirs(testDirDeep, true);
+    mUfs.mkdirs(testDirDeep, MkdirsOptions.defaults().setCreateParent(true));
     Assert.assertTrue(mUfs.isDirectory(testDir1));
     Assert.assertTrue(mUfs.isDirectory(testDir2));
     Assert.assertTrue(mUfs.isDirectory(testDir3));
@@ -374,7 +375,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
     String testDirDst = PathUtils.concatPath(mUnderfsAddress, "testDirDst");
     String testDirDstChild = PathUtils.concatPath(testDirDst, "testFile");
-    mUfs.mkdirs(testDirSrc, false);
+    mUfs.mkdirs(testDirSrc, MkdirsOptions.defaults().setCreateParent(false));
     createEmptyFile(testDirSrcChild);
     mUfs.renameDirectory(testDirSrc, testDirDst);
     Assert.assertFalse(mUfs.isDirectory(testDirSrc));
@@ -398,9 +399,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testDirDstNested = PathUtils.concatPath(testDirDst, "testNested");
     String testDirDstNestedChild = PathUtils.concatPath(testDirDstNested, "testNestedFile");
 
-    mUfs.mkdirs(testDirSrc, false);
+    mUfs.mkdirs(testDirSrc, MkdirsOptions.defaults().setCreateParent(false));
     createEmptyFile(testDirSrcChild);
-    mUfs.mkdirs(testDirSrcNested, false);
+    mUfs.mkdirs(testDirSrcNested, MkdirsOptions.defaults().setCreateParent(false));
     createEmptyFile(testDirSrcNestedChild);
 
     mUfs.renameDirectory(testDirSrc, testDirDst);
@@ -424,7 +425,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String dirName = "loadMetaDataRoot";
 
     String rootDir = PathUtils.concatPath(mUnderfsAddress, dirName);
-    mUfs.mkdirs(rootDir, true);
+    mUfs.mkdirs(rootDir);
 
     String rootFile1 = PathUtils.concatPath(rootDir, "file1");
     createEmptyFile(rootFile1);
@@ -487,7 +488,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String[] children = new String[numFiles + numFiles];
 
     // Make top level directory
-    mUfs.mkdirs(topLevelDirectory, false);
+    mUfs.mkdirs(topLevelDirectory, MkdirsOptions.defaults().setCreateParent(false));
 
     // Make the children files
     for (int i = 0; i < numFiles; ++i) {
@@ -499,7 +500,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     for (int i = 0; i < numFiles; ++i) {
       children[numFiles + i] = PathUtils.concatPath(topLevelDirectory, folderPrefix
           + String.format("%04d", i));
-      mUfs.mkdirs(children[numFiles + i], false);
+      mUfs.mkdirs(children[numFiles + i], MkdirsOptions.defaults().setCreateParent(false));
     }
 
     return new LargeDirectoryConfig(topLevelDirectory, children);

@@ -13,6 +13,7 @@ package alluxio.underfs.local;
 
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -41,7 +42,7 @@ public class LocalUnderFileSystemTest {
   @Before
   public void before() throws IOException {
     mLocalUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    mLocalUfs = LocalUnderFileSystem.get(mLocalUfsRoot);
+    mLocalUfs = UnderFileSystem.Factory.get(mLocalUfsRoot);
   }
 
   @Test
@@ -86,7 +87,7 @@ public class LocalUnderFileSystemTest {
   @Test
   public void recursiveDelete() throws IOException {
     String dirpath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, true);
+    mLocalUfs.mkdirs(dirpath);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
     mLocalUfs.create(filepath).close();
     mLocalUfs.deleteDirectory(dirpath, DeleteOptions.defaults().setRecursive(true));
@@ -100,7 +101,7 @@ public class LocalUnderFileSystemTest {
   @Test
   public void nonRecursiveDelete() throws IOException {
     String dirpath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, true);
+    mLocalUfs.mkdirs(dirpath);
     String filepath = PathUtils.concatPath(dirpath, getUniqueFileName());
     mLocalUfs.create(filepath).close();
     mLocalUfs.deleteDirectory(dirpath, DeleteOptions.defaults().setRecursive(false));
@@ -115,7 +116,7 @@ public class LocalUnderFileSystemTest {
   public void mkdirs() throws IOException {
     String parentPath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, true);
+    mLocalUfs.mkdirs(dirpath);
 
     Assert.assertTrue(mLocalUfs.isDirectory(dirpath));
 
@@ -127,7 +128,7 @@ public class LocalUnderFileSystemTest {
   public void mkdirsWithCreateParentEqualToFalse() throws IOException {
     String parentPath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, false);
+    mLocalUfs.mkdirs(dirpath, MkdirsOptions.defaults().setCreateParent(false));
 
     Assert.assertFalse(mLocalUfs.isDirectory(dirpath));
 
@@ -169,7 +170,7 @@ public class LocalUnderFileSystemTest {
   @Test
   public void isFile() throws IOException {
     String dirpath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, true);
+    mLocalUfs.mkdirs(dirpath);
     Assert.assertFalse(mLocalUfs.isFile(dirpath));
 
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());

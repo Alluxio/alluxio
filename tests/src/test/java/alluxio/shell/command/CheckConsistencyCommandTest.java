@@ -46,7 +46,7 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
         WriteType.CACHE_THROUGH, 20);
     String ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir")).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.get(ufsPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsPath);
     ufs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(true));
     mFsShell.run("checkConsistency", "/testRoot");
     StringBuilder expected = new StringBuilder();

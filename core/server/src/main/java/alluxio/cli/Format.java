@@ -39,7 +39,7 @@ public final class Format {
       RuntimeConstants.ALLUXIO_JAR, Format.class.getCanonicalName());
 
   private static boolean formatFolder(String name, String folder) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(folder);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.isDirectory(folder)) {
       for (String p : ufs.list(folder)) {
@@ -57,7 +57,7 @@ public final class Format {
           return false;
         }
       }
-    } else if (!ufs.mkdirs(folder, true)) {
+    } else if (!ufs.mkdirs(folder)) {
       LOG.info("Failed to create {}:{}", name, folder);
       return false;
     }
@@ -104,7 +104,7 @@ public final class Format {
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
           String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-          UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder);
+          UnderFileSystem ufs = UnderFileSystem.Factory.get(dirWorkerDataFolder);
           if (ufs.isDirectory(dirWorkerDataFolder)) {
             if (!formatFolder(name, dirWorkerDataFolder)) {
               System.exit(-1);
