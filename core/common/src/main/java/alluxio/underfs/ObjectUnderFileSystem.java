@@ -267,8 +267,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public String[] listRecursive(String path) throws IOException {
-    return UnderFileStatus.toListingResult(listInternal(path, true));
+  public UnderFileStatus[] listRecursive(String path) throws IOException {
+    return listInternal(path, true);
   }
 
   @Override

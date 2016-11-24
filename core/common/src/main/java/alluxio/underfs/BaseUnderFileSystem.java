@@ -78,33 +78,39 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public String[] listRecursive(String path) throws IOException {
+  public UnderFileStatus[] listRecursive(String path) throws IOException {
     // Clean the path by creating a URI and turning it back to a string
     AlluxioURI uri = new AlluxioURI(path);
     path = uri.toString();
-    List<String> returnPaths = new ArrayList<>();
-    Queue<String> pathsToProcess = new ArrayDeque<>();
+    List<UnderFileStatus> returnPaths = new ArrayList<>();
+    Queue<UnderFileStatus> pathsToProcess = new ArrayDeque<>();
     // We call list initially, so we can return null if the path doesn't denote a directory
     UnderFileStatus[] subpaths = listStatus(path);
     if (subpaths == null) {
       return null;
     } else {
       for (UnderFileStatus subp : subpaths) {
-        pathsToProcess.add(PathUtils.concatPath(path, subp.getName()));
+        pathsToProcess.add(
+            new UnderFileStatus(PathUtils.concatPath(path, subp.getName()), subp.isDirectory()));
       }
     }
     while (!pathsToProcess.isEmpty()) {
-      String p = pathsToProcess.remove();
-      returnPaths.add(p.substring(path.length() + 1));
-      // Add all of its subpaths
-      subpaths = listStatus(p);
-      if (subpaths != null) {
-        for (UnderFileStatus subp : subpaths) {
-          pathsToProcess.add(PathUtils.concatPath(p, subp.getName()));
+      UnderFileStatus p = pathsToProcess.remove();
+      returnPaths
+          .add(new UnderFileStatus(p.getName().substring(path.length() + 1), p.isDirectory()));
+
+      if (p.isDirectory()) {
+        // Add all of its subpaths
+        subpaths = listStatus(p.getName());
+        if (subpaths != null) {
+          for (UnderFileStatus subp : subpaths) {
+            pathsToProcess.add(
+                new UnderFileStatus(PathUtils.concatPath(p, subp.getName()), subp.isDirectory()));
+          }
         }
       }
     }
-    return returnPaths.toArray(new String[returnPaths.size()]);
+    return returnPaths.toArray(new UnderFileStatus[returnPaths.size()]);
   }
 
   @Override

@@ -420,12 +420,12 @@ public interface UnderFileSystem {
   boolean isFile(String path) throws IOException;
 
   /**
-   * Returns an array of strings naming the files and directories in the directory denoted by this
+   * Returns an array of statuses of the files and directories in the directory denoted by this
    * abstract pathname.
    *
    * <p>
    * If this abstract pathname does not denote a directory, then this method returns {@code null}.
-   * Otherwise an array of strings is returned, one for each file or directory in the directory.
+   * Otherwise an array of statuses is returned, one for each file or directory in the directory.
    * Names denoting the directory itself and the directory's parent directory are not included in
    * the result. Each string is a file name rather than a complete path.
    *
@@ -442,12 +442,12 @@ public interface UnderFileSystem {
   UnderFileStatus[] listStatus(String path) throws IOException;
 
   /**
-   * Returns an array of strings naming the files and directories in the directory denoted by this
+   * Returns an array of statuses of the files and directories in the directory denoted by this
    * abstract pathname, and all of its subdirectories.
    *
    * <p>
    * If this abstract pathname does not denote a directory, then this method returns {@code null}.
-   * Otherwise an array of strings is returned, one for each file or directory in the directory and
+   * Otherwise an array of statuses is returned, one for each file or directory in the directory and
    * its subdirectories. Names denoting the directory itself and the directory's parent directory
    * are not included in the result. Each string is a path relative to the given directory.
    *
@@ -456,12 +456,12 @@ public interface UnderFileSystem {
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
    *
    * @param path the abstract pathname to list
-   * @return An array of strings naming the files and directories in the directory denoted by this
+   * @return An array of statuses naming the files and directories in the directory denoted by this
    *         abstract pathname and its subdirectories. The array will be empty if the directory is
    *         empty. Returns {@code null} if this abstract pathname does not denote a directory.
    * @throws IOException if a non-Alluxio error occurs
    */
-  String[] listRecursive(String path) throws IOException;
+  UnderFileStatus[] listRecursive(String path) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method

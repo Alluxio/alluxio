@@ -311,14 +311,14 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // lsr from root should return paths relative to the root
     String[] expectedResRoot =
         {"sub1", "sub2", "sub1/sub11", "sub1/sub11/file11", "sub2/file2", "file"};
-    String[] actualResRoot = mUfs.listRecursive(root);
+    UnderFileStatus[] actualResRoot = mUfs.listRecursive(root);
     Arrays.sort(expectedResRoot);
     Arrays.sort(actualResRoot);
     Assert.assertArrayEquals(expectedResRoot, actualResRoot);
 
     // lsr from sub1 should return paths relative to sub1
     String[] expectedResSub1 = {"sub11", "sub11/file11"};
-    String[] actualResSub1 = mUfs.listRecursive(sub1);
+    UnderFileStatus[] actualResSub1 = mUfs.listRecursive(sub1);
     Arrays.sort(expectedResSub1);
     Arrays.sort(actualResSub1);
     Assert.assertArrayEquals(expectedResSub1, actualResSub1);
