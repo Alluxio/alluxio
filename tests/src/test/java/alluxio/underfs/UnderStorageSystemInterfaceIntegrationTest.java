@@ -243,7 +243,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String [] expectedResTopDir2 = new String[] {"/testDirNonEmpty2", "/testDirNonEmptyF"};
     Arrays.sort(expectedResTopDir);
     Arrays.sort(expectedResTopDir2);
-    String [] resTopDir = mUfs.list(testDirNonEmpty);
+    UnderFileStatus [] resTopDir = mUfs.list(testDirNonEmpty);
     Arrays.sort(resTopDir);
     Assert.assertTrue(Arrays.equals(expectedResTopDir, resTopDir)
         || Arrays.equals(expectedResTopDir2, resTopDir));
@@ -263,7 +263,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
     // https://cloud.google.com/storage/docs/consistency for more details.
     // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
-    String[] results = new String[] {};
+    UnderFileStatus[] results = new UnderFileStatus[] {};
     for (int i = 0; i < 20; i++) {
       results = mUfs.list(config.getTopLevelDirectory());
       if (children.length == results.length) {
@@ -275,7 +275,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     Arrays.sort(results);
     for (int i = 0; i < children.length; ++i) {
-      Assert.assertTrue(results[i].equals(CommonUtils.stripPrefixIfPresent(children[i],
+      Assert.assertTrue(results[i].getName().equals(CommonUtils.stripPrefixIfPresent(children[i],
           PathUtils.normalizePath(config.getTopLevelDirectory(), "/"))));
     }
   }

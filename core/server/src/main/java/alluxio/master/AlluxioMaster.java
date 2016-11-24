@@ -24,6 +24,7 @@ import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -509,14 +510,14 @@ public class AlluxioMaster implements Server {
    */
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(journalDirectory);
-    String[] files = ufs.list(journalDirectory);
+    UnderFileStatus[] files = ufs.list(journalDirectory);
     if (files == null) {
       return false;
     }
     // Search for the format file.
     String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
-    for (String file : files) {
-      if (file.startsWith(formatFilePrefix)) {
+    for (UnderFileStatus file : files) {
+      if (file.getName().startsWith(formatFilePrefix)) {
         return true;
       }
     }

@@ -19,6 +19,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -260,14 +261,14 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public String[] list(String path) throws IOException {
+  public UnderFileStatus[] list(String path) throws IOException {
     FileStatus[] files = listStatus(path);
     if (files != null && !isFile(path)) {
-      String[] rtn = new String[files.length];
+      UnderFileStatus[] rtn = new UnderFileStatus[files.length];
       int i = 0;
       for (FileStatus status : files) {
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i++] =  status.getPath().getName();
+        rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDirectory());
       }
       return rtn;
     } else {

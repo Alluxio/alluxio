@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -195,15 +196,15 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public String[] list(String path) throws IOException {
+  public UnderFileStatus[] list(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     File[] files = file.listFiles();
     if (files != null) {
-      String[] rtn = new String[files.length];
+      UnderFileStatus[] rtn = new UnderFileStatus[files.length];
       int i = 0;
       for (File f : files) {
-        rtn[i++] = f.getName();
+        rtn[i++] = new UnderFileStatus(f.getName(), f.isDirectory());
       }
       return rtn;
     } else {

@@ -85,12 +85,12 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
     List<String> returnPaths = new ArrayList<>();
     Queue<String> pathsToProcess = new ArrayDeque<>();
     // We call list initially, so we can return null if the path doesn't denote a directory
-    String[] subpaths = list(path);
+    UnderFileStatus[] subpaths = list(path);
     if (subpaths == null) {
       return null;
     } else {
-      for (String subp : subpaths) {
-        pathsToProcess.add(PathUtils.concatPath(path, subp));
+      for (UnderFileStatus subp : subpaths) {
+        pathsToProcess.add(PathUtils.concatPath(path, subp.getName()));
       }
     }
     while (!pathsToProcess.isEmpty()) {
@@ -99,8 +99,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       // Add all of its subpaths
       subpaths = list(p);
       if (subpaths != null) {
-        for (String subp : subpaths) {
-          pathsToProcess.add(PathUtils.concatPath(p, subp));
+        for (UnderFileStatus subp : subpaths) {
+          pathsToProcess.add(PathUtils.concatPath(p, subp.getName()));
         }
       }
     }
