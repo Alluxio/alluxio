@@ -213,6 +213,7 @@
             <html>
               <intro>${project.basedir}/src/main/resources/intro.html</intro>
               <title>Alluxio ${project.version} REST API</title>
+              <baseUrl>http://host:port/v1/api</baseUrl>
             </html>
           </output>
           <restModel>

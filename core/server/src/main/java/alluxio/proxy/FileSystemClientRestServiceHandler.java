@@ -277,22 +277,21 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary get the file descriptors for a path
    * @param path the file path
-   * @param loadMetadataType the {@link LoadMetadataType}. It overrides loadDirectChildren if it
-   *        is set.
+   * @param loadMetadataType the load metadata type
    * @return the response object
    */
   @GET
   @Path(LIST_STATUS)
   @ReturnType("java.util.List<alluxio.client.file.URIStatus>")
   public Response listStatus(@QueryParam("path") final String path,
-      @QueryParam("loadMetadataType") final String loadMetadataType) {
+      @QueryParam("loadMetadataType") final LoadMetadataType loadMetadataType) {
     return RestUtils.call(new RestUtils.RestCallable<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
-        if (!loadMetadataType.isEmpty()) {
-          listStatusOptions.setLoadMetadataType(LoadMetadataType.valueOf(loadMetadataType));
+        if (loadMetadataType != null) {
+          listStatusOptions.setLoadMetadataType(loadMetadataType);
         }
         return mFileSystem.listStatus(new AlluxioURI(path), listStatusOptions);
       }
