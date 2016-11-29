@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -51,11 +52,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Test behavior of {@link FileSystemMaster}.
@@ -823,6 +827,42 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(ttl, folderInfo.getTtl());
   }
 
+  @Test
+  public void concurrentCreateDeleteTest() throws Exception {
+    List<Future<?>> futures = new ArrayList<>();
+    AlluxioURI directory = new AlluxioURI("/dir");
+    AlluxioURI[] files = new AlluxioURI[10];
+    final int numThreads = 8;
+    final int sleepMs = 3000;
+
+    for (int i = 0; i < 10; i++) {
+      files[i] = directory.join("file_" + i);
+    }
+
+    mFsMaster.createDirectory(directory, CreateDirectoryOptions.defaults());
+    AtomicBoolean stopThreads = new AtomicBoolean(false);
+    CyclicBarrier barrier = new CyclicBarrier(numThreads);
+    ExecutorService threadPool = Executors.newCachedThreadPool();
+    try {
+      for (int i = 0; i < numThreads; i++) {
+        futures.add(threadPool.submit(new ConcurrentCreateDelete(barrier, stopThreads, files)));
+      }
+
+      CommonUtils.sleepMs(sleepMs);
+      stopThreads.set(true);
+      for (Future<?> future : futures) {
+        future.get();
+      }
+
+      // Stop Alluxio.
+      mLocalAlluxioClusterResource.get().stopFS();
+      // Create the master using the existing journal.
+      createFileSystemMasterFromJournal();
+    } finally {
+      threadPool.shutdownNow();
+    }
+  }
+
   // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back
   // or remove this test when we have better tests against journal checkpoint.
   // @Test
@@ -870,4 +910,46 @@ public class FileSystemMasterIntegrationTest {
   // Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
   // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
   // }
+
+  class ConcurrentCreateDelete implements Callable<Void> {
+    private final CyclicBarrier mStartBarrier;
+    private final AtomicBoolean mStopThread;
+    private final AlluxioURI[] mFiles;
+
+    public ConcurrentCreateDelete(CyclicBarrier barrier, AtomicBoolean stopThread,
+        AlluxioURI[] files) {
+      mStartBarrier = barrier;
+      mStopThread = stopThread;
+      mFiles = files;
+    }
+
+    @Override
+    public Void call() throws Exception {
+      mStartBarrier.await();
+      Random random = new Random();
+      while (!mStopThread.get()) {
+        int id = random.nextInt(mFiles.length);
+        try {
+          // Create and complete a random file.
+          mFsMaster.createFile(mFiles[id], CreateFileOptions.defaults());
+          mFsMaster.completeFile(mFiles[id], CompleteFileOptions.defaults());
+        } catch (FileAlreadyExistsException | FileDoesNotExistException
+            | FileAlreadyCompletedException e) {
+          // Ignore
+        } catch (Exception e) {
+          throw e;
+        }
+        id = random.nextInt(mFiles.length);
+        try {
+          // Delete a random file.
+          mFsMaster.delete(mFiles[id], false);
+        } catch (FileDoesNotExistException e) {
+          // Ignore
+        } catch (Exception e) {
+          throw e;
+        }
+      }
+      return null;
+    }
+  }
 }
