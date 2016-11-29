@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 
 import com.google.common.base.Objects;
@@ -443,25 +444,26 @@ public interface UnderFileSystem {
 
   /**
    * Returns an array of statuses of the files and directories in the directory denoted by this
-   * abstract pathname, and all of its subdirectories.
+   * abstract pathname, with options.
    *
    * <p>
    * If this abstract pathname does not denote a directory, then this method returns {@code null}.
-   * Otherwise an array of statuses is returned, one for each file or directory in the directory and
-   * its subdirectories. Names denoting the directory itself and the directory's parent directory
-   * are not included in the result. Each string is a path relative to the given directory.
+   * Otherwise an array of statuses is returned, one for each file or directory. Names denoting the
+   * directory itself and the directory's parent directory are not included in the result. Each
+   * string is a path relative to the given directory.
    *
    * <p>
    * There is no guarantee that the name strings in the resulting array will appear in any specific
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
    *
    * @param path the abstract pathname to list
+   * @param options for list directory
    * @return An array of statuses naming the files and directories in the directory denoted by this
-   *         abstract pathname and its subdirectories. The array will be empty if the directory is
-   *         empty. Returns {@code null} if this abstract pathname does not denote a directory.
+   *         abstract pathname. The array will be empty if the directory is empty. Returns
+   *         {@code null} if this abstract pathname does not denote a directory.
    * @throws IOException if a non-Alluxio error occurs
    */
-  UnderFileStatus[] listRecursive(String path) throws IOException;
+  UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method

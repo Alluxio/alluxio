@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -267,13 +268,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listRecursive(String path) throws IOException {
-    return listInternal(path, true);
+  public UnderFileStatus[] listStatus(String path) throws IOException {
+    return listInternal(path, false);
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path) throws IOException {
-    return listInternal(path, false);
+  public UnderFileStatus[] listStatus(String path, ListOptions options)
+      throws IOException {
+    return listInternal(path, options.isRecursive());
   }
 
   @Override

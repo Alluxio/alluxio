@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
@@ -78,7 +79,10 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listRecursive(String path) throws IOException {
+  public UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException {
+    if (!options.isRecursive()) {
+      return listStatus(path);
+    }
     // Clean the path by creating a URI and turning it back to a string
     AlluxioURI uri = new AlluxioURI(path);
     path = uri.toString();

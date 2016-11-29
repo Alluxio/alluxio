@@ -23,6 +23,7 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -287,12 +288,12 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests if list recursive correctly returns all file names in all subdirectories.
    */
   @Test
-  public void listRecursive() throws IOException {
+  public void listStatusRecursive() throws IOException {
     String root = mUnderfsAddress;
     // TODO(andrew): Should this directory be created in LocalAlluxioCluster creation code?
     mUfs.mkdirs(root);
     // Empty lsr should be empty
-    Assert.assertEquals(0, mUfs.listRecursive(root).length);
+    Assert.assertEquals(0, mUfs.listStatus(root).length);
 
     // Create a tree of subdirectories and files
     String sub1 = PathUtils.concatPath(root, "sub1");
@@ -302,7 +303,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String file2 = PathUtils.concatPath(sub2, "file2");
     String file = PathUtils.concatPath(root, "file");
     // lsr of nonexistent path should be null
-    Assert.assertNull(mUfs.listRecursive(sub1));
+    Assert.assertNull(mUfs.listStatus(sub1, ListOptions.defaults().setRecursive(true)));
 
     mUfs.mkdirs(sub1, MkdirsOptions.defaults().setCreateParent(false));
     mUfs.mkdirs(sub2, MkdirsOptions.defaults().setCreateParent(false));
@@ -314,20 +315,22 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // lsr from root should return paths relative to the root
     String[] expectedResRoot =
         {"sub1", "sub2", "sub1/sub11", "sub1/sub11/file11", "sub2/file2", "file"};
-    String[] actualResRoot = UnderFileStatus.toListingResult(mUfs.listRecursive(root));
+    String[] actualResRoot = UnderFileStatus
+        .toListingResult(mUfs.listStatus(root, ListOptions.defaults().setRecursive(true)));
     Arrays.sort(expectedResRoot);
     Arrays.sort(actualResRoot);
     Assert.assertArrayEquals(expectedResRoot, actualResRoot);
 
     // lsr from sub1 should return paths relative to sub1
     String[] expectedResSub1 = {"sub11", "sub11/file11"};
-    String[] actualResSub1 = UnderFileStatus.toListingResult(mUfs.listRecursive(sub1));
+    String[] actualResSub1 = UnderFileStatus
+        .toListingResult(mUfs.listStatus(sub1, ListOptions.defaults().setRecursive(true)));
     Arrays.sort(expectedResSub1);
     Arrays.sort(actualResSub1);
     Assert.assertArrayEquals(expectedResSub1, actualResSub1);
 
     // lsr of file should be null
-    Assert.assertNull(mUfs.listRecursive(file));
+    Assert.assertNull(mUfs.listStatus(file, ListOptions.defaults().setRecursive(true)));
   }
 
   /**
@@ -340,7 +343,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // make sure the underfs address dir exists already
     mUfs.mkdirs(mUnderfsAddress);
     // empty lsr should be empty
-    Assert.assertEquals(0, mUfs.listRecursive(mUnderfsAddress).length);
+    Assert.assertEquals(0, mUfs.listStatus(mUnderfsAddress).length);
 
     String testDirTop = PathUtils.concatPath(mUnderfsAddress, "testDirTop");
     String testDir1 = PathUtils.concatPath(mUnderfsAddress, "1");
