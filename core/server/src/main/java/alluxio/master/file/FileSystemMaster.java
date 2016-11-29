@@ -902,6 +902,7 @@ public final class FileSystemMaster extends AbstractMaster {
           InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incDeletePathOps(1);
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    // Delete should lock the parent to remove the child inode.
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(path, InodeTree.LockMode.WRITE_PARENT)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
