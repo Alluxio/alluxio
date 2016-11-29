@@ -225,10 +225,10 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests if list correctly returns file names.
+   * Tests if listStatus correctly returns file names.
    */
   @Test
-  public void list() throws IOException {
+  public void listStatus() throws IOException {
     String testDirNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
     String testDirNonEmptyChildDir = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
     String testDirNonEmptyChildFile = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
@@ -243,12 +243,14 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String [] expectedResTopDir2 = new String[] {"/testDirNonEmpty2", "/testDirNonEmptyF"};
     Arrays.sort(expectedResTopDir);
     Arrays.sort(expectedResTopDir2);
-    UnderFileStatus [] resTopDir = mUfs.listStatus(testDirNonEmpty);
+    String [] resTopDir = UnderFileStatus.toListingResult(mUfs.listStatus(testDirNonEmpty));
     Arrays.sort(resTopDir);
     Assert.assertTrue(Arrays.equals(expectedResTopDir, resTopDir)
         || Arrays.equals(expectedResTopDir2, resTopDir));
-    Assert.assertTrue(mUfs.listStatus(testDirNonEmptyChildDir)[0].equals("testDirNonEmptyChildDirF")
-        || mUfs.listStatus(testDirNonEmptyChildDir)[0].equals("/testDirNonEmptyChildDirF"));
+    Assert.assertTrue(
+        mUfs.listStatus(testDirNonEmptyChildDir)[0].getName().equals("testDirNonEmptyChildDirF")
+            || mUfs.listStatus(testDirNonEmptyChildDir)[0].getName()
+                .equals("/testDirNonEmptyChildDirF"));
   }
 
   /**
@@ -273,9 +275,10 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     }
     Assert.assertEquals(children.length, results.length);
 
-    Arrays.sort(results);
+    String[] resultNames = UnderFileStatus.toListingResult(results);
+    Arrays.sort(resultNames);
     for (int i = 0; i < children.length; ++i) {
-      Assert.assertTrue(results[i].getName().equals(CommonUtils.stripPrefixIfPresent(children[i],
+      Assert.assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(children[i],
           PathUtils.normalizePath(config.getTopLevelDirectory(), "/"))));
     }
   }
@@ -311,14 +314,14 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // lsr from root should return paths relative to the root
     String[] expectedResRoot =
         {"sub1", "sub2", "sub1/sub11", "sub1/sub11/file11", "sub2/file2", "file"};
-    UnderFileStatus[] actualResRoot = mUfs.listRecursive(root);
+    String[] actualResRoot = UnderFileStatus.toListingResult(mUfs.listRecursive(root));
     Arrays.sort(expectedResRoot);
     Arrays.sort(actualResRoot);
     Assert.assertArrayEquals(expectedResRoot, actualResRoot);
 
     // lsr from sub1 should return paths relative to sub1
     String[] expectedResSub1 = {"sub11", "sub11/file11"};
-    UnderFileStatus[] actualResSub1 = mUfs.listRecursive(sub1);
+    String[] actualResSub1 = UnderFileStatus.toListingResult(mUfs.listRecursive(sub1));
     Arrays.sort(expectedResSub1);
     Arrays.sort(actualResSub1);
     Assert.assertArrayEquals(expectedResSub1, actualResSub1);
