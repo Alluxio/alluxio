@@ -2490,6 +2490,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Metrics.UNMOUNT_OPS.inc();
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    // Unmount should lock the parent to remove the child inode.
     try (
         LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(alluxioPath, InodeTree.LockMode.WRITE_PARENT)) {
