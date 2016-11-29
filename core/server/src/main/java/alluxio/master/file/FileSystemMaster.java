@@ -1233,7 +1233,8 @@ public final class FileSystemMaster extends AbstractMaster {
           InvalidPathException, AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
+    try (LockedInodePath inodePath = mInodeTree
+        .lockFullInodePath(path, InodeTree.LockMode.WRITE_PARENT)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
       flushCounter = deleteAndJournal(inodePath, recursive);
