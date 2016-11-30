@@ -37,9 +37,8 @@ public final class FaultTolerantFileSystem extends AbstractFileSystem {
   }
 
   /**
-   * Constructs a new
-   * {@link FaultTolerantFileSystem} instance with specified a {@link alluxio.client.file.FileSystem}
-   * handler for tests.
+   * Constructs a new {@link FaultTolerantFileSystem} instance with a specified
+   * {@link alluxio.client.file.FileSystem} handler for tests.
    */
   public FaultTolerantFileSystem(alluxio.client.file.FileSystem fileSystem) {
     super(fileSystem);

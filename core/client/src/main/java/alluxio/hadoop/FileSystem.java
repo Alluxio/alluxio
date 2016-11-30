@@ -35,7 +35,7 @@ public final class FileSystem extends AbstractFileSystem {
 
   /**
    * Constructs a new
-   * {@link FileSystem} instance with specified a {@link alluxio.client.file.FileSystem}
+   * {@link FileSystem} instance with a specified {@link alluxio.client.file.FileSystem}
    * handler for tests.
    */
   public FileSystem(alluxio.client.file.FileSystem fileSystem) {

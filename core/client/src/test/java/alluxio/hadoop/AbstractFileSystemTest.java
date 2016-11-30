@@ -210,6 +210,8 @@ public class AbstractFileSystemTest {
     Mockito.when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
+    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
+    alluxioHadoopFs.initialize(uri, getConf());
 
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
@@ -231,6 +233,8 @@ public class AbstractFileSystemTest {
     Mockito.when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(new URIStatus(fileInfo));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
+    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
+    alluxioHadoopFs.initialize(uri, getConf());
 
     FileStatus fileStatus = alluxioHadoopFs.getFileStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo, fileStatus);

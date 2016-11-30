@@ -91,6 +91,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   AbstractFileSystem(FileSystem fileSystem) {
     sFileSystem = fileSystem;
+    sInitialized = true;
   }
 
   /**
