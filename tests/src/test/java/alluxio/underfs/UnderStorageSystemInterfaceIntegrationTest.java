@@ -245,7 +245,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     Arrays.sort(expectedResTopDir);
     Arrays.sort(expectedResTopDir2);
     UnderFileStatus [] resTopDirStatus = mUfs.listStatus(testDirNonEmpty);
-    String [] resTopDir = UnderFileStatus.toListingResult(resTopDirStatus);
+    String [] resTopDir = UnderFileStatus.convertToNames(resTopDirStatus);
     Arrays.sort(resTopDir);
     Assert.assertTrue(Arrays.equals(expectedResTopDir, resTopDir)
         || Arrays.equals(expectedResTopDir2, resTopDir));
@@ -282,7 +282,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     }
     Assert.assertEquals(children.length, results.length);
 
-    String[] resultNames = UnderFileStatus.toListingResult(results);
+    String[] resultNames = UnderFileStatus.convertToNames(results);
     Arrays.sort(resultNames);
     for (int i = 0; i < children.length; ++i) {
       Assert.assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(children[i],
@@ -323,7 +323,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
         {"sub1", "sub2", "sub1/sub11", "sub1/sub11/file11", "sub2/file2", "file"};
     UnderFileStatus[] actualResRootStatus =
         mUfs.listStatus(root, ListOptions.defaults().setRecursive(true));
-    String[] actualResRoot = UnderFileStatus.toListingResult(actualResRootStatus);
+    String[] actualResRoot = UnderFileStatus.convertToNames(actualResRootStatus);
     Arrays.sort(expectedResRoot);
     Arrays.sort(actualResRoot);
     Assert.assertArrayEquals(expectedResRoot, actualResRoot);
@@ -335,7 +335,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // lsr from sub1 should return paths relative to sub1
     String[] expectedResSub1 = {"sub11", "sub11/file11"};
     String[] actualResSub1 = UnderFileStatus
-        .toListingResult(mUfs.listStatus(sub1, ListOptions.defaults().setRecursive(true)));
+        .convertToNames(mUfs.listStatus(sub1, ListOptions.defaults().setRecursive(true)));
     Arrays.sort(expectedResSub1);
     Arrays.sort(actualResSub1);
     Assert.assertArrayEquals(expectedResSub1, actualResSub1);
