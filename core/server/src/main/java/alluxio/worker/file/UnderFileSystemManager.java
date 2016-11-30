@@ -21,10 +21,8 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.underfs.s3.S3UnderFileSystem;
-import alluxio.underfs.s3a.S3AUnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -192,23 +190,9 @@ public final class UnderFileSystemManager {
           mStream.close();
         }
         UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
-        // TODO(calvin): Consider making openAtPosition part of the UFS API
-        if (ufs instanceof S3AUnderFileSystem) { // Optimization for S3A UFS
-          mStream =
-              new CountingInputStream(((S3AUnderFileSystem) ufs).openAtPosition(mUri, position));
-          mInitPos = position;
-        } else if (ufs instanceof S3UnderFileSystem) { // Optimization for S3 UFS
-          mStream =
-              new CountingInputStream(((S3UnderFileSystem) ufs).openAtPosition(mUri, position));
-          mInitPos = position;
-        } else if (ufs instanceof GCSUnderFileSystem) { // Optimization for GCS UFS
-          mStream =
-              new CountingInputStream(((GCSUnderFileSystem) ufs).openAtPosition(mUri, position));
-          mInitPos = position;
-        } else { // Other UFSs can skip efficiently, so open at start of the file
-          mStream = new CountingInputStream(ufs.open(mUri));
-          mInitPos = 0;
-        }
+        mStream =
+            new CountingInputStream(ufs.open(mUri, OpenOptions.defaults().setOffset(position)));
+        mInitPos = position;
       }
 
       // We are guaranteed mStream has been created and the initial position has been set.

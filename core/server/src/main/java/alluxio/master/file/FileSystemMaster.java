@@ -90,6 +90,7 @@ import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -1945,15 +1946,17 @@ public final class FileSystemMaster extends AbstractMaster {
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
         if (options.isLoadDirectChildren()) {
-          String[] files = ufs.list(ufsUri.getPath());
+          UnderFileStatus[] files = ufs.listStatus(ufsUri.getPath());
           LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults();
           loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
 
-          for (String file : files) {
-            if (PathUtils.isTemporaryFileName(file) || inode.getChild(file) != null) {
+          for (UnderFileStatus file : files) {
+            if (PathUtils.isTemporaryFileName(file.getName())
+                || inode.getChild(file.getName()) != null) {
               continue;
             }
-            TempInodePathForChild tempInodePath = new TempInodePathForChild(inodePath, file);
+            TempInodePathForChild tempInodePath =
+                new TempInodePathForChild(inodePath, file.getName());
             counter = loadMetadataAndJournal(tempInodePath, loadMetadataOptions);
           }
           inode.setDirectChildrenLoaded(true);

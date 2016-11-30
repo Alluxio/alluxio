@@ -38,6 +38,7 @@ import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -142,8 +143,8 @@ public class JournalIntegrationTest {
       writer.getEntryOutputStream().flush();
       writer.getEntryOutputStream().flush();
       writer.getEntryOutputStream().flush();
-      String[] paths = UnderFileSystem.Factory.get(journalFolder)
-          .list(journal.getCompletedDirectory());
+      UnderFileStatus[] paths = UnderFileSystem.Factory.get(journalFolder)
+          .listStatus(journal.getCompletedDirectory());
       // Make sure no new empty files were created.
       Assert.assertTrue(paths == null || paths.length == 0);
     } finally {
@@ -203,9 +204,11 @@ public class JournalIntegrationTest {
         FileSystemMaster.getJournalDirectory(mLocalAlluxioCluster.getMaster().getJournalFolder());
     Journal journal = new ReadWriteJournal(journalFolder);
     String completedPath = journal.getCompletedDirectory();
-    Assert.assertTrue(UnderFileSystem.Factory.get(completedPath).list(completedPath).length > 1);
+    Assert.assertTrue(
+        UnderFileSystem.Factory.get(completedPath).listStatus(completedPath).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(UnderFileSystem.Factory.get(completedPath).list(completedPath).length <= 1);
+    Assert.assertTrue(
+        UnderFileSystem.Factory.get(completedPath).listStatus(completedPath).length <= 1);
     multiEditLogTestUtil();
   }
 

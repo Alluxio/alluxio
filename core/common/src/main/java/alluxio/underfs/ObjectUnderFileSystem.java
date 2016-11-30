@@ -18,7 +18,9 @@ import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -28,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -138,11 +141,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    return createDirect(path, options);
-  }
-
-  @Override
-  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentPath(path))) {
       return createObject(stripPrefixIfPresent(path));
     }
@@ -157,7 +155,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     if (!options.isRecursive()) {
-      UnderFileStatus[] children = listInternal(path, false);
+      UnderFileStatus[] children = listInternal(path, ListOptions.defaults());
       if (children == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
@@ -169,7 +167,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
     } else {
       // Delete children
-      UnderFileStatus[] pathsToDelete = listInternal(path, true);
+      UnderFileStatus[] pathsToDelete =
+          listInternal(path, ListOptions.defaults().setRecursive(true));
       if (pathsToDelete == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
@@ -267,13 +266,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public String[] listRecursive(String path) throws IOException {
-    return UnderFileStatus.toListingResult(listInternal(path, true));
+  public UnderFileStatus[] listStatus(String path) throws IOException {
+    return listInternal(path, ListOptions.defaults());
   }
 
   @Override
-  public String[] list(String path) throws IOException {
-    return UnderFileStatus.toListingResult(listInternal(path, false));
+  public UnderFileStatus[] listStatus(String path, ListOptions options)
+      throws IOException {
+    return listInternal(path, options);
   }
 
   @Override
@@ -309,8 +309,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public InputStream open(String path, OpenOptions options) throws IOException {
+    return openObject(stripPrefixIfPresent(path), options);
+  }
+
+  @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
-    UnderFileStatus[] children = listInternal(src, false);
+    UnderFileStatus[] children = listInternal(src, ListOptions.defaults());
     if (children == null) {
       LOG.error("Failed to list directory {}, aborting rename.", src);
       return false;
@@ -528,11 +533,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * folder suffix. Note that, the list results are unsorted.
    *
    * @param path the key to list
-   * @param recursive if true will list children directories as well
+   * @param options for listing
    * @return an array of the file and folder names in this directory
    * @throws IOException if an I/O error occurs
    */
-  protected UnderFileStatus[] listInternal(String path, boolean recursive) throws IOException {
+  protected UnderFileStatus[] listInternal(String path, ListOptions options) throws IOException {
     // if the path not exists, or it is a file, then should return null
     if (!isDirectory(path)) {
       return null;
@@ -541,7 +546,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     path = path.equals(PATH_SEPARATOR) ? "" : path;
     Map<String, Boolean> children = new HashMap<>();
-    ObjectListingResult chunk = getObjectListing(path, recursive);
+    ObjectListingResult chunk = getObjectListing(path, options.isRecursive());
     if (chunk == null) {
       return null;
     }
@@ -612,6 +617,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
+   * Internal function to open an input stream to an object.
+   *
+   * @param key the key to open
+   * @return true if successful, false if an exception is thrown
+   */
+  protected abstract InputStream openObject(String key, OpenOptions options) throws IOException;
+
+  /**
    * Treating the object store as a file system, checks if the parent directory exists.
    *
    * @param path the path to check
@@ -635,7 +648,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param path the path to strip
    * @return the path without the bucket prefix
    */
-  protected String stripPrefixIfPresent(String path) {
+  private String stripPrefixIfPresent(String path) {
     String stripedKey = CommonUtils.stripPrefixIfPresent(path,
         PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
     if (!stripedKey.equals(path)) {

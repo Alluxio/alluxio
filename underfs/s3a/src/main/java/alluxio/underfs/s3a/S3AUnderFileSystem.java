@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -205,35 +206,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return "s3";
   }
 
-  @Override
-  public InputStream open(String path) throws IOException {
-    try {
-      path = stripPrefixIfPresent(path);
-      return new S3AInputStream(mBucketName, path, mClient);
-    } catch (AmazonClientException e) {
-      LOG.error("Failed to open file: {}", path, e);
-      return null;
-    }
-  }
-
-  /**
-   * Opens a S3 object at given position and returns the opened input stream.
-   *
-   * @param path the S3 object path
-   * @param pos the position to open at
-   * @return the opened input stream
-   * @throws java.io.IOException if failed to open file at position
-   */
-  public InputStream openAtPosition(String path, long pos) throws IOException {
-    try {
-      path = stripPrefixIfPresent(path);
-      return new S3AInputStream(mBucketName, path, mClient, pos);
-    } catch (AmazonClientException e) {
-      LOG.error("Failed to open file {} at position {}:", path, pos, e);
-      return null;
-    }
-  }
-
   // Setting S3 owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
@@ -414,5 +386,15 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected String getRootKey() {
     return Constants.HEADER_S3A + mBucketName;
+  }
+
+  @Override
+  protected InputStream openObject(String key, OpenOptions options) throws IOException {
+    try {
+      return new S3AInputStream(mBucketName, key, mClient, options.getOffset());
+    } catch (AmazonClientException e) {
+      LOG.error("Failed to open file: {}", key, e);
+      return null;
+    }
   }
 }

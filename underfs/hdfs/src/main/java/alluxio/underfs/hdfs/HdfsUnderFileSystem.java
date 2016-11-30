@@ -18,12 +18,16 @@ import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
+import alluxio.underfs.AtomicFileOutputStream;
+import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +56,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * HDFS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public class HdfsUnderFileSystem extends BaseUnderFileSystem {
+public class HdfsUnderFileSystem extends BaseUnderFileSystem
+    implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
   // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.
@@ -129,6 +134,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public void close() throws IOException {
     // Don't close; file systems are singletons and closing it here could break other users
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
+    return new AtomicFileOutputStream(path, this, options);
   }
 
   @Override
@@ -260,14 +270,14 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public String[] list(String path) throws IOException {
-    FileStatus[] files = listStatus(path);
+  public UnderFileStatus[] listStatus(String path) throws IOException {
+    FileStatus[] files = listStatusInternal(path);
     if (files != null && !isFile(path)) {
-      String[] rtn = new String[files.length];
+      UnderFileStatus[] rtn = new UnderFileStatus[files.length];
       int i = 0;
       for (FileStatus status : files) {
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i++] =  status.getPath().getName();
+        rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDirectory());
       }
       return rtn;
     } else {
@@ -346,12 +356,19 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public FSDataInputStream open(String path) throws IOException {
+  public FSDataInputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        return mFileSystem.open(new Path(path));
+        FSDataInputStream inputStream = mFileSystem.open(new Path(path));
+        try {
+          inputStream.seek(options.getOffset());
+        } catch (IOException e) {
+          inputStream.close();
+          throw e;
+        }
+        return inputStream;
       } catch (IOException e) {
         LOG.error("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage(), e);
         te = e;
@@ -480,7 +497,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
    * @return {@code null} if the path is not a directory
    * @throws IOException
    */
-  private FileStatus[] listStatus(String path) throws IOException {
+  private FileStatus[] listStatusInternal(String path) throws IOException {
     FileStatus[] files;
     try {
       files = mFileSystem.listStatus(new Path(path));

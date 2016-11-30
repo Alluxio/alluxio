@@ -14,12 +14,15 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -63,11 +66,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path, CreateOptions options) throws IOException {
-    return new AtomicFileOutputStream(path, options, this);
-  }
-
-  @Override
   public boolean deleteDirectory(String path) throws IOException {
     return deleteDirectory(path, DeleteOptions.defaults());
   }
@@ -78,33 +76,47 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public String[] listRecursive(String path) throws IOException {
+  public UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException {
+    if (!options.isRecursive()) {
+      return listStatus(path);
+    }
     // Clean the path by creating a URI and turning it back to a string
     AlluxioURI uri = new AlluxioURI(path);
     path = uri.toString();
-    List<String> returnPaths = new ArrayList<>();
-    Queue<String> pathsToProcess = new ArrayDeque<>();
+    List<UnderFileStatus> returnPaths = new ArrayList<>();
+    Queue<UnderFileStatus> pathsToProcess = new ArrayDeque<>();
     // We call list initially, so we can return null if the path doesn't denote a directory
-    String[] subpaths = list(path);
+    UnderFileStatus[] subpaths = listStatus(path);
     if (subpaths == null) {
       return null;
     } else {
-      for (String subp : subpaths) {
-        pathsToProcess.add(PathUtils.concatPath(path, subp));
+      for (UnderFileStatus subp : subpaths) {
+        pathsToProcess.add(
+            new UnderFileStatus(PathUtils.concatPath(path, subp.getName()), subp.isDirectory()));
       }
     }
     while (!pathsToProcess.isEmpty()) {
-      String p = pathsToProcess.remove();
-      returnPaths.add(p.substring(path.length() + 1));
-      // Add all of its subpaths
-      subpaths = list(p);
-      if (subpaths != null) {
-        for (String subp : subpaths) {
-          pathsToProcess.add(PathUtils.concatPath(p, subp));
+      UnderFileStatus p = pathsToProcess.remove();
+      returnPaths
+          .add(new UnderFileStatus(p.getName().substring(path.length() + 1), p.isDirectory()));
+
+      if (p.isDirectory()) {
+        // Add all of its subpaths
+        subpaths = listStatus(p.getName());
+        if (subpaths != null) {
+          for (UnderFileStatus subp : subpaths) {
+            pathsToProcess.add(
+                new UnderFileStatus(PathUtils.concatPath(p, subp.getName()), subp.isDirectory()));
+          }
         }
       }
     }
-    return returnPaths.toArray(new String[returnPaths.size()]);
+    return returnPaths.toArray(new UnderFileStatus[returnPaths.size()]);
+  }
+
+  @Override
+  public InputStream open(String path) throws IOException {
+    return open(path, OpenOptions.defaults());
   }
 
   @Override

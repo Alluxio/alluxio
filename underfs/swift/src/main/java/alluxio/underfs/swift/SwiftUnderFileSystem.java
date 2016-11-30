@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.io.PathUtils;
 
@@ -179,11 +180,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public String getUnderFSType() {
     return "swift";
-  }
-
-  @Override
-  public InputStream open(String path) throws IOException {
-    return new SwiftInputStream(mAccount, mContainerName, stripPrefixIfPresent(path));
   }
 
   // Setting Swift owner via Alluxio is not supported yet. This is a no-op.
@@ -362,5 +358,10 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected String getRootKey() {
     return Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
+  }
+
+  @Override
+  protected InputStream openObject(String key, OpenOptions options) throws IOException {
+    return new SwiftInputStream(mAccount, mContainerName, key, options.getOffset());
   }
 }

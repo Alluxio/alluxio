@@ -14,22 +14,25 @@ package alluxio.underfs.oss;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentMatcher;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 /**
  * Unit tests for the {@link OSSInputStream}.
@@ -41,8 +44,8 @@ public class OSSInputStreamTest {
 
   private OSSInputStream mOssInputStream;
   private OSSClient mOssClient;
-  private InputStream mInputStreamSpy;
-  private OSSObject mOssObject;
+  private InputStream[] mInputStreamSpy;
+  private OSSObject[] mOssObject;
 
   /**
    * The exception expected to be thrown.
@@ -53,17 +56,32 @@ public class OSSInputStreamTest {
   @Before
   public void setUp() throws IOException {
     mOssClient = mock(OSSClient.class);
-    mOssObject = mock(OSSObject.class);
-    when(mOssClient.getObject(BUCKET_NAME, OBJECT_KEY)).thenReturn(mOssObject);
-    mInputStreamSpy = spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
-    when(mOssObject.getObjectContent()).thenReturn(mInputStreamSpy);
+
+    byte[] input = new byte[] {1, 2, 3};
+    mOssObject = new OSSObject[input.length];
+    mInputStreamSpy = new InputStream[input.length];
+    for (int i = 0; i < input.length; ++i) {
+      final long pos = (long) i;
+      mOssObject[i] = mock(OSSObject.class);
+      when(mOssClient.getObject(argThat(new ArgumentMatcher<GetObjectRequest>() {
+        @Override
+        public boolean matches(Object argument) {
+          if (argument instanceof  GetObjectRequest) {
+            return ((GetObjectRequest) argument).getRange()[0] == pos;
+          }
+          return false;
+        }
+      }))).thenReturn(mOssObject[i]);
+      byte[] mockInput = Arrays.copyOfRange(input, i, input.length);
+      mInputStreamSpy[i] = spy(new ByteArrayInputStream(mockInput));
+      when(mOssObject[i].getObjectContent()).thenReturn(mInputStreamSpy[i]);
+    }
     mOssInputStream = new OSSInputStream(BUCKET_NAME, OBJECT_KEY, mOssClient);
   }
 
   @Test
   public void close() throws IOException {
     mOssInputStream.close();
-    verify(mInputStreamSpy).close();
 
     mExceptionRule.expect(IOException.class);
     mExceptionRule.expectMessage(is("Stream closed"));

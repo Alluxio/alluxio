@@ -62,10 +62,10 @@ public class UnderFileStatus {
    * Convert an array of UFS file status to a listing result where each element in the array is
    * a file or directory name.
    *
-   * @param children array of internal listing
+   * @param children array of listing statuses
    * @return array of file or directory names
    */
-  public static String[] toListingResult(UnderFileStatus[] children) {
+  public static String[] convertToNames(UnderFileStatus[] children) {
     if (children == null) {
       return null;
     }

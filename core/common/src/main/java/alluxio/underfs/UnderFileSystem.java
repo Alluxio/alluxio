@@ -15,7 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -257,17 +259,6 @@ public interface UnderFileSystem {
   OutputStream create(String path, CreateOptions options) throws IOException;
 
   /**
-   * Creates a file in the under file system with the specified {@link CreateOptions}. This stream
-   * writes directly to the underlying storage without any atomicity guarantees.
-   *
-   * @param path the file name
-   * @param options the options for create
-   * @return A {@code OutputStream} object
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  OutputStream createDirect(String path, CreateOptions options) throws IOException;
-
-  /**
    * Deletes a directory from the under file system with the indicated name non-recursively.
    *
    * @param path of the directory to delete
@@ -420,12 +411,12 @@ public interface UnderFileSystem {
   boolean isFile(String path) throws IOException;
 
   /**
-   * Returns an array of strings naming the files and directories in the directory denoted by this
+   * Returns an array of statuses of the files and directories in the directory denoted by this
    * abstract pathname.
    *
    * <p>
    * If this abstract pathname does not denote a directory, then this method returns {@code null}.
-   * Otherwise an array of strings is returned, one for each file or directory in the directory.
+   * Otherwise an array of statuses is returned, one for each file or directory in the directory.
    * Names denoting the directory itself and the directory's parent directory are not included in
    * the result. Each string is a file name rather than a complete path.
    *
@@ -434,34 +425,35 @@ public interface UnderFileSystem {
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
    *
    * @param path the abstract pathname to list
-   * @return An array of strings naming the files and directories in the directory denoted by this
-   *         abstract pathname. The array will be empty if the directory is empty. Returns
+   * @return An array with the statuses of the files and directories in the directory denoted by
+   *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    * @throws IOException if a non-Alluxio error occurs
    */
-  String[] list(String path) throws IOException;
+  UnderFileStatus[] listStatus(String path) throws IOException;
 
   /**
-   * Returns an array of strings naming the files and directories in the directory denoted by this
-   * abstract pathname, and all of its subdirectories.
+   * Returns an array of statuses of the files and directories in the directory denoted by this
+   * abstract pathname, with options.
    *
    * <p>
    * If this abstract pathname does not denote a directory, then this method returns {@code null}.
-   * Otherwise an array of strings is returned, one for each file or directory in the directory and
-   * its subdirectories. Names denoting the directory itself and the directory's parent directory
-   * are not included in the result. Each string is a path relative to the given directory.
+   * Otherwise an array of statuses is returned, one for each file or directory. Names denoting the
+   * directory itself and the directory's parent directory are not included in the result. Each
+   * string is a path relative to the given directory.
    *
    * <p>
    * There is no guarantee that the name strings in the resulting array will appear in any specific
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
    *
    * @param path the abstract pathname to list
-   * @return An array of strings naming the files and directories in the directory denoted by this
-   *         abstract pathname and its subdirectories. The array will be empty if the directory is
-   *         empty. Returns {@code null} if this abstract pathname does not denote a directory.
+   * @param options for list directory
+   * @return An array of statuses naming the files and directories in the directory denoted by this
+   *         abstract pathname. The array will be empty if the directory is empty. Returns
+   *         {@code null} if this abstract pathname does not denote a directory.
    * @throws IOException if a non-Alluxio error occurs
    */
-  String[] listRecursive(String path) throws IOException;
+  UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
@@ -492,6 +484,16 @@ public interface UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   InputStream open(String path) throws IOException;
+
+  /**
+   * Opens an {@link InputStream} at the indicated path.
+   *
+   * @param path the file name
+   * @param options to open input stream
+   * @return The {@code InputStream} object
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  InputStream open(String path, OpenOptions options) throws IOException;
 
   /**
    * Renames a directory from {@code src} to {@code dst} in under file system.

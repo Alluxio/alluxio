@@ -11,7 +11,11 @@
 
 package alluxio.underfs.oss;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+
 import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
 
 import java.io.BufferedInputStream;
@@ -30,17 +34,19 @@ public class OSSInputStream extends InputStream {
   /** Bucket name of the Alluxio OSS bucket. */
   private final String mBucketName;
 
+  /** Has the stream been closed. */
+  private boolean mClosed;
+
   /** Key of the file in OSS to read. */
   private final String mKey;
 
   /** The OSS client for OSS operations. */
   private final OSSClient mOssClient;
 
-  /** The storage object that will be updated on each large skip. */
-  private final OSSObject mObject;
-
   /** The underlying input stream. */
-  private final BufferedInputStream mInputStream;
+  private BufferedInputStream mInputStream;
+  /** The current position of the stream. */
+  private long mPos;
 
   /**
    * Creates a new instance of {@link OSSInputStream}.
@@ -51,33 +57,118 @@ public class OSSInputStream extends InputStream {
    * @throws IOException if an I/O error occurs
    */
   OSSInputStream(String bucketName, String key, OSSClient client) throws IOException {
+    this(bucketName, key, client, 0L);
+  }
+
+  /**
+   * Creates a new instance of {@link OSSInputStream}.
+   *
+   * @param bucketName the name of the bucket
+   * @param key the key of the file
+   * @param client the client for OSS
+   * @param position the position to begin reading from
+   * @throws IOException if an I/O error occurs
+   */
+  OSSInputStream(String bucketName, String key, OSSClient client, long position)
+      throws IOException {
     mBucketName = bucketName;
     mKey = key;
     mOssClient = client;
-    mObject = mOssClient.getObject(mBucketName, mKey);
-    mInputStream = new BufferedInputStream(mObject.getObjectContent());
+    mPos = position;
   }
 
   @Override
   public void close() throws IOException {
-    mInputStream.close();
+    if (!mClosed) {
+      closeStream();
+    }
+    mClosed = true;
   }
 
   @Override
   public int read() throws IOException {
-    return mInputStream.read();
+    if (mInputStream == null) {
+      openStream();
+    }
+    int value = mInputStream.read();
+    if (value != -1) { // valid data read
+      mPos++;
+      if (mPos % getBlockSize() == 0) {
+        closeStream();
+      }
+    }
+    return value;
+  }
+
+  @Override
+  public int read(byte[] b) throws IOException {
+    return read(b, 0, b.length);
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    return mInputStream.read(b, off, len);
+    if (len == 0) {
+      return 0;
+    }
+    if (mInputStream == null) {
+      openStream();
+    }
+    int read = mInputStream.read(b, off, len);
+    if (read != -1) {
+      mPos += read;
+      if (mPos % getBlockSize() == 0) {
+        closeStream();
+      }
+    }
+    return read;
   }
 
   @Override
   public long skip(long n) throws IOException {
-    // TODO(luoli523) currently, the oss sdk doesn't support get the oss Object in a
-    // special position of the stream. It will support this feature in the future.
-    // Now we just read n bytes and discard to skip.
-    return super.skip(n);
+    if (n <= 0) {
+      return 0;
+    }
+    closeStream();
+    mPos += n;
+    openStream();
+    return n;
+  }
+
+  /**
+   * Opens a new stream at mPos if the wrapped stream mStream is null.
+   */
+  private void openStream() throws IOException {
+    if (mClosed) {
+      throw new IOException("Stream closed");
+    }
+    if (mInputStream != null) { // stream is already open
+      return;
+    }
+    GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
+    final long blockSize = getBlockSize();
+    final long endPos = mPos + blockSize - (mPos % blockSize);
+    req.setRange(mPos, endPos);
+    OSSObject ossObject = mOssClient.getObject(req);
+    mInputStream = new BufferedInputStream(ossObject.getObjectContent());
+  }
+
+  /**
+   * Closes the current stream.
+   */
+  private void closeStream() throws IOException {
+    if (mInputStream == null) {
+      return;
+    }
+    mInputStream.close();
+    mInputStream = null;
+  }
+
+  /**
+   * Block size for reading an object in chunks.
+   *
+   * @return block size in bytes
+   */
+  private long getBlockSize() {
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 }
