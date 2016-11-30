@@ -31,7 +31,7 @@ public class OpenFileOptionsTest {
   @Test
   public void defaults() {
     OpenFileOptions options = OpenFileOptions.defaults();
-    Assert.assertEquals(mDefaultReadType.getAlluxioStorageType(), options.getReadType());
+    Assert.assertEquals(mDefaultReadType, options.getReadType());
   }
 
   /**
@@ -46,7 +46,7 @@ public class OpenFileOptionsTest {
     options.setReadType(readType);
     options.setLocationPolicy(policy);
 
-    Assert.assertEquals(readType.getAlluxioStorageType(), options.getReadType());
+    Assert.assertEquals(readType, options.getReadType());
     Assert.assertEquals(policy, options.getLocationPolicy());
   }
 

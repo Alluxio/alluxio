@@ -19,7 +19,6 @@ import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;

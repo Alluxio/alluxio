@@ -72,7 +72,6 @@ public final class OpenFileOptions {
     return mLocationPolicy.getClass().getCanonicalName();
   }
 
-
   /**
    * @return the read type
    */

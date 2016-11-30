@@ -73,7 +73,7 @@ public final class FileSystemClientRestServiceHandler {
   public static final String DELETE = "delete";
   public static final String EXISTS = "exists";
   public static final String FREE = "free";
-  public static final String GET_STATUS = "status";
+  public static final String GET_STATUS = "get-status";
   public static final String LIST_STATUS = "list-status";
   public static final String MOUNT = "mount";
   public static final String OPEN_FILE = "open-file";
@@ -128,7 +128,7 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary create a directory
-   * @param path the file path
+   * @param path the Alluxio path
    * @param options method options
    * @return the response object
    */
@@ -153,7 +153,7 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary create a file
-   * @param path the file path
+   * @param path the Alluxio path
    * @param options method options
    * @return the response object
    */
@@ -180,7 +180,8 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary delete a path
-   * @param path the path to remove
+   * @param path the Alluxio path
+   * @param options method options
    * @return the response object
    */
   @POST
@@ -203,7 +204,7 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary checks whether a path exists
-   * @param path the path
+   * @param path the Alluxio path
    * @param options method options
    * @return the response object
    */
@@ -226,7 +227,7 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary free a path
-   * @param path the path
+   * @param path the Alluxio path
    * @param options method options
    * @return the response object
    */
@@ -250,7 +251,7 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary get a file descriptor for a path
-   * @param path the file path
+   * @param path the Alluxio path
    * @param options method options
    * @return the response object
    */
@@ -273,7 +274,7 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary get the file descriptors for a path
-   * @param path the file path
+   * @param path the Alluxio path
    * @param options method options
    * @return the response object
    */
@@ -323,7 +324,7 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary open a file
-   * @param path the file path
+   * @param path the Alluxio path
    * @param options method options
    * @return the response object
    */
@@ -349,7 +350,7 @@ public final class FileSystemClientRestServiceHandler {
   }
 
   /**
-   * @summary close a stream
+   * @summary read a stream
    * @param id the stream id
    * @return the response object
    */
@@ -372,7 +373,7 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary move a path
-   * @param path the source path
+   * @param path the Alluxio path
    * @param dst the destination path
    * @param options method options
    * @return the response object
@@ -399,7 +400,7 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary set an attribute
-   * @param path the file path
+   * @param path the Alluxio path
    * @param options method options
    * @return the response object
    */
@@ -423,7 +424,7 @@ public final class FileSystemClientRestServiceHandler {
 
   /**
    * @summary unmount a path
-   * @param path the file path
+   * @param path the Alluxio path
    * @param options method options
    * @return the response object
    */
@@ -446,15 +447,16 @@ public final class FileSystemClientRestServiceHandler {
   }
 
   /**
-   * @summary close a stream
+   * @summary write a stream
    * @param id the stream id
+   * @param is the input stream
    * @return the response object
    */
   @POST
   @Path(STREAMS_PREFIX + ID_PARAM + WRITE)
   @ReturnType("java.lang.Void")
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-  public Response read(@PathParam("id") final Integer id,
+  public Response write(@PathParam("id") final Integer id,
       final InputStream is) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
