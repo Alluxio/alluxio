@@ -86,6 +86,7 @@ public class RemoteBlockInStreamIntegrationTest {
     mLocalAlluxioClusterResource = new LocalAlluxioClusterResource.Builder()
         .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, dataServer)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType)
+        .setProperty(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS, reader)
         .setProperty(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100")
         .build();
   }

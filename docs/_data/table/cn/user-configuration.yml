@@ -8,6 +8,10 @@ alluxio.user.block.worker.client.pool.gc.threshold.ms:
   数据块worker client如果闲置超过这个时间会被关闭。
 alluxio.user.block.remote.read.buffer.size.bytes:
   从远程Alluxio worker读取数据时的缓冲区大小。它决定了一个Alluxio client和一个Alluxio worker之间Thrift connections的最大数量
+alluxio.user.block.remote.reader.class:
+  选择运行client使用的网络栈，目前只支持`alluxio.client.netty.NettyRemoteBlockReader`（使用netty远程读取数据）。
+alluxio.user.block.remote.writer.class:
+  选择运行写数据块的client使用的网络栈。
 alluxio.user.block.size.bytes.default:
   Alluxio文件的默认大小。
 alluxio.user.failed.space.request.limits:
