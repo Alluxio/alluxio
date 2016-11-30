@@ -80,6 +80,8 @@ public class FileSystemMasterIntegrationTest {
   private static final long TEST_CURRENT_TIME = 300;
   private static final long TTL_CHECKER_INTERVAL_MS = 1000;
   private static final String TEST_USER = "test";
+  // Time to wait for shutting down thread pool.
+  private static final long SHUTDOWN_TIME_MS = 15 * Constants.SECOND_MS;
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
@@ -621,7 +623,7 @@ public class FileSystemMasterIntegrationTest {
     AlluxioURI directory = new AlluxioURI("/dir");
     AlluxioURI[] files = new AlluxioURI[10];
     final int numThreads = 8;
-    final int sleepMs = 3000;
+    final int testDurationMs = 3000;
 
     for (int i = 0; i < 10; i++) {
       files[i] = directory.join("file_" + i);
@@ -636,7 +638,7 @@ public class FileSystemMasterIntegrationTest {
         futures.add(threadPool.submit(new ConcurrentCreateDelete(barrier, stopThreads, files)));
       }
 
-      CommonUtils.sleepMs(sleepMs);
+      CommonUtils.sleepMs(testDurationMs);
       stopThreads.set(true);
       for (Future<?> future : futures) {
         future.get();
@@ -648,6 +650,7 @@ public class FileSystemMasterIntegrationTest {
       createFileSystemMasterFromJournal();
     } finally {
       threadPool.shutdownNow();
+      threadPool.awaitTermination(SHUTDOWN_TIME_MS, TimeUnit.MILLISECONDS);
     }
   }
 
@@ -945,7 +948,7 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
-  class ConcurrentCreateDelete implements Callable<Void> {
+  private class ConcurrentCreateDelete implements Callable<Void> {
     private final CyclicBarrier mStartBarrier;
     private final AtomicBoolean mStopThread;
     private final AlluxioURI[] mFiles;
