@@ -133,6 +133,7 @@ public final class FileSystemMasterTest {
     LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
+    // Set umask "000" to make default directory permission 0777 and default file permission 0666.
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
