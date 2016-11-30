@@ -136,17 +136,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     return "gcs";
   }
 
-  @Override
-  public InputStream open(String path) throws IOException {
-    try {
-      path = stripPrefixIfPresent(path);
-      return new GCSInputStream(mBucketName, path, mClient);
-    } catch (ServiceException e) {
-      LOG.error("Failed to open file: {}", path, e);
-      return null;
-    }
-  }
-
   /**
    * Opens a GCS object at given position and returns the opened input stream.
    *
@@ -334,4 +323,15 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   protected String getRootKey() {
     return Constants.HEADER_GCS + mBucketName;
   }
+
+  @Override
+  protected InputStream openObject(String key) throws IOException {
+    try {
+      return new GCSInputStream(mBucketName, key, mClient);
+    } catch (ServiceException e) {
+      LOG.error("Failed to open file: {}", key, e);
+      return null;
+    }
+  }
+
 }

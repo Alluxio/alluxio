@@ -205,17 +205,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return "s3";
   }
 
-  @Override
-  public InputStream open(String path) throws IOException {
-    try {
-      path = stripPrefixIfPresent(path);
-      return new S3AInputStream(mBucketName, path, mClient);
-    } catch (AmazonClientException e) {
-      LOG.error("Failed to open file: {}", path, e);
-      return null;
-    }
-  }
-
   /**
    * Opens a S3 object at given position and returns the opened input stream.
    *
@@ -414,5 +403,15 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected String getRootKey() {
     return Constants.HEADER_S3A + mBucketName;
+  }
+
+  @Override
+  protected InputStream openObject(String key) throws IOException {
+    try {
+      return new S3AInputStream(mBucketName, key, mClient);
+    } catch (AmazonClientException e) {
+      LOG.error("Failed to open file: {}", key, e);
+      return null;
+    }
   }
 }

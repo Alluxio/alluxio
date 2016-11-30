@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -308,6 +309,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       // Recursively make the parent folders
       return mkdirs(parentKey) && mkdirsInternal(path);
     }
+  }
+
+  @Override
+  public InputStream open(String path) throws IOException {
+    return openObject(stripPrefixIfPresent(path));
   }
 
   @Override
@@ -612,6 +618,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected boolean mkdirsInternal(String key) {
     return createEmptyObject(convertToFolderName(stripPrefixIfPresent(key)));
   }
+
+  /**
+   * Internal function to open an input stream to an object.
+   *
+   * @param key the key to open
+   * @return true if successful, false if an exception is thrown
+   */
+  protected abstract InputStream openObject(String key) throws IOException;
 
   /**
    * Treating the object store as a file system, checks if the parent directory exists.

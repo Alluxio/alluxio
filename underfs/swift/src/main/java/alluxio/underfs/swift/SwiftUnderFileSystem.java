@@ -181,11 +181,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return "swift";
   }
 
-  @Override
-  public InputStream open(String path) throws IOException {
-    return new SwiftInputStream(mAccount, mContainerName, stripPrefixIfPresent(path));
-  }
-
   // Setting Swift owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
@@ -362,5 +357,10 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected String getRootKey() {
     return Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
+  }
+
+  @Override
+  protected InputStream openObject(String key) throws IOException {
+    return new SwiftInputStream(mAccount, mContainerName, key);
   }
 }
