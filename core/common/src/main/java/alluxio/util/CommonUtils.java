@@ -330,5 +330,18 @@ public final class CommonUtils {
     return m.get(key);
   }
 
+  /**
+   * Gets the root cause of an exception.
+   *
+   * @param e the exception
+   * @return the root cause
+   */
+  public static Throwable getRootCause(Throwable e) {
+    while (e.getCause() != null) {
+      e = e.getCause();
+    }
+    return e;
+  }
+
   private CommonUtils() {} // prevent instantiation
 }
