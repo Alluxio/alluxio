@@ -93,14 +93,6 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @return the Alluxio storage type
-   */
-  @JsonIgnore
-  public AlluxioStorageType getAlluxioStorageType() {
-    return mWriteType.getAlluxioStorageType();
-  }
-
-  /**
    * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
    *         should be kept around before it is automatically deleted
    */
@@ -120,14 +112,6 @@ public final class CreateFileOptions {
    */
   public Mode getMode() {
     return mMode;
-  }
-
-  /**
-   * @return the under storage type
-   */
-  @JsonIgnore
-  public UnderStorageType getUnderStorageType() {
-    return mWriteType.getUnderStorageType();
   }
 
   /**

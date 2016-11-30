@@ -46,7 +46,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       os.write((byte) k);
     }
     os.close();
-    checkWrite(filePath, op.getUnderStorageType(), len, len);
+    checkWrite(filePath, op.getWriteType().getUnderStorageType(), len, len);
   }
 
   /**
@@ -66,7 +66,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     FileOutStream os = mFileSystem.createFile(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(len));
     os.close();
-    checkWrite(filePath, op.getUnderStorageType(), len, len);
+    checkWrite(filePath, op.getWriteType().getUnderStorageType(), len, len);
   }
 
   /**
@@ -87,7 +87,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     os.write(BufferUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);
     os.write(BufferUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);
     os.close();
-    checkWrite(filePath, op.getUnderStorageType(), len, len / 2 * 2);
+    checkWrite(filePath, op.getWriteType().getUnderStorageType(), len, len / 2 * 2);
   }
 
   /**

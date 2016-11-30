@@ -121,7 +121,7 @@ public final class FileSystemClientRestServiceHandler {
           sOutStreams.remove(id);
           return null;
         }
-        throw new IllegalArgumentException("Stream does not exist");
+        throw new IllegalArgumentException("stream does not exist");
       }
     });
   }
@@ -366,7 +366,7 @@ public final class FileSystemClientRestServiceHandler {
         if (is != null) {
           return is;
         }
-        throw new IllegalArgumentException("Stream does not exist");
+        throw new IllegalArgumentException("stream does not exist");
       }
     });
   }
@@ -466,7 +466,7 @@ public final class FileSystemClientRestServiceHandler {
           ByteStreams.copy(is, os);
           return null;
         }
-        throw new IllegalArgumentException("Stream does not exist");
+        throw new IllegalArgumentException("stream does not exist");
       }
     });
   }

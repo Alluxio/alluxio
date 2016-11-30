@@ -205,10 +205,9 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI("/file");
     String message = "Greetings traveller!";
     writeFile(uri, message.getBytes());
-    Map<String, String> params = new HashMap<>();
     String result = new TestCase(mHostname, mPort, getEndpoint(
         PATHS_PREFIX + uri.toString() + "/" + FileSystemClientRestServiceHandler.GET_STATUS),
-        params, HttpMethod.POST, null).call();
+        NO_PARAMS, HttpMethod.POST, null).call();
     FileInfo fileInfo = new ObjectMapper().readValue(result, FileInfo.class);
     Assert.assertEquals(message.length(), fileInfo.getLength());
   }

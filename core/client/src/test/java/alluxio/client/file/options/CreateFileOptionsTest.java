@@ -48,8 +48,6 @@ public class CreateFileOptionsTest {
     CreateFileOptions options = CreateFileOptions.defaults();
     Assert.assertTrue(options.isRecursive());
     Assert.assertEquals(mDefaultBlockSizeBytes, options.getBlockSizeBytes());
-    Assert.assertEquals(mDefaultWriteType.getAlluxioStorageType(), options.getAlluxioStorageType());
-    Assert.assertEquals(mDefaultWriteType.getUnderStorageType(), options.getUnderStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
   }
@@ -82,8 +80,6 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
-    Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
-    Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
 
   /**
