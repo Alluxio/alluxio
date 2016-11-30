@@ -133,6 +133,7 @@ public final class FileSystemMasterTest {
     LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
@@ -844,13 +845,13 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the permission bits are 0755 for directories and 0644 for files by default.
+   * Tests the permission bits are 0777 for directories and 0666 for files with UMASK 000.
    */
   @Test
   public void permission() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
-    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
-    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
+    Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
+    Assert.assertEquals(0666, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
   }
 
   /**
