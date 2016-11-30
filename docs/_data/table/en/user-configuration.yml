@@ -12,8 +12,10 @@ alluxio.user.block.remote.read.buffer.size.bytes:
 alluxio.user.block.remote.reader.class:
   Selects networking stack to run the client with. Currently only
   `alluxio.client.netty.NettyRemoteBlockReader` (read remote data using netty) is valid.
+  This is deprecated and will be removed in 2.0.0.
 alluxio.user.block.remote.writer.class:
   Selects networking stack to run the client with for block writes.
+  This is deprecated and will be removed in 2.0.0.
 alluxio.user.block.size.bytes.default:
   Default block size for Alluxio files.
 alluxio.user.failed.space.request.limits:

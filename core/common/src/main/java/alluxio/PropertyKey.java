@@ -226,8 +226,10 @@ public enum PropertyKey {
   //
   USER_BLOCK_MASTER_CLIENT_THREADS(Name.USER_BLOCK_MASTER_CLIENT_THREADS, 10),
   USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "8MB"),
+  // Deprecated. It will be removed in 2.0.0.
   USER_BLOCK_REMOTE_READER_CLASS(Name.USER_BLOCK_REMOTE_READER_CLASS,
       "alluxio.client.netty.NettyRemoteBlockReader"),
+  // Deprecated. It will be removed in 2.0.0.
   USER_BLOCK_REMOTE_WRITER_CLASS(Name.USER_BLOCK_REMOTE_WRITER_CLASS,
       "alluxio.client.netty.NettyRemoteBlockWriter"),
   USER_BLOCK_SIZE_BYTES_DEFAULT(Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "512MB"),
