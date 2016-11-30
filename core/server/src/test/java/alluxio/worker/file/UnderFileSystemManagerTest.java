@@ -18,7 +18,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.underfs.s3a.S3AUnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
@@ -77,6 +77,8 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.create(Mockito.anyString(),
         Mockito.any(CreateOptions.class))).thenReturn(mMockOutputStream);
     Mockito.when(mMockUfs.open(Mockito.anyString())).thenReturn(mMockInputStream);
+    Mockito.when(mMockUfs.open(Mockito.anyString(), Mockito.any(OpenOptions.class)))
+        .thenReturn(mMockInputStream);
     Mockito.when(mMockUfs.renameFile(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
     PowerMockito.mockStatic(UnderFileSystem.Factory.class);
@@ -256,32 +258,6 @@ public final class UnderFileSystemManagerTest {
   public void getInputStreamAtPosition() throws Exception {
     long position = FILE_LENGTH - 1;
     Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
-    long id = mManager.openFile(SESSION_ID, mUri);
-    Mockito.when(mMockInputStream.read()).thenReturn(5);
-    InputStream in = mManager.getInputStreamAtPosition(id, position);
-    Assert.assertEquals(5, in.read());
-    Mockito.verify(mMockInputStream).skip(position);
-    in.close();
-  }
-
-  /**
-   * Tests getting an input stream to a valid file at a position returns the correct input stream
-   * when using a UFS which supports opening at a position.
-   */
-  // TODO(calvin): Generalize this when openAtPosition is part of an interface
-  @Test
-  public void getInputStreamAtPositionOptimized() throws Exception {
-    // Specifically testing S3A to validate the code path taken if the UFS implements the
-    // openAtPosition api.
-    S3AUnderFileSystem ufs = Mockito.mock(S3AUnderFileSystem.class);
-    Mockito.when(ufs.openAtPosition(Mockito.anyString(), Mockito.anyLong())).thenReturn(
-        mMockInputStream);
-    Mockito.when(ufs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
-    PowerMockito.mockStatic(UnderFileSystem.Factory.class);
-    Mockito.when(UnderFileSystem.Factory.get(Mockito.anyString())).thenReturn(ufs);
-
-    long position = FILE_LENGTH - 1;
-    Mockito.when(ufs.isFile(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
     Mockito.when(mMockInputStream.read()).thenReturn(5);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
