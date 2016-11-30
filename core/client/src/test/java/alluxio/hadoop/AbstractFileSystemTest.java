@@ -260,6 +260,6 @@ public class AbstractFileSystemTest {
     Assert.assertEquals(info.getGroup(), status.getGroup());
     Assert.assertEquals(info.getMode(), status.getPermission().toShort());
     Assert.assertEquals(info.getLastModificationTimeMs(), status.getModificationTime());
-    Assert.assertEquals(info.isFolder(), status.isDirectory());
+    Assert.assertEquals(info.isFolder(), status.isDir());
   }
 }
