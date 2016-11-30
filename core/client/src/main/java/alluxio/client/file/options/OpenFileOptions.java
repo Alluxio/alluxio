@@ -21,7 +21,6 @@ import alluxio.util.CommonUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

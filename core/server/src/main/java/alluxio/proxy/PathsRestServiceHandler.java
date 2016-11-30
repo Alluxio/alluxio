@@ -90,7 +90,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary create a directory
+   * @summary creates a directory
    * @param path the Alluxio path
    * @param options method options
    * @return the response object
@@ -115,7 +115,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary create a file
+   * @summary creates a file
    * @param path the Alluxio path
    * @param options method options
    * @return the response object
@@ -141,7 +141,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary delete a path
+   * @summary deletes a path
    * @param path the Alluxio path
    * @param options method options
    * @return the response object
@@ -186,7 +186,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary free a path
+   * @summary frees a path
    * @param path the Alluxio path
    * @param options method options
    * @return the response object
@@ -209,7 +209,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary get a file descriptor for a path
+   * @summary gets path status
    * @param path the Alluxio path
    * @param options method options
    * @return the response object
@@ -231,7 +231,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary get the file descriptors for a path
+   * @summary lists path statuses
    * @param path the Alluxio path
    * @param options method options
    * @return the response object
@@ -254,7 +254,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary mount a UFS path
+   * @summary mounts a UFS path
    * @param path the Alluxio path
    * @param src the UFS source to mount
    * @param options method options
@@ -280,7 +280,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary open a file
+   * @summary opens a file
    * @param path the Alluxio path
    * @param options method options
    * @return the response object
@@ -305,7 +305,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary move a path
+   * @summary renames a path
    * @param path the Alluxio path
    * @param dst the destination path
    * @param options method options
@@ -331,7 +331,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary set an attribute
+   * @summary sets an attribute
    * @param path the Alluxio path
    * @param options method options
    * @return the response object
@@ -355,7 +355,7 @@ public final class PathsRestServiceHandler {
   }
 
   /**
-   * @summary unmount a path
+   * @summary unmounts a path
    * @param path the Alluxio path
    * @param options method options
    * @return the response object

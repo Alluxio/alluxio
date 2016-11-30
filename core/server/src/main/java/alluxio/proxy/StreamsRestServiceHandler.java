@@ -56,7 +56,7 @@ public final class StreamsRestServiceHandler {
   public StreamsRestServiceHandler(@Context ServletContext context) {}
 
   /**
-   * @summary close a stream
+   * @summary closes a stream
    * @param id the stream id
    * @return the response object
    */
@@ -78,7 +78,7 @@ public final class StreamsRestServiceHandler {
   }
 
   /**
-   * @summary read a stream
+   * @summary reads from a stream
    * @param id the stream id
    * @return the response object
    */
@@ -101,7 +101,7 @@ public final class StreamsRestServiceHandler {
   }
 
   /**
-   * @summary write a stream
+   * @summary writes to a stream
    * @param id the stream id
    * @param is the input stream
    * @return the response object
