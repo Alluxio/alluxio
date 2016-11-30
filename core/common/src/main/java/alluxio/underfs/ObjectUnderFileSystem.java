@@ -155,7 +155,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     if (!options.isRecursive()) {
-      UnderFileStatus[] children = listInternal(path, false);
+      UnderFileStatus[] children = listInternal(path, ListOptions.defaults());
       if (children == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
@@ -167,7 +167,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
     } else {
       // Delete children
-      UnderFileStatus[] pathsToDelete = listInternal(path, true);
+      UnderFileStatus[] pathsToDelete =
+          listInternal(path, ListOptions.defaults().setRecursive(true));
       if (pathsToDelete == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
@@ -266,13 +267,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public UnderFileStatus[] listStatus(String path) throws IOException {
-    return listInternal(path, false);
+    return listInternal(path, ListOptions.defaults());
   }
 
   @Override
   public UnderFileStatus[] listStatus(String path, ListOptions options)
       throws IOException {
-    return listInternal(path, options.isRecursive());
+    return listInternal(path, options);
   }
 
   @Override
@@ -314,7 +315,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
-    UnderFileStatus[] children = listInternal(src, false);
+    UnderFileStatus[] children = listInternal(src, ListOptions.defaults());
     if (children == null) {
       LOG.error("Failed to list directory {}, aborting rename.", src);
       return false;
@@ -532,11 +533,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * folder suffix. Note that, the list results are unsorted.
    *
    * @param path the key to list
-   * @param recursive if true will list children directories as well
+   * @param options for listing
    * @return an array of the file and folder names in this directory
    * @throws IOException if an I/O error occurs
    */
-  protected UnderFileStatus[] listInternal(String path, boolean recursive) throws IOException {
+  protected UnderFileStatus[] listInternal(String path, ListOptions options) throws IOException {
     // if the path not exists, or it is a file, then should return null
     if (!isDirectory(path)) {
       return null;
@@ -545,7 +546,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     path = path.equals(PATH_SEPARATOR) ? "" : path;
     Map<String, Boolean> children = new HashMap<>();
-    ObjectListingResult chunk = getObjectListing(path, recursive);
+    ObjectListingResult chunk = getObjectListing(path, options.isRecursive());
     if (chunk == null) {
       return null;
     }
