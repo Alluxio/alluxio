@@ -83,6 +83,23 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
 
+  /**
+   * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
+   * handler for tests.
+   *
+   * @param fileSystem handler to file system
+   */
+  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+  AbstractFileSystem(FileSystem fileSystem) {
+    sFileSystem = fileSystem;
+    sInitialized = true;
+  }
+
+  /**
+   * Constructs a new {@link AbstractFileSystem} instance.
+   */
+  AbstractFileSystem() {}
+
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
       throws IOException {
@@ -298,7 +315,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
-        BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
+        BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(),
+        fileStatus.getLastModificationTimeMs(),
         fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getMode()),
         fileStatus.getOwner(), fileStatus.getGroup(), new Path(mAlluxioHeader + uri));
   }

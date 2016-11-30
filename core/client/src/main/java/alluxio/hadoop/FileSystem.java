@@ -33,6 +33,16 @@ public final class FileSystem extends AbstractFileSystem {
     super();
   }
 
+  /**
+   * Constructs a new {@link FileSystem} instance with a
+   * specified {@link alluxio.client.file.FileSystem} handler for tests.
+   *
+   * @param fileSystem handler to file system
+   */
+  public FileSystem(alluxio.client.file.FileSystem fileSystem) {
+    super(fileSystem);
+  }
+
   @Override
   public String getScheme() {
     return Constants.SCHEME;
