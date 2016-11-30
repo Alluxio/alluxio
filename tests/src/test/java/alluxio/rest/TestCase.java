@@ -136,12 +136,10 @@ public final class TestCase {
       mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
       OutputStream os = connection.getOutputStream();
       os.write(mapper.writeValueAsString(mOptions.getBody()).getBytes());
-      os.flush();
       os.close();
     }
 
     connection.connect();
-    connection.getResponseCode();
     Assert
         .assertEquals(mEndpoint, Response.Status.OK.getStatusCode(), connection.getResponseCode());
     return getResponse(connection);

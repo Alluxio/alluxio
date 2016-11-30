@@ -54,7 +54,7 @@ public final class CreateFileOptions {
     return new CreateFileOptions();
   }
 
-  public CreateFileOptions() {
+  private CreateFileOptions() {
     mRecursive = true;
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     try {
@@ -78,7 +78,7 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @return the location policy to use when storing data to Alluxio
+   * @return the location policy used when storing data to Alluxio
    */
   @JsonIgnore
   public FileWriteLocationPolicy getLocationPolicy() {
@@ -86,7 +86,7 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @return the location policy class to use when storing data to Alluxio
+   * @return the location policy class used when storing data to Alluxio
    */
   @JsonProperty("locationPolicy")
   public String getLocationPolicyClass() {
