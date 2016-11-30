@@ -89,6 +89,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @param fileSystem handler to file system
    */
+  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   AbstractFileSystem(FileSystem fileSystem) {
     sFileSystem = fileSystem;
     sInitialized = true;
