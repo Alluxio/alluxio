@@ -81,6 +81,9 @@ final public class BlockWriteDataServerHandler
     mWorker = blockWorker;
   }
 
+  /**
+   * A runnable that polls from the packets queue and writes to the block worker.
+   */
   private final class PacketWriter implements Runnable {
     private ChannelHandlerContext mCtx;
 
@@ -110,6 +113,7 @@ final public class BlockWriteDataServerHandler
         // This is the last packet.
         if (buf.readableBytes() == 0) {
           replySuccess(mCtx);
+          break;
         }
         try {
           if (mPosWrite == 0) {
@@ -152,8 +156,8 @@ final public class BlockWriteDataServerHandler
     }
 
     ByteBuf buf = (ByteBuf) msg.getPayloadDataBuffer().getNettyOutput();
+    mLock.lock();
     try {
-      mLock.lock();
       if (mPacketWriterException != null) {
         throw mPacketWriterException;
       }
@@ -161,15 +165,15 @@ final public class BlockWriteDataServerHandler
       mPosQueue += buf.readableBytes();
       if (!mPacketWriterActive) {
         PACKET_WRITERS.submit(new PacketWriter(ctx));
+        mPacketWriterActive = true;
       }
-      mPacketWriterActive = true;
+      if (mPackets.size() >= MAX_BUFFER_SIZE) {
+        ctx.channel().config().setAutoRead(false);
+      }
     } finally {
       mLock.unlock();
     }
 
-    if (mPackets.size() >= MAX_BUFFER_SIZE) {
-      ctx.channel().config().setAutoRead(false);
-    }
     // Read packets and put that into a queue.
     // Stop and close the channel when there is an exception.
     // Pause if the queue is full.
@@ -192,6 +196,8 @@ final public class BlockWriteDataServerHandler
       mBlockWriter = mWorker.getTempBlockWriterRemote(mSessionId, mBlockId);
       mBlockId = msg.getBlockId();
       mSessionId = msg.getSessionId();
+      mPosQueue = 0;
+      mPosWrite = 0;
     }
   }
 
@@ -223,8 +229,9 @@ final public class BlockWriteDataServerHandler
     RPCBlockWriteResponse response =
         new RPCBlockWriteResponse(mSessionId, mBlockId, mPosQueue, 0, RPCResponse.Status.SUCCESS);
     cleanUp();
-    ctx.channel().config().setAutoRead(true);
     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+    ctx.channel().config().setAutoRead(true);
+    ctx.read();
   }
 
   private void cleanUp() {
