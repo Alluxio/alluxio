@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientConfiguration;
@@ -281,9 +282,9 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected InputStream openObject(String key) throws IOException {
+  protected InputStream openObject(String key, OpenOptions options) throws IOException {
     try {
-      return new OSSInputStream(mBucketName, key, mClient);
+      return new OSSInputStream(mBucketName, key, mClient, options.getOffset());
     } catch (ServiceException e) {
       LOG.error("Failed to open file: {}", key, e);
       return null;

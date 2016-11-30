@@ -25,6 +25,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
@@ -347,12 +348,21 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public FSDataInputStream open(String path) throws IOException {
+  public FSDataInputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        return mFileSystem.open(new Path(path));
+        FSDataInputStream inputStream = mFileSystem.open(new Path(path));
+        if (options.getOffset() != 0) {
+          try {
+            inputStream.skip(options.getOffset());
+          } catch (IOException e) {
+            inputStream.close();
+            throw e;
+          }
+        }
+        return inputStream;
       } catch (IOException e) {
         LOG.error("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage(), e);
         te = e;

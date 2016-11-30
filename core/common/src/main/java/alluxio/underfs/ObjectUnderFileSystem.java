@@ -20,6 +20,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -312,8 +313,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public InputStream open(String path) throws IOException {
-    return openObject(stripPrefixIfPresent(path));
+  public InputStream open(String path, OpenOptions options) throws IOException {
+    return openObject(stripPrefixIfPresent(path), options);
   }
 
   @Override
@@ -625,7 +626,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param key the key to open
    * @return true if successful, false if an exception is thrown
    */
-  protected abstract InputStream openObject(String key) throws IOException;
+  protected abstract InputStream openObject(String key, OpenOptions options) throws IOException;
 
   /**
    * Treating the object store as a file system, checks if the parent directory exists.
@@ -651,7 +652,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param path the path to strip
    * @return the path without the bucket prefix
    */
-  protected String stripPrefixIfPresent(String path) {
+  private String stripPrefixIfPresent(String path) {
     String stripedKey = CommonUtils.stripPrefixIfPresent(path,
         PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
     if (!stripedKey.equals(path)) {

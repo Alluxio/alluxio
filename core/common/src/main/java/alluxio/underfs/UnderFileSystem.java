@@ -17,6 +17,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -494,6 +495,16 @@ public interface UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   InputStream open(String path) throws IOException;
+
+  /**
+   * Opens an {@link InputStream} at the indicated path.
+   *
+   * @param path the file name
+   * @param options to open input stream
+   * @return The {@code InputStream} object
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  InputStream open(String path, OpenOptions options) throws IOException;
 
   /**
    * Renames a directory from {@code src} to {@code dst} in under file system.

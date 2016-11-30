@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -134,24 +135,6 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public String getUnderFSType() {
     return "gcs";
-  }
-
-  /**
-   * Opens a GCS object at given position and returns the opened input stream.
-   *
-   * @param path the GCS object path
-   * @param pos the position to open at
-   * @return the opened input stream
-   * @throws IOException if failed to open file at position
-   */
-  public InputStream openAtPosition(String path, long pos) throws IOException {
-    try {
-      path = stripPrefixIfPresent(path);
-      return new GCSInputStream(mBucketName, path, mClient, pos);
-    } catch (ServiceException e) {
-      LOG.error("Failed to open file {} at position {}:", path, pos, e);
-      return null;
-    }
   }
 
   // Setting GCS owner via Alluxio is not supported yet. This is a no-op.
@@ -325,9 +308,9 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected InputStream openObject(String key) throws IOException {
+  protected InputStream openObject(String key, OpenOptions options) throws IOException {
     try {
-      return new GCSInputStream(mBucketName, key, mClient);
+      return new GCSInputStream(mBucketName, key, mClient, options.getOffset());
     } catch (ServiceException e) {
       LOG.error("Failed to open file: {}", key, e);
       return null;

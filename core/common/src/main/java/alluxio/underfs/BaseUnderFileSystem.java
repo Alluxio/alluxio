@@ -16,11 +16,13 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -115,6 +117,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       }
     }
     return returnPaths.toArray(new UnderFileStatus[returnPaths.size()]);
+  }
+
+  @Override
+  public InputStream open(String path) throws IOException {
+    return open(path, OpenOptions.defaults());
   }
 
   @Override

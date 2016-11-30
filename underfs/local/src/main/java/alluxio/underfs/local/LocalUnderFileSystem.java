@@ -24,6 +24,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -246,9 +247,18 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public InputStream open(String path) throws IOException {
+  public InputStream open(String path, OpenOptions options) throws IOException {
     path = stripPath(path);
-    return new FileInputStream(path);
+    InputStream inputStream = new FileInputStream(path);
+    if (options.getOffset() != 0) {
+      try {
+        inputStream.skip(options.getOffset());
+      } catch (IOException e) {
+        inputStream.close();
+        throw e;
+      }
+    }
+    return inputStream;
   }
 
   @Override

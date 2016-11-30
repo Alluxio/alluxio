@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.io.PathUtils;
 
@@ -360,7 +361,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected InputStream openObject(String key) throws IOException {
-    return new SwiftInputStream(mAccount, mContainerName, key);
+  protected InputStream openObject(String key, OpenOptions options) throws IOException {
+    return new SwiftInputStream(mAccount, mContainerName, key, options.getOffset());
   }
 }
