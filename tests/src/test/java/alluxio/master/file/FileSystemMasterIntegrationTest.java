@@ -959,6 +959,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
+      AuthenticatedClientUser.set(TEST_USER);
       mStartBarrier.await();
       Random random = new Random();
       while (!mStopThread.get()) {
