@@ -34,6 +34,9 @@ public class OSSInputStream extends InputStream {
   /** Bucket name of the Alluxio OSS bucket. */
   private final String mBucketName;
 
+  /** Has the stream been closed. */
+  private boolean mClosed;
+
   /** Key of the file in OSS to read. */
   private final String mKey;
 
@@ -76,7 +79,10 @@ public class OSSInputStream extends InputStream {
 
   @Override
   public void close() throws IOException {
-    closeStream();
+    if (!mClosed) {
+      closeStream();
+    }
+    mClosed = true;
   }
 
   @Override
@@ -131,7 +137,10 @@ public class OSSInputStream extends InputStream {
   /**
    * Opens a new stream at mPos if the wrapped stream mStream is null.
    */
-  private void openStream() {
+  private void openStream() throws IOException {
+    if (mClosed) {
+      throw new IOException("Stream closed");
+    }
     if (mInputStream != null) { // stream is already open
       return;
     }
