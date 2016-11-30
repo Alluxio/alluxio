@@ -14,7 +14,6 @@ package alluxio.client.block.stream;
 import alluxio.Constants;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.exception.DataTransferException;
-import alluxio.network.netty.MessageQueue;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCResponse;
@@ -32,14 +31,31 @@ import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The class to read remote block from data server.
+ *
+ * Protocol:
+ * 1. Client sends a read request (blockId, offset, length).
+ * 2. Once server receives the request, it streams packets the client.
+ * 3. The client reads packets from the stream. Reading pauses if the buffer is full and is resumed
+ *    if the buffer is not full. If the client can keep up with network speed, the buffer should be
+ *    just one packet.
+ * 4. The client stops if an empty packet is read.
+ * 5. The client can cancel the read request at anytime. But in order to reuse the channel, the
+ *    must wait till all the packets in the channel has been read. This is signified an empty
+ *    packet. A cancel request will be ignored by the server if everything has been sent to
+ *    the channel by the server.
+ * 6. To make it simple to handle errors, the channel is closed if any error occurs.
  */
 @NotThreadSafe
 public class NettyBlockReader implements BlockReader {
@@ -47,41 +63,48 @@ public class NettyBlockReader implements BlockReader {
   private final Channel mChannel;
   private final InetSocketAddress mAddress;
   private final long mBlockId;
-  private long mPos;
-  private int mBytesRemaining = -1;
+  private final long mStart;
+  private final long mBytesToRead;
+  private final Handler mHandler = new Handler();
+  private static final int MAX_BUFFER_SIZE = 10;
 
-  private volatile boolean mDone = false;
+  private ReentrantLock mLock = new ReentrantLock();
+  @GuardedBy("mLock")
+  private Queue<ByteBuf> mPackets = new LinkedList<>();
+  @GuardedBy("mLock")
+  private Throwable mPacketReaderException = null;
+  private Condition mNotEmpty = mLock.newCondition();
 
-  private final class NettyPacketQueue extends MessageQueue<ByteBuf> {
-    public NettyPacketQueue() {
-      super(MessageQueue.Options.defaultOptions());
-    }
+  private long mPosRead;
+  // This is true only when an empty packet is received.
+  private boolean mDone = false;
 
-    protected void signal() {
-      mChannel.read();
-    }
-  }
-
-  private NettyPacketQueue mPacketQueue = new NettyPacketQueue();
-  private Handler mHandler = new Handler();
-
+  /**
+   * The netty handler that reads packets from the channel.
+   */
   public class Handler extends ChannelInboundHandlerAdapter {
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws DataTransferException {
       Preconditions.checkState(msg instanceof RPCBlockReadResponse, "Incorrect response type.");
       RPCBlockReadResponse response = (RPCBlockReadResponse) msg;
-      if (response.getStatus() == RPCResponse.Status.SUCCESS ||
-          response.getStatus() == RPCResponse.Status.STREAM_PACKET) {
-        try {
-          mPacketQueue.offerMessage(response.getPayloadData(),
-              response.getStatus() == RPCResponse.Status.SUCCESS);
-        } catch (Throwable e) {
-          ReferenceCountUtil.release(response.getPayloadData());
-        }
-      } else {
-        mPacketQueue.exceptionCaught(new DataTransferException(String
+      if (response.getStatus() != RPCResponse.Status.SUCCESS) {
+        throw new DataTransferException(String
             .format("Failed to read block %d from %s with status %s.", mBlockId, mAddress,
-                response.getStatus().getMessage())));
+                response.getStatus().getMessage()));
+      }
+      mLock.lock();
+      try {
+        Preconditions.checkState(mPacketReaderException == null);
+        ByteBuf buf = response.getPayloadData();
+        Preconditions.checkState(mPackets.offer(buf));
+        mNotEmpty.signal();
+
+        if (mPackets.size() >= MAX_BUFFER_SIZE) {
+          ctx.channel().config().setAutoRead(false);
+        }
+      } finally {
+        mLock.unlock();
+        ReferenceCountUtil.release(response.getPayloadData());
       }
     }
 
@@ -89,7 +112,13 @@ public class NettyBlockReader implements BlockReader {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       LOG.error("Exception caught while reading response from netty channel {}.",
           cause.getMessage());
-      mPacketQueue.exceptionCaught(cause);
+      mLock.lock();
+      try {
+        mPacketReaderException = cause;
+        mNotEmpty.signal();
+      } finally {
+        mLock.unlock();
+      }
       ctx.close();
     }
   }
@@ -98,8 +127,11 @@ public class NettyBlockReader implements BlockReader {
       long lockId, long sessionId) throws IOException {
     mAddress = address;
     mBlockId = blockId;
-    mBytesRemaining = len;
-    mPos = offset;
+    mStart = offset;
+    mPosRead = offset;
+    mBytesToRead = len;
+
+    Preconditions.checkState(offset >= 0 && len > 0);
 
     mChannel = BlockStoreContext.acquireNettyChannel(address);
     ChannelPipeline pipeline = mChannel.pipeline();
@@ -108,65 +140,77 @@ public class NettyBlockReader implements BlockReader {
     }
     mChannel.pipeline().addLast(mHandler);
 
-    Preconditions.checkArgument(len >= 0, "Len must be >= 0");
     mChannel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, len, lockId, sessionId))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
   @Override
   public long pos() {
-    return mPos;
+    return mPosRead;
   }
 
   @Override
   public ByteBuf readPacket() throws IOException {
-    try {
-      ByteBuf buf = mPacketQueue.pollMessage();
-      mBytesRemaining -= buf.readableBytes();
-      mPos += buf.readableBytes();
-      Preconditions.checkState(mBytesRemaining >= 0, "mBytesRemaining must be >= 0.");
-      mDone = mBytesRemaining == 0;
-      return buf;
-    } catch (EOFException e) {
-      // This should never happen.
-      throw Throwables.propagate(e);
-    } catch (DataTransferException e) {
-      mDone = true;
-      throw new IOException(e);
-    } catch (Throwable e) {
-      // TODO(peis): Retry once if e is caused by ClosedChannelException.
-      mChannel.close();
-      throw new IOException(e);
+    while (true) {
+      mLock.lock();
+      try {
+        if (mPacketReaderException != null) {
+          throw new IOException(mPacketReaderException);
+        }
+        ByteBuf buf = mPackets.poll();
+        if (mPackets.size() < MAX_BUFFER_SIZE) {
+          mChannel.config().setAutoRead(true);
+          mChannel.read();
+        }
+        if (buf == null) {
+          try {
+            mNotEmpty.await();
+          } catch (InterruptedException e) {
+            throw Throwables.propagate(e);
+          }
+        }
+        if (buf.readableBytes() == 0) {
+          mDone = true;
+          return null;
+        }
+        mPosRead += buf.readableBytes();
+        Preconditions.checkState(mPosRead - mStart <= mBytesToRead);
+        return buf;
+      } finally {
+        mLock.unlock();
+      }
     }
-  }
+ }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     try {
       if (mDone) {
         return;
       }
+      if (!mChannel.isOpen()) {
+        return;
+      }
       try {
         ChannelFuture channelFuture =
-            mChannel.writeAndFlush(RPCBlockReadRequest.createCancelRequest(mBlockId)).sync();
+            mChannel.writeAndFlush(RPCBlockReadRequest.createCancelRequest(mBlockId));
         channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-        if (!channelFuture.isSuccess()) {
-          throw new IOException(channelFuture.cause());
-        }
+        channelFuture.sync();
       } catch (InterruptedException e) {
-        throw new RuntimeException(e);
+        mChannel.close();
+        throw Throwables.propagate(e);
       }
 
-      // wait for response.
       while (true) {
         try {
           ByteBuf buf = readPacket();
-          ReferenceCountUtil.release(buf);
-        } catch (IOException e) {
-          if (mDone) {
+          if (buf == null) {
             return;
           }
-          throw e;
+          ReferenceCountUtil.release(buf);
+        } catch (IOException e) {
+          Preconditions.checkState(!mChannel.isOpen());
+          return;
         }
       }
     } finally {

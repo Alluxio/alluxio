@@ -25,5 +25,5 @@ public interface BlockReader extends Closeable {
   long pos();
 
   @Override
-  void close() throws IOException;
+  void close();
 }
