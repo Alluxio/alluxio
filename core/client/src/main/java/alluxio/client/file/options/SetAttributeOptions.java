@@ -123,7 +123,6 @@ public final class SetAttributeOptions {
    * @return the owner
    */
   public String getOwner() {
-    Preconditions.checkState(hasOwner(), PreconditionMessage.MUST_SET_OWNER);
     return mOwner;
   }
 
@@ -138,7 +137,6 @@ public final class SetAttributeOptions {
    * @return the group
    */
   public String getGroup() {
-    Preconditions.checkState(hasGroup(), PreconditionMessage.MUST_SET_GROUP);
     return mGroup;
   }
 
@@ -153,7 +151,6 @@ public final class SetAttributeOptions {
    * @return the mode
    */
   public short getMode() {
-    Preconditions.checkState(hasMode(), PreconditionMessage.MUST_SET_MODE);
     return mMode;
   }
 

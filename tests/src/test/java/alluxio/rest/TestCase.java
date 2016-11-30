@@ -14,10 +14,12 @@ package alluxio.rest;
 import alluxio.Constants;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -127,15 +129,19 @@ public final class TestCase {
       connection.setRequestProperty("Content-Type", "application/octet-stream");
       ByteStreams.copy(mOptions.getInputStream(), connection.getOutputStream());
     }
-    if (mOptions.getJsonString() != null) {
+    if (mOptions.getBody() != null) {
       connection.setDoOutput(true);
-      connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+      connection.setRequestProperty("Content-Type", "application/json");
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
       OutputStream os = connection.getOutputStream();
-      os.write(mOptions.getJsonString().getBytes("UTF-8"));
+      os.write(mapper.writeValueAsString(mOptions.getBody()).getBytes());
+      os.flush();
       os.close();
     }
 
     connection.connect();
+    connection.getResponseCode();
     Assert
         .assertEquals(mEndpoint, Response.Status.OK.getStatusCode(), connection.getResponseCode());
     return getResponse(connection);

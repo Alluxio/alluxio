@@ -31,8 +31,8 @@ public class TestCaseOptionsTest {
   public void defaults() {
     TestCaseOptions options = TestCaseOptions.defaults();
 
+    Assert.assertNull(options.getBody());
     Assert.assertNull(options.getInputStream());
-    Assert.assertNull(options.getJsonString());
     Assert.assertFalse(options.isPrettyPrint());
   }
 
@@ -42,20 +42,19 @@ public class TestCaseOptionsTest {
   @Test
   public void fields() {
     Random random = new Random();
+    Object body = new Object();
     byte[] bytes = new byte[5];
-    random.nextBytes(bytes);
-    String jsonString = new String(bytes);
     random.nextBytes(bytes);
     InputStream inputStream = new ByteArrayInputStream(bytes);
     boolean prettyPrint = random.nextBoolean();
     TestCaseOptions options = TestCaseOptions.defaults();
 
+    options.setBody(body);
     options.setInputStream(inputStream);
-    options.setJsonString(jsonString);
     options.setPrettyPrint(prettyPrint);
 
+    Assert.assertEquals(body, options.getBody());
     Assert.assertEquals(inputStream, options.getInputStream());
-    Assert.assertEquals(jsonString, options.getJsonString());
     Assert.assertEquals(prettyPrint, options.isPrettyPrint());
   }
 

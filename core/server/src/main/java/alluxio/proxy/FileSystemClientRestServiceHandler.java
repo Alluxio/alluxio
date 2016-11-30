@@ -12,41 +12,40 @@
 package alluxio.proxy;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
+import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.security.authorization.Mode;
-import alluxio.util.CommonUtils;
+import alluxio.client.file.options.UnmountOptions;
 import alluxio.web.ProxyWebServer;
-import alluxio.wire.LoadMetadataType;
-import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -59,24 +58,34 @@ import javax.ws.rs.core.Response;
 @NotThreadSafe
 @Path(FileSystemClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public final class FileSystemClientRestServiceHandler {
-  public static final String SERVICE_PREFIX = "file";
-  public static final String SERVICE_NAME = "service_name";
-  public static final String SERVICE_VERSION = "service_version";
-  public static final String CREATE_DIRECTORY = "create_directory";
+  public static final String SERVICE_PREFIX = "alluxio";
+  public static final String PATHS_PREFIX = "paths";
+  public static final String STREAMS_PREFIX = "streams";
+
+  public static final String PATH_PARAM = "/{path:.*}/";
+  public static final String ID_PARAM = "/{id}/";
+
+  public static final String CLOSE = "close";
+  public static final String CREATE_DIRECTORY = "create-directory";
+  public static final String CREATE_FILE = "create-file";
   public static final String DELETE = "delete";
-  public static final String DOWNLOAD = "download";
   public static final String EXISTS = "exists";
   public static final String FREE = "free";
   public static final String GET_STATUS = "status";
-  public static final String LIST_STATUS = "list_status";
+  public static final String LIST_STATUS = "list-status";
   public static final String MOUNT = "mount";
+  public static final String OPEN_FILE = "open-file";
+  public static final String READ = "read";
   public static final String RENAME = "rename";
-  public static final String SET_ATTRIBUTE = "set_attribute";
+  public static final String SET_ATTRIBUTE = "set-attribute";
   public static final String UNMOUNT = "unmount";
-  public static final String UPLOAD = "upload";
+  public static final String WRITE = "write";
 
   private final FileSystem mFileSystem;
+  private static Map<Integer, FileOutStream> sOutStreams = new ConcurrentHashMap<>();
+  private static Map<Integer, FileInStream> sInStreams = new ConcurrentHashMap<>();
 
   /**
    * Constructs a new {@link FileSystemClientRestServiceHandler}.
@@ -89,33 +98,30 @@ public final class FileSystemClientRestServiceHandler {
   }
 
   /**
-   * @summary get the service name
+   * @summary close a stream
+   * @param id the stream id
    * @return the response object
    */
-  @GET
-  @Path(SERVICE_NAME)
-  @ReturnType("java.lang.String")
-  public Response getServiceName() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
+  @POST
+  @Path(STREAMS_PREFIX + ID_PARAM + CLOSE)
+  @ReturnType("java.lang.Void")
+  public Response close(@PathParam("id") final Integer id) {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
-      public String call() throws Exception {
-        return Constants.FILE_SYSTEM_CLIENT_SERVICE_NAME;
-      }
-    });
-  }
-
-  /**
-   * @summary get the service version
-   * @return the response object
-   */
-  @GET
-  @Path(SERVICE_VERSION)
-  @ReturnType("java.lang.Long")
-  public Response getServiceVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return Constants.FILE_SYSTEM_CLIENT_SERVICE_VERSION;
+      public Void call() throws Exception {
+        FileInStream is = sInStreams.get(id);
+        if (is != null) {
+          is.close();
+          sInStreams.remove(id);
+          return null;
+        }
+        FileOutStream os = sOutStreams.get(id);
+        if (os != null) {
+          os.close();
+          sOutStreams.remove(id);
+          return null;
+        }
+        throw new IllegalArgumentException("Stream does not exist");
       }
     });
   }
@@ -123,39 +129,51 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary create a directory
    * @param path the file path
-   * @param allowExists whether the operation should succeed even if the directory already exists
-   * @param mode the octal mode to used for directory permissions
-   * @param recursive whether parent directories should be created if they do not already exist
-   * @param writeType the write type to use
+   * @param options method options
    * @return the response object
    */
   @POST
-  @Path(CREATE_DIRECTORY)
+  @Path(PATHS_PREFIX + PATH_PARAM + CREATE_DIRECTORY)
   @ReturnType("java.lang.Void")
-  public Response createDirectory(@QueryParam("path") final String path,
-      @QueryParam("allowExists") final Boolean allowExists,
-      @QueryParam("mode") final Short mode,
-      @QueryParam("recursive") final Boolean recursive,
-      @QueryParam("writeType") final WriteType writeType) {
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response createDirectory(@PathParam("path") final String path,
+      final CreateDirectoryOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
-        if (allowExists != null) {
-          options.setAllowExists(allowExists);
+        if (options == null) {
+          mFileSystem.createDirectory(new AlluxioURI(path), CreateDirectoryOptions.defaults());
+        } else {
+          mFileSystem.createDirectory(new AlluxioURI(path), options);
         }
-        if (mode != null) {
-          options.setMode(new Mode(mode));
-        }
-        if (writeType != null) {
-          options.setWriteType(writeType);
-        }
-        if (recursive != null) {
-          options.setRecursive(recursive);
-        }
-        mFileSystem.createDirectory(new AlluxioURI(path), options);
         return null;
+      }
+    });
+  }
+
+  /**
+   * @summary create a file
+   * @param path the file path
+   * @param options method options
+   * @return the response object
+   */
+  @POST
+  @Path(PATHS_PREFIX + PATH_PARAM + CREATE_FILE)
+  @ReturnType("java.lang.Integer")
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response createFile(@PathParam("path") final String path,
+      final CreateFileOptions options) {
+    return RestUtils.call(new RestUtils.RestCallable<Integer>() {
+      @Override
+      public Integer call() throws Exception {
+        FileOutStream os;
+        if (options == null) {
+          os = mFileSystem.createFile(new AlluxioURI(path), CreateFileOptions.defaults());
+        } else {
+          os = mFileSystem.createFile(new AlluxioURI(path), options);
+        }
+        sOutStreams.put(os.hashCode(), os);
+        return os.hashCode();
       }
     });
   }
@@ -163,55 +181,22 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary delete a path
    * @param path the path to remove
-   * @param recursive whether to remove paths recursively
    * @return the response object
    */
   @POST
-  @Path(DELETE)
+  @Path(PATHS_PREFIX + PATH_PARAM + DELETE)
   @ReturnType("java.lang.Void")
-  public Response delete(@QueryParam("path") final String path,
-      @QueryParam("recursive") final boolean recursive) {
+  public Response delete(@PathParam("path") final String path,
+      final DeleteOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
-        mFileSystem.delete(new AlluxioURI(path), options);
+        if (options == null) {
+          mFileSystem.delete(new AlluxioURI(path), DeleteOptions.defaults());
+        } else {
+          mFileSystem.delete(new AlluxioURI(path), options);
+        }
         return null;
-      }
-    });
-  }
-
-  /**
-   * @summary download a file
-   * @param path the file path
-   * @param locationPolicy the location policy
-   * @param readType the read type to use
-   * @return the response object
-   */
-  @GET
-  @Path(DOWNLOAD)
-  @ReturnType("java.io.InputStream")
-  @Produces(MediaType.APPLICATION_OCTET_STREAM)
-  public Response download(@QueryParam("path") final String path,
-      @QueryParam("locationPolicy") final String locationPolicy,
-      @QueryParam("readType") final ReadType readType) {
-    // TODO(jiri): Support range downloads.
-    return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
-      @Override
-      public InputStream call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        OpenFileOptions options = OpenFileOptions.defaults();
-        if (locationPolicy != null) {
-          @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
-              (Class<FileWriteLocationPolicy>) Class.forName(locationPolicy);
-          options.setLocationPolicy(
-              CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {}));
-        }
-        if (readType != null) {
-          options.setReadType(readType);
-        }
-        return mFileSystem.openFile(new AlluxioURI(path), options);
       }
     });
   }
@@ -219,17 +204,22 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary checks whether a path exists
    * @param path the path
+   * @param options method options
    * @return the response object
    */
-  @GET
-  @Path(EXISTS)
+  @POST
+  @Path(PATHS_PREFIX + PATH_PARAM + EXISTS)
   @ReturnType("java.lang.Boolean")
-  public Response exists(@QueryParam("path") final String path) {
+  public Response exists(@PathParam("path") final String path,
+      final ExistsOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        return mFileSystem.exists(new AlluxioURI(path));
+        if (options == null) {
+          return mFileSystem.exists(new AlluxioURI(path), ExistsOptions.defaults());
+        } else {
+          return mFileSystem.exists(new AlluxioURI(path), options);
+        }
       }
     });
   }
@@ -237,20 +227,22 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary free a path
    * @param path the path
-   * @param recursive whether the path should be freed recursively
+   * @param options method options
    * @return the response object
    */
   @POST
-  @Path(FREE)
+  @Path(PATHS_PREFIX + PATH_PARAM + FREE)
   @ReturnType("java.lang.Void")
-  public Response free(@QueryParam("path") final String path,
-      @QueryParam("recursive") final boolean recursive) {
+  public Response free(@PathParam("path") final String path,
+      final FreeOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        FreeOptions options = FreeOptions.defaults().setRecursive(recursive);
-        mFileSystem.free(new AlluxioURI(path), options);
+        if (options == null) {
+          mFileSystem.free(new AlluxioURI(path), FreeOptions.defaults());
+        } else {
+          mFileSystem.free(new AlluxioURI(path), options);
+        }
         return null;
       }
     });
@@ -259,17 +251,22 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary get a file descriptor for a path
    * @param path the file path
+   * @param options method options
    * @return the response object
    */
-  @GET
-  @Path(GET_STATUS)
+  @POST
+  @Path(PATHS_PREFIX + PATH_PARAM + GET_STATUS)
   @ReturnType("alluxio.client.file.URIStatus")
-  public Response getStatus(@QueryParam("path") final String path) {
+  public Response getStatus(@PathParam("path") final String path,
+      final GetStatusOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<URIStatus>() {
       @Override
       public URIStatus call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        return mFileSystem.getStatus(new AlluxioURI(path));
+        if (options == null) {
+          return mFileSystem.getStatus(new AlluxioURI(path), GetStatusOptions.defaults());
+        } else {
+          return mFileSystem.getStatus(new AlluxioURI(path), options);
+        }
       }
     });
   }
@@ -277,76 +274,124 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary get the file descriptors for a path
    * @param path the file path
-   * @param loadMetadataType the load metadata type
+   * @param options method options
    * @return the response object
    */
-  @GET
-  @Path(LIST_STATUS)
+  @POST
+  @Path(PATHS_PREFIX + PATH_PARAM + LIST_STATUS)
   @ReturnType("java.util.List<alluxio.client.file.URIStatus>")
-  public Response listStatus(@QueryParam("path") final String path,
-      @QueryParam("loadMetadataType") final LoadMetadataType loadMetadataType) {
+  public Response listStatus(@PathParam("path") final String path,
+      final ListStatusOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
-        if (loadMetadataType != null) {
-          listStatusOptions.setLoadMetadataType(loadMetadataType);
+        if (options == null) {
+          return mFileSystem.listStatus(new AlluxioURI(path), ListStatusOptions.defaults());
+        } else {
+          return mFileSystem.listStatus(new AlluxioURI(path), options);
         }
-        return mFileSystem.listStatus(new AlluxioURI(path), listStatusOptions);
       }
     });
   }
 
   /**
    * @summary mount a UFS path
-   * @param path the alluxio mount point
-   * @param ufsPath the UFS path to mount
-   * @param readOnly whether to make the mount option read only
-   * @param shared whether to make the mount option shared with all Alluxio users
+   * @param path the Alluxio path
+   * @param src the UFS source to mount
+   * @param options method options
    * @return the response object
    */
   @POST
-  @Path(MOUNT)
+  @Path(PATHS_PREFIX + PATH_PARAM + MOUNT)
   @ReturnType("java.lang.Void")
-  public Response mount(@QueryParam("path") final String path,
-      @QueryParam("ufsPath") final String ufsPath, @QueryParam("readOnly") final Boolean readOnly,
-      @QueryParam("shared") final Boolean shared) {
+  public Response mount(@PathParam("path") final String path,
+      @QueryParam("src") final String src,
+      final MountOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        Preconditions.checkNotNull(ufsPath, "required 'ufsPath' parameter is missing");
-        MountOptions options = MountOptions.defaults();
-        if (readOnly != null) {
-          options.setReadOnly(readOnly);
+        Preconditions.checkNotNull(src, "required 'src' parameter is missing");
+        if (options == null) {
+          mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src), MountOptions.defaults());
+        } else {
+          mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src), options);
         }
-        if (shared != null) {
-          options.setShared(shared);
-        }
-        mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(ufsPath), options);
         return null;
       }
     });
   }
 
   /**
-   * @summary move a path
-   * @param srcPath the source path
-   * @param dstPath the destination path
+   * @summary open a file
+   * @param path the file path
+   * @param options method options
    * @return the response object
    */
   @POST
-  @Path(RENAME)
+  @Path(PATHS_PREFIX + PATH_PARAM + OPEN_FILE)
+  @ReturnType("java.lang.Integer")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response openFile(@PathParam("path") final String path,
+      final OpenFileOptions options) {
+    return RestUtils.call(new RestUtils.RestCallable<Integer>() {
+      @Override
+      public Integer call() throws Exception {
+        FileInStream is;
+        if (options == null) {
+          is = mFileSystem.openFile(new AlluxioURI(path), OpenFileOptions.defaults());
+        } else {
+          is = mFileSystem.openFile(new AlluxioURI(path), options);
+        }
+        sInStreams.put(is.hashCode(), is);
+        return is.hashCode();
+      }
+    });
+  }
+
+  /**
+   * @summary close a stream
+   * @param id the stream id
+   * @return the response object
+   */
+  @POST
+  @Path(STREAMS_PREFIX + ID_PARAM + READ)
   @ReturnType("java.lang.Void")
-  public Response rename(@QueryParam("srcPath") final String srcPath,
-      @QueryParam("dstPath") final String dstPath) {
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  public Response read(@PathParam("id") final Integer id) {
+    return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
+      @Override
+      public InputStream call() throws Exception {
+        FileInStream is = sInStreams.get(id);
+        if (is != null) {
+          return is;
+        }
+        throw new IllegalArgumentException("Stream does not exist");
+      }
+    });
+  }
+
+  /**
+   * @summary move a path
+   * @param path the source path
+   * @param dst the destination path
+   * @param options method options
+   * @return the response object
+   */
+  @POST
+  @Path(PATHS_PREFIX + PATH_PARAM + RENAME)
+  @ReturnType("java.lang.Void")
+  public Response rename(@PathParam("path") final String path,
+      @QueryParam("dst") final String dst,
+      final RenameOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        Preconditions.checkNotNull(srcPath, "required 'srcPath' parameter is missing");
-        Preconditions.checkNotNull(dstPath, "required 'dstPath' parameter is missing");
-        mFileSystem.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath));
+        Preconditions.checkNotNull(dst, "required 'dst' parameter is missing");
+        if (options == null) {
+          mFileSystem.rename(new AlluxioURI(path), new AlluxioURI(dst), RenameOptions.defaults());
+        } else {
+          mFileSystem.rename(new AlluxioURI(path), new AlluxioURI(dst), options);
+        }
         return null;
       }
     });
@@ -355,58 +400,22 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary set an attribute
    * @param path the file path
-   * @param persisted the persisted flag value to use
-   * @param pinned the pinned flag value to use
-   * @param owner the file owner
-   * @param group the file group
-   * @param mode the file permission bits
-   * @param recursive whether the attribute should be set recursively
-   * @param ttl the time-to-live (in seconds) to use
-   * @param ttlAction action to take after TTL is expired
+   * @param options method options
    * @return the response object
    */
   @POST
-  @Path(SET_ATTRIBUTE)
+  @Path(PATHS_PREFIX + PATH_PARAM + SET_ATTRIBUTE)
   @ReturnType("java.lang.Void")
-  public Response setAttribute(@QueryParam("path") final String path,
-      @QueryParam("persisted") final Boolean persisted,
-      @QueryParam("pinned") final Boolean pinned,
-      @QueryParam("owner") final String owner,
-      @QueryParam("group") final String group,
-      @QueryParam("mode") final Short mode,
-      @QueryParam("recursive") final Boolean recursive,
-      @QueryParam("ttl") final Long ttl,
-      @QueryParam("ttlAction") final TtlAction ttlAction) {
+  public Response setAttribute(@PathParam("path") final String path,
+      final SetAttributeOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        SetAttributeOptions options = SetAttributeOptions.defaults();
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        if (persisted != null) {
-          options.setPersisted(persisted);
+        if (options == null) {
+          mFileSystem.setAttribute(new AlluxioURI(path), SetAttributeOptions.defaults());
+        } else {
+          mFileSystem.setAttribute(new AlluxioURI(path), options);
         }
-        if (pinned != null) {
-          options.setPinned(pinned);
-        }
-        if (group != null) {
-          options.setGroup(group);
-        }
-        if (owner != null) {
-          options.setOwner(owner);
-        }
-        if (mode != null) {
-          options.setMode(mode);
-        }
-        if (recursive != null) {
-          options.setRecursive(recursive);
-        }
-        if (ttl != null) {
-          options.setTtl(ttl);
-        }
-        if (ttlAction != null) {
-          options.setTtlAction(ttlAction);
-        }
-        mFileSystem.setAttribute(new AlluxioURI(path), options);
         return null;
       }
     });
@@ -415,81 +424,47 @@ public final class FileSystemClientRestServiceHandler {
   /**
    * @summary unmount a path
    * @param path the file path
+   * @param options method options
    * @return the response object
    */
   @POST
-  @Path(UNMOUNT)
+  @Path(PATHS_PREFIX + PATH_PARAM + UNMOUNT)
   @ReturnType("java.lang.Void")
-  public Response unmount(@QueryParam("path") final String path) {
+  public Response unmount(@PathParam("path") final String path,
+      final UnmountOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        mFileSystem.unmount(new AlluxioURI(path));
+        if (options == null) {
+          mFileSystem.unmount(new AlluxioURI(path), UnmountOptions.defaults());
+        } else {
+          mFileSystem.unmount(new AlluxioURI(path), options);
+        }
         return null;
       }
     });
   }
 
   /**
-   * @summary upload a file
-   * @param path the file path
-   * @param blockSizeBytes the target block size in bytes
-   * @param locationPolicy the location policy
-   * @param mode the octal mode to used for file permissions
-   * @param recursive whether parent directories should be created if they do not already exist
-   * @param ttl the time-to-live (in milliseconds)
-   * @param ttlAction action to take after TTL is expired
-   * @param writeType the write type to use
-   * @param is the input stream
+   * @summary close a stream
+   * @param id the stream id
    * @return the response object
    */
   @POST
-  @Path(UPLOAD)
+  @Path(STREAMS_PREFIX + ID_PARAM + WRITE)
   @ReturnType("java.lang.Void")
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-  public Response upload(@QueryParam("path") final String path,
-      @QueryParam("blockSizeBytes") final Long blockSizeBytes,
-      @QueryParam("locationPolicy") final String locationPolicy,
-      @QueryParam("mode") final Integer mode,
-      @QueryParam("recursive") final Boolean recursive,
-      @QueryParam("ttl") final Long ttl,
-      @QueryParam("ttlAction") final TtlAction ttlAction,
-      @QueryParam("writeType") final WriteType writeType,
+  public Response read(@PathParam("id") final Integer id,
       final InputStream is) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        CreateFileOptions options = CreateFileOptions.defaults();
-        if (blockSizeBytes != null) {
-          options.setBlockSizeBytes(blockSizeBytes);
-        }
-        if (locationPolicy != null) {
-          @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
-              (Class<FileWriteLocationPolicy>) Class.forName(locationPolicy);
-          options.setLocationPolicy(
-              CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {}));
-        }
-        if (mode != null) {
-          options.setMode(new Mode(mode.shortValue()));
-        }
-        if (writeType != null) {
-          options.setWriteType(writeType);
-        }
-        if (recursive != null) {
-          options.setRecursive(recursive);
-        }
-        if (ttl != null) {
-          options.setTtl(ttl);
-        }
-        if (ttlAction != null) {
-          options.setTtlAction(ttlAction);
-        }
-        try (OutputStream os = mFileSystem.createFile(new AlluxioURI(path), options)) {
+        FileOutStream os = sOutStreams.get(id);
+        if (os != null) {
           ByteStreams.copy(is, os);
+          return null;
         }
-        return null;
+        throw new IllegalArgumentException("Stream does not exist");
       }
     });
   }

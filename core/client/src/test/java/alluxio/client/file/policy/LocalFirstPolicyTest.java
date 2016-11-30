@@ -17,6 +17,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.junit.Assert;
 import org.junit.Test;
 
