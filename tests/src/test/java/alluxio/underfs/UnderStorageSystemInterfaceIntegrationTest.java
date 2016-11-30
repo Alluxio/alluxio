@@ -244,7 +244,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String [] expectedResTopDir2 = new String[] {"/testDirNonEmpty2", "/testDirNonEmptyF"};
     Arrays.sort(expectedResTopDir);
     Arrays.sort(expectedResTopDir2);
-    String [] resTopDir = UnderFileStatus.toListingResult(mUfs.listStatus(testDirNonEmpty));
+    UnderFileStatus [] resTopDirStatus = mUfs.listStatus(testDirNonEmpty);
+    String [] resTopDir = UnderFileStatus.toListingResult(resTopDirStatus);
     Arrays.sort(resTopDir);
     Assert.assertTrue(Arrays.equals(expectedResTopDir, resTopDir)
         || Arrays.equals(expectedResTopDir2, resTopDir));
@@ -252,6 +253,11 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
         mUfs.listStatus(testDirNonEmptyChildDir)[0].getName().equals("testDirNonEmptyChildDirF")
             || mUfs.listStatus(testDirNonEmptyChildDir)[0].getName()
                 .equals("/testDirNonEmptyChildDirF"));
+    for (int i = 0; i < resTopDir.length; ++i) {
+      Assert.assertEquals(
+          mUfs.isDirectory(PathUtils.concatPath(testDirNonEmpty, resTopDirStatus[i].getName())),
+          resTopDirStatus[i].isDirectory());
+    }
   }
 
   /**
@@ -315,12 +321,17 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // lsr from root should return paths relative to the root
     String[] expectedResRoot =
         {"sub1", "sub2", "sub1/sub11", "sub1/sub11/file11", "sub2/file2", "file"};
-    String[] actualResRoot = UnderFileStatus
-        .toListingResult(mUfs.listStatus(root, ListOptions.defaults().setRecursive(true)));
+    UnderFileStatus[] actualResRootStatus =
+        mUfs.listStatus(root, ListOptions.defaults().setRecursive(true));
+    String[] actualResRoot = UnderFileStatus.toListingResult(actualResRootStatus);
     Arrays.sort(expectedResRoot);
     Arrays.sort(actualResRoot);
     Assert.assertArrayEquals(expectedResRoot, actualResRoot);
-
+    for (int i = 0; i < actualResRoot.length; ++i) {
+      Assert.assertEquals(
+          mUfs.isDirectory(PathUtils.concatPath(root, actualResRootStatus[i].getName())),
+          actualResRootStatus[i].isDirectory());
+    }
     // lsr from sub1 should return paths relative to sub1
     String[] expectedResSub1 = {"sub11", "sub11/file11"};
     String[] actualResSub1 = UnderFileStatus
