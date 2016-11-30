@@ -1,0 +1,126 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.proxy;
+
+import alluxio.RestUtils;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
+
+import com.google.common.io.ByteStreams;
+import com.qmino.miredot.annotations.ReturnType;
+
+import java.io.Closeable;
+import java.io.InputStream;
+
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+/**
+ * This class is a REST handler for file system client requests.
+ */
+@NotThreadSafe
+@Path(StreamsRestServiceHandler.SERVICE_PREFIX)
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public final class StreamsRestServiceHandler {
+  public static final String SERVICE_PREFIX = "streams";
+
+  public static final String ID_PARAM = "{id}/";
+
+  public static final String CLOSE = "close";
+  public static final String READ = "read";
+  public static final String WRITE = "write";
+
+  /**
+   * Constructs a new {@link StreamsRestServiceHandler}.
+   *
+   * @param context context for the servlet
+   */
+  public StreamsRestServiceHandler(@Context ServletContext context) {}
+
+  /**
+   * @summary close a stream
+   * @param id the stream id
+   * @return the response object
+   */
+  @POST
+  @Path(ID_PARAM + CLOSE)
+  @ReturnType("java.lang.Void")
+  public Response close(@PathParam("id") final Integer id) {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        Closeable stream = StreamCache.remove(id);
+        if (stream != null) {
+          stream.close();
+          return null;
+        }
+        throw new IllegalArgumentException("stream does not exist");
+      }
+    });
+  }
+
+  /**
+   * @summary read a stream
+   * @param id the stream id
+   * @return the response object
+   */
+  @POST
+  @Path(ID_PARAM + READ)
+  @ReturnType("java.lang.Void")
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  public Response read(@PathParam("id") final Integer id) {
+    // TODO(jiri): Support reading a file range.
+    return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
+      @Override
+      public InputStream call() throws Exception {
+        FileInStream is = StreamCache.getInStream(id);
+        if (is != null) {
+          return is;
+        }
+        throw new IllegalArgumentException("stream does not exist");
+      }
+    });
+  }
+
+  /**
+   * @summary write a stream
+   * @param id the stream id
+   * @param is the input stream
+   * @return the response object
+   */
+  @POST
+  @Path(ID_PARAM + WRITE)
+  @ReturnType("java.lang.Void")
+  @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+  public Response write(@PathParam("id") final Integer id, final InputStream is) {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        FileOutStream os = StreamCache.getOutStream(id);
+        if (os != null) {
+          ByteStreams.copy(is, os);
+          return null;
+        }
+        throw new IllegalArgumentException("stream does not exist");
+      }
+    });
+  }
+}

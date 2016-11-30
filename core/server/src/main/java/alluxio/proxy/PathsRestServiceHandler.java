@@ -56,18 +56,14 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for file system client requests.
  */
 @NotThreadSafe
-@Path(FileSystemClientRestServiceHandler.SERVICE_PREFIX)
+@Path(PathsRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public final class FileSystemClientRestServiceHandler {
-  public static final String SERVICE_PREFIX = "alluxio";
-  public static final String PATHS_PREFIX = "paths";
-  public static final String STREAMS_PREFIX = "streams";
+public final class PathsRestServiceHandler {
+  public static final String SERVICE_PREFIX = "paths";
 
-  public static final String PATH_PARAM = "/{path:.*}/";
-  public static final String ID_PARAM = "/{id}/";
+  public static final String PATH_PARAM = "{path:.*}/";
 
-  public static final String CLOSE = "close";
   public static final String CREATE_DIRECTORY = "create-directory";
   public static final String CREATE_FILE = "create-file";
   public static final String DELETE = "delete";
@@ -77,53 +73,20 @@ public final class FileSystemClientRestServiceHandler {
   public static final String LIST_STATUS = "list-status";
   public static final String MOUNT = "mount";
   public static final String OPEN_FILE = "open-file";
-  public static final String READ = "read";
   public static final String RENAME = "rename";
   public static final String SET_ATTRIBUTE = "set-attribute";
   public static final String UNMOUNT = "unmount";
-  public static final String WRITE = "write";
 
   private final FileSystem mFileSystem;
-  private static Map<Integer, FileOutStream> sOutStreams = new ConcurrentHashMap<>();
-  private static Map<Integer, FileInStream> sInStreams = new ConcurrentHashMap<>();
 
   /**
-   * Constructs a new {@link FileSystemClientRestServiceHandler}.
+   * Constructs a new {@link PathsRestServiceHandler}.
    *
    * @param context context for the servlet
    */
-  public FileSystemClientRestServiceHandler(@Context ServletContext context) {
+  public PathsRestServiceHandler(@Context ServletContext context) {
     mFileSystem =
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
-  }
-
-  /**
-   * @summary close a stream
-   * @param id the stream id
-   * @return the response object
-   */
-  @POST
-  @Path(STREAMS_PREFIX + ID_PARAM + CLOSE)
-  @ReturnType("java.lang.Void")
-  public Response close(@PathParam("id") final Integer id) {
-    return RestUtils.call(new RestUtils.RestCallable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        FileInStream is = sInStreams.get(id);
-        if (is != null) {
-          is.close();
-          sInStreams.remove(id);
-          return null;
-        }
-        FileOutStream os = sOutStreams.get(id);
-        if (os != null) {
-          os.close();
-          sOutStreams.remove(id);
-          return null;
-        }
-        throw new IllegalArgumentException("stream does not exist");
-      }
-    });
   }
 
   /**
@@ -133,7 +96,7 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + CREATE_DIRECTORY)
+  @Path(PATH_PARAM + CREATE_DIRECTORY)
   @ReturnType("java.lang.Void")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response createDirectory(@PathParam("path") final String path,
@@ -158,7 +121,7 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + CREATE_FILE)
+  @Path(PATH_PARAM + CREATE_FILE)
   @ReturnType("java.lang.Integer")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response createFile(@PathParam("path") final String path,
@@ -172,8 +135,7 @@ public final class FileSystemClientRestServiceHandler {
         } else {
           os = mFileSystem.createFile(new AlluxioURI(path), options);
         }
-        sOutStreams.put(os.hashCode(), os);
-        return os.hashCode();
+        return StreamCache.put(os);
       }
     });
   }
@@ -185,10 +147,9 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + DELETE)
+  @Path(PATH_PARAM + DELETE)
   @ReturnType("java.lang.Void")
-  public Response delete(@PathParam("path") final String path,
-      final DeleteOptions options) {
+  public Response delete(@PathParam("path") final String path, final DeleteOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -209,10 +170,9 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + EXISTS)
+  @Path(PATH_PARAM + EXISTS)
   @ReturnType("java.lang.Boolean")
-  public Response exists(@PathParam("path") final String path,
-      final ExistsOptions options) {
+  public Response exists(@PathParam("path") final String path, final ExistsOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
@@ -232,10 +192,9 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + FREE)
+  @Path(PATH_PARAM + FREE)
   @ReturnType("java.lang.Void")
-  public Response free(@PathParam("path") final String path,
-      final FreeOptions options) {
+  public Response free(@PathParam("path") final String path, final FreeOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -256,10 +215,9 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + GET_STATUS)
+  @Path(PATH_PARAM + GET_STATUS)
   @ReturnType("alluxio.client.file.URIStatus")
-  public Response getStatus(@PathParam("path") final String path,
-      final GetStatusOptions options) {
+  public Response getStatus(@PathParam("path") final String path, final GetStatusOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<URIStatus>() {
       @Override
       public URIStatus call() throws Exception {
@@ -279,7 +237,7 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + LIST_STATUS)
+  @Path(PATH_PARAM + LIST_STATUS)
   @ReturnType("java.util.List<alluxio.client.file.URIStatus>")
   public Response listStatus(@PathParam("path") final String path,
       final ListStatusOptions options) {
@@ -303,10 +261,9 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + MOUNT)
+  @Path(PATH_PARAM + MOUNT)
   @ReturnType("java.lang.Void")
-  public Response mount(@PathParam("path") final String path,
-      @QueryParam("src") final String src,
+  public Response mount(@PathParam("path") final String path, @QueryParam("src") final String src,
       final MountOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
@@ -329,11 +286,10 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + OPEN_FILE)
+  @Path(PATH_PARAM + OPEN_FILE)
   @ReturnType("java.lang.Integer")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response openFile(@PathParam("path") final String path,
-      final OpenFileOptions options) {
+  public Response openFile(@PathParam("path") final String path, final OpenFileOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Integer>() {
       @Override
       public Integer call() throws Exception {
@@ -343,30 +299,7 @@ public final class FileSystemClientRestServiceHandler {
         } else {
           is = mFileSystem.openFile(new AlluxioURI(path), options);
         }
-        sInStreams.put(is.hashCode(), is);
-        return is.hashCode();
-      }
-    });
-  }
-
-  /**
-   * @summary read a stream
-   * @param id the stream id
-   * @return the response object
-   */
-  @POST
-  @Path(STREAMS_PREFIX + ID_PARAM + READ)
-  @ReturnType("java.lang.Void")
-  @Produces(MediaType.APPLICATION_OCTET_STREAM)
-  public Response read(@PathParam("id") final Integer id) {
-    return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
-      @Override
-      public InputStream call() throws Exception {
-        FileInStream is = sInStreams.get(id);
-        if (is != null) {
-          return is;
-        }
-        throw new IllegalArgumentException("stream does not exist");
+        return StreamCache.put(is);
       }
     });
   }
@@ -379,10 +312,9 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + RENAME)
+  @Path(PATH_PARAM + RENAME)
   @ReturnType("java.lang.Void")
-  public Response rename(@PathParam("path") final String path,
-      @QueryParam("dst") final String dst,
+  public Response rename(@PathParam("path") final String path, @QueryParam("dst") final String dst,
       final RenameOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
@@ -405,7 +337,7 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + SET_ATTRIBUTE)
+  @Path(PATH_PARAM + SET_ATTRIBUTE)
   @ReturnType("java.lang.Void")
   public Response setAttribute(@PathParam("path") final String path,
       final SetAttributeOptions options) {
@@ -429,10 +361,9 @@ public final class FileSystemClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @Path(PATHS_PREFIX + PATH_PARAM + UNMOUNT)
+  @Path(PATH_PARAM + UNMOUNT)
   @ReturnType("java.lang.Void")
-  public Response unmount(@PathParam("path") final String path,
-      final UnmountOptions options) {
+  public Response unmount(@PathParam("path") final String path, final UnmountOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -442,31 +373,6 @@ public final class FileSystemClientRestServiceHandler {
           mFileSystem.unmount(new AlluxioURI(path), options);
         }
         return null;
-      }
-    });
-  }
-
-  /**
-   * @summary write a stream
-   * @param id the stream id
-   * @param is the input stream
-   * @return the response object
-   */
-  @POST
-  @Path(STREAMS_PREFIX + ID_PARAM + WRITE)
-  @ReturnType("java.lang.Void")
-  @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-  public Response write(@PathParam("id") final Integer id,
-      final InputStream is) {
-    return RestUtils.call(new RestUtils.RestCallable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        FileOutStream os = sOutStreams.get(id);
-        if (os != null) {
-          ByteStreams.copy(is, os);
-          return null;
-        }
-        throw new IllegalArgumentException("stream does not exist");
       }
     });
   }

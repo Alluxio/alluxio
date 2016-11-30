@@ -132,6 +132,7 @@ public final class TestCase {
       connection.setDoOutput(true);
       connection.setRequestProperty("Content-Type", "application/json");
       ObjectMapper mapper = new ObjectMapper();
+      // make sure that serialization of empty objects does not fail
       mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
       OutputStream os = connection.getOutputStream();
       os.write(mapper.writeValueAsString(mOptions.getBody()).getBytes());

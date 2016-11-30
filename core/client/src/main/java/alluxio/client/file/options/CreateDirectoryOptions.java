@@ -56,7 +56,7 @@ public final class CreateDirectoryOptions {
   }
 
   /**
-   * @return the under storage type
+   * @return the write type
    */
   public WriteType getWriteType() {
     return mWriteType;

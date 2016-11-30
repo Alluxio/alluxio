@@ -87,7 +87,6 @@ public final class CreateFileOptions {
   /**
    * @return the location policy class used when storing data to Alluxio
    */
-  @JsonProperty("locationPolicy")
   public String getLocationPolicyClass() {
     return mLocationPolicy.getClass().getCanonicalName();
   }
@@ -151,7 +150,6 @@ public final class CreateFileOptions {
    * @param className the location policy class to use when storing data to Alluxio
    * @return the updated options object
    */
-  @JsonProperty("locationPolicy")
   public CreateFileOptions setLocationPolicyClass(String className) {
     try {
       @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
