@@ -259,17 +259,6 @@ public interface UnderFileSystem {
   OutputStream create(String path, CreateOptions options) throws IOException;
 
   /**
-   * Creates a file in the under file system with the specified {@link CreateOptions}. This stream
-   * writes directly to the underlying storage without any atomicity guarantees.
-   *
-   * @param path the file name
-   * @param options the options for create
-   * @return A {@code OutputStream} object
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  OutputStream createDirect(String path, CreateOptions options) throws IOException;
-
-  /**
    * Deletes a directory from the under file system with the indicated name non-recursively.
    *
    * @param path of the directory to delete

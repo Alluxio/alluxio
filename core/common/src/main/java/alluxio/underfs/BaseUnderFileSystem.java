@@ -66,11 +66,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path, CreateOptions options) throws IOException {
-    return new AtomicFileOutputStream(path, options, this);
-  }
-
-  @Override
   public boolean deleteDirectory(String path) throws IOException {
     return deleteDirectory(path, DeleteOptions.defaults());
   }

@@ -18,6 +18,8 @@ import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
+import alluxio.underfs.AtomicFileOutputStream;
+import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -54,7 +56,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * HDFS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public class HdfsUnderFileSystem extends BaseUnderFileSystem {
+public class HdfsUnderFileSystem extends BaseUnderFileSystem
+    implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
   // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.
@@ -131,6 +134,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public void close() throws IOException {
     // Don't close; file systems are singletons and closing it here could break other users
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
+    return new AtomicFileOutputStream(path, options, this);
   }
 
   @Override

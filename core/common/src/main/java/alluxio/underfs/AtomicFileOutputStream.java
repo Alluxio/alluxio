@@ -34,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class AtomicFileOutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private UnderFileSystem mUfs;
+  private AtomicFileOutputStreamCallback mUfs;
   private CreateOptions mOptions;
   private String mPermanentPath;
   private String mTemporaryPath;
@@ -49,8 +49,8 @@ public class AtomicFileOutputStream extends OutputStream {
    * @param ufs the calling {@link UnderFileSystem}
    * @throws IOException when a non Alluxio error occurs
    */
-  public AtomicFileOutputStream(String path, CreateOptions options, UnderFileSystem ufs)
-      throws IOException {
+  public AtomicFileOutputStream(String path, CreateOptions options,
+      AtomicFileOutputStreamCallback ufs) throws IOException {
     mOptions = options;
     mPermanentPath = path;
     mTemporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);

@@ -141,11 +141,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    return createDirect(path, options);
-  }
-
-  @Override
-  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentPath(path))) {
       return createObject(stripPrefixIfPresent(path));
     }
