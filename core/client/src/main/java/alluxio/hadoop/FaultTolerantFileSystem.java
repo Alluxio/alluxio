@@ -36,6 +36,15 @@ public final class FaultTolerantFileSystem extends AbstractFileSystem {
     super();
   }
 
+  /**
+   * Constructs a new
+   * {@link FaultTolerantFileSystem} instance with specified a {@link alluxio.client.file.FileSystem}
+   * handler for tests.
+   */
+  public FaultTolerantFileSystem(alluxio.client.file.FileSystem fileSystem) {
+    super(fileSystem);
+  }
+
   @Override
   public String getScheme() {
     return Constants.SCHEME_FT;

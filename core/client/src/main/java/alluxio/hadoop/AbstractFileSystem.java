@@ -83,6 +83,21 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
 
+  /**
+   * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
+   * handler for tests.
+   *
+   * @param fileSystem handler to file system
+   */
+  AbstractFileSystem(FileSystem fileSystem) {
+    sFileSystem = fileSystem;
+  }
+
+  /**
+   * Constructs a new {@link AbstractFileSystem} instance.
+   */
+   AbstractFileSystem() {}
+
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
       throws IOException {
