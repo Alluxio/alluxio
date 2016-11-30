@@ -138,7 +138,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    return new AtomicFileOutputStream(path, options, this);
+    return new AtomicFileOutputStream(path, this, options);
   }
 
   @Override
@@ -362,13 +362,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     while (retryPolicy.attemptRetry()) {
       try {
         FSDataInputStream inputStream = mFileSystem.open(new Path(path));
-        if (options.getOffset() != 0) {
-          try {
-            inputStream.skip(options.getOffset());
-          } catch (IOException e) {
-            inputStream.close();
-            throw e;
-          }
+        try {
+          inputStream.seek(options.getOffset());
+        } catch (IOException e) {
+          inputStream.close();
+          throw e;
         }
         return inputStream;
       } catch (IOException e) {

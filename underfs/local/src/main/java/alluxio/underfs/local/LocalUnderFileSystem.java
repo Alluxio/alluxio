@@ -82,7 +82,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    return new AtomicFileOutputStream(path, options, this);
+    return new AtomicFileOutputStream(path, this, options);
   }
 
   @Override
@@ -259,7 +259,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   public InputStream open(String path, OpenOptions options) throws IOException {
     path = stripPath(path);
     InputStream inputStream = new FileInputStream(path);
-    if (options.getOffset() != 0) {
+    if (options.getOffset() > 0) {
       try {
         inputStream.skip(options.getOffset());
       } catch (IOException e) {
