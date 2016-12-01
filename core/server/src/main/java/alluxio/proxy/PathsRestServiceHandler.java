@@ -32,13 +32,9 @@ import alluxio.client.file.options.UnmountOptions;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.ByteStreams;
 import com.qmino.miredot.annotations.ReturnType;
 
-import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;

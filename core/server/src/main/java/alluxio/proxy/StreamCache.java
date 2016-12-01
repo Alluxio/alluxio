@@ -11,52 +11,104 @@
 
 package alluxio.proxy;
 
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.Nonnull;
+
 /**
- * File stream cache.
+ * Stream cache.
  */
-// TODO(jiri): Add support for evicting stale streams.
 public final class StreamCache {
-  private static Map<Integer, FileOutStream> sOutStreams = new ConcurrentHashMap<>();
-  private static Map<Integer, FileInStream> sInStreams = new ConcurrentHashMap<>();
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  private static final RemovalListener<Integer, Closeable> CLOSER =
+      new RemovalListener<Integer, Closeable>() {
+        public void onRemoval(@Nonnull RemovalNotification<Integer, Closeable> removal) {
+          try {
+            Closeable stream = removal.getValue();
+            if (stream != null) {
+              stream.close();
+            }
+          } catch (Exception e) {
+            LOG.error("Failed to close stream: ", e);
+          }
+        }
+      };
+
+  private static Cache<Integer, FileInStream> sInStreamCache =
+      CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).removalListener(CLOSER)
+          .build();
+  private static Cache<Integer, FileOutStream> sOutStreamCache =
+      CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).removalListener(CLOSER)
+          .build();
   private static AtomicInteger sCounter = new AtomicInteger();
 
-  public static FileInStream getInStream(Integer id) {
-    return sInStreams.get(id);
+  /**
+   * @param key the key to get the stream for
+   * @return the stream
+   */
+  public static FileInStream getInStream(Integer key) {
+    return sInStreamCache.getIfPresent(key);
   }
 
-  public static FileOutStream getOutStream(Integer id) {
-    return sOutStreams.get(id);
+  /**
+   * @param key the key to get the stream for
+   * @return the stream
+   */
+  public static FileOutStream getOutStream(Integer key) {
+    return sOutStreamCache.getIfPresent(key);
   }
 
+  /**
+   * @param is the stream to cache
+   * @return the key for looking up the stream
+   */
   public static Integer put(FileInStream is) {
     int id = sCounter.incrementAndGet();
-    sInStreams.put(id, is);
+    sInStreamCache.put(id, is);
     return id;
   }
 
+  /**
+   * @param os the stream to cache
+   * @return the key for looking up the stream
+   */
   public static Integer put(FileOutStream os) {
     int id = sCounter.incrementAndGet();
-    sOutStreams.put(id, os);
+    sOutStreamCache.put(id, os);
     return id;
   }
 
-  public static Closeable remove(Integer id) {
-    FileInStream is = sInStreams.remove(id);
+  /**
+   * @param key the key for the stream to invalidate
+   * @return the invalidated stream
+   */
+  public static Closeable invalidate(Integer key) {
+    FileInStream is = sInStreamCache.getIfPresent(key);
     if (is != null) {
+      sInStreamCache.invalidate(key);
       return is;
     }
-    FileOutStream os = sOutStreams.remove(id);
+    FileOutStream os = sOutStreamCache.getIfPresent(key);
     if (os != null) {
+      sOutStreamCache.invalidate(key);
       return os;
     }
     return null;
   }
+
+  private StreamCache() {} // prevent instantiation
 }

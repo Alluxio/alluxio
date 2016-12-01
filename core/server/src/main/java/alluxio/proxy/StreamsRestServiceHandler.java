@@ -67,7 +67,7 @@ public final class StreamsRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        Closeable stream = StreamCache.remove(id);
+        Closeable stream = StreamCache.invalidate(id);
         if (stream != null) {
           stream.close();
           return null;
@@ -84,7 +84,7 @@ public final class StreamsRestServiceHandler {
    */
   @POST
   @Path(ID_PARAM + READ)
-  @ReturnType("java.lang.Void")
+  @ReturnType("java.io.InputStream")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response read(@PathParam("id") final Integer id) {
     // TODO(jiri): Support reading a file range.
