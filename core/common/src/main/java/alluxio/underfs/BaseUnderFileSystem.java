@@ -94,13 +94,15 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       }
     }
     while (!pathsToProcess.isEmpty()) {
-      Pair<String, UnderFileStatus> pathToProcess = pathsToProcess.remove();
-      returnPaths.add(new UnderFileStatus(pathToProcess.getFirst().substring(path.length() + 1),
-          pathToProcess.getSecond().isDirectory()));
+      final Pair<String, UnderFileStatus> pathToProcessPair = pathsToProcess.remove();
+      final String pathToProcess = pathToProcessPair.getFirst();
+      final UnderFileStatus pathStatus = pathToProcessPair.getSecond();
+      returnPaths.add(new UnderFileStatus(pathToProcess.substring(path.length() + 1),
+          pathStatus.isDirectory()));
 
-      if (pathToProcess.getSecond().isDirectory()) {
+      if (pathStatus.isDirectory()) {
         // Add all of its subpaths
-        subpaths = listStatus(pathToProcess.getSecond().getName());
+        subpaths = listStatus(pathStatus.getName());
         if (subpaths != null) {
           for (UnderFileStatus subp : subpaths) {
             pathsToProcess
