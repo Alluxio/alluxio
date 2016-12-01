@@ -25,6 +25,7 @@ import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -57,6 +58,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class FileInStream extends InputStream implements BoundedStream, Seekable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** The instream options. */
+  private final InStreamOptions mInStreamOptions;
+  /** The outstream options. */
+  private final OutStreamOptions mOutStreamOptions;
   /** How the data should be written into Alluxio space, if at all. */
   protected final AlluxioStorageType mAlluxioStorageType;
   /** Standard block size in bytes of the file, guaranteed for all but the last block. */
@@ -118,6 +123,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mStatus = status;
+    mInStreamOptions = options;
+    mOutStreamOptions = OutStreamOptions.defaults();
     mBlockSize = status.getBlockSizeBytes();
     mFileLength = status.getLength();
     mContext = context;
@@ -478,8 +485,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
           mContext.getAlluxioBlockStore().getWorkerInfoList(), getBlockSizeAllocation(mPos));
       // If we reach here, we need to cache.
-      mCurrentCacheStream =
-          mContext.getAlluxioBlockStore().getOutStream(blockId, getBlockSize(mPos), address);
+      mCurrentCacheStream = mContext.getAlluxioBlockStore()
+          .getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
     } catch (IOException e) {
       handleCacheStreamIOException(e);
     } catch (AlluxioException e) {
@@ -514,7 +521,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
-      mCurrentBlockInStream = mContext.getAlluxioBlockStore().getInStream(blockId);
+      mCurrentBlockInStream =
+          mContext.getAlluxioBlockStore().getInStream(blockId, mInStreamOptions);
     } catch (IOException e) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
           e);

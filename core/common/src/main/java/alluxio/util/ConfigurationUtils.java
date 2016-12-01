@@ -13,7 +13,6 @@ package alluxio.util;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -23,7 +22,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -104,20 +102,4 @@ public final class ConfigurationUtils {
     return loadPropertiesFromResource(propertiesFile);
   }
 
-  /**
-   * Validates the configurations.
-   *
-   * @return true if the validation succeeds, false otherwise
-   */
-  public static boolean validateConf() {
-    boolean valid = true;
-    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      String propertyName = entry.getKey();
-      if (!PropertyKey.isValid(propertyName)) {
-        LOG.error("Unsupported property " + propertyName);
-        valid = false;
-      }
-    }
-    return valid;
-  }
 }

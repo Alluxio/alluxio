@@ -11,7 +11,7 @@
 
 package alluxio.web;
 
-import alluxio.master.AlluxioMaster;
+import alluxio.master.AlluxioMasterService;
 
 import com.google.common.base.Preconditions;
 
@@ -32,21 +32,21 @@ import javax.servlet.http.HttpServletResponse;
 @ThreadSafe
 public final class WebInterfaceDependencyServlet extends HttpServlet {
   private static final long serialVersionUID = 2071462168900313417L;
-  private final transient AlluxioMaster mMaster;
+  private final transient AlluxioMasterService mMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceDependencyServlet}.
    *
    * @param master Alluxio master
    */
-  public WebInterfaceDependencyServlet(AlluxioMaster master) {
+  public WebInterfaceDependencyServlet(AlluxioMasterService master) {
     mMaster = Preconditions.checkNotNull(master);
   }
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
+    request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
     request.setAttribute("filePath", request.getParameter("filePath"));
     request.setAttribute("error", "");
     List<String> parentFileNames = new ArrayList<>();

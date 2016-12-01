@@ -51,6 +51,9 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
  * server.
+ *
+ * Note: Every client instance is associated with a session which is usually created for each block
+ * stream. So be careful when reusing this client for multiple blocks.
  */
 @ThreadSafe
 public final class RetryHandlingBlockWorkerClient
@@ -86,7 +89,7 @@ public final class RetryHandlingBlockWorkerClient
       throws IOException {
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
-    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
+    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
     if (sessionId != null) {

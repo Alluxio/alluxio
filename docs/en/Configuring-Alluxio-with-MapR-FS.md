@@ -87,6 +87,8 @@ After everything is configured, you can start up Alluxio locally to see that eve
 This should start one Alluxio master and one Alluxio worker locally. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
+After this succeeds, you can visit MapR-FS web UI to verify the files and directories created by Alluxio exist. For this test, you should see files named like: `/default_tests_files/Basic_CACHE_THROUGH`
+
 Next, you can run a simple example program:
 
 {% include Common-Commands/runTests.md %}

@@ -13,8 +13,8 @@ package alluxio.master.block;
 
 import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.master.AlluxioMaster;
-import alluxio.web.MasterUIWebServer;
+import alluxio.master.AlluxioMasterService;
+import alluxio.web.MasterWebServer;
 import alluxio.wire.BlockInfo;
 
 import com.google.common.base.Preconditions;
@@ -32,10 +32,13 @@ import javax.ws.rs.core.Response;
 
 /**
  * This class is a REST handler for block master requests.
+ *
+ * @deprecated since version 1.4 and will be removed in version 2.0
  */
 @NotThreadSafe
 @Path(BlockMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
+@Deprecated
 public final class BlockMasterClientRestServiceHandler {
   public static final String SERVICE_PREFIX = "master/block";
   public static final String SERVICE_NAME = "service_name";
@@ -51,9 +54,8 @@ public final class BlockMasterClientRestServiceHandler {
    */
   public BlockMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    AlluxioMaster master =
-        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
-    mBlockMaster = master.getBlockMaster();
+    mBlockMaster = ((AlluxioMasterService) context
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).getBlockMaster();
   }
 
   /**

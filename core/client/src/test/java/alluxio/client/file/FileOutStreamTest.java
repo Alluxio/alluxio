@@ -181,9 +181,9 @@ public class FileOutStreamTest {
     when(mUnderFileSystem.create(anyString(), any(CreateOptions.class)))
         .thenReturn(mUnderStorageOutputStream);
 
-    OutStreamOptions options =
-        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults());
+    OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+        .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults())
+        .setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
@@ -427,7 +427,8 @@ public class FileOutStreamTest {
   public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
     for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
-          OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type);
+          OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type)
+              .setUfsPath(FILE_NAME.getPath());
       mTestStream = createTestStream(FILE_NAME, options);
       mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
       mTestStream.flush();

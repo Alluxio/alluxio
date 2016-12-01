@@ -53,6 +53,16 @@ public final class IdUtils {
   }
 
   /**
+   * Creates a file ID from a block ID.
+   *
+   * @param blockId the block ID
+   * @return the file ID
+   */
+  public static long fileIdFromBlockId(long blockId) {
+    return createFileId(BlockId.getContainerId(blockId));
+  }
+
+  /**
    * @return the created RPC id
    */
   public static String createRpcId() {

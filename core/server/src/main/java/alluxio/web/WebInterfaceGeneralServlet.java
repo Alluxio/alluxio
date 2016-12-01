@@ -15,7 +15,8 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
-import alluxio.master.AlluxioMaster;
+import alluxio.master.AlluxioMasterService;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.FormatUtils;
 
@@ -100,14 +101,14 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2335205655766736309L;
 
-  private final transient AlluxioMaster mMaster;
+  private final transient AlluxioMasterService mMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceGeneralServlet}.
    *
    * @param master Alluxio master
    */
-  public WebInterfaceGeneralServlet(AlluxioMaster master) {
+  public WebInterfaceGeneralServlet(AlluxioMasterService master) {
     mMaster = master;
   }
 
@@ -166,7 +167,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
 
-    request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
+    request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
 
     request.setAttribute("uptime",
         WebUtils.convertMsToClockTime(System.currentTimeMillis() - mMaster.getStartTimeMs()));
@@ -188,6 +189,15 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
         .setAttribute("freeCapacity",
             FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
                 - mMaster.getBlockMaster().getUsedBytes()));
+
+    FileSystemMaster.StartupConsistencyCheckResult check =
+        mMaster.getFileSystemMaster().getStartupConsistencyCheck();
+    request.setAttribute("consistencyCheckStatus", check.getStatus());
+    if (check.getStatus() == FileSystemMaster.StartupConsistencyCheckResult.Status.COMPLETE) {
+      request.setAttribute("inconsistentPaths", check.getInconsistentUris().size());
+    } else {
+      request.setAttribute("inconsistentPaths", 0);
+    }
 
     String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);

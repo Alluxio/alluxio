@@ -82,6 +82,9 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
+    if (!options.isEnsureAtomic()) {
+      return createDirect(path, options);
+    }
     return new AtomicFileOutputStream(path, this, options);
   }
 
@@ -231,6 +234,11 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       if (file.mkdir()) {
         setMode(file.getPath(), perm.getMode().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());
+        try {
+          setOwner(file.getPath(), perm.getOwner(), perm.getGroup());
+        } catch (IOException e) {
+          LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+        }
         return true;
       }
       return false;
@@ -248,10 +256,19 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       if (dirToMake.mkdir()) {
         setMode(dirToMake.getAbsolutePath(), perm.getMode().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());
+        // Set the owner to the Alluxio client user to achieve permission delegation.
+        // Alluxio server-side user is required to be a superuser. If it fails to set owner,
+        // proceeds with mkdirs and print out an warning message.
+        try {
+          setOwner(dirToMake.getAbsolutePath(), perm.getOwner(), perm.getGroup());
+        } catch (IOException e) {
+          LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+        }
       } else {
         return false;
       }
     }
+
     return true;
   }
 
@@ -295,11 +312,24 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   @Override
   public void setOwner(String path, String user, String group) throws IOException {
     path = stripPath(path);
-    if (user != null) {
-      FileUtils.changeLocalFileUser(path, user);
-    }
-    if (group != null) {
-      FileUtils.changeLocalFileGroup(path, group);
+    try {
+      if (user != null) {
+        FileUtils.changeLocalFileUser(path, user);
+      }
+      if (group != null) {
+        FileUtils.changeLocalFileGroup(path, group);
+      }
+    } catch (IOException e) {
+      LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group);
+      LOG.debug("Exception: ", e);
+      LOG.warn("In order for Alluxio to set local files with the correct user and groups, "
+          + "Alluxio should be the local file system superusers.");
+      if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
+        throw e;
+      } else {
+        LOG.warn("Proceeding... but this may cause permission inconsistency between Alluxio and "
+            + "local under file system.");
+      }
     }
   }
 

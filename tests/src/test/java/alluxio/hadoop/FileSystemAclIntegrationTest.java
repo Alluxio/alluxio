@@ -19,6 +19,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.oss.OSSUnderFileSystem;
 import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.underfs.s3a.S3AUnderFileSystem;
@@ -434,6 +435,55 @@ public final class FileSystemAclIntegrationTest {
     sTFS.rename(dirA, dirB);
     Assert.assertEquals((int) parentMode,
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileB.getParent())));
+  }
+
+  /**
+   * Tests the loaded file metadata from UFS having the same mode as that in the UFS.
+   */
+  @Test
+  public void loadFileMetadataMode() throws Exception {
+    if (!(sUfs instanceof LocalUnderFileSystem)
+        && !(sUfs instanceof HdfsUnderFileSystem && HadoopClientTestUtils.isHadoop2x())) {
+      // Skip non-local and non-HDFS-2 UFSs.
+      return;
+    }
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+
+    for (int value : permissionValues) {
+      Path file = new Path("/loadFileMetadataMode" + value);
+      // Create a file directly in UFS and set the corresponding mode.
+      String ufsPath = PathUtils.concatPath(sUfsRoot, file);
+      sUfs.create(ufsPath).close();
+      sUfs.setMode(ufsPath, (short) value);
+      Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, file)));
+      // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
+      Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
+    }
+  }
+
+  /**
+   * Tests the loaded directory metadata from UFS having the same mode as that in the UFS.
+   */
+  @Test
+  public void loadDirMetadataMode() throws Exception {
+    if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
+      // Skip non-local and non-HDFS UFSs.
+      return;
+    }
+    List<Integer> permissionValues =
+        Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
+
+    for (int value : permissionValues) {
+      Path file = new Path("/loadDirMetadataMode" + value);
+      // Create a directory directly in UFS and set the corresponding mode.
+      String ufsPath = PathUtils.concatPath(sUfsRoot, file);
+      sUfs.mkdirs(ufsPath, MkdirsOptions.defaults().setCreateParent(false));
+      sUfs.setMode(ufsPath, (short) value);
+      Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, file)));
+      // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
+      Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
+    }
   }
 
   @Test

@@ -85,4 +85,15 @@ public interface TransportProvider {
    * @throws SaslException if building a TransportFactory fails
    */
   TTransportFactory getServerTransportFactory() throws SaslException;
+
+  /**
+   * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is
+   * used as one argument to build a Thrift {@link org.apache.thrift.server.TServer}. If the auth
+   * type is not supported or recognized, an {@link UnsupportedOperationException} is thrown.
+   *
+   * @param runnable a closure runs after the transport is established
+   * @return a corresponding TTransportFactory
+   * @throws SaslException if building a TransportFactory fails
+   */
+  TTransportFactory getServerTransportFactory(Runnable runnable) throws SaslException;
 }

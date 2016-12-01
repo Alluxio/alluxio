@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.worker.AlluxioWorkerService;
@@ -75,7 +74,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @return the URI of the master
    */
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRPCLocalPort();
+    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRpcLocalPort();
   }
 
   @Override
@@ -166,7 +165,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void startWorkers() throws IOException, ConnectionFailedException {
+  protected void startWorkers() throws Exception {
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
     runWorkers();
   }
@@ -206,19 +205,24 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     // Use first master port
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getMaster().getRpcLocalPort()));
   }
 
   @Override
   public void stopFS() throws Exception {
-    for (AlluxioWorkerService worker : mWorkers) {
-      worker.stop();
-    }
+    stopWorkers();
     for (int k = 0; k < mNumOfMasters; k++) {
       // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
       mMasters.get(k).kill();
     }
     LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
     mCuratorServer.stop();
+  }
+
+  @Override
+  public void stopWorkers() throws Exception {
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
   }
 }

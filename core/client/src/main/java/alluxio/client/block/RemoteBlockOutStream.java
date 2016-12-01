@@ -11,13 +11,17 @@
 
 package alluxio.client.block;
 
+import alluxio.Constants;
 import alluxio.client.RemoteBlockWriter;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -30,6 +34,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class RemoteBlockOutStream extends BufferedBlockOutStream {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final RemoteBlockWriter mRemoteWriter;
   private final BlockWorkerClient mBlockWorkerClient;
   private final Closer mCloser;
@@ -41,17 +47,19 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
    * @param blockSize the block size
    * @param address the address of the preferred worker
    * @param blockStoreContext the block store context
+   * @param options the options
    * @throws IOException if I/O error occurs
    */
   public RemoteBlockOutStream(long blockId,
       long blockSize,
       WorkerNetAddress address,
-      BlockStoreContext blockStoreContext) throws IOException {
+      BlockStoreContext blockStoreContext,
+      OutStreamOptions options) throws IOException {
     super(blockId, blockSize, blockStoreContext);
     mCloser = Closer.create();
     try {
-      mRemoteWriter = mCloser.register(RemoteBlockWriter.Factory.create());
       mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(address));
+      mRemoteWriter = mCloser.register(RemoteBlockWriter.Factory.create());
 
       mRemoteWriter.open(mBlockWorkerClient.getDataServerAddress(), mBlockId,
           mBlockWorkerClient.getSessionId());

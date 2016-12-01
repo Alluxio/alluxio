@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.clock.SystemClock;
+import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -62,7 +63,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.AsyncJournalWriter;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalProtoUtils;
 import alluxio.metrics.MetricsSystem;
@@ -127,7 +128,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -235,36 +241,31 @@ public final class FileSystemMaster extends AbstractMaster {
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostFilesDetectionService;
 
+  private Future<List<AlluxioURI>> mStartupConsistencyCheck;
+
   /**
-   * @param baseDirectory the base journal directory
-   * @return the journal directory for this master
+   * Creates a new instance of {@link FileSystemMaster}.
+   *
+   * @param blockMaster the {@link BlockMaster} to use
+   * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_NAME);
+  public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory) {
+    this(blockMaster, journalFactory, ExecutorServiceFactories
+        .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
   }
 
   /**
    * Creates a new instance of {@link FileSystemMaster}.
    *
    * @param blockMaster the {@link BlockMaster} to use
-   * @param journal the journal to use for tracking master operations
+   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param executorServiceFactory a factory for creating the executor service to use for running
+   *        maintenance threads
    */
-  public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
-    this(blockMaster, journal, ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 2));
-  }
-
-  /**
-   * Creates a new instance of {@link FileSystemMaster}.
-   *
-   * @param blockMaster the {@link BlockMaster} to use
-   * @param journal the journal to use for tracking master operations
-   * @param executorServiceFactory a factory for creating the executor service to use for
-   *        running maintenance threads
-   */
-  public FileSystemMaster(BlockMaster blockMaster, Journal journal,
+  public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journal, new SystemClock(), executorServiceFactory);
+    super(journalFactory.get(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
+        executorServiceFactory);
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
@@ -423,6 +424,221 @@ public final class FileSystemMaster extends AbstractMaster {
       mLostFilesDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_FILES_DETECTION, new LostFilesDetectionHeartbeatExecutor(),
           Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+      if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
+        mStartupConsistencyCheck = getExecutorService().submit(new Callable<List<AlluxioURI>>() {
+          @Override
+          public List<AlluxioURI> call() throws Exception {
+            return startupCheckConsistency(ExecutorServiceFactories
+                .fixedThreadPoolExecutorServiceFactory("startup-consistency-check", 32).create());
+          }
+        });
+      }
+    }
+  }
+
+  /**
+   * Checks the consistency of the root in a multi-threaded and incremental fashion. This method
+   * will only READ lock the directories and files actively being checked and release them after the
+   * check on the file / directory is complete.
+   *
+   * @return a list of paths in Alluxio which are not consistent with the under storage
+   * @throws InterruptedException if the thread is interrupted during execution
+   * @throws IOException if an error occurs interacting with the under storage
+   */
+  private List<AlluxioURI> startupCheckConsistency(final ExecutorService service)
+      throws InterruptedException, IOException {
+    /** A marker {@link StartupConsistencyChecker}s add to the queue to signal completion */
+    final long completionMarker = -1;
+    /** A shared queue of directories which have yet to be checked */
+    final BlockingQueue<Long> dirsToCheck = new LinkedBlockingQueue<>();
+
+    /**
+     * A {@link Callable} which checks the consistency of a directory.
+     */
+    final class StartupConsistencyChecker implements Callable<List<AlluxioURI>> {
+      /** The path to check, guaranteed to be a directory in Alluxio. */
+      private final Long mFileId;
+
+      /**
+       * Creates a new callable which checks the consistency of a directory.
+       * @param fileId the path to check
+       */
+      private StartupConsistencyChecker(Long fileId) {
+        mFileId = fileId;
+      }
+
+      /**
+       * Checks the consistency of the directory and all immediate children which are files. All
+       * immediate children which are directories are added to the shared queue of directories to
+       * check. The parent directory is READ locked during the entire call while the children are
+       * READ locked only during the consistency check of the children files.
+       *
+       * @return a list of inconsistent uris
+       * @throws IOException if an error occurs interacting with the under storage
+       */
+      @Override
+      public List<AlluxioURI> call() throws IOException {
+        List<AlluxioURI> inconsistentUris = new ArrayList<>();
+        try (LockedInodePath dir = mInodeTree.lockFullInodePath(mFileId, InodeTree.LockMode.READ)) {
+          Inode parentInode = dir.getInode();
+          AlluxioURI parentUri = dir.getUri();
+          if (!checkConsistencyInternal(parentInode, parentUri)) {
+            inconsistentUris.add(parentUri);
+          }
+          for (Inode childInode : ((InodeDirectory) parentInode).getChildren()) {
+            AlluxioURI childUri = parentUri.join(childInode.getName());
+            if (childInode.isDirectory()) {
+              dirsToCheck.add(childInode.getId());
+            } else {
+              childInode.lockRead();
+              try {
+                if (!checkConsistencyInternal(childInode, childUri)) {
+                  inconsistentUris.add(childUri);
+                }
+              } finally {
+                childInode.unlockRead();
+              }
+            }
+          }
+        } catch (FileDoesNotExistException e) {
+          // This should be safe, continue.
+          LOG.debug("A file scheduled for consistency check was deleted before the check.");
+        } catch (InvalidPathException e) {
+          // This should not happen.
+          LOG.error("An invalid path was discovered during the consistency check, skipping.", e);
+        }
+        dirsToCheck.add(completionMarker);
+        return inconsistentUris;
+      }
+    }
+
+    // Add the root to the directories to check.
+    dirsToCheck.add(mInodeTree.getRoot().getId());
+    List<Future<List<AlluxioURI>>> results = new ArrayList<>();
+    // Tracks how many checkers have been started.
+    long started = 0;
+    // Tracks how many checkers have completed.
+    long completed = 0;
+    do {
+      Long fileId = dirsToCheck.take();
+      if (fileId == completionMarker) { // A thread signaled completion.
+        completed++;
+      } else { // A new directory needs to be checked.
+        StartupConsistencyChecker checker = new StartupConsistencyChecker(fileId);
+        results.add(service.submit(checker));
+        started++;
+      }
+    } while (started != completed);
+
+    // Return the total set of inconsistent paths discovered.
+    List<AlluxioURI> inconsistentUris = new ArrayList<>();
+    for (Future<List<AlluxioURI>> result : results) {
+      try {
+        inconsistentUris.addAll(result.get());
+      } catch (Exception e) {
+        // This shouldn't happen, all futures should be complete.
+        Throwables.propagate(e);
+      }
+    }
+    service.shutdown();
+    return inconsistentUris;
+  }
+
+  /**
+   * Class to represent the status and result of the startup consistency check.
+   */
+  public static final class StartupConsistencyCheckResult {
+    /** Result for a disabled check. */
+    private static final StartupConsistencyCheckResult DISABLED =
+        new StartupConsistencyCheckResult(Status.DISABLED, null);
+    /** Result for a failed check. */
+    private static final StartupConsistencyCheckResult FAILED =
+        new StartupConsistencyCheckResult(Status.FAILED, null);
+    /** Result for a running check. */
+    private static final StartupConsistencyCheckResult RUNNING =
+        new StartupConsistencyCheckResult(Status.RUNNING, null);
+
+    /**
+     * State of the check.
+     */
+    public enum Status {
+      COMPLETE, DISABLED, FAILED, RUNNING
+    }
+
+    /**
+     * @param inconsistentUris the uris which are inconsistent with the underlying storage
+     * @return a result set to the complete status
+     */
+    public static StartupConsistencyCheckResult complete(List<AlluxioURI> inconsistentUris) {
+      return new StartupConsistencyCheckResult(Status.COMPLETE, inconsistentUris);
+    }
+
+    /**
+     * @return a result set to the disabled status
+     */
+    public static StartupConsistencyCheckResult disabled() {
+      return DISABLED;
+    }
+
+    /**
+     * @return a result set to the failed status
+     */
+    public static StartupConsistencyCheckResult failed() {
+      return FAILED;
+    }
+
+    /**
+     * @return a result set to the running status
+     */
+    public static StartupConsistencyCheckResult running() {
+      return RUNNING;
+    }
+
+    private Status mStatus;
+    private List<AlluxioURI> mInconsistentUris;
+
+    /**
+     * Create a new startup consistency check result.
+     *
+     * @param status the state of the check
+     * @param inconsistentUris the uris which are inconsistent with the underlying storage
+     */
+    private StartupConsistencyCheckResult(Status status, List<AlluxioURI> inconsistentUris) {
+      mStatus = status;
+      mInconsistentUris = inconsistentUris;
+    }
+
+    /**
+     * @return the state of the check
+     */
+    public Status getStatus() {
+      return mStatus;
+    }
+
+    /**
+     * @return the uris which are inconsistent with the underlying storage
+     */
+    public List<AlluxioURI> getInconsistentUris() {
+      return mInconsistentUris;
+    }
+  }
+
+  /**
+   * @return the status of the startup consistency check and inconsistent paths if it is complete
+   */
+  public StartupConsistencyCheckResult getStartupConsistencyCheck() {
+    if (!Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
+      return StartupConsistencyCheckResult.disabled();
+    }
+    if (!mStartupConsistencyCheck.isDone()) {
+      return StartupConsistencyCheckResult.running();
+    }
+    try {
+      List<AlluxioURI> inconsistentUris = mStartupConsistencyCheck.get();
+      return StartupConsistencyCheckResult.complete(inconsistentUris);
+    } catch (Exception e) {
+      LOG.warn("Failed to complete start up consistency check.", e);
+      return StartupConsistencyCheckResult.failed();
     }
   }
 
@@ -455,15 +671,16 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Returns the {@link FileInfo} for a given file id. This method is not user-facing but supposed
-   * to be called by other internal servers (e.g., block workers and web UI servers).
+   * to be called by other internal servers (e.g., block workers, lineage master, web UI).
    *
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission denied
    */
-  // Currently used by Lineage Master and WebUI
   // TODO(binfan): Add permission checking for internal APIs
-  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
+  public FileInfo getFileInfo(long fileId)
+      throws FileDoesNotExistException, AccessControlException {
     Metrics.GET_FILE_INFO_OPS.inc();
     try (
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.READ)) {
@@ -504,8 +721,10 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission denied
    */
-  private FileInfo getFileInfoInternal(LockedInodePath inodePath) throws FileDoesNotExistException {
+  private FileInfo getFileInfoInternal(LockedInodePath inodePath)
+      throws FileDoesNotExistException, AccessControlException {
     Inode<?> inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
@@ -533,11 +752,12 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * Returns the persistence state for a file id. This method is used by the lineage master.
+   *
    * @param fileId the file id
-   * @return the persistence state for the given file
+   * @return the {@link PersistenceState} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
    */
-  // Internal facing, currently used by Lineage master
   // TODO(binfan): Add permission checking for internal APIs
   public PersistenceState getPersistenceState(long fileId) throws FileDoesNotExistException {
     try (
@@ -1014,7 +1234,9 @@ public final class FileSystemMaster extends AbstractMaster {
           InvalidPathException, AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
+    // Delete should lock the parent to remove the child inode.
+    try (LockedInodePath inodePath = mInodeTree
+        .lockFullInodePath(path, InodeTree.LockMode.WRITE_PARENT)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
       flushCounter = deleteAndJournal(inodePath, recursive);
@@ -1057,8 +1279,9 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private void deleteFromEntry(DeleteFileEntry entry) {
     Metrics.DELETE_PATHS_OPS.inc();
+    // Delete should lock the parent to remove the child inode.
     try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
+        .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE_PARENT)) {
       deleteInternal(inodePath, entry.getRecursive(), true, entry.getOpTimeMs());
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -1619,27 +1842,41 @@ public final class FileSystemMaster extends AbstractMaster {
 
       String ufsSrcPath = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
-      AlluxioURI ufsDstUri = mMountTable.resolve(dstPath).getUri();
-      String ufsDstPath = ufsDstUri.toString();
-      String parentPath = ufsDstUri.getParent().toString();
-      if (!ufs.isDirectory(parentPath)) {
-        Permission parentPerm = new Permission(srcParentInode.getOwner(), srcParentInode.getGroup(),
-            srcParentInode.getMode());
-        MkdirsOptions parentMkdirsOptions = MkdirsOptions.defaults().setCreateParent(true)
-            .setPermission(parentPerm);
-        if (!ufs.mkdirs(parentPath, parentMkdirsOptions)) {
-          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentPath));
+      String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
+      // Create ancestor directories from top to the bottom. We cannot use recursive create parents
+      // here because the permission for the ancestors can be different.
+      List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
+      Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
+      AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
+      // The dst inode does not exist yet, so the last inode in the list is the existing parent.
+      for (int i = dstInodeList.size() - 1; i >= 0; i--) {
+        if (ufs.isDirectory(curUfsDirPath.toString())) {
+          break;
+        }
+        Inode<?> curInode = dstInodeList.get(i);
+        Permission perm = new Permission(curInode.getOwner(), curInode.getGroup(),
+            curInode.getMode());
+        MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
+            .setPermission(perm);
+        ufsDirsToMakeWithOptions.push(new Pair<>(curUfsDirPath.toString(), mkdirsOptions));
+        curUfsDirPath = curUfsDirPath.getParent();
+      }
+      while (!ufsDirsToMakeWithOptions.empty()) {
+        Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
+        if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
+          throw new IOException(
+              ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirAndPerm.getFirst()));
         }
       }
       boolean success;
       if (srcInode.isFile()) {
-        success = ufs.renameFile(ufsSrcPath, ufsDstPath);
+        success = ufs.renameFile(ufsSrcPath, ufsDstUri);
       } else {
-        success = ufs.renameDirectory(ufsSrcPath, ufsDstPath);
+        success = ufs.renameDirectory(ufsSrcPath, ufsDstUri);
       }
       if (!success) {
         throw new IOException(
-            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstPath));
+            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
       }
     }
 
@@ -2013,7 +2250,9 @@ public final class FileSystemMaster extends AbstractMaster {
       Mode mode = permission.getMode();
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createFileOptions = createFileOptions.setPermission(permission);
+    // This file is loaded from UFS. By setting default mode to false, umask will not be
+    // applied to loaded mode.
+    createFileOptions = createFileOptions.setPermission(permission).setDefaultMode(false);
 
     try {
       long counter = createFileAndJournal(inodePath, createFileOptions);
@@ -2064,7 +2303,9 @@ public final class FileSystemMaster extends AbstractMaster {
       Mode mode = permission.getMode();
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createDirectoryOptions = createDirectoryOptions.setPermission(permission);
+    // This directory is loaded from UFS. By setting default mode to false, umask will not be
+    // applied to loaded mode.
+    createDirectoryOptions = createDirectoryOptions.setPermission(permission).setDefaultMode(false);
 
     try {
       return createDirectoryAndJournal(inodePath, createDirectoryOptions);
@@ -2269,9 +2510,10 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Metrics.UNMOUNT_OPS.inc();
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    // Unmount should lock the parent to remove the child inode.
     try (
         LockedInodePath inodePath = mInodeTree
-            .lockFullInodePath(alluxioPath, InodeTree.LockMode.WRITE)) {
+            .lockFullInodePath(alluxioPath, InodeTree.LockMode.WRITE_PARENT)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       flushCounter = unmountAndJournal(inodePath);
       if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
@@ -2817,6 +3059,7 @@ public final class FileSystemMaster extends AbstractMaster {
     private static final Counter UNMOUNT_OPS = MetricsSystem.masterCounter("UnmountOps");
 
     public static final String FILES_PINNED = "FilesPinned";
+    public static final String PATHS_TOTAL = "PathsTotal";
     public static final String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
     public static final String UFS_CAPACITY_USED = "UfsCapacityUsed";
     public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";
@@ -2832,7 +3075,7 @@ public final class FileSystemMaster extends AbstractMaster {
               return master.getNumberOfPinnedFiles();
             }
           });
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName("PathsTotal"),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(PATHS_TOTAL),
           new Gauge<Integer>() {
             @Override
             public Integer getValue() {

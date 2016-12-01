@@ -200,8 +200,8 @@ public class JournalIntegrationTest {
     }
     mLocalAlluxioCluster.stopFS();
 
-    String journalFolder =
-        FileSystemMaster.getJournalDirectory(mLocalAlluxioCluster.getMaster().getJournalFolder());
+    String journalFolder = PathUtils.concatPath(mLocalAlluxioCluster.getMaster().getJournalFolder(),
+        Constants.FILE_SYSTEM_MASTER_NAME);
     Journal journal = new ReadWriteJournal(journalFolder);
     String completedPath = journal.getCompletedDirectory();
     Assert.assertTrue(
@@ -257,6 +257,7 @@ public class JournalIntegrationTest {
 
   @Test
   public void emptyImage() throws Exception {
+    Assert.assertEquals(0, mFileSystem.listStatus(mRootUri).size());
     mLocalAlluxioCluster.stopFS();
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
@@ -500,7 +501,7 @@ public class JournalIntegrationTest {
             return false;
           }
         }
-      }, 30 * Constants.SECOND_MS);
+      }, 60 * Constants.SECOND_MS);
     } finally {
       fsMaster.stop();
     }

@@ -49,6 +49,7 @@ public enum PropertyKey {
   // UFS related properties
   //
   UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR)),
+  UNDERFS_ALLOW_SET_OWNER_FAILURE(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE, false),
   UNDERFS_LISTING_LENGTH(Name.UNDERFS_LISTING_LENGTH, 1000),
   UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ""),
   UNDERFS_GLUSTERFS_IMPL(Name.UNDERFS_GLUSTERFS_IMPL,
@@ -135,6 +136,7 @@ public enum PropertyKey {
   MASTER_PRINCIPAL(Name.MASTER_PRINCIPAL, null),
   MASTER_RETRY(Name.MASTER_RETRY, 29),
   MASTER_RPC_PORT(Name.MASTER_RPC_PORT, 19998),
+  MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, true),
   MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS, "MEM"),
   MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS, "SSD"),
   MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS, "HDD"),
@@ -213,14 +215,17 @@ public enum PropertyKey {
   WORKER_WEB_PORT(Name.WORKER_WEB_PORT, 30000),
 
   //
+  // Proxy related properties
+  //
+  PROXY_WEB_BIND_HOST(Name.PROXY_WEB_BIND_HOST, "0.0.0.0"),
+  PROXY_WEB_HOSTNAME(Name.PROXY_WEB_HOSTNAME, null),
+  PROXY_WEB_PORT(Name.PROXY_WEB_PORT, 39999),
+
+  //
   // User related properties
   //
   USER_BLOCK_MASTER_CLIENT_THREADS(Name.USER_BLOCK_MASTER_CLIENT_THREADS, 10),
   USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "8MB"),
-  USER_BLOCK_REMOTE_READER_CLASS(Name.USER_BLOCK_REMOTE_READER_CLASS,
-      "alluxio.client.netty.NettyRemoteBlockReader"),
-  USER_BLOCK_REMOTE_WRITER_CLASS(Name.USER_BLOCK_REMOTE_WRITER_CLASS,
-      "alluxio.client.netty.NettyRemoteBlockWriter"),
   USER_BLOCK_SIZE_BYTES_DEFAULT(Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "512MB"),
   USER_BLOCK_WORKER_CLIENT_THREADS(Name.USER_BLOCK_WORKER_CLIENT_THREADS, 10),
   USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX, 128),
@@ -381,6 +386,8 @@ public enum PropertyKey {
     // UFS related properties
     //
     public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
+    public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
+        "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
@@ -482,6 +489,8 @@ public enum PropertyKey {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
+    public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
+        "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
@@ -598,16 +607,19 @@ public enum PropertyKey {
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
 
     //
+    // Proxy related properties
+    //
+    public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
+    public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
+    public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
+
+    //
     // User related properties
     //
     public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
         "alluxio.user.block.master.client.threads";
-    public static final String USER_BLOCK_REMOTE_READER_CLASS =
-        "alluxio.user.block.remote.reader.class";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
-    public static final String USER_BLOCK_REMOTE_WRITER_CLASS =
-        "alluxio.user.block.remote.writer.class";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
     public static final String USER_BLOCK_WORKER_CLIENT_THREADS =

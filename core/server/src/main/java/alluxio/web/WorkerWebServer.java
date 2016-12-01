@@ -27,15 +27,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 
 /**
- * A worker's UI web server.
+ * The Alluxio worker web server.
  */
 @NotThreadSafe
-public final class WorkerUIWebServer extends UIWebServer {
+public final class WorkerWebServer extends WebServer {
 
   public static final String ALLUXIO_WORKER_SERVLET_RESOURCE_KEY = "Alluxio Worker";
 
   /**
-   * Creates a new instance of {@link WorkerUIWebServer}.
+   * Creates a new instance of {@link WorkerWebServer}.
    *
    * @param webAddress the service address
    * @param alluxioWorker the alluxio worker
@@ -43,7 +43,7 @@ public final class WorkerUIWebServer extends UIWebServer {
    * @param connectHost the connect host for the web server
    * @param startTimeMs start time milliseconds
    */
-  public WorkerUIWebServer(InetSocketAddress webAddress,
+  public WorkerWebServer(InetSocketAddress webAddress,
       final AlluxioWorkerService alluxioWorker, BlockWorker blockWorker, String connectHost,
       long startTimeMs) {
     super("Alluxio worker web service", webAddress);

@@ -71,11 +71,6 @@
       <version>3.0</version>
     </dependency>
     <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-      <version>2.6.1</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
       <!--
@@ -218,6 +213,7 @@
             <html>
               <intro>${project.basedir}/src/main/resources/intro.html</intro>
               <title>Alluxio ${project.version} REST API</title>
+              <baseUrl>http://host:port/v1/api</baseUrl>
             </html>
           </output>
           <restModel>

@@ -16,7 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.master.AlluxioMaster;
+import alluxio.master.AlluxioMasterService;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
@@ -41,14 +41,14 @@ import javax.servlet.http.HttpServletResponse;
 @ThreadSafe
 public final class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
-  private final transient AlluxioMaster mMaster;
+  private final transient AlluxioMasterService mMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceMemoryServlet}.
    *
    * @param master Alluxio master
    */
-  public WebInterfaceMemoryServlet(AlluxioMaster master) {
+  public WebInterfaceMemoryServlet(AlluxioMasterService master) {
     mMaster = Preconditions.checkNotNull(master);
   }
 
@@ -66,7 +66,7 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
-    request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
+    request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
     request.setAttribute("fatalError", "");
     request.setAttribute("showPermissions",
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));

@@ -11,11 +11,7 @@
 
 package alluxio.client;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.util.CommonUtils;
-
-import com.google.common.base.Throwables;
+import alluxio.client.netty.NettyRemoteBlockWriter;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -39,13 +35,7 @@ public interface RemoteBlockWriter extends Closeable {
      * @return a new instance of {@link RemoteBlockWriter}
      */
     public static RemoteBlockWriter create() {
-      try {
-        return CommonUtils.createNewClassInstance(
-            Configuration.<RemoteBlockWriter>getClass(PropertyKey.USER_BLOCK_REMOTE_WRITER_CLASS),
-            null, null);
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
-      }
+      return new NettyRemoteBlockWriter();
     }
   }
 

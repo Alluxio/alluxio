@@ -36,8 +36,7 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.thrift.Command;
@@ -134,17 +133,19 @@ public final class FileSystemMasterTest {
     LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
+    // Set umask "000" to make default directory permission 0777 and default file permission 0666.
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
     Configuration.set(PropertyKey.UNDERFS_ADDRESS, mUnderFS);
-    Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
-    mBlockMaster = new BlockMaster(blockJournal);
+    JournalFactory journalFactory =
+        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
+    mBlockMaster = new BlockMaster(journalFactory);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal,
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
 
     mBlockMaster.start(true);
@@ -268,7 +269,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#getPersistenceState(AlluxioURI)} method.
+   * Tests the {@link FileSystemMaster#getPersistenceState(long)} method.
    */
   @Test
   public void getPersistenceState() throws Exception {
@@ -845,13 +846,13 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the permission bits are 0755 for directories and 0644 for files by default.
+   * Tests the permission bits are 0777 for directories and 0666 for files with UMASK 000.
    */
   @Test
   public void permission() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
-    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
-    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
+    Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
+    Assert.assertEquals(0666, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
   }
 
   /**

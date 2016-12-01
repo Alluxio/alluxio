@@ -19,7 +19,6 @@ import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -84,6 +83,23 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
 
+  /**
+   * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
+   * handler for tests.
+   *
+   * @param fileSystem handler to file system
+   */
+  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+  AbstractFileSystem(FileSystem fileSystem) {
+    sFileSystem = fileSystem;
+    sInitialized = true;
+  }
+
+  /**
+   * Constructs a new {@link AbstractFileSystem} instance.
+   */
+  AbstractFileSystem() {}
+
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
       throws IOException {
@@ -93,11 +109,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     try {
-      if (!sFileSystem.exists(uri)) {
-        return new FSDataOutputStream(sFileSystem.createFile(uri), mStatistics);
-      } else {
+      if (sFileSystem.exists(uri)) {
         throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
       }
+      return new FSDataOutputStream(sFileSystem.createFile(uri), mStatistics);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -185,7 +200,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
           throws IOException {
     AlluxioURI parentUri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path.getParent()));
     ensureExists(parentUri);
-    return this.create(path, permission, overwrite, bufferSize, replication, blockSize, progress);
+    return create(path, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
   /**
@@ -300,9 +315,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
-        BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
-            fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getMode()),
-            fileStatus.getOwner(), fileStatus.getGroup(), new Path(mAlluxioHeader + uri));
+        BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(),
+        fileStatus.getLastModificationTimeMs(),
+        fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getMode()),
+        fileStatus.getOwner(), fileStatus.getGroup(), new Path(mAlluxioHeader + uri));
   }
 
   /**
@@ -463,10 +479,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     FileStatus[] ret = new FileStatus[statuses.size()];
     for (int k = 0; k < statuses.size(); k++) {
       URIStatus status = statuses.get(k);
-      // TODO(hy): Replicate 3 with the number of disk replications.
-      ret[k] = new FileStatus(status.getLength(), status.isFolder(), 3, status.getBlockSizeBytes(),
-          status.getCreationTimeMs(), status.getCreationTimeMs(), null, null, null,
-          new Path(mAlluxioHeader + status.getPath()));
+
+      ret[k] = new FileStatus(status.getLength(), status.isFolder(), BLOCK_REPLICATION_CONSTANT,
+          status.getBlockSizeBytes(), status.getLastModificationTimeMs(),
+          status.getCreationTimeMs(), new FsPermission((short) status.getMode()), status.getOwner(),
+          status.getGroup(), new Path(mAlluxioHeader + status.getPath()));
     }
     return ret;
   }
@@ -571,13 +588,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   private List<FileBlockInfo> getFileBlocks(AlluxioURI path) throws IOException {
-    FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      return master.getStatus(path).getFileBlockInfos();
+      return sFileSystem.getStatus(path).getFileBlockInfos();
     } catch (AlluxioException e) {
       throw new IOException(e);
-    } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(master);
     }
   }
 }

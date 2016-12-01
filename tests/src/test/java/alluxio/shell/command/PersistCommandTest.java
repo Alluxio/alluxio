@@ -17,9 +17,15 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.hdfs.HdfsUnderFileSystem;
+import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -136,5 +142,35 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals("persisted file " + testFilePath + " with size 10\n" + testFilePath
         + " is already persisted\n", mOutput.toString());
     checkFilePersisted(new AlluxioURI("/testPersist/testFile"), 10);
+  }
+
+  @Test
+  public void persistWithAncestorPermission() throws Exception {
+    String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
+    if (!(ufs instanceof LocalUnderFileSystem) && !(ufs instanceof HdfsUnderFileSystem)) {
+      // Skip non-local and non-HDFS UFSs.
+      return;
+    }
+    AlluxioURI testFile = new AlluxioURI("/grand/parent/file");
+    AlluxioURI grandParent = new AlluxioURI("/grand");
+    short grandParentMode = (short) 0777;
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
+    URIStatus status = mFileSystem.getStatus(testFile);
+    Assert.assertFalse(status.isPersisted());
+    mFileSystem.setAttribute(grandParent, SetAttributeOptions.defaults().setMode(grandParentMode));
+    int ret = mFsShell.run("persist", testFile.toString());
+
+    Assert.assertEquals(0, ret);
+    checkFilePersisted(testFile, 10);
+
+    // Check the permission of the created file and ancestor dir are in-sync between Alluxio and UFS
+    short fileMode = (short) status.getMode();
+    short parentMode = (short) mFileSystem.getStatus(testFile.getParent()).getMode();
+    Assert.assertEquals(fileMode, ufs.getMode(PathUtils.concatPath(ufsRoot, testFile)));
+    Assert.assertEquals(parentMode,
+        ufs.getMode(PathUtils.concatPath(ufsRoot, testFile.getParent())));
+    Assert.assertEquals(grandParentMode,
+        ufs.getMode(PathUtils.concatPath(ufsRoot, grandParent)));
   }
 }

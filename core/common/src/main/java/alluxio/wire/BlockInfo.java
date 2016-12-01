@@ -23,7 +23,7 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The block descriptor.
+ * The block information.
  */
 @PublicApi
 @NotThreadSafe
@@ -42,7 +42,7 @@ public final class BlockInfo implements Serializable {
   /**
    * Creates a new instance of {@link BlockInfo} from a thrift representation.
    *
-   * @param blockInfo the thrift representation of a block descriptor
+   * @param blockInfo the thrift representation of a block information
    */
   protected BlockInfo(alluxio.thrift.BlockInfo blockInfo) {
     mBlockId = blockInfo.getBlockId();
@@ -76,7 +76,7 @@ public final class BlockInfo implements Serializable {
 
   /**
    * @param blockId the block id to use
-   * @return the block descriptor
+   * @return the block information
    */
   public BlockInfo setBlockId(long blockId) {
     mBlockId = blockId;
@@ -85,7 +85,7 @@ public final class BlockInfo implements Serializable {
 
   /**
    * @param length the block length to use
-   * @return the block descriptor
+   * @return the block information
    */
   public BlockInfo setLength(long length) {
     mLength = length;
@@ -94,7 +94,7 @@ public final class BlockInfo implements Serializable {
 
   /**
    * @param locations the block locations to use
-   * @return the block descriptor
+   * @return the block information
    */
   public BlockInfo setLocations(List<BlockLocation> locations) {
     Preconditions.checkNotNull(locations);
@@ -103,7 +103,7 @@ public final class BlockInfo implements Serializable {
   }
 
   /**
-   * @return thrift representation of the block descriptor
+   * @return thrift representation of the block information
    */
   protected alluxio.thrift.BlockInfo toThrift() {
     List<alluxio.thrift.BlockLocation> locations = new ArrayList<>();

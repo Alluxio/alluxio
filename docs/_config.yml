@@ -9,6 +9,8 @@ ALLUXIO_RELEASED_VERSION: 1.3.0
 # For example, "master" for the master branch, and 1.1 for 1.1.x releases and release candidates.
 ALLUXIO_MASTER_VERSION_SHORT: master
 
+ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
+
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
   -

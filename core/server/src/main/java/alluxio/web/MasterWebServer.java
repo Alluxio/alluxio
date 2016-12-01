@@ -12,7 +12,7 @@
 package alluxio.web;
 
 import alluxio.Constants;
-import alluxio.master.AlluxioMaster;
+import alluxio.master.AlluxioMasterService;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -26,22 +26,22 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 
 /**
- * A master's UI web server.
+ * The Alluxio master web server.
  */
 @NotThreadSafe
-public final class MasterUIWebServer extends UIWebServer {
+public final class MasterWebServer extends WebServer {
 
   public static final String ALLUXIO_MASTER_SERVLET_RESOURCE_KEY = "Alluxio Master";
 
   /**
-   * Creates a new instance of {@link MasterUIWebServer}.
+   * Creates a new instance of {@link MasterWebServer}.
    *
    * @param serviceName the service name
    * @param address the service address
    * @param master the Alluxio master
    */
-  public MasterUIWebServer(String serviceName, InetSocketAddress address,
-      final AlluxioMaster master) {
+  public MasterWebServer(String serviceName, InetSocketAddress address,
+      final AlluxioMasterService master) {
     super(serviceName, address);
     Preconditions.checkNotNull(master, "Alluxio master cannot be null");
 

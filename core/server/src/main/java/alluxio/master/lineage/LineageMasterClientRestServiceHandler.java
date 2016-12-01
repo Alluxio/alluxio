@@ -16,8 +16,8 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
-import alluxio.master.AlluxioMaster;
-import alluxio.web.MasterUIWebServer;
+import alluxio.master.AlluxioMasterService;
+import alluxio.web.MasterWebServer;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 
@@ -40,10 +40,13 @@ import javax.ws.rs.core.Response;
 
 /**
  * This class is a REST handler for lineage master requests.
+ *
+ * @deprecated since version 1.4 and will be removed in version 2.0
  */
 @NotThreadSafe
 @Path(LineageMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
+@Deprecated
 public final class LineageMasterClientRestServiceHandler {
   public static final String SERVICE_PREFIX = "master/lineage";
   public static final String SERVICE_NAME = "service_name";
@@ -63,9 +66,8 @@ public final class LineageMasterClientRestServiceHandler {
    */
   public LineageMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    AlluxioMaster master =
-        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
-    mLineageMaster = master.getLineageMaster();
+    mLineageMaster = ((AlluxioMasterService) context
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).getLineageMaster();
   }
 
   /**

@@ -19,6 +19,7 @@ import alluxio.client.ReadType;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.security.authorization.Permission;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -159,15 +161,27 @@ public final class FileSystemUtils {
       FileInStream in = closer.register(fs.openFile(uri, options));
       AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
       UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath.toString());
-      String parentPath = dstPath.getParent().toString();
-      if (!ufs.isDirectory(parentPath)) {
-        URIStatus parentStatus = fs.getStatus(uri.getParent());
-        Permission parentPerm = new Permission(parentStatus.getOwner(), parentStatus.getGroup(),
-            (short) parentStatus.getMode());
-        MkdirsOptions parentMkdirsOptions = MkdirsOptions.defaults().setCreateParent(true)
-            .setPermission(parentPerm);
-        if (!ufs.mkdirs(parentPath, parentMkdirsOptions)) {
-          throw new IOException("Failed to create " + parentPath);
+      // Create ancestor directories from top to the bottom. We cannot use recursive create parents
+      // here because the permission for the ancestors can be different.
+      Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
+      AlluxioURI curAlluxioPath = uri.getParent();
+      AlluxioURI curUfsPath = dstPath.getParent();
+      // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not exist.
+      while (!ufs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
+        URIStatus curDirStatus = fs.getStatus(curAlluxioPath);
+        Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
+            (short) curDirStatus.getMode());
+        ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
+            MkdirsOptions.defaults().setCreateParent(false).setPermission(perm)));
+
+        curAlluxioPath = curAlluxioPath.getParent();
+        curUfsPath = curUfsPath.getParent();
+      }
+      while (!ufsDirsToMakeWithOptions.empty()) {
+        Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
+        if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
+          throw new IOException("Failed to create " + ufsDirAndPerm.getFirst() + " with permission "
+              + ufsDirAndPerm.getSecond().toString());
         }
       }
       URIStatus uriStatus = fs.getStatus(uri);

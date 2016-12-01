@@ -16,8 +16,10 @@ import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.LineageDoesNotExistException;
+import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
@@ -46,7 +48,7 @@ public final class LineageFileSystemTest {
    * Sets up all dependencies before running a test.
    */
   @Before
-  public void before() {
+  public void before() throws Exception {
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
 
@@ -55,6 +57,8 @@ public final class LineageFileSystemTest {
 
     FileSystemMasterClient fileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     Mockito.when(fileSystemContext.acquireMasterClient()).thenReturn(fileSystemMasterClient);
+    Mockito.when(fileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class)))
+        .thenReturn(new URIStatus(new FileInfo()));
 
     mAlluxioLineageFileSystem = LineageFileSystem.get(fileSystemContext, mLineageContext);
   }
@@ -103,7 +107,6 @@ public final class LineageFileSystemTest {
         .when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0,
             TtlAction.DELETE))
         .thenThrow(new LineageDoesNotExistException("lineage does not exist"));
-
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE)
         .setTtl(0);
     FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
