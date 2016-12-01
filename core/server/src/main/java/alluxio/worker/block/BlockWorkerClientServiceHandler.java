@@ -194,6 +194,10 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @return the tier level to use for allocation
    */
   private int getLevelFromPolicy(final TTierPolicy tTierPolicy) {
+    if (tTierPolicy == null) {
+      return 0;
+    }
+
     switch (tTierPolicy) {
       case Highest:
         return 0;
