@@ -38,7 +38,7 @@ else
 fi
 
 if [[ -z "$YARN_HOME" ]]; then
-  echo "\$YARN_HOME is unset, will use \$HADOOP_HOME instead." >&2
+  echo "\$YARN_HOME is unset, will use \$HADOOP_HOME instead."
 fi
 YARN_HOME=${YARN_HOME:-${HADOOP_HOME}}
 
