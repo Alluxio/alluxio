@@ -302,7 +302,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     ListObjectsV2Request request =
         new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(key)
-            .withDelimiter(delimiter).withMaxKeys(LISTING_LENGTH);
+            .withDelimiter(delimiter).withMaxKeys(getListingLength());
     ListObjectsV2Result result = getObjectListingChunk(request);
     if (result != null) {
       return new S3AObjectListingResult(request, result);

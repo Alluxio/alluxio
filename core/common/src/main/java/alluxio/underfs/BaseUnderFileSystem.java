@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
@@ -51,8 +52,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
    * @param uri the {@link AlluxioURI} used to create this ufs
    */
   protected BaseUnderFileSystem(AlluxioURI uri) {
-    Preconditions.checkNotNull(uri);
-    mUri = uri;
+    mUri = Preconditions.checkNotNull(uri);
   }
 
   @Override
@@ -80,33 +80,31 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
     if (!options.isRecursive()) {
       return listStatus(path);
     }
-    // Clean the path by creating a URI and turning it back to a string
-    AlluxioURI uri = new AlluxioURI(path);
-    path = uri.toString();
+    path = validatePath(path);
     List<UnderFileStatus> returnPaths = new ArrayList<>();
-    Queue<UnderFileStatus> pathsToProcess = new ArrayDeque<>();
+    // Each element is a pair of (full path, UnderFileStatus)
+    Queue<Pair<String, UnderFileStatus>> pathsToProcess = new ArrayDeque<>();
     // We call list initially, so we can return null if the path doesn't denote a directory
     UnderFileStatus[] subpaths = listStatus(path);
     if (subpaths == null) {
       return null;
     } else {
       for (UnderFileStatus subp : subpaths) {
-        pathsToProcess.add(
-            new UnderFileStatus(PathUtils.concatPath(path, subp.getName()), subp.isDirectory()));
+        pathsToProcess.add(new Pair<>(PathUtils.concatPath(path, subp.getName()), subp));
       }
     }
     while (!pathsToProcess.isEmpty()) {
-      UnderFileStatus p = pathsToProcess.remove();
-      returnPaths
-          .add(new UnderFileStatus(p.getName().substring(path.length() + 1), p.isDirectory()));
+      Pair<String, UnderFileStatus> pathToProcess = pathsToProcess.remove();
+      returnPaths.add(new UnderFileStatus(pathToProcess.getFirst().substring(path.length() + 1),
+          pathToProcess.getSecond().isDirectory()));
 
-      if (p.isDirectory()) {
+      if (pathToProcess.getSecond().isDirectory()) {
         // Add all of its subpaths
-        subpaths = listStatus(p.getName());
+        subpaths = listStatus(pathToProcess.getSecond().getName());
         if (subpaths != null) {
           for (UnderFileStatus subp : subpaths) {
-            pathsToProcess.add(
-                new UnderFileStatus(PathUtils.concatPath(p, subp.getName()), subp.isDirectory()));
+            pathsToProcess
+                .add(new Pair<>(PathUtils.concatPath(pathToProcess, subp.getName()), subp));
           }
         }
       }
@@ -134,5 +132,15 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   public void setProperties(Map<String, String> properties) {
     mProperties.clear();
     mProperties.putAll(properties);
+  }
+
+  /**
+   * Clean the path by creating a URI and turning it back to a string.
+   *
+   * @param path the path to validate
+   * @return validated path
+   */
+  protected static String validatePath(String path) {
+    return new AlluxioURI(path).toString();
   }
 }

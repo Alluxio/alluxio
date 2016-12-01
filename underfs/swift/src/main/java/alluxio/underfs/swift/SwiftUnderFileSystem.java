@@ -289,8 +289,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectListingResult getObjectListing(String key, boolean recursive)
       throws IOException {
     Container container = mAccount.getContainer(mContainerName);
-    PaginationMap paginationMap =
-        container.getPaginationMap(PathUtils.normalizePath(key, PATH_SEPARATOR), LISTING_LENGTH);
+    PaginationMap paginationMap = container
+        .getPaginationMap(PathUtils.normalizePath(key, PATH_SEPARATOR), getListingLength());
     if (paginationMap != null && paginationMap.getNumberOfPages() > 0) {
       return new SwiftObjectListingResult(paginationMap, 0, recursive);
     }

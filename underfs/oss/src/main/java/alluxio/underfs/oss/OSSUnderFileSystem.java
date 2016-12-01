@@ -179,7 +179,7 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     ListObjectsRequest request = new ListObjectsRequest(mBucketName);
     request.setPrefix(key);
-    request.setMaxKeys(LISTING_LENGTH);
+    request.setMaxKeys(getListingLength());
     request.setDelimiter(delimiter);
 
     ObjectListing result = getObjectListingChunk(request);

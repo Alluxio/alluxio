@@ -45,14 +45,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Maximum length for a single listing query. */
-  private static final int LISTING_LENGTH_MAX = 1000;
-
-  /** Length of each list request. */
-  protected static final int LISTING_LENGTH =
-      Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > LISTING_LENGTH_MAX
-          ? LISTING_LENGTH_MAX : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
-
   /** Value used to indicate nested structure. */
   protected static final char PATH_SEPARATOR_CHAR = '/';
 
@@ -72,11 +64,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Information about a single object in object UFS.
    */
   protected class ObjectStatus {
-    long mFileSize;
-    long mLastModifiedTimeMs;
+    final long mContentLength;
+    final long mLastModifiedTimeMs;
 
     public ObjectStatus(long fileSize, long lastModifiedTimeMs) {
-      mFileSize = fileSize;
+      mContentLength = fileSize;
       mLastModifiedTimeMs = lastModifiedTimeMs;
     }
 
@@ -86,7 +78,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @return the file size in bytes
      */
     public long getContentLength() {
-      return mFileSize;
+      return mContentLength;
     }
 
     /**
@@ -106,7 +98,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     /**
      * Objects in a pseudo-directory which may be a file or a directory.
      *
-     * @return a list of objects
+     * @return a list of object names
      */
     String[] getObjectNames();
 
@@ -144,7 +136,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (mkdirs(getParentPath(path))) {
       return createObject(stripPrefixIfPresent(path));
     }
-    return null;
+    throw new IOException(String.format("Unable to create parent directories for path %s", path));
   }
 
   @Override
@@ -157,7 +149,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (!options.isRecursive()) {
       UnderFileStatus[] children = listInternal(path, ListOptions.defaults());
       if (children == null) {
-        LOG.error("Unable to delete {} because listInternal returns null", path);
+        LOG.error("Unable to delete path because {} is not a directory ", path);
         return false;
       }
       if (children.length != 0) {
@@ -452,7 +444,27 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Get metadata information about object.
+   * Maximum number of items in a single listing chunk supported by the under store.
+   *
+   * @return the maximum length for a single listing query
+   */
+  protected int getListingLengthMax() {
+    return 1000;
+  }
+
+  /**
+   * The number of items to query in a single listing chunk.
+   *
+   * @return length of each list request
+   */
+  protected int getListingLength() {
+    return Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > getListingLengthMax()
+        ? getListingLengthMax() : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
+  }
+
+  /**
+   * Get metadata information about object. Implementations should process the key as is, which
+   * may be a file or a directory key.
    *
    * @param key ufs key to get metadata for
    * @return {@link ObjectStatus} if key exists and successful, otherwise null
