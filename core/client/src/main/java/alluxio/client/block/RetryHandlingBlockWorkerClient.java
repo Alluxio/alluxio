@@ -197,7 +197,6 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public LockBlockResult lockBlock(final long blockId) throws IOException, AlluxioException {
-    // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     return retryRPC(
         new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService
             .Client>() {

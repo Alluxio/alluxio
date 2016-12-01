@@ -14,8 +14,6 @@ package alluxio.client.block;
 import alluxio.client.RemoteBlockReader;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
@@ -76,9 +74,6 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(workerNetAddress));
       LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
       mLockId = result.getLockId();
-    } catch (BlockDoesNotExistException e) {
-      mCloser.close();
-      throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId), e);
     } catch (AlluxioException e) {
       mCloser.close();
       throw new IOException(e);
