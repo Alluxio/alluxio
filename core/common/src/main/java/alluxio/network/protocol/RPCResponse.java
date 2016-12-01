@@ -30,7 +30,6 @@ public abstract class RPCResponse extends RPCMessage {
   public enum Status {
     // Success.
     SUCCESS(0),
-    STREAM_PACKET(4),
     // Generic errors.
     UNEXPECTED_STATUS_CODE(1),
     DECODE_ERROR(2),

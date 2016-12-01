@@ -42,7 +42,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The class to read remote block from data server.
+ * Read remote block from the netty data server.
  *
  * Protocol:
  * 1. Client sends a read request (blockId, offset, length).
@@ -60,13 +60,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class NettyBlockReader implements BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final int MAX_BUFFER_SIZE = 10;
   private final Channel mChannel;
   private final InetSocketAddress mAddress;
   private final long mBlockId;
   private final long mStart;
   private final long mBytesToRead;
   private final Handler mHandler = new Handler();
-  private static final int MAX_BUFFER_SIZE = 10;
 
   private ReentrantLock mLock = new ReentrantLock();
   @GuardedBy("mLock")
@@ -75,8 +75,9 @@ public class NettyBlockReader implements BlockReader {
   private Throwable mPacketReaderException = null;
   private Condition mNotEmpty = mLock.newCondition();
 
-  private long mPosRead;
-  // This is true only when an empty packet is received.
+  /** The next pos to read. */
+  private long mPosToRead;
+  /** This is true only when an empty packet is received. */
   private boolean mDone = false;
 
   /**
@@ -128,7 +129,7 @@ public class NettyBlockReader implements BlockReader {
     mAddress = address;
     mBlockId = blockId;
     mStart = offset;
-    mPosRead = offset;
+    mPosToRead = offset;
     mBytesToRead = len;
 
     Preconditions.checkState(offset >= 0 && len > 0);
@@ -146,7 +147,7 @@ public class NettyBlockReader implements BlockReader {
 
   @Override
   public long pos() {
-    return mPosRead;
+    return mPosToRead;
   }
 
   @Override
@@ -173,8 +174,8 @@ public class NettyBlockReader implements BlockReader {
           mDone = true;
           return null;
         }
-        mPosRead += buf.readableBytes();
-        Preconditions.checkState(mPosRead - mStart <= mBytesToRead);
+        mPosToRead += buf.readableBytes();
+        Preconditions.checkState(mPosToRead - mStart <= mBytesToRead);
         return buf;
       } finally {
         mLock.unlock();

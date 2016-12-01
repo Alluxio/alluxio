@@ -72,10 +72,10 @@ final public class BlockWriteDataServerHandler
   private volatile BlockWriter mBlockWriter = null;
   private volatile long mBlockId = 0;
   private volatile long mSessionId = 0;
-  // The next pos to queue.
-  private volatile long mPosQueue = 0;
-  // The next pos to write to disk.
-  private volatile long mPosWrite = 0;
+  // The next pos to queue to the buffer.
+  private volatile long mPosToQueue = 0;
+  // The next pos to write to the block worker.
+  private volatile long mPosToWrite = 0;
 
   public BlockWriteDataServerHandler(BlockWorker blockWorker) {
     mWorker = blockWorker;
@@ -116,7 +116,7 @@ final public class BlockWriteDataServerHandler
           break;
         }
         try {
-          if (mPosWrite == 0) {
+          if (mPosToWrite == 0) {
             // This is the first write to the block, so create the temp block file. The file will
             // only
             // be created if the first write starts at offset 0. This allocates enough space for the
@@ -128,7 +128,7 @@ final public class BlockWriteDataServerHandler
             mWorker.requestSpace(mSessionId, mBlockId, buf.readableBytes());
           }
           mBlockWriter.append(buf.nioBuffer());
-          mPosWrite += buf.readableBytes();
+          mPosToWrite += buf.readableBytes();
         } catch (Exception e) {
           try {
             mLock.lock();
@@ -162,7 +162,7 @@ final public class BlockWriteDataServerHandler
         throw mPacketWriterException;
       }
       mPackets.offer(buf);
-      mPosQueue += buf.readableBytes();
+      mPosToQueue += buf.readableBytes();
       if (!mPacketWriterActive) {
         PACKET_WRITERS.submit(new PacketWriter(ctx));
         mPacketWriterActive = true;
@@ -196,19 +196,19 @@ final public class BlockWriteDataServerHandler
       mBlockWriter = mWorker.getTempBlockWriterRemote(mSessionId, mBlockId);
       mBlockId = msg.getBlockId();
       mSessionId = msg.getSessionId();
-      mPosQueue = 0;
-      mPosWrite = 0;
+      mPosToQueue = 0;
+      mPosToWrite = 0;
     }
   }
 
   private boolean validateRequest(RPCBlockWriteRequest msg) {
-    if (msg.getOffset() == 0 && (mPosQueue != 0 || mPosWrite != 0)) {
+    if (msg.getOffset() == 0 && (mPosToQueue != 0 || mPosToWrite != 0)) {
       return false;
     }
     if (msg.getBlockId() != mBlockId || msg.getLength() < 0) {
       return false;
     }
-    if (msg.getOffset() != mPosQueue) {
+    if (msg.getOffset() != mPosToQueue) {
       return false;
     }
 
@@ -221,13 +221,13 @@ final public class BlockWriteDataServerHandler
 
   private void replyError(ChannelHandlerContext ctx) {
     ctx.writeAndFlush(
-        new RPCBlockWriteResponse(mSessionId, mBlockId, mPosQueue, 0, RPCResponse.Status.FAILED))
+        new RPCBlockWriteResponse(mSessionId, mBlockId, mPosToQueue, 0, RPCResponse.Status.FAILED))
         .addListener(ChannelFutureListener.CLOSE);
   }
 
   private void replySuccess(ChannelHandlerContext ctx) {
     RPCBlockWriteResponse response =
-        new RPCBlockWriteResponse(mSessionId, mBlockId, mPosQueue, 0, RPCResponse.Status.SUCCESS);
+        new RPCBlockWriteResponse(mSessionId, mBlockId, mPosToQueue, 0, RPCResponse.Status.SUCCESS);
     cleanUp();
     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
     ctx.channel().config().setAutoRead(true);
@@ -238,8 +238,8 @@ final public class BlockWriteDataServerHandler
     mBlockWriter = null;
     mBlockId = 0;
     mSessionId = 0;
-    mPosQueue = 0;
-    mPosWrite = 0;
+    mPosToQueue = 0;
+    mPosToWrite = 0;
 
     try {
       mLock.lock();

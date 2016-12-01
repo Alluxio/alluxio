@@ -50,6 +50,7 @@ public class NettyBlockWriter implements BlockWriter {
   private final InetSocketAddress mAddress;
   private final long mBlockId;
   private final long mSessionId;
+  private final Handler mHandler = new Handler();
 
   // TODO(now): Fix
   private static final long PACKET_SIZE = 64 * 1024;
@@ -70,7 +71,6 @@ public class NettyBlockWriter implements BlockWriter {
   @GuardedBy("mLock")
   private boolean mLastPacketSent = false;
 
-  private Handler mHandler = new Handler();
 
   private final class Handler extends ChannelInboundHandlerAdapter {
     @Override
@@ -82,8 +82,8 @@ public class NettyBlockWriter implements BlockWriter {
             .format("Failed to write block %d from %s with status %s.", mBlockId, mAddress,
                 response.getStatus().getMessage()));
       }
+      mLock.lock();
       try {
-        mLock.lock();
         mDone = true;
         mDoneCondition.notify();
       } finally {
