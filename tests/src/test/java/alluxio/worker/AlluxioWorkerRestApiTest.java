@@ -17,7 +17,6 @@ import alluxio.RuntimeConstants;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
 
@@ -70,8 +69,8 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getRpcAddress() throws Exception {
-    Assert.assertTrue(getInfo().getRpcAddress()
-        .contains(String.valueOf(NetworkAddressUtils.getPort(ServiceType.WORKER_RPC))));
+    Assert.assertTrue(
+        NetworkAddressUtils.parseInetSocketAddress(getInfo().getRpcAddress()).getPort() > 0);
   }
 
   @Test
