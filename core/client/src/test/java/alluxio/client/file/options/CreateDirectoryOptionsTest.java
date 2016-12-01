@@ -41,7 +41,7 @@ public class CreateDirectoryOptionsTest {
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
     Assert.assertFalse(options.isAllowExists());
     Assert.assertFalse(options.isRecursive());
-    Assert.assertEquals(mDefaultWriteType.getUnderStorageType(), options.getUnderStorageType());
+    Assert.assertEquals(mDefaultWriteType, options.getWriteType());
   }
 
   /**
@@ -64,7 +64,7 @@ public class CreateDirectoryOptionsTest {
     Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(mode, options.getMode());
     Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
+    Assert.assertEquals(writeType, options.getWriteType());
   }
 
   /**

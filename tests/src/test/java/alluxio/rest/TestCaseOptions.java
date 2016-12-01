@@ -20,10 +20,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Method options for creating a REST API test case.
  */
+// TODO(jiri): consolidate input stream and body fields
 @NotThreadSafe
 public final class TestCaseOptions {
+  private Object mBody;
   private InputStream mInputStream;
-  private String mJsonString;
   private boolean mPrettyPrint;
 
   /**
@@ -34,9 +35,16 @@ public final class TestCaseOptions {
   }
 
   private TestCaseOptions() {
+    mBody = null;
     mInputStream = null;
-    mJsonString = null;
     mPrettyPrint = false;
+  }
+
+  /**
+   * @return the object representing the data to be sent to the web server
+   */
+  public Object getBody() {
+    return mBody;
   }
 
   /**
@@ -47,17 +55,19 @@ public final class TestCaseOptions {
   }
 
   /**
-   * @return the JSON string representing data to be sent to the web server
-   */
-  public String getJsonString() {
-    return mJsonString;
-  }
-
-  /**
    * @return the pretty print flag
    */
   public boolean isPrettyPrint() {
     return mPrettyPrint;
+  }
+
+  /**
+   * @param body the body to use
+   * @return the updated options object
+   */
+  public TestCaseOptions setBody(Object body) {
+    mBody = body;
+    return this;
   }
 
   /**
@@ -66,15 +76,6 @@ public final class TestCaseOptions {
    */
   public TestCaseOptions setInputStream(InputStream inputStream) {
     mInputStream = inputStream;
-    return this;
-  }
-
-  /**
-   * @param jsonString the JSON string to use
-   * @return the updated options object
-   */
-  public TestCaseOptions setJsonString(String jsonString) {
-    mJsonString = jsonString;
     return this;
   }
 
@@ -96,21 +97,21 @@ public final class TestCaseOptions {
       return false;
     }
     TestCaseOptions that = (TestCaseOptions) o;
-    return Objects.equal(mInputStream, that.mInputStream)
-        && Objects.equal(mJsonString, that.mJsonString)
+    return Objects.equal(mBody, that.mBody)
+        && Objects.equal(mInputStream, that.mInputStream)
         && mPrettyPrint == that.mPrettyPrint;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mInputStream, mJsonString, mPrettyPrint);
+    return Objects.hashCode(mBody, mInputStream, mPrettyPrint);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("body", mBody)
         .add("input stream", mInputStream)
-        .add("JSON string", mJsonString)
         .add("pretty print", mPrettyPrint)
         .toString();
   }
