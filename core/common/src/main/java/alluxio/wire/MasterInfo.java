@@ -48,7 +48,7 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @return thrift representation of the lineage information
+   * @return thrift representation of the master information
    */
   public alluxio.thrift.MasterInfo toThrift() {
     return new alluxio.thrift.MasterInfo().setWebPort(mWebPort);

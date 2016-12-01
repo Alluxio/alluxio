@@ -19,7 +19,7 @@ import java.io.Closeable;
 import java.util.Set;
 
 /**
- * Interface for the client to the meta master.
+ * Interface for a client to the meta master.
  */
 public interface MetaMasterClient extends Closeable {
   /**

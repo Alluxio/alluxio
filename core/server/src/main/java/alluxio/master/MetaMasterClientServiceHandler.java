@@ -44,9 +44,6 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
     return Constants.META_MASTER_CLIENT_SERVICE_VERSION;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public MasterInfo getInfo(Set<MasterInfoField> fields) throws TException {
     if (fields == null) {
