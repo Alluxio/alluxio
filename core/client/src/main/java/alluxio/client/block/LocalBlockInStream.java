@@ -67,7 +67,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       mReader = mCloser.register(new LocalFileBlockReader(result.getBlockPath()));
     } catch (BlockDoesNotExistException e) {
       mCloser.close();
-      throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
+      throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId), e);
     } catch (AlluxioException e) {
       mCloser.close();
       throw new IOException(e);

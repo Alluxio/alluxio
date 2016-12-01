@@ -78,7 +78,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       mLockId = result.getLockId();
     } catch (BlockDoesNotExistException e) {
       mCloser.close();
-      throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
+      throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId), e);
     } catch (AlluxioException e) {
       mCloser.close();
       throw new IOException(e);
