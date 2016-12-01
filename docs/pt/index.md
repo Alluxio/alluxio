@@ -28,7 +28,7 @@ podem rodar com o Alluxio sem nenhuma alteração no código. O projeto é um c�
 ([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)) e está implementado em 
 várias companhias. É um dos projetos de código aberto que está crescendo mais rápido, em menos de três anos 
 de sua história em código aberto, o Alluxio já atraiu mais de 
-[160 contribuidores](https://github.com/alluxio/alluxio/graphs/contributors) de mais de 50 instituições, 
+[400 contribuidores](https://github.com/alluxio/alluxio/graphs/contributors) de mais de 100 instituições, 
 incluindo [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com),
 [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/), [Red Hat](https://www.redhat.com/),
