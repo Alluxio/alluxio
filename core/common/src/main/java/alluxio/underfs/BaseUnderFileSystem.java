@@ -102,7 +102,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
       if (pathStatus.isDirectory()) {
         // Add all of its subpaths
-        subpaths = listStatus(pathStatus.getName());
+        subpaths = listStatus(pathToProcess);
         if (subpaths != null) {
           for (UnderFileStatus subp : subpaths) {
             pathsToProcess
