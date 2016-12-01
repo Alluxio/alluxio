@@ -15,6 +15,7 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 /**
  * The interface to read remote block from data server.
@@ -25,5 +26,5 @@ public interface BlockWriter extends Closeable {
   long pos();
 
   @Override
-  void close() throws IOException;
+  void close();
 }

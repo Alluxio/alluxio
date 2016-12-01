@@ -188,6 +188,13 @@ public enum PropertyKey {
   WORKER_NETWORK_NETTY_WATERMARK_HIGH(Name.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "32KB"),
   WORKER_NETWORK_NETTY_WATERMARK_LOW(Name.WORKER_NETWORK_NETTY_WATERMARK_LOW, "8KB"),
   WORKER_NETWORK_NETTY_WORKER_THREADS(Name.WORKER_NETWORK_NETTY_WORKER_THREADS, 0),
+  WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS(
+      Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS, 32),
+  WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS(
+      Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 32),
+  WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES(
+      Name.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"),
+
   WORKER_PRINCIPAL(Name.WORKER_PRINCIPAL, null),
   WORKER_RPC_PORT(Name.WORKER_RPC_PORT, 29998),
   WORKER_SESSION_TIMEOUT_MS(Name.WORKER_SESSION_TIMEOUT_MS, 60000),
@@ -263,6 +270,12 @@ public enum PropertyKey {
   USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS(
       Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS),
   USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED(Name.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED, false),
+  USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES,
+      "64KB"),
+  USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS,
+      32),
+  USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS,
+      32),
   USER_UFS_DELEGATION_ENABLED(Name.USER_UFS_DELEGATION_ENABLED, true),
   USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES,
       "8MB"),
@@ -572,6 +585,12 @@ public enum PropertyKey {
         "alluxio.worker.network.netty.watermark.low";
     public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.worker.network.netty.worker.threads";
+    public static final String WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+        "alluxio.worker.network.netty.writer.buffer.size.packets";
+    public static final String WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+        "alluxio.worker.network.netty.reader.buffer.size.packets";
+    public static final String WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
+        "alluxio.worker.network.netty.reader.packet.size.bytes";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
@@ -677,6 +696,12 @@ public enum PropertyKey {
         "alluxio.user.network.netty.channel.pool.gc.threshold.ms";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
         "alluxio.user.network.netty.channel.pool.disabled";
+    public static final String USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
+        "alluxio.user.network.netty.writer.packet.size.bytes";
+    public static final String USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+        "alluxio.user.network.netty.writer.buffer.size.packets";
+    public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+        "alluxio.user.network.netty.reader.buffer.size.packets";
     public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";

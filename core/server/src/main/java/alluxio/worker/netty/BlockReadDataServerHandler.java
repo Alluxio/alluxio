@@ -11,7 +11,9 @@
 
 package alluxio.worker.netty;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
@@ -52,13 +54,15 @@ final public class BlockReadDataServerHandler
     extends SimpleChannelInboundHandler<RPCBlockReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private static final long PACKET_SIZE =
+      Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
+  private static final long MAX_PACKETS_IN_FLIGHT =
+      Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
+
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
   /** The transfer type used by the data server. */
   private final FileTransferType mTransferType;
-
- private static final int PACKET_SIZE = 64 * 1024;
-  private static final long MAX_PACKETS_IN_FLIGHT = 128;
 
   private ReentrantLock mLock = new ReentrantLock();
   @GuardedBy("mLock")

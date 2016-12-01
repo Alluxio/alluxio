@@ -11,7 +11,9 @@
 
 package alluxio.worker.netty;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.network.protocol.RPCBlockWriteRequest;
@@ -38,17 +40,21 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class handles {@link RPCBlockWriteRequest}s.
+ *
+ * Protocol: See comments of {@link alluxio.client.block.stream.NettyBlockWriter}.
  */
 @NotThreadSafe
 final public class BlockWriteDataServerHandler
     extends SimpleChannelInboundHandler<RPCBlockWriteRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private static final int MAX_PACKETS_IN_FLIGHT =
+      Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS);
+
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();;
-
 
   // TODO(now): init these.
   private static final ExecutorService PACKET_WRITERS = null;
@@ -64,8 +70,6 @@ final public class BlockWriteDataServerHandler
   private boolean mPacketWriterActive = false;
   @GuardedBy("mLock")
   private Exception mPacketWriterException = null;
-
-  private final int MAX_BUFFER_SIZE = 10;
 
   // The following are the states associated with a block write. They are re-initialized before
   // every new block write.
@@ -102,7 +106,7 @@ final public class BlockWriteDataServerHandler
             mPacketWriterActive = false;
             break;
           }
-          if (mPackets.size() < MAX_BUFFER_SIZE) {
+          if (mPackets.size() < MAX_PACKETS_IN_FLIGHT) {
             mCtx.channel().config().setAutoRead(true);
             mCtx.read();
           }
@@ -167,7 +171,7 @@ final public class BlockWriteDataServerHandler
         PACKET_WRITERS.submit(new PacketWriter(ctx));
         mPacketWriterActive = true;
       }
-      if (mPackets.size() >= MAX_BUFFER_SIZE) {
+      if (mPackets.size() >= MAX_PACKETS_IN_FLIGHT) {
         ctx.channel().config().setAutoRead(false);
       }
     } finally {
