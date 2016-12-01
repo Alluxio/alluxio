@@ -38,10 +38,10 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for stream resources.
  */
 @NotThreadSafe
-@Path(StreamRestServiceHandler.SERVICE_PREFIX)
+@Path(StreamsRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public final class StreamRestServiceHandler {
+public final class StreamsRestServiceHandler {
   public static final String SERVICE_PREFIX = "streams";
 
   public static final String ID_PARAM = "{id}/";
@@ -53,11 +53,11 @@ public final class StreamRestServiceHandler {
   private final StreamCache mStreamCache;
 
   /**
-   * Constructs a new {@link StreamRestServiceHandler}.
+   * Constructs a new {@link StreamsRestServiceHandler}.
    *
    * @param context context for the servlet
    */
-  public StreamRestServiceHandler(@Context ServletContext context) {
+  public StreamsRestServiceHandler(@Context ServletContext context) {
     mStreamCache =
         (StreamCache) context.getAttribute(ProxyWebServer.STREAM_CACHE_SERVLET_RESOURCE_KEY);
   }

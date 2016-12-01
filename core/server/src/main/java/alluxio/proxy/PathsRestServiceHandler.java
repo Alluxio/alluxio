@@ -53,10 +53,10 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for path resources.
  */
 @NotThreadSafe
-@Path(FileSystemRestServiceHandler.SERVICE_PREFIX)
+@Path(PathsRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public final class FileSystemRestServiceHandler {
+public final class PathsRestServiceHandler {
   public static final String SERVICE_PREFIX = "paths";
 
   public static final String PATH_PARAM = "{path:.*}/";
@@ -78,11 +78,11 @@ public final class FileSystemRestServiceHandler {
   private final StreamCache mStreamCache;
 
   /**
-   * Constructs a new {@link FileSystemRestServiceHandler}.
+   * Constructs a new {@link PathsRestServiceHandler}.
    *
    * @param context context for the servlet
    */
-  public FileSystemRestServiceHandler(@Context ServletContext context) {
+  public PathsRestServiceHandler(@Context ServletContext context) {
     mFileSystem =
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mStreamCache =

@@ -21,34 +21,31 @@ import org.mockito.Mockito;
 public class StreamCacheTest {
   @Test
   public void operations() throws Exception {
-    StreamCache streamCache = new StreamCache();
+    StreamCache streamCache = new StreamCache(Constants.HOUR_MS);
     FileInStream is = Mockito.mock(FileInStream.class);
     FileOutStream os = Mockito.mock(FileOutStream.class);
     Integer isId = streamCache.put(is);
     Integer osId = streamCache.put(os);
-    Assert.assertNotNull(streamCache.getInStream(isId));
+    Assert.assertSame(is, streamCache.getInStream(isId));
     Assert.assertNull(streamCache.getInStream(osId));
     Assert.assertNull(streamCache.getOutStream(isId));
-    Assert.assertNotNull(streamCache.getOutStream(osId));
-    Assert.assertNotNull(streamCache.invalidate(isId));
-    Assert.assertNotNull(streamCache.invalidate(osId));
+    Assert.assertSame(os, streamCache.getOutStream(osId));
+    Assert.assertSame(is, streamCache.invalidate(isId));
+    Assert.assertSame(os, streamCache.invalidate(osId));
     Assert.assertNull(streamCache.invalidate(isId));
     Assert.assertNull(streamCache.invalidate(osId));
-    Mockito.verify(is, Mockito.times(1)).close();
-    Mockito.verify(os, Mockito.times(1)).close();
+    Mockito.verify(is).close();
+    Mockito.verify(os).close();
   }
 
   @Test
   public void expiration() throws Exception {
-    String oldValue = Configuration.get(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS);
-    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, 0);
-    StreamCache streamCache = new StreamCache();
+    StreamCache streamCache = new StreamCache(0);
     FileInStream is = Mockito.mock(FileInStream.class);
     FileOutStream os = Mockito.mock(FileOutStream.class);
     streamCache.put(is);
     streamCache.put(os);
-    Mockito.verify(is, Mockito.times(1)).close();
-    Mockito.verify(os, Mockito.times(1)).close();
-    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, oldValue);
+    Mockito.verify(is).close();
+    Mockito.verify(os).close();
   }
 }

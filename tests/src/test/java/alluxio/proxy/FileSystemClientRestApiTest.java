@@ -47,7 +47,7 @@ import java.util.Map;
 import javax.ws.rs.HttpMethod;
 
 /**
- * Test cases for {@link StreamRestServiceHandler}.
+ * Test cases for {@link StreamsRestServiceHandler}.
  */
 public final class FileSystemClientRestApiTest extends RestApiTest {
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
@@ -69,7 +69,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   public void createDirectory() throws Exception {
     AlluxioURI uri = new AlluxioURI("/dir");
     new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri.toString() + "/" + FileSystemRestServiceHandler.CREATE_DIRECTORY, NO_PARAMS,
+        PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.CREATE_DIRECTORY, NO_PARAMS,
         HttpMethod.POST, null,
         TestCaseOptions.defaults().setBody(CreateDirectoryOptions.defaults())).run();
     Assert.assertTrue(
@@ -82,7 +82,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI("/file");
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri.toString() + "/" + FileSystemRestServiceHandler.DELETE, NO_PARAMS,
+        PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.DELETE, NO_PARAMS,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(DeleteOptions.defaults())).run();
     try {
       mFileSystemMaster.getFileInfo(uri);
@@ -105,7 +105,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI("/file");
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri.toString() + "/" + FileSystemRestServiceHandler.EXISTS, NO_PARAMS,
+        PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.EXISTS, NO_PARAMS,
         HttpMethod.POST, true, TestCaseOptions.defaults().setBody(ExistsOptions.defaults())).run();
   }
 
@@ -114,7 +114,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI("/file");
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri.toString() + "/" + FileSystemRestServiceHandler.FREE, NO_PARAMS,
+        PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.FREE, NO_PARAMS,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(FreeOptions.defaults())).run();
   }
 
@@ -123,7 +123,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI("/file");
     writeFile(uri, null);
     String result = new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri.toString() + "/" + FileSystemRestServiceHandler.GET_STATUS, NO_PARAMS,
+        PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.GET_STATUS, NO_PARAMS,
         HttpMethod.POST, TestCaseOptions.defaults().setBody(GetStatusOptions.defaults())).call();
     FileInfo fileInfo = new ObjectMapper().readValue(result, FileInfo.class);
     Assert.assertEquals(uri.getPath(), fileInfo.getPath());
@@ -135,7 +135,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI("/file");
     writeFile(uri, null);
     String result = new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri.toString() + "/" + FileSystemRestServiceHandler.LIST_STATUS, NO_PARAMS,
+        PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.LIST_STATUS, NO_PARAMS,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(ListStatusOptions.defaults()))
         .call();
     List<FileInfo> fileInfos =
@@ -151,7 +151,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     Map<String, String> params = new HashMap<>();
     params.put("src", mFolder.newFolder().getAbsolutePath());
     new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri.toString() + "/" + FileSystemRestServiceHandler.MOUNT, params,
+        PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.MOUNT, params,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(MountOptions.defaults())).run();
   }
 
@@ -163,7 +163,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     Map<String, String> params = new HashMap<>();
     params.put("dst", uri2.toString());
     new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri1.toString() + "/" + FileSystemRestServiceHandler.RENAME, params,
+        PATHS_PREFIX + uri1.toString() + "/" + PathsRestServiceHandler.RENAME, params,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(RenameOptions.defaults())).run();
     try {
       mFileSystemMaster.getFileInfo(uri1);
@@ -179,7 +179,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI("/file");
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri.toString() + "/" + FileSystemRestServiceHandler.SET_ATTRIBUTE, NO_PARAMS,
+        PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.SET_ATTRIBUTE, NO_PARAMS,
         HttpMethod.POST, null, TestCaseOptions.defaults()).run();
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri);
     Assert.assertEquals(uri.toString(), fileInfo.getPath());
@@ -191,7 +191,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     mFileSystemMaster.mount(uri, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
         alluxio.master.file.options.MountOptions.defaults());
     new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri.toString() + "/" + FileSystemRestServiceHandler.UNMOUNT, NO_PARAMS,
+        PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.UNMOUNT, NO_PARAMS,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(UnmountOptions.defaults())).run();
   }
 
@@ -201,7 +201,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     String message = "Greetings traveller!";
     writeFile(uri, message.getBytes());
     String result = new TestCase(mHostname, mPort,
-        PATHS_PREFIX + uri.toString() + "/" + FileSystemRestServiceHandler.GET_STATUS, NO_PARAMS,
+        PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.GET_STATUS, NO_PARAMS,
         HttpMethod.POST, null).call();
     FileInfo fileInfo = new ObjectMapper().readValue(result, FileInfo.class);
     Assert.assertEquals(message.length(), fileInfo.getLength());
@@ -209,22 +209,22 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
 
   private byte[] readFile(AlluxioURI path) throws Exception {
     String result = new TestCase(mHostname, mPort,
-        PATHS_PREFIX + path.toString() + "/" + FileSystemRestServiceHandler.OPEN_FILE, NO_PARAMS,
+        PATHS_PREFIX + path.toString() + "/" + PathsRestServiceHandler.OPEN_FILE, NO_PARAMS,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(OpenFileOptions.defaults()))
         .call();
     Integer id = new ObjectMapper().readValue(result, Integer.TYPE);
     result = new TestCase(mHostname, mPort,
-        STREAMS_PREFIX + id.toString() + "/" + StreamRestServiceHandler.READ, NO_PARAMS,
+        STREAMS_PREFIX + id.toString() + "/" + StreamsRestServiceHandler.READ, NO_PARAMS,
         HttpMethod.POST, null).call();
     new TestCase(mHostname, mPort,
-        STREAMS_PREFIX + id.toString() + "/" + StreamRestServiceHandler.CLOSE, NO_PARAMS,
+        STREAMS_PREFIX + id.toString() + "/" + StreamsRestServiceHandler.CLOSE, NO_PARAMS,
         HttpMethod.POST, null).run();
     return result.getBytes();
   }
 
   private void writeFile(AlluxioURI path, byte[] input) throws Exception {
     String result = new TestCase(mHostname, mPort,
-        PATHS_PREFIX + path.toString() + "/" + FileSystemRestServiceHandler.CREATE_FILE, NO_PARAMS,
+        PATHS_PREFIX + path.toString() + "/" + PathsRestServiceHandler.CREATE_FILE, NO_PARAMS,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(CreateFileOptions.defaults()))
         .call();
     Integer id = new ObjectMapper().readValue(result, Integer.TYPE);
@@ -235,10 +235,10 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
       expected = input.length;
     }
     new TestCase(mHostname, mPort,
-        STREAMS_PREFIX + id.toString() + "/" + StreamRestServiceHandler.WRITE, NO_PARAMS,
+        STREAMS_PREFIX + id.toString() + "/" + StreamsRestServiceHandler.WRITE, NO_PARAMS,
         HttpMethod.POST, expected, options).run();
     new TestCase(mHostname, mPort,
-        STREAMS_PREFIX + id.toString() + "/" + StreamRestServiceHandler.CLOSE, NO_PARAMS,
+        STREAMS_PREFIX + id.toString() + "/" + StreamsRestServiceHandler.CLOSE, NO_PARAMS,
         HttpMethod.POST, null).run();
   }
 }

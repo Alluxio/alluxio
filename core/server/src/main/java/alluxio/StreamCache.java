@@ -55,15 +55,15 @@ public final class StreamCache {
 
   /**
    * Creates a new instance of {@link StreamCache}.
+   *
+   * @param timeoutMs the timeout (in milliseconds) for the stream cache eviction
    */
-  public StreamCache() {
+  public StreamCache(long timeoutMs) {
     mCounter = new AtomicInteger();
     mInStreamCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(Configuration.getLong(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS),
-            TimeUnit.MILLISECONDS).removalListener(CLOSER).build();
+        .expireAfterAccess(timeoutMs, TimeUnit.MILLISECONDS).removalListener(CLOSER).build();
     mOutStreamCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(Configuration.getLong(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS),
-            TimeUnit.MILLISECONDS).removalListener(CLOSER).build();
+        .expireAfterAccess(timeoutMs, TimeUnit.MILLISECONDS).removalListener(CLOSER).build();
   }
 
   /**
