@@ -12,8 +12,10 @@
 package alluxio.proxy;
 
 import alluxio.RestUtils;
+import alluxio.StreamCache;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
+import alluxio.web.ProxyWebServer;
 
 import com.google.common.io.ByteStreams;
 import com.qmino.miredot.annotations.ReturnType;
@@ -33,13 +35,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * This class is a REST handler for file system client requests.
+ * This class is a REST handler for stream resources.
  */
 @NotThreadSafe
-@Path(StreamsRestServiceHandler.SERVICE_PREFIX)
+@Path(StreamRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public final class StreamsRestServiceHandler {
+public final class StreamRestServiceHandler {
   public static final String SERVICE_PREFIX = "streams";
 
   public static final String ID_PARAM = "{id}/";
@@ -48,12 +50,17 @@ public final class StreamsRestServiceHandler {
   public static final String READ = "read";
   public static final String WRITE = "write";
 
+  private final StreamCache mStreamCache;
+
   /**
-   * Constructs a new {@link StreamsRestServiceHandler}.
+   * Constructs a new {@link StreamRestServiceHandler}.
    *
    * @param context context for the servlet
    */
-  public StreamsRestServiceHandler(@Context ServletContext context) {}
+  public StreamRestServiceHandler(@Context ServletContext context) {
+    mStreamCache =
+        (StreamCache) context.getAttribute(ProxyWebServer.STREAM_CACHE_SERVLET_RESOURCE_KEY);
+  }
 
   /**
    * @summary closes a stream
@@ -67,7 +74,7 @@ public final class StreamsRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        Closeable stream = StreamCache.invalidate(id);
+        Closeable stream = mStreamCache.invalidate(id);
         if (stream != null) {
           stream.close();
           return null;
@@ -91,7 +98,7 @@ public final class StreamsRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
       @Override
       public InputStream call() throws Exception {
-        FileInStream is = StreamCache.getInStream(id);
+        FileInStream is = mStreamCache.getInStream(id);
         if (is != null) {
           return is;
         }
@@ -108,16 +115,15 @@ public final class StreamsRestServiceHandler {
    */
   @POST
   @Path(ID_PARAM + WRITE)
-  @ReturnType("java.lang.Void")
+  @ReturnType("java.lang.Long")
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response write(@PathParam("id") final Integer id, final InputStream is) {
-    return RestUtils.call(new RestUtils.RestCallable<Void>() {
+    return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
-      public Void call() throws Exception {
-        FileOutStream os = StreamCache.getOutStream(id);
+      public Long call() throws Exception {
+        FileOutStream os = mStreamCache.getOutStream(id);
         if (os != null) {
-          ByteStreams.copy(is, os);
-          return null;
+          return ByteStreams.copy(is, os);
         }
         throw new IllegalArgumentException("stream does not exist");
       }

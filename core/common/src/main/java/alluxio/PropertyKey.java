@@ -217,6 +217,7 @@ public enum PropertyKey {
   //
   // Proxy related properties
   //
+  PROXY_STREAM_CACHE_TIMEOUT_MS(Name.PROXY_STREAM_CACHE_TIMEOUT_MS, 3600000),
   PROXY_WEB_BIND_HOST(Name.PROXY_WEB_BIND_HOST, "0.0.0.0"),
   PROXY_WEB_HOSTNAME(Name.PROXY_WEB_HOSTNAME, null),
   PROXY_WEB_PORT(Name.PROXY_WEB_PORT, 39999),
@@ -609,6 +610,8 @@ public enum PropertyKey {
     //
     // Proxy related properties
     //
+    public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
+        "alluxio.proxy.stream.cache.timeout.ms";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";

@@ -13,6 +13,7 @@ package alluxio.proxy;
 
 import alluxio.AlluxioURI;
 import alluxio.RestUtils;
+import alluxio.StreamCache;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -49,13 +50,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * This class is a REST handler for file system client requests.
+ * This class is a REST handler for path resources.
  */
 @NotThreadSafe
-@Path(PathsRestServiceHandler.SERVICE_PREFIX)
+@Path(FileSystemRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public final class PathsRestServiceHandler {
+public final class FileSystemRestServiceHandler {
   public static final String SERVICE_PREFIX = "paths";
 
   public static final String PATH_PARAM = "{path:.*}/";
@@ -74,15 +75,18 @@ public final class PathsRestServiceHandler {
   public static final String UNMOUNT = "unmount";
 
   private final FileSystem mFileSystem;
+  private final StreamCache mStreamCache;
 
   /**
-   * Constructs a new {@link PathsRestServiceHandler}.
+   * Constructs a new {@link FileSystemRestServiceHandler}.
    *
    * @param context context for the servlet
    */
-  public PathsRestServiceHandler(@Context ServletContext context) {
+  public FileSystemRestServiceHandler(@Context ServletContext context) {
     mFileSystem =
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
+    mStreamCache =
+        (StreamCache) context.getAttribute(ProxyWebServer.STREAM_CACHE_SERVLET_RESOURCE_KEY);
   }
 
   /**
@@ -131,7 +135,7 @@ public final class PathsRestServiceHandler {
         } else {
           os = mFileSystem.createFile(new AlluxioURI(path), options);
         }
-        return StreamCache.put(os);
+        return mStreamCache.put(os);
       }
     });
   }
@@ -295,7 +299,7 @@ public final class PathsRestServiceHandler {
         } else {
           is = mFileSystem.openFile(new AlluxioURI(path), options);
         }
-        return StreamCache.put(is);
+        return mStreamCache.put(is);
       }
     });
   }

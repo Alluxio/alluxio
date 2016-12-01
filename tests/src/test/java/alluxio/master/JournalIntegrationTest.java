@@ -38,6 +38,7 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -584,7 +585,7 @@ public class JournalIntegrationTest {
 
     // TODO(chaomin): also setOwner and setGroup once there's a way to fake the owner/group in UFS.
     mFileSystem.setAttribute(filePath,
-        SetAttributeOptions.defaults().setMode((short) 0400).setRecursive(false));
+        SetAttributeOptions.defaults().setMode(new Mode((short) 0400)).setRecursive(false));
 
     URIStatus status = mFileSystem.getStatus(filePath);
 
