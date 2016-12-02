@@ -74,7 +74,6 @@ public class NettyBlockReader implements BlockReader {
   private final long mBlockId;
   private final long mStart;
   private final long mBytesToRead;
-  private final Handler mHandler = new Handler();
 
   private ReentrantLock mLock = new ReentrantLock();
   @GuardedBy("mLock")
@@ -109,7 +108,7 @@ public class NettyBlockReader implements BlockReader {
     Preconditions.checkState(offset >= 0 && len > 0);
 
     mChannel = BlockStoreContext.acquireNettyChannel(address);
-    mChannel.pipeline().addLast(mHandler);
+    mChannel.pipeline().addLast(new Handler());
 
     mChannel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, len, lockId, sessionId))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);

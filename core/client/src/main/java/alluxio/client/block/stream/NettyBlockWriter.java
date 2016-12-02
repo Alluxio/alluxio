@@ -47,11 +47,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Protocol:
  * 1. The client streams packets (start from pos 0) to the server. The client pauses if the client
  *    buffer is full, resumes if the buffer is not full.
- * 2. The server reads packets from the channel, puts them in a buffer. The server's reader pauses
- *    if server's buffer is full. The server's writer pulls packets from the buffer and writes
- *    them to block worker. If the write speed is faster than the network speed, the server's buffer
- *    should have at most one packet.
- * 3. When all the packets are sent, the client closes the reader which sends an empty packet to
+ * 2. The server reads packets from the channel and writes them to the block worker. See the server
+ *    side implementation for details.
+ * 3. When all the packets are sent, the client closes the reader by sending an empty packet to
  *    the server to signify the end of the block. The client must wait the response from the server
  *    to make sure everything has been written to the block worker.
  * 4. To make it simple to handle errors, the channel is closed if any error occurs.
@@ -127,7 +125,7 @@ public class NettyBlockWriter implements BlockWriter {
         if (mThrowable != null) {
           throw new IOException(mThrowable);
         }
-        if (!tooManyInFlight()) {
+        if (!tooManyPacketsInFlight()) {
           offset = mPosToQueue;
           mPosToQueue += buf.readableBytes();
           len = buf.readableBytes();
@@ -201,7 +199,7 @@ public class NettyBlockWriter implements BlockWriter {
   /**
    * @return true if there are too many bytes in flight
    */
-  private boolean tooManyInFlight() {
+  private boolean tooManyPacketsInFlight() {
     return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * PACKET_SIZE;
   }
 
