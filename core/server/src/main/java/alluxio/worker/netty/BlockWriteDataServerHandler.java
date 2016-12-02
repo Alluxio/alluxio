@@ -291,7 +291,7 @@ final public class BlockWriteDataServerHandler
           mBlockWriter.append(buf.nioBuffer());
           mPosToWrite += buf.readableBytes();
         } catch (Exception e) {
-          mCtx.close();
+          mCtx.fireExceptionCaught(e);
           break;
         } finally {
           ReferenceCountUtil.release(buf);
