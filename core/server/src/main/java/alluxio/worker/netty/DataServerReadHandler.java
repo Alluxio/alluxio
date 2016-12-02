@@ -17,6 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
+import alluxio.network.protocol.RPCFileReadRequest;
+import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
@@ -34,6 +36,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -54,7 +57,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 3. The channel is closed if there is any exception during the packet read/write.
  */
 @NotThreadSafe
-final public class BlockReadDataServerHandler
+public abstract class DataServerReadHandler
     extends SimpleChannelInboundHandler<RPCBlockReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -63,10 +66,6 @@ final public class BlockReadDataServerHandler
   private static final long MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
 
-  /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
-  private final BlockWorker mWorker;
-  /** The transfer type used by the data server. */
-  private final FileTransferType mTransferType;
   /** The executor to run {@link PacketReader}s.*/
   private final ExecutorService mPacketReaderExecutor;
 
@@ -81,52 +80,58 @@ final public class BlockReadDataServerHandler
   @GuardedBy("mLock")
   private long mPosToWrite = -1;
 
-  // The following four fields are only updated in the channel event loop thread when
-  // a block read starts except mEnd which can also be updated when the block read
-  // is cancelled.
-  private volatile BlockReader mBlockReader = null;
-  private volatile long mBlockId = -1;
-  private volatile long mStart = -1;
-  private volatile long mEnd = -1;
+  // This is only updated in the channel event loop thread when a read request starts or cancelled.
+  protected volatile ReadRequestInternal mRequest = null;
+
+  protected abstract class ReadRequestInternal implements Closeable {
+    // This ID can either be block ID or temp UFS ID.
+    public long mId = -1;
+    public long mStart = -1;
+    public long mEnd = -1;
+    public boolean mCancelled = false;
+
+    @Override
+    public abstract void close();
+  }
 
   /**
-   * Creates an instance of {@link BlockReadDataServerHandler}.
+   * Creates an instance of {@link DataServerReadHandler}.
    *
    * @param executorService the executor service to run {@link PacketReader}s.
-   * @param worker the block worker
-   * @param transferType the file transfer type
    */
-  public BlockReadDataServerHandler(ExecutorService executorService, BlockWorker worker,
-      FileTransferType transferType) {
-    mWorker = worker;
-    mTransferType = transferType;
+  public DataServerReadHandler(ExecutorService executorService) {
     mPacketReaderExecutor = executorService;
   }
 
   @Override
-  public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-    if (mBlockReader != null) {
-      mBlockReader.close();
-      mBlockReader = null;
+  public void channelUnregistered(ChannelHandlerContext ctx) {
+    if (mRequest != null) {
+      mRequest.close();
     }
   }
 
   @Override
   public void channelRead0(ChannelHandlerContext ctx, RPCBlockReadRequest msg) throws Exception {
     if (!validateReadRequest(msg)) {
-      replyError(ctx);
+      replyError(ctx.channel());
       return;
     }
 
     if (msg.isCancelRequest()) {
-      // Simply set mEnd to -1 to stop reading more. The client needs to read everything remaining
-      // in the channel if the client wants to reuse the channel. Otherwise, the client can
-      // simply close the channel to cancel.
-      mEnd = -1;
+      mRequest.mCancelled = true;
       return;
     }
 
-    initialize(msg);
+    initializeRequest(msg);
+
+    mLock.lock();
+    try {
+      // TODO(peis): Check the state of mPosToQueue and mPosToWrite.
+      mPosToQueue = mRequest.mStart;
+      mPosToWrite = mRequest.mStart;
+    } finally {
+      mLock.unlock();
+    }
 
     mLock.lock();
     try {
@@ -140,18 +145,10 @@ final public class BlockReadDataServerHandler
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Exception caught {} in BlockReadDataServerHandler.", cause);
-    replyError(ctx);
+    replyError(ctx.channel());
   }
 
-  /**
-   * Writes an error block read response to the channel and closes the channel after that.
-   *
-   * @param ctx the channel handler context
-   */
-  private void replyError(ChannelHandlerContext ctx) {
-    ctx.writeAndFlush(RPCBlockReadResponse.createErrorResponse(mBlockId, RPCResponse.Status.FAILED))
-        .addListener(ChannelFutureListener.CLOSE);
-  }
+
 
   /**
    * @return true if there are too many packets in-flight.
@@ -164,7 +161,50 @@ final public class BlockReadDataServerHandler
    * @return true if we should restart the packet reader.
    */
   private boolean shouldStartPacketReader() {
-    return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mEnd;
+    return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.mEnd
+        && !mRequest.mCancelled;
+  }
+
+  /**
+   * @return the number of bytes remaining to push to the netty queue. Return 0 if it is cancelled.
+   */
+  private long remainingToQueue() {
+    if (mRequest.mCancelled) {
+      return 0;
+    }
+    return mRequest.mEnd - mPosToQueue;
+  }
+
+  /**
+   * @return the number of bytes remaining to flush. Return 0 if it is cancelled.
+   */
+  private long remainingToWrite() {
+    if (mRequest.mCancelled) {
+      return 0;
+    }
+    return mRequest.mEnd - mPosToWrite;
+  }
+
+  /**
+   * Writes an error block read response to the channel and closes the channel after that.
+   *
+   * @param channel the channel
+   */
+  private void replyError(Channel channel) {
+    channel.writeAndFlush(
+        RPCBlockReadResponse.createErrorResponse(mRequest.mId, RPCResponse.Status.FAILED))
+        .addListener(ChannelFutureListener.CLOSE);
+  }
+
+  /**
+   * Writes a success block read response to the channel.
+   *
+   * @param channel the channel
+   */
+  private void replySuccess(Channel channel) {
+    reset();
+    channel.writeAndFlush(RPCBlockReadResponse.createSuccessResponse(mRequest.mId))
+        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
   /**
@@ -174,70 +214,25 @@ final public class BlockReadDataServerHandler
    * @return true if the block read request is valid
    */
   private boolean validateReadRequest(RPCBlockReadRequest request) {
+    if (mRequest == null) {
+      return true;
+    }
+
     if (request.isCancelRequest()) {
-      if (request.getBlockId() != mBlockId && mBlockId != -1) {
+      if (request.getBlockId() != mRequest.mId) {
         return false;
       }
       return true;
     }
-    if (request.getOffset() < 0 || request.getLength() < 0) {
-      return false;
-    }
-
-    // Everything must be reset.
-    mLock.lock();
-    try {
-      if (mBlockId != -1 || mBlockReader != null || mStart != -1 || mEnd != -1
-          || mPacketReaderActive || mPosToQueue != -1 || mPosToWrite != -1) {
-        return false;
-      }
-    } finally {
-      mLock.unlock();
-    }
-    return true;
-  }
-
-  /**
-   * Initializes the handler for the given block read request.
-   *
-   * @param request the block read request
-   * @throws Exception if it fails to initialize
-   */
-  private void initialize(RPCBlockReadRequest request) throws Exception {
-    mBlockReader = mWorker.readBlockRemote(request.getSessionId(), mBlockId, request.getLockId());
-    mBlockId = request.getBlockId();
-    mWorker.accessBlock(request.getSessionId(), mBlockId);
-
-    validateBounds(request, mBlockReader.getLength());
-
-    mStart = request.getOffset();
-    mEnd = mStart + request.getLength();
-    mLock.lock();
-    try {
-      mPosToQueue = mStart;
-      mPosToWrite = mStart;
-    } finally {
-      mLock.unlock();
-    }
+    return false;
   }
 
   /**
    * Resets the handler to its initial state.
    */
   private void reset() {
-    if (mBlockReader != null) {
-      try {
-        mBlockReader.close();
-      } catch (IOException e) {
-        // This is ignored because we have already sent the data to the client. Not
-        // much we can do here.
-        LOG.warn("Failed to close block reader for block {}.", mBlockId);
-      }
-    }
-    mBlockReader = null;
-    mBlockId = -1;
-    mStart = -1;
-    mEnd = -1;
+    mRequest.close();
+    mRequest = null;
     mLock.lock();
     try {
       mPacketReaderActive = false;
@@ -249,21 +244,12 @@ final public class BlockReadDataServerHandler
   }
 
   /**
-   * Validates the bounds of the request. An uncaught exception will be thrown if an
-   * inconsistency occurs.
+   * Initializes the handler for the given block read request.
    *
-   * @param req The initiating {@link RPCBlockReadRequest}
-   * @param fileLength The length of the block being read
+   * @param request the block read request
+   * @throws Exception if it fails to initialize
    */
-  private void validateBounds(final RPCBlockReadRequest req, final long fileLength) {
-    Preconditions
-        .checkArgument(req.getOffset() <= fileLength, "Offset(%s) is larger than file length(%s)",
-            req.getOffset(), fileLength);
-    Preconditions
-        .checkArgument(req.getOffset() + req.getLength() <= fileLength,
-            "Offset(%s) plus length(%s) is larger than file length(%s)", req.getOffset(),
-            req.getLength(), fileLength);
-  }
+  protected abstract void initializeRequest(RPCBlockReadRequest request) throws Exception;
 
   /**
    * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
@@ -273,19 +259,7 @@ final public class BlockReadDataServerHandler
    * @return a {@link DataBuffer} representing the data
    * @throws IOException if an I/O error occurs when reading the data
    */
-  private DataBuffer getDataBuffer(long offset, int len)
-      throws IOException, IllegalArgumentException {
-    switch (mTransferType) {
-      case MAPPED:
-        ByteBuffer data = mBlockReader.read(offset, len);
-        return new DataByteBuffer(data, len);
-      case TRANSFER: // intend to fall through as TRANSFER is the default type.
-      default:
-        Preconditions.checkArgument(mBlockReader.getChannel() instanceof FileChannel,
-            "Only FileChannel is supported!");
-        return new DataFileChannel((FileChannel) mBlockReader.getChannel(), offset, len);
-    }
-  }
+  protected abstract DataBuffer getDataBuffer(long offset, int len) throws IOException;
 
   /**
    * The channel handler listener that runs after a packet write is flushed.
@@ -319,11 +293,8 @@ final public class BlockReadDataServerHandler
           mPacketReaderExecutor.submit(new PacketReader(future.channel()));
           mPacketReaderActive = true;
         }
-        long blockId = mBlockId;
-        if (mPosToWrite >= mEnd) {
-          reset();
-          future.channel().writeAndFlush(RPCBlockReadResponse.createSuccessResponse(blockId))
-              .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+        if (remainingToWrite() <= 0) {
+          replySuccess(future.channel());
         }
       } finally {
         mLock.unlock();
@@ -354,7 +325,7 @@ final public class BlockReadDataServerHandler
         mLock.lock();
         try {
           start = mPosToQueue;
-          long remaining = mEnd - start;
+          long remaining = remainingToQueue();
           if (tooManyPendingPackets() || remaining <= 0) {
             mPacketReaderActive = false;
             break;
@@ -369,13 +340,24 @@ final public class BlockReadDataServerHandler
         DataBuffer packet;
         try {
           packet = getDataBuffer(start, packet_size);
-        } catch (IOException e) {
+        } catch (Exception e) {
           mChannel.pipeline().fireExceptionCaught(e);
+          break;
+        }
+        if (packet == null) {
+          // This can happen if the requested read length is greater than the actual length of the
+          // block or file starting from the given offset.
+          mChannel.eventLoop().submit(new Runnable() {
+            @Override
+            public void run() {
+              replySuccess(mChannel);
+            }
+          });
           break;
         }
 
         final RPCBlockReadResponse response =
-            new RPCBlockReadResponse(mBlockId, start, packet_size, packet,
+            new RPCBlockReadResponse(mRequest.mId, start, packet_size, packet,
                 RPCResponse.Status.SUCCESS);
         mChannel.eventLoop().submit(new Runnable() {
           @Override
