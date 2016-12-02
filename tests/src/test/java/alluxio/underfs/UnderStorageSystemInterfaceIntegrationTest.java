@@ -226,6 +226,125 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests if @{@link UnderFileSystem#isDirectory(String)} infers pseudo-directories from common
+   * prefixes for an object store.
+   */
+  @Test
+  public void objectCommonPrefixesIsDirectory() throws IOException {
+    if (!(mUfs instanceof ObjectUnderFileSystem)) {
+      // Only run test for an object store
+      return;
+    }
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectStorePreConfig config = prepareObjectStore(ufs);
+
+    String baseDirectoryPath = config.getBaseDirectoryPath();
+    Assert.assertTrue(mUfs.isDirectory(baseDirectoryPath));
+
+    for (String subDirName : config.getSubDirectoryNames()) {
+      String subDirPath = PathUtils.concatPath(baseDirectoryPath, subDirName);
+      Assert.assertTrue(mUfs.isDirectory(subDirPath));
+    }
+  }
+
+  /**
+   * Tests if a non-recursive listStatus infers pseudo-directories from common prefixes for an
+   * object store.
+   */
+  @Test
+  public void objectCommonPrefixesListStatusNonRecursive() throws IOException {
+    if (!(mUfs instanceof ObjectUnderFileSystem)) {
+      // Only run test for an object store
+      return;
+    }
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectStorePreConfig config = prepareObjectStore(ufs);
+
+    String baseDirectoryPath = config.getBaseDirectoryPath();
+    UnderFileStatus[] results = mUfs.listStatus(baseDirectoryPath);
+    Assert.assertEquals(config.getSubDirectoryNames().length + config.getFileNames().length,
+        results.length);
+    // Check for direct children files
+    for (String fileName : config.getFileNames()) {
+      int foundIndex = -1;
+      for (int i = 0; i < results.length; ++i) {
+        if (results[i].getName().equals(fileName)) {
+          foundIndex = i;
+        }
+      }
+      Assert.assertTrue(foundIndex >= 0);
+      Assert.assertTrue(results[foundIndex].isFile());
+    }
+    // Check if pseudo-directories were inferred
+    for (String subDirName : config.getSubDirectoryNames()) {
+      int foundIndex = -1;
+      for (int i = 0; i < results.length; ++i) {
+        if (results[i].getName().equals(subDirName)) {
+          foundIndex = i;
+        }
+      }
+      Assert.assertTrue(foundIndex >= 0);
+      Assert.assertTrue(results[foundIndex].isDirectory());
+    }
+  }
+
+  /**
+   * Tests if a recursive listStatus infers pseudo-directories from common prefixes for an object
+   * store.
+   */
+  @Test
+  public void objectCommonPrefixesListStatusRecursive() throws IOException {
+    if (!(mUfs instanceof ObjectUnderFileSystem)) {
+      // Only run test for an object store
+      return;
+    }
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectStorePreConfig config = prepareObjectStore(ufs);
+
+    String baseDirectoryPath = config.getBaseDirectoryPath();
+    UnderFileStatus[] results =
+        mUfs.listStatus(baseDirectoryPath, ListOptions.defaults().setRecursive(true));
+    String[] fileNames = config.getFileNames();
+    String[] subDirNames = config.getSubDirectoryNames();
+    Assert.assertEquals(
+        subDirNames.length + fileNames.length + subDirNames.length * fileNames.length,
+        results.length);
+    // Check for direct children files
+    for (String fileName : fileNames) {
+      int foundIndex = -1;
+      for (int i = 0; i < results.length; ++i) {
+        if (results[i].getName().equals(fileName)) {
+          foundIndex = i;
+        }
+      }
+      Assert.assertTrue(foundIndex >= 0);
+      Assert.assertTrue(results[foundIndex].isFile());
+    }
+    for (String subDirName : subDirNames) {
+      // Check if pseudo-directories were inferred
+      int dirIndex = -1;
+      for (int i = 0; i < results.length; ++i) {
+        if (results[i].getName().equals(subDirName)) {
+          dirIndex = i;
+        }
+      }
+      Assert.assertTrue(dirIndex >= 0);
+      Assert.assertTrue(results[dirIndex].isDirectory());
+      // Check for indirect children
+      for (String fileName : config.getFileNames()) {
+        int fileIndex = -1;
+        for (int i = 0; i < results.length; ++i) {
+          if (results[i].getName().equals(String.format("%s/%s", subDirName, fileName))) {
+            fileIndex = i;
+          }
+        }
+        Assert.assertTrue(fileIndex >= 0);
+        Assert.assertTrue(results[fileIndex].isFile());
+      }
+    }
+  }
+
+  /**
    * Tests if listStatus correctly returns file names.
    */
   @Test
@@ -540,6 +659,63 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     public String[] getChildren() {
       return mChildren;
+    }
+  }
+
+  /**
+   * Prepare an object store for testing by creating a set of files and directories directly (not
+   * through Alluxio). No breadcrumbs are created for directories.
+   *
+   * @param ufs the {@link ObjectUnderFileSystem} to test
+   * @throws IOException if a non-Alluxio error occurs
+   * @return configuration for the pre-populated objects
+   */
+  private ObjectStorePreConfig prepareObjectStore(ObjectUnderFileSystem ufs) throws IOException {
+    // Base directory for list status
+    String baseDirectoryName = "base";
+    String baseDirectoryPath = PathUtils.concatPath(mUnderfsAddress, baseDirectoryName);
+    String baseDirectoryKey =
+        baseDirectoryPath.substring(PathUtils.normalizePath(ufs.getRootKey(), "/").length());
+    // Pseudo-directories to be inferred
+    String[] subDirectories = {"a", "b", "c"};
+    // Every directory (base and pseudo) has these files
+    String[] childrenFiles = {"sample1.jpg", "sample2.jpg", "sample3.jpg"};
+    // Populate children of base directory
+    for (String child : childrenFiles) {
+      ufs.createEmptyObject(String.format("%s/%s", baseDirectoryKey, child));
+    }
+    // Populate children of sub-directories
+    for (String subdir : subDirectories) {
+      for (String child : childrenFiles) {
+        ufs.createEmptyObject(String.format("%s/%s/%s", baseDirectoryKey, subdir, child));
+      }
+    }
+    return new ObjectStorePreConfig(baseDirectoryPath, childrenFiles, subDirectories);
+  }
+
+  // Test configuration for pre-populating an object store
+  private class ObjectStorePreConfig {
+    private String mBaseDirectortPath;
+    private String[] mSubDirectoryNames;
+    private String[] mFileNames;
+
+    ObjectStorePreConfig(String baseDirectoryKey, String[] childrenFiles,
+        String[] subDirectories) {
+      mBaseDirectortPath = baseDirectoryKey;
+      mFileNames = childrenFiles;
+      mSubDirectoryNames = subDirectories;
+    }
+
+    public String getBaseDirectoryPath() {
+      return mBaseDirectortPath;
+    }
+
+    public String[] getFileNames() {
+      return mFileNames;
+    }
+
+    public String[] getSubDirectoryNames() {
+      return mSubDirectoryNames;
     }
   }
 }

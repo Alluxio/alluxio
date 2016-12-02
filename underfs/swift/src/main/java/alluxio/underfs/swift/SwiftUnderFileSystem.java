@@ -331,7 +331,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
 
     @Override
     public String[] getCommonPrefixes() {
-      // TODO(adit): infer directories
+      // When a delimiter is used, the Swift backend infers pseudo-directories and returns the
+      // directory names (including a trailing '/') as part of the object names returned.
       return new String[0];
     }
 
