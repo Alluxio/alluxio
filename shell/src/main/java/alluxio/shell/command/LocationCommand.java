@@ -50,7 +50,7 @@ public final class LocationCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
 
     System.out.println(path + " with file id " + status.getFileId() + " is on nodes: ");

@@ -42,7 +42,7 @@ public final class DuCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     long sizeInBytes = getFileOrFolderSize(mFileSystem, path);
     System.out.println(path + " is " + sizeInBytes + " bytes");
   }
