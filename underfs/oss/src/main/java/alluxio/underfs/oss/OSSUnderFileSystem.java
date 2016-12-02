@@ -173,18 +173,18 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected ObjectListingResult getObjectListing(String key, boolean recursive)
+  protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     ListObjectsRequest request = new ListObjectsRequest(mBucketName);
     request.setPrefix(key);
-    request.setMaxKeys(getListingLength());
+    request.setMaxKeys(getListingChunkLength());
     request.setDelimiter(delimiter);
 
     ObjectListing result = getObjectListingChunk(request);
     if (result != null) {
-      return new OSSObjectListingResult(request, result);
+      return new OSSObjectListingChunk(request, result);
     }
     return null;
   }
@@ -204,11 +204,11 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Wrapper over OSS {@link StorageObjectsChunk}.
    */
-  private final class OSSObjectListingResult implements ObjectListingResult {
+  private final class OSSObjectListingChunk implements ObjectListingChunk {
     final ListObjectsRequest mRequest;
     final ObjectListing mResult;
 
-    OSSObjectListingResult(ListObjectsRequest request, ObjectListing result)
+    OSSObjectListingChunk(ListObjectsRequest request, ObjectListing result)
         throws IOException {
       mRequest = request;
       mResult = result;
@@ -235,11 +235,11 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public ObjectListingResult getNextChunk() throws IOException {
+    public ObjectListingChunk getNextChunk() throws IOException {
       if (mResult.isTruncated()) {
         ObjectListing nextResult = mClient.listObjects(mRequest);
         if (nextResult != null) {
-          return new OSSObjectListingResult(mRequest, nextResult);
+          return new OSSObjectListingChunk(mRequest, nextResult);
         }
       }
       return null;

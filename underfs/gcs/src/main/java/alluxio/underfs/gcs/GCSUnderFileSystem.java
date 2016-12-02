@@ -222,13 +222,13 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected ObjectListingResult getObjectListing(String key, boolean recursive)
+  protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     StorageObjectsChunk chunk = getObjectListingChunk(key, delimiter, null);
     if (chunk != null) {
-      return new GCSObjectListingResult(chunk);
+      return new GCSObjectListingChunk(chunk);
     }
     return null;
   }
@@ -239,7 +239,7 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     StorageObjectsChunk res;
     try {
       res = mClient.listObjectsChunked(mBucketName, key, delimiter,
-          getListingLength(), priorLastKey);
+          getListingChunkLength(), priorLastKey);
     } catch (ServiceException e) {
       LOG.error("Failed to list path {}", key, e);
       res = null;
@@ -250,10 +250,10 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Wrapper over GCS {@link StorageObjectsChunk}.
    */
-  private final class GCSObjectListingResult implements ObjectListingResult {
+  private final class GCSObjectListingChunk implements ObjectListingChunk {
     final StorageObjectsChunk mChunk;
 
-    GCSObjectListingResult(StorageObjectsChunk chunk)
+    GCSObjectListingChunk(StorageObjectsChunk chunk)
         throws IOException {
       mChunk = chunk;
       if (mChunk == null) {
@@ -277,12 +277,12 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public ObjectListingResult getNextChunk() throws IOException {
+    public ObjectListingChunk getNextChunk() throws IOException {
       if (!mChunk.isListingComplete()) {
         StorageObjectsChunk nextChunk = getObjectListingChunk(mChunk.getPrefix(),
             mChunk.getDelimiter(), mChunk.getPriorLastKey());
         if (nextChunk != null) {
-          return new GCSObjectListingResult(nextChunk);
+          return new GCSObjectListingChunk(nextChunk);
         }
       }
       return null;

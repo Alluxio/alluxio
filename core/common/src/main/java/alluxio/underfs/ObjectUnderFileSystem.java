@@ -47,12 +47,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Default maximum length for a single listing query. */
-  private static final int DEFAULT_MAX_LISTING_LENGTH = 1000;
+  private static final int DEFAULT_MAX_LISTING_CHUNK_LENGTH = 1000;
 
   /** Value used to indicate nested structure. */
   protected static final char PATH_SEPARATOR_CHAR = '/';
 
-  /** Value used to indicate nested structure. */
+  /**
+   * Value used to indicate nested structure. This is a string representation of
+   * {@link ObjectUnderFileSystem#PATH_SEPARATOR_CHAR}.
+   */
   protected static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
   /**
@@ -77,9 +80,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Gets the file size in bytes.
+     * Gets the size of object contents in bytes.
      *
-     * @return the file size in bytes
+     * @return the content length in bytes
      */
     public long getContentLength() {
       return mContentLength;
@@ -98,7 +101,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * A chunk of listing results.
    */
-  public interface ObjectListingResult {
+  public interface ObjectListingChunk {
     /**
      * Objects in a pseudo-directory which may be a file or a directory.
      *
@@ -117,10 +120,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * Get next chunk of object listings.
      *
      * @return null if listing did not find anything or is done, otherwise return new
-     * {@link ObjectListingResult} for the next chunk
+     * {@link ObjectListingChunk} for the next chunk
      * @throws IOException if a non-alluxio error occurs
      */
-    ObjectListingResult getNextChunk() throws IOException;
+    ObjectListingChunk getNextChunk() throws IOException;
   }
 
   @Override
@@ -140,7 +143,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (mkdirs(getParentPath(path))) {
       return createObject(stripPrefixIfPresent(path));
     }
-    throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED_UFS.getMessage(path));
+    throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
   }
 
   @Override
@@ -434,7 +437,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       String dir = stripPrefixIfPresent(path);
       // Check if anything begins with <folder_path>/
       try {
-        ObjectListingResult objs = getObjectListing(dir, true);
+        ObjectListingChunk objs = getObjectListingChunk(dir, true);
         // If there are, this is a folder and we can create the necessary metadata
         if (objs != null && objs.getObjectNames() != null && objs.getObjectNames().length > 0) {
           mkdirsInternal(dir);
@@ -452,8 +455,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @return the maximum length for a single listing query
    */
-  protected int getListingLengthMax() {
-    return DEFAULT_MAX_LISTING_LENGTH;
+  protected int getListingChunkLengthMax() {
+    return DEFAULT_MAX_LISTING_CHUNK_LENGTH;
   }
 
   /**
@@ -461,9 +464,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @return length of each list request
    */
-  protected int getListingLength() {
-    return Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > getListingLengthMax()
-        ? getListingLengthMax() : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
+  protected int getListingChunkLength() {
+    return Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > getListingChunkLengthMax()
+        ? getListingChunkLengthMax() : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
   }
 
   /**
@@ -527,14 +530,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected abstract String getFolderSuffix();
 
   /**
-   * Get object listing for given key.
+   * Get a (partial) object listing result for the given key.
    *
    * @param key pseudo-directory key excluding header and bucket
    * @param recursive whether to request immediate children only, or all descendants
    * @return chunked object listing
    * @throws IOException if a non-alluxio error occurs
    */
-  protected abstract ObjectListingResult getObjectListing(String key, boolean recursive)
+  protected abstract ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException;
 
   /**
@@ -562,7 +565,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     path = path.equals(PATH_SEPARATOR) ? "" : path;
     Map<String, Boolean> children = new HashMap<>();
-    ObjectListingResult chunk = getObjectListing(path, options.isRecursive());
+    ObjectListingChunk chunk = getObjectListingChunk(path, options.isRecursive());
     if (chunk == null) {
       return null;
     }

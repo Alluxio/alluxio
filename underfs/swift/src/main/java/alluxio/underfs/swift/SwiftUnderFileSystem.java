@@ -286,13 +286,13 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected ObjectListingResult getObjectListing(String key, boolean recursive)
+  protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException {
     Container container = mAccount.getContainer(mContainerName);
     PaginationMap paginationMap = container
-        .getPaginationMap(PathUtils.normalizePath(key, PATH_SEPARATOR), getListingLength());
+        .getPaginationMap(PathUtils.normalizePath(key, PATH_SEPARATOR), getListingChunkLength());
     if (paginationMap != null && paginationMap.getNumberOfPages() > 0) {
-      return new SwiftObjectListingResult(paginationMap, 0, recursive);
+      return new SwiftObjectListingChunk(paginationMap, 0, recursive);
     }
     return null;
   }
@@ -300,12 +300,12 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Wrapper over JOSS {@link PaginationMap}.
    */
-  private final class SwiftObjectListingResult implements ObjectListingResult {
+  private final class SwiftObjectListingChunk implements ObjectListingChunk {
     final PaginationMap mPaginationMap;
     final int mPage;
     final boolean mRecursive;
 
-    SwiftObjectListingResult(PaginationMap paginationMap, int page, boolean recursive) {
+    SwiftObjectListingChunk(PaginationMap paginationMap, int page, boolean recursive) {
       mPaginationMap = paginationMap;
       mPage = page;
       mRecursive = recursive;
@@ -336,12 +336,12 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public ObjectListingResult getNextChunk() throws IOException {
+    public ObjectListingChunk getNextChunk() throws IOException {
       int nextPage = mPage + 1;
       if (nextPage >= mPaginationMap.getNumberOfPages()) {
         return null;
       }
-      return new SwiftObjectListingResult(mPaginationMap, nextPage, mRecursive);
+      return new SwiftObjectListingChunk(mPaginationMap, nextPage, mRecursive);
     }
   }
 

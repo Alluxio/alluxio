@@ -36,6 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * can be a valid under layer file system
  */
 @ThreadSafe
+// TODO(adit); API calls should use a URI instead of a String wherever appropriate
 public interface UnderFileSystem {
 
   /**
@@ -259,7 +260,8 @@ public interface UnderFileSystem {
   OutputStream create(String path, CreateOptions options) throws IOException;
 
   /**
-   * Deletes a directory from the under file system with the indicated name non-recursively.
+   * Deletes a directory from the under file system with the indicated name non-recursively. A
+   * non-recursive delete is successful only if the directory is empty.
    *
    * @param path of the directory to delete
    * @return true if directory was found and deleted, false otherwise

@@ -22,7 +22,7 @@ public class UnderFileStatus {
   private final String mName;
 
   /**
-   * Create new instance for under file information.
+   * Creates new instance for under file information.
    *
    * @param name relative path of file or directory
    * @param isDirectory whether the path is a directory
@@ -59,11 +59,11 @@ public class UnderFileStatus {
   }
 
   /**
-   * Convert an array of UFS file status to a listing result where each element in the array is
+   * Converts an array of UFS file status to a listing result where each element in the array is
    * a file or directory name.
    *
    * @param children array of listing statuses
-   * @return array of file or directory names
+   * @return array of file or directory names, or null if the input is null
    */
   public static String[] convertToNames(UnderFileStatus[] children) {
     if (children == null) {

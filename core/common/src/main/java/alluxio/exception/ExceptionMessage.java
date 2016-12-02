@@ -113,7 +113,7 @@ public enum ExceptionMessage {
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with URI {1} is not found"),
-  PARENT_CREATION_FAILED_UFS("Unable to create parent directories for path {0}"),
+  PARENT_CREATION_FAILED("Unable to create parent directories for path {0}"),
 
   // file system master
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),

@@ -296,16 +296,16 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected ObjectListingResult getObjectListing(String key, boolean recursive)
+  protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     ListObjectsV2Request request =
         new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(key)
-            .withDelimiter(delimiter).withMaxKeys(getListingLength());
+            .withDelimiter(delimiter).withMaxKeys(getListingChunkLength());
     ListObjectsV2Result result = getObjectListingChunk(request);
     if (result != null) {
-      return new S3AObjectListingResult(request, result);
+      return new S3AObjectListingChunk(request, result);
     }
     return null;
   }
@@ -328,11 +328,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Wrapper over S3 {@link ListObjectsV2Request}.
    */
-  private final class S3AObjectListingResult implements ObjectListingResult {
+  private final class S3AObjectListingChunk implements ObjectListingChunk {
     final ListObjectsV2Request mRequest;
     final ListObjectsV2Result mResult;
 
-    S3AObjectListingResult(ListObjectsV2Request request, ListObjectsV2Result result)
+    S3AObjectListingChunk(ListObjectsV2Request request, ListObjectsV2Result result)
         throws IOException {
       mRequest = request;
       mResult = result;
@@ -359,11 +359,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public ObjectListingResult getNextChunk() throws IOException {
+    public ObjectListingChunk getNextChunk() throws IOException {
       if (mResult.isTruncated()) {
         ListObjectsV2Result nextResult = getObjectListingChunk(mRequest);
         if (nextResult != null) {
-          return new S3AObjectListingResult(mRequest, nextResult);
+          return new S3AObjectListingChunk(mRequest, nextResult);
         }
       }
       return null;
