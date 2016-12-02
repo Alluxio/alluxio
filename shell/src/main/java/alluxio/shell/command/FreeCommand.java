@@ -44,7 +44,7 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     FreeOptions options = FreeOptions.defaults().setRecursive(true);
     mFileSystem.free(path, options);
     System.out.println(path + " was successfully freed from memory.");
