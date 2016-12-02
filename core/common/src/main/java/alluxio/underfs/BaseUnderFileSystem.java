@@ -71,6 +71,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public boolean exists(String path) throws IOException {
+    return isFile(path) || isDirectory(path);
+  }
+
+  @Override
   public Map<String, String> getProperties() {
     return Collections.unmodifiableMap(mProperties);
   }

@@ -289,6 +289,15 @@ public interface UnderFileSystem {
   boolean deleteFile(String path) throws IOException;
 
   /**
+   * Checks if a file or directory exists in under file system.
+   *
+   * @param path the absolute path
+   * @return true if the path exists, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  boolean exists(String path) throws IOException;
+
+  /**
    * Gets the block size of a file in under file system, in bytes.
    *
    * @param path the file name

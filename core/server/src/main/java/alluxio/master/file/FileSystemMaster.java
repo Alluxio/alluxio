@@ -897,7 +897,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return true;
     }
     if (!inode.isPersisted()) {
-      return !ufs.isDirectory(ufsPath) && !ufs.isFile(ufsPath);
+      return !ufs.exists(ufsPath);
     }
     // TODO(calvin): Evaluate which other metadata fields should be validated.
     if (inode.isDirectory()) {
@@ -2478,7 +2478,7 @@ public final class FileSystemMaster extends AbstractMaster {
       String defaultUfsPath = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
       UnderFileSystem defaultUfs = UnderFileSystem.Factory.get(defaultUfsPath);
       String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
-      if (defaultUfs.isFile(shadowPath) || defaultUfs.isDirectory(shadowPath)) {
+      if (defaultUfs.exists(shadowPath)) {
         throw new IOException(
             ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
       }

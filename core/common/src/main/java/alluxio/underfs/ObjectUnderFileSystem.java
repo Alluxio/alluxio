@@ -319,7 +319,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       LOG.error("Failed to list directory {}, aborting rename.", src);
       return false;
     }
-    if (isFile(dst) || isDirectory(dst)) {
+    if (exists(dst)) {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }
@@ -356,7 +356,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           src, dst);
       return false;
     }
-    if (isFile(dst) || isDirectory(dst)) {
+    if (exists(dst)) {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }
