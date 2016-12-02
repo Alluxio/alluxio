@@ -298,6 +298,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException {
+    // TODO(adit): Empty delim means no common prefixes -> we do not infer non-Alluxio directories
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     ListObjectsV2Request request =
