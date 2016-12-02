@@ -23,6 +23,7 @@ public class AlluxioMasterInfo {
   private Capacity mCapacity;
   private Map<String, String> mConfiguration;
   private Map<String, Long> mMetrics;
+  private Map<String, MountPointInfo> mMountPoints;
   private String mRpcAddress;
   private long mStartTimeMs;
   private Map<String, Capacity> mTierCapacity;
@@ -55,6 +56,13 @@ public class AlluxioMasterInfo {
    */
   public Map<String, Long> getMetrics() {
     return mMetrics;
+  }
+
+  /**
+   * @return the mount points
+   */
+  public Map<String, MountPointInfo> getMountPoints() {
+    return mMountPoints;
   }
 
   /**
@@ -134,6 +142,15 @@ public class AlluxioMasterInfo {
   }
 
   /**
+   * @param mountPoints the mount points to use
+   * @return the Alluxio master information
+   */
+  public AlluxioMasterInfo setMountPoints(Map<String, MountPointInfo> mountPoints) {
+    mMountPoints = mountPoints;
+    return this;
+  }
+
+  /**
    * @param rpcAddress the RPC address to use
    * @return the Alluxio master information
    */
@@ -208,6 +225,7 @@ public class AlluxioMasterInfo {
     return Objects.equal(mCapacity, that.mCapacity)
         && Objects.equal(mConfiguration, that.mConfiguration)
         && Objects.equal(mMetrics, that.mMetrics)
+        && Objects.equal(mMountPoints, that.mMountPoints)
         && Objects.equal(mRpcAddress, that.mRpcAddress)
         && mStartTimeMs == that.mStartTimeMs
         && Objects.equal(mTierCapacity, that.mTierCapacity)
@@ -220,8 +238,8 @@ public class AlluxioMasterInfo {
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mCapacity, mConfiguration, mMetrics, mRpcAddress, mStartTimeMs, mTierCapacity,
-            mUfsCapacity, mUptimeMs, mVersion, mWorkers);
+        .hashCode(mCapacity, mConfiguration, mMetrics, mMountPoints, mRpcAddress, mStartTimeMs,
+            mTierCapacity, mUfsCapacity, mUptimeMs, mVersion, mWorkers);
   }
 
   @Override
@@ -230,6 +248,7 @@ public class AlluxioMasterInfo {
         .add("capacity", mCapacity)
         .add("configuration", mConfiguration)
         .add("metrics", mMetrics)
+        .add("mount points", mMountPoints)
         .add("rpc address", mRpcAddress)
         .add("start time", mStartTimeMs)
         .add("tier capacity", mTierCapacity)
