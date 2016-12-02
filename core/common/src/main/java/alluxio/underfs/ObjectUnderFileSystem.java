@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -67,8 +68,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     final long mContentLength;
     final long mLastModifiedTimeMs;
 
-    public ObjectStatus(long fileSize, long lastModifiedTimeMs) {
-      mContentLength = fileSize;
+    public ObjectStatus(long contentLength, long lastModifiedTimeMs) {
+      mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
     }
 
@@ -82,7 +83,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Gets the UTC last modified time in ms.
+     * Gets the last modified epoch time in ms.
      *
      * @return modification time in milliseconds
      */
@@ -136,7 +137,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (mkdirs(getParentPath(path))) {
       return createObject(stripPrefixIfPresent(path));
     }
-    throw new IOException(String.format("Unable to create parent directories for path %s", path));
+    throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED_UFS.getMessage(path));
   }
 
   @Override
@@ -316,7 +317,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }
-    // Source exists and is a file, and destination does not exist
+    // Source exists and is a directory, and destination does not exist
     // Rename the source folder first
     if (!copyObject(stripPrefixIfPresent(convertToFolderName(src)),
         stripPrefixIfPresent(convertToFolderName(dst)))) {
@@ -512,7 +513,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (child.startsWith(parent)) {
       return child.substring(parent.length());
     }
-    throw new IOException(String.format("Invalid prefix. Parent: %s Child: %s", parent, child));
+    throw new IOException(ExceptionMessage.INVALID_PREFIX.getMessage(parent, child));
   }
 
   /**
