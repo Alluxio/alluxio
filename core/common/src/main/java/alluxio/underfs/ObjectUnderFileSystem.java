@@ -46,6 +46,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Default maximum length for a single listing query. */
+  private static final int DEFAULT_MAX_LISTING_LENGTH = 1000;
+
   /** Value used to indicate nested structure. */
   protected static final char PATH_SEPARATOR_CHAR = '/';
 
@@ -450,7 +453,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return the maximum length for a single listing query
    */
   protected int getListingLengthMax() {
-    return 1000;
+    return DEFAULT_MAX_LISTING_LENGTH;
   }
 
   /**
