@@ -47,7 +47,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
 
     if (status.isFolder()) {

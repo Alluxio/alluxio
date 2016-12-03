@@ -88,7 +88,7 @@ public abstract class AbstractShellCommand implements ShellCommand {
    *
    * @return the number of arguments
    */
-  abstract int getNumOfArgs();
+  protected abstract int getNumOfArgs();
 
   /**
    * Gets the supported Options of the command.

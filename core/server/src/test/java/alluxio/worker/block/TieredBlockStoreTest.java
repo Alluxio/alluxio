@@ -138,8 +138,7 @@ public final class TieredBlockStoreTest {
   @Test
   public void lockNonExistingBlock() throws Exception {
     mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION
-        .getMessage(BLOCK_ID1, SESSION_ID1));
+    mThrown.expectMessage(ExceptionMessage.NO_BLOCK_ID_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
   }

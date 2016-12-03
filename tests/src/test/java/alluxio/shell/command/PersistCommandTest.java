@@ -20,6 +20,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.ExceptionMessage;
+import alluxio.security.authorization.Mode;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.underfs.UnderFileSystem;
@@ -154,7 +155,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     }
     AlluxioURI testFile = new AlluxioURI("/grand/parent/file");
     AlluxioURI grandParent = new AlluxioURI("/grand");
-    short grandParentMode = (short) 0777;
+    Mode grandParentMode = new Mode((short) 0777);
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
     URIStatus status = mFileSystem.getStatus(testFile);
     Assert.assertFalse(status.isPersisted());
@@ -171,6 +172,6 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(parentMode,
         ufs.getMode(PathUtils.concatPath(ufsRoot, testFile.getParent())));
     Assert.assertEquals(grandParentMode,
-        ufs.getMode(PathUtils.concatPath(ufsRoot, grandParent)));
+        new Mode(ufs.getMode(PathUtils.concatPath(ufsRoot, grandParent))));
   }
 }

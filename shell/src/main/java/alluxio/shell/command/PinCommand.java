@@ -41,7 +41,7 @@ public final class PinCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     CommandUtils.setPinned(mFileSystem, path, true);
     System.out.println("File '" + path + "' was successfully pinned.");
   }

@@ -12,7 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.exception.ExceptionMessage;
+import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.LockBlockResult;
@@ -62,10 +62,10 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     try {
       mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(workerNetAddress));
       LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
-      if (result == null) {
-        throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
-      }
       mReader = mCloser.register(new LocalFileBlockReader(result.getBlockPath()));
+    } catch (AlluxioException e) {
+      mCloser.close();
+      throw new IOException(e);
     } catch (IOException e) {
       mCloser.close();
       throw e;

@@ -54,7 +54,7 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     // TODO(calvin): Remove explicit state checking.
     boolean recursive = cl.hasOption("R");
     if (!mFileSystem.exists(path)) {

@@ -33,8 +33,6 @@ public enum ExceptionMessage {
   PATH_INVALID("Path {0} is invalid"),
 
   // general block
-  BLOCK_NOT_LOCALLY_AVAILABLE("blockId {0,number,#} is not available on local machine"),
-  BLOCK_UNAVAILABLE("blockId {0,number,#} is not available in Alluxio"),
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
   NO_LOCAL_WORKER("Local address {0} requested but there is no local worker"),
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),

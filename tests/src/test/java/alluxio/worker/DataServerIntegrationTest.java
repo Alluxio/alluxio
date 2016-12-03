@@ -26,7 +26,6 @@ import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -214,7 +213,7 @@ public class DataServerIntegrationTest {
   }
 
   private ByteBuffer readRemotely(RemoteBlockReader client, BlockInfo block, int length)
-      throws IOException, ConnectionFailedException {
+      throws IOException, AlluxioException {
     long lockId = mBlockWorkerClient.lockBlock(block.getBlockId()).getLockId();
     try {
       return client.readRemoteBlock(

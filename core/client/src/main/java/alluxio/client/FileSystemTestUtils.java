@@ -144,7 +144,7 @@ public final class FileSystemTestUtils {
    * @return an {@link OpenFileOptions} object with a matching Alluxio storage type
    */
   public static OpenFileOptions toOpenFileOptions(CreateFileOptions op) {
-    if (op.getAlluxioStorageType().isStore()) {
+    if (op.getWriteType().getAlluxioStorageType().isStore()) {
       return OpenFileOptions.defaults().setReadType(ReadType.CACHE);
     }
     return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
