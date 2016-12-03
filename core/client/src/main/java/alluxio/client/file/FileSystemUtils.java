@@ -160,19 +160,19 @@ public final class FileSystemUtils {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream in = closer.register(fs.openFile(uri, options));
       AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
-      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString());
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath.toString());
       // Create ancestor directories from top to the bottom. We cannot use recursive create parents
       // here because the permission for the ancestors can be different.
       Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
       AlluxioURI curAlluxioPath = uri.getParent();
       AlluxioURI curUfsPath = dstPath.getParent();
       // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not exist.
-      while (!ufs.exists(curUfsPath.toString()) && curAlluxioPath != null) {
+      while (!ufs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
         URIStatus curDirStatus = fs.getStatus(curAlluxioPath);
         Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
             (short) curDirStatus.getMode());
         ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
-            new MkdirsOptions().setCreateParent(false).setPermission(perm)));
+            MkdirsOptions.defaults().setCreateParent(false).setPermission(perm)));
 
         curAlluxioPath = curAlluxioPath.getParent();
         curUfsPath = curUfsPath.getParent();
@@ -188,7 +188,7 @@ public final class FileSystemUtils {
       Permission perm = new Permission(uriStatus.getOwner(), uriStatus.getGroup(),
           (short) uriStatus.getMode());
       OutputStream out = closer.register(ufs.create(dstPath.toString(),
-          new CreateOptions().setPermission(perm)));
+          CreateOptions.defaults().setPermission(perm)));
       ret = IOUtils.copyLarge(in, out);
     } catch (Exception e) {
       throw closer.rethrow(e);

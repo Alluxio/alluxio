@@ -242,7 +242,7 @@ public class FileOutStreamTest {
    */
   @Test
   public void close() throws Exception {
-    when(mUnderFileSystem.rename(anyString(), anyString())).thenReturn(true);
+    when(mUnderFileSystem.renameFile(anyString(), anyString())).thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
     for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
@@ -292,7 +292,7 @@ public class FileOutStreamTest {
     // Don't persist or complete the file if the stream was canceled
     verify(mFileSystemMasterClient, times(0)).completeFile(FILE_NAME,
         CompleteFileOptions.defaults());
-    verify(mUnderFileSystem).delete(anyString(), eq(false));
+    verify(mUnderFileSystem).deleteFile(anyString());
   }
 
   /**
@@ -412,7 +412,7 @@ public class FileOutStreamTest {
             .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
-    when(mUnderFileSystem.rename(anyString(), anyString())).thenReturn(true);
+    when(mUnderFileSystem.renameFile(anyString(), anyString())).thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
     verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFileOptions.class));

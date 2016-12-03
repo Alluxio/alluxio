@@ -91,7 +91,10 @@ import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -898,12 +901,10 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     // TODO(calvin): Evaluate which other metadata fields should be validated.
     if (inode.isDirectory()) {
-      return ufs.exists(ufsPath)
-          && !ufs.isFile(ufsPath);
+      return ufs.isDirectory(ufsPath);
     } else {
       InodeFile file = (InodeFile) inode;
-      return ufs.exists(ufsPath)
-          && ufs.isFile(ufsPath)
+      return ufs.isFile(ufsPath)
           && ufs.getFileSize(ufsPath) == file.getLength();
     }
   }
@@ -1372,12 +1373,25 @@ public final class FileSystemMaster extends AbstractMaster {
               MountTable.Resolution resolution = mMountTable.resolve(alluxioUriToDel);
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
-              if (!ufs.delete(ufsUri, true)) {
-                if (ufs.exists(ufsUri)) {
-                  LOG.error("Failed to delete {} from the under file system", ufsUri);
-                  throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
+              boolean failedToDelete = false;
+              if (delInode.isFile()) {
+                if (!ufs.deleteFile(ufsUri)) {
+                  failedToDelete = ufs.isFile(ufsUri);
+                  if (!failedToDelete) {
+                    LOG.warn("The file to delete does not exist in ufs: {}", ufsUri);
+                  }
                 }
-                LOG.warn("The file to delete does not exist in under file system: {}", ufsUri);
+              } else {
+                if (!ufs.deleteDirectory(ufsUri, DeleteOptions.defaults().setRecursive(true))) {
+                  failedToDelete = ufs.isDirectory(ufsUri);
+                  if (!failedToDelete) {
+                    LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
+                  }
+                }
+              }
+              if (failedToDelete) {
+                LOG.error("Failed to delete {} from the under filesystem", ufsUri);
+                throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
               }
             }
           } catch (InvalidPathException e) {
@@ -1466,7 +1480,8 @@ public final class FileSystemMaster extends AbstractMaster {
       UnderFileSystem ufs = resolution.getUfs();
       List<String> locs;
       try {
-        locs = ufs.getFileLocations(ufsUri, fileBlockInfo.getOffset());
+        locs = ufs.getFileLocations(ufsUri,
+            FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
       } catch (IOException e) {
         return fileBlockInfo;
       }
@@ -1825,7 +1840,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (!replayed && srcInode.isPersisted()) {
       MountTable.Resolution resolution = mMountTable.resolve(srcPath);
 
-      String ufsSrcUri = resolution.getUri().toString();
+      String ufsSrcPath = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
       String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
       // Create ancestor directories from top to the bottom. We cannot use recursive create parents
@@ -1835,13 +1850,13 @@ public final class FileSystemMaster extends AbstractMaster {
       AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
       // The dst inode does not exist yet, so the last inode in the list is the existing parent.
       for (int i = dstInodeList.size() - 1; i >= 0; i--) {
-        if (ufs.exists(curUfsDirPath.toString())) {
+        if (ufs.isDirectory(curUfsDirPath.toString())) {
           break;
         }
         Inode<?> curInode = dstInodeList.get(i);
         Permission perm = new Permission(curInode.getOwner(), curInode.getGroup(),
             curInode.getMode());
-        MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(false)
+        MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
             .setPermission(perm);
         ufsDirsToMakeWithOptions.push(new Pair<>(curUfsDirPath.toString(), mkdirsOptions));
         curUfsDirPath = curUfsDirPath.getParent();
@@ -1853,9 +1868,15 @@ public final class FileSystemMaster extends AbstractMaster {
               ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirAndPerm.getFirst()));
         }
       }
-      if (!ufs.rename(ufsSrcUri, ufsDstUri)) {
+      boolean success;
+      if (srcInode.isFile()) {
+        success = ufs.renameFile(ufsSrcPath, ufsDstUri);
+      } else {
+        success = ufs.renameDirectory(ufsSrcPath, ufsDstUri);
+      }
+      if (!success) {
         throw new IOException(
-            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcUri, ufsDstUri));
+            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
       }
     }
 
@@ -2155,32 +2176,34 @@ public final class FileSystemMaster extends AbstractMaster {
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     try {
-      if (!ufs.exists(ufsUri.toString())) {
-        InodeDirectory inode = (InodeDirectory) inodePath.getInode();
-        inode.setDirectChildrenLoaded(true);
-        return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-      }
       if (ufs.isFile(ufsUri.toString())) {
         return loadFileMetadataAndJournal(inodePath, resolution, options);
-      } else {
+      } else if (ufs.isDirectory(ufsUri.toString())) {
         long counter = loadDirectoryMetadataAndJournal(inodePath, options);
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
         if (options.isLoadDirectChildren()) {
-          String[] files = ufs.list(ufsUri.getPath());
+          UnderFileStatus[] files = ufs.listStatus(ufsUri.getPath());
           LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults();
           loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
 
-          for (String file : files) {
-            if (PathUtils.isTemporaryFileName(file) || inode.getChild(file) != null) {
+          for (UnderFileStatus file : files) {
+            if (PathUtils.isTemporaryFileName(file.getName())
+                || inode.getChild(file.getName()) != null) {
               continue;
             }
-            TempInodePathForChild tempInodePath = new TempInodePathForChild(inodePath, file);
+            TempInodePathForChild tempInodePath =
+                new TempInodePathForChild(inodePath, file.getName());
             counter = loadMetadataAndJournal(tempInodePath, loadMetadataOptions);
           }
           inode.setDirectChildrenLoaded(true);
         }
         return counter;
+      } else {
+        // uri does not exist in ufs
+        InodeDirectory inode = (InodeDirectory) inodePath.getInode();
+        inode.setDirectChildrenLoaded(true);
+        return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
       }
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
@@ -2445,20 +2468,17 @@ public final class FileSystemMaster extends AbstractMaster {
 
     if (!replayed) {
       // Check that the ufsPath exists and is a directory
-      UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString());
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsPath.toString());
       ufs.setProperties(options.getProperties());
-      if (!ufs.exists(ufsPath.toString())) {
+      if (!ufs.isDirectory(ufsPath.toString())) {
         throw new IOException(
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
       }
-      if (ufs.isFile(ufsPath.toString())) {
-        throw new IOException(
-            ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
-      }
       // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
       String defaultUfsPath = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-      UnderFileSystem defaultUfs = UnderFileSystem.get(defaultUfsPath);
-      if (defaultUfs.exists(PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath()))) {
+      UnderFileSystem defaultUfs = UnderFileSystem.Factory.get(defaultUfsPath);
+      String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
+      if (defaultUfs.exists(shadowPath)) {
         throw new IOException(
             ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
       }
@@ -3064,7 +3084,7 @@ public final class FileSystemMaster extends AbstractMaster {
           });
 
       final String ufsDataFolder = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-      final UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder);
+      final UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsDataFolder);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
           new Gauge<Long>() {

@@ -12,6 +12,7 @@
 package alluxio.underfs.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.options.DeleteOptions;
 
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -36,7 +37,6 @@ public class S3UnderFileSystemTest {
   private static final String DST = "dst";
 
   private static final String BUCKET_NAME = "bucket";
-  private static final String BUCKET_PREFIX = "prefix";
   private static final short BUCKET_MODE = 0;
   private static final String ACCOUNT_OWNER = "account owner";
 
@@ -48,7 +48,7 @@ public class S3UnderFileSystemTest {
     mClient = Mockito.mock(S3Service.class);
 
     mS3UnderFileSystem = new S3UnderFileSystem(new AlluxioURI(""),
-        mClient, BUCKET_NAME, BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER);
+        mClient, BUCKET_NAME, BUCKET_MODE, ACCOUNT_OWNER);
   }
 
   /**
@@ -60,7 +60,8 @@ public class S3UnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mS3UnderFileSystem.delete(PATH, false);
+    boolean result = mS3UnderFileSystem.deleteDirectory(PATH,
+        DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(result);
   }
 
@@ -73,12 +74,13 @@ public class S3UnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mS3UnderFileSystem.delete(PATH, true);
+    boolean result = mS3UnderFileSystem.deleteDirectory(PATH,
+        DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(result);
   }
 
   /**
-   * Test case for {@link S3UnderFileSystem#rename(String, String)}.
+   * Test case for {@link S3UnderFileSystem#renameFile(String, String)}.
    */
   @Test
   public void renameOnServiceException() throws IOException, ServiceException {
@@ -86,7 +88,7 @@ public class S3UnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mS3UnderFileSystem.rename(SRC, DST);
+    boolean result = mS3UnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
 }

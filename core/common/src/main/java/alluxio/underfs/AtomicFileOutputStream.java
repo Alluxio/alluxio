@@ -27,13 +27,14 @@ import java.io.OutputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A {@link NonAtomicFileOutputStream} writes to a temporary file and renames on close.
+ * A {@link AtomicFileOutputStream} writes to a temporary file and renames on close. This ensures
+ * that writing to the stream is atomic, i.e., all writes become readable only after a close.
  */
 @NotThreadSafe
-public class NonAtomicFileOutputStream extends OutputStream {
+public class AtomicFileOutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private UnderFileSystem mUfs;
+  private AtomicFileOutputStreamCallback mUfs;
   private CreateOptions mOptions;
   private String mPermanentPath;
   private String mTemporaryPath;
@@ -41,15 +42,15 @@ public class NonAtomicFileOutputStream extends OutputStream {
   private boolean mClosed = false;
 
   /**
-   * Constructs a new {@link NonAtomicFileOutputStream}.
+   * Constructs a new {@link AtomicFileOutputStream}.
    *
    * @param path path being written to
-   * @param options create options for destination file
    * @param ufs the calling {@link UnderFileSystem}
+   * @param options create options for destination file
    * @throws IOException when a non Alluxio error occurs
    */
-  public NonAtomicFileOutputStream(String path, CreateOptions options, UnderFileSystem ufs)
-      throws IOException {
+  public AtomicFileOutputStream(String path, AtomicFileOutputStreamCallback ufs,
+      CreateOptions options) throws IOException {
     mOptions = options;
     mPermanentPath = path;
     mTemporaryPath = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), path);
@@ -79,8 +80,8 @@ public class NonAtomicFileOutputStream extends OutputStream {
     }
     mTemporaryOutputStream.close();
 
-    if (!mUfs.rename(mTemporaryPath, mPermanentPath)) {
-      if (!mUfs.delete(mTemporaryPath, false)) {
+    if (!mUfs.renameFile(mTemporaryPath, mPermanentPath)) {
+      if (!mUfs.deleteFile(mTemporaryPath)) {
         LOG.error("Failed to delete temporary file {}", mTemporaryPath);
       }
       throw new IOException(

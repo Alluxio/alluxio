@@ -12,6 +12,7 @@
 package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.options.DeleteOptions;
 
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.ServiceException;
@@ -37,7 +38,6 @@ public class OSSUnderFileSystemTest {
   private static final String DST = "dst";
 
   private static final String BUCKET_NAME = "bucket";
-  private static final String BUCKET_PREFIX = "prefix";
 
   /**
    * Set up.
@@ -47,42 +47,44 @@ public class OSSUnderFileSystemTest {
     mClient = Mockito.mock(OSSClient.class);
 
     mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient,
-        BUCKET_NAME, BUCKET_PREFIX);
+        BUCKET_NAME);
   }
 
   /**
-   * Test case for {@link OSSUnderFileSystem#delete(String, boolean)}.
+   * Test case for {@link OSSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
         .thenThrow(ServiceException.class);
 
-    boolean result = mOSSUnderFileSystem.delete(PATH, false);
+    boolean result = mOSSUnderFileSystem.deleteDirectory(PATH,
+        DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(result);
   }
 
   /**
-   * Test case for {@link OSSUnderFileSystem#delete(String, boolean)}.
+   * Test case for {@link OSSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
         .thenThrow(ServiceException.class);
 
-    boolean result = mOSSUnderFileSystem.delete(PATH, true);
+    boolean result = mOSSUnderFileSystem.deleteDirectory(PATH,
+        DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(result);
   }
 
   /**
-   * Test case for {@link OSSUnderFileSystem#rename(String, String)}.
+   * Test case for {@link OSSUnderFileSystem#renameFile(String, String)}.
    */
   @Test
   public void renameOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
         .thenThrow(ServiceException.class);
 
-    boolean result = mOSSUnderFileSystem.rename(SRC, DST);
+    boolean result = mOSSUnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
 }

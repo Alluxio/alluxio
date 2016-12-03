@@ -14,6 +14,7 @@ package alluxio.underfs.swift;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
+import alluxio.underfs.options.DeleteOptions;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -65,8 +66,8 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
   public void cleanup() throws IOException {
     String oldDir = mBaseDir;
     mBaseDir = mSwiftContainer + UUID.randomUUID();
-    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir);
-    ufs.delete(oldDir, true);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mBaseDir);
+    ufs.deleteDirectory(oldDir, DeleteOptions.defaults().setRecursive(true));
   }
 
   @Override

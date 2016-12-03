@@ -21,6 +21,7 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Function;
@@ -89,9 +90,9 @@ public class StartupConsistencyCheckTest {
     String topLevelFileUfsPath = mFileSystem.getStatus(TOP_LEVEL_FILE).getUfsPath();
     String secondLevelDirUfsPath = mFileSystem.getStatus(SECOND_LEVEL_DIR).getUfsPath();
     mCluster.stopFS();
-    UnderFileSystem ufs = UnderFileSystem.get(topLevelFileUfsPath);
-    ufs.delete(topLevelFileUfsPath, true);
-    ufs.delete(secondLevelDirUfsPath, true);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(topLevelFileUfsPath);
+    ufs.deleteFile(topLevelFileUfsPath);
+    ufs.deleteDirectory(secondLevelDirUfsPath, DeleteOptions.defaults().setRecursive(true));
     final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     waitForStartupConsistencyCheck(master);
     List expected = Lists.newArrayList(TOP_LEVEL_FILE, SECOND_LEVEL_DIR, THIRD_LEVEL_FILE);

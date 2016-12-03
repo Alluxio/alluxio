@@ -25,6 +25,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.LineageUtils;
@@ -383,21 +384,15 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
    * @throws IOException if an I/O error occurs
    */
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(journalDirectory);
-    if (!ufs.providesStorage()) {
-      // TODO(gene): Should the journal really be allowed on a ufs without storage?
-      // This ufs doesn't provide storage. Allow the master to use this ufs for the journal.
-      LOG.info("Journal directory doesn't provide storage: {}", journalDirectory);
-      return true;
-    }
-    String[] files = ufs.list(journalDirectory);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(journalDirectory);
+    UnderFileStatus[] files = ufs.listStatus(journalDirectory);
     if (files == null) {
       return false;
     }
     // Search for the format file.
     String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
-    for (String file : files) {
-      if (file.startsWith(formatFilePrefix)) {
+    for (UnderFileStatus file : files) {
+      if (file.getName().startsWith(formatFilePrefix)) {
         return true;
       }
     }
@@ -406,7 +401,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
   private void connectToUFS() throws IOException {
     String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsAddress);
     ufs.connectFromMaster(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
   }
 }

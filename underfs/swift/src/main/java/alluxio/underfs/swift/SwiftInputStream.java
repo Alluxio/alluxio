@@ -12,14 +12,11 @@
 package alluxio.underfs.swift;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 
 import org.javaswift.joss.instructions.DownloadInstructions;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.StoredObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -32,7 +29,6 @@ import java.io.InputStream;
  */
 @NotThreadSafe
 public class SwiftInputStream extends InputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** JOSS Swift account. */
   private final Account mAccount;
@@ -54,9 +50,22 @@ public class SwiftInputStream extends InputStream {
    * @param object path of the object in the container
    */
   public SwiftInputStream(Account account, String container, String object) {
+    this(account, container, object, 0L);
+  }
+
+  /**
+   * Constructor for an input stream to an object in a Swift API based store.
+   *
+   * @param account JOSS account with authentication credentials
+   * @param container the name of container where the object resides
+   * @param object path of the object in the container
+   * @param position the position to begin reading from
+   */
+  public SwiftInputStream(Account account, String container, String object, long position) {
     mAccount = account;
     mContainerName = container;
     mObjectPath = object;
+    mPos = position;
   }
 
   @Override

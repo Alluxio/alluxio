@@ -93,27 +93,27 @@ public final class CheckpointManager {
    */
   public void recoverCheckpoint() {
     try {
-      boolean checkpointExists = mUfs.exists(mCheckpointPath);
-      boolean backupCheckpointExists = mUfs.exists(mBackupCheckpointPath);
-      boolean tempBackupCheckpointExists = mUfs.exists(mTempBackupCheckpointPath);
+      boolean checkpointExists = mUfs.isFile(mCheckpointPath);
+      boolean backupCheckpointExists = mUfs.isFile(mBackupCheckpointPath);
+      boolean tempBackupCheckpointExists = mUfs.isFile(mTempBackupCheckpointPath);
       Preconditions.checkState(
           !(checkpointExists && backupCheckpointExists && tempBackupCheckpointExists),
           "checkpoint, temp backup checkpoint, and backup checkpoint should never all exist ");
       if (tempBackupCheckpointExists) {
         // If mCheckpointPath also exists, step 2 must have implemented rename as copy + delete, and
         // failed during the delete.
-        UnderFileSystemUtils.deleteIfExists(mUfs, mCheckpointPath);
-        mUfs.rename(mTempBackupCheckpointPath, mCheckpointPath);
+        UnderFileSystemUtils.deleteFileIfExists(mCheckpointPath);
+        mUfs.renameFile(mTempBackupCheckpointPath, mCheckpointPath);
       }
       if (backupCheckpointExists) {
         // We must have crashed after step 3
         if (checkpointExists) {
           // We crashed after step 4, so we can finish steps 5 and 6.
           mWriter.deleteCompletedLogs();
-          mUfs.delete(mBackupCheckpointPath, false);
+          mUfs.deleteFile(mBackupCheckpointPath);
         } else {
           // We crashed before step 4, so we roll back to the backup checkpoint.
-          mUfs.rename(mBackupCheckpointPath, mCheckpointPath);
+          mUfs.renameFile(mBackupCheckpointPath, mCheckpointPath);
         }
       }
     } catch (IOException e) {
@@ -130,21 +130,21 @@ public final class CheckpointManager {
    */
   public void updateCheckpoint(String newCheckpointPath) {
     try {
-      if (mUfs.exists(mCheckpointPath)) {
-        UnderFileSystemUtils.deleteIfExists(mUfs, mTempBackupCheckpointPath);
-        UnderFileSystemUtils.deleteIfExists(mUfs, mBackupCheckpointPath);
+      if (mUfs.isFile(mCheckpointPath)) {
+        UnderFileSystemUtils.deleteFileIfExists(mTempBackupCheckpointPath);
+        UnderFileSystemUtils.deleteFileIfExists(mBackupCheckpointPath);
         // Rename in two steps so that we never have identical mCheckpointPath and
         // mBackupCheckpointPath. This is a concern since UFS may implement rename as copy + delete.
-        mUfs.rename(mCheckpointPath, mTempBackupCheckpointPath);
-        mUfs.rename(mTempBackupCheckpointPath, mBackupCheckpointPath);
+        mUfs.renameFile(mCheckpointPath, mTempBackupCheckpointPath);
+        mUfs.renameFile(mTempBackupCheckpointPath, mBackupCheckpointPath);
         LOG.info("Backed up the checkpoint file to {}", mBackupCheckpointPath);
       }
-      mUfs.rename(newCheckpointPath, mCheckpointPath);
+      mUfs.renameFile(newCheckpointPath, mCheckpointPath);
       LOG.info("Renamed the checkpoint file from {} to {}", newCheckpointPath, mCheckpointPath);
 
       // The checkpoint already reflects the information in the completed logs.
       mWriter.deleteCompletedLogs();
-      UnderFileSystemUtils.deleteIfExists(mUfs, mBackupCheckpointPath);
+      UnderFileSystemUtils.deleteFileIfExists(mBackupCheckpointPath);
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }

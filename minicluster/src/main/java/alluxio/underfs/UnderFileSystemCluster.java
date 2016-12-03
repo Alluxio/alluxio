@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -136,9 +137,14 @@ public abstract class UnderFileSystemCluster {
   public void cleanup() throws IOException {
     if (isStarted()) {
       String path = getUnderFilesystemAddress() + AlluxioURI.SEPARATOR;
-      UnderFileSystem ufs = UnderFileSystem.get(path);
-      for (String p : ufs.list(path)) {
-        ufs.delete(PathUtils.concatPath(path, p), true);
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
+      for (UnderFileStatus p : ufs.listStatus(path)) {
+        String childPath = PathUtils.concatPath(path, p.getName());
+        if (p.isDirectory()) {
+          ufs.deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true));
+        } else {
+          ufs.deleteFile(childPath);
+        }
       }
     }
   }

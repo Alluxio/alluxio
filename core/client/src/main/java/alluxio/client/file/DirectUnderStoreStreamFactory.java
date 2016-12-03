@@ -33,7 +33,7 @@ public final class DirectUnderStoreStreamFactory implements UnderStoreStreamFact
 
   @Override
   public InputStream create() throws IOException {
-    return UnderFileSystem.get(mPath).open(mPath);
+    return UnderFileSystem.Factory.get(mPath).open(mPath);
   }
 
   @Override

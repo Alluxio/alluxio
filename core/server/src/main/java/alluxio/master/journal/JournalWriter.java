@@ -84,7 +84,7 @@ public final class JournalWriter {
     mJournalDirectory = mJournal.getDirectory();
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
-    mUfs = UnderFileSystem.get(mJournalDirectory);
+    mUfs = UnderFileSystem.Factory.get(mJournalDirectory);
     mCheckpointManager = new CheckpointManager(mUfs, mJournal.getCheckpointFilePath(), this);
   }
 
@@ -98,7 +98,7 @@ public final class JournalWriter {
     // Loop over all complete logs starting from the beginning, to determine the next log number.
     mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
-    while (mUfs.exists(logFilename)) {
+    while (mUfs.isFile(logFilename)) {
       mNextCompleteLogNumber++;
       // generate the next completed log filename in the sequence.
       logFilename = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
@@ -121,14 +121,14 @@ public final class JournalWriter {
     if (mCheckpointOutputStream == null) {
       mCheckpointManager.recoverCheckpoint();
       LOG.info("Creating tmp checkpoint file: {}", mTempCheckpointPath);
-      if (!mUfs.exists(mJournalDirectory)) {
+      if (!mUfs.isDirectory(mJournalDirectory)) {
         LOG.info("Creating journal folder: {}", mJournalDirectory);
-        mUfs.mkdirs(mJournalDirectory, true);
+        mUfs.mkdirs(mJournalDirectory);
       }
       mNextEntrySequenceNumber = latestSequenceNumber + 1;
       LOG.info("Latest journal sequence number: {} Next journal sequence number: {}",
           latestSequenceNumber, mNextEntrySequenceNumber);
-      UnderFileSystemUtils.deleteIfExists(mUfs, mTempCheckpointPath);
+      UnderFileSystemUtils.deleteFileIfExists(mTempCheckpointPath);
       mCheckpointOutputStream =
           new CheckpointOutputStream(new DataOutputStream(mUfs.create(mTempCheckpointPath)));
     }
@@ -192,13 +192,13 @@ public final class JournalWriter {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the end.
     long logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
-    while (mUfs.exists(mJournal.getCompletedLogFilePath(logNumber))) {
+    while (mUfs.isFile(mJournal.getCompletedLogFilePath(logNumber))) {
       logNumber++;
     }
     for (long i = logNumber - 1; i >= 0; i--) {
       String logFilename = mJournal.getCompletedLogFilePath(i);
       LOG.info("Deleting completed log: {}", logFilename);
-      mUfs.delete(logFilename, true);
+      mUfs.deleteFile(logFilename);
     }
     LOG.info("Finished deleting all completed log files.");
 
@@ -214,17 +214,17 @@ public final class JournalWriter {
    */
   public synchronized void completeCurrentLog() throws IOException {
     String currentLog = mJournal.getCurrentLogFilePath();
-    if (!mUfs.exists(currentLog)) {
+    if (!mUfs.isFile(currentLog)) {
       // All logs are already complete, so nothing to do.
       return;
     }
 
-    if (!mUfs.exists(mCompletedDirectory)) {
-      mUfs.mkdirs(mCompletedDirectory, true);
+    if (!mUfs.isDirectory(mCompletedDirectory)) {
+      mUfs.mkdirs(mCompletedDirectory);
     }
 
     String completedLog = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
-    mUfs.rename(currentLog, completedLog);
+    mUfs.renameFile(currentLog, completedLog);
     LOG.info("Completed current log: {} to completed log: {}", currentLog, completedLog);
 
     mNextCompleteLogNumber++;
@@ -352,7 +352,8 @@ public final class JournalWriter {
       mJournalFormatter = journalFormatter;
       mJournalWriter = journalWriter;
       mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
-      mRawOutputStream = mUfs.create(mCurrentLogPath, new CreateOptions().setEnsureAtomic(false));
+      mRawOutputStream =
+          mUfs.create(mCurrentLogPath, CreateOptions.defaults().setEnsureAtomic(false));
       LOG.info("Opened current log file: {}", mCurrentLogPath);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
@@ -439,7 +440,8 @@ public final class JournalWriter {
     private void rotateLog() throws IOException {
       mDataOutputStream.close();
       mJournalWriter.completeCurrentLog();
-      mRawOutputStream = mUfs.create(mCurrentLogPath, new CreateOptions().setEnsureAtomic(false));
+      mRawOutputStream =
+          mUfs.create(mCurrentLogPath, CreateOptions.defaults().setEnsureAtomic(false));
       LOG.info("Opened current log file: {}", mCurrentLogPath);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }

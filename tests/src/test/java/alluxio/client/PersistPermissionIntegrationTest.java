@@ -42,7 +42,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     super.before();
 
     mUfsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    mUfs = UnderFileSystem.get(mUfsRoot);
+    mUfs = UnderFileSystem.Factory.get(mUfsRoot);
   }
 
   @Test
