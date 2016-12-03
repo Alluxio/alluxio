@@ -17,14 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
-import alluxio.network.protocol.RPCFileReadRequest;
-import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockReader;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -38,8 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 

@@ -41,6 +41,7 @@ final public class DataServerFileReadHandler extends DataServerReadHandler {
    * The block read request internal representation.
    */
   private final class FileReadRequestInternal extends ReadRequestInternal {
+    /** The UFS input stream. No need to close. */
     public InputStream mInputStream = null;
 
     /**

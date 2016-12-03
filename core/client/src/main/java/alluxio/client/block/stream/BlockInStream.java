@@ -34,10 +34,10 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
-
+  /** The current packet. */
   private ByteBuf mCurrentPacket = null;
 
-  private BlockReader mBlockReader = null;
+  private PacketReader mReader = null;
 
   private boolean mClosed = false;
 
@@ -77,21 +77,26 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
    */
   private void readPacket() throws IOException {
     if (mCurrentPacket.readableBytes() == 0) {
-      ReferenceCountUtil.release(mCurrentPacket);
-      if (mBlockReader == null) {
-        mBlockReader = createBlockReader(mPos, mBlockSize - mPos);
+      destroyPacket(mCurrentPacket);
+      if (mReader == null) {
+        mReader = createBlockReader(mPos, mBlockSize - mPos);
       }
-      mCurrentPacket = mBlockReader.readPacket();
+      mCurrentPacket = mReader.readPacket();
     }
   }
 
+  protected void destroyPacket(ByteBuf packet) {
+    ReferenceCountUtil.release(packet);
+  }
 
-  protected abstract BlockReader createBlockReader(long offset, long len);
+  protected abstract PacketReader createBlockReader(long offset, long len);
 
   /**
    * Close the current block reader.
    */
-  private void closeBlockReader() {
+  private void closeReader() {
+    mReader.close();
+    mReader = null;
   }
 
   @Override
@@ -132,10 +137,8 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
     if (pos == mPos) {
       return;
     }
-    if (mBlockReader != null) {
-      mBlockReader.close();
-      mBlockReader = null;
-    }
+
+    closeReader();
     mPos = pos;
   }
 
@@ -149,10 +152,7 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
     long toSkip = Math.min(remaining(), n);
     mPos += toSkip;
 
-    if (mBlockReader != null) {
-      mBlockReader.close();
-      mBlockReader = null;
-    }
+    closeReader();
     return toSkip;
   }
 

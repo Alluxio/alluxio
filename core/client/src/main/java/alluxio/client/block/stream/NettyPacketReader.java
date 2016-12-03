@@ -11,9 +11,7 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
@@ -33,13 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -61,99 +53,41 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 7. To make it simple to handle errors, the channel is closed if any error occurs.
  */
 @NotThreadSafe
-public class NettyBlockReader implements BlockReader {
+public final class NettyPacketReader extends AbstractPacketReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final int MAX_PACKETS_IN_FLIGHT =
-      Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
-  private static final long READ_TIMEOUT_MS =
-      Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
-
   private final Channel mChannel;
-  private final InetSocketAddress mAddress;
-  private final long mBlockId;
-  private final long mStart;
-  private final long mBytesToRead;
-
-  private ReentrantLock mLock = new ReentrantLock();
-  @GuardedBy("mLock")
-  private Queue<ByteBuf> mPackets = new LinkedList<>();
-  @GuardedBy("mLock")
-  private Throwable mPacketReaderException = null;
-  private Condition mNotEmptyOrFail = mLock.newCondition();
-
-  /** The next pos to read. */
-  private long mPosToRead;
-  /** This is true only when an empty packet is received. */
-  private boolean mDone = false;
 
   /**
-   * Creates an instance of {@link NettyBlockReader}.
+   * Creates an instance of {@link NettyPacketReader}.
    *
    * @param address the netty data server network address
-   * @param blockId the block ID
+   * @param id the block ID or UFS file ID
    * @param offset the offset
    * @param len the length to read
    * @param lockId the lock ID
    * @param sessionId the session ID
    * @throws IOException if it fails to create the object
    */
-  public NettyBlockReader(final InetSocketAddress address, long blockId, long offset, int len,
+  private NettyPacketReader(InetSocketAddress address, long id, long offset, int len,
       long lockId, long sessionId) throws IOException {
-    mAddress = address;
-    mBlockId = blockId;
-    mStart = offset;
-    mPosToRead = offset;
-    mBytesToRead = len;
-    Preconditions.checkState(offset >= 0 && len > 0);
+    super(address,id, offset, len);
 
     mChannel = BlockStoreContext.acquireNettyChannel(address);
     mChannel.pipeline().addLast(new Handler());
-
-    mChannel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, len, lockId, sessionId))
+    mChannel.writeAndFlush(new RPCBlockReadRequest(mId, offset, len, lockId, sessionId))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
-  @Override
-  public long pos() {
-    return mPosToRead;
+  public NettyPacketReader createBlockReader(InetSocketAddress address, long id, long offset, int len,
+      long lockId, long sessionId) throws IOException {
+    return new NettyPacketReader(address, id, offset, len, lockId, sessionId);
   }
 
-  @Override
-  public ByteBuf readPacket() throws IOException {
-    while (true) {
-      mLock.lock();
-      try {
-        if (mPacketReaderException != null) {
-          throw new IOException(mPacketReaderException);
-        }
-        ByteBuf buf = mPackets.poll();
-        if (mPackets.size() < MAX_PACKETS_IN_FLIGHT) {
-          mChannel.config().setAutoRead(true);
-          mChannel.read();
-        }
-        if (buf == null) {
-          try {
-            if (!mNotEmptyOrFail.await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-              throw new IOException(String
-                  .format("Timeout while reading packet from block %d @ %s.", mBlockId, mAddress));
-            }
-          } catch (InterruptedException e) {
-            throw Throwables.propagate(e);
-          }
-        }
-        if (buf.readableBytes() == 0) {
-          mDone = true;
-          return null;
-        }
-        mPosToRead += buf.readableBytes();
-        Preconditions.checkState(mPosToRead - mStart <= mBytesToRead);
-        return buf;
-      } finally {
-        mLock.unlock();
-      }
-    }
- }
+  public NettyPacketReader createFileReader(InetSocketAddress address, long id, long offset,
+      int len) throws IOException {
+    return new NettyPacketReader(address, id, offset, len, -1, -1);
+  }
 
   @Override
   public void close() {
@@ -166,7 +100,7 @@ public class NettyBlockReader implements BlockReader {
       }
       try {
         ChannelFuture channelFuture =
-            mChannel.writeAndFlush(RPCBlockReadRequest.createCancelRequest(mBlockId));
+            mChannel.writeAndFlush(RPCBlockReadRequest.createCancelRequest(mId));
         channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         channelFuture.sync();
       } catch (InterruptedException e) {
@@ -183,7 +117,7 @@ public class NettyBlockReader implements BlockReader {
           ReferenceCountUtil.release(buf);
         } catch (IOException e) {
           LOG.warn("Failed to close the NettyBlockReader (block: {}, address: {}).",
-              mBlockId, mAddress, e);
+              mId, mAddress, e);
           mChannel.close();
           return;
         }
@@ -207,7 +141,7 @@ public class NettyBlockReader implements BlockReader {
       RPCBlockReadResponse response = (RPCBlockReadResponse) msg;
       if (response.getStatus() != RPCResponse.Status.SUCCESS) {
         throw new IOException(String
-            .format("Failed to read block %d from %s with status %s.", mBlockId, mAddress,
+            .format("Failed to read block %d from %s with status %s.", mId, mAddress,
                 response.getStatus().getMessage()));
       }
       mLock.lock();
@@ -217,8 +151,8 @@ public class NettyBlockReader implements BlockReader {
         Preconditions.checkState(mPackets.offer(buf));
         mNotEmptyOrFail.signal();
 
-        if (mPackets.size() >= MAX_PACKETS_IN_FLIGHT) {
-          ctx.channel().config().setAutoRead(false);
+        if (tooManyPacketsPending()) {
+          pause();
         }
       } finally {
         mLock.unlock();
@@ -239,6 +173,17 @@ public class NettyBlockReader implements BlockReader {
       }
       ctx.close();
     }
+  }
+
+  @Override
+  protected void pause() {
+    mChannel.config().setAutoRead(false);
+  }
+
+  @Override
+  protected void resume() {
+    mChannel.config().setAutoRead(true);
+    mChannel.read();
   }
 }
 

@@ -19,7 +19,14 @@ import java.io.IOException;
 /**
  * The interface to read remote block from data server.
  */
-public interface BlockReader extends Closeable {
+public interface PacketReader extends Closeable {
+
+  /**
+   * Reads a packet.
+   *
+   * @return the data buffer or null if EOF is reached
+   * @throws IOException if it fails to read a packet
+   */
   ByteBuf readPacket() throws IOException;
 
   long pos();
