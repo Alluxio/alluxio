@@ -280,7 +280,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       int i = 0;
       for (FileStatus status : files) {
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDirectory());
+        rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDir());
       }
       return rtn;
     } else {
