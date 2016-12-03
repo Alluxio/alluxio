@@ -37,6 +37,11 @@ else
   echo "Using \$HADOOP_HOME set to '$HADOOP_HOME'"
 fi
 
+if [[ -z "$YARN_HOME" ]]; then
+  echo "\$YARN_HOME is unset, will use \$HADOOP_HOME instead."
+fi
+YARN_HOME=${YARN_HOME:-${HADOOP_HOME}}
+
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 ALLUXIO_HOME="$(cd "${SCRIPT_DIR}/../.."; pwd)"
 
@@ -72,7 +77,7 @@ echo "Starting YARN client to launch Alluxio on YARN"
 ALLUXIO_JAVA_OPTS="${ALLUXIO_JAVA_OPTS} -Dalluxio.logger.type=Console"
 export YARN_OPTS="${YARN_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 
-${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} alluxio.yarn.Client \
+${YARN_HOME}/bin/yarn jar ${JAR_LOCAL} alluxio.yarn.Client \
     -num_workers $NUM_WORKERS \
     -master_address ${MASTER_ADDRESS} \
     -resource_path ${HDFS_PATH}
