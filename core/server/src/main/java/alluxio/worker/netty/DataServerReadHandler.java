@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This class handles {@link RPCBlockReadRequest}s.
  *
- * Protocol: Check {@link alluxio.client.block.stream.NettyBlockReader} for more information.
+ * Protocol: Check {@link alluxio.client.block.stream.NettyPacketReader} for more information.
  * 1. Once a read request is received, the handler creates a {@link PacketReader} which reads
  *    packets from the block worker and pushes them to the buffer.
  * 2. The {@link PacketReader} pauses if there are too many packets in flight, and resumes if there
@@ -76,12 +76,17 @@ public abstract class DataServerReadHandler
   protected volatile ReadRequestInternal mRequest = null;
 
   protected abstract class ReadRequestInternal implements Closeable {
-    // This ID can either be block ID or temp UFS ID.
+    // This ID can either be block ID or temp UFS file ID.
     public long mId = -1;
     public long mStart = -1;
     public long mEnd = -1;
     public boolean mCancelled = false;
 
+    /**
+     * Closes the request. Note that this close does not throw exception since all the data
+     * requested by the client has been sent when this close is called. All the exceptions thrown
+     * inside this close will be logged. This is different from the write handlers.
+     */
     @Override
     public abstract void close();
   }
@@ -97,9 +102,7 @@ public abstract class DataServerReadHandler
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    if (mRequest != null) {
-      mRequest.close();
-    }
+    reset();
   }
 
   @Override
@@ -139,8 +142,6 @@ public abstract class DataServerReadHandler
     LOG.error("Exception caught {} in BlockReadDataServerHandler.", cause);
     replyError(ctx.channel());
   }
-
-
 
   /**
    * @return true if there are too many packets in-flight.
@@ -223,8 +224,10 @@ public abstract class DataServerReadHandler
    * Resets the handler to its initial state.
    */
   private void reset() {
-    mRequest.close();
-    mRequest = null;
+    if (mRequest != null) {
+      mRequest.close();
+      mRequest = null;
+    }
     mLock.lock();
     try {
       mPacketReaderActive = false;
