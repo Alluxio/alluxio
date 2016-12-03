@@ -1,0 +1,6 @@
+HIGHEST:
+  Write a block to the highest tier. This is the default.
+PREFER_HIGHEST_NON_MEMORY:
+  Write a block to the highest non-memory tier, if possible.
+LOWEST:
+  Write a block to the lowest tier. 

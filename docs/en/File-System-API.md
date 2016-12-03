@@ -110,6 +110,23 @@ Users can simply override the default policy class in the [configuration file](C
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your workload by implementing interface `alluxio.client.file.policyFileWriteLocationPolicy`. Note that a default policy must have an empty constructor. And to use ASYNC_THROUGH write
 type, all the blocks of a file must be written to the same worker.
 
+### Tier policy
+
+Alluxio provides a tier policy allowing a user to select a desired tier
+for allocation when storing the blocks of a file.
+
+Below is a table of the expected behaviors of `WriteTier`:
+<table class="table table-striped">
+<tr><th>Write Tier</th><th>Behavior</th>
+</tr>
+{% for writetier in site.data.table.WriteTier %}
+<tr>
+  <td>{{writetier.writetier}}</td>
+  <td>{{site.data.table.en.WriteTier.[writetier.writetier]}}</td>
+</tr>
+{% endfor %}
+</table>
+
 ### Accessing an existing file in Alluxio
 
 All operations on existing files or directories require the user to specify the `AlluxioURI`.
