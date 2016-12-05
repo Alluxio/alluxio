@@ -37,6 +37,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -53,6 +54,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @Before
   public final void before() throws Exception {
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
     mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.Factory.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
   }
@@ -60,6 +62,18 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @After
   public final void after() throws Exception {
     ConfigurationTestUtils.resetConfiguration();
+  }
+
+  /**
+   * Tests if file creation is atomic.
+   */
+  @Test
+  public void createAtomic() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    OutputStream stream = mUfs.create(testFile);
+    stream.write(TEST_BYTES);
+    Assert.assertFalse(mUfs.isFile(testFile));
+    stream.close();
   }
 
   /**
@@ -86,15 +100,38 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests if file creation is atomic.
+   * Tests that a multi-block file can be created and validates the data written to it.
    */
   @Test
-  public void createAtomic() throws IOException {
+  public void createOpenLarge() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
-    OutputStream stream = mUfs.create(testFile);
-    stream.write(TEST_BYTES);
-    Assert.assertFalse(mUfs.isFile(testFile));
-    stream.close();
+    OutputStream outputStream = mUfs.create(testFile);
+    // Write multiple blocks of data
+    int numBlocks = 3;
+    // Test block size is small enough for 'int'
+    int blockSize = (int) Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    int numCopies = numBlocks * blockSize / TEST_BYTES.length;
+    for (int i = 0; i < numCopies; ++i) {
+      outputStream.write(TEST_BYTES);
+    }
+    outputStream.close();
+    InputStream inputStream = mUfs.open(testFile);
+    byte[] buf = new byte[numCopies * TEST_BYTES.length];
+    int offset = 0;
+    int noReadCount = 0;
+    while (offset < buf.length && noReadCount < 3) {
+      int bytesRead = inputStream.read(buf, offset, buf.length - offset);
+      if (bytesRead != -1) {
+        noReadCount = 0;
+        for (int i = 0; i < bytesRead; ++i) {
+          Assert.assertEquals(TEST_BYTES[(offset + i) % TEST_BYTES.length], buf[offset + i]);
+        }
+        offset += bytesRead;
+      } else {
+        ++noReadCount;
+      }
+    }
+    Assert.assertTrue(noReadCount < 3);
   }
 
   /**
