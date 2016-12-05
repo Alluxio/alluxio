@@ -289,8 +289,10 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException {
     Container container = mAccount.getContainer(mContainerName);
-    PaginationMap paginationMap = container
-        .getPaginationMap(PathUtils.normalizePath(key, PATH_SEPARATOR), getListingChunkLength());
+    String prefix = PathUtils.normalizePath(key, PATH_SEPARATOR);
+    // In case key is root (empty string) do not normalize prefix
+    prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
+    PaginationMap paginationMap = container.getPaginationMap(prefix, getListingChunkLength());
     if (paginationMap != null && paginationMap.getNumberOfPages() > 0) {
       return new SwiftObjectListingChunk(paginationMap, 0, recursive);
     }

@@ -185,6 +185,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         } else {
           if (!deleteObject(pathKey)) {
             LOG.error("Failed to delete file {}", pathToDelete.getName());
+            return false;
           }
         }
       }
@@ -263,7 +264,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean isFile(String path) throws IOException {
     // Directly try to get the file metadata, if we fail it either is a folder or does not exist
-    return getObjectStatus(stripPrefixIfPresent(path)) != null;
+    return !isRoot(path) && (getObjectStatus(stripPrefixIfPresent(path)) != null);
   }
 
   @Override

@@ -540,6 +540,26 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests load metadata on list with an object store having pre-populated pseudo-directories.
+   */
+  @Test
+  public void objectLoadMetadata() throws Exception {
+    if (!(mUfs instanceof ObjectUnderFileSystem)) {
+      // Only run test for an object store
+      return;
+    }
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectStorePreConfig config = prepareObjectStore(ufs);
+    String baseDirectoryPath = config.getBaseDirectoryPath();
+    AlluxioURI rootAlluxioURI = new AlluxioURI("/base");
+    FileSystem client = mLocalAlluxioClusterResource.get().getClient();
+    List<URIStatus> results = client.listStatus(rootAlluxioURI,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+    Assert.assertEquals(config.getSubDirectoryNames().length + config.getFileNames().length,
+        results.size());
+  }
+
+  /**
    * Tests {@link UnderFileSystem#renameFile(String, String)} renames file to new location.
    */
   @Test
