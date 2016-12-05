@@ -550,8 +550,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     }
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
-    String baseDirectoryPath = config.getBaseDirectoryPath();
-    AlluxioURI rootAlluxioURI = new AlluxioURI("/base");
+    String baseDirectoryName = config.getBaseDirectoryPath()
+        .substring(PathUtils.normalizePath(mUnderfsAddress, "/").length());
+    AlluxioURI rootAlluxioURI = new AlluxioURI(PathUtils.concatPath("/", baseDirectoryName));
     FileSystem client = mLocalAlluxioClusterResource.get().getClient();
     List<URIStatus> results = client.listStatus(rootAlluxioURI,
         ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
@@ -717,19 +718,19 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   // Test configuration for pre-populating an object store
   private class ObjectStorePreConfig {
-    private String mBaseDirectortPath;
+    private String mBaseDirectoryPath;
     private String[] mSubDirectoryNames;
     private String[] mFileNames;
 
     ObjectStorePreConfig(String baseDirectoryKey, String[] childrenFiles,
         String[] subDirectories) {
-      mBaseDirectortPath = baseDirectoryKey;
+      mBaseDirectoryPath = baseDirectoryKey;
       mFileNames = childrenFiles;
       mSubDirectoryNames = subDirectories;
     }
 
     public String getBaseDirectoryPath() {
-      return mBaseDirectortPath;
+      return mBaseDirectoryPath;
     }
 
     public String[] getFileNames() {
