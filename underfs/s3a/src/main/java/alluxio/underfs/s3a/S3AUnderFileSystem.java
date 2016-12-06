@@ -384,7 +384,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected String getRootKey() {
+  protected String getBucketPath() {
     return Constants.HEADER_S3A + mBucketName;
   }
 

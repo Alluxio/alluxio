@@ -359,7 +359,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected String getRootKey() {
+  protected String getBucketPath() {
     return Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
   }
 
