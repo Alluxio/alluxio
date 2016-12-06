@@ -162,11 +162,10 @@ public class AbstractFileSystemTest {
     List<Thread> threads = new ArrayList<>();
     final org.apache.hadoop.conf.Configuration conf = getConf();
     for (int i = 0; i < 100; i++) {
-      final int id = i;
       Thread t = new Thread(new Runnable() {
         @Override
         public void run() {
-          URI uri = URI.create(Constants.HEADER + "randomhost" + id + ":410/");
+          URI uri = URI.create(Constants.HEADER + "randomhost:410/");
           try {
             org.apache.hadoop.fs.FileSystem.get(uri, conf);
           } catch (IOException e) {
@@ -183,6 +182,34 @@ public class AbstractFileSystemTest {
       t.join();
     }
     Mockito.verify(fileSystemContext).reset();
+  }
+
+  /**
+   * Verifies that when master address changes during initialization, the client contexts
+   * are reinitialized even when they are already initialized.
+   */
+  @Test
+  public void reinitializeWhenChangingMasterAddress() throws Exception {
+    final org.apache.hadoop.conf.Configuration conf = getConf();
+
+    FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", fileSystemContext);
+
+    org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER + "host1:1"), conf);
+    Assert.assertEquals("host1", ClientContext.getMasterAddress().getHostString());
+    Assert.assertEquals(1, ClientContext.getMasterAddress().getPort());
+
+    // host1 changes to host2, port does not change.
+    org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER + "host2:1"), conf);
+    Assert.assertEquals("host2", ClientContext.getMasterAddress().getHostString());
+    Assert.assertEquals(1, ClientContext.getMasterAddress().getPort());
+
+    // host does not change, port changes from 1 to 2.
+    org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER + "host2:2"), conf);
+    Assert.assertEquals("host2", ClientContext.getMasterAddress().getHostString());
+    Assert.assertEquals(2, ClientContext.getMasterAddress().getPort());
+
+    Mockito.verify(fileSystemContext, Mockito.times(3)).reset();
   }
 
   /**
@@ -211,7 +238,6 @@ public class AbstractFileSystemTest {
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
     URI uri = URI.create(Constants.HEADER + "localhost:19998/");
-    alluxioHadoopFs.initialize(uri, getConf());
 
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
@@ -234,7 +260,6 @@ public class AbstractFileSystemTest {
         .thenReturn(new URIStatus(fileInfo));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
     URI uri = URI.create(Constants.HEADER + "localhost:19998/");
-    alluxioHadoopFs.initialize(uri, getConf());
 
     FileStatus fileStatus = alluxioHadoopFs.getFileStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo, fileStatus);
