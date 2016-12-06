@@ -75,6 +75,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     stream.write(TEST_BYTES);
     Assert.assertFalse(mUfs.isFile(testFile));
     stream.close();
+    Assert.assertTrue(mUfs.isFile(testFile));
   }
 
   /**

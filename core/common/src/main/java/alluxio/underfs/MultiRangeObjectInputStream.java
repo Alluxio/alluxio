@@ -44,9 +44,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
 
   @Override
   public int read() throws IOException {
-    if (mStream == null) {
-      openStream();
-    }
+    openStream();
     int value = mStream.read();
     if (value != -1) { // valid data read
       mPos++;
@@ -65,9 +63,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
     if (length == 0) {
       return 0;
     }
-    if (mStream == null) {
-      openStream();
-    }
+    openStream();
     int read = mStream.read(b, offset, length);
     if (read != -1) {
       mPos += read;
