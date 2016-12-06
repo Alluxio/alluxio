@@ -40,6 +40,7 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
   private PacketReader mPacketReader;
 
   protected boolean mClosed = false;
+  private boolean mEOF = false;
 
   protected boolean mBlockIsRead = false;
 
@@ -51,12 +52,16 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
   @Override
   public int read() throws IOException {
     checkIfClosed();
-    if (remaining() == 0) {
+
+    readPacket();
+    if (mCurrentPacket == null) {
+      mEOF = true;
+    }
+    if (mEOF) {
       close();
       return -1;
     }
 
-    readPacket();
     mPos++;
     mBlockIsRead = true;
     return BufferUtils.byteToInt(mCurrentPacket.readByte());
@@ -75,11 +80,16 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
     if (len == 0) {
       return 0;
-    } else if (remaining() == 0) { // End of block
-      return -1;
     }
 
     readPacket();
+    if (mCurrentPacket == null) {
+      mEOF = true;
+    }
+    if (mEOF) {
+      close();
+      return -1;
+    }
     int toRead = Math.min(len, mCurrentPacket.readableBytes());
     mCurrentPacket.readBytes(b, off, toRead);
     mPos += toRead;
@@ -88,7 +98,7 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
 
   @Override
   public long remaining() {
-    return mLength - mPos;
+    return mEOF ? 0 : mLength - mPos;
   }
 
   @Override
@@ -100,6 +110,9 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
             mId);
     if (pos == mPos) {
       return;
+    }
+    if (pos < mPos) {
+      mEOF = false;
     }
 
     closePacketReader();
@@ -121,9 +134,7 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
   }
 
   @Override
-  public void close() throws IOException {
-    closePacketReader();
-  }
+  public abstract void close() throws IOException;
 
   /**
    * Reads a new packet from the channel.
@@ -147,7 +158,7 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
   /**
    * Close the current packet reader.
    */
-  private void closePacketReader() {
+  protected void closePacketReader() {
     destroyPacket(mCurrentPacket);
     mCurrentPacket = null;
 

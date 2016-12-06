@@ -60,11 +60,8 @@ public final class RemoteBlockInStream extends PacketInStream {
     if (mClosed) {
       return;
     }
-    super.close();
     try {
-      if (mBlockIsRead) {
-        mBlockWorkerClient.accessBlock(mId);
-      }
+      closePacketReader();
       mBlockWorkerClient.unlockBlock(mId);
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is
