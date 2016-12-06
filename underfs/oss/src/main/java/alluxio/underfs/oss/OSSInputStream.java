@@ -16,6 +16,7 @@ import alluxio.underfs.ObjectMultiRangeInputStream;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
+import com.aliyun.oss.model.ObjectMetadata;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -38,6 +39,9 @@ public class OSSInputStream extends ObjectMultiRangeInputStream {
 
   /** The OSS client for OSS operations. */
   private final OSSClient mOssClient;
+
+  /** The size of the object in bytes. */
+  private final long mContentLength;
 
   /**
    * Creates a new instance of {@link OSSInputStream}.
@@ -66,12 +70,15 @@ public class OSSInputStream extends ObjectMultiRangeInputStream {
     mKey = key;
     mOssClient = client;
     mPos = position;
+    ObjectMetadata meta = mOssClient.getObjectMetadata(mBucketName, key);
+    mContentLength = meta == null ? 0 : meta.getContentLength();
   }
 
   @Override
   protected InputStream createStream(long startPos, long endPos) throws IOException {
     GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
-    req.setRange(startPos, endPos);
+    // OSS returns entire object if we read past the end
+    req.setRange(startPos, endPos < mContentLength ? endPos : mContentLength - 1);
     OSSObject ossObject = mOssClient.getObject(req);
     return new BufferedInputStream(ossObject.getObjectContent());
   }
