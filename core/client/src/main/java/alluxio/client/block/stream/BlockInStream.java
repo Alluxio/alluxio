@@ -15,49 +15,53 @@ import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.ExceptionMessage;
-import alluxio.util.io.BufferUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.io.Closer;
-import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
-public final class LocalBlockInStream extends BlockInStream {
-  /** The file reader to read a local block. */
-  private final LocalFileBlockReader mLocalFileBlockReader;
+public abstract class BlockInStream extends PacketInStream {
+  /** Helper to manage closeables. */
+  protected final Closer mCloser;
+  protected final BlockWorkerClient mBlockWorkerClient;
+  protected final LockBlockResult mLockBlockResult;
 
-  public LocalBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress,
+  public BlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress,
       BlockStoreContext context, InStreamOptions options) throws IOException {
-    super(blockId, blockSize, workerNetAddress, context, options);
+    super(blockId, blockSize);
 
+    mCloser = Closer.create();
     try {
-      mLocalFileBlockReader =
-          mCloser.register(new LocalFileBlockReader(mLockBlockResult.getBlockPath()));
+      mBlockWorkerClient = mCloser.register(context.createWorkerClient(workerNetAddress));
+      mLockBlockResult = mBlockWorkerClient.lockBlock(blockId);
+      if (mLockBlockResult == null) {
+        throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(blockId));
+      }
+      mBlockWorkerClient.accessBlock(mId);
     } catch (IOException e) {
       mCloser.close();
       throw e;
     }
   }
 
-  protected void destroyPacket(ByteBuf packet) {
-    if (packet.nioBufferCount() > 0) {
-      ByteBuffer buffer = packet.nioBuffer();
-      if (buffer.isDirect()) {
-        BufferUtils.cleanDirectBuffer(buffer);
-      }
+  @Override
+  public void close() throws IOException {
+    if (mClosed) {
+      return;
     }
-    ReferenceCountUtil.release(packet);
-  }
-
-  protected PacketReader createPacketReader(long offset, long len) {
-    return new LocalPacketReader(mLocalFileBlockReader, offset, (int) len);
+    try {
+      closePacketReader();
+      mBlockWorkerClient.unlockBlock(mId);
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is
+    } finally {
+      mClosed = true;
+      mCloser.close();
+    }
   }
 }

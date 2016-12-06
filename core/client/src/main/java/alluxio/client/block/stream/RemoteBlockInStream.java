@@ -11,8 +11,7 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.client.block.BlockStoreContext;
-import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.block.*;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.BufferUtils;
@@ -30,45 +29,14 @@ import java.nio.ByteBuffer;
 import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
-public final class RemoteBlockInStream extends PacketInStream {
-  /** Helper to manage closeables. */
-  private final Closer mCloser;
-  private final BlockWorkerClient mBlockWorkerClient;
+public final class RemoteBlockInStream extends BlockInStream {
   /** The returned lock id after acquiring the block lock. */
   private final Long mLockId;
 
   public RemoteBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress,
       BlockStoreContext context, InStreamOptions options) throws IOException {
-    super(blockId, blockSize);
-
-    mCloser = Closer.create();
-    try {
-      mBlockWorkerClient = mCloser.register(context.createWorkerClient(workerNetAddress));
-      LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
-      if (result == null) {
-        throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(blockId));
-      }
-      mLockId = result.getLockId();
-    } catch (IOException e) {
-      mCloser.close();
-      throw e;
-    }
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (mClosed) {
-      return;
-    }
-    try {
-      closePacketReader();
-      mBlockWorkerClient.unlockBlock(mId);
-    } catch (Throwable e) { // must catch Throwable
-      throw mCloser.rethrow(e); // IOException will be thrown as-is
-    } finally {
-      mClosed = true;
-      mCloser.close();
-    }
+    super(blockId, blockSize, workerNetAddress, context, options);
+    mLockId = mLockBlockResult.getLockId();
   }
 
   protected PacketReader createPacketReader(long offset, long len) throws IOException {
