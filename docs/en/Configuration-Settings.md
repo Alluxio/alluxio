@@ -21,7 +21,7 @@ and is required each time when running an application instance (e.g., a Spark jo
 to manage Alluxio servers and run Alluxio shell commands.
 Note that, configuration set through environment variables may not be realized by applications.
 3. [Property files](#property-files). This is a general approach to customize any
-[supported Alluxio configure properties](#appendix). Configuration in those files can be respected by Alluxio servers,
+[supported Alluxio configuration properties](#appendix). Configuration in those files can be respected by Alluxio servers,
 as well as applications.
 
 
