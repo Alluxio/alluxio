@@ -78,7 +78,7 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
   protected InputStream createStream(long startPos, long endPos) throws IOException {
     GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
     // OSS returns entire object if we read past the end
-    req.setRange(startPos, endPos < mContentLength ? endPos : mContentLength - 1);
+    req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
     OSSObject ossObject = mOssClient.getObject(req);
     return new BufferedInputStream(ossObject.getObjectContent());
   }

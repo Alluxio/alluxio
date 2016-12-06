@@ -67,7 +67,7 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
   protected InputStream createStream(long startPos, long endPos) throws IOException {
     StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
     DownloadInstructions downloadInstructions  = new DownloadInstructions();
-    downloadInstructions.setRange(new MidPartLongRange(startPos, endPos));
+    downloadInstructions.setRange(new MidPartLongRange(startPos, endPos - 1));
     return storedObject.downloadObjectAsInputStream(downloadInstructions);
   }
 }

@@ -31,7 +31,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
   protected InputStream mStream;
   /** The current position of the stream. */
   protected long mPos;
-  /** Position the current stream was open till (inclusive). */
+  /** Position the current stream was open till (exclusive). */
   protected long mEndPos;
 
   @Override
@@ -87,7 +87,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
    * Close the current stream if the boundary for a range is crossed.
    */
   private void closeStreamIfBoundary() throws IOException {
-    if (mPos > mEndPos) {
+    if (mPos >= mEndPos) {
       closeStream();
     }
   }
@@ -107,7 +107,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
    * Open a new stream reading a range.
    *
    * @param startPos start position in bytes (inclusive)
-   * @param endPos end position in bytes (inclusive)
+   * @param endPos end position in bytes (exclusive)
    * @return a new {@link InputStream}
    * @throws IOException when a non-Alluxio error occurs
    */
@@ -133,7 +133,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
       return;
     }
     final long blockSize = getBlockSize();
-    final long endPos = mPos + blockSize - (mPos % blockSize) - 1;
+    final long endPos = mPos + blockSize - (mPos % blockSize);
     mEndPos = endPos;
     mStream = createStream(mPos, endPos);
   }
