@@ -192,15 +192,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setLastModificationTimeMs(long lastModificationTimeMs) {
-    // If protected by write lock, can directly set modification time
-    if (mLock.isWriteLocked()) {
-      mLastModificationTimeMs = lastModificationTimeMs;
-      return getThis();
-    } else {
-      synchronized (this) {
-        if (mLastModificationTimeMs < lastModificationTimeMs) {
-          mLastModificationTimeMs = lastModificationTimeMs;
-        }
+    synchronized (this) {
+      if (mLastModificationTimeMs < lastModificationTimeMs) {
+        mLastModificationTimeMs = lastModificationTimeMs;
       }
       return getThis();
     }

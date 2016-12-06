@@ -168,6 +168,23 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   }
 
   /**
+   * Tests the {@link InodeDirectory#setLastModificationTimeMs(long)} method when setting an
+   * invalid time.
+   */
+  @Test
+  public void setInvalidLastModificationTime() {
+    InodeDirectory inodeDirectory = createInodeDirectory();
+    // This is not perfect, since time could have passed between creation and this call.
+    long createTimeMs = System.currentTimeMillis();
+    long actualCreateTimeMs = inodeDirectory.getLastModificationTimeMs();
+    Assert.assertTrue(Math.abs(createTimeMs - actualCreateTimeMs) < 5);
+
+    long modificationTimeMs = createTimeMs - Constants.SECOND_MS;
+    inodeDirectory.setLastModificationTimeMs(modificationTimeMs);
+    Assert.assertEquals(actualCreateTimeMs, inodeDirectory.getLastModificationTimeMs());
+  }
+
+  /**
    * Tests the {@link InodeDirectory#setName(String)} method.
    */
   @Test
