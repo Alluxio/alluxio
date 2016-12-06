@@ -26,6 +26,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
@@ -100,21 +101,27 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests {@link UnderFileSystem#open(String, OpenOptions)} for a multi-block file.
+   */
+  @Test
+  public void createOpenAtPosition() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    prepareMultiBlockFile(testFile);
+    int[] offsets = {0, 256, 511, 512, 513, 768, 1024, 1025};
+    for (int offset : offsets) {
+      InputStream inputStream = mUfs.open(testFile, OpenOptions.defaults().setOffset(offset));
+      Assert.assertEquals(TEST_BYTES[offset % TEST_BYTES.length], inputStream.read());
+      inputStream.close();
+    }
+  }
+
+  /**
    * Tests that a multi-block file can be created and validates the data written to it.
    */
   @Test
   public void createOpenLarge() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
-    OutputStream outputStream = mUfs.create(testFile);
-    // Write multiple blocks of data
-    int numBlocks = 3;
-    // Test block size is small enough for 'int'
-    int blockSize = (int) Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    int numCopies = numBlocks * blockSize / TEST_BYTES.length;
-    for (int i = 0; i < numCopies; ++i) {
-      outputStream.write(TEST_BYTES);
-    }
-    outputStream.close();
+    int numCopies = prepareMultiBlockFile(testFile);
     InputStream inputStream = mUfs.open(testFile);
     byte[] buf = new byte[numCopies * TEST_BYTES.length];
     int offset = 0;
@@ -720,6 +727,27 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     public String[] getChildren() {
       return mChildren;
     }
+  }
+
+  /**
+   * Prepare a multi-block file by making copies of TEST_BYTES.
+   *
+   * @param testFile path of file to create
+   * @return the number of copies of TEST_BYTES made
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  private int prepareMultiBlockFile(String testFile) throws IOException {
+    OutputStream outputStream = mUfs.create(testFile);
+    // Write multiple blocks of data
+    int numBlocks = 3;
+    // Test block size is small enough for 'int'
+    int blockSize = (int) Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    int numCopies = numBlocks * blockSize / TEST_BYTES.length;
+    for (int i = 0; i < numCopies; ++i) {
+      outputStream.write(TEST_BYTES);
+    }
+    outputStream.close();
+    return numCopies;
   }
 
   /**
