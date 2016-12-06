@@ -31,8 +31,8 @@ public abstract class ObjectMultiRangeInputStream extends InputStream {
   protected InputStream mStream;
   /** The current position of the stream. */
   protected long mPos;
-  /** Position the current stream was opened at. */
-  protected long mLastOpenPos;
+  /** Position the current stream was open till. */
+  protected long mEndPos;
 
   @Override
   public void close() throws IOException {
@@ -91,7 +91,7 @@ public abstract class ObjectMultiRangeInputStream extends InputStream {
    * Close the current stream if the boundary for a range is crossed.
    */
   private void closeStreamIfBoundary() throws IOException {
-    if ((mPos - mLastOpenPos) >= getBlockSize()) {
+    if (mPos >= mEndPos) {
       closeStream();
     }
   }
@@ -138,7 +138,7 @@ public abstract class ObjectMultiRangeInputStream extends InputStream {
     }
     final long blockSize = getBlockSize();
     final long endPos = mPos + blockSize - (mPos % blockSize);
-    mLastOpenPos = mPos;
+    mEndPos = endPos;
     mStream = createStream(mPos, endPos);
   }
 }
