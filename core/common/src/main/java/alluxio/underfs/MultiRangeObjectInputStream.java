@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class MultiRangeObjectInputStream extends InputStream {
 
   /** Has the stream been closed. */
-  private boolean mClosed;
+  protected boolean mClosed;
   /** The backing input stream. */
   protected InputStream mStream;
   /** The current position of the stream. */
