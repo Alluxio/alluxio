@@ -79,13 +79,13 @@ public final class NettyPacketReader extends AbstractPacketReader {
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
-  public NettyPacketReader createBlockReader(InetSocketAddress address, long id, long offset, int len,
-      long lockId, long sessionId) throws IOException {
+  public static NettyPacketReader createBlockPacketReader(InetSocketAddress address, long id,
+      long offset, int len, long lockId, long sessionId) throws IOException {
     return new NettyPacketReader(address, id, offset, len, lockId, sessionId);
   }
 
-  public NettyPacketReader createFileReader(InetSocketAddress address, long id, long offset,
-      int len) throws IOException {
+  public static NettyPacketReader createFilePacketReader(InetSocketAddress address, long id,
+      long offset, int len) throws IOException {
     return new NettyPacketReader(address, id, offset, len, -1, -1);
   }
 

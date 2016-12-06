@@ -39,9 +39,9 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
 
   private PacketReader mPacketReader;
 
-  private boolean mClosed = false;
+  protected boolean mClosed = false;
 
-  private boolean mBlockIsRead = false;
+  protected boolean mBlockIsRead = false;
 
   public PacketInStream(long id, long length) throws IOException {
     mId = id;
@@ -121,7 +121,7 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     closePacketReader();
   }
 
@@ -159,16 +159,7 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
     ReferenceCountUtil.release(packet);
   }
 
-  protected abstract PacketReader createPacketReader(long offset, long len);
-
-
-  /**
-   * Increments the number of bytes read metric. Inheriting classes should implement this to
-   * increment the correct metric.
-   *
-   * @param bytes number of bytes to record as read
-   */
-  protected abstract void incrementBytesReadMetric(int bytes);
+  protected abstract PacketReader createPacketReader(long offset, long len) throws IOException;
 
   /**
    * Convenience method to ensure the stream is not closed.

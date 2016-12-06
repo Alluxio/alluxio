@@ -58,9 +58,8 @@ public final class LocalPacketReader implements PacketReader {
    *
    * @param offset the offset
    * @param len the length to read
-   * @throws IOException if it fails to create the object
    */
-  private LocalPacketReader(LocalFileBlockReader reader, long offset, int len) throws IOException {
+  public LocalPacketReader(LocalFileBlockReader reader, long offset, int len) {
     mReader = reader;
     mPos = offset;
     mEnd = offset + len;
