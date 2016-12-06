@@ -30,23 +30,9 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A netty block reader that streams a block region from a netty data server.
- *
- * Protocol:
- * 1. The client sends a read request (blockId, offset, length).
- * 2. Once the server receives the request, it streams packets the client. The streaming pauses
- *    if the server's buffer is full and resumes if the buffer is not full.
- * 3. The client reads packets from the stream. Reading pauses if the client buffer is full and
- *    resumes if the buffer is not full. If the client can keep up with network speed, the buffer
- *    should have at most one packet.
- * 4. The client stops reading if it receives an empty packe which signifies the end of the block
- *    streaming.
- * 5. The client can cancel the read request at anytime. The cancel request is ignored by the
- *    server if everything has been sent to channel.
- * 6. In order to reuse the channel, the client must read all the packets in the channel before
- *    releasing the channel to the channel pool.
- * 7. To make it simple to handle errors, the channel is closed if any error occurs.
- */
+ * An abstract packet reader implementation with the actual reading part (the producer)
+ * unimplemented.
+*/
 @NotThreadSafe
 public abstract class AbstractPacketReader implements PacketReader {
   protected static final int MAX_PACKETS_IN_FLIGHT =

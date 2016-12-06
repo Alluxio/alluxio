@@ -11,86 +11,136 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.client.BoundedStream;
+import alluxio.client.Cancelable;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.io.Closer;
+
+import java.io.FilterOutputStream;
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a stream API to write a block to Alluxio. An instance of this class can be obtained by
- * calling {@link AlluxioBlockStore#getOutStream}.
- *
- * <p>
- * The type of {@link PacketOutStream} returned will depend on the user configuration and
- * cluster setup. A {@link LocalPacketOutStream} is returned if the client is co-located with an
- * Alluxio worker and the user has enabled this optimization. Otherwise,
- * {@link RemotePacketOutStream} will be returned which will write the data through an Alluxio
- * worker.
+ * calling
+ * {@link alluxio.client.block.AlluxioBlockStore#getOutStream(long, long, OutStreamOptions)}.
  */
 @NotThreadSafe
-public abstract class BlockOutStream extends PacketOutStream {
-  protected final BlockWorkerClient mBlockWorkerClient;
+public final class BlockOutStream extends FilterOutputStream implements BoundedStream, Cancelable {
+  private final long mBlockId;
+  private final long mBlockSize;
+  private final Closer mCloser;
+  private final BlockWorkerClient mBlockWorkerClient;
 
   /**
-   * Constructs a new {@link PacketOutStream}.
+   * Creates a new local block output stream.
    *
-   * @param blockId the id of the block
-   * @param blockSize the size of the block
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @param workerNetAddress the worker network address
+   * @param context the block store context
+   * @param options the options
+   * @throws IOException if an I/O error occurs
    */
-  public BlockOutStream(WorkerNetAddress workerNetAddress, long blockId, long blockSize,
-      BlockStoreContext context, OutStreamOptions options) throws IOException {
-    super(blockId, blockSize);
-
+  public static BlockOutStream createLocalBlockOutStream(long blockId,
+      long blockSize,
+      WorkerNetAddress workerNetAddress,
+      BlockStoreContext context,
+      OutStreamOptions options) throws IOException {
+    Closer closer = Closer.create();
     try {
-      mBlockWorkerClient = mCloser.register(context.createWorkerClient(workerNetAddress));
+      BlockWorkerClient client = closer.register(context.createWorkerClient(workerNetAddress));
+      PacketWriter packetWriter =
+          closer.register(LocalPacketWriter.createLocalPacketWriter(client, blockId));
+      return new BlockOutStream(blockId, blockSize, client, packetWriter, options);
     } catch (IOException e) {
-      mCloser.close();
+      closer.close();
+      throw e;
+    }
+  }
+
+  /**
+   * Creates a new remote block output stream.
+   *
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @param workerNetAddress the worker network address
+   * @param context the block store context
+   * @param options the options
+   * @throws IOException if an I/O error occurs
+   */
+  public static BlockOutStream createRemoteBlockOutStream(long blockId,
+      long blockSize,
+      WorkerNetAddress workerNetAddress,
+      BlockStoreContext context,
+      OutStreamOptions options) throws IOException {
+    Closer closer = Closer.create();
+    try {
+      BlockWorkerClient client = closer.register(context.createWorkerClient(workerNetAddress));
+      PacketWriter packetWriter = closer.register(
+          new NettyPacketWriter(client.getDataServerAddress(), blockId, client.getSessionId()));
+      return new BlockOutStream(blockId, blockSize, client, packetWriter, options);
+    } catch (IOException e) {
+      closer.close();
       throw e;
     }
   }
 
   @Override
+  public long remaining() {
+    return ((PacketOutStream) out).remaining();
+  }
+
+  @Override
   public void cancel() throws IOException {
-    if (mClosed) {
-      return;
-    }
     try {
-      updateCurrentPacket(true);
-      mBlockWorkerClient.cancelBlock(mId);
-      mPacketWriter.cancel();
+      ((PacketOutStream) out).cancel();
+      mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (AlluxioException e) {
-      throw mCloser.rethrow(new IOException(e));
-    } catch (Throwable e) { // must catch Throwable
-      throw mCloser.rethrow(e); // IOException will be thrown as-is
-    } finally {
-      mClosed = true;
-      mCloser.close();
+      throw new IOException(e);
     }
   }
 
   @Override
   public void close() throws IOException {
-    if (mClosed) {
-      return;
-    }
     try {
-      updateCurrentPacket(true);
-      mPacketWriter.close();
-      if (mPacketWriter.pos() > 0) {
-        mBlockWorkerClient.cacheBlock(mId);
+      if (remaining() < mBlockSize) {
+        mBlockWorkerClient.cacheBlock(mBlockId);
       }
     } catch (AlluxioException e) {
-      throw mCloser.rethrow(new IOException(e));
-    } catch (Throwable e) { // must catch Throwable
-      throw mCloser.rethrow(e); // IOException will be thrown as-is
+      mCloser.rethrow(new IOException(e));
+    } catch (Throwable e) {
+      mCloser.rethrow(e);
     } finally {
-      mClosed = true;
       mCloser.close();
     }
+  }
+
+  /**
+   * Creates a new block output stream.
+   *
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @param options the options
+   * @throws IOException if an I/O error occurs
+   */
+  private BlockOutStream(long blockId,
+      long blockSize,
+      BlockWorkerClient blockWorkerClient,
+      PacketWriter packetWriter,
+      OutStreamOptions options) throws IOException {
+    super(new PacketOutStream(packetWriter, blockSize));
+
+    mBlockId = blockId;
+    mBlockSize = blockSize;
+    mCloser = Closer.create();
+    mCloser.register(out);
+    mBlockWorkerClient = mCloser.register(blockWorkerClient);
   }
 }

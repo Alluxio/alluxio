@@ -11,14 +11,14 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.exception.PreconditionMessage;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,8 +26,7 @@ import java.io.OutputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Provides a stream API to write a block to Alluxio. An instance of this class can be obtained by
- * calling {@link AlluxioBlockStore#getOutStream}.
+ * Provides an abstract stream API to write packets.
  *
  * <p>
  * The type of {@link PacketOutStream} returned will depend on the user configuration and
@@ -37,46 +36,35 @@ import javax.annotation.concurrent.NotThreadSafe;
  * worker.
  */
 @NotThreadSafe
-public abstract class PacketOutStream extends OutputStream implements Cancelable {
-  /** The block id of the block being written. */
-  protected final long mId;
-  /** Size of the block. */
-  protected final long mBlockSize;
-  protected ByteBuf mCurrentPacket = null;
+public final class PacketOutStream extends OutputStream implements BoundedStream, Cancelable {
+  /** Length of the stream. If unknown, set to Long.MAX_VALUE. */
+  private final long mLength;
+  private ByteBuf mCurrentPacket = null;
 
-  /** If the stream is closed, this can only go from false to true. */
-  protected boolean mClosed;
-
-  protected final Closer mCloser;
-  protected final PacketWriter mPacketWriter;
+  private final PacketWriter mPacketWriter;
 
   /**
    * Constructs a new {@link PacketOutStream}.
    *
-   * @param id the block ID or the ufs file ID
-   * @param blockSize the size of the block
+   * @param packetWriter the packet writer
+   * @param length the length of the stream
    */
-  public PacketOutStream(long id, long blockSize) throws IOException {
-    mCloser = Closer.create();
-
-    mId = id;
-    mBlockSize = blockSize;
-    mClosed = false;
-
-    mPacketWriter = mCloser.register(createPacketWriter());
+  public PacketOutStream(PacketWriter packetWriter, long length) {
+    mLength = length;
+    mPacketWriter = packetWriter;
   }
 
   /**
    * @return the remaining size of the block
    */
+  @Override
   public long remaining() {
-    return mBlockSize - mPacketWriter.pos() - (mCurrentPacket != null ?
+    return mLength - mPacketWriter.pos() - (mCurrentPacket != null ?
         mCurrentPacket.readableBytes() : 0);
   }
 
   @Override
   public void write(int b) throws IOException {
-    checkIfClosed();
     Preconditions.checkState(remaining() > 0, PreconditionMessage.ERR_END_OF_BLOCK);
     updateCurrentPacket(false);
     mCurrentPacket.writeByte(b);
@@ -104,32 +92,65 @@ public abstract class PacketOutStream extends OutputStream implements Cancelable
   }
 
   @Override
-  public abstract void cancel() throws IOException;
-
-  @Override
   public void flush() throws IOException {
     updateCurrentPacket(true);
     mPacketWriter.flush();
   }
 
   @Override
-  public abstract void close() throws IOException;
+  public void cancel() throws IOException {
+    releaseCurrentPacket();
+    mPacketWriter.cancel();
+  }
 
-  protected void updateCurrentPacket(boolean force) throws IOException {
-    if (mCurrentPacket == null) {
-      mCurrentPacket = allocateBuffer();
-    } else if (mCurrentPacket.writableBytes() == 0 || (mCurrentPacket.readableBytes() > 0
-        && force)) {
-      mPacketWriter.writePacket(mCurrentPacket);
-      mCurrentPacket = allocateBuffer();
+  @Override
+  public void close() throws IOException {
+    try {
+      updateCurrentPacket(true);
+    } finally {
+      mPacketWriter.close();
     }
   }
 
   /**
-   * Convenience method for checking the state of the stream.
+   * Updates the current packet.
+   *
+   * @param lastPacket if the current packet is the last packet
+   * @throws IOException if it fails to update the current packet
    */
-  private void checkIfClosed() {
-    Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_OUT_STREAM);
+  private void updateCurrentPacket(boolean lastPacket) throws IOException {
+    // Early return for the most common case.
+    if (mCurrentPacket != null && mCurrentPacket.writableBytes() > 0 && !lastPacket) {
+      return;
+    }
+
+    if (mCurrentPacket == null) {
+      if (!lastPacket) {
+        mCurrentPacket = allocateBuffer();
+      }
+      return;
+    }
+
+    if (mCurrentPacket.readableBytes() > 0) {
+      if (mCurrentPacket.writableBytes() == 0 || lastPacket) {
+        mPacketWriter.writePacket(mCurrentPacket);
+        mCurrentPacket = null;
+      }
+      if (!lastPacket) {
+        mCurrentPacket = allocateBuffer();
+      }
+      return;
+    }
+  }
+
+  /**
+   * Release the current packet.
+   */
+  private void releaseCurrentPacket() {
+    if (mCurrentPacket != null) {
+      ReferenceCountUtil.release(mCurrentPacket);
+      mCurrentPacket = null;
+    }
   }
 
   /**
@@ -138,6 +159,4 @@ public abstract class PacketOutStream extends OutputStream implements Cancelable
   private ByteBuf allocateBuffer() {
     return PooledByteBufAllocator.DEFAULT.buffer(mPacketWriter.packetSize());
   }
-
-  protected abstract PacketWriter createPacketWriter() throws IOException;
 }

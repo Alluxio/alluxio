@@ -37,21 +37,20 @@ import java.net.InetSocketAddress;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A netty block reader that streams a block region from a netty data server.
+ * A netty packet reader that streams a region from a netty data server.
  *
  * Protocol:
- * 1. The client sends a read request (blockId, offset, length).
- * 2. Once the server receives the request, it streams packets the client. The streaming pauses
+ * 1. The client sends a read request (id, offset, length).
+ * 2. Once the server receives the request, it streams packets to the client. The streaming pauses
  *    if the server's buffer is full and resumes if the buffer is not full.
  * 3. The client reads packets from the stream. Reading pauses if the client buffer is full and
  *    resumes if the buffer is not full. If the client can keep up with network speed, the buffer
  *    should have at most one packet.
- * 4. The client stops reading if it receives an empty packe which signifies the end of the block
- *    streaming.
+ * 4. The client stops reading if it receives an empty packet which signifies the end of the stream.
  * 5. The client can cancel the read request at anytime. The cancel request is ignored by the
  *    server if everything has been sent to channel.
- * 6. In order to reuse the channel, the client must read all the packets in the channel before
- *    releasing the channel to the channel pool.
+ * 6. If the client wants to reuse the channel, the client must read all the packets in the channel
+ *    before releasing the channel to the channel pool.
  * 7. To make it simple to handle errors, the channel is closed if any error occurs.
  */
 @NotThreadSafe
@@ -63,34 +62,33 @@ public final class NettyPacketReader extends AbstractPacketReader {
   private final Channel mChannel;
 
   /**
-   * Creates an instance of {@link NettyPacketReader}.
+   * Creates an instance of {@link NettyPacketReader} for block reads.
    *
    * @param address the netty data server network address
-   * @param id the block ID or UFS file ID
+   * @param blockId the block ID
    * @param offset the offset
    * @param len the length to read
    * @param lockId the lock ID
    * @param sessionId the session ID
    * @throws IOException if it fails to create the object
    */
-  private NettyPacketReader(InetSocketAddress address, long id, long offset, int len,
-      long lockId, long sessionId) throws IOException {
-    super(address,id, offset, len);
-
-    mChannel = BlockStoreContext.acquireNettyChannel(address);
-    mChannel.pipeline().addLast(new Handler());
-    mChannel.writeAndFlush(new RPCBlockReadRequest(mId, offset, len, lockId, sessionId))
-        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-  }
-
-  public static NettyPacketReader createBlockPacketReader(InetSocketAddress address, long id,
+  public static NettyPacketReader createBlockPacketReader(InetSocketAddress address, long blockId,
       long offset, int len, long lockId, long sessionId) throws IOException {
-    return new NettyPacketReader(address, id, offset, len, lockId, sessionId);
+    return new NettyPacketReader(address, blockId, offset, len, lockId, sessionId);
   }
 
-  public static NettyPacketReader createFilePacketReader(InetSocketAddress address, long id,
+  /**
+   * Creates an instance of {@link NettyPacketReader} for UFS file reads.
+   *
+   * @param address the netty data server network address
+   * @param ufsFileId the UFS file ID
+   * @param offset the offset
+   * @param len the length to read
+   * @throws IOException if it fails to create the object
+   */
+  public static NettyPacketReader createFilePacketReader(InetSocketAddress address, long ufsFileId,
       long offset, int len) throws IOException {
-    return new NettyPacketReader(address, id, offset, len, -1, -1);
+    return new NettyPacketReader(address, ufsFileId, offset, len, -1, -1);
   }
 
   @Override
@@ -182,6 +180,27 @@ public final class NettyPacketReader extends AbstractPacketReader {
       }
       ctx.close();
     }
+  }
+
+  /**
+   * Creates an instance of {@link NettyPacketReader}.
+   *
+   * @param address the netty data server network address
+   * @param id the block ID or UFS file ID
+   * @param offset the offset
+   * @param len the length to read
+   * @param lockId the lock ID
+   * @param sessionId the session ID
+   * @throws IOException if it fails to create the object
+   */
+  private NettyPacketReader(InetSocketAddress address, long id, long offset, int len,
+      long lockId, long sessionId) throws IOException {
+    super(address,id, offset, len);
+
+    mChannel = BlockStoreContext.acquireNettyChannel(address);
+    mChannel.pipeline().addLast(new Handler());
+    mChannel.writeAndFlush(new RPCBlockReadRequest(mId, offset, len, lockId, sessionId))
+        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
   @Override

@@ -11,41 +11,24 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Constants;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A netty block reader that streams a block region from a netty data server.
- *
- * Protocol:
- * 1. The client sends a read request (blockId, offset, length).
- * 2. Once the server receives the request, it streams packets the client. The streaming pauses
- *    if the server's buffer is full and resumes if the buffer is not full.
- * 3. The client reads packets from the stream. Reading pauses if the client buffer is full and
- *    resumes if the buffer is not full. If the client can keep up with network speed, the buffer
- *    should have at most one packet.
- * 4. The client stops reading if it receives an empty packe which signifies the end of the block
- *    streaming.
- * 5. The client can cancel the read request at anytime. The cancel request is ignored by the
- *    server if everything has been sent to channel.
- * 6. In order to reuse the channel, the client must read all the packets in the channel before
- *    releasing the channel to the channel pool.
- * 7. To make it simple to handle errors, the channel is closed if any error occurs.
+ * A local packet reader that simply reads packets from a local file.
  */
 @NotThreadSafe
 public final class LocalPacketReader implements PacketReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  private static final long LOCAL_READ_PACKET_SIZE = 64 * 1024;
+  private static final long LOCAL_READ_PACKET_SIZE =
+      Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
 
   /** The file reader to read a local block. */
   private final LocalFileBlockReader mReader;
@@ -56,6 +39,7 @@ public final class LocalPacketReader implements PacketReader {
   /**
    * Creates an instance of {@link LocalPacketReader}.
    *
+   * @param reader the local file block reader
    * @param offset the offset
    * @param len the length to read
    */

@@ -15,22 +15,40 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
 /**
- * The interface to read remote block from data server.
+ * The interface to write packets.
  */
 public interface PacketWriter extends Closeable {
-  void writePacket(ByteBuf buf) throws IOException;
+  /**
+   * Writes a packet. This method takes the ownership of this packet.
+   *
+   * @param packet the packet
+   * @throws IOException if it fails to write the packet
+   */
+  void writePacket(ByteBuf packet) throws IOException;
 
+  /**
+   *  Flushes all the pending packets.
+   *
+   * @throws IOException if it fails to flush
+   */
   void flush() throws IOException;
 
+  /**
+   * Cancels the packet writes.
+   *
+   * @throws IOException if it fails to cancel
+   */
   void cancel() throws IOException;
 
+  /**
+   * @return the packet size used
+   */
   int packetSize();
 
+  /**
+   * @return the current pos which is the same as the totally number of bytes written so far
+   */
   long pos();
-
-  @Override
-  void close() throws IOException;
 }

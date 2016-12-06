@@ -28,13 +28,13 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -42,7 +42,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A netty block writer that streams a full block to a netty data server.
+ * A netty packet writer that streams a full block or file to a netty data server.
  *
  * Protocol:
  * 1. The client streams packets (start from pos 0) to the server. The client pauses if the client
@@ -69,6 +69,8 @@ public class NettyPacketWriter implements PacketWriter {
   private final InetSocketAddress mAddress;
   private final long mBlockId;
   private final long mSessionId;
+
+  private boolean mClosed = false;
 
   private ReentrantLock mLock = new ReentrantLock();
   /** The next pos to write to the channel. */
@@ -118,10 +120,11 @@ public class NettyPacketWriter implements PacketWriter {
 
   @Override
   public void writePacket(final ByteBuf buf) throws IOException {
-    Preconditions.checkArgument(buf.readableBytes() <= PACKET_SIZE);
     final long len;
     final long offset;
     try {
+      Preconditions.checkState(!mClosed);
+      Preconditions.checkArgument(buf.readableBytes() <= PACKET_SIZE);
       mLock.lock();
       while (true) {
         if (mThrowable != null) {
@@ -142,6 +145,9 @@ public class NettyPacketWriter implements PacketWriter {
           throw Throwables.propagate(e);
         }
       }
+    } catch (Throwable e) {
+      ReferenceCountUtil.release(buf);
+      throw e;
     } finally {
       mLock.unlock();
     }
@@ -157,6 +163,10 @@ public class NettyPacketWriter implements PacketWriter {
 
   @Override
   public void cancel() throws IOException {
+    if (mClosed) {
+      return;
+    }
+
     mLock.lock();
     try {
       mThrowable = new IOException("PacketWriter is cancelled.");
@@ -172,6 +182,7 @@ public class NettyPacketWriter implements PacketWriter {
       throw Throwables.propagate(e);
     } finally {
       mLock.unlock();
+      mClosed = true;
     }
   }
 
@@ -202,6 +213,9 @@ public class NettyPacketWriter implements PacketWriter {
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
     mLock.lock();
     try {
       // Write the last packet.
@@ -239,6 +253,7 @@ public class NettyPacketWriter implements PacketWriter {
         mChannel.pipeline().removeLast();
       }
       BlockStoreContext.releaseNettyChannel(mAddress, mChannel);
+      mClosed = true;
     }
   }
 

@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 
@@ -24,23 +25,12 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A netty block writer that streams a full block to a netty data server.
- *
- * Protocol:
- * 1. The client streams packets (start from pos 0) to the server. The client pauses if the client
- *    buffer is full, resumes if the buffer is not full.
- * 2. The server reads packets from the channel and writes them to the block worker. See the server
- *    side implementation for details.
- * 3. When all the packets are sent, the client closes the reader by sending an empty packet to
- *    the server to signify the end of the block. The client must wait the response from the server
- *    to make sure everything has been written to the block worker.
- * 4. To make it simple to handle errors, the channel is closed if any error occurs.
+ * A local packet writer that simply wrtier packets from a local file.
  */
 @NotThreadSafe
 public class LocalPacketWriter implements PacketWriter {
-  // TODO(peis): Use a separate configuration.
   private static final long PACKET_SIZE =
-      Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
+      Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
   private static final long FILE_BUFFER_BYTES =
       Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
 
@@ -49,16 +39,18 @@ public class LocalPacketWriter implements PacketWriter {
   private final long mBlockId;
   private final LocalFileBlockWriter mWriter;
   private final BlockWorkerClient mBlockWorkerClient;
+  private boolean mClosed = false;
 
   /**
    * Creates an instance of {@link LocalPacketWriter}.
+   *
+   * @param blockWorkerClient the block worker client, not owned by this class
+   * @param blockId the block ID
+   * @throws IOException if it fails to create the packet writer
    */
-  public LocalPacketWriter(BlockWorkerClient blockWorkerClient, long blockId) throws IOException {
-    String blockPath = blockWorkerClient.requestBlockLocation(blockId, FILE_BUFFER_BYTES);
-    mWriter = new LocalFileBlockWriter(blockPath);
-    mPosReserved += FILE_BUFFER_BYTES;
-    mBlockId = blockId;
-    mBlockWorkerClient = blockWorkerClient;
+  public static LocalPacketWriter createLocalPacketWriter(BlockWorkerClient blockWorkerClient,
+      long blockId) throws IOException {
+    return new LocalPacketWriter(blockWorkerClient, blockId);
   }
 
   @Override
@@ -73,6 +65,7 @@ public class LocalPacketWriter implements PacketWriter {
 
   @Override
   public void writePacket(final ByteBuf buf) throws IOException {
+    Preconditions.checkState(!mClosed, "PacketWriter is closed while writing packets.");
     reserve(mPos + buf.readableBytes());
     try {
       buf.readBytes(mWriter.getChannel(), buf.readableBytes());
@@ -80,13 +73,6 @@ public class LocalPacketWriter implements PacketWriter {
     } finally {
       ReferenceCountUtil.release(buf);
     }
-  }
-
-  void reserve(long pos) throws IOException {
-    if (pos <= mPosReserved) {
-      return;
-    }
-    mBlockWorkerClient.requestSpace(mBlockId, Math.max(pos - mPosReserved, FILE_BUFFER_BYTES));
   }
 
   @Override
@@ -98,6 +84,35 @@ public class LocalPacketWriter implements PacketWriter {
   @Override
   public void close() throws IOException {
     mWriter.close();
+    mClosed = true;
+  }
+
+  /**
+   * Creates an instance of {@link LocalPacketWriter}.
+   *
+   * @param blockWorkerClient the block worker client, not owned by this class
+   * @param blockId the block ID
+   * @throws IOException if it fails to create the packet writer
+   */
+  private LocalPacketWriter(BlockWorkerClient blockWorkerClient, long blockId) throws IOException {
+    String blockPath = blockWorkerClient.requestBlockLocation(blockId, FILE_BUFFER_BYTES);
+    mWriter = new LocalFileBlockWriter(blockPath);
+    mPosReserved += FILE_BUFFER_BYTES;
+    mBlockId = blockId;
+    mBlockWorkerClient = blockWorkerClient;
+  }
+
+  /**
+   * Reserves enough space in the block worker.
+   *
+   * @param pos the pos of the file/block to reserve to
+   * @throws IOException if it fails to reserve the space
+   */
+  private void reserve(long pos) throws IOException {
+    if (pos <= mPosReserved) {
+      return;
+    }
+    mBlockWorkerClient.requestSpace(mBlockId, Math.max(pos - mPosReserved, FILE_BUFFER_BYTES));
   }
 }
 

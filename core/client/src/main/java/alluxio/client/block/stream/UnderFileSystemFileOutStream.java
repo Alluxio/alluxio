@@ -31,30 +31,4 @@ public final class UnderFileSystemFileOutStream extends PacketOutStream {
   protected PacketWriter createPacketWriter() throws IOException {
     return new NettyPacketWriter(mFileSystemWorkerClient.getWorkerDataServerAddress(), mId, -1);
   }
-
-  @Override
-  public void cancel() throws IOException {
-    if (mClosed) {
-      return;
-    }
-    updateCurrentPacket(true);
-    mPacketWriter.cancel();
-    // TODO(peis): Move the FileSystemWorker cancel logic here from FileOutStream.
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (mClosed) {
-      return;
-    }
-    try {
-      updateCurrentPacket(true);
-      mPacketWriter.close();
-    } catch (Throwable e) {
-      throw mCloser.rethrow(e);
-    } finally {
-      mCloser.close();
-      mClosed = true;
-    }
-  }
 }
