@@ -11,25 +11,14 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Constants;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.network.protocol.RPCBlockWriteRequest;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.file.FileSystemWorker;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
-import io.netty.util.ReferenceCounted;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -65,7 +54,7 @@ public abstract class DataServerFileWriteHandler extends DataServerWriteHandler 
   }
 
   /**
-   * Creates an instance of {@link BlockWriteDataServerHandler}.
+   * Creates an instance of {@link DataServerFileWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s.
    */
@@ -89,20 +78,8 @@ public abstract class DataServerFileWriteHandler extends DataServerWriteHandler 
 
   protected void writeBuf(ByteBuf buf) throws Exception {
     try {
-      // This channel will not be closed because the underlying stream should not be closed, the
-      // channel will be cleaned up when the underlying stream is closed.
-      WritableByteChannel channel = Channels.newChannel(((FileWriteRequestInternal) mRequest).mOutputStream);
-      if (buf.nioBufferCount() > 0) {
-        ByteBuffer[] buffers = buf.nioBuffers();
-        for (int i = 0; i < buffers.length; i++) {
-          channel.write(buffers[i]);
-        }
-      } else {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(buf.readableBytes());
-        buf.readBytes(buffer);
-        channel.write(buffer);
-      }
-    } finally {
+      buf.readBytes(((FileWriteRequestInternal) mRequest).mOutputStream, buf.readableBytes());
+   } finally {
       ReferenceCountUtil.release(buf);
     }
   }

@@ -20,11 +20,17 @@ import java.util.concurrent.TimeoutException;
 /**
  * The interface to read remote block from data server.
  */
-public interface BlockWriter extends Closeable {
+public interface PacketWriter extends Closeable {
   void writePacket(ByteBuf buf) throws IOException;
+
+  void flush() throws IOException;
+
+  void cancel() throws IOException;
+
+  int packetSize();
 
   long pos();
 
   @Override
-  void close();
+  void close() throws IOException;
 }

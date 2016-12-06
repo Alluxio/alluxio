@@ -14,13 +14,9 @@ package alluxio.worker.netty;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.network.protocol.RPCBlockWriteRequest;
 import alluxio.network.protocol.RPCBlockWriteResponse;
 import alluxio.network.protocol.RPCResponse;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockWriter;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;

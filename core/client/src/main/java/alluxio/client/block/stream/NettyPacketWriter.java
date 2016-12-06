@@ -55,7 +55,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 4. To make it simple to handle errors, the channel is closed if any error occurs.
  */
 @NotThreadSafe
-public class NettyBlockWriter implements BlockWriter {
+public class NettyPacketWriter implements PacketWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long PACKET_SIZE =
@@ -85,16 +85,18 @@ public class NettyBlockWriter implements BlockWriter {
   private Condition mDoneOrFail = mLock.newCondition();
   /** This condition meets if mThrowable != null or the buffer is not full. */
   private Condition mBufferNotFullOrFail = mLock.newCondition();
+  /** This condition meets if there is nothing in the netty buffer. */
+  private Condition mBufferEmptyOrFail = mLock.newCondition();
 
   /**
-   * Creates an instance of {@link NettyBlockWriter}.
+   * Creates an instance of {@link NettyPacketWriter}.
    *
    * @param address the data server network address
    * @param blockId the block ID
    * @param sessionId the session ID
    * @throws IOException it fails to create the object because it fails to acquire a netty channel
    */
-  public NettyBlockWriter(final InetSocketAddress address, long blockId, long sessionId)
+  public NettyPacketWriter(final InetSocketAddress address, long blockId, long sessionId)
       throws IOException {
     mAddress = address;
     mSessionId = sessionId;
@@ -154,7 +156,52 @@ public class NettyBlockWriter implements BlockWriter {
   }
 
   @Override
-  public void close() {
+  public void cancel() throws IOException {
+    mLock.lock();
+    try {
+      mThrowable = new IOException("PacketWriter is cancelled.");
+      mBufferEmptyOrFail.notify();
+      mBufferNotFullOrFail.notify();
+      mDoneOrFail.notify();
+
+      ChannelFuture future = mChannel.close().sync();
+      if (future.cause() != null) {
+        throw new IOException(future.cause());
+      }
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    } finally {
+      mLock.unlock();
+    }
+  }
+
+  @Override
+  public void flush() throws IOException {
+    mChannel.flush();
+
+    mLock.lock();
+    try {
+      while (true) {
+        if (mPosToWrite == mPosToQueue) {
+          return;
+        }
+        if (mThrowable != null) {
+          throw new IOException(mThrowable);
+        }
+        if (!mBufferEmptyOrFail.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+          throw new IOException(
+              String.format("Timeout to flush packets to block %d @ %s.", mBlockId, mAddress));
+        }
+      }
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    } finally {
+      mLock.unlock();
+    }
+  }
+
+  @Override
+  public void close() throws IOException {
     mLock.lock();
     try {
       // Write the last packet.
@@ -172,17 +219,16 @@ public class NettyBlockWriter implements BlockWriter {
         }
         if (mThrowable != null) {
           Preconditions.checkState(!mChannel.isOpen());
-          return;
+          throw new IOException(mThrowable);
         }
         try {
           if (!mDoneOrFail.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-            mChannel.close();
-            LOG.warn("Timeout to close the NettyBlockWriter (block: {}, address: {}).", mBlockId,
-                mAddress);
-            return;
+            mChannel.close().sync();
+            throw new IOException(String.format(
+                "Timeout to close the NettyPacketWriter (block: %d, address: %s).", mBlockId,
+                mAddress));
           }
         } catch (InterruptedException e) {
-          mChannel.close();
           throw Throwables.propagate(e);
         }
       }
@@ -201,6 +247,11 @@ public class NettyBlockWriter implements BlockWriter {
    */
   private boolean tooManyPacketsInFlight() {
     return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * PACKET_SIZE;
+  }
+
+  @Override
+  public int packetSize() {
+    return (int) PACKET_SIZE;
   }
 
   /**
@@ -234,6 +285,7 @@ public class NettyBlockWriter implements BlockWriter {
         mThrowable = cause;
         mBufferNotFullOrFail.notify();
         mDoneOrFail.notify();
+        mBufferEmptyOrFail.notify();
       } finally {
         mLock.unlock();
       }
@@ -267,9 +319,12 @@ public class NettyBlockWriter implements BlockWriter {
           mThrowable = future.cause();
           mDoneOrFail.notify();
           mBufferNotFullOrFail.notify();
+          mBufferEmptyOrFail.notify();
           return;
         }
-
+        if (mPosToWrite == mPosToQueue) {
+          mBufferEmptyOrFail.notify();
+        }
         if (mPosToQueue - mPosToWriteUncommitted < MAX_PACKETS_IN_FLIGHT * PACKET_SIZE) {
           mBufferNotFullOrFail.notify();
         }

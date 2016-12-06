@@ -11,7 +11,6 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.network.protocol.RPCBlockWriteRequest;
@@ -20,12 +19,9 @@ import alluxio.worker.block.io.BlockWriter;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
-import io.netty.util.ReferenceCounted;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.nio.channels.GatheringByteChannel;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -66,7 +62,7 @@ public abstract class DataServerBlockWriteHandler extends DataServerWriteHandler
   }
 
   /**
-   * Creates an instance of {@link BlockWriteDataServerHandler}.
+   * Creates an instance of {@link DataServerBlockWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s.
    */
@@ -101,16 +97,8 @@ public abstract class DataServerBlockWriteHandler extends DataServerWriteHandler
         mWorker.requestSpace(mRequest.mSessionId, mRequest.mId, buf.readableBytes());
       }
       BlockWriter blockWriter = ((BlockWriteRequestInternal) mRequest).mBlockWriter;
-      if (buf.nioBufferCount() > 0) {
-        ByteBuffer[] buffers = buf.nioBuffers();
-        for (int i = 0; i < buffers.length; i++) {
-          blockWriter.append(buffers[i]);
-        }
-      } else {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(buf.readableBytes());
-        buf.readBytes(buffer);
-        blockWriter.append(buffer);
-      }
+      GatheringByteChannel outputChannel = blockWriter.getChannel();
+      buf.readBytes(outputChannel, buf.readableBytes());
     } finally {
       ReferenceCountUtil.release(buf);
     }
