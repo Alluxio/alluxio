@@ -14,6 +14,8 @@ package alluxio.client.block.stream;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -35,6 +37,11 @@ public final class UnderFileSystemFileInStream extends PacketInStream {
     }
     closePacketReader();
     mClosed = true;
+  }
+
+  @Override
+  public void seek(long pos) {
+    throw new RuntimeException("UnderFileSystemFileInStream@seek is not supported.");
   }
 
   protected PacketReader createPacketReader(long offset, long len) throws IOException {

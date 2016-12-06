@@ -11,7 +11,9 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
@@ -55,6 +57,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class NettyPacketReader extends AbstractPacketReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final boolean CANCEL_ENABLED =
+      Configuration.getBoolean(PropertyKey.USER_NETWORK_NETTY_READER_CANCEL_ENABLED);
 
   private final Channel mChannel;
 
@@ -99,6 +103,10 @@ public final class NettyPacketReader extends AbstractPacketReader {
         return;
       }
       try {
+        if (!CANCEL_ENABLED) {
+          mChannel.close().sync();
+          return;
+        }
         ChannelFuture channelFuture =
             mChannel.writeAndFlush(RPCBlockReadRequest.createCancelRequest(mId));
         channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
@@ -111,6 +119,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
       while (true) {
         try {
           ByteBuf buf = readPacket();
+          // A null packet indicates the end of the stream.
           if (buf == null) {
             return;
           }
