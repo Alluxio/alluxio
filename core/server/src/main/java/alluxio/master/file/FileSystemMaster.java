@@ -1714,10 +1714,11 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Metrics.RENAME_PATH_OPS.inc();
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-    // Both src and dst paths should lock WRITE_PARENT, to modify the parent inodes for both paths.
-    try (InodePathPair inodePathPair = mInodeTree
-        .lockInodePathPair(srcPath, InodeTree.LockMode.WRITE_PARENT, dstPath,
-            InodeTree.LockMode.WRITE_PARENT)) {
+    // Both src and dst paths use WRITE locks, despite possibly updating the parent inodes. The
+    // modify operations on the parent inodes are thread safe.
+    try (InodePathPair inodePathPair =
+        mInodeTree.lockInodePathPair(srcPath, InodeTree.LockMode.WRITE, dstPath,
+            InodeTree.LockMode.WRITE)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, srcInodePath);
