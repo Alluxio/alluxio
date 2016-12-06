@@ -11,7 +11,7 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.underfs.ObjectMultiRangeInputStream;
+import alluxio.underfs.MultiRangeObjectInputStream;
 
 import org.javaswift.joss.instructions.DownloadInstructions;
 import org.javaswift.joss.model.Account;
@@ -28,7 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * increments mPos to a chunk boundary.
  */
 @NotThreadSafe
-public class SwiftInputStream extends ObjectMultiRangeInputStream {
+public class SwiftInputStream extends MultiRangeObjectInputStream {
 
   /** JOSS Swift account. */
   private final Account mAccount;

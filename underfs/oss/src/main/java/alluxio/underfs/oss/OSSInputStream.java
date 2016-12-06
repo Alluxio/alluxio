@@ -11,7 +11,7 @@
 
 package alluxio.underfs.oss;
 
-import alluxio.underfs.ObjectMultiRangeInputStream;
+import alluxio.underfs.MultiRangeObjectInputStream;
 
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.GetObjectRequest;
@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * buffer.
  */
 @NotThreadSafe
-public class OSSInputStream extends ObjectMultiRangeInputStream {
+public class OSSInputStream extends MultiRangeObjectInputStream {
 
   /** Bucket name of the Alluxio OSS bucket. */
   private final String mBucketName;

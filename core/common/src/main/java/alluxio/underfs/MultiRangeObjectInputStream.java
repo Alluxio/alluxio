@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A stream for reading data using range queries.
  */
 @NotThreadSafe
-public abstract class ObjectMultiRangeInputStream extends InputStream {
+public abstract class MultiRangeObjectInputStream extends InputStream {
 
   /** Has the stream been closed. */
   private boolean mClosed;
