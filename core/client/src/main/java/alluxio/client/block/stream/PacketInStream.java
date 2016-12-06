@@ -26,33 +26,26 @@ import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
-public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
+public abstract class PacketInStream extends InputStream implements BoundedStream, Seekable {
   /** The id of the block to which this instream provides access. */
-  protected final long mBlockId;
+  protected final long mId;
   /** The size in bytes of the block. */
-  protected final long mBlockSize;
+  protected final long mLength;
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
   /** The current packet. */
-  private ByteBuf mCurrentPacket = null;
+  private ByteBuf mCurrentPacket;
 
-  private PacketReader mReader = null;
+  private PacketReader mPacketReader;
 
   private boolean mClosed = false;
 
   private boolean mBlockIsRead = false;
 
-  public BlockInStream(long blockId, long blockSize) throws IOException {
-    mBlockId = blockId;
-    mBlockSize = blockSize;
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (mCurrentPacket != null) {
-      ReferenceCountUtil.release(mCurrentPacket);
-    }
+  public PacketInStream(long id, long length) throws IOException {
+    mId = id;
+    mLength = length;
   }
 
   @Override
@@ -64,39 +57,9 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
     }
 
     readPacket();
-
     mPos++;
     mBlockIsRead = true;
     return BufferUtils.byteToInt(mCurrentPacket.readByte());
-  }
-
-  /**
-   * Reads a new packet from the channel.
-   *
-   * @throws IOException if it fails to read the packet
-   */
-  private void readPacket() throws IOException {
-    if (mCurrentPacket.readableBytes() == 0) {
-      destroyPacket(mCurrentPacket);
-      if (mReader == null) {
-        mReader = createBlockReader(mPos, mBlockSize - mPos);
-      }
-      mCurrentPacket = mReader.readPacket();
-    }
-  }
-
-  protected void destroyPacket(ByteBuf packet) {
-    ReferenceCountUtil.release(packet);
-  }
-
-  protected abstract PacketReader createBlockReader(long offset, long len);
-
-  /**
-   * Close the current block reader.
-   */
-  private void closeReader() {
-    mReader.close();
-    mReader = null;
   }
 
   @Override
@@ -125,20 +88,21 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
 
   @Override
   public long remaining() {
-    return mBlockSize - mPos;
+    return mLength - mPos;
   }
 
   @Override
   public void seek(long pos) throws IOException {
     checkIfClosed();
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
-    Preconditions.checkArgument(pos <= mBlockSize,
-        PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), mBlockSize);
+    Preconditions
+        .checkArgument(pos <= mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_REGION.toString(),
+            mId);
     if (pos == mPos) {
       return;
     }
 
-    closeReader();
+    closePacketReader();
     mPos = pos;
   }
 
@@ -152,16 +116,51 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
     long toSkip = Math.min(remaining(), n);
     mPos += toSkip;
 
-    closeReader();
+    closePacketReader();
     return toSkip;
   }
 
-  /**
-   * @return the current position of the stream
-   */
-  protected long getPosition() {
-    return mPos;
+  @Override
+  public void close() {
+    closePacketReader();
   }
+
+  /**
+   * Reads a new packet from the channel.
+   *
+   * @throws IOException if it fails to read the packet
+   */
+  private void readPacket() throws IOException {
+    if (mPacketReader == null) {
+      mPacketReader = createPacketReader(mPos, mLength - mPos);
+    }
+
+    if (mCurrentPacket != null && mCurrentPacket.readableBytes() == 0) {
+      destroyPacket(mCurrentPacket);
+      mCurrentPacket = null;
+    }
+    if (mCurrentPacket == null) {
+      mCurrentPacket = mPacketReader.readPacket();
+    }
+  }
+
+  /**
+   * Close the current packet reader.
+   */
+  private void closePacketReader() {
+    destroyPacket(mCurrentPacket);
+    mCurrentPacket = null;
+
+    mPacketReader.close();
+    mPacketReader = null;
+  }
+
+  protected void destroyPacket(ByteBuf packet) {
+    ReferenceCountUtil.release(packet);
+  }
+
+  protected abstract PacketReader createPacketReader(long offset, long len);
+
 
   /**
    * Increments the number of bytes read metric. Inheriting classes should implement this to
