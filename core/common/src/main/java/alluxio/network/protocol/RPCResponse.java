@@ -40,13 +40,6 @@ public abstract class RPCResponse extends RPCMessage {
     WRITE_ERROR(102),
     UFS_READ_FAILED(103),
     UFS_WRITE_FAILED(104),
-
-    // A block read request is cancelled before its completion.
-    BLOCK_READ_CANCELLED(105),
-
-    // TODO(now): Redesign the error codes. For now, treat all the errors the same.
-    FAILED(106),
-    CANCELLED(107),
     ;
 
     private static final String DEFAULT_ERROR_STRING = "Unknown error.";

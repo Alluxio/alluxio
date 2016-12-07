@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
+import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.RPCResponse;
 
 import com.google.common.base.Preconditions;
@@ -136,7 +137,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
   public class Handler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
-      Preconditions.checkState(msg instanceof RPCBlockReadResponse, "Incorrect response type.");
+      Preconditions.checkState(msg instanceof RPCProtoMessage, "Incorrect response type.");
       RPCBlockReadResponse response = (RPCBlockReadResponse) msg;
       if (response.getStatus() != RPCResponse.Status.SUCCESS) {
         throw new IOException(String

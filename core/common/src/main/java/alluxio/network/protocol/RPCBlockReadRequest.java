@@ -66,10 +66,6 @@ public final class RPCBlockReadRequest extends RPCRequest {
     return new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId);
   }
 
-  public static RPCBlockReadRequest createCancelRequest(long blockId) {
-    return new RPCBlockReadRequest(blockId, -1, 0, 0, 0);
-  }
-
   @Override
   public int getEncodedLength() {
     // 5 longs (mBLockId, mOffset, mLength, mLockId, mSessionId)
@@ -85,18 +81,11 @@ public final class RPCBlockReadRequest extends RPCRequest {
     out.writeLong(mSessionId);
   }
 
-  public boolean isCancelRequest() {
-    return mOffset == -1;
-  }
-
   @Override
   public void validate() {
-    Preconditions
-        .checkState(mOffset >= 0 || mOffset == -1, "Offset cannot be negative (except for -1): %s",
-            mOffset);
-    Preconditions
-        .checkState(mLength >= 0 || mLength == -1, "Length cannot be negative (except for -1): %s",
-            mLength);
+    Preconditions.checkState(mOffset >= 0, "Offset cannot be negative: %s", mOffset);
+    Preconditions.checkState(mLength >= 0 || mLength == -1,
+        "Length cannot be negative (except for -1): %s", mLength);
   }
 
   @Override

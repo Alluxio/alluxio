@@ -78,10 +78,6 @@ public final class RPCFileReadRequest extends RPCRequest {
     Preconditions.checkState(mLength >= 0, "Length cannot be negative: %s", mLength);
   }
 
-  public boolean isCancelRequest() {
-    return false;
-  }
-
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("tempUfsFileId", mTempUfsFileId).add("offset", mOffset)

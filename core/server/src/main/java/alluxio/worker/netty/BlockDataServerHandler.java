@@ -103,11 +103,9 @@ final class BlockDataServerHandler {
       LOG.error("Exception reading block {}", blockId, e);
       RPCBlockReadResponse resp;
       if (e instanceof BlockDoesNotExistException) {
-        resp =
-            RPCBlockReadResponse.createErrorResponse(req.getBlockId(), RPCResponse.Status.FILE_DNE);
+        resp = RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.FILE_DNE);
       } else {
-        resp = RPCBlockReadResponse
-            .createErrorResponse(req.getBlockId(), RPCResponse.Status.UFS_READ_FAILED);
+        resp = RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.UFS_READ_FAILED);
       }
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
