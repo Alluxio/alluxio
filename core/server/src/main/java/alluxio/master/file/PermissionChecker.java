@@ -274,7 +274,7 @@ public final class PermissionChecker {
    * @param path the path to check permission on
    * @throws AccessControlException if permission checking fails
    */
-  private void checkInode(String user, List<String> groups, Inode inode, Mode.Bits bits,
+  private void checkInode(String user, List<String> groups, Inode<?> inode, Mode.Bits bits,
       String path) throws AccessControlException {
     if (inode == null) {
       return;
@@ -348,7 +348,8 @@ public final class PermissionChecker {
     return user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup);
   }
 
-  private static String toExceptionMessage(String user, Mode.Bits bits, String path, Inode inode) {
+  private static String toExceptionMessage(String user, Mode.Bits bits, String path,
+      Inode<?> inode) {
     StringBuilder stringBuilder =
         new StringBuilder().append("user=").append(user).append(", ").append("access=").append(bits)
             .append(", ").append("path=").append(path).append(": ").append("failed at ")
