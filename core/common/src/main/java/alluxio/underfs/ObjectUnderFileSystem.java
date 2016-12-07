@@ -507,7 +507,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected boolean isRoot(String key) {
     return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
-        PathUtils.normalizePath(mUri.toString(), PATH_SEPARATOR));
+        PathUtils.normalizePath(getBucketPath(), PATH_SEPARATOR));
   }
 
   /**
