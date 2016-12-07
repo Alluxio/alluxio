@@ -22,15 +22,20 @@ import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+/**
+ * Provides an {@link InputStream} implementation that is based on {@link PacketReader}s which
+ * streams data packet by packet.
+ */
 @NotThreadSafe
-public abstract class PacketInStream extends InputStream implements BoundedStream, Seekable {
+public class PacketInStream extends InputStream implements BoundedStream, Seekable {
   /** The id of the block to which this instream provides access. */
-  protected final long mId;
+  private final long mId;
   /** The size in bytes of the block. */
-  protected final long mLength;
+  private final long mLength;
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
@@ -38,13 +43,16 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
   private ByteBuf mCurrentPacket;
 
   private PacketReader mPacketReader;
+  private PacketReader.Factory mPacketReaderFactory;
 
-  protected boolean mClosed = false;
+  private boolean mClosed = false;
   private boolean mEOF = false;
 
-  protected boolean mBlockIsRead = false;
+  private boolean mBlockIsRead = false;
 
-  public PacketInStream(long id, long length) throws IOException {
+  // NOTE: Do not throw exception in this constructor.
+  public PacketInStream(PacketReader.Factory packetReaderFactory, long id, long length) {
+    mPacketReaderFactory = packetReaderFactory;
     mId = id;
     mLength = length;
   }
@@ -134,7 +142,10 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
   }
 
   @Override
-  public abstract void close() throws IOException;
+  public void close() {
+    closePacketReader();
+    mClosed = true;
+  }
 
   /**
    * Reads a new packet from the channel.
@@ -143,7 +154,7 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
    */
   private void readPacket() throws IOException {
     if (mPacketReader == null) {
-      mPacketReader = createPacketReader(mPos, mLength - mPos);
+      mPacketReader = mPacketReaderFactory.create(mPos, mLength - mPos);
     }
 
     if (mCurrentPacket != null && mCurrentPacket.readableBytes() == 0) {
@@ -158,7 +169,7 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
   /**
    * Close the current packet reader.
    */
-  protected void closePacketReader() {
+  private void closePacketReader() {
     destroyPacket(mCurrentPacket);
     mCurrentPacket = null;
 
@@ -166,11 +177,21 @@ public abstract class PacketInStream extends InputStream implements BoundedStrea
     mPacketReader = null;
   }
 
-  protected void destroyPacket(ByteBuf packet) {
+  /**
+   * Destroys a packet.
+   *
+   * @param packet the packet
+   */
+  private void destroyPacket(ByteBuf packet) {
+    // TODO(peis): Investigate whether we can get rid of this.
+    if (packet.nioBufferCount() > 0) {
+      ByteBuffer buffer = packet.nioBuffer();
+      if (buffer.isDirect()) {
+        BufferUtils.cleanDirectBuffer(buffer);
+      }
+    }
     ReferenceCountUtil.release(packet);
   }
-
-  protected abstract PacketReader createPacketReader(long offset, long len) throws IOException;
 
   /**
    * Convenience method to ensure the stream is not closed.

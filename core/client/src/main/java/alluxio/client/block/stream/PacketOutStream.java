@@ -27,13 +27,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides an abstract stream API to write packets.
- *
- * <p>
- * The type of {@link PacketOutStream} returned will depend on the user configuration and
- * cluster setup. A {@link LocalPacketOutStream} is returned if the client is co-located with an
- * Alluxio worker and the user has enabled this optimization. Otherwise,
- * {@link RemotePacketOutStream} will be returned which will write the data through an Alluxio
- * worker.
  */
 @NotThreadSafe
 public final class PacketOutStream extends OutputStream implements BoundedStream, Cancelable {

@@ -11,42 +11,27 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.WorkerNetAddress;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
+import java.io.FilterInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+/**
+ * Provides a streaming API to read a file in the under file system through an Alluxio worker's data
+ * server.
+ */
 @NotThreadSafe
-public final class UnderFileSystemFileInStream extends PacketInStream {
-  private WorkerNetAddress mWorkerNetAddress;
-
-  public UnderFileSystemFileInStream(WorkerNetAddress workerNetAddress, long ufsFileId)
-      throws IOException {
-    super(ufsFileId, Long.MAX_VALUE);
-    mWorkerNetAddress = workerNetAddress;
-  }
-
-  @Override
-  public void close() {
-    if (mClosed) {
-      return;
-    }
-    closePacketReader();
-    mClosed = true;
-  }
-
-  @Override
-  public void seek(long pos) {
-    throw new RuntimeException("UnderFileSystemFileInStream@seek is not supported.");
-  }
-
-  protected PacketReader createPacketReader(long offset, long len) throws IOException {
-    return NettyPacketReader
-        .createFilePacketReader(NetworkAddressUtils.getDataPortSocketAddress(mWorkerNetAddress),
-            mId, offset, (int) len);
+public final class UnderFileSystemFileInStream extends FilterInputStream {
+  /**
+   * Creates an instance of {@link UnderFileSystemFileInStream}.
+   *
+   * @param address the data server address
+   * @param ufsFileId the ufs file ID
+   * @throws IOException if it fails to create the object
+   */
+  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId) throws IOException {
+    super(new PacketInStream(new NettyPacketReader.Factory(address, ufsFileId), ufsFileId,
+        Long.MAX_VALUE));
   }
 }

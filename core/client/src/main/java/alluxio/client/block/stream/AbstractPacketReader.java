@@ -57,6 +57,8 @@ public abstract class AbstractPacketReader implements PacketReader {
   /** This is true only when an empty packet is received. */
   protected boolean mDone = false;
 
+  protected boolean mClosed = false;
+
   /**
    * Creates an instance of {@link NettyPacketReader}.
    *
@@ -66,7 +68,7 @@ public abstract class AbstractPacketReader implements PacketReader {
    * @param len the length to read
    * @throws IOException if it fails to create the object
    */
-  protected AbstractPacketReader(InetSocketAddress address, long id, long offset, int len) {
+  protected AbstractPacketReader(InetSocketAddress address, long id, long offset, long len) {
     mAddress = address;
     mId = id;
     mStart = offset;
@@ -82,6 +84,7 @@ public abstract class AbstractPacketReader implements PacketReader {
 
   @Override
   public ByteBuf readPacket() throws IOException {
+    Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
     while (true) {
       mLock.lock();
       try {

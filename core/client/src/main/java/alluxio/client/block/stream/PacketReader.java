@@ -33,4 +33,8 @@ public interface PacketReader extends Closeable {
 
   @Override
   void close();
+
+  interface Factory {
+    PacketReader create(long offset, long len) throws IOException;
+  }
 }

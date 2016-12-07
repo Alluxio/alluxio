@@ -62,33 +62,24 @@ public final class NettyPacketReader extends AbstractPacketReader {
   private final Channel mChannel;
 
   /**
-   * Creates an instance of {@link NettyPacketReader} for block reads.
+   * Creates an instance of {@link NettyPacketReader}.
    *
    * @param address the netty data server network address
-   * @param blockId the block ID
+   * @param id the block ID or UFS file ID
    * @param offset the offset
    * @param len the length to read
    * @param lockId the lock ID
    * @param sessionId the session ID
    * @throws IOException if it fails to create the object
    */
-  public static NettyPacketReader createBlockPacketReader(InetSocketAddress address, long blockId,
-      long offset, int len, long lockId, long sessionId) throws IOException {
-    return new NettyPacketReader(address, blockId, offset, len, lockId, sessionId);
-  }
+  public NettyPacketReader(InetSocketAddress address, long id, long offset, long len,
+      long lockId, long sessionId) throws IOException {
+    super(address,id, offset, len);
 
-  /**
-   * Creates an instance of {@link NettyPacketReader} for UFS file reads.
-   *
-   * @param address the netty data server network address
-   * @param ufsFileId the UFS file ID
-   * @param offset the offset
-   * @param len the length to read
-   * @throws IOException if it fails to create the object
-   */
-  public static NettyPacketReader createFilePacketReader(InetSocketAddress address, long ufsFileId,
-      long offset, int len) throws IOException {
-    return new NettyPacketReader(address, ufsFileId, offset, len, -1, -1);
+    mChannel = BlockStoreContext.acquireNettyChannel(address);
+    mChannel.pipeline().addLast(new Handler());
+    mChannel.writeAndFlush(new RPCBlockReadRequest(mId, offset, len, lockId, sessionId))
+        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
   @Override
@@ -135,6 +126,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
         mChannel.pipeline().removeLast();
       }
       BlockStoreContext.releaseNettyChannel(mAddress, mChannel);
+      mClosed = true;
     }
   }
 
@@ -182,27 +174,6 @@ public final class NettyPacketReader extends AbstractPacketReader {
     }
   }
 
-  /**
-   * Creates an instance of {@link NettyPacketReader}.
-   *
-   * @param address the netty data server network address
-   * @param id the block ID or UFS file ID
-   * @param offset the offset
-   * @param len the length to read
-   * @param lockId the lock ID
-   * @param sessionId the session ID
-   * @throws IOException if it fails to create the object
-   */
-  private NettyPacketReader(InetSocketAddress address, long id, long offset, int len,
-      long lockId, long sessionId) throws IOException {
-    super(address,id, offset, len);
-
-    mChannel = BlockStoreContext.acquireNettyChannel(address);
-    mChannel.pipeline().addLast(new Handler());
-    mChannel.writeAndFlush(new RPCBlockReadRequest(mId, offset, len, lockId, sessionId))
-        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-  }
-
   @Override
   protected void pause() {
     mChannel.config().setAutoRead(false);
@@ -212,6 +183,35 @@ public final class NettyPacketReader extends AbstractPacketReader {
   protected void resume() {
     mChannel.config().setAutoRead(true);
     mChannel.read();
+  }
+
+  /**
+   * Factory class to create {@link NettyPacketReader}s.
+   */
+  public static class Factory implements PacketReader.Factory {
+    private final InetSocketAddress mAddress;
+    private final long mId;
+    private final long mLockId;
+    private final long mSessionId;
+
+    /**
+     * Creates an instance of {@link LocalPacketReader.Factory}.
+     */
+    public Factory(InetSocketAddress address, long blockId, long lockId, long sessionId) {
+      mAddress = address;
+      mId = blockId;
+      mLockId = lockId;
+      mSessionId = sessionId;
+    }
+
+    public Factory(InetSocketAddress address, long ufsFileId) {
+      this(address, ufsFileId, -1, -1);
+    }
+
+    @Override
+    public PacketReader create(long offset, long len) throws IOException {
+      return new NettyPacketReader(mAddress, mId, offset, len, mLockId, mSessionId);
+    }
   }
 }
 

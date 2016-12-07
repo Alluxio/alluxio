@@ -43,7 +43,7 @@ public final class LocalPacketReader implements PacketReader {
    * @param offset the offset
    * @param len the length to read
    */
-  public LocalPacketReader(LocalFileBlockReader reader, long offset, int len) {
+  public LocalPacketReader(LocalFileBlockReader reader, long offset, long len) {
     mReader = reader;
     mPos = offset;
     mEnd = offset + len;
@@ -67,5 +67,26 @@ public final class LocalPacketReader implements PacketReader {
 
   @Override
   public void close() {}
+
+  /**
+   * Factory class to create {@link LocalPacketReader}s.
+   */
+  public static class Factory implements PacketReader.Factory {
+    private final LocalFileBlockReader mLocalFileBlockReader;
+
+    /**
+     * Creates an instance of {@link Factory}.
+     *
+     * @param reader the local file block reader
+     */
+    public Factory(LocalFileBlockReader reader) {
+      mLocalFileBlockReader = reader;
+    }
+
+    @Override
+    public PacketReader create(long offset, long len) {
+      return new LocalPacketReader(mLocalFileBlockReader, offset, len);
+    }
+  }
 }
 
