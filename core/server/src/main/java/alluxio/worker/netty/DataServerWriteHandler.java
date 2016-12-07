@@ -16,8 +16,10 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -113,7 +115,15 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
 
     mLock.lock();
     try {
-      ByteBuf buf = (ByteBuf) (msg.getPayloadDataBuffer().getNettyOutput());
+      DataBuffer dataBuffer = msg.getPayloadDataBuffer();
+      ByteBuf buf;
+      if (dataBuffer == null) {
+        buf = ctx.alloc().buffer(0, 0);
+      } else {
+        Preconditions.checkState(dataBuffer.getLength() > 0);
+        assert dataBuffer.getNettyOutput() instanceof ByteBuf;
+        buf = (ByteBuf) dataBuffer.getNettyOutput();
+      }
       mPackets.offer(buf);
       mPosToQueue += buf.readableBytes();
       if (!mPacketWriterActive) {
@@ -234,8 +244,8 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
     public void run() {
       ByteBuf buf;
       do {
+        mLock.lock();
         try {
-          mLock.lock();
           buf = mPackets.poll();
           if (buf == null) {
             mPacketWriterActive = false;

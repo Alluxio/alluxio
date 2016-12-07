@@ -15,13 +15,14 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockStoreContext;
-import alluxio.network.protocol.RPCBlockWriteRequest;
-import alluxio.network.protocol.RPCBlockWriteResponse;
-import alluxio.network.protocol.RPCResponse;
+import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataNettyBuffer;
+import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -69,6 +70,7 @@ public class NettyPacketWriter implements PacketWriter {
   private final InetSocketAddress mAddress;
   private final long mBlockId;
   private final long mSessionId;
+  private final Protocol.RequestType mRequestType;
 
   private boolean mClosed = false;
 
@@ -96,13 +98,15 @@ public class NettyPacketWriter implements PacketWriter {
    * @param address the data server network address
    * @param blockId the block ID
    * @param sessionId the session ID
+   * @param type the request type (block or UFS file)
    * @throws IOException it fails to create the object because it fails to acquire a netty channel
    */
-  public NettyPacketWriter(final InetSocketAddress address, long blockId, long sessionId)
-      throws IOException {
+  public NettyPacketWriter(final InetSocketAddress address, long blockId, long sessionId,
+      Protocol.RequestType type) throws IOException {
     mAddress = address;
     mSessionId = sessionId;
     mBlockId = blockId;
+    mRequestType = type;
 
     mChannel = BlockStoreContext.acquireNettyChannel(address);
     mChannel.pipeline().addLast(new Handler());
@@ -155,8 +159,11 @@ public class NettyPacketWriter implements PacketWriter {
     mChannel.eventLoop().submit(new Runnable() {
       @Override
       public void run() {
-        mChannel.write(new RPCBlockWriteRequest(mSessionId, mBlockId, offset, len,
-            new DataNettyBuffer(buf, len))).addListener(new WriteListener(offset + len));
+        Protocol.WriteRequest writeRequest =
+            Protocol.WriteRequest.newBuilder().setId(mBlockId).setOffset(offset)
+                .setSessionId(mSessionId).setType(mRequestType).build();
+        mChannel.write(new RPCProtoMessage(writeRequest, new DataNettyBuffer(buf, len)))
+            .addListener(new WriteListener(offset + len));
       }
     });
   }
@@ -222,7 +229,10 @@ public class NettyPacketWriter implements PacketWriter {
       mChannel.eventLoop().submit(new Runnable() {
         @Override
         public void run() {
-          mChannel.write(new RPCBlockWriteRequest(mSessionId, mBlockId, mPosToQueue, 0, null))
+          Protocol.WriteRequest writeRequest =
+              Protocol.WriteRequest.newBuilder().setId(mBlockId).setOffset(mPosToQueue)
+                  .setSessionId(mSessionId).setType(mRequestType).build();
+          mChannel.write(new RPCProtoMessage(writeRequest, null))
               .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         }
       });
@@ -269,18 +279,28 @@ public class NettyPacketWriter implements PacketWriter {
     return (int) PACKET_SIZE;
   }
 
+  private boolean acceptMessage(Object msg) {
+    if (msg instanceof RPCProtoMessage) {
+      MessageLite header = ((RPCProtoMessage) msg).getMessage();
+      return header instanceof Protocol.Response;
+    }
+    return false;
+  }
+
   /**
-   * The netty handler that handles {@link RPCBlockWriteResponse}.
+   * The netty handler that handles netty write response.
    */
   private final class Handler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
-      Preconditions.checkState(msg instanceof RPCBlockWriteResponse, "Incorrect response type.");
-      RPCBlockWriteResponse response = (RPCBlockWriteResponse) msg;
-      if (response.getStatus() != RPCResponse.Status.SUCCESS) {
+      Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
+      RPCProtoMessage response = (RPCProtoMessage) msg;
+      Protocol.Status status = ((Protocol.Response) response.getMessage()).getStatus();
+
+      if (!Status.isOk(status)) {
         throw new IOException(String
             .format("Failed to write block %d from %s with status %s.", mBlockId, mAddress,
-                response.getStatus().getMessage()));
+                status.toString()));
       }
       mLock.lock();
       try {

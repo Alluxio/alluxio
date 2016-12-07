@@ -13,10 +13,12 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -109,6 +111,7 @@ public abstract class AbstractPacketReader implements PacketReader {
           }
         }
         if (buf.readableBytes() == 0) {
+          ReferenceCountUtil.release(buf);
           mDone = true;
           return null;
         }

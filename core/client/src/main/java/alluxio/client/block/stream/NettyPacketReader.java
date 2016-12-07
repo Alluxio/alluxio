@@ -15,13 +15,14 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockStoreContext;
-import alluxio.network.protocol.RPCBlockReadRequest;
-import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.network.protocol.RPCResponse;
+import alluxio.network.protocol.Status;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -61,6 +62,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
       Configuration.getBoolean(PropertyKey.USER_NETWORK_NETTY_READER_CANCEL_ENABLED);
 
   private final Channel mChannel;
+  private final Protocol.RequestType mRequestType;
 
   /**
    * Creates an instance of {@link NettyPacketReader}.
@@ -71,15 +73,20 @@ public final class NettyPacketReader extends AbstractPacketReader {
    * @param len the length to read
    * @param lockId the lock ID
    * @param sessionId the session ID
+   * @param type the request type (block or UFS file)
    * @throws IOException if it fails to create the object
    */
   public NettyPacketReader(InetSocketAddress address, long id, long offset, long len,
-      long lockId, long sessionId) throws IOException {
+      long lockId, long sessionId, Protocol.RequestType type) throws IOException {
     super(address,id, offset, len);
+    mRequestType = type;
 
     mChannel = BlockStoreContext.acquireNettyChannel(address);
     mChannel.pipeline().addLast(new Handler());
-    mChannel.writeAndFlush(new RPCBlockReadRequest(mId, offset, len, lockId, sessionId))
+    Protocol.ReadRequest readRequest =
+        Protocol.ReadRequest.newBuilder().setId(id).setOffset(offset).setLength(len)
+            .setLockId(lockId).setSessionId(sessionId).setType(type).build();
+    mChannel.writeAndFlush(new RPCProtoMessage(readRequest))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
@@ -97,8 +104,10 @@ public final class NettyPacketReader extends AbstractPacketReader {
           mChannel.close().sync();
           return;
         }
-        ChannelFuture channelFuture =
-            mChannel.writeAndFlush(RPCBlockReadRequest.createCancelRequest(mId));
+        Protocol.ReadRequest cancelRequest =
+            Protocol.ReadRequest.newBuilder().setId(mId).setCancel(true).setType(mRequestType)
+                .build();
+        ChannelFuture channelFuture = mChannel.writeAndFlush(new RPCProtoMessage(cancelRequest));
         channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         channelFuture.sync();
       } catch (InterruptedException e) {
@@ -117,7 +126,11 @@ public final class NettyPacketReader extends AbstractPacketReader {
         } catch (IOException e) {
           LOG.warn("Failed to close the NettyBlockReader (block: {}, address: {}).",
               mId, mAddress, e);
-          mChannel.close();
+          try {
+            mChannel.close().sync();
+          } catch (InterruptedException ee) {
+            throw Throwables.propagate(ee);
+          }
           return;
         }
       }
@@ -131,32 +144,53 @@ public final class NettyPacketReader extends AbstractPacketReader {
     }
   }
 
+  private boolean acceptMessage(Object msg) {
+    if (msg instanceof RPCProtoMessage) {
+      MessageLite header = ((RPCProtoMessage) msg).getMessage();
+      return header instanceof Protocol.Response;
+    }
+    return false;
+  }
+
   /**
    * The netty handler that reads packets from the channel.
    */
   public class Handler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
-      Preconditions.checkState(msg instanceof RPCProtoMessage, "Incorrect response type.");
-      RPCBlockReadResponse response = (RPCBlockReadResponse) msg;
-      if (response.getStatus() != RPCResponse.Status.SUCCESS) {
+      Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
+      RPCProtoMessage response = (RPCProtoMessage) msg;
+      Protocol.Status status = ((Protocol.Response) response.getMessage()).getStatus();
+      if (!Status.isOk(status)) {
         throw new IOException(String
             .format("Failed to read block %d from %s with status %s.", mId, mAddress,
-                response.getStatus().getMessage()));
+                status.toString()));
       }
       mLock.lock();
       try {
         Preconditions.checkState(mPacketReaderException == null);
-        ByteBuf buf = response.getPayloadData();
+        DataBuffer dataBuffer = response.getPayloadDataBuffer();
+        ByteBuf buf;
+        if (dataBuffer == null) {
+          buf = ctx.alloc().buffer(0, 0);
+        } else {
+          Preconditions.checkState(dataBuffer.getLength() > 0);
+          assert dataBuffer.getNettyOutput() instanceof ByteBuf;
+          buf = (ByteBuf) dataBuffer.getNettyOutput();
+        }
         Preconditions.checkState(mPackets.offer(buf));
         mNotEmptyOrFail.signal();
 
         if (tooManyPacketsPending()) {
           pause();
         }
+      } catch (Throwable e) {
+        if (response.getPayloadDataBuffer() != null) {
+          response.getPayloadDataBuffer().release();
+        }
+        throw e;
       } finally {
         mLock.unlock();
-        ReferenceCountUtil.release(response.getPayloadData());
       }
     }
 
@@ -194,24 +228,40 @@ public final class NettyPacketReader extends AbstractPacketReader {
     private final long mId;
     private final long mLockId;
     private final long mSessionId;
+    private final Protocol.RequestType mRequestType;
 
     /**
-     * Creates an instance of {@link LocalPacketReader.Factory}.
+     * Creates an instance of {@link LocalPacketReader.Factory} for block reads.
+     *
+     * @param address the worker address
+     * @param blockId the block ID
+     * @param sessionId the session ID
      */
     public Factory(InetSocketAddress address, long blockId, long lockId, long sessionId) {
       mAddress = address;
       mId = blockId;
       mLockId = lockId;
       mSessionId = sessionId;
+      mRequestType = Protocol.RequestType.ALLUXIO_BLOCK;
     }
 
+    /**
+     * Creates an instance of {@link LocalPacketReader.Factory} for UFS file reads.
+     *
+     * @param address the worker address
+     * @param ufsFileId the UFS file ID
+     */
     public Factory(InetSocketAddress address, long ufsFileId) {
-      this(address, ufsFileId, -1, -1);
+      mAddress = address;
+      mId = ufsFileId;
+      mLockId = -1;
+      mSessionId = -1;
+      mRequestType = Protocol.RequestType.UFS_FILE;
     }
 
     @Override
     public PacketReader create(long offset, long len) throws IOException {
-      return new NettyPacketReader(mAddress, mId, offset, len, mLockId, mSessionId);
+      return new NettyPacketReader(mAddress, mId, offset, len, mLockId, mSessionId, mRequestType);
     }
   }
 }

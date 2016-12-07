@@ -31,11 +31,12 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * Encoded format:
  * [proto message length][serialized proto message][data buffer]
+ * The proto message length doesn't include the length of itself (the length field).
  *
  * Note: The data buffer must be released when it is not used. Usually this is how it is released:
- * 1. On the server side, a {@link RPCProtoMessage} is decoded and the data buffer is extracted.
+ * 1. On the consumer side, a {@link RPCProtoMessage} is decoded and the data buffer is extracted.
  *    The ownership of the data buffer is transferred from then on.
- * 2. On the client side, a {@link RPCProtoMessage} is created. It will be sent on the wire via
+ * 2. On the producer side, a {@link RPCProtoMessage} is created. It will be sent on the wire via
  *    netty which will take ownership of the data buffer.
  * Given the above usage patterns, {@link RPCProtoMessage} doesn't provide a 'release' interface
  * to avoid confusing the user.
