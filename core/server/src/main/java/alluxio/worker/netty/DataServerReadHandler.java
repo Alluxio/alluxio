@@ -15,10 +15,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 
@@ -116,7 +114,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     Protocol.ReadRequest msg = (Protocol.ReadRequest) ((RPCProtoMessage) object).getMessage();
 
     if (!validateReadRequest(msg)) {
-      replyError(ctx.channel());
+      replyError(ctx.channel(), Protocol.Status.Code.INVALID_ARGUMENT, "", null);
       return;
     }
 
@@ -148,7 +146,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Exception caught {} in BlockReadDataServerHandler.", cause);
-    replyError(ctx.channel());
+    replyError(ctx.channel(), Protocol.Status.Code.INTERNAL, "", cause);
   }
 
   /**
@@ -191,9 +189,8 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    *
    * @param channel the channel
    */
-  private void replyError(Channel channel) {
-    channel.writeAndFlush(
-        RPCBlockReadResponse.createErrorResponse(mRequest.mId, RPCResponse.Status.FAILED))
+  private void replyError(Channel channel, Protocol.Status.Code code, String message, Throwable e) {
+    channel.writeAndFlush(RPCProtoMessage.createResponse(code, message, e, null))
         .addListener(ChannelFutureListener.CLOSE);
   }
 
@@ -204,7 +201,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    */
   private void replySuccess(Channel channel) {
     reset();
-    channel.writeAndFlush(RPCBlockReadResponse.createSuccessResponse(mRequest.mId))
+    channel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
@@ -375,9 +372,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
           break;
         }
 
-        final RPCBlockReadResponse response =
-            new RPCBlockReadResponse(mRequest.mId, start, packet_size, packet,
-                RPCResponse.Status.SUCCESS);
+        final RPCProtoMessage response = RPCProtoMessage.createOkResponse(packet);
         mChannel.eventLoop().submit(new Runnable() {
           @Override
           public void run() {

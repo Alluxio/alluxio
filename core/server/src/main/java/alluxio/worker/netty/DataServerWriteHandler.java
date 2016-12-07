@@ -14,13 +14,12 @@ package alluxio.worker.netty;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.network.protocol.RPCBlockWriteResponse;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.network.protocol.RPCResponse;
 import alluxio.proto.dataserver.Protocol;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -108,7 +107,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
 
     // Validate msg and return error if invalid. Init variables if necessary.
     if (!validateRequest(msg)) {
-      replyError(ctx);
+      replyError(ctx.channel(), Protocol.Status.Code.INVALID_ARGUMENT, "", null);
       return;
     }
 
@@ -132,7 +131,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Failed to write block " + (mRequest == null ? -1 : mRequest.mId) + ".", cause);
-    replyError(ctx);
+    replyError(ctx.channel(), Protocol.Status.Code.INTERNAL, "", cause);
   }
 
   @Override
@@ -169,33 +168,31 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
   }
 
   /**
-   * Writes an error response to the channel and closes the channel.
+   * Writes an error block write response to the channel and closes the channel after that.
    *
-   * @param ctx the channel handler context
+   * @param channel the channel
    */
-  private void replyError(ChannelHandlerContext ctx) {
-    ctx.writeAndFlush(new RPCBlockWriteResponse(mRequest.mSessionId, mRequest.mId, mPosToQueue, 0,
-        RPCResponse.Status.FAILED)).addListener(ChannelFutureListener.CLOSE);
+  private void replyError(Channel channel, Protocol.Status.Code code, String message, Throwable e) {
+    channel.writeAndFlush(RPCProtoMessage.createResponse(code, message, e, null))
+        .addListener(ChannelFutureListener.CLOSE);
   }
 
   /**
    * Writes a response to signify the success of the block write. Also resets the channel.
    *
-   * @param ctx the channel handler context
+   * @param channel the channel
    */
-  private void replySuccess(ChannelHandlerContext ctx) {
-    RPCBlockWriteResponse response =
-        new RPCBlockWriteResponse(mRequest.mSessionId, mRequest.mId, mPosToQueue, 0,
-            RPCResponse.Status.SUCCESS);
+  private void replySuccess(Channel channel) {
     try {
       reset();
     } catch (IOException e) {
-      ctx.channel().pipeline().fireExceptionCaught(e);
+      channel.pipeline().fireExceptionCaught(e);
     }
-    ctx.writeAndFlush(response).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+    channel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
+        .addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
 
-    ctx.channel().config().setAutoRead(true);
-    ctx.read();
+    channel.config().setAutoRead(true);
+    channel.read();
   }
 
   private void reset() throws IOException {
@@ -255,7 +252,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
         try {
           // This is the last packet.
           if (buf.readableBytes() == 0) {
-            replySuccess(mCtx);
+            replySuccess(mCtx.channel());
             break;
           }
           writeBuf(buf);
@@ -297,5 +294,11 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
     }
   }
 
+  /**
+   * Writes the buffer.
+   *
+   * @param buf the buffer
+   * @throws Exception if it fails to write the buffer
+   */
   protected abstract void writeBuf(ByteBuf buf) throws Exception;
 }
