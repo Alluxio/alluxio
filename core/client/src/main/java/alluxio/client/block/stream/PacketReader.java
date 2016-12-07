@@ -29,12 +29,26 @@ public interface PacketReader extends Closeable {
    */
   ByteBuf readPacket() throws IOException;
 
+  /**
+   * @return the current stream position
+   */
   long pos();
 
   @Override
   void close();
 
+  /**
+   * The factory interface to create {@link PacketReader}s.
+   */
   interface Factory {
+    /**
+     * Creates an instance of {@link PacketReader}.
+     *
+     * @param offset the stream offset
+     * @param len the length of the stream
+     * @return the created object
+     * @throws IOException if it fails to create the object
+     */
     PacketReader create(long offset, long len) throws IOException;
   }
 }

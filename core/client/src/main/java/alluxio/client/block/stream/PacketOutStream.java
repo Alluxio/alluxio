@@ -26,7 +26,8 @@ import java.io.OutputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Provides an abstract stream API to write packets.
+ * Provides an {@link OutputStream} implementation that is based on {@link PacketWriter} which
+ * streams data packet by packet.
  */
 @NotThreadSafe
 public final class PacketOutStream extends OutputStream implements BoundedStream, Cancelable {
