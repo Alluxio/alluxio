@@ -194,6 +194,14 @@ public enum PropertyKey {
       Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 32),
   WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES(
       Name.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"),
+  WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 128),
+  WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX, 128),
+  WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX, 128),
+  WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 128),
 
   WORKER_PRINCIPAL(Name.WORKER_PRINCIPAL, null),
   WORKER_RPC_PORT(Name.WORKER_RPC_PORT, 29998),
@@ -594,6 +602,14 @@ public enum PropertyKey {
         "alluxio.worker.network.netty.reader.buffer.size.packets";
     public static final String WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
         "alluxio.worker.network.netty.reader.packet.size.bytes";
+    public static final String WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
+        "alluxio.worker.network.netty.block.reader.threads.max";
+    public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.block.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
+        "alluxio.worker.network.netty.file.reader.threads.max";
+    public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.file.writer.threads.max";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";

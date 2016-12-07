@@ -11,14 +11,16 @@
 
 package alluxio.worker.netty;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCMessageEncoder;
+import alluxio.worker.AlluxioWorkerService;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.stream.ChunkedWriteHandler;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,12 +30,18 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   private final DataServerHandler mDataServerHandler;
+  private final AlluxioWorkerService mWorker;
+  private final FileTransferType mFileTransferType;
 
   /**
+   * @param worker the Alluxio worker
    * @param handler the handler for the main logic of the read path
    */
-  public PipelineHandler(final DataServerHandler handler) {
+  public PipelineHandler(AlluxioWorkerService worker, DataServerHandler handler) {
     mDataServerHandler = handler;
+    mWorker = worker;
+    mFileTransferType = Configuration
+        .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
   }
 
   @Override
@@ -43,5 +51,17 @@ final class PipelineHandler extends ChannelInitializer<SocketChannel> {
     pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
     pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
     pipeline.addLast("dataServerHandler", mDataServerHandler);
+    pipeline.addLast("dataServerBlockReadHandler",
+        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
+            mWorker.getBlockWorker(), mFileTransferType));
+    pipeline.addLast("dataServerBlockWriteHandler",
+        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR,
+            mWorker.getBlockWorker()));
+    pipeline.addLast("dataServerFileReadHandler",
+        new DataServerFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR,
+            mWorker.getFileSystemWorker()));
+    pipeline.addLast("dataServerFileWriteHandler",
+        new DataServerFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR,
+            mWorker.getFileSystemWorker()));
   }
 }
