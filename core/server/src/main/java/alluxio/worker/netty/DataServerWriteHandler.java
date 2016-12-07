@@ -14,14 +14,16 @@ package alluxio.worker.netty;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.network.protocol.RPCBlockWriteRequest;
 import alluxio.network.protocol.RPCBlockWriteResponse;
+import alluxio.network.protocol.RPCMessage;
+import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.RPCResponse;
+import alluxio.proto.dataserver.Protocol;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,9 +39,9 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class handles {@link RPCBlockWriteRequest}s.
+ * This class handles {@link alluxio.proto.dataserver.Protocol.WriteRequest}s.
  *
- * Protocol: Check {@link alluxio.client.block.stream.NettyBlockWriter} for more information.
+ * Protocol: Check {@link alluxio.client.block.stream.NettyPacketWriter} for more information.
  * 1. The netty channel handler streams packets from the channel and buffers them. The netty
  *    reader is paused if the buffer is full by turning off the auto read, and is resumed when
  *    the buffer is not full.
@@ -50,8 +52,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    channel is deregistered.
  */
 @NotThreadSafe
-public abstract class DataServerWriteHandler
-    extends SimpleChannelInboundHandler<RPCBlockWriteRequest> {
+public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int MAX_PACKETS_IN_FLIGHT =
@@ -87,7 +88,7 @@ public abstract class DataServerWriteHandler
   protected volatile long mPosToWrite = 0;
 
   /**
-   * Creates an instance of {@link BlockWriteDataServerHandler}.
+   * Creates an instance of {@link DataServerWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s.
    */
@@ -96,7 +97,13 @@ public abstract class DataServerWriteHandler
   }
 
   @Override
-  public void channelRead0(ChannelHandlerContext ctx, RPCBlockWriteRequest msg) throws Exception {
+  public void channelRead(ChannelHandlerContext ctx, Object object) throws Exception {
+    if (!acceptMessage(object)) {
+      ctx.fireChannelRead(object);
+      return;
+    }
+
+    RPCProtoMessage msg = (RPCProtoMessage) object;
     initializeRequest(msg);
 
     // Validate msg and return error if invalid. Init variables if necessary.
@@ -107,7 +114,7 @@ public abstract class DataServerWriteHandler
 
     mLock.lock();
     try {
-      ByteBuf buf = (ByteBuf) msg.getPayloadDataBuffer().getNettyOutput();
+      ByteBuf buf = (ByteBuf) (msg.getPayloadDataBuffer().getNettyOutput());
       mPackets.offer(buf);
       mPosToQueue += buf.readableBytes();
       if (!mPacketWriterActive) {
@@ -150,16 +157,12 @@ public abstract class DataServerWriteHandler
    * @param msg the block write request
    * @return true if the request valid
    */
-  private boolean validateRequest(RPCBlockWriteRequest msg) {
-    if (msg.getBlockId() != mRequest.mId || msg.getLength() < 0) {
+  private boolean validateRequest(RPCProtoMessage msg) {
+    Protocol.WriteRequest request = (Protocol.WriteRequest) msg.getMessage();
+    if (request.getId() != mRequest.mId || !msg.hasPayload()) {
       return false;
     }
-    if (msg.getOffset() != mPosToQueue) {
-      return false;
-    }
-
-    // The last packet (signified by msg.getLength()) should not contain any data.
-    if (msg.getLength() == 0 && msg.getPayloadDataBuffer().getLength() > 0) {
+    if (request.getOffset() != mPosToQueue) {
       return false;
     }
     return true;
@@ -268,12 +271,26 @@ public abstract class DataServerWriteHandler
   }
 
   /**
+   * Checks whether this object should be processed by this handler.
+   *
+   * @param object the object
+   * @return true if this object should be processed
+   */
+  protected boolean acceptMessage(Object object) {
+    if (!(object instanceof RPCProtoMessage)) {
+      return false;
+    }
+    RPCProtoMessage message = (RPCProtoMessage) object;
+    return message.getType() == RPCMessage.Type.RPC_WRITE_REQUEST;
+  }
+
+  /**
    * Initializes the handler if necessary.
    *
    * @param msg the block write request
    * @throws Exception if it fails to initialize
    */
-  protected void initializeRequest(RPCBlockWriteRequest msg) throws Exception {
+  protected void initializeRequest(RPCProtoMessage msg) throws Exception {
     if (mRequest == null) {
       mPosToQueue = 0;
       mPosToWrite = 0;

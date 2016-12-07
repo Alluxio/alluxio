@@ -22,7 +22,6 @@ import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -183,13 +182,6 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @param packet the packet
    */
   private void destroyPacket(ByteBuf packet) {
-    // TODO(peis): Investigate whether we can get rid of this.
-    if (packet.nioBufferCount() > 0) {
-      ByteBuffer buffer = packet.nioBuffer();
-      if (buffer.isDirect()) {
-        BufferUtils.cleanDirectBuffer(buffer);
-      }
-    }
     ReferenceCountUtil.release(packet);
   }
 

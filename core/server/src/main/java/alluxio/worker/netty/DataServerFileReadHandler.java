@@ -12,12 +12,15 @@
 package alluxio.worker.netty;
 
 import alluxio.Constants;
-import alluxio.network.protocol.RPCBlockReadRequest;
+import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBuffer;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.file.FileSystemWorker;
 
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,10 +31,10 @@ import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class handles {@link RPCBlockReadRequest}s.
+ * This handler handles file read request. Check more information in {@link DataServerReadHandler}.
  */
 @NotThreadSafe
-final public class DataServerFileReadHandler extends DataServerReadHandler {
+public final class DataServerFileReadHandler extends DataServerReadHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
@@ -50,8 +53,8 @@ final public class DataServerFileReadHandler extends DataServerReadHandler {
      * @param request the block read request
      * @throws Exception if it fails to create the object
      */
-    public FileReadRequestInternal(RPCBlockReadRequest request) throws Exception {
-      mInputStream = mWorker.getUfsInputStream(request.getBlockId(), request.getOffset());
+    public FileReadRequestInternal(Protocol.ReadRequest request) throws Exception {
+      mInputStream = mWorker.getUfsInputStream(request.getId(), request.getOffset());
 
       mStart = request.getOffset();
       mEnd = mStart + request.getLength();
@@ -73,26 +76,37 @@ final public class DataServerFileReadHandler extends DataServerReadHandler {
   }
 
   @Override
-  protected void initializeRequest(RPCBlockReadRequest request) throws Exception {
+  protected boolean acceptMessage(Object object) {
+    if (!super.acceptMessage(object)) {
+      return false;
+    }
+    Protocol.ReadRequest request = (Protocol.ReadRequest) ((RPCProtoMessage) object).getMessage();
+    return request.getType() == Protocol.RequestType.UFS_FILE;
+  }
+
+  @Override
+  protected void initializeRequest(Protocol.ReadRequest request) throws Exception {
     mRequest = new FileReadRequestInternal(request);
   }
 
   @Override
-  protected DataBuffer getDataBuffer(long offset, int len) throws IOException {
-    byte[] data = new byte[len];
+  protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws IOException {
+    ByteBuf buf = channel.alloc().buffer(len, len);
     InputStream in = ((FileReadRequestInternal) mRequest).mInputStream;
 
-    int bytesRead = 0;
-    if (in != null) { // if we have not reached the end of the file
-      while (bytesRead < len) {
-        int read = in.read(data, bytesRead, len - bytesRead);
-        if (read == -1) {
-          break;
-        }
-        bytesRead += read;
+    try {
+      if (in != null) { // if we have not reached the end of the file
+        while (buf.writableBytes() > 0 && buf.writeBytes(in, buf.writableBytes()) != -1);
       }
+    } catch (Throwable e) {
+      ReferenceCountUtil.release(buf);
+      throw e;
     }
-    return bytesRead != 0 ?
-        new DataNettyBuffer(Unpooled.wrappedBuffer(data, 0, bytesRead), bytesRead) : null;
+
+    if (buf.readableBytes() == 0) {
+      ReferenceCountUtil.release(buf);
+      return null;
+    }
+    return new DataNettyBuffer(buf, buf.readableBytes());
   }
 }

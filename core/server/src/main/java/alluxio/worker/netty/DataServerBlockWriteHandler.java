@@ -13,7 +13,8 @@ package alluxio.worker.netty;
 
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.network.protocol.RPCBlockWriteRequest;
+import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -27,20 +28,11 @@ import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class handles {@link RPCBlockWriteRequest}s.
- *
- * Protocol: Check {@link alluxio.client.block.stream.NettyBlockWriter} for more information.
- * 1. The netty channel handler streams packets from the channel and buffers them. The netty
- *    reader is paused if the buffer is full by turning off the auto read, and is resumed when
- *    the buffer is not full.
- * 2. The {@link PacketWriter} polls packets from the buffer and writes to the block worker. The
- *    writer becomes inactive if there is nothing on the buffer to free up the executor. It is
- *    resumed when the buffer becomes non-empty.
- * 3. When an error occurs, the channel is closed. All the buffered packets are released when the
- *    channel is deregistered.
+ * This handler handles block write request. Check more information in
+ * {@link DataServerWriteHandler}.
  */
 @NotThreadSafe
-public abstract class DataServerBlockWriteHandler extends DataServerWriteHandler {
+public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
@@ -49,10 +41,10 @@ public abstract class DataServerBlockWriteHandler extends DataServerWriteHandler
   private class BlockWriteRequestInternal extends WriteRequestInternal {
     public BlockWriter mBlockWriter;
 
-    public BlockWriteRequestInternal(RPCBlockWriteRequest request) throws Exception {
-      mBlockWriter = mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getBlockId());
+    public BlockWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
+      mBlockWriter = mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId());
       mSessionId = request.getSessionId();
-      mId = request.getBlockId();
+      mId = request.getId();
     }
 
     @Override
@@ -77,10 +69,11 @@ public abstract class DataServerBlockWriteHandler extends DataServerWriteHandler
    * @param msg the block write request
    * @throws Exception if it fails to initialize
    */
-  protected void initializeRequest(RPCBlockWriteRequest msg) throws Exception {
+  protected void initializeRequest(RPCProtoMessage msg) throws Exception {
     super.initializeRequest(msg);
     if (mRequest == null) {
-      mRequest = new BlockWriteRequestInternal(msg);
+      Protocol.WriteRequest request = (Protocol.WriteRequest) (msg.getMessage());
+      mRequest = new BlockWriteRequestInternal(request);
     }
   }
 

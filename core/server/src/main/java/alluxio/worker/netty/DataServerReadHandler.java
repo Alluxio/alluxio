@@ -15,10 +15,12 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
+import alluxio.network.protocol.RPCMessage;
+import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.proto.dataserver.Protocol;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -26,7 +28,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +41,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class handles {@link RPCBlockReadRequest}s.
+ * This class handles {@link alluxio.proto.dataserver.Protocol.ReadRequest}s.
  *
  * Protocol: Check {@link alluxio.client.block.stream.NettyPacketReader} for more information.
  * 1. Once a read request is received, the handler creates a {@link PacketReader} which reads
@@ -49,8 +51,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 3. The channel is closed if there is any exception during the packet read/write.
  */
 @NotThreadSafe
-public abstract class DataServerReadHandler
-    extends SimpleChannelInboundHandler<RPCBlockReadRequest> {
+public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long PACKET_SIZE =
@@ -103,16 +104,23 @@ public abstract class DataServerReadHandler
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
     reset();
+    ctx.fireChannelUnregistered();
   }
 
   @Override
-  public void channelRead0(ChannelHandlerContext ctx, RPCBlockReadRequest msg) throws Exception {
+  public void channelRead(ChannelHandlerContext ctx, Object object) throws Exception {
+    if (!acceptMessage(object)) {
+      ctx.fireChannelRead(object);
+      return;
+    }
+    Protocol.ReadRequest msg = (Protocol.ReadRequest) ((RPCProtoMessage) object).getMessage();
+
     if (!validateReadRequest(msg)) {
       replyError(ctx.channel());
       return;
     }
 
-    if (msg.isCancelRequest()) {
+    if (msg.getCancel()) {
       mRequest.mCancelled = true;
       return;
     }
@@ -206,13 +214,13 @@ public abstract class DataServerReadHandler
    * @param request the block read request
    * @return true if the block read request is valid
    */
-  private boolean validateReadRequest(RPCBlockReadRequest request) {
+  private boolean validateReadRequest(Protocol.ReadRequest request) {
     if (mRequest == null) {
       return true;
     }
 
-    if (request.isCancelRequest()) {
-      if (request.getBlockId() != mRequest.mId) {
+    if (request.getCancel()) {
+      if (request.getId() != mRequest.mId) {
         return false;
       }
       return true;
@@ -239,22 +247,38 @@ public abstract class DataServerReadHandler
   }
 
   /**
+   * Checks whether this object should be processed by this handler.
+   *
+   * @param object the object
+   * @return true if this object should be processed
+   */
+  protected boolean acceptMessage(Object object) {
+    if (!(object instanceof RPCProtoMessage)) {
+      return false;
+    }
+    RPCProtoMessage message = (RPCProtoMessage) object;
+    return message.getType() == RPCMessage.Type.RPC_READ_REQUEST;
+  }
+
+  /**
    * Initializes the handler for the given block read request.
    *
    * @param request the block read request
    * @throws Exception if it fails to initialize
    */
-  protected abstract void initializeRequest(RPCBlockReadRequest request) throws Exception;
+  protected abstract void initializeRequest(Protocol.ReadRequest request) throws Exception;
 
   /**
    * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
    * configurable transfer type.
    *
+   * @param channel the netty channel
    * @param len The length, in bytes, of the data to read from the block
    * @return a {@link DataBuffer} representing the data
    * @throws IOException if an I/O error occurs when reading the data
    */
-  protected abstract DataBuffer getDataBuffer(long offset, int len) throws IOException;
+  protected abstract DataBuffer getDataBuffer(Channel channel, long offset, int len)
+      throws IOException;
 
   /**
    * The channel handler listener that runs after a packet write is flushed.
@@ -334,7 +358,7 @@ public abstract class DataServerReadHandler
 
         DataBuffer packet;
         try {
-          packet = getDataBuffer(start, packet_size);
+          packet = getDataBuffer(mChannel, start, packet_size);
         } catch (Exception e) {
           mChannel.pipeline().fireExceptionCaught(e);
           break;

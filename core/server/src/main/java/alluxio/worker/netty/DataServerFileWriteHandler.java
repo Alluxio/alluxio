@@ -11,7 +11,8 @@
 
 package alluxio.worker.netty;
 
-import alluxio.network.protocol.RPCBlockWriteRequest;
+import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.file.FileSystemWorker;
 
 import io.netty.buffer.ByteBuf;
@@ -24,29 +25,20 @@ import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class handles {@link RPCBlockWriteRequest}s.
- *
- * Protocol: Check {@link alluxio.client.block.stream.NettyBlockWriter} for more information.
- * 1. The netty channel handler streams packets from the channel and buffers them. The netty
- *    reader is paused if the buffer is full by turning off the auto read, and is resumed when
- *    the buffer is not full.
- * 2. The {@link PacketWriter} polls packets from the buffer and writes to the block worker. The
- *    writer becomes inactive if there is nothing on the buffer to free up the executor. It is
- *    resumed when the buffer becomes non-empty.
- * 3. When an error occurs, the channel is closed. All the buffered packets are released when the
- *    channel is deregistered.
+ * This handler handles file write request. Check more information in
+ * {@link DataServerWriteHandler}.
  */
 @NotThreadSafe
-public abstract class DataServerFileWriteHandler extends DataServerWriteHandler {
+public final class DataServerFileWriteHandler extends DataServerWriteHandler {
   /** Filesystem worker which handles file level operations for the worker. */
   private final FileSystemWorker mWorker;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
     public OutputStream mOutputStream;
 
-    public FileWriteRequestInternal(RPCBlockWriteRequest request) throws Exception {
-      mOutputStream = mWorker.getUfsOutputStream(request.getBlockId());
-      mId = request.getBlockId();
+    public FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
+      mOutputStream = mWorker.getUfsOutputStream(request.getId());
+      mId = request.getId();
     }
 
     @Override
@@ -69,10 +61,11 @@ public abstract class DataServerFileWriteHandler extends DataServerWriteHandler 
    * @param msg the block write request
    * @throws Exception if it fails to initialize
    */
-  protected void initializeRequest(RPCBlockWriteRequest msg) throws Exception {
+  @Override
+  protected void initializeRequest(RPCProtoMessage msg) throws Exception {
     super.initializeRequest(msg);
     if (mRequest == null) {
-      mRequest = new FileWriteRequestInternal(msg);
+      mRequest = new FileWriteRequestInternal((Protocol.WriteRequest) msg.getMessage());
     }
   }
 
