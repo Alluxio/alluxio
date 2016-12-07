@@ -145,8 +145,6 @@ public final class AlluxioBlockStore {
     // But when there is no local worker or there are no local blocks, we prefer the first
     // location in blockInfo.locations that is nearest to memory tier.
     // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
-    // TODO(cc): Check mFileSystemContext.hasLocalWorker before finding for a local block when
-    // the TODO for hasLocalWorker is fixed.
     for (BlockLocation location : blockInfo.getLocations()) {
       WorkerNetAddress workerNetAddress = location.getWorkerAddress();
       if (workerNetAddress.getHost().equals(mLocalHostName)) {
