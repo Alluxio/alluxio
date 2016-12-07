@@ -39,7 +39,6 @@ final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   @Override
   protected void initChannel(SocketChannel ch) throws Exception {
     ChannelPipeline pipeline = ch.pipeline();
-    pipeline.addLast("nioChunkedWriter", new ChunkedWriteHandler());
     pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
     pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
     pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
