@@ -63,6 +63,15 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     mWorker = blockWorker;
   }
 
+  @Override
+  protected boolean acceptMessage(Object object) {
+    if (!super.acceptMessage(object)) {
+      return false;
+    }
+    Protocol.WriteRequest request = (Protocol.WriteRequest) ((RPCProtoMessage) object).getMessage();
+    return request.getType() == Protocol.RequestType.ALLUXIO_BLOCK;
+  }
+
   /**
    * Initializes the handler if necessary.
    *

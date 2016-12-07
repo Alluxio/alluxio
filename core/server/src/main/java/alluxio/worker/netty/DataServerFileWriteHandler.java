@@ -55,6 +55,15 @@ public final class DataServerFileWriteHandler extends DataServerWriteHandler {
     mWorker = worker;
   }
 
+  @Override
+  protected boolean acceptMessage(Object object) {
+    if (!super.acceptMessage(object)) {
+      return false;
+    }
+    Protocol.WriteRequest request = (Protocol.WriteRequest) ((RPCProtoMessage) object).getMessage();
+    return request.getType() == Protocol.RequestType.UFS_FILE;
+  }
+
   /**
    * Initializes the handler if necessary.
    *
