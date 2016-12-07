@@ -2183,7 +2183,7 @@ public final class FileSystemMaster extends AbstractMaster {
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
         if (options.isLoadDirectChildren()) {
-          UnderFileStatus[] files = ufs.listStatus(ufsUri.getPath());
+          UnderFileStatus[] files = ufs.listStatus(ufsUri.toString());
           LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults();
           loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
 

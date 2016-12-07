@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -175,15 +176,17 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       for (UnderFileStatus pathToDelete : pathsToDelete) {
         // If we fail to deleteObject one file, stop
         String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
-        boolean success;
         if (pathToDelete.isDirectory()) {
-          success = deleteObject(convertToFolderName(pathKey));
+          if (!deleteObject(convertToFolderName(pathKey))) {
+            // If path is a directory, it is possible that it was not created through Alluxio and no
+            // zero-byte breadcrumb exists
+            LOG.warn("Failed to delete directory {}", pathToDelete.getName());
+          }
         } else {
-          success = deleteObject(pathKey);
-        }
-        if (!success) {
-          LOG.error("Failed to delete path {}, aborting delete.", pathToDelete.getName());
-          return false;
+          if (!deleteObject(pathKey)) {
+            LOG.error("Failed to delete file {}", pathToDelete.getName());
+            return false;
+          }
         }
       }
     }
@@ -261,7 +264,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean isFile(String path) throws IOException {
     // Directly try to get the file metadata, if we fail it either is a folder or does not exist
-    return getObjectStatus(stripPrefixIfPresent(path)) != null;
+    return !isRoot(path) && (getObjectStatus(stripPrefixIfPresent(path)) != null);
   }
 
   @Override
@@ -598,11 +601,27 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         }
       }
       // Handle case (2)
-      for (String commonPrefix : chunk.getCommonPrefixes()) {
-        // Remove parent portion of the key
-        String child = getChildName(commonPrefix, path);
-
-        if (child != null) {
+      String[] commonPrefixes;
+      if (options.isRecursive()) {
+        // In case of a recursive listing infer pseudo-directories as the commonPrefixes returned
+        // from the object store is empty for an empty delimiter.
+        HashSet<String> prefixes = new HashSet<>();
+        for (String objectName : chunk.getObjectNames()) {
+          while (objectName.startsWith(path)) {
+            objectName = objectName.substring(0, objectName.lastIndexOf(PATH_SEPARATOR));
+            if (!objectName.isEmpty()) {
+              prefixes.add(objectName);
+            }
+          }
+        }
+        commonPrefixes = prefixes.toArray(new String[prefixes.size()]);
+      } else {
+        commonPrefixes = chunk.getCommonPrefixes();
+      }
+      for (String commonPrefix : commonPrefixes) {
+        if (commonPrefix.startsWith(path)) {
+          // Remove parent portion of the key
+          String child = getChildName(commonPrefix, path);
           // Remove any portion after the last path delimiter
           int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
           child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
