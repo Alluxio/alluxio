@@ -13,22 +13,28 @@ package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemWorkerClient;
 
+import java.io.FilterOutputStream;
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+/**
+ * Provides a streaming API to write to a file in the under file system through an Alluxio
+ * worker's data server.
+ */
 @NotThreadSafe
-public final class UnderFileSystemFileOutStream extends PacketOutStream {
-  private final FileSystemWorkerClient mFileSystemWorkerClient;
-
+public final class UnderFileSystemFileOutStream extends FilterOutputStream {
+  /**
+   * Creates an instance of {@link UnderFileSystemFileOutStream}.
+   *
+   * @param fileSystemWorkerClient the file system worker client
+   * @param ufsFileId the UFS file ID
+   * @throws IOException if it fails to create the object
+   */
   public UnderFileSystemFileOutStream(FileSystemWorkerClient fileSystemWorkerClient, long ufsFileId)
       throws IOException {
-    super(ufsFileId, Long.MAX_VALUE);
-    mFileSystemWorkerClient = fileSystemWorkerClient;
-  }
-
-  @Override
-  protected PacketWriter createPacketWriter() throws IOException {
-    return new NettyPacketWriter(mFileSystemWorkerClient.getWorkerDataServerAddress(), mId, -1);
+    super(new PacketOutStream(
+        new NettyPacketWriter(fileSystemWorkerClient.getWorkerDataServerAddress(), ufsFileId, -1),
+        Long.MAX_VALUE));
   }
 }
