@@ -39,6 +39,7 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -53,6 +54,7 @@ import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -72,12 +74,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -1225,5 +1230,120 @@ public final class FileSystemMasterTest {
     CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(Constants.KB);
     mFileSystemMaster.completeFile(uri, options);
     return blockId;
+  }
+
+  /**
+   * Tests concurrent renames within the root do not block on each other.
+   */
+  @Test
+  public void rootConcurrentRename() throws Exception {
+    final int numFiles = 100;
+    AlluxioURI[] srcUris = new AlluxioURI[numFiles];
+    AlluxioURI[] dstUris = new AlluxioURI[numFiles];
+
+    for (int i = 0; i < numFiles; i++) {
+      AlluxioURI uri = new AlluxioURI("/file" + i);
+      mFileSystemMaster.createFile(uri, sNestedFileOptions);
+      srcUris[i] = uri;
+      dstUris[i] = new AlluxioURI("/renamed" + i);
+    }
+    // Get baseline for single threaded rename
+    long baselineNs = serialRename(srcUris, dstUris);
+    // Run concurrent rename switch src and dst
+    concurrentRename(dstUris, srcUris, baselineNs);
+  }
+
+  /**
+   * Tests concurrent renames within a folder do not block on each other
+   */
+  @Test
+  public void folderConcurrentRename() throws Exception {
+    final int numFiles = 100;
+    AlluxioURI[] srcUris = new AlluxioURI[numFiles];
+    AlluxioURI[] dstUris = new AlluxioURI[numFiles];
+
+    AlluxioURI dir = new AlluxioURI("/dir");
+
+    mFileSystemMaster.createDirectory(dir, CreateDirectoryOptions.defaults());
+
+    for (int i = 0; i < numFiles; i++) {
+      AlluxioURI uri = dir.join("/file" + i);
+      mFileSystemMaster.createFile(uri, sNestedFileOptions);
+      srcUris[i] = uri;
+      dstUris[i] = dir.join("/renamed" + i);
+    }
+    // Get baseline for single threaded rename
+    long baselineNs = serialRename(srcUris, dstUris);
+    // Run concurrent rename switch src and dst
+    concurrentRename(dstUris, srcUris, baselineNs);
+  }
+
+  /**
+   * Helper for renaming a list of paths serially.
+   * @param src list of source paths
+   * @param dst list of destination paths
+   * @return the time elapsed in nanoseconds
+   */
+  private Long serialRename(final AlluxioURI[] src, final AlluxioURI[] dst)
+      throws Exception {
+    final int numFiles = src.length;
+    long start = System.nanoTime();
+    for (int i = 0; i < numFiles; i++) {
+      mFileSystemMaster.rename(src[i], dst[i]);
+    }
+    return System.nanoTime() - start;
+  }
+
+  /**
+   * Helper for renaming a list of paths concurrently. Ensures the time used is at most half
+   * of the baseline. Also ensures no errors occur.
+   * @param src list of source paths
+   * @param dst list of destination paths
+   * @param baselineNs time taken for renaming serially
+   */
+  private void concurrentRename(final AlluxioURI[] src, final AlluxioURI[] dst, long baselineNs)
+      throws Exception {
+    final int numFiles = src.length;
+    final CyclicBarrier barrier = new CyclicBarrier(numFiles);
+    List<Thread> threads = new ArrayList<>(numFiles);
+    // If there are exceptions, we will store them here.
+    final AtomicReference<List<Throwable>> failedThreadThrowables =
+        new AtomicReference<List<Throwable>>(new ArrayList<Throwable>());
+    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread th, Throwable ex) {
+        failedThreadThrowables.get().add(ex);
+      }
+    };
+    for (int i = 0; i < numFiles; i++) {
+      final int iteration = i;
+      Thread t = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AuthenticatedClientUser.set(TEST_USER);
+            barrier.await();
+            mFileSystemMaster.rename(src[iteration], dst[iteration]);
+          } catch (Exception e) {
+            Throwables.propagate(e);
+          }
+        }
+      });
+      t.setUncaughtExceptionHandler(exceptionHandler);
+      threads.add(t);
+    }
+    Collections.shuffle(threads);
+    for (Thread t : threads) {
+      t.start();
+    }
+    long start = System.nanoTime();
+    for (Thread t : threads) {
+      t.join();
+    }
+    long duration = System.nanoTime() - start;
+    // Speed up is not directly proportional to num files due to journaling, ensure at least 2x
+    Assert.assertTrue("Concurrent rename: " + duration + " Serial rename: " + baselineNs,
+        duration < baselineNs / 2);
+    List<Throwable> errors = failedThreadThrowables.get();
+    Assert.assertTrue("Errors detected: " + errors, errors.isEmpty());
   }
 }
