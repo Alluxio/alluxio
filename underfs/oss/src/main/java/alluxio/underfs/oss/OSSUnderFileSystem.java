@@ -261,7 +261,7 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected String getBucketPath() {
+  protected String getRootKey() {
     return Constants.HEADER_OSS + mBucketName;
   }
 

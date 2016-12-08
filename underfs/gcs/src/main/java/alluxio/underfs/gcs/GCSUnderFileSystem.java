@@ -303,7 +303,7 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected String getBucketPath() {
+  protected String getRootKey() {
     return Constants.HEADER_GCS + mBucketName;
   }
 
