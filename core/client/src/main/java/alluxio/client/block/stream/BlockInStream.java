@@ -24,6 +24,7 @@ import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.io.Closer;
 
+import java.io.Closeable;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;

@@ -11,10 +11,11 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.client.file.FileSystemWorkerClient;
+import alluxio.proto.dataserver.Protocol;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -27,14 +28,14 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   /**
    * Creates an instance of {@link UnderFileSystemFileOutStream}.
    *
-   * @param fileSystemWorkerClient the file system worker client
+   * @param address the data server address
    * @param ufsFileId the UFS file ID
    * @throws IOException if it fails to create the object
    */
-  public UnderFileSystemFileOutStream(FileSystemWorkerClient fileSystemWorkerClient, long ufsFileId)
+  public UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId)
       throws IOException {
     super(new PacketOutStream(
-        new NettyPacketWriter(fileSystemWorkerClient.getWorkerDataServerAddress(), ufsFileId, -1),
+        new NettyPacketWriter(address, ufsFileId, -1, Protocol.RequestType.UFS_FILE),
         Long.MAX_VALUE));
   }
 }

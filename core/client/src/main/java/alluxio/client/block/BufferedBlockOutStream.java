@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
@@ -38,7 +39,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * worker.
  */
 @NotThreadSafe
-public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {
+public abstract class BufferedBlockOutStream extends OutputStream
+    implements BoundedStream, Cancelable {
   /** The block id of the block being written. */
   protected final long mBlockId;
   /** Size of the block. */
@@ -73,6 +75,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   /**
    * @return the remaining size of the block
    */
+  @Override
   public long remaining() {
     return mBlockSize - mWrittenBytes;
   }

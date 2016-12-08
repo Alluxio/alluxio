@@ -56,6 +56,8 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
    * Factory for creating an {@link UnderFileSystemFileOutStream}.
    */
   public static class Factory {
+    private static final boolean PACKET_STREAMING_ENABLED =
+        Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
     private static Factory sInstance;
 
     /**
@@ -74,9 +76,14 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
      * @param address the address of an Alluxio worker
      * @param ufsFileId the file ID of the ufs fild to write to
      * @return a new {@link UnderFileSystemFileOutStream}
+     * @throws IOException if it fails to create the out stream
      */
-    public OutputStream create(InetSocketAddress address, long ufsFileId) {
-      return new UnderFileSystemFileOutStream(address, ufsFileId);
+    public OutputStream create(InetSocketAddress address, long ufsFileId) throws IOException {
+      if (!PACKET_STREAMING_ENABLED) {
+        return new UnderFileSystemFileOutStream(address, ufsFileId);
+      } else {
+        return new alluxio.client.block.stream.UnderFileSystemFileOutStream(address, ufsFileId);
+      }
     }
   }
 

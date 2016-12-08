@@ -296,6 +296,7 @@ public enum PropertyKey {
       "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
   USER_LOCAL_READER_PACKET_SIZE_BYTES(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES, "64KB"),
   USER_LOCAL_WRITER_PACKET_SIZE_BYTES(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB"),
+  USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, true),
 
   //
   // FUSE integration related properties
@@ -736,6 +737,8 @@ public enum PropertyKey {
         "alluxio.user.local.reader.packet.size.bytes";
     public static final String USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
         "alluxio.user.local.writer.packet.size.bytes";
+    public static final String USER_PACKET_STREAMING_ENABLED =
+        "alluxio.user.packet.streaming.enabled";
 
     //
     // FUSE integration related properties

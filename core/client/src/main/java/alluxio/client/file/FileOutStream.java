@@ -18,8 +18,9 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
+import alluxio.client.BoundedStream;
+import alluxio.client.Cancelable;
 import alluxio.client.UnderStorageType;
-import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
@@ -82,8 +83,8 @@ public class FileOutStream extends AbstractOutStream {
   private boolean mCanceled;
   private boolean mClosed;
   private boolean mShouldCacheCurrentBlock;
-  private BufferedBlockOutStream mCurrentBlockOutStream;
-  private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
+  private OutputStream mCurrentBlockOutStream;
+  private List<OutputStream> mPreviousBlockOutStreams;
 
   protected final AlluxioURI mUri;
 
@@ -200,11 +201,11 @@ public class FileOutStream extends AbstractOutStream {
 
       if (mAlluxioStorageType.isStore()) {
         if (mCanceled) {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.cancel();
+          for (OutputStream bos : mPreviousBlockOutStreams) {
+            outStreamCancel(bos);
           }
         } else {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
+          for (OutputStream bos : mPreviousBlockOutStreams) {
             bos.close();
           }
         }
@@ -243,7 +244,7 @@ public class FileOutStream extends AbstractOutStream {
   public void write(int b) throws IOException {
     if (mShouldCacheCurrentBlock) {
       try {
-        if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
+        if (mCurrentBlockOutStream == null || outStreamRemaining() == 0) {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
@@ -276,10 +277,10 @@ public class FileOutStream extends AbstractOutStream {
         int tLen = len;
         int tOff = off;
         while (tLen > 0) {
-          if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
+          if (mCurrentBlockOutStream == null || outStreamRemaining() == 0) {
             getNextBlock();
           }
-          long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
+          long currentBlockLeftBytes = outStreamRemaining();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             tLen = 0;
@@ -303,8 +304,7 @@ public class FileOutStream extends AbstractOutStream {
 
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
-      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0,
-          PreconditionMessage.ERR_BLOCK_REMAINING);
+      Preconditions.checkState(outStreamRemaining() <= 0, PreconditionMessage.ERR_BLOCK_REMAINING);
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
@@ -332,7 +332,7 @@ public class FileOutStream extends AbstractOutStream {
     LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
-      mCurrentBlockOutStream.cancel();
+      outStreamCancel(mCurrentBlockOutStream);
     }
   }
 
@@ -348,6 +348,24 @@ public class FileOutStream extends AbstractOutStream {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
+  }
+
+  /**
+   * @return the remaining bytes in the out stream
+   */
+  private long outStreamRemaining() {
+    assert mCurrentBlockOutStream instanceof BoundedStream;
+    return ((BoundedStream) mCurrentBlockOutStream).remaining();
+  }
+
+  /**
+   * Cancels the out stream.
+   *
+   * @throws IOException if it fails to cancel the out stream
+   */
+  private void outStreamCancel(OutputStream outputStream) throws IOException {
+    assert outputStream instanceof Cancelable;
+    ((Cancelable) outputStream).cancel();;
   }
 
   /**

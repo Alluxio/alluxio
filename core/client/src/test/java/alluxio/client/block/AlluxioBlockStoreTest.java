@@ -38,6 +38,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -127,7 +129,7 @@ public final class AlluxioBlockStoreTest {
     Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
         new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
-    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
+    InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
     Assert.assertEquals(LocalBlockInStream.class, stream.getClass());
   }
 
@@ -146,7 +148,7 @@ public final class AlluxioBlockStoreTest {
     Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
         new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
-    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
+    InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
     Assert.assertEquals(RemoteBlockInStream.class, stream.getClass());
   }
 
@@ -192,7 +194,7 @@ public final class AlluxioBlockStoreTest {
         .setLocationPolicy(new MockFileWriteLocationPolicy(
             Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
         .setWriteType(WriteType.MUST_CACHE);
-    BufferedBlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+    OutputStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
     Assert.assertEquals(LocalBlockOutStream.class, stream.getClass());
   }
 
@@ -202,7 +204,7 @@ public final class AlluxioBlockStoreTest {
         .setLocationPolicy(new MockFileWriteLocationPolicy(
             Lists.newArrayList(WORKER_NET_ADDRESS_REMOTE)))
         .setWriteType(WriteType.MUST_CACHE);
-    BufferedBlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+    OutputStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
     Assert.assertEquals(RemoteBlockOutStream.class, stream.getClass());
   }
 }

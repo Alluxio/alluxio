@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
+import alluxio.client.Cancelable;
 import alluxio.client.Seekable;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.BufferedBlockOutStream;
@@ -41,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -90,9 +92,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   // The following 3 fields must be kept in sync. They are only updated in updateStreams together.
   /** Current {@link BlockInStream} backing this stream. */
-  protected BlockInStream mCurrentBlockInStream;
+  protected InputStream mCurrentBlockInStream;
   /** Current {@link BufferedBlockOutStream} writing the data into Alluxio. */
-  protected BufferedBlockOutStream mCurrentCacheStream;
+  protected OutputStream mCurrentCacheStream;
   /** The blockId used in the block streams. */
   private long mStreamBlockId;
 
@@ -206,7 +208,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     while (bytesLeftToRead > 0 && remaining() > 0) {
       updateStreams();
       Preconditions.checkNotNull(mCurrentBlockInStream, PreconditionMessage.ERR_UNEXPECTED_EOF);
-      int bytesToRead = (int) Math.min(bytesLeftToRead, mCurrentBlockInStream.remaining());
+      int bytesToRead = (int) Math.min(bytesLeftToRead, inStreamRemaining());
 
       int bytesRead = mCurrentBlockInStream.read(b, currentOffset, bytesToRead);
       if (bytesRead > 0) {
@@ -223,7 +225,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       }
     }
 
-    if (bytesLeftToRead == len && mCurrentBlockInStream.remaining() == 0) {
+    if (bytesLeftToRead == len && inStreamRemaining() == 0) {
       // Nothing was read, and the underlying stream is done.
       return -1;
     }
@@ -329,13 +331,12 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (mCurrentBlockInStream == null || currentBlockId != mStreamBlockId) {
       return true;
     }
-    if (mCurrentCacheStream != null
-        && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
+    if (mCurrentCacheStream != null && inStreamRemaining() != cacheStreamRemaining()) {
       throw new IllegalStateException(
           String.format("BlockInStream and CacheStream is out of sync %d %d.",
-              mCurrentBlockInStream.remaining(), mCurrentCacheStream.remaining()));
+              inStreamRemaining(), cacheStreamRemaining()));
     }
-    return mCurrentBlockInStream.remaining() == 0;
+    return inStreamRemaining() == 0;
   }
 
   /**
@@ -346,10 +347,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
     try {
-      if (mCurrentCacheStream.remaining() == 0) {
+      if (cacheStreamRemaining() == 0) {
         mCurrentCacheStream.close();
       } else {
-        mCurrentCacheStream.cancel();
+        cacheStreamCancel();
       }
     } catch (IOException e) {
       if (e.getCause() instanceof BlockDoesNotExistException) {
@@ -456,7 +457,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private void updateCacheStream(long blockId) throws IOException {
     // We should really only close a cache stream here. This check is to verify this.
-    Preconditions.checkState(mCurrentCacheStream == null || mCurrentCacheStream.remaining() == 0);
+    Preconditions.checkState(mCurrentCacheStream == null || cacheStreamRemaining() == 0);
     closeOrCancelCacheStream();
     Preconditions.checkState(mCurrentCacheStream == null);
 
@@ -550,7 +551,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mPos = pos;
     updateStreams();
     if (mCurrentBlockInStream != null) {
-      mCurrentBlockInStream.seek(mPos % mBlockSize);
+      inStreamSeek(mPos % mBlockSize);
     } else {
       Preconditions.checkState(remaining() == 0);
     }
@@ -584,7 +585,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         return;
       }
       // The early return above guarantees that we won't close an incomplete cache stream.
-      Preconditions.checkState(mCurrentCacheStream == null || mCurrentCacheStream.remaining() == 0);
+      Preconditions.checkState(mCurrentCacheStream == null || cacheStreamRemaining() == 0);
       closeOrCancelCacheStream();
     }
 
@@ -596,7 +597,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // updateStreams is necessary when pos = mFileLength.
       updateStreams();
       if (mCurrentBlockInStream != null) {
-        mCurrentBlockInStream.seek(mPos % mBlockSize);
+        inStreamSeek(mPos % mBlockSize);
       } else {
         Preconditions.checkState(remaining() == 0);
       }
@@ -607,7 +608,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         readCurrentBlockToPos(pos);
       } else if (mCurrentBlockInStream != null) {
         mPos = pos;
-        mCurrentBlockInStream.seek(mPos % mBlockSize);
+        inStreamSeek(mPos % mBlockSize);
       } else {
         Preconditions.checkState(remaining() == 0);
       }
@@ -624,7 +625,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   private void readCurrentBlockToPos(long pos) throws IOException {
     Preconditions.checkNotNull(mCurrentBlockInStream);
     Preconditions.checkNotNull(mCurrentCacheStream);
-    long len = Math.min(pos - mPos, mCurrentBlockInStream.remaining());
+    long len = Math.min(pos - mPos, inStreamRemaining());
     if (len <= 0) {
       return;
     }
@@ -644,5 +645,42 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private void readCurrentBlockToEnd() throws IOException {
     readCurrentBlockToPos(Long.MAX_VALUE);
+  }
+
+  /**
+   * @return the remaining bytes in the current block in stream
+   */
+   protected long inStreamRemaining() {
+    assert mCurrentBlockInStream instanceof BoundedStream;
+    return ((BoundedStream) mCurrentBlockInStream).remaining();
+  }
+
+  /**
+   * Seeks to the given pos in the current in stream.
+   *
+   * @param pos the pos
+   * @throws IOException if it fails to seek
+   */
+  private void inStreamSeek(long pos) throws IOException {
+    assert mCurrentBlockInStream instanceof Seekable;
+    ((Seekable) mCurrentBlockInStream).seek(pos);
+  }
+
+  /**
+   * @return the remaining bytes in the current cache out stream
+   */
+  private long cacheStreamRemaining() {
+    assert mCurrentCacheStream instanceof BoundedStream;
+    return ((BoundedStream) mCurrentCacheStream).remaining();
+  }
+
+  /**
+   * Cancels the current cache out stream.
+   *
+   * @throws IOException if it fails to cancel the cache out stream
+   */
+  private void cacheStreamCancel() throws IOException {
+    assert mCurrentCacheStream instanceof Cancelable;
+    ((Cancelable) mCurrentCacheStream).cancel();;
   }
 }

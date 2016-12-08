@@ -12,7 +12,6 @@
 package alluxio.client.block.stream;
 
 import java.io.FilterInputStream;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -28,9 +27,8 @@ public final class UnderFileSystemFileInStream extends FilterInputStream {
    *
    * @param address the data server address
    * @param ufsFileId the ufs file ID
-   * @throws IOException if it fails to create the object
    */
-  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId) throws IOException {
+  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId) {
     super(new PacketInStream(new NettyPacketReader.Factory(address, ufsFileId), ufsFileId,
         Long.MAX_VALUE));
   }
