@@ -764,7 +764,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String baseDirectoryName = "base";
     String baseDirectoryPath = PathUtils.concatPath(mUnderfsAddress, baseDirectoryName);
     String baseDirectoryKey =
-        baseDirectoryPath.substring(PathUtils.normalizePath(ufs.getBucketPath(), "/").length());
+        baseDirectoryPath.substring(PathUtils.normalizePath(ufs.getRootKey(), "/").length());
     // Pseudo-directories to be inferred
     String[] subDirectories = {"a", "b", "c"};
     // Every directory (base and pseudo) has these files

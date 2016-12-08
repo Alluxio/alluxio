@@ -507,7 +507,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected boolean isRoot(String key) {
     return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
-        PathUtils.normalizePath(getBucketPath(), PATH_SEPARATOR));
+        PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
   }
 
   /**
@@ -544,11 +544,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       throws IOException;
 
   /**
-   * Get full path of the bucket in object store.
+   * Get full path of root in object store.
    *
    * @return full path including scheme and bucket
    */
-  protected abstract String getBucketPath();
+  protected abstract String getRootKey();
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
@@ -688,7 +688,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   private String stripPrefixIfPresent(String path) {
     String stripedKey = CommonUtils.stripPrefixIfPresent(path,
-        PathUtils.normalizePath(getBucketPath(), PATH_SEPARATOR));
+        PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
     if (!stripedKey.equals(path)) {
       return stripedKey;
     }
