@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.network.protocol.databuffer.DataNettyBuffer;
+import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
@@ -23,7 +23,6 @@ import alluxio.worker.block.io.BlockReader;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,15 +114,16 @@ public final class DataServerBlockReadHandler extends DataServerReadHandler {
     switch (mTransferType) {
       case MAPPED:
         ByteBuf buf = channel.alloc().buffer(len, len);
+        buf.retain();
         try {
           while (buf.writableBytes() > 0
-              && buf.writeBytes((FileChannel) blockReader.getChannel(), buf.writableBytes()) != -1)
-            ;
-        } catch (Throwable e) {
-          ReferenceCountUtil.release(buf);
-          throw e;
+              && buf.writeBytes((FileChannel) blockReader.getChannel(), buf.writableBytes())
+              != -1) {
+          }
+          return new DataNettyBufferV2(buf);
+        } finally {
+          buf.release();
         }
-        return new DataNettyBuffer(buf, buf.readableBytes());
       case TRANSFER: // intend to fall through as TRANSFER is the default type.
       default:
         return new DataFileChannel((FileChannel) blockReader.getChannel(), offset, len);

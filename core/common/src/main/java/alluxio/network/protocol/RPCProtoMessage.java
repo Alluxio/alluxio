@@ -14,6 +14,7 @@ package alluxio.network.protocol;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBuffer;
+import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
@@ -56,15 +57,19 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param data the data which can be null. Ownership is taken by this class
    */
   public RPCProtoMessage(MessageLite message, DataBuffer data) {
-    Preconditions
-        .checkArgument((data instanceof DataNettyBuffer) || (data instanceof DataFileChannel),
-            "Only DataNettyBuffer and DataFileChannel are allowed.");
+    if (data != null) {
+      Preconditions
+          .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannel),
+              "Only DataNettyBufferV2 and DataFileChannel are allowed.");
+    }
     mMessage = message;
     mMessageEncoded = message.toByteArray();
     if (data != null && data.getLength() > 0) {
       mData = data;
-    } else {
+    } else if (data != null) {
       data.release();
+      mData = null;
+    } else {
       mData = null;
     }
   }
@@ -98,8 +103,10 @@ public final class RPCProtoMessage extends RPCMessage {
     mMessageEncoded = Arrays.copyOf(serialized, serialized.length);
     if (data != null && data.getLength() > 0) {
       mData = data;
-    } else {
+    } else if (data != null) {
       data.release();
+      mData = null;
+    } else {
       mData = null;
     }
   }
@@ -116,7 +123,8 @@ public final class RPCProtoMessage extends RPCMessage {
   }
 
   /**
-   * Decodes the message from a buffer.
+   * Decodes the message from a buffer. This method increments the refcount of the bytebuf passed
+   * by 1.
    *
    * @param in the buffer
    * @param prototype a message prototype used to infer the type of the message
@@ -126,7 +134,8 @@ public final class RPCProtoMessage extends RPCMessage {
     int length = in.readInt();
     byte[] serialized = new byte[length];
     in.readBytes(serialized);
-    return new RPCProtoMessage(serialized, prototype, new DataNettyBuffer(in, in.readableBytes()));
+    in.retain();
+    return new RPCProtoMessage(serialized, prototype, new DataNettyBufferV2(in));
   }
 
   @Override

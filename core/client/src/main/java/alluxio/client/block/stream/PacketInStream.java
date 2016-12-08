@@ -47,7 +47,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   private boolean mClosed = false;
   private boolean mEOF = false;
 
-  private boolean mBlockIsRead = false;
+  // private boolean mBlockIsRead = false;
 
   /**
    * Creates an instance of {@link PacketInStream}.
@@ -77,7 +77,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
     }
 
     mPos++;
-    mBlockIsRead = true;
+    // mBlockIsRead = true;
     return BufferUtils.byteToInt(mCurrentPacket.readByte());
   }
 
@@ -179,7 +179,9 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
     destroyPacket(mCurrentPacket);
     mCurrentPacket = null;
 
-    mPacketReader.close();
+    if (mPacketReader != null) {
+      mPacketReader.close();
+    }
     mPacketReader = null;
   }
 

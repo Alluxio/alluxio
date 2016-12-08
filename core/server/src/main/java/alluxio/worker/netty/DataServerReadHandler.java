@@ -200,9 +200,13 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    * @param channel the channel
    */
   private void replySuccess(Channel channel) {
-    reset();
     channel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
-        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+        .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE, new ChannelFutureListener() {
+          @Override
+          public void operationComplete(ChannelFuture future) throws Exception {
+            reset();
+          }
+        });
   }
 
   /**

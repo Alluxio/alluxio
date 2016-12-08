@@ -11,6 +11,8 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -111,6 +113,7 @@ public final class AlluxioBlockStoreTest {
         .thenReturn(mBlockWorkerClient);
     Mockito.when(blockStoreContext.acquireMasterClientResource()).thenReturn(
         new DummyCloseableResource<>(mMasterClient));
+    //Mockito.when()
 
     mBlockStore = new AlluxioBlockStore(blockStoreContext, WORKER_HOSTNAME_LOCAL);
   }
@@ -130,7 +133,11 @@ public final class AlluxioBlockStoreTest {
         new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
     InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
-    Assert.assertEquals(LocalBlockInStream.class, stream.getClass());
+    if (Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED)) {
+      Assert.assertEquals(alluxio.client.block.stream.BlockInStream.class, stream.getClass());
+    } else {
+      Assert.assertEquals(LocalBlockInStream.class, stream.getClass());
+    }
   }
 
   /**
@@ -149,7 +156,11 @@ public final class AlluxioBlockStoreTest {
         new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
     InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
-    Assert.assertEquals(RemoteBlockInStream.class, stream.getClass());
+    if (Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED)) {
+      Assert.assertEquals(alluxio.client.block.stream.BlockInStream.class, stream.getClass());
+    } else {
+      Assert.assertEquals(RemoteBlockInStream.class, stream.getClass());
+    }
   }
 
   @Test
@@ -195,7 +206,11 @@ public final class AlluxioBlockStoreTest {
             Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
         .setWriteType(WriteType.MUST_CACHE);
     OutputStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
-    Assert.assertEquals(LocalBlockOutStream.class, stream.getClass());
+    if (Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED)) {
+      Assert.assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
+    } else {
+      Assert.assertEquals(LocalBlockOutStream.class, stream.getClass());
+    }
   }
 
   @Test

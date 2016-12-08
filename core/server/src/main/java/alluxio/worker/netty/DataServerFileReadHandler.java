@@ -14,7 +14,7 @@ package alluxio.worker.netty;
 import alluxio.Constants;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataNettyBuffer;
+import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.file.FileSystemWorker;
 
@@ -92,21 +92,20 @@ public final class DataServerFileReadHandler extends DataServerReadHandler {
   @Override
   protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws IOException {
     ByteBuf buf = channel.alloc().buffer(len, len);
-    InputStream in = ((FileReadRequestInternal) mRequest).mInputStream;
-
+    buf.retain();
     try {
+      InputStream in = ((FileReadRequestInternal) mRequest).mInputStream;
       if (in != null) { // if we have not reached the end of the file
-        while (buf.writableBytes() > 0 && buf.writeBytes(in, buf.writableBytes()) != -1);
+        while (buf.writableBytes() > 0 && buf.writeBytes(in, buf.writableBytes()) != -1) {
+        }
       }
-    } catch (Throwable e) {
-      ReferenceCountUtil.release(buf);
-      throw e;
+      if (buf.readableBytes() == 0) {
+        ReferenceCountUtil.release(buf);
+        return null;
+      }
+      return new DataNettyBufferV2(buf);
+    } finally {
+      buf.release();
     }
-
-    if (buf.readableBytes() == 0) {
-      ReferenceCountUtil.release(buf);
-      return null;
-    }
-    return new DataNettyBuffer(buf, buf.readableBytes());
   }
 }

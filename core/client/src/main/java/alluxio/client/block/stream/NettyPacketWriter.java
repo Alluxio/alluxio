@@ -17,7 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
-import alluxio.network.protocol.databuffer.DataNettyBuffer;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
@@ -29,7 +30,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,6 +126,7 @@ public class NettyPacketWriter implements PacketWriter {
   public void writePacket(final ByteBuf buf) throws IOException {
     final long len;
     final long offset;
+    buf.retain();
     try {
       Preconditions.checkState(!mClosed);
       Preconditions.checkArgument(buf.readableBytes() <= PACKET_SIZE);
@@ -149,11 +150,9 @@ public class NettyPacketWriter implements PacketWriter {
           throw Throwables.propagate(e);
         }
       }
-    } catch (Throwable e) {
-      ReferenceCountUtil.release(buf);
-      throw e;
     } finally {
       mLock.unlock();
+      buf.release();
     }
 
     mChannel.eventLoop().submit(new Runnable() {
@@ -162,7 +161,8 @@ public class NettyPacketWriter implements PacketWriter {
         Protocol.WriteRequest writeRequest =
             Protocol.WriteRequest.newBuilder().setId(mBlockId).setOffset(offset)
                 .setSessionId(mSessionId).setType(mRequestType).build();
-        mChannel.write(new RPCProtoMessage(writeRequest, new DataNettyBuffer(buf, len)))
+        DataBuffer dataBuffer = new DataNettyBufferV2(buf);
+        mChannel.write(new RPCProtoMessage(writeRequest, dataBuffer))
             .addListener(new WriteListener(offset + len));
       }
     });
@@ -177,9 +177,9 @@ public class NettyPacketWriter implements PacketWriter {
     mLock.lock();
     try {
       mThrowable = new IOException("PacketWriter is cancelled.");
-      mBufferEmptyOrFail.notify();
-      mBufferNotFullOrFail.notify();
-      mDoneOrFail.notify();
+      mBufferEmptyOrFail.signal();
+      mBufferNotFullOrFail.signal();
+      mDoneOrFail.signal();
 
       ChannelFuture future = mChannel.close().sync();
       if (future.cause() != null) {
@@ -310,7 +310,7 @@ public class NettyPacketWriter implements PacketWriter {
       mLock.lock();
       try {
         mDone = true;
-        mDoneOrFail.notify();
+        mDoneOrFail.signal();
       } finally {
         mLock.unlock();
       }
@@ -319,13 +319,13 @@ public class NettyPacketWriter implements PacketWriter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       LOG.error("Exception caught while reading response from netty channel {}.",
-          cause.getMessage());
+          cause);
       try {
         mLock.lock();
         mThrowable = cause;
-        mBufferNotFullOrFail.notify();
-        mDoneOrFail.notify();
-        mBufferEmptyOrFail.notify();
+        mBufferNotFullOrFail.signal();
+        mDoneOrFail.signal();
+        mBufferEmptyOrFail.signal();
       } finally {
         mLock.unlock();
       }
@@ -343,6 +343,7 @@ public class NettyPacketWriter implements PacketWriter {
     public WriteListener(long pos) {
       mPosToWriteUncommitted = pos;
     }
+
     @Override
     public void operationComplete(ChannelFuture future) {
       if (!future.isSuccess()) {
@@ -357,16 +358,16 @@ public class NettyPacketWriter implements PacketWriter {
 
         if (future.cause() != null) {
           mThrowable = future.cause();
-          mDoneOrFail.notify();
-          mBufferNotFullOrFail.notify();
-          mBufferEmptyOrFail.notify();
+          mDoneOrFail.signal();
+          mBufferNotFullOrFail.signal();
+          mBufferEmptyOrFail.signal();
           return;
         }
         if (mPosToWrite == mPosToQueue) {
-          mBufferEmptyOrFail.notify();
+          mBufferEmptyOrFail.signal();
         }
         if (mPosToQueue - mPosToWriteUncommitted < MAX_PACKETS_IN_FLIGHT * PACKET_SIZE) {
-          mBufferNotFullOrFail.notify();
+          mBufferNotFullOrFail.signal();
         }
       } finally {
         mLock.unlock();

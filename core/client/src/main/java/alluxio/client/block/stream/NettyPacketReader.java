@@ -201,8 +201,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      LOG.error("Exception caught while reading response from netty channel {}.",
-          cause.getMessage());
+      LOG.error("Exception caught while reading response from netty channel {}.", cause);
       mLock.lock();
       try {
         mPacketReaderException = cause;
@@ -240,6 +239,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
      *
      * @param address the worker address
      * @param blockId the block ID
+     * @param lockId the lock ID
      * @param sessionId the session ID
      */
     public Factory(InetSocketAddress address, long blockId, long lockId, long sessionId) {

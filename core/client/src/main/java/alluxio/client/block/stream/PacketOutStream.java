@@ -53,8 +53,8 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    */
   @Override
   public long remaining() {
-    return mLength - mPacketWriter.pos() -
-        (mCurrentPacket != null ? mCurrentPacket.readableBytes() : 0);
+    return mLength - mPacketWriter.pos()
+        - (mCurrentPacket != null ? mCurrentPacket.readableBytes() : 0);
   }
 
   @Override

@@ -86,9 +86,9 @@ public abstract class AbstractPacketReader implements PacketReader {
   @Override
   public ByteBuf readPacket() throws IOException {
     Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
-    while (true) {
-      mLock.lock();
-      try {
+    mLock.lock();
+    try {
+      while (true) {
         if (mDone) {
           return null;
         }
@@ -102,24 +102,25 @@ public abstract class AbstractPacketReader implements PacketReader {
         if (buf == null) {
           try {
             if (!mNotEmptyOrFail.await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-              throw new IOException(String
-                  .format("Timeout while reading packet from block %d @ %s.", mId, mAddress));
+              throw new IOException(
+                  String.format("Timeout while reading packet from block %d @ %s.", mId, mAddress));
             }
           } catch (InterruptedException e) {
             throw Throwables.propagate(e);
           }
+        } else {
+          if (buf.readableBytes() == 0) {
+            ReferenceCountUtil.release(buf);
+            mDone = true;
+            return null;
+          }
+          mPosToRead += buf.readableBytes();
+          Preconditions.checkState(mPosToRead - mStart <= mBytesToRead);
+          return buf;
         }
-        if (buf.readableBytes() == 0) {
-          ReferenceCountUtil.release(buf);
-          mDone = true;
-          return null;
-        }
-        mPosToRead += buf.readableBytes();
-        Preconditions.checkState(mPosToRead - mStart <= mBytesToRead);
-        return buf;
-      } finally {
-        mLock.unlock();
       }
+    } finally {
+      mLock.unlock();
     }
   }
 

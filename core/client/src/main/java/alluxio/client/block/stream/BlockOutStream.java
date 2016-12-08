@@ -48,6 +48,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
    * @param context the block store context
    * @param options the options
    * @throws IOException if an I/O error occurs
+   * @return the {@link BlockOutStream} instance created
    */
   public static BlockOutStream createLocalBlockOutStream(long blockId,
       long blockSize,
@@ -75,6 +76,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
    * @param context the block store context
    * @param options the options
    * @throws IOException if an I/O error occurs
+   * @return the {@link BlockOutStream} instance created
    */
   public static BlockOutStream createRemoteBlockOutStream(long blockId,
       long blockSize,

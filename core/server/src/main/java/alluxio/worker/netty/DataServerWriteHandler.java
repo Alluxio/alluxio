@@ -22,6 +22,7 @@ import alluxio.proto.dataserver.Protocol;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -193,14 +194,13 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
    * @param channel the channel
    */
   private void replySuccess(Channel channel) {
-    try {
-      reset();
-    } catch (IOException e) {
-      channel.pipeline().fireExceptionCaught(e);
-    }
     channel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
-        .addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
-
+        .addListeners(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE, new ChannelFutureListener() {
+          @Override
+          public void operationComplete(ChannelFuture future) throws Exception {
+            reset();
+          }
+        });
     channel.config().setAutoRead(true);
     channel.read();
   }

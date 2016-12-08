@@ -17,33 +17,21 @@ import io.netty.buffer.ByteBuf;
 import java.nio.ByteBuffer;
 
 /**
- * A DataBuffer with the underlying data being a {@link ByteBuf}.
+ * A DataBuffer with the underlying data being a {@link ByteBuf}. This is a new version of
+ * {@link DataNettyBuffer}.
  */
-public final class DataNettyBuffer implements DataBuffer {
-  private final ByteBuffer mBuffer;
-  private final long mLength;
+ // TODO(peis): Deprecate {@link DataNettyBuffer}.
+public final class DataNettyBufferV2 implements DataBuffer {
   private final ByteBuf mNettyBuf;
 
   /**
   * Constructor for creating a DataNettyBuffer, by passing a Netty ByteBuf.
-  * This way we avoid one copy from ByteBuf to another ByteBuffer,
-  * and making sure the buffer would not be recycled.
   *
   * @param bytebuf The ByteBuf having the data
-  * @param length The length of the underlying ByteBuffer data
   */
-  public DataNettyBuffer(ByteBuf bytebuf, long length) {
-    // throws exception if there are multiple nioBuffers, or reference count is not 1
-    Preconditions.checkArgument(bytebuf.nioBufferCount() == 1,
-        "Number of nioBuffers of this bytebuf is %s (1 expected).", bytebuf.nioBufferCount());
-    Preconditions.checkArgument(bytebuf.refCnt() == 1,
-        "Reference count of this bytebuf is %s (1 expected).", bytebuf.refCnt());
-
-    // increase the bytebuf reference count so it would not be recycled by Netty
-    bytebuf.retain();
+  public DataNettyBufferV2(ByteBuf bytebuf) {
+    Preconditions.checkNotNull(bytebuf);
     mNettyBuf = bytebuf;
-    mBuffer = bytebuf.nioBuffer();
-    mLength = length;
   }
 
   /**
@@ -56,14 +44,12 @@ public final class DataNettyBuffer implements DataBuffer {
 
   @Override
   public long getLength() {
-    return mLength;
+    return mNettyBuf.readableBytes();
   }
 
   @Override
   public ByteBuffer getReadOnlyByteBuffer() {
-    ByteBuffer buffer = mBuffer.asReadOnlyBuffer();
-    buffer.position(0);
-    return buffer;
+    throw new RuntimeException("DataNettyBufferV2::getReadOnlyByteBuffer is not supported.");
   }
 
   /**
