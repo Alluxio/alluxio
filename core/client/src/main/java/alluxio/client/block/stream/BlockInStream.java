@@ -24,7 +24,6 @@ import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.io.Closer;
 
-import java.io.Closeable;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +54,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @param context the block store context
    * @param options the options
    * @throws IOException if it fails to create an instance
+   * @return the {@link BlockInStream} created
    */
   public static BlockInStream createLocalBlockInStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, BlockStoreContext context, InStreamOptions options)
@@ -87,6 +87,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @param context the block store context
    * @param options the options
    * @throws IOException if it fails to create an instance
+   * @return the {@link BlockInStream} created
    */
   public static BlockInStream createRemoteBlockInStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, BlockStoreContext context, InStreamOptions options)

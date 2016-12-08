@@ -27,4 +27,9 @@ public final class Status {
   public static boolean isOk(Protocol.Status status) {
     return status.getCode() == Protocol.Status.Code.OK;
   }
+
+  /**
+   * Private constructor.
+   */
+  private Status() {}
 }

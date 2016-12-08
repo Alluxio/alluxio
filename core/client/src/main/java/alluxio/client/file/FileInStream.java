@@ -650,7 +650,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /**
    * @return the remaining bytes in the current block in stream
    */
-   protected long inStreamRemaining() {
+  protected long inStreamRemaining() {
     assert mCurrentBlockInStream instanceof BoundedStream;
     return ((BoundedStream) mCurrentBlockInStream).remaining();
   }
@@ -681,6 +681,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private void cacheStreamCancel() throws IOException {
     assert mCurrentCacheStream instanceof Cancelable;
-    ((Cancelable) mCurrentCacheStream).cancel();;
+    ((Cancelable) mCurrentCacheStream).cancel();
   }
 }

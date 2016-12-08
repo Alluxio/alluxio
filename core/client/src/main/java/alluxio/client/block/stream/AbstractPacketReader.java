@@ -13,7 +13,6 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;

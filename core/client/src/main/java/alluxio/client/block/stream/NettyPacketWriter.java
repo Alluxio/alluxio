@@ -291,6 +291,11 @@ public class NettyPacketWriter implements PacketWriter {
    * The netty handler that handles netty write response.
    */
   private final class Handler extends ChannelInboundHandlerAdapter {
+    /**
+     * Default constructor.
+     */
+    public Handler() {}
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");

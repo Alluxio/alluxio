@@ -23,6 +23,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 
+import java.util.Arrays;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -51,7 +53,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * Creates an instance of {@link RPCProtoMessage}.
    *
    * @param message the message
-   * @param data the data which can be null. Ownership is taken by this class.
+   * @param data the data which can be null. Ownership is taken by this class
    */
   public RPCProtoMessage(MessageLite message, DataBuffer data) {
     Preconditions
@@ -93,7 +95,7 @@ public final class RPCProtoMessage extends RPCMessage {
       // Runtime exception will not kill the netty server.
       throw Throwables.propagate(e);
     }
-    mMessageEncoded = serialized;
+    mMessageEncoded = Arrays.copyOf(serialized, serialized.length);
     if (data != null && data.getLength() > 0) {
       mData = data;
     } else {
@@ -168,6 +170,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param code the status code
    * @param message the user provided message
    * @param e the cause of this error
+   * @param data the data buffer
    * @return the message created
    */
   public static RPCProtoMessage createResponse(Protocol.Status.Code code, String message,

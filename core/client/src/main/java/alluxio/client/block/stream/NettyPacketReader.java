@@ -78,7 +78,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
    */
   public NettyPacketReader(InetSocketAddress address, long id, long offset, long len,
       long lockId, long sessionId, Protocol.RequestType type) throws IOException {
-    super(address,id, offset, len);
+    super(address, id, offset, len);
     mRequestType = type;
 
     mChannel = BlockStoreContext.acquireNettyChannel(address);
@@ -155,7 +155,12 @@ public final class NettyPacketReader extends AbstractPacketReader {
   /**
    * The netty handler that reads packets from the channel.
    */
-  public class Handler extends ChannelInboundHandlerAdapter {
+  private class Handler extends ChannelInboundHandlerAdapter {
+    /**
+     * Default constructor.
+     */
+    public Handler() {}
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");

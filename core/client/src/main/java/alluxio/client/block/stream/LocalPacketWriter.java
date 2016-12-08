@@ -28,7 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A local packet writer that simply wrtier packets from a local file.
  */
 @NotThreadSafe
-public class LocalPacketWriter implements PacketWriter {
+public final class LocalPacketWriter implements PacketWriter {
   private static final long PACKET_SIZE =
       Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
   private static final long FILE_BUFFER_BYTES =
@@ -47,6 +47,7 @@ public class LocalPacketWriter implements PacketWriter {
    * @param blockWorkerClient the block worker client, not owned by this class
    * @param blockId the block ID
    * @throws IOException if it fails to create the packet writer
+   * @return the {@link LocalPacketWriter} created
    */
   public static LocalPacketWriter createLocalPacketWriter(BlockWorkerClient blockWorkerClient,
       long blockId) throws IOException {

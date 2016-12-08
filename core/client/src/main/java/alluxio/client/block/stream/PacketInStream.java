@@ -49,7 +49,14 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
 
   private boolean mBlockIsRead = false;
 
-  // NOTE: Do not throw exception in this constructor.
+  /**
+   * Creates an instance of {@link PacketInStream}.
+   * NOTE: Do not throw exception in this constructor.
+   *
+   * @param packetReaderFactory the packet reader factory
+   * @param id the ID (either block ID or UFS file ID)
+   * @param length the length
+   */
   public PacketInStream(PacketReader.Factory packetReaderFactory, long id, long length) {
     mPacketReaderFactory = packetReaderFactory;
     mId = id;

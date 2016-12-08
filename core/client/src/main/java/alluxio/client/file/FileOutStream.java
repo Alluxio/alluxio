@@ -365,7 +365,7 @@ public class FileOutStream extends AbstractOutStream {
    */
   private void outStreamCancel(OutputStream outputStream) throws IOException {
     assert outputStream instanceof Cancelable;
-    ((Cancelable) outputStream).cancel();;
+    ((Cancelable) outputStream).cancel();
   }
 
   /**

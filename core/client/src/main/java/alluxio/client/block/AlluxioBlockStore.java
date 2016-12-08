@@ -159,8 +159,8 @@ public final class AlluxioBlockStore {
         // There is a local worker and the block is local.
         try {
           if (!PACKET_STREAMING_ENABLED) {
-            return new LocalBlockInStream(blockId, blockInfo.getLength(), workerNetAddress, mContext,
-                options);
+            return new LocalBlockInStream(blockId, blockInfo.getLength(), workerNetAddress,
+                mContext, options);
           } else {
             return alluxio.client.block.stream.BlockInStream
                 .createLocalBlockInStream(blockId, blockInfo.getLength(), workerNetAddress,
