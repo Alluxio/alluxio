@@ -11,6 +11,8 @@
 
 package alluxio.worker.netty;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -19,7 +21,6 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
@@ -33,15 +34,23 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
+  private static final long FILE_BUFFER_SIZE = Configuration.getBytes(
+      PropertyKey.WORKER_FILE_BUFFER_SIZE);
+
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();;
+  private long mBytesReserved = 0;
 
   private class BlockWriteRequestInternal extends WriteRequestInternal {
     public BlockWriter mBlockWriter;
 
     public BlockWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
+      mWorker
+          .createBlockRemote(request.getSessionId(), request.getId(), mStorageTierAssoc.getAlias(0),
+              FILE_BUFFER_SIZE);
+      mBytesReserved = FILE_BUFFER_SIZE;
       mBlockWriter = mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId());
       mSessionId = request.getSessionId();
       mId = request.getId();
@@ -86,23 +95,16 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     }
   }
 
-  protected void writeBuf(ByteBuf buf) throws Exception {
-    try {
-      if (mPosToWrite == 0) {
-        // This is the first write to the block, so create the temp block file. The file will only
-        // be created if the first write starts at offset 0. This allocates enough space for the
-        // write.
-        mWorker.createBlockRemote(mRequest.mSessionId, mRequest.mId, mStorageTierAssoc.getAlias(0),
-            buf.readableBytes());
-      } else {
-        // Allocate enough space in the existing temporary block for the write.
-        mWorker.requestSpace(mRequest.mSessionId, mRequest.mId, buf.readableBytes());
-      }
-      BlockWriter blockWriter = ((BlockWriteRequestInternal) mRequest).mBlockWriter;
-      GatheringByteChannel outputChannel = blockWriter.getChannel();
-      buf.readBytes(outputChannel, buf.readableBytes());
-    } finally {
-      ReferenceCountUtil.release(buf);
+  @Override
+  protected void writeBuf(ByteBuf buf, long pos) throws Exception {
+    if (mBytesReserved < pos) {
+      long bytesToReserve = Math.max(FILE_BUFFER_SIZE, pos - mBytesReserved);
+      // Allocate enough space in the existing temporary block for the write.
+      mWorker.requestSpace(mRequest.mSessionId, mRequest.mId, bytesToReserve);
+      mBytesReserved += bytesToReserve;
     }
+    BlockWriter blockWriter = ((BlockWriteRequestInternal) mRequest).mBlockWriter;
+    GatheringByteChannel outputChannel = blockWriter.getChannel();
+    buf.readBytes(outputChannel, buf.readableBytes());
   }
 }

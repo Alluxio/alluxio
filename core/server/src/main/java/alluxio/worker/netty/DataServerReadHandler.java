@@ -71,7 +71,10 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   @GuardedBy("mLock")
   private long mPosToWrite = -1;
 
-  // This is only updated in the channel event loop thread when a read request starts or cancelled.
+  /**
+   * This is only updated in the channel event loop thread when a read request starts or cancelled.
+   * No need to be locked.
+   */
   protected volatile ReadRequestInternal mRequest = null;
 
   protected abstract class ReadRequestInternal implements Closeable {
@@ -79,7 +82,14 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     public long mId = -1;
     public long mStart = -1;
     public long mEnd = -1;
-    public boolean mCancelled = false;
+    public long mCancelled = Long.MAX_VALUE;
+
+    /**
+     * @return the effective end of the stream
+     */
+    public long end() {
+      return Math.min(mEnd, mCancelled);
+    }
 
     /**
      * Closes the request. Note that this close does not throw exception since all the data
@@ -113,13 +123,21 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     }
     Protocol.ReadRequest msg = (Protocol.ReadRequest) ((RPCProtoMessage) object).getMessage();
 
-    if (!validateReadRequest(msg)) {
-      replyError(ctx.channel(), Protocol.Status.Code.INVALID_ARGUMENT, "", null);
+    String error = validateReadRequest(msg);
+    if (!error.isEmpty()) {
+      replyError(ctx.channel(), Protocol.Status.Code.INVALID_ARGUMENT, error, null);
       return;
     }
 
     if (msg.getCancel()) {
-      mRequest.mCancelled = true;
+      if (mRequest != null) {
+        mLock.lock();
+        try {
+          mRequest.mCancelled = mPosToQueue;
+        } finally {
+          mLock.unlock();
+        }
+      }
       return;
     }
 
@@ -160,28 +178,21 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    * @return true if we should restart the packet reader.
    */
   private boolean shouldStartPacketReader() {
-    return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.mEnd
-        && !mRequest.mCancelled;
+    return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.end();
   }
 
   /**
    * @return the number of bytes remaining to push to the netty queue. Return 0 if it is cancelled.
    */
   private long remainingToQueue() {
-    if (mRequest.mCancelled) {
-      return 0;
-    }
-    return mRequest.mEnd - mPosToQueue;
+    return mRequest.end() - mPosToQueue;
   }
 
   /**
    * @return the number of bytes remaining to flush. Return 0 if it is cancelled.
    */
   private long remainingToWrite() {
-    if (mRequest.mCancelled) {
-      return 0;
-    }
-    return mRequest.mEnd - mPosToWrite;
+    return mRequest.end() - mPosToWrite;
   }
 
   /**
@@ -215,18 +226,21 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    * @param request the block read request
    * @return true if the block read request is valid
    */
-  private boolean validateReadRequest(Protocol.ReadRequest request) {
+  private String validateReadRequest(Protocol.ReadRequest request) {
     if (mRequest == null) {
-      return true;
+      return "";
     }
 
     if (request.getCancel()) {
       if (request.getId() != mRequest.mId) {
-        return false;
+        return String.format("The IDs do not match: [actual: %d, expected: %d].", mRequest.mId,
+            request.getId());
       }
-      return true;
+      return "";
     }
-    return false;
+    return String
+        .format("Received a read request %s on a busy channel (used by block %d).", request,
+            mRequest.mId);
   }
 
   /**
@@ -299,6 +313,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     @Override
     public void operationComplete(ChannelFuture future) {
       if (!future.isSuccess()) {
+        LOG.error("Failed to send packet.", future.cause());
         future.channel().pipeline().fireExceptionCaught(future.cause());
         return;
       }
@@ -380,7 +395,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
         mChannel.eventLoop().submit(new Runnable() {
           @Override
           public void run() {
-            mChannel.write(response).addListener(new WriteListener(start + packet_size));
+            mChannel.writeAndFlush(response).addListener(new WriteListener(start + packet_size));
           }
         });
       }

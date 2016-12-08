@@ -109,8 +109,9 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
     initializeRequest(msg);
 
     // Validate msg and return error if invalid. Init variables if necessary.
-    if (!validateRequest(msg)) {
-      replyError(ctx.channel(), Protocol.Status.Code.INVALID_ARGUMENT, "", null);
+    String error = validateRequest(msg);
+    if (!error.isEmpty()) {
+      replyError(ctx.channel(), Protocol.Status.Code.INVALID_ARGUMENT, error, null);
       return;
     }
 
@@ -125,8 +126,8 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
         assert dataBuffer.getNettyOutput() instanceof ByteBuf;
         buf = (ByteBuf) dataBuffer.getNettyOutput();
       }
-      mPackets.offer(buf);
       mPosToQueue += buf.readableBytes();
+      mPackets.offer(buf);
       if (!mPacketWriterActive) {
         mPacketWriterExecutor.submit(new PacketWriter(ctx));
         mPacketWriterActive = true;
@@ -165,17 +166,19 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
    * Validates the block write request.
    *
    * @param msg the block write request
-   * @return true if the request valid
+   * @return empty string if the request valid
    */
-  private boolean validateRequest(RPCProtoMessage msg) {
+  private String validateRequest(RPCProtoMessage msg) {
     Protocol.WriteRequest request = (Protocol.WriteRequest) msg.getMessage();
-    if (request.getId() != mRequest.mId || !msg.hasPayload()) {
-      return false;
+    if (request.getId() != mRequest.mId) {
+      return "The Ids do not match.";
     }
     if (request.getOffset() != mPosToQueue) {
-      return false;
+      return String
+          .format("Offsets do not match [received: %d, expected: %d].", request.getOffset(),
+              mPosToQueue);
     }
-    return true;
+    return "";
   }
 
   /**
@@ -242,8 +245,8 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
 
     @Override
     public void run() {
-      ByteBuf buf;
-      do {
+      while (true) {
+        ByteBuf buf;
         mLock.lock();
         try {
           buf = mPackets.poll();
@@ -262,18 +265,19 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
         try {
           // This is the last packet.
           if (buf.readableBytes() == 0) {
+            LOG.info("Last packet processed");
             replySuccess(mCtx.channel());
             break;
           }
-          writeBuf(buf);
           mPosToWrite += buf.readableBytes();
+          writeBuf(buf, mPosToWrite);
         } catch (Exception e) {
           mCtx.fireExceptionCaught(e);
           break;
         } finally {
-          ReferenceCountUtil.release(buf);
+          Preconditions.checkState(buf.release());
         }
-      } while (true);
+      }
     }
   }
 
@@ -308,7 +312,8 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
    * Writes the buffer.
    *
    * @param buf the buffer
+   * @param pos the pos
    * @throws Exception if it fails to write the buffer
    */
-  protected abstract void writeBuf(ByteBuf buf) throws Exception;
+  protected abstract void writeBuf(ByteBuf buf, long pos) throws Exception;
 }

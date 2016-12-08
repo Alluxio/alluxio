@@ -20,7 +20,6 @@ import alluxio.worker.file.FileSystemWorker;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +55,7 @@ public final class DataServerFileReadHandler extends DataServerReadHandler {
     public FileReadRequestInternal(Protocol.ReadRequest request) throws Exception {
       mInputStream = mWorker.getUfsInputStream(request.getId(), request.getOffset());
 
+      mId = request.getId();
       mStart = request.getOffset();
       mEnd = mStart + request.getLength();
     }
@@ -92,7 +92,6 @@ public final class DataServerFileReadHandler extends DataServerReadHandler {
   @Override
   protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws IOException {
     ByteBuf buf = channel.alloc().buffer(len, len);
-    buf.retain();
     try {
       InputStream in = ((FileReadRequestInternal) mRequest).mInputStream;
       if (in != null) { // if we have not reached the end of the file
@@ -100,12 +99,13 @@ public final class DataServerFileReadHandler extends DataServerReadHandler {
         }
       }
       if (buf.readableBytes() == 0) {
-        ReferenceCountUtil.release(buf);
+        buf.release();
         return null;
       }
       return new DataNettyBufferV2(buf);
-    } finally {
+    } catch (Throwable e) {
       buf.release();
+      throw e;
     }
   }
 }

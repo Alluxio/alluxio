@@ -95,8 +95,8 @@ public final class UnderStoreBlockInStream extends BlockInStream {
 
   @Override
   public void close() throws IOException {
-    mUnderStoreStreamFactory.close();
     mUnderStoreStream.close();
+    mUnderStoreStreamFactory.close();
   }
 
   @Override

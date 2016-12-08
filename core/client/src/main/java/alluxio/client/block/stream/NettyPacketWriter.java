@@ -126,11 +126,10 @@ public class NettyPacketWriter implements PacketWriter {
   public void writePacket(final ByteBuf buf) throws IOException {
     final long len;
     final long offset;
-    buf.retain();
+    mLock.lock();
     try {
       Preconditions.checkState(!mClosed);
       Preconditions.checkArgument(buf.readableBytes() <= PACKET_SIZE);
-      mLock.lock();
       while (true) {
         if (mThrowable != null) {
           throw new IOException(mThrowable);
@@ -150,9 +149,11 @@ public class NettyPacketWriter implements PacketWriter {
           throw Throwables.propagate(e);
         }
       }
+    } catch (Throwable e) {
+      buf.release();
+      throw e;
     } finally {
       mLock.unlock();
-      buf.release();
     }
 
     mChannel.eventLoop().submit(new Runnable() {
@@ -162,7 +163,7 @@ public class NettyPacketWriter implements PacketWriter {
             Protocol.WriteRequest.newBuilder().setId(mBlockId).setOffset(offset)
                 .setSessionId(mSessionId).setType(mRequestType).build();
         DataBuffer dataBuffer = new DataNettyBufferV2(buf);
-        mChannel.write(new RPCProtoMessage(writeRequest, dataBuffer))
+        mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, dataBuffer))
             .addListener(new WriteListener(offset + len));
       }
     });
@@ -232,8 +233,9 @@ public class NettyPacketWriter implements PacketWriter {
           Protocol.WriteRequest writeRequest =
               Protocol.WriteRequest.newBuilder().setId(mBlockId).setOffset(mPosToQueue)
                   .setSessionId(mSessionId).setType(mRequestType).build();
-          mChannel.write(new RPCProtoMessage(writeRequest, null))
+          mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, null))
               .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+          LOG.info("last packet written");
         }
       });
 
@@ -241,11 +243,11 @@ public class NettyPacketWriter implements PacketWriter {
         if (mDone) {
           return;
         }
-        if (mThrowable != null) {
-          Preconditions.checkState(!mChannel.isOpen());
-          throw new IOException(mThrowable);
-        }
         try {
+          if (mThrowable != null) {
+            mChannel.close().sync();
+            throw new IOException(mThrowable);
+          }
           if (!mDoneOrFail.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             mChannel.close().sync();
             throw new IOException(String.format(
@@ -320,8 +322,8 @@ public class NettyPacketWriter implements PacketWriter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       LOG.error("Exception caught while reading response from netty channel {}.",
           cause);
+      mLock.lock();
       try {
-        mLock.lock();
         mThrowable = cause;
         mBufferNotFullOrFail.signal();
         mDoneOrFail.signal();
@@ -331,6 +333,21 @@ public class NettyPacketWriter implements PacketWriter {
       }
 
       ctx.close();
+    }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) {
+      mLock.lock();
+      try {
+        if (mThrowable == null) {
+          mThrowable = new IOException("Channel closed.");
+        }
+        mBufferNotFullOrFail.signal();
+        mDoneOrFail.signal();
+        mBufferEmptyOrFail.signal();
+      } finally {
+        mLock.unlock();
+      }
     }
   }
 
@@ -366,7 +383,7 @@ public class NettyPacketWriter implements PacketWriter {
         if (mPosToWrite == mPosToQueue) {
           mBufferEmptyOrFail.signal();
         }
-        if (mPosToQueue - mPosToWriteUncommitted < MAX_PACKETS_IN_FLIGHT * PACKET_SIZE) {
+        if (!tooManyPacketsInFlight()) {
           mBufferNotFullOrFail.signal();
         }
       } finally {

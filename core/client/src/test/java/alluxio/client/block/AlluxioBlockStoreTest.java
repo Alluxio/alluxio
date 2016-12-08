@@ -26,6 +26,7 @@ import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
+import io.netty.channel.Channel;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
 
@@ -101,11 +103,13 @@ public final class AlluxioBlockStoreTest {
   private BlockMasterClient mMasterClient;
   private BlockWorkerClient mBlockWorkerClient;
   private AlluxioBlockStore mBlockStore;
+  private Channel mChannel;
 
   @Before
   public void before() throws Exception {
     mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
     mMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    mChannel = PowerMockito.mock(Channel.class);
 
     BlockStoreContext blockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     // Mock block store context to return our mock clients
@@ -113,7 +117,10 @@ public final class AlluxioBlockStoreTest {
         .thenReturn(mBlockWorkerClient);
     Mockito.when(blockStoreContext.acquireMasterClientResource()).thenReturn(
         new DummyCloseableResource<>(mMasterClient));
-    //Mockito.when()
+
+    PowerMockito.mockStatic(BlockStoreContext.class);
+    Mockito.when(BlockStoreContext.acquireNettyChannel(Mockito.any(InetSocketAddress.class)))
+        .thenReturn(mChannel);
 
     mBlockStore = new AlluxioBlockStore(blockStoreContext, WORKER_HOSTNAME_LOCAL);
   }

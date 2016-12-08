@@ -78,11 +78,8 @@ public final class DataServerFileWriteHandler extends DataServerWriteHandler {
     }
   }
 
-  protected void writeBuf(ByteBuf buf) throws Exception {
-    try {
-      buf.readBytes(((FileWriteRequestInternal) mRequest).mOutputStream, buf.readableBytes());
-   } finally {
-      ReferenceCountUtil.release(buf);
-    }
+  @Override
+  protected void writeBuf(ByteBuf buf, long pos) throws Exception {
+    buf.readBytes(((FileWriteRequestInternal) mRequest).mOutputStream, buf.readableBytes());
   }
 }

@@ -13,10 +13,10 @@ package alluxio.network.protocol;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.network.protocol.databuffer.DataNettyBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.primitives.Ints;
@@ -92,8 +92,8 @@ public final class RPCProtoMessage extends RPCMessage {
    */
   public RPCProtoMessage(byte[] serialized, MessageLite prototype, DataBuffer data) {
     Preconditions
-        .checkArgument((data instanceof DataNettyBuffer) || (data instanceof DataFileChannel),
-            "Only DataNettyBuffer and DataFileChannel are allowed.");
+        .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannel),
+            "Only DataNettyBufferV2 and DataFileChannel are allowed.");
     try {
       mMessage = prototype.getParserForType().parseFrom(serialized);
     } catch (InvalidProtocolBufferException e) {
@@ -203,6 +203,12 @@ public final class RPCProtoMessage extends RPCMessage {
    */
   public static RPCProtoMessage createOkResponse(DataBuffer data) {
     return createResponse(Protocol.Status.Code.OK, "", null, data);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("message", mMessage)
+        .add("dataLength", mData == null ? 0 : mData.getLength()).toString();
   }
 }
 

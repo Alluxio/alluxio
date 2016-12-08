@@ -114,15 +114,15 @@ public final class DataServerBlockReadHandler extends DataServerReadHandler {
     switch (mTransferType) {
       case MAPPED:
         ByteBuf buf = channel.alloc().buffer(len, len);
-        buf.retain();
         try {
           while (buf.writableBytes() > 0
               && buf.writeBytes((FileChannel) blockReader.getChannel(), buf.writableBytes())
               != -1) {
           }
           return new DataNettyBufferV2(buf);
-        } finally {
+        } catch (Throwable e) {
           buf.release();
+          throw e;
         }
       case TRANSFER: // intend to fall through as TRANSFER is the default type.
       default:

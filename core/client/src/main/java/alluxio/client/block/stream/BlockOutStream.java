@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Constants;
 import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.client.block.BlockStoreContext;
@@ -21,6 +22,8 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -34,10 +37,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class BlockOutStream extends FilterOutputStream implements BoundedStream, Cancelable {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final long mBlockId;
   private final long mBlockSize;
   private final Closer mCloser;
   private final BlockWorkerClient mBlockWorkerClient;
+  private boolean mClosed;
 
   /**
    * Creates a new local block output stream.
@@ -103,17 +109,29 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
 
   @Override
   public void cancel() throws IOException {
+    if (mClosed) {
+      return;
+    }
     try {
       ((PacketOutStream) out).cancel();
       mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (AlluxioException e) {
-      throw new IOException(e);
+      mCloser.rethrow(new IOException(e));
+    } catch (Throwable e) {
+      mCloser.rethrow(e);
+    } finally {
+      mCloser.close();
+      mClosed = true;
     }
   }
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
     try {
+      out.close();
       if (remaining() < mBlockSize) {
         mBlockWorkerClient.cacheBlock(mBlockId);
       }
@@ -144,7 +162,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
     mBlockId = blockId;
     mBlockSize = blockSize;
     mCloser = Closer.create();
-    mCloser.register(out);
     mBlockWorkerClient = mCloser.register(blockWorkerClient);
+    mClosed = false;
   }
 }

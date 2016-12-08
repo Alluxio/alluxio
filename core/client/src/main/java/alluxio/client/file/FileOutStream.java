@@ -325,11 +325,11 @@ public class FileOutStream extends AbstractOutStream {
   }
 
   private void handleCacheWriteException(IOException e) throws IOException {
+    LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (!mUnderStorageType.isSyncPersist()) {
       throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
     }
 
-    LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
       outStreamCancel(mCurrentBlockOutStream);

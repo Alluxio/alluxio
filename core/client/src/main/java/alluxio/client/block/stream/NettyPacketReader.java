@@ -29,7 +29,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,12 +103,16 @@ public final class NettyPacketReader extends AbstractPacketReader {
           mChannel.close().sync();
           return;
         }
-        Protocol.ReadRequest cancelRequest =
-            Protocol.ReadRequest.newBuilder().setId(mId).setCancel(true).setType(mRequestType)
-                .build();
-        ChannelFuture channelFuture = mChannel.writeAndFlush(new RPCProtoMessage(cancelRequest));
-        channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-        channelFuture.sync();
+        if (remaining() > 0) {
+          Protocol.ReadRequest cancelRequest =
+              Protocol.ReadRequest.newBuilder().setId(mId).setCancel(true).setType(mRequestType)
+                  .build();
+          ChannelFuture channelFuture = mChannel.writeAndFlush(new RPCProtoMessage(cancelRequest));
+          channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+          channelFuture = channelFuture.sync();
+          LOG.info("Read request cancelled {}.",
+              channelFuture.isSuccess() ? "success" : channelFuture.cause().getStackTrace());
+        }
       } catch (InterruptedException e) {
         mChannel.close();
         throw Throwables.propagate(e);
@@ -122,7 +125,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
           if (buf == null) {
             return;
           }
-          ReferenceCountUtil.release(buf);
+          buf.release();
         } catch (IOException e) {
           LOG.warn("Failed to close the NettyBlockReader (block: {}, address: {}).",
               mId, mAddress, e);
@@ -138,6 +141,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
       if (mChannel.isOpen()) {
         Preconditions.checkState(mChannel.pipeline().last() instanceof Handler);
         mChannel.pipeline().removeLast();
+        resume();
       }
       BlockStoreContext.releaseNettyChannel(mAddress, mChannel);
       mClosed = true;
@@ -163,7 +167,9 @@ public final class NettyPacketReader extends AbstractPacketReader {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
-      Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
+      Preconditions.checkState(acceptMessage(msg), "Incorrect response type %s, %s.",
+          msg.getClass().getCanonicalName(), msg);
+
       RPCProtoMessage response = (RPCProtoMessage) msg;
       Protocol.Status status = ((Protocol.Response) response.getMessage()).getStatus();
       if (!Status.isOk(status)) {
@@ -210,6 +216,19 @@ public final class NettyPacketReader extends AbstractPacketReader {
         mLock.unlock();
       }
       ctx.close();
+    }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) {
+      mLock.lock();
+      try {
+        if (mPacketReaderException == null) {
+          mPacketReaderException = new IOException("ChannelClosed");
+        }
+        mNotEmptyOrFail.signal();
+      } finally {
+        mLock.unlock();
+      }
     }
   }
 

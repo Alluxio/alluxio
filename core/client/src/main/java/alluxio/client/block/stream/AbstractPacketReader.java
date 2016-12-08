@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -86,6 +85,7 @@ public abstract class AbstractPacketReader implements PacketReader {
   @Override
   public ByteBuf readPacket() throws IOException {
     Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
+    ByteBuf buf = null;
     mLock.lock();
     try {
       while (true) {
@@ -95,7 +95,7 @@ public abstract class AbstractPacketReader implements PacketReader {
         if (mPacketReaderException != null) {
           throw new IOException(mPacketReaderException);
         }
-        ByteBuf buf = mPackets.poll();
+        buf = mPackets.poll();
         if (!tooManyPacketsPending()) {
           resume();
         }
@@ -110,7 +110,7 @@ public abstract class AbstractPacketReader implements PacketReader {
           }
         } else {
           if (buf.readableBytes() == 0) {
-            ReferenceCountUtil.release(buf);
+            buf.release();
             mDone = true;
             return null;
           }
@@ -119,9 +119,21 @@ public abstract class AbstractPacketReader implements PacketReader {
           return buf;
         }
       }
+    } catch (Throwable e) {
+      if (buf != null) {
+        buf.release();
+      }
+      throw e;
     } finally {
       mLock.unlock();
     }
+  }
+
+  /**
+   * @return bytes remaining
+   */
+  protected long remaining() {
+    return mStart + mBytesToRead - mPosToRead;
   }
 
   protected abstract void pause();

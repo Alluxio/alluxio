@@ -18,7 +18,6 @@ import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 
@@ -69,10 +68,10 @@ public final class LocalPacketWriter implements PacketWriter {
     Preconditions.checkState(!mClosed, "PacketWriter is closed while writing packets.");
     reserve(mPos + buf.readableBytes());
     try {
-      buf.readBytes(mWriter.getChannel(), buf.readableBytes());
       mPos += buf.readableBytes();
+      buf.readBytes(mWriter.getChannel(), buf.readableBytes());
     } finally {
-      ReferenceCountUtil.release(buf);
+      buf.release();
     }
   }
 
