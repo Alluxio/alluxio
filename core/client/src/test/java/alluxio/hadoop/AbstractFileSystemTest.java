@@ -24,6 +24,8 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
@@ -67,11 +69,15 @@ import java.util.List;
 public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private FileSystemContext mMockFileSystemContext;
+  private FileSystemMasterClient mMockFileSystemMasterClient;
+
   /**
    * Sets up the configuration before a test runs.
    */
   @Before
   public void before() throws Exception {
+    mockFileSystemContextAndMasterClient();
     mockUserGroupInformation();
 
     if (HadoopClientTestUtils.isHadoop1x()) {
@@ -133,9 +139,6 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void resetContext() throws Exception {
-    FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", fileSystemContext);
-
     // Change to otherhost:410
     URI uri = URI.create(Constants.HEADER + "otherhost:410/");
     org.apache.hadoop.fs.FileSystem.get(uri, getConf());
@@ -145,7 +148,7 @@ public class AbstractFileSystemTest {
     Assert.assertEquals(newAddress, ClientContext.getMasterAddress());
     Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(BlockStoreContext.get(),
         "mBlockMasterClientPool", "mMasterAddress"));
-    Mockito.verify(fileSystemContext).reset();
+    Mockito.verify(mMockFileSystemContext).reset();
     Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(LineageContext.INSTANCE,
         "mLineageMasterClientPool", "mMasterAddress"));
   }
@@ -156,17 +159,13 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void concurrentInitialize() throws Exception {
-    FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", fileSystemContext);
-
     List<Thread> threads = new ArrayList<>();
     final org.apache.hadoop.conf.Configuration conf = getConf();
     for (int i = 0; i < 100; i++) {
-      final int id = i;
       Thread t = new Thread(new Runnable() {
         @Override
         public void run() {
-          URI uri = URI.create(Constants.HEADER + "randomhost" + id + ":410/");
+          URI uri = URI.create(Constants.HEADER + "randomhost:410/");
           try {
             org.apache.hadoop.fs.FileSystem.get(uri, conf);
           } catch (IOException e) {
@@ -182,7 +181,49 @@ public class AbstractFileSystemTest {
     for (Thread t : threads) {
       t.join();
     }
-    Mockito.verify(fileSystemContext).reset();
+    Mockito.verify(mMockFileSystemContext).reset();
+  }
+
+  /**
+   * Tests that failing to connect to Alluxio master causes initialization failure.
+   */
+  @Test
+  public void initializeFailToConnect() throws Exception {
+    Mockito.doThrow(ConnectionFailedException.class)
+        .when(mMockFileSystemMasterClient).connect();
+
+    URI uri = URI.create(Constants.HEADER + "randomhost:400/");
+    try {
+      org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+      // The above code should throw an exception.
+      Assert.fail("Initialization should throw an exception.");
+    } catch (IOException e) {
+      Assert.assertTrue(e.getCause() instanceof ConnectionFailedException);
+    }
+  }
+
+  /**
+   * Tests that after initialization, reinitialize with a different URI should fail.
+   */
+  @Test
+  public void reinitializeWithDifferentURI() throws Exception {
+    final org.apache.hadoop.conf.Configuration conf = getConf();
+    String originalURI = "host1:1";
+    URI uri = URI.create(Constants.HEADER + "host1:1");
+    org.apache.hadoop.fs.FileSystem.get(uri, conf);
+
+    String[] newURIs = new String[]{"host2:1", "host1:2", "host2:2"};
+    for (String newURI : newURIs) {
+      uri = URI.create(Constants.HEADER + newURI);
+      try {
+        org.apache.hadoop.fs.FileSystem.get(uri, conf);
+        // The above code should throw an exception.
+        Assert.fail("Initialization should throw an exception.");
+      } catch (IOException e) {
+        Assert.assertEquals(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+            .getMessage(newURI, originalURI), e.getMessage());
+      }
+    }
   }
 
   /**
@@ -210,8 +251,6 @@ public class AbstractFileSystemTest {
     Mockito.when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
-    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
-    alluxioHadoopFs.initialize(uri, getConf());
 
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
@@ -233,8 +272,6 @@ public class AbstractFileSystemTest {
     Mockito.when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(new URIStatus(fileInfo));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
-    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
-    alluxioHadoopFs.initialize(uri, getConf());
 
     FileStatus fileStatus = alluxioHadoopFs.getFileStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo, fileStatus);
@@ -246,6 +283,14 @@ public class AbstractFileSystemTest {
       conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
     }
     return conf;
+  }
+
+  private void mockFileSystemContextAndMasterClient() {
+    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mMockFileSystemContext);
+    mMockFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    Mockito.when(mMockFileSystemContext.acquireMasterClient())
+        .thenReturn(mMockFileSystemMasterClient);
   }
 
   private void mockUserGroupInformation() throws IOException {

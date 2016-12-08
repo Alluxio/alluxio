@@ -19,6 +19,7 @@ import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -26,6 +27,7 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -49,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -423,13 +426,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mUri = URI.create(mAlluxioHeader);
 
     if (sInitialized) {
+      assertSameClientURI();
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
       if (sInitialized) {
+        assertSameClientURI();
         return;
       }
+
       // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
       // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
       // We assume here that all clients use the same configuration.
@@ -444,9 +450,31 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       FileSystemContext.INSTANCE.reset();
       LineageContext.INSTANCE.reset();
 
-      sFileSystem = FileSystem.Factory.get();
-      sInitialized = true;
+      // Try to connect to master, if it fails, the provided uri is invalid.
+      FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
+      try {
+        client.connect();
+        // Connected, initialize.
+        sFileSystem = FileSystem.Factory.get();
+        sInitialized = true;
+      } catch (ConnectionFailedException | IOException e) {
+        LOG.error("Failed to connect to the provided master address {}: {}.", uri, e);
+        throw new IOException(e);
+      } finally {
+        FileSystemContext.INSTANCE.releaseMasterClient(client);
+      }
     }
+  }
+
+  private void assertSameClientURI() throws IOException {
+    InetSocketAddress masterAddress = ClientContext.getMasterAddress();
+    boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
+    boolean samePort = masterAddress.getPort() == mUri.getPort();
+    if (sameHost && samePort) {
+      return;
+    }
+    throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+        .getMessage(mUri.getHost() + ":" + mUri.getPort(), masterAddress));
   }
 
   /**
