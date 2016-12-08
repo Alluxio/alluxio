@@ -28,6 +28,8 @@ public final class DataNettyBuffer implements DataBuffer {
   * Constructor for creating a DataNettyBuffer, by passing a Netty ByteBuf.
   * This way we avoid one copy from ByteBuf to another ByteBuffer,
   * and making sure the buffer would not be recycled.
+  * IMPORTANT: {@link #release()} must be called after
+  * reading is finished. Otherwise the memory space for the ByteBuf might never be reclaimed.
   *
   * @param bytebuf The ByteBuf having the data
   * @param length The length of the underlying ByteBuffer data
@@ -47,11 +49,15 @@ public final class DataNettyBuffer implements DataBuffer {
   }
 
   /**
-   * @return the netty buffer
+   * We would not support this method in DataNettyBuffer because this class is only for
+   * reading netty buffers. Throws an {@link UnsupportedOperationException} whenever called.
+   * TODO(qifan): Investigate if using NettyDataBuffer for outgoing message is fine.
+   *
+   * @return {@link UnsupportedOperationException} whenever called
    */
   @Override
   public Object getNettyOutput() {
-    return mNettyBuf;
+    throw new UnsupportedOperationException("DataNettyBuffer doesn't support getNettyOutput()");
   }
 
   @Override
@@ -72,6 +78,8 @@ public final class DataNettyBuffer implements DataBuffer {
   @Override
   public void release() {
     Preconditions.checkState(mNettyBuf != null);
-    mNettyBuf.release();
+    Preconditions.checkState(mNettyBuf.refCnt() == 1,
+        "Reference count of the netty buffer is %s (1 expected).", mNettyBuf.refCnt());
+    Preconditions.checkState(mNettyBuf.release(), "Release Netty ByteBuf failed.");
   }
 }
