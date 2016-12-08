@@ -59,7 +59,17 @@ public final class ProtoBufJournalFormatter implements JournalFormatter {
         // All journal entries start with their size in bytes written as a varint.
         int size = CodedInputStream.readRawVarint32(firstByte, inputStream);
         byte[] buffer = size <= mBuffer.length ? mBuffer : new byte[size];
-        int bytes = inputStream.read(buffer, 0, size);
+        // Total bytes read so far for journal entry
+        int bytes = 0;
+        // Bytes read in last read request
+        int bytesRead = 0;
+        while (bytes < size) {
+          bytesRead = inputStream.read(buffer, bytesRead, size - bytesRead);
+          if (bytesRead < 0) {
+            break;
+          }
+          bytes += bytesRead;
+        }
         if (bytes < size) {
           LOG.warn("Journal entry was truncated. Expected to read " + size + " bytes but only got "
               + bytes);
