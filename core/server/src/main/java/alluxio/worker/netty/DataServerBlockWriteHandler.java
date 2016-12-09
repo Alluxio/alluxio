@@ -111,7 +111,6 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     buf.readBytes(outputChannel, buf.readableBytes());
   }
 
-
   @Override
   protected void incrementMetrics(long bytesWritten) {
     Metrics.BYTES_WRITTEN_REMOTE.inc(bytesWritten);
