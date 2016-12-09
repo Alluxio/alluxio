@@ -54,4 +54,9 @@ final class NettyExecutors {
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
           ThreadFactoryUtils.build("FilePacketWriterExecutor-%d", true));
+
+  /**
+   * Private constructor.
+   */
+  private NettyExecutors() {}
 }

@@ -67,7 +67,7 @@ public final class DataServerFileReadHandler extends DataServerReadHandler {
   /**
    * Creates an instance of {@link DataServerReadHandler}.
    *
-   * @param executorService the executor service to run {@link PacketReader}s.
+   * @param executorService the executor service to run {@link PacketReader}s
    * @param worker the file system worker
    */
   public DataServerFileReadHandler(ExecutorService executorService, FileSystemWorker worker) {

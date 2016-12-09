@@ -103,7 +103,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   /**
    * Creates an instance of {@link DataServerReadHandler}.
    *
-   * @param executorService the executor service to run {@link PacketReader}s.
+   * @param executorService the executor service to run {@link PacketReader}s
    */
   public DataServerReadHandler(ExecutorService executorService) {
     mPacketReaderExecutor = executorService;
@@ -168,28 +168,28 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
-   * @return true if there are too many packets in-flight.
+   * @return true if there are too many packets in-flight
    */
   private boolean tooManyPendingPackets() {
     return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * PACKET_SIZE;
   }
 
   /**
-   * @return true if we should restart the packet reader.
+   * @return true if we should restart the packet reader
    */
   private boolean shouldStartPacketReader() {
     return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.end();
   }
 
   /**
-   * @return the number of bytes remaining to push to the netty queue. Return 0 if it is cancelled.
+   * @return the number of bytes remaining to push to the netty queue. Return 0 if it is cancelled
    */
   private long remainingToQueue() {
     return mRequest.end() - mPosToQueue;
   }
 
   /**
-   * @return the number of bytes remaining to flush. Return 0 if it is cancelled.
+   * @return the number of bytes remaining to flush. Return 0 if it is cancelled
    */
   private long remainingToWrite() {
     return mRequest.end() - mPosToWrite;

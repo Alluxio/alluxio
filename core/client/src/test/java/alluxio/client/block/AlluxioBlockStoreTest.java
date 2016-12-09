@@ -130,7 +130,6 @@ public final class AlluxioBlockStoreTest {
     Mockito.when(mPipeline.last()).thenReturn(new RPCMessageDecoder());
     Mockito.when(mPipeline.addLast(Mockito.any(ChannelHandler.class))).thenReturn(mPipeline);
 
-
     mBlockStore = new AlluxioBlockStore(blockStoreContext, WORKER_HOSTNAME_LOCAL);
   }
 

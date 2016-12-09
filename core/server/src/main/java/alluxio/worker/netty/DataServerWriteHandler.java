@@ -92,7 +92,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
   /**
    * Creates an instance of {@link DataServerWriteHandler}.
    *
-   * @param executorService the executor service to run {@link PacketWriter}s.
+   * @param executorService the executor service to run {@link PacketWriter}s
    */
   public DataServerWriteHandler(ExecutorService executorService) {
     mPacketWriterExecutor = executorService;

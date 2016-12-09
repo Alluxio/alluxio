@@ -40,7 +40,7 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();;
+  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   private long mBytesReserved = 0;
 
   private class BlockWriteRequestInternal extends WriteRequestInternal {
@@ -66,6 +66,7 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
    * Creates an instance of {@link DataServerBlockWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s.
+   * @param blockWorker the block worker
    */
   public DataServerBlockWriteHandler(ExecutorService executorService, BlockWorker blockWorker) {
     super(executorService);

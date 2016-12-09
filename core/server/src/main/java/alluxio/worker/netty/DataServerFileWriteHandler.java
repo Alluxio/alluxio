@@ -16,7 +16,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.file.FileSystemWorker;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -48,7 +47,8 @@ public final class DataServerFileWriteHandler extends DataServerWriteHandler {
   /**
    * Creates an instance of {@link DataServerFileWriteHandler}.
    *
-   * @param executorService the executor service to run {@link PacketWriter}s.
+   * @param executorService the executor service to run {@link PacketWriter}s
+   * @param worker the file system worker
    */
   public DataServerFileWriteHandler(ExecutorService executorService, FileSystemWorker worker) {
     super(executorService);

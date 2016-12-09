@@ -81,7 +81,7 @@ public final class DataServerBlockReadHandler extends DataServerReadHandler {
   /**
    * Creates an instance of {@link DataServerReadHandler}.
    *
-   * @param executorService the executor service to run {@link PacketReader}s.
+   * @param executorService the executor service to run {@link PacketReader}s
    * @param blockWorker the block worker
    * @param fileTransferType the file transfer type
    */
