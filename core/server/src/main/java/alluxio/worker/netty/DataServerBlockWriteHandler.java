@@ -15,11 +15,13 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 
+import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -65,7 +67,7 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
   /**
    * Creates an instance of {@link DataServerBlockWriteHandler}.
    *
-   * @param executorService the executor service to run {@link PacketWriter}s.
+   * @param executorService the executor service to run {@link PacketWriter}s
    * @param blockWorker the block worker
    */
   public DataServerBlockWriteHandler(ExecutorService executorService, BlockWorker blockWorker) {
@@ -107,5 +109,22 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     BlockWriter blockWriter = ((BlockWriteRequestInternal) mRequest).mBlockWriter;
     GatheringByteChannel outputChannel = blockWriter.getChannel();
     buf.readBytes(outputChannel, buf.readableBytes());
+  }
+
+
+  @Override
+  protected void incrementMetrics(long bytesWritten) {
+    Metrics.BYTES_WRITTEN_REMOTE.inc(bytesWritten);
+  }
+
+  /**
+   * Class that contains metrics for BlockDataServerHandler.
+   */
+  private static final class Metrics {
+    private static final Counter BYTES_WRITTEN_REMOTE =
+        MetricsSystem.workerCounter("BytesWrittenRemote");
+
+    private Metrics() {
+    } // prevent instantiation
   }
 }

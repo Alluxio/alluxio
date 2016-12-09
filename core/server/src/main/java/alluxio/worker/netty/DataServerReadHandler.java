@@ -14,13 +14,11 @@ package alluxio.worker.netty;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 
-import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -320,8 +318,9 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
 
       mLock.lock();
       try {
-        Preconditions.checkState(mPosToWrite - mPosToWriteUncommitted <= PACKET_SIZE,
+        Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= PACKET_SIZE,
             "Some packet is not acked.");
+        incrementMetrics(mPosToWriteUncommitted - mPosToWrite);
         mPosToWrite = mPosToWriteUncommitted;
 
         if (shouldStartPacketReader()) {
@@ -403,14 +402,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
-   * Class that contains metrics for BlockDataServerHandler.
+   * @param bytesRead bytes read
    */
-  private static final class Metrics {
-    private static final Counter BYTES_READ_REMOTE = MetricsSystem.workerCounter("BytesReadRemote");
-    private static final Counter BYTES_WRITTEN_REMOTE =
-        MetricsSystem.workerCounter("BytesWrittenRemote");
-
-    private Metrics() {
-    } // prevent instantiation
-  }
+  protected abstract void incrementMetrics(long bytesRead);
 }

@@ -265,11 +265,11 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
         try {
           // This is the last packet.
           if (buf.readableBytes() == 0) {
-            LOG.info("Last packet processed");
             replySuccess(mCtx.channel());
             break;
           }
           mPosToWrite += buf.readableBytes();
+          incrementMetrics(buf.readableBytes());
           writeBuf(buf, mPosToWrite);
         } catch (Exception e) {
           mCtx.fireExceptionCaught(e);
@@ -316,4 +316,9 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
    * @throws Exception if it fails to write the buffer
    */
   protected abstract void writeBuf(ByteBuf buf, long pos) throws Exception;
+
+  /**
+   * @param bytesWritten bytes written
+   */
+  protected abstract void incrementMetrics(long bytesWritten);
 }

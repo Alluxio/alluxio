@@ -12,12 +12,14 @@
 package alluxio.worker.netty;
 
 import alluxio.Constants;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.file.FileSystemWorker;
 
+import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -107,5 +109,20 @@ public final class DataServerFileReadHandler extends DataServerReadHandler {
       buf.release();
       throw e;
     }
+  }
+
+  @Override
+  protected void incrementMetrics(long bytesRead) {
+    Metrics.BYTES_READ_UFS.inc(bytesRead);
+  }
+
+  /**
+   * Class that contains metrics for BlockDataServerHandler.
+   */
+  private static final class Metrics {
+    private static final Counter BYTES_READ_UFS = MetricsSystem.workerCounter("BytesReadUFS");
+
+    private Metrics() {
+    } // prevent instantiation
   }
 }

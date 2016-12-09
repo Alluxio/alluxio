@@ -11,10 +11,12 @@
 
 package alluxio.worker.netty;
 
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.file.FileSystemWorker;
 
+import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -81,5 +83,20 @@ public final class DataServerFileWriteHandler extends DataServerWriteHandler {
   @Override
   protected void writeBuf(ByteBuf buf, long pos) throws Exception {
     buf.readBytes(((FileWriteRequestInternal) mRequest).mOutputStream, buf.readableBytes());
+  }
+
+  @Override
+  protected void incrementMetrics(long bytesWritten) {
+    Metrics.BYTES_WRITTEN_UFS.inc(bytesWritten);
+  }
+
+  /**
+   * Class that contains metrics for BlockDataServerHandler.
+   */
+  private static final class Metrics {
+    private static final Counter BYTES_WRITTEN_UFS = MetricsSystem.workerCounter("BytesWrittenUFS");
+
+    private Metrics() {
+    } // prevent instantiation
   }
 }

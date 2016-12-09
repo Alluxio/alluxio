@@ -12,6 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.Constants;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
@@ -20,6 +21,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -128,5 +130,20 @@ public final class DataServerBlockReadHandler extends DataServerReadHandler {
       default:
         return new DataFileChannel((FileChannel) blockReader.getChannel(), offset, len);
     }
+  }
+
+  @Override
+  protected void incrementMetrics(long bytesRead) {
+    Metrics.BYTES_READ_REMOTE.inc(bytesRead);
+  }
+
+  /**
+   * Class that contains metrics for BlockDataServerHandler.
+   */
+  private static final class Metrics {
+    private static final Counter BYTES_READ_REMOTE = MetricsSystem.workerCounter("BytesReadRemote");
+
+    private Metrics() {
+    } // prevent instantiation
   }
 }
