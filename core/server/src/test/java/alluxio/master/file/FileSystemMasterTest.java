@@ -18,6 +18,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.Pair;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -1250,8 +1251,14 @@ public final class FileSystemMasterTest {
     // Get baseline for single threaded rename
     long baselineNs = serialRename(srcUris, dstUris);
     // Run concurrent rename switch src and dst
-    concurrentRenameStress(dstUris, srcUris, baselineNs);
-  }
+    Pair<Long, Integer> result = concurrentRename(dstUris, srcUris);
+    long duration = result.getFirst();
+    int errors = result.getSecond();
+
+    // Speed up is not directly proportional to num files due to journaling, ensure at least 2x
+    Assert.assertTrue("Concurrent rename: " + duration + " Serial rename: " + baselineNs,
+        duration < baselineNs / 2);
+    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);  }
 
   /**
    * Tests concurrent renames within a folder do not block on each other
@@ -1275,7 +1282,14 @@ public final class FileSystemMasterTest {
     // Get baseline for single threaded rename
     long baselineNs = serialRename(srcUris, dstUris);
     // Run concurrent rename switch src and dst
-    concurrentRenameStress(dstUris, srcUris, baselineNs);
+    Pair<Long, Integer> result = concurrentRename(dstUris, srcUris);
+    long duration = result.getFirst();
+    int errors = result.getSecond();
+
+    // Speed up is not directly proportional to num files due to journaling, ensure at least 2x
+    Assert.assertTrue("Concurrent rename: " + duration + " Serial rename: " + baselineNs,
+        duration < baselineNs / 2);
+    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
   }
 
   /**
@@ -1295,13 +1309,73 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Helper for renaming a list of paths concurrently. Ensures the time used is at most half
-   * of the baseline. Also ensures no errors occur.
+   * Tests that many threads concurrently renaming the same file will only succeed once.
+   */
+  @Test
+  public void sameFileConcurrentRename() throws Exception {
+    int numThreads = 10;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    for (int i = 0; i < 10; i++) {
+      srcs[i] = new AlluxioURI("/file");
+      dsts[i] = new AlluxioURI("/renamed" + i);
+    }
+
+    // Create the one source file
+    mFileSystemMaster.createFile(srcs[0], CreateFileOptions.defaults());
+
+    Pair<Long, Integer> result = concurrentRename(srcs, dsts);
+    int errors = result.getSecond();
+
+    // We should get an error for all the other renames
+    Assert.assertEquals(numThreads - 1, errors);
+    // Only one renamed file should exist
+    Assert.assertEquals(1,
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
+  }
+
+  /**
+   * Tests that many threads concurrently renaming the same directory will only succeed once.
+   */
+  @Test
+  public void sameDirConcurrentRename() throws Exception {
+    int numThreads = 10;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    for (int i = 0; i < 10; i++) {
+      srcs[i] = new AlluxioURI("/dir");
+      dsts[i] = new AlluxioURI("/renamed" + i);
+    }
+
+    // Create the one source directory
+    mFileSystemMaster.createDirectory(srcs[0], CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createFile(new AlluxioURI("/dir/file"), CreateFileOptions.defaults());
+
+    Pair<Long, Integer> result = concurrentRename(srcs, dsts);
+    int errors = result.getSecond();
+
+    // We should get an error for all the other renames
+    Assert.assertEquals(numThreads - 1, errors);
+    // Only one renamed dir should exist
+    List<FileInfo> existingDirs =
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
+    Assert.assertEquals(1, existingDirs.size());
+    // The directory should contain the file
+    List<FileInfo> dirChildren =
+        mFileSystemMaster.listStatus(new AlluxioURI(existingDirs.get(0).getPath()),
+            ListStatusOptions.defaults());
+    Assert.assertEquals(1, dirChildren.size());
+  }
+
+  /**
+   * Helper for renaming a list of paths concurrently. Assumes the srcs are already created and
+   * dsts do not exist.
+   *
    * @param src list of source paths
    * @param dst list of destination paths
-   * @param baselineNs time taken for renaming serially
+   * @return the duration of the rename and how many errors occurred
    */
-  private void concurrentRenameStress(final AlluxioURI[] src, final AlluxioURI[] dst, long baselineNs)
+  private Pair<Long, Integer> concurrentRename(final AlluxioURI[] src, final AlluxioURI[] dst)
       throws Exception {
     final int numFiles = src.length;
     final CyclicBarrier barrier = new CyclicBarrier(numFiles);
@@ -1339,124 +1413,6 @@ public final class FileSystemMasterTest {
       t.join();
     }
     long duration = System.nanoTime() - start;
-    // Speed up is not directly proportional to num files due to journaling, ensure at least 2x
-    Assert.assertTrue("Concurrent rename: " + duration + " Serial rename: " + baselineNs,
-        duration < baselineNs / 2);
-    Assert.assertTrue("Errors detected: " + errors, errors.isEmpty());
-  }
-
-  /**
-   * Tests that many threads concurrently renaming the same file will only succeed once.
-   */
-  @Test
-  public void sameFileConcurrentRename() throws Exception {
-    int numThreads = 10;
-    final AlluxioURI file = new AlluxioURI("/file");
-    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
-    for (int i = 0; i < 10; i++) {
-      dsts[i] = new AlluxioURI("/renamed" + i);
-    }
-    final CyclicBarrier barrier = new CyclicBarrier(numThreads);
-    mFileSystemMaster.createFile(file, sNestedFileOptions);
-
-    List<Thread> threads = new ArrayList<>(numThreads);
-    // If there are exceptions, we will store them here.
-    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
-    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
-      public void uncaughtException(Thread th, Throwable ex) {
-        errors.add(ex);
-      }
-    };
-
-    for (int i = 0; i < numThreads; i++) {
-      final int iteration = i;
-      Thread t = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            AuthenticatedClientUser.set(TEST_USER);
-            barrier.await();
-            mFileSystemMaster.rename(file, dsts[iteration]);
-          } catch (Exception e) {
-            Throwables.propagate(e);
-          }
-        }
-      });
-      t.setUncaughtExceptionHandler(exceptionHandler);
-      threads.add(t);
-    }
-    Collections.shuffle(threads);
-    for (Thread t : threads) {
-      t.start();
-    }
-    for (Thread t : threads) {
-      t.join();
-    }
-    // We should get an error for all the other renames
-    Assert.assertEquals(numThreads - 1, errors.size());
-    // Only one renamed file should exist
-    Assert.assertEquals(1,
-        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
-  }
-
-  /**
-   * Tests that many threads concurrently renaming the same directory will only succeed once.
-   */
-  @Test
-  public void sameDirConcurrentRename() throws Exception {
-    int numThreads = 10;
-    final AlluxioURI dir = new AlluxioURI("/dir");
-    final AlluxioURI file = new AlluxioURI("/dir/file");
-    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
-    for (int i = 0; i < 10; i++) {
-      dsts[i] = new AlluxioURI("/renamed" + i);
-    }
-    final CyclicBarrier barrier = new CyclicBarrier(numThreads);
-    mFileSystemMaster.createDirectory(dir, CreateDirectoryOptions.defaults());
-    mFileSystemMaster.createFile(file, sNestedFileOptions);
-
-    List<Thread> threads = new ArrayList<>(numThreads);
-    // If there are exceptions, we will store them here.
-    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
-    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
-      public void uncaughtException(Thread th, Throwable ex) {
-        errors.add(ex);
-      }
-    };
-    for (int i = 0; i < numThreads; i++) {
-      final int iteration = i;
-      Thread t = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            AuthenticatedClientUser.set(TEST_USER);
-            barrier.await();
-            mFileSystemMaster.rename(dir, dsts[iteration]);
-          } catch (Exception e) {
-            Throwables.propagate(e);
-          }
-        }
-      });
-      t.setUncaughtExceptionHandler(exceptionHandler);
-      threads.add(t);
-    }
-    Collections.shuffle(threads);
-    for (Thread t : threads) {
-      t.start();
-    }
-    for (Thread t : threads) {
-      t.join();
-    }
-    // We should get an error for all the other renames
-    Assert.assertEquals(numThreads - 1, errors.size());
-    // Only one renamed dir should exist
-    List<FileInfo> existingDirs =
-        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
-    Assert.assertEquals(1, existingDirs.size());
-    // The directory should contain the file
-    List<FileInfo> dirChildren =
-        mFileSystemMaster.listStatus(new AlluxioURI(existingDirs.get(0).getPath()),
-            ListStatusOptions.defaults());
-    Assert.assertEquals(1, dirChildren.size());
+    return new Pair<>(duration, errors.size());
   }
 }
