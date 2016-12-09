@@ -353,6 +353,18 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
 
     @Override
     public void run() {
+      try {
+        runInternal();
+      } catch (Throwable e) {
+        LOG.error("Failed to run PacketReader.", e);
+        throw e;
+      }
+    }
+
+    /**
+     * The actual implementation of the runnable.
+     */
+    private void runInternal() {
       while (true) {
         final long start;
         final int packet_size;

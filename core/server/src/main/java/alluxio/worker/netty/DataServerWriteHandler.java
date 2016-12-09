@@ -245,6 +245,18 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
 
     @Override
     public void run() {
+      try {
+        runInternal();
+      } catch (Throwable e) {
+        LOG.error("Failed to run PacketWriter.", e);
+        throw e;
+      }
+    }
+
+    /**
+     * The actual implementation of the runnable.
+     */
+    private void runInternal() {
       while (true) {
         ByteBuf buf;
         mLock.lock();
@@ -275,7 +287,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
           mCtx.fireExceptionCaught(e);
           break;
         } finally {
-          Preconditions.checkState(buf.release());
+          buf.release();
         }
       }
     }
