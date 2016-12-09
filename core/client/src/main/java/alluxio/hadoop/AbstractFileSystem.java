@@ -426,13 +426,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mUri = URI.create(mAlluxioHeader);
 
     if (sInitialized) {
-      assertSameClientURI();
+      checkMasterAddress();
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
       if (sInitialized) {
-        assertSameClientURI();
+        checkMasterAddress();
         return;
       }
 
@@ -458,7 +458,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         sFileSystem = FileSystem.Factory.get();
         sInitialized = true;
       } catch (ConnectionFailedException | IOException e) {
-        LOG.error("Failed to connect to the provided master address {}: {}.", uri, e);
+        LOG.error("Failed to connect to the provided master address {}: {}.",
+            uri.toString(), e.toString());
         throw new IOException(e);
       } finally {
         FileSystemContext.INSTANCE.releaseMasterClient(client);
@@ -466,7 +467,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
   }
 
-  private void assertSameClientURI() throws IOException {
+  // Assures the mUri is the same as the master address in the current client context.
+  private void checkMasterAddress() throws IOException {
     InetSocketAddress masterAddress = ClientContext.getMasterAddress();
     boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
     boolean samePort = masterAddress.getPort() == mUri.getPort();

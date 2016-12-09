@@ -32,10 +32,13 @@ import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -71,6 +74,9 @@ public class AbstractFileSystemTest {
 
   private FileSystemContext mMockFileSystemContext;
   private FileSystemMasterClient mMockFileSystemMasterClient;
+
+  @Rule
+  public ExpectedException mExpectedException = ExpectedException.none();
 
   /**
    * Sets up the configuration before a test runs.
@@ -192,14 +198,13 @@ public class AbstractFileSystemTest {
     Mockito.doThrow(ConnectionFailedException.class)
         .when(mMockFileSystemMasterClient).connect();
 
+    mExpectedException.expect(IOException.class);
+    mExpectedException.expectCause(IsInstanceOf.any(ConnectionFailedException.class));
+
     URI uri = URI.create(Constants.HEADER + "randomhost:400/");
-    try {
-      org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-      // The above code should throw an exception.
-      Assert.fail("Initialization should throw an exception.");
-    } catch (IOException e) {
-      Assert.assertTrue(e.getCause() instanceof ConnectionFailedException);
-    }
+    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+    // The above code should throw an exception.
+    Assert.fail("Initialization should throw an exception.");
   }
 
   /**
@@ -214,15 +219,14 @@ public class AbstractFileSystemTest {
 
     String[] newURIs = new String[]{"host2:1", "host1:2", "host2:2"};
     for (String newURI : newURIs) {
+      mExpectedException.expect(IOException.class);
+      mExpectedException.expectMessage(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+          .getMessage(newURI, originalURI));
+
       uri = URI.create(Constants.HEADER + newURI);
-      try {
-        org.apache.hadoop.fs.FileSystem.get(uri, conf);
-        // The above code should throw an exception.
-        Assert.fail("Initialization should throw an exception.");
-      } catch (IOException e) {
-        Assert.assertEquals(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
-            .getMessage(newURI, originalURI), e.getMessage());
-      }
+      org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      // The above code should throw an exception.
+      Assert.fail("Initialization should throw an exception.");
     }
   }
 
@@ -286,9 +290,9 @@ public class AbstractFileSystemTest {
   }
 
   private void mockFileSystemContextAndMasterClient() {
-    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystemContext = Mockito.mock(FileSystemContext.class);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mMockFileSystemContext);
-    mMockFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    mMockFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
     Mockito.when(mMockFileSystemContext.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
   }
