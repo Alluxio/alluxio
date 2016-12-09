@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockStoreContext;
+import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -30,6 +31,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +111,7 @@ public class NettyPacketWriter implements PacketWriter {
     mRequestType = type;
 
     mChannel = BlockStoreContext.acquireNettyChannel(address);
-    mChannel.pipeline().addLast(new Handler());
+    addHandler();
   }
 
   @Override
@@ -270,6 +272,18 @@ public class NettyPacketWriter implements PacketWriter {
   }
 
   /**
+   * Add {@link Handler} to the channel pipeline.
+   */
+  private void addHandler() {
+    ChannelPipeline pipeline = mChannel.pipeline();
+    if (!(pipeline.last() instanceof RPCMessageDecoder)) {
+      throw new RuntimeException(String.format("Channel pipeline has unexpected handlers %s.",
+          pipeline.last().getClass().getCanonicalName()));
+    }
+    mChannel.pipeline().addLast(new Handler());
+  }
+
+  /**
    * @return true if there are too many bytes in flight
    */
   private boolean tooManyPacketsInFlight() {
@@ -279,14 +293,6 @@ public class NettyPacketWriter implements PacketWriter {
   @Override
   public int packetSize() {
     return (int) PACKET_SIZE;
-  }
-
-  private boolean acceptMessage(Object msg) {
-    if (msg instanceof RPCProtoMessage) {
-      MessageLite header = ((RPCProtoMessage) msg).getMessage();
-      return header instanceof Protocol.Response;
-    }
-    return false;
   }
 
   /**
@@ -348,6 +354,18 @@ public class NettyPacketWriter implements PacketWriter {
       } finally {
         mLock.unlock();
       }
+    }
+
+    /**
+     * @param msg the message received
+     * @return true if this message should be processed
+     */
+    private boolean acceptMessage(Object msg) {
+      if (msg instanceof RPCProtoMessage) {
+        MessageLite header = ((RPCProtoMessage) msg).getMessage();
+        return header instanceof Protocol.Response;
+      }
+      return false;
     }
   }
 

@@ -18,6 +18,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.PreconditionMessage;
+import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
@@ -27,6 +28,8 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelPipeline;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -104,12 +107,14 @@ public final class AlluxioBlockStoreTest {
   private BlockWorkerClient mBlockWorkerClient;
   private AlluxioBlockStore mBlockStore;
   private Channel mChannel;
+  private ChannelPipeline mPipeline;
 
   @Before
   public void before() throws Exception {
     mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
     mMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mChannel = PowerMockito.mock(Channel.class);
+    mPipeline = PowerMockito.mock(ChannelPipeline.class);
 
     BlockStoreContext blockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     // Mock block store context to return our mock clients
@@ -121,6 +126,10 @@ public final class AlluxioBlockStoreTest {
     PowerMockito.mockStatic(BlockStoreContext.class);
     Mockito.when(BlockStoreContext.acquireNettyChannel(Mockito.any(InetSocketAddress.class)))
         .thenReturn(mChannel);
+    Mockito.when(mChannel.pipeline()).thenReturn(mPipeline);
+    Mockito.when(mPipeline.last()).thenReturn(new RPCMessageDecoder());
+    Mockito.when(mPipeline.addLast(Mockito.any(ChannelHandler.class))).thenReturn(mPipeline);
+
 
     mBlockStore = new AlluxioBlockStore(blockStoreContext, WORKER_HOSTNAME_LOCAL);
   }
@@ -227,6 +236,10 @@ public final class AlluxioBlockStoreTest {
             Lists.newArrayList(WORKER_NET_ADDRESS_REMOTE)))
         .setWriteType(WriteType.MUST_CACHE);
     OutputStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
-    Assert.assertEquals(RemoteBlockOutStream.class, stream.getClass());
+    if (Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED)) {
+      Assert.assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
+    } else {
+      Assert.assertEquals(RemoteBlockOutStream.class, stream.getClass());
+    }
   }
 }
