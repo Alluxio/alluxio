@@ -354,6 +354,7 @@ public class NettyPacketWriter implements PacketWriter {
       } finally {
         mLock.unlock();
       }
+      ctx.fireChannelUnregistered();
     }
 
     /**

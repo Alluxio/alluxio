@@ -298,7 +298,7 @@ public class UnderStoreBlockInStreamTest {
     }
 
     @Override
-    public InputStream create() {
+    public InputStream create(long length) {
       try {
         return new FileInputStream(mFile);
       } catch (FileNotFoundException e) {

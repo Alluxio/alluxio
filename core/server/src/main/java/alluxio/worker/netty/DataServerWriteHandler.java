@@ -153,6 +153,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
     } catch (IOException e) {
       LOG.warn("Failed to reset the write request inside channelUnregistered.");
     }
+    ctx.fireChannelUnregistered();
   }
 
   /**

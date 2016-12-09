@@ -59,10 +59,11 @@ public final class UnderStoreBlockInStream extends BlockInStream {
    */
   public interface UnderStoreStreamFactory extends AutoCloseable {
     /**
+     * @param length the length to read from the file (set to Long.MAX_VALUE if unknown)
      * @return an input stream to under storage
      * @throws IOException if an IO exception occurs
      */
-    InputStream create() throws IOException;
+    InputStream create(long length) throws IOException;
 
     /**
      * Closes the factory, releasing any resources it was holding.
@@ -192,8 +193,8 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
     Preconditions.checkArgument(pos <= mLength,
         PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), pos);
-    mUnderStoreStream = mUnderStoreStreamFactory.create();
     long streamStart = mInitPos + pos;
+    mUnderStoreStream = mUnderStoreStreamFactory.create(mInitPos + mFileBlockSize);
     // The stream is at the beginning of the file, so skip to the correct absolute position.
     if (streamStart != 0 && streamStart != mUnderStoreStream.skip(streamStart)) {
       mUnderStoreStream.close();

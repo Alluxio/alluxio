@@ -32,7 +32,7 @@ public final class DirectUnderStoreStreamFactory implements UnderStoreStreamFact
   }
 
   @Override
-  public InputStream create() throws IOException {
+  public InputStream create(long length) throws IOException {
     return UnderFileSystem.Factory.get(mPath).open(mPath);
   }
 

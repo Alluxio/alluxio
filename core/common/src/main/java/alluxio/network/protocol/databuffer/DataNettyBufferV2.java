@@ -57,7 +57,6 @@ public final class DataNettyBufferV2 implements DataBuffer {
    */
   @Override
   public void release() {
-    Preconditions.checkState(mNettyBuf != null);
     mNettyBuf.release();
   }
 }

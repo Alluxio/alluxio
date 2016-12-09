@@ -26,12 +26,12 @@ import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Provides an {@link InputStream} implementation that is based on {@link PacketReader}s which
- * streams data packet by packet.
+ * Provides an {@link InputStream} implementation that is based on {@link PacketReader}s to
+ * stream data packet by packet.
  */
 @NotThreadSafe
 public class PacketInStream extends InputStream implements BoundedStream, Seekable {
-  /** The id of the block to which this instream provides access. */
+  /** The id of the block or UFS file to which this instream provides access. */
   private final long mId;
   /** The size in bytes of the block. */
   private final long mLength;

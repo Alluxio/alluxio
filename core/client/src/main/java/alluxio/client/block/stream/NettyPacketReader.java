@@ -26,7 +26,6 @@ import com.google.common.base.Throwables;
 import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -109,11 +108,8 @@ public final class NettyPacketReader extends AbstractPacketReader {
           Protocol.ReadRequest cancelRequest =
               Protocol.ReadRequest.newBuilder().setId(mId).setCancel(true).setType(mRequestType)
                   .build();
-          ChannelFuture channelFuture = mChannel.writeAndFlush(new RPCProtoMessage(cancelRequest));
-          channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-          channelFuture = channelFuture.sync();
-          LOG.info("Read request cancelled {}.",
-              channelFuture.isSuccess() ? "success" : channelFuture.cause().getStackTrace());
+          mChannel.writeAndFlush(new RPCProtoMessage(cancelRequest))
+              .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         }
       } catch (InterruptedException e) {
         mChannel.close();
@@ -213,7 +209,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      LOG.error("Exception caught while reading response from netty channel {}.", cause);
+      LOG.error("Exception caught while reading response from netty channel.", cause);
       mLock.lock();
       try {
         mPacketReaderException = cause;
@@ -235,6 +231,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
       } finally {
         mLock.unlock();
       }
+      ctx.fireChannelUnregistered();
     }
 
     /**

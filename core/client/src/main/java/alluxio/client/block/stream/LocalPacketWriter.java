@@ -24,7 +24,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A local packet writer that simply wrtier packets from a local file.
+ * A local packet writer that simply writes packets to a local file.
  */
 @NotThreadSafe
 public final class LocalPacketWriter implements PacketWriter {

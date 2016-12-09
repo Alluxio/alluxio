@@ -12,11 +12,14 @@
 package alluxio.client.block.stream;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -35,6 +38,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 */
 @NotThreadSafe
 public abstract class AbstractPacketReader implements PacketReader {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   protected static final int MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
   protected static final long READ_TIMEOUT_MS =

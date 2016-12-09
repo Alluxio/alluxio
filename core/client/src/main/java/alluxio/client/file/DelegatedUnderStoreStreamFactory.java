@@ -51,13 +51,13 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
   }
 
   @Override
-  public InputStream create() {
+  public InputStream create(long length) {
     if (!PACKET_STREAMING_ENABLED) {
       return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mFileId,
           UnderFileSystemFileReader.Factory.create());
     } else {
       return new alluxio.client.block.stream.UnderFileSystemFileInStream(
-          mClient.getWorkerDataServerAddress(), mFileId);
+          mClient.getWorkerDataServerAddress(), mFileId, length);
     }
   }
 

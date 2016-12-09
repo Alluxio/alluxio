@@ -27,9 +27,9 @@ public final class UnderFileSystemFileInStream extends FilterInputStream {
    *
    * @param address the data server address
    * @param ufsFileId the ufs file ID
+   * @param length the length of file to read which can be set to LONG.MAX_VALUE if unknown
    */
-  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId) {
-    super(new PacketInStream(new NettyPacketReader.Factory(address, ufsFileId), ufsFileId,
-        Long.MAX_VALUE));
+  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId, long length) {
+    super(new PacketInStream(new NettyPacketReader.Factory(address, ufsFileId), ufsFileId, length));
   }
 }
