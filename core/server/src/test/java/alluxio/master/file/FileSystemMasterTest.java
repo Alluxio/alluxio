@@ -1239,19 +1239,18 @@ public final class FileSystemMasterTest {
   @Test
   public void rootConcurrentRename() throws Exception {
     final int numFiles = 100;
-    AlluxioURI[] srcUris = new AlluxioURI[numFiles];
-    AlluxioURI[] dstUris = new AlluxioURI[numFiles];
+    AlluxioURI[] srcs = new AlluxioURI[numFiles];
+    AlluxioURI[] dsts = new AlluxioURI[numFiles];
 
     for (int i = 0; i < numFiles; i++) {
-      AlluxioURI uri = new AlluxioURI("/file" + i);
-      mFileSystemMaster.createFile(uri, sNestedFileOptions);
-      srcUris[i] = uri;
-      dstUris[i] = new AlluxioURI("/renamed" + i);
+      srcs[i] = new AlluxioURI("/file" + i);
+      mFileSystemMaster.createFile(srcs[i], sNestedFileOptions);
+      dsts[i] = new AlluxioURI("/renamed" + i);
     }
     // Get baseline for single threaded rename
-    long baselineNs = serialRename(srcUris, dstUris);
+    long baselineNs = serialRename(srcs, dsts);
     // Run concurrent rename switch src and dst
-    Pair<Long, Integer> result = concurrentRename(dstUris, srcUris);
+    Pair<Long, Integer> result = concurrentRename(dsts, srcs);
     long duration = result.getFirst();
     int errors = result.getSecond();
 
@@ -1266,23 +1265,22 @@ public final class FileSystemMasterTest {
   @Test
   public void folderConcurrentRename() throws Exception {
     final int numFiles = 100;
-    AlluxioURI[] srcUris = new AlluxioURI[numFiles];
-    AlluxioURI[] dstUris = new AlluxioURI[numFiles];
+    AlluxioURI[] srcs = new AlluxioURI[numFiles];
+    AlluxioURI[] dsts = new AlluxioURI[numFiles];
 
     AlluxioURI dir = new AlluxioURI("/dir");
 
     mFileSystemMaster.createDirectory(dir, CreateDirectoryOptions.defaults());
 
     for (int i = 0; i < numFiles; i++) {
-      AlluxioURI uri = dir.join("/file" + i);
-      mFileSystemMaster.createFile(uri, sNestedFileOptions);
-      srcUris[i] = uri;
-      dstUris[i] = dir.join("/renamed" + i);
+      srcs[i] = dir.join("/file" + i);
+      mFileSystemMaster.createFile(srcs[i], sNestedFileOptions);
+      dsts[i] = dir.join("/renamed" + i);
     }
     // Get baseline for single threaded rename
-    long baselineNs = serialRename(srcUris, dstUris);
+    long baselineNs = serialRename(srcs, dsts);
     // Run concurrent rename switch src and dst
-    Pair<Long, Integer> result = concurrentRename(dstUris, srcUris);
+    Pair<Long, Integer> result = concurrentRename(dsts, srcs);
     long duration = result.getFirst();
     int errors = result.getSecond();
 
@@ -1327,7 +1325,7 @@ public final class FileSystemMasterTest {
     Pair<Long, Integer> result = concurrentRename(srcs, dsts);
     int errors = result.getSecond();
 
-    // We should get an error for all the other renames
+    // We should get an error for all but 1 rename
     Assert.assertEquals(numThreads - 1, errors);
     // Only one renamed file should exist
     Assert.assertEquals(1,
@@ -1354,7 +1352,7 @@ public final class FileSystemMasterTest {
     Pair<Long, Integer> result = concurrentRename(srcs, dsts);
     int errors = result.getSecond();
 
-    // We should get an error for all the other renames
+    // We should get an error for all but 1 rename
     Assert.assertEquals(numThreads - 1, errors);
     // Only one renamed dir should exist
     List<FileInfo> existingDirs =
@@ -1365,6 +1363,27 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.listStatus(new AlluxioURI(existingDirs.get(0).getPath()),
             ListStatusOptions.defaults());
     Assert.assertEquals(1, dirChildren.size());
+  }
+
+  @Test
+  public void sameDstConcurrentRename() throws Exception {
+    int numThreads = 10;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    for (int i = 0; i < 10; i++) {
+      srcs[i] = new AlluxioURI("/file" + i);
+      mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
+      dsts[i] = new AlluxioURI("/renamed");
+    }
+
+    Pair<Long, Integer> result = concurrentRename(srcs, dsts);
+    int errors = result.getSecond();
+
+    // We should get an error for all but 1 rename
+    Assert.assertEquals(numThreads - 1, errors);
+    // Only one renamed file should exist
+    Assert.assertEquals(1,
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
   }
 
   /**
