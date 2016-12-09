@@ -1381,9 +1381,23 @@ public final class FileSystemMasterTest {
 
     // We should get an error for all but 1 rename
     Assert.assertEquals(numThreads - 1, errors);
-    // Only one renamed file should exist
-    Assert.assertEquals(1,
-        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
+
+    List<FileInfo> files =
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
+    int renamedFiles = 0;
+    int originalFiles = 0;
+    for (FileInfo file : files) {
+      if (file.getName().startsWith("renamed")) {
+        renamedFiles++;
+      }
+      if (file.getName().startsWith("file")) {
+        originalFiles++;
+      }
+    }
+    // One renamed file should exist, and 9 original source files
+    Assert.assertEquals(10, files.size());
+    Assert.assertEquals(1, renamedFiles);
+    Assert.assertEquals(9, originalFiles);
   }
 
   /**
