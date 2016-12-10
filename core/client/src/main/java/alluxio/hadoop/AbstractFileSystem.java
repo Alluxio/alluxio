@@ -81,6 +81,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @GuardedBy("INIT_LOCK")
   private static FileSystem sFileSystem = null;
 
+  private static FileSystemContext sFileSystemContext = FileSystemContext.INSTANCE;
+
   private URI mUri = null;
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
   private Statistics mStatistics = null;
@@ -102,6 +104,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * Constructs a new {@link AbstractFileSystem} instance.
    */
   AbstractFileSystem() {}
+
+  /**
+   * Sets the {@link FileSystemContext} instance used in this class, only for injecting
+   * mocked {@link FileSystemContext} in tests.
+   *
+   * @param context the file system context
+   */
+  public static void setFileSystemContext(FileSystemContext context) {
+    sFileSystemContext = context;
+  }
 
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
@@ -447,11 +459,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       // These must be reset to pick up the change to the master address.
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
       ClientContext.init();
-      FileSystemContext.INSTANCE.reset();
+      sFileSystemContext.reset();
       LineageContext.INSTANCE.reset();
 
       // Try to connect to master, if it fails, the provided uri is invalid.
-      FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
+      FileSystemMasterClient client = sFileSystemContext.acquireMasterClient();
       try {
         client.connect();
         // Connected, initialize.
@@ -462,7 +474,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
             uri.toString(), e.toString());
         throw new IOException(e);
       } finally {
-        FileSystemContext.INSTANCE.releaseMasterClient(client);
+        sFileSystemContext.releaseMasterClient(client);
       }
     }
   }

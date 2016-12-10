@@ -45,7 +45,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -291,7 +290,7 @@ public class AbstractFileSystemTest {
 
   private void mockFileSystemContextAndMasterClient() {
     mMockFileSystemContext = Mockito.mock(FileSystemContext.class);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mMockFileSystemContext);
+    AbstractFileSystem.setFileSystemContext(mMockFileSystemContext);
     mMockFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
     Mockito.when(mMockFileSystemContext.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
