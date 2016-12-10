@@ -60,7 +60,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Base class for Apache Hadoop based Alluxio {@link org.apache.hadoop.fs.FileSystem}. This class
  * really just delegates to {@link alluxio.client.file.FileSystem} for most operations.
  *
- * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
+ * All implementing classes must define {@link #isZooKeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
 @NotThreadSafe
@@ -436,7 +436,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       ConfUtils.mergeHadoopConfiguration(conf);
       Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-      Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
+      Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, Boolean.toString(isZooKeeperMode()));
 
       // These must be reset to pick up the change to the master address.
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
@@ -456,7 +456,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @return true if zookeeper should be used
    */
-  protected abstract boolean isZookeeperMode();
+  protected abstract boolean isZooKeeperMode();
 
   @Override
   public FileStatus[] listStatus(Path path) throws IOException {

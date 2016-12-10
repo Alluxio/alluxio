@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterInquireClient;
+import alluxio.MasterZooKeeperNode;
 import alluxio.PropertyKey;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -322,6 +323,7 @@ public final class NetworkAddressUtils {
 
     try {
       sLocalHost = InetAddress.getByName(getLocalIpAddress(timeoutMs)).getCanonicalHostName();
+      LOG.info("Determined {} as the hostname for this machine", sLocalHost);
       return sLocalHost;
     } catch (UnknownHostException e) {
       throw Throwables.propagate(e);
@@ -580,24 +582,35 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Get the active master address from zookeeper for the fault tolerant Alluxio masters.
+   * Gets the active master RPC address from ZooKeeper for the fault tolerant masters.
    *
-   * @param zkLeaderPath the Zookeeper path containing the leader master address
+   * @param zkLeaderPath the ZooKeeper path containing the leader master address
    * @return InetSocketAddress the active master address retrieved from zookeeper
    */
-  public static InetSocketAddress getLeaderAddressFromZK(String zkLeaderPath) {
+  public static InetSocketAddress getLeaderRpcAddressFromZK(String zkLeaderPath) {
     Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
     Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ELECTION_PATH));
     MasterInquireClient masterInquireClient = MasterInquireClient.getClient(
         Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
         Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH), zkLeaderPath);
-    try {
-      String temp = masterInquireClient.getLeaderAddress();
-      return NetworkAddressUtils.parseInetSocketAddress(temp);
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      throw Throwables.propagate(e);
-    }
+    MasterZooKeeperNode node = masterInquireClient.getLeader();
+    return new InetSocketAddress(node.getHostname(), node.getRpcPort());
+  }
+
+  /**
+   * Gets the active master web address from ZooKeeper for the fault tolerant masters.
+   *
+   * @param zkLeaderPath the ZooKeeper path containing the leader master address
+   * @return InetSocketAddress the active master address retrieved from zookeeper
+   */
+  public static InetSocketAddress getLeaderWebAddressFromZK(String zkLeaderPath) {
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ELECTION_PATH));
+    MasterInquireClient masterInquireClient = MasterInquireClient.getClient(
+        Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
+        Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH), zkLeaderPath);
+    MasterZooKeeperNode node = masterInquireClient.getLeader();
+    return new InetSocketAddress(node.getHostname(), node.getWebPort());
   }
 
   /**

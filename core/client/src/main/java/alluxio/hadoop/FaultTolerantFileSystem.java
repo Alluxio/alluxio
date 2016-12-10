@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * built on top of.
  *
  * <p>
- * Unlike {@link FileSystem}, this class enables Zookeeper.
+ * Unlike {@link FileSystem}, this class enables ZooKeeper.
  * </p>
  */
 @NotThreadSafe
@@ -52,7 +52,7 @@ public final class FaultTolerantFileSystem extends AbstractFileSystem {
   }
 
   @Override
-  protected boolean isZookeeperMode() {
+  protected boolean isZooKeeperMode() {
     return true;
   }
 }
