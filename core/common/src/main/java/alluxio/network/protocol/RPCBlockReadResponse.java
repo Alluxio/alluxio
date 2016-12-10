@@ -60,16 +60,23 @@ public final class RPCBlockReadResponse extends RPCResponse {
    * Creates a {@link RPCBlockReadResponse} object that indicates an error for the given
    * {@link RPCBlockReadRequest}.
    *
-   * @param request the {@link RPCBlockReadRequest} to generated
-   * the {@link RPCBlockReadResponse} for
    * @param status the {@link alluxio.network.protocol.RPCResponse.Status} for the response
    * @return The generated {@link RPCBlockReadResponse} object
    */
-  public static RPCBlockReadResponse createErrorResponse(final RPCBlockReadRequest request,
-      final Status status) {
+  public static RPCBlockReadResponse createErrorResponse(long blockId, Status status) {
     Preconditions.checkArgument(status != Status.SUCCESS);
     // The response has no payload, so length must be 0.
-    return new RPCBlockReadResponse(request.getBlockId(), request.getOffset(), 0, null, status);
+    return new RPCBlockReadResponse(blockId, -1, 0, null, status);
+  }
+
+  /**
+   * Creates a {@link RPCBlockReadResponse} object that indicates a success for the given
+   * {@link RPCBlockReadRequest}.
+   *
+   * @return The generated {@link RPCBlockReadResponse} object
+   */
+  public static RPCBlockReadResponse createSuccessResponse(long blockId) {
+    return new RPCBlockReadResponse(blockId, -1, 0, null, Status.SUCCESS);
   }
 
   /**
@@ -89,6 +96,7 @@ public final class RPCBlockReadResponse extends RPCResponse {
       // use DataNettyBuffer instead of DataByteBuffer to avoid copying
       data = new DataNettyBuffer(in, (int) length);
     }
+
     return new RPCBlockReadResponse(blockId, offset, length, data, Status.fromShort(status));
   }
 
@@ -111,6 +119,13 @@ public final class RPCBlockReadResponse extends RPCResponse {
   @Override
   public DataBuffer getPayloadDataBuffer() {
     return mData;
+  }
+
+  /**
+   * @return the payload data
+   */
+  public ByteBuf getPayloadData() {
+    return (ByteBuf) mData.getNettyOutput();
   }
 
   @Override
