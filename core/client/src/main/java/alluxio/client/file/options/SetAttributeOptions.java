@@ -31,6 +31,7 @@ public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
+  // Set attribute for persist will be deprecated in Alluxio 1.4 release.
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
