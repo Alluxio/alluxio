@@ -39,23 +39,27 @@ message Status {
   optional Exception cause = 3;
 }
 
+// The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
 enum RequestType {
   ALLUXIO_BLOCK = 0;
   UFS_FILE = 1;
 }
 
+// The read request.
 message ReadRequest {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
   optional int64 id = 2;
   optional int64 offset = 3;
   optional int64 length = 4;
+  // If set, this request is to cancel the reading request for the id.
   optional bool cancel = 5;
 
   optional int64 lock_id = 6;
   optional int64 session_id = 7;
 }
 
+// The write request.
 message WriteRequest {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
@@ -65,10 +69,12 @@ message WriteRequest {
   optional int64 session_id = 4;
 }
 
+// The response.
 message Response {
   optional Status status = 1;
 }
 
+// The netty data server version.
 enum DataServerVersion {
   V0 = 0; // Pre-proto version.
   V1 = 1; // Proto version.

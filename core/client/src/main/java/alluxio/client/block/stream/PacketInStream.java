@@ -12,6 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.BoundedStream;
+import alluxio.client.PositionedReadable;
 import alluxio.client.Seekable;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
@@ -20,6 +21,7 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -30,7 +32,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * stream data packet by packet.
  */
 @NotThreadSafe
-public class PacketInStream extends InputStream implements BoundedStream, Seekable {
+public class PacketInStream extends InputStream implements BoundedStream, Seekable,
+    PositionedReadable {
   /** The id of the block or UFS file to which this instream provides access. */
   private final long mId;
   /** The size in bytes of the block. */
@@ -108,6 +111,54 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
     mCurrentPacket.readBytes(b, off, toRead);
     mPos += toRead;
     return toRead;
+  }
+
+  @Override
+  public int read(long pos, byte[] b, int off, int len) throws IOException {
+    if (len == 0) {
+      return 0;
+    }
+    int lenCopy = len;
+    try (PacketReader reader = mPacketReaderFactory.create(pos, len)) {
+      // We try to read len bytes instead of returning after reading one packet because
+      // it is not free to create/close a PacketReader.
+      while (len > 0) {
+        ByteBuf buf = null;
+        try {
+          buf = reader.readPacket();
+          if (buf == null) {
+            break;
+          }
+          Preconditions.checkState(buf.readableBytes() <= len);
+          int toRead = buf.readableBytes();
+          len -= toRead;
+          off += toRead;
+          buf.readBytes(b, off, toRead);
+          return toRead;
+        } finally {
+          if (buf != null) {
+            buf.release();
+          }
+        }
+      }
+    }
+    if (lenCopy == len) {
+      return -1;
+    }
+    return lenCopy - len;
+  }
+
+  @Override
+  public void readFully(long pos, byte[] b, int off, int len) throws IOException {
+    int bytesRead = read(pos, b, off, len);
+    if (bytesRead == -1 || bytesRead < len) {
+      throw new EOFException(String.format("%d requested but %d is read", len, bytesRead));
+    }
+  }
+
+  @Override
+  public void readFully(long pos, byte[] b) throws IOException {
+    readFully(pos, b, 0, b.length);
   }
 
   @Override
