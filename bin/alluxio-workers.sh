@@ -34,7 +34,7 @@ ALLUXIO_LOG_DIR="${BIN}/../logs"
 mkdir -p "${ALLUXIO_LOG_DIR}"
 ALLUXIO_TASK_LOG="${ALLUXIO_LOG_DIR}/task.log"
 
-echo "Executing the following command remotely on all workers: $@" >> ${ALLUXIO_TASK_LOG}
+echo "Executing the following command on all worker nodes: $@" >> ${ALLUXIO_TASK_LOG}
 
 for worker in $(echo ${HOSTLIST}); do
   echo "[${worker}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}

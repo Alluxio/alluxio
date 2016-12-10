@@ -23,9 +23,9 @@ Where component is one of:
   local   \tStop local master, proxy, and worker.
   master  \tStop local master.
   proxy   \tStop local proxy.
-  proxies \tStop all remote proxies.
+  proxies \tStop proxies on worker nodes.
   worker  \tStop local worker.
-  workers \tStop all remote workers.
+  workers \tStop workers on worker nodes.
 
 -h  display this help."
 
@@ -41,11 +41,11 @@ stop_worker() {
   ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.worker.AlluxioWorker"
 }
 
-stop_remote_proxies() {
+stop_proxies() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio" "killAll" "alluxio.proxy.AlluxioProxy"
 }
 
-stop_remote_workers() {
+stop_workers() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio" "killAll" "alluxio.worker.AlluxioWorker"
 }
 
@@ -53,8 +53,8 @@ WHAT=${1:--h}
 
 case "${WHAT}" in
   all)
-    stop_remote_proxies
-    stop_remote_workers
+    stop_proxies
+    stop_workers
     stop_proxy
     stop_master
     ;;
@@ -70,13 +70,13 @@ case "${WHAT}" in
     stop_proxy
     ;;
   proxies)
-    stop_remote_proxies
+    stop_proxies
     ;;
   worker)
     stop_worker
     ;;
   workers)
-    stop_remote_workers
+    stop_workers
     ;;
   -h)
     echo -e "${USAGE}"
