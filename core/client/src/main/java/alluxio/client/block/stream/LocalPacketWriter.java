@@ -112,7 +112,9 @@ public final class LocalPacketWriter implements PacketWriter {
     if (pos <= mPosReserved) {
       return;
     }
-    mBlockWorkerClient.requestSpace(mBlockId, Math.max(pos - mPosReserved, FILE_BUFFER_BYTES));
+    long toReserve = Math.max(pos - mPosReserved, FILE_BUFFER_BYTES);
+    mBlockWorkerClient.requestSpace(mBlockId, toReserve);
+    mPosReserved += toReserve;
   }
 }
 
