@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * stream data packet by packet.
  */
 @NotThreadSafe
-public class PacketInStream extends InputStream implements BoundedStream, Seekable,
+public final class PacketInStream extends InputStream implements BoundedStream, Seekable,
     PositionedReadable {
   /** The id of the block or UFS file to which this instream provides access. */
   private final long mId;
