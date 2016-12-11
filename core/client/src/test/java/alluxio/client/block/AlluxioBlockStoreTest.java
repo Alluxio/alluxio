@@ -108,6 +108,7 @@ public final class AlluxioBlockStoreTest {
   private AlluxioBlockStore mBlockStore;
   private Channel mChannel;
   private ChannelPipeline mPipeline;
+  private InetSocketAddress mLocalAddr;
 
   @Before
   public void before() throws Exception {
@@ -120,6 +121,8 @@ public final class AlluxioBlockStoreTest {
     // Mock block store context to return our mock clients
     Mockito.when(blockStoreContext.createWorkerClient(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(mBlockWorkerClient);
+    mLocalAddr = new InetSocketAddress(NetworkAddressUtils.getLocalHostName(), 0);
+    Mockito.when(mBlockWorkerClient.getDataServerAddress()).thenReturn(mLocalAddr);
     Mockito.when(blockStoreContext.acquireMasterClientResource()).thenReturn(
         new DummyCloseableResource<>(mMasterClient));
 

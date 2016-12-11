@@ -41,14 +41,4 @@ public final class UnderFileSystemFileInStream extends FilterInputStream
   public int read(long pos, byte[] b, int off, int len) throws IOException {
     return ((PacketInStream) in).read(pos, b, off, len);
   }
-
-  @Override
-  public void readFully(long pos, byte[] b, int off, int len) throws IOException {
-    ((PacketInStream) in).readFully(pos, b, off, len);
-  }
-
-  @Override
-  public void readFully(long pos, byte[] b) throws IOException {
-    ((PacketInStream) in).readFully(pos, b);
-  }
 }

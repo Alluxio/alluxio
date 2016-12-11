@@ -21,7 +21,6 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -118,6 +117,10 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
     if (len == 0) {
       return 0;
     }
+    if (pos < 0 || pos >= mLength) {
+      return -1;
+    }
+
     int lenCopy = len;
     try (PacketReader reader = mPacketReaderFactory.create(pos, len)) {
       // We try to read len bytes instead of returning after reading one packet because
@@ -131,9 +134,9 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
           }
           Preconditions.checkState(buf.readableBytes() <= len);
           int toRead = buf.readableBytes();
+          buf.readBytes(b, off, toRead);
           len -= toRead;
           off += toRead;
-          buf.readBytes(b, off, toRead);
           return toRead;
         } finally {
           if (buf != null) {
@@ -146,19 +149,6 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
       return -1;
     }
     return lenCopy - len;
-  }
-
-  @Override
-  public void readFully(long pos, byte[] b, int off, int len) throws IOException {
-    int bytesRead = read(pos, b, off, len);
-    if (bytesRead == -1 || bytesRead < len) {
-      throw new EOFException(String.format("%d requested but %d is read", len, bytesRead));
-    }
-  }
-
-  @Override
-  public void readFully(long pos, byte[] b) throws IOException {
-    readFully(pos, b, 0, b.length);
   }
 
   @Override

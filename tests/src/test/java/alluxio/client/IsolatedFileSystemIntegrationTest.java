@@ -66,7 +66,7 @@ public class IsolatedFileSystemIntegrationTest {
   public void lockBlockTest1() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int numOfFiles = 5;
-    int fileSize = (WORKER_CAPACITY_BYTES - USER_QUOTA_UNIT_BYTES) / numOfFiles;
+    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);

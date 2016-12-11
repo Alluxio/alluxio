@@ -11,7 +11,6 @@
 
 package alluxio.client;
 
-import java.io.EOFException;
 import java.io.IOException;
 
 /**
@@ -27,8 +26,6 @@ import java.io.IOException;
  * Independent of whether or not they are thread safe, some implementations
  * may make the intermediate state of the system, specifically the position
  * obtained in {@code Seekable.getPos()} visible.
- *
- * This interface is directly copied from hadoop repo.
  */
 public interface PositionedReadable {
   /**
@@ -45,32 +42,4 @@ public interface PositionedReadable {
    * @throws IOException IO problems
    */
   int read(long position, byte[] buffer, int offset, int length) throws IOException;
-
-  /**
-   * Read the specified number of bytes, from a given
-   * position within a file. This does not
-   * change the current offset of a file, and is thread-safe.
-   *
-   * <i>Warning: Not all filesystems satisfy the thread-safety requirement.</i>
-   * @param position position within file
-   * @param buffer destination buffer
-   * @param offset offset in the buffer
-   * @param length number of bytes to read
-   * @throws IOException IO problems
-   * @throws EOFException the end of the data was reached before the read operation completed
-   */
-  void readFully(long position, byte[] buffer, int offset, int length) throws IOException;
-
-  /**
-   * Read number of bytes equal to the length of the buffer, from a given
-   * position within a file. This does not
-   * change the current offset of a file, and is thread-safe.
-   *
-   * <i>Warning: Not all filesystems satisfy the thread-safety requirement.</i>
-   * @param position position within file
-   * @param buffer destination buffer
-   * @throws IOException IO problems
-   * @throws EOFException the end of the data was reached before the read operation completed
-   */
-  void readFully(long position, byte[] buffer) throws IOException;
 }

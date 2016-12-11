@@ -11,7 +11,10 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.client.PositionedReadable;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
@@ -32,7 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * storage client.
  */
 @NotThreadSafe
-public final class UnderStoreBlockInStream extends BlockInStream {
+public final class UnderStoreBlockInStream extends BlockInStream implements PositionedReadable {
+  private static final boolean PACKET_STREAMING_ENABLED =
+      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
+
   /**
    * The block size of the file. See {@link #getLength()} for more length information.
    */
@@ -143,6 +149,34 @@ public final class UnderStoreBlockInStream extends BlockInStream {
       Metrics.BYTES_READ_UFS.inc(bytesRead);
     }
     return bytesRead;
+  }
+
+  @Override
+  public int read(long pos, byte[] b, int off, int len) throws IOException {
+    if (!PACKET_STREAMING_ENABLED) {
+      throw new RuntimeException(
+          "PositionedReadable interface is implemented only if packet streaming is enabled.");
+    }
+
+    if (pos >= mLength) {
+      return -1;
+    }
+
+    if (mUnderStoreStream instanceof PositionedReadable) {
+      return ((PositionedReadable) mUnderStoreStream).read(pos, b, off, len);
+    } else if (mUnderStoreStream instanceof org.apache.hadoop.fs.PositionedReadable) {
+      return ((org.apache.hadoop.fs.PositionedReadable) mUnderStoreStream).read(pos, b, off, len);
+    }  else {
+      synchronized (this) {
+        long oldPos = mPos;
+        try {
+          seek(pos);
+          return mUnderStoreStream.read(b, off, len);
+        } finally {
+          seek(oldPos);
+        }
+      }
+    }
   }
 
   @Override
