@@ -42,11 +42,10 @@ public interface PositionedReadable {
    * @param offset offset in the buffer
    * @param length number of bytes to read
    * @return actual number of bytes read; -1 means "none"
-   * @throws IOException IO problems.
+   * @throws IOException IO problems
    */
-  int read(long position, byte[] buffer, int offset, int length)
-    throws IOException;
-  
+  int read(long position, byte[] buffer, int offset, int length) throws IOException;
+
   /**
    * Read the specified number of bytes, from a given
    * position within a file. This does not
@@ -57,13 +56,11 @@ public interface PositionedReadable {
    * @param buffer destination buffer
    * @param offset offset in the buffer
    * @param length number of bytes to read
-   * @throws IOException IO problems.
-   * @throws EOFException the end of the data was reached before
-   * the read operation completed
+   * @throws IOException IO problems
+   * @throws EOFException the end of the data was reached before the read operation completed
    */
-  void readFully(long position, byte[] buffer, int offset, int length)
-    throws IOException;
-  
+  void readFully(long position, byte[] buffer, int offset, int length) throws IOException;
+
   /**
    * Read number of bytes equal to the length of the buffer, from a given
    * position within a file. This does not
@@ -72,9 +69,8 @@ public interface PositionedReadable {
    * <i>Warning: Not all filesystems satisfy the thread-safety requirement.</i>
    * @param position position within file
    * @param buffer destination buffer
-   * @throws IOException IO problems.
-   * @throws EOFException the end of the data was reached before
-   * the read operation completed
+   * @throws IOException IO problems
+   * @throws EOFException the end of the data was reached before the read operation completed
    */
   void readFully(long position, byte[] buffer) throws IOException;
 }

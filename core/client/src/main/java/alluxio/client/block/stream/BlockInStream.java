@@ -12,6 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.BoundedStream;
+import alluxio.client.PositionedReadable;
 import alluxio.client.Seekable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockStoreContext;
@@ -39,7 +40,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio Stream interfaces.
  */
 @NotThreadSafe
-public final class BlockInStream extends FilterInputStream implements BoundedStream, Seekable {
+public final class BlockInStream extends FilterInputStream implements BoundedStream, Seekable,
+    PositionedReadable {
   /** Helper to manage closeables. */
   private final Closer mCloser;
   private final BlockWorkerClient mBlockWorkerClient;
@@ -130,6 +132,21 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
   @Override
   public void seek(long pos) throws IOException {
     ((PacketInStream) in).seek(pos);
+  }
+
+  @Override
+  public int read(long pos, byte[] b, int off, int len) throws IOException {
+    return ((PacketInStream) in).read(pos, b, off, len);
+  }
+
+  @Override
+  public void readFully(long pos, byte[] b, int off, int len) throws IOException {
+    ((PacketInStream) in).readFully(pos, b, off, len);
+  }
+
+  @Override
+  public void readFully(long pos, byte[] b) throws IOException {
+    ((PacketInStream) in).readFully(pos, b);
   }
 
   /**

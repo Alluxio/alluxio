@@ -18,6 +18,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
+import alluxio.client.PositionedReadable;
 import alluxio.client.Seekable;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.BufferedBlockOutStream;
@@ -40,6 +41,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -57,8 +59,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public class FileInStream extends InputStream implements BoundedStream, Seekable {
+public class FileInStream extends InputStream implements BoundedStream, Seekable,
+    PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  private static final boolean PACKET_STREAMING_ENABLED =
+      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
 
   /** The instream options. */
   private final InStreamOptions mInStreamOptions;
@@ -234,6 +240,53 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   @Override
+  public int read(long pos, byte[] b, int off, int len) throws IOException {
+    if (!PACKET_STREAMING_ENABLED) {
+      throw new RuntimeException(
+          "PositionedReadable interface is implemented only if packet streaming is enabled.");
+    }
+    if (pos >= mFileLength) {
+      return -1;
+    }
+    int lenCopy = len;
+
+    while (len > 0) {
+      if (pos >= mFileLength) {
+        break;
+      }
+      long blockId = getBlockId(pos);
+      long blockPos = pos % mBlockSize;
+      try (InputStream inputStream = getBlockInStream(blockId, true)) {
+        assert inputStream instanceof PositionedReadable;
+        int bytesRead = ((PositionedReadable) inputStream).read(blockPos, b, off, len);
+        Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
+        pos += bytesRead;
+        off += bytesRead;
+        len -= bytesRead;
+      }
+    }
+    return lenCopy - len;
+  }
+
+  @Override
+  public void readFully(long pos, byte[] b, int off, int len) throws IOException {
+    while (len > 0) {
+      int bytesRead = read(pos, b, off, len);
+      if (bytesRead == -1) {
+        throw new EOFException(String.format("%d requested but %d is read", len, bytesRead));
+      }
+      pos += bytesRead;
+      off += bytesRead;
+      len -= bytesRead;
+    }
+  }
+
+  @Override
+  public void readFully(long pos, byte[] b) throws IOException {
+    readFully(pos, b, 0, b.length);
+  }
+
+  @Override
   public long remaining() {
     return mFileLength - mPos;
   }
@@ -387,7 +440,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (remaining() <= 0) {
       return -1;
     }
-    int index = (int) (mPos / mBlockSize);
+    return getBlockId(mPos);
+  }
+
+  /**
+   * @param pos the pos
+   * @return the block ID based on the pos
+   */
+  private long getBlockId(long pos) {
+    int index = (int) (pos / mBlockSize);
     Preconditions
         .checkState(index < mStatus.getBlockIds().size(), PreconditionMessage.ERR_BLOCK_INDEX);
     return mStatus.getBlockIds().get(index);
@@ -501,7 +562,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * This function is only called in {@link #updateStreams()}.
    *
    * @param blockId cached result of {@link #getCurrentBlockId()}
-   * @throws IOException if the next {@link BlockInStream} cannot be obtained
+   * @throws IOException if the next block in stream cannot be obtained
    */
   private void updateBlockInStream(long blockId) throws IOException {
     if (mCurrentBlockInStream != null) {
@@ -513,8 +574,19 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (blockId < 0) {
       return;
     }
+    mCurrentBlockInStream = getBlockInStream(blockId, false);
+  }
+
+  /**
+   * Gets the block in stream corresponding a block ID.
+   *
+   * @param blockId the block ID
+   * @return the block in stream
+   * @throws IOException if the block in stream cannot be obtained
+   */
+  private InputStream getBlockInStream(long blockId, boolean noPromote) throws IOException {
     try {
-      if (mAlluxioStorageType.isPromote()) {
+      if (mAlluxioStorageType.isPromote() && !noPromote) {
         try {
           mContext.getAlluxioBlockStore().promote(blockId);
         } catch (IOException e) {
@@ -522,8 +594,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
-      mCurrentBlockInStream =
-          mContext.getAlluxioBlockStore().getInStream(blockId, mInStreamOptions);
+      return mContext.getAlluxioBlockStore().getInStream(blockId, mInStreamOptions);
     } catch (IOException e) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
           e);
@@ -533,8 +604,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         throw e;
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
-      mCurrentBlockInStream =
-          createUnderStoreBlockInStream(blockStart, getBlockSize(blockStart), mStatus.getUfsPath());
+      return createUnderStoreBlockInStream(blockStart, getBlockSize(blockStart),
+          mStatus.getUfsPath());
     }
   }
 
