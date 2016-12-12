@@ -19,6 +19,7 @@ import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -26,6 +27,7 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -49,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +81,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @GuardedBy("INIT_LOCK")
   private static FileSystem sFileSystem = null;
 
+  private static FileSystemContext sFileSystemContext = FileSystemContext.INSTANCE;
+
   private URI mUri = null;
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
   private Statistics mStatistics = null;
@@ -99,6 +104,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * Constructs a new {@link AbstractFileSystem} instance.
    */
   AbstractFileSystem() {}
+
+  /**
+   * Sets the {@link FileSystemContext} instance used in this class, only for injecting
+   * mocked {@link FileSystemContext} in tests.
+   *
+   * @param context the file system context
+   */
+  public static void setFileSystemContext(FileSystemContext context) {
+    sFileSystemContext = context;
+  }
 
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
@@ -423,13 +438,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mUri = URI.create(mAlluxioHeader);
 
     if (sInitialized) {
+      checkMasterAddress();
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
       if (sInitialized) {
+        checkMasterAddress();
         return;
       }
+
       // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
       // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
       // We assume here that all clients use the same configuration.
@@ -441,12 +459,36 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       // These must be reset to pick up the change to the master address.
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
       ClientContext.init();
-      FileSystemContext.INSTANCE.reset();
+      sFileSystemContext.reset();
       LineageContext.INSTANCE.reset();
 
-      sFileSystem = FileSystem.Factory.get();
-      sInitialized = true;
+      // Try to connect to master, if it fails, the provided uri is invalid.
+      FileSystemMasterClient client = sFileSystemContext.acquireMasterClient();
+      try {
+        client.connect();
+        // Connected, initialize.
+        sFileSystem = FileSystem.Factory.get();
+        sInitialized = true;
+      } catch (ConnectionFailedException | IOException e) {
+        LOG.error("Failed to connect to the provided master address {}: {}.",
+            uri.toString(), e.toString());
+        throw new IOException(e);
+      } finally {
+        sFileSystemContext.releaseMasterClient(client);
+      }
     }
+  }
+
+  // Assures the mUri is the same as the master address in the current client context.
+  private void checkMasterAddress() throws IOException {
+    InetSocketAddress masterAddress = ClientContext.getMasterAddress();
+    boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
+    boolean samePort = masterAddress.getPort() == mUri.getPort();
+    if (sameHost && samePort) {
+      return;
+    }
+    throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+        .getMessage(mUri.getHost() + ":" + mUri.getPort(), masterAddress));
   }
 
   /**
