@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -83,8 +84,19 @@ public final class MasterInquireClient {
     long startTime = System.currentTimeMillis();
     int tried = 0;
     try {
-      ZooKeeper zookeeper = mClient.getZookeeperClient().getZooKeeper();
+      CuratorZookeeperClient curatorClient = mClient.getZookeeperClient();
+      // #blockUntilConnectedOrTimedOut() will block for at least 1 second, even if the client is
+      // connected within a few milliseconds. We improve the latency here by first waiting on the
+      // connection status explicitly.
+      for (int i = 0; i < 50; i++) {
+        if (curatorClient.isConnected()) {
+          break;
+        }
+        CommonUtils.sleepMs(20);
+      }
+      curatorClient.blockUntilConnectedOrTimedOut();
       while (tried < mMaxTry) {
+        ZooKeeper zookeeper = curatorClient.getZooKeeper();
         if (zookeeper.exists(mLeaderPath, false) != null) {
           List<String> masters = zookeeper.getChildren(mLeaderPath, null);
           LOG.info("Master addresses: {}", masters);
