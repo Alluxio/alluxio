@@ -157,7 +157,8 @@ public final class SetAttributeOptions {
    * @return the updated options object
    */
   public SetAttributeOptions setPersisted(boolean persisted) {
-    mLogger.info("DEPRECATED: SetAttribute for persist will be deprecated in Alluxio 1.4 release.");
+    mLogger.warn("Setting the value of the persisted attribute is deprecated since version 1.4 and "
+        + "will be removed in 2.0.");
     mPersisted = persisted;
     return this;
   }

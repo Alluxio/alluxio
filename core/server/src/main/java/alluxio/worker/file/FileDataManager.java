@@ -329,27 +329,26 @@ public final class FileDataManager {
       }
       while (!ufsDirsToMakeWithOptions.empty()) {
         Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
-        createUfsDirWithRetry(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond());
+        if (!createUfsDirWithRetry(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
+          throw new IOException("Failed to create dir: " + ufsDirAndPerm.getFirst());
+        }
       }
     }
     return dstPath.toString();
   }
 
-  private void createUfsDirWithRetry(String dirPath, MkdirsOptions options) throws IOException {
+  private boolean createUfsDirWithRetry(String dirPath, MkdirsOptions options) throws IOException {
     final int maxRetry = 10;
     int numRetry = 0;
     // TODO(peis): Retry only if we are making progress.
     for (; numRetry < maxRetry; numRetry++) {
       if (mUfs.isDirectory(dirPath) || mUfs.mkdirs(dirPath, options)) {
-        return;
+        return true;
       }
       // The parentPath can be created between the exists check and mkdirs call by other threads.
       LOG.warn("Failed to create dir: {}, retrying", dirPath);
     }
-    if (numRetry == maxRetry && !mUfs.isDirectory(dirPath)) {
-      throw new IOException(
-          String.format("Failed to create dir: %s after %d retries.", dirPath, numRetry));
-    }
+    return false;
   }
 
   /**
