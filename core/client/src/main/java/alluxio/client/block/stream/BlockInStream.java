@@ -50,6 +50,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
   private final BlockWorkerClient mBlockWorkerClient;
   private final long mBlockId;
   private final boolean mLocal;
+  private final PacketInStream mInputStream;
 
   /**
    * Creates an instance of {@link BlockInStream}.
@@ -73,7 +74,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       LockBlockResult lockBlockResult = blockWorkerClient.lockBlock(blockId);
       LocalFileBlockReader localFileBlockReader =
           new LocalFileBlockReader(lockBlockResult.getBlockPath());
-      PacketReader.Factory factory = new LocalPacketReader.Factory(localFileBlockReader);
+      PacketReader.Factory factory = new LocalFilePacketReader.Factory(localFileBlockReader);
       return new BlockInStream(factory, blockId, blockSize, blockWorkerClient, options);
     } catch (AlluxioException e) {
       closer.close();
@@ -130,17 +131,17 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
 
   @Override
   public long remaining() {
-    return ((PacketInStream) in).remaining();
+    return mInputStream.remaining();
   }
 
   @Override
   public void seek(long pos) throws IOException {
-    ((PacketInStream) in).seek(pos);
+    mInputStream.seek(pos);
   }
 
   @Override
   public int read(long pos, byte[] b, int off, int len) throws IOException {
-    return ((PacketInStream) in).read(pos, b, off, len);
+    return mInputStream.read(pos, b, off, len);
   }
 
   @Override
@@ -167,11 +168,13 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       BlockWorkerClient blockWorkerClient, InStreamOptions options) throws IOException {
     super(new PacketInStream(packetReaderFactory, blockId, blockSize));
 
+    assert in instanceof PacketInStream;
+    mInputStream = (PacketInStream) in;
     mBlockId = blockId;
     mBlockWorkerClient = blockWorkerClient;
 
     mCloser = Closer.create();
-    mCloser.register(in);
+    mCloser.register(mInputStream);
     mCloser.register(mBlockWorkerClient);
     try {
       mLocal = blockWorkerClient.getDataServerAddress().getHostName()

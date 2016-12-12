@@ -14,11 +14,11 @@ package alluxio.client;
 import java.net.InetSocketAddress;
 
 /**
- * Something that can be located.
+ * Something that can be located by an {@link InetSocketAddress} such as a remote block in stream.
  */
 public interface Locatable {
   /**
-   * @return the location
+   * @return the network location
    */
   InetSocketAddress location();
 

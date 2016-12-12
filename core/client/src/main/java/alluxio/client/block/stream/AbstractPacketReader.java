@@ -79,7 +79,7 @@ public abstract class AbstractPacketReader implements PacketReader {
     mStart = offset;
     mPosToRead = offset;
     mBytesToRead = len;
-    Preconditions.checkState(offset >= 0 && len > 0);
+    Preconditions.checkArgument(offset >= 0 && len > 0);
   }
 
   @Override
@@ -141,8 +141,14 @@ public abstract class AbstractPacketReader implements PacketReader {
     return mStart + mBytesToRead - mPosToRead;
   }
 
+  /**
+   * Pauses the underlying packet reader.
+   */
   protected abstract void pause();
 
+  /**
+   * Resumes the underlying packet reader.
+   */
   protected abstract void resume();
 
   /**

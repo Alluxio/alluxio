@@ -65,7 +65,7 @@ public final class UnderStoreBlockInStream extends BlockInStream implements Posi
    */
   public interface UnderStoreStreamFactory extends AutoCloseable {
     /**
-     * @param length the length to read from the file (set to Long.MAX_VALUE if unknown)
+     * @param length the maximum length to read from the file (set to Long.MAX_VALUE if unknown)
      * @return an input stream to under storage
      * @throws IOException if an IO exception occurs
      */
@@ -102,6 +102,10 @@ public final class UnderStoreBlockInStream extends BlockInStream implements Posi
 
   @Override
   public void close() throws IOException {
+    // TODO(peis): Use Closer.
+    // The order of the two closes are important because mUnderStoreStream.close() might still
+    // use resources (e.g. output stream) opened on the server side which are closed by
+    // mUnderStoreStreamFactory.close().
     mUnderStoreStream.close();
     mUnderStoreStreamFactory.close();
   }
@@ -153,10 +157,8 @@ public final class UnderStoreBlockInStream extends BlockInStream implements Posi
 
   @Override
   public int read(long pos, byte[] b, int off, int len) throws IOException {
-    if (!PACKET_STREAMING_ENABLED) {
-      throw new RuntimeException(
-          "PositionedReadable interface is implemented only if packet streaming is enabled.");
-    }
+    Preconditions.checkState(PACKET_STREAMING_ENABLED,
+        "PositionedReadable interface is implemented only if packet streaming is enabled.");
 
     if (pos >= mLength) {
       return -1;
@@ -164,17 +166,19 @@ public final class UnderStoreBlockInStream extends BlockInStream implements Posi
 
     if (mUnderStoreStream instanceof PositionedReadable) {
       return ((PositionedReadable) mUnderStoreStream).read(pos, b, off, len);
-    } else if (mUnderStoreStream instanceof org.apache.hadoop.fs.PositionedReadable) {
+    }
+    if (mUnderStoreStream instanceof org.apache.hadoop.fs.PositionedReadable) {
       return ((org.apache.hadoop.fs.PositionedReadable) mUnderStoreStream).read(pos, b, off, len);
-    }  else {
-      synchronized (this) {
-        long oldPos = mPos;
-        try {
-          seek(pos);
-          return mUnderStoreStream.read(b, off, len);
-        } finally {
-          seek(oldPos);
-        }
+    }
+
+    // This happens only when UFS delegation is off and the UFS is not HDFS.
+    synchronized (this) {
+      long oldPos = mPos;
+      try {
+        seek(pos);
+        return mUnderStoreStream.read(b, off, len);
+      } finally {
+        seek(oldPos);
       }
     }
   }

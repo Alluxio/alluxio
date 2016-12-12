@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A local packet writer that simply writes packets to a local file.
  */
 @NotThreadSafe
-public final class LocalPacketWriter implements PacketWriter {
+public final class LocalFilePacketWriter implements PacketWriter {
   private static final long PACKET_SIZE =
       Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
   private static final long FILE_BUFFER_BYTES =
@@ -41,16 +41,16 @@ public final class LocalPacketWriter implements PacketWriter {
   private boolean mClosed = false;
 
   /**
-   * Creates an instance of {@link LocalPacketWriter}.
+   * Creates an instance of {@link LocalFilePacketWriter}.
    *
    * @param blockWorkerClient the block worker client, not owned by this class
    * @param blockId the block ID
    * @throws IOException if it fails to create the packet writer
-   * @return the {@link LocalPacketWriter} created
+   * @return the {@link LocalFilePacketWriter} created
    */
-  public static LocalPacketWriter createLocalPacketWriter(BlockWorkerClient blockWorkerClient,
+  public static LocalFilePacketWriter createLocalPacketWriter(BlockWorkerClient blockWorkerClient,
       long blockId) throws IOException {
-    return new LocalPacketWriter(blockWorkerClient, blockId);
+    return new LocalFilePacketWriter(blockWorkerClient, blockId);
   }
 
   @Override
@@ -88,13 +88,14 @@ public final class LocalPacketWriter implements PacketWriter {
   }
 
   /**
-   * Creates an instance of {@link LocalPacketWriter}.
+   * Creates an instance of {@link LocalFilePacketWriter}.
    *
    * @param blockWorkerClient the block worker client, not owned by this class
    * @param blockId the block ID
    * @throws IOException if it fails to create the packet writer
    */
-  private LocalPacketWriter(BlockWorkerClient blockWorkerClient, long blockId) throws IOException {
+  private LocalFilePacketWriter(BlockWorkerClient blockWorkerClient, long blockId)
+      throws IOException {
     String blockPath = blockWorkerClient.requestBlockLocation(blockId, FILE_BUFFER_BYTES);
     mWriter = new LocalFileBlockWriter(blockPath);
     mPosReserved += FILE_BUFFER_BYTES;

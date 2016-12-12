@@ -43,6 +43,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
   private final long mBlockSize;
   private final Closer mCloser;
   private final BlockWorkerClient mBlockWorkerClient;
+  private final PacketOutStream mOutStream;
   private boolean mClosed;
 
   /**
@@ -65,7 +66,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
     try {
       BlockWorkerClient client = closer.register(context.createWorkerClient(workerNetAddress));
       PacketWriter packetWriter =
-          closer.register(LocalPacketWriter.createLocalPacketWriter(client, blockId));
+          closer.register(LocalFilePacketWriter.createLocalPacketWriter(client, blockId));
       return new BlockOutStream(blockId, blockSize, client, packetWriter, options);
     } catch (IOException e) {
       closer.close();
@@ -104,17 +105,17 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
 
   @Override
   public void write(byte[] b) throws IOException {
-    out.write(b);
+    mOutStream.write(b);
   }
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    out.write(b, off, len);
+    mOutStream.write(b, off, len);
   }
 
   @Override
   public long remaining() {
-    return ((PacketOutStream) out).remaining();
+    return mOutStream.remaining();
   }
 
   @Override
@@ -169,6 +170,8 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
       OutStreamOptions options) throws IOException {
     super(new PacketOutStream(packetWriter, blockSize));
 
+    assert out instanceof PacketOutStream;
+    mOutStream = (PacketOutStream) out;
     mBlockId = blockId;
     mBlockSize = blockSize;
     mCloser = Closer.create();

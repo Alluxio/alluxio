@@ -269,7 +269,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
     private final Protocol.RequestType mRequestType;
 
     /**
-     * Creates an instance of {@link LocalPacketReader.Factory} for block reads.
+     * Creates an instance of {@link NettyPacketReader.Factory} for block reads.
      *
      * @param address the worker address
      * @param blockId the block ID
@@ -285,7 +285,7 @@ public final class NettyPacketReader extends AbstractPacketReader {
     }
 
     /**
-     * Creates an instance of {@link LocalPacketReader.Factory} for UFS file reads.
+     * Creates an instance of {@link NettyPacketReader.Factory} for UFS file reads.
      *
      * @param address the worker address
      * @param ufsFileId the UFS file ID

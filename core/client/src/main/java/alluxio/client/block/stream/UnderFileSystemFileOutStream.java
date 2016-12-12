@@ -25,6 +25,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UnderFileSystemFileOutStream extends FilterOutputStream {
+  private final PacketOutStream mOutStream;
+
   /**
    * Creates an instance of {@link UnderFileSystemFileOutStream}.
    *
@@ -36,15 +38,17 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
       throws IOException {
     super(new PacketOutStream(new NettyPacketWriter(address, ufsFileId, Long.MAX_VALUE, -1,
         Protocol.RequestType.UFS_FILE), Long.MAX_VALUE));
+    assert out instanceof PacketOutStream;
+    mOutStream = (PacketOutStream) out;
   }
 
   @Override
   public void write(byte[] b) throws IOException {
-    out.write(b);
+    mOutStream.write(b);
   }
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    out.write(b, off, len);
+    mOutStream.write(b, off, len);
   }
 }

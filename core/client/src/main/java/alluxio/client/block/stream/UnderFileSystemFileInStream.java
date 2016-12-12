@@ -26,6 +26,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UnderFileSystemFileInStream extends FilterInputStream
     implements PositionedReadable {
+  private final PacketInStream mInStream;
+
   /**
    * Creates an instance of {@link UnderFileSystemFileInStream}.
    *
@@ -35,10 +37,12 @@ public final class UnderFileSystemFileInStream extends FilterInputStream
    */
   public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId, long length) {
     super(new PacketInStream(new NettyPacketReader.Factory(address, ufsFileId), ufsFileId, length));
+    assert in instanceof PacketInStream;
+    mInStream = (PacketInStream) in;
   }
 
   @Override
   public int read(long pos, byte[] b, int off, int len) throws IOException {
-    return ((PacketInStream) in).read(pos, b, off, len);
+    return mInStream.read(pos, b, off, len);
   }
 }

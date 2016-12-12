@@ -23,10 +23,10 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A local packet reader that simply reads packets from a local file.
+ * A packet reader that simply reads packets from a local file.
  */
 @NotThreadSafe
-public final class LocalPacketReader implements PacketReader {
+public final class LocalFilePacketReader implements PacketReader {
   private static final long LOCAL_READ_PACKET_SIZE =
       Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
 
@@ -37,13 +37,13 @@ public final class LocalPacketReader implements PacketReader {
   private final long mEnd;
 
   /**
-   * Creates an instance of {@link LocalPacketReader}.
+   * Creates an instance of {@link LocalFilePacketReader}.
    *
    * @param reader the local file block reader
    * @param offset the offset
    * @param len the length to read
    */
-  public LocalPacketReader(LocalFileBlockReader reader, long offset, long len) {
+  public LocalFilePacketReader(LocalFileBlockReader reader, long offset, long len) {
     mReader = reader;
     mPos = offset;
     mEnd = offset + len;
@@ -69,7 +69,7 @@ public final class LocalPacketReader implements PacketReader {
   public void close() {}
 
   /**
-   * Factory class to create {@link LocalPacketReader}s.
+   * Factory class to create {@link LocalFilePacketReader}s.
    */
   public static class Factory implements PacketReader.Factory {
     private final LocalFileBlockReader mLocalFileBlockReader;
@@ -85,7 +85,7 @@ public final class LocalPacketReader implements PacketReader {
 
     @Override
     public PacketReader create(long offset, long len) {
-      return new LocalPacketReader(mLocalFileBlockReader, offset, len);
+      return new LocalFilePacketReader(mLocalFileBlockReader, offset, len);
     }
   }
 }

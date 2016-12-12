@@ -130,7 +130,7 @@ public final class AlluxioBlockStore {
    *
    * @param blockId the block to read from
    * @param options the options
-   * @return a {@link InputStream} which can be used to read the data in a streaming fashion
+   * @return an {@link InputStream} which can be used to read the data in a streaming fashion
    * @throws IOException if the block does not exist
    */
   public InputStream getInStream(long blockId, InStreamOptions options)
@@ -194,7 +194,7 @@ public final class AlluxioBlockStore {
    * @param address the address of the worker to write the block to, fails if the worker cannot
    *        serve the request
    * @param options the output stream options
-   * @return a {@link java.io.OutputStream} which can be used to write data to the block in a
+   * @return a {@link OutputStream} which can be used to write data to the block in a
    *         streaming fashion
    * @throws IOException if the block cannot be written
    */

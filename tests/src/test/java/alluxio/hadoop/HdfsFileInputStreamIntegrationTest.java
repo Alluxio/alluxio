@@ -415,7 +415,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   @Test
-  public void positionedreadNoCache() throws IOException, AlluxioException {
+  public void positionedReadNoCache() throws IOException, AlluxioException {
     createUfsInStream(ReadType.NO_CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFIle = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
@@ -423,7 +423,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   @Test
-  public void positionedreadNoCacheNoPartialCache() throws IOException, AlluxioException {
+  public void positionedReadNoCacheNoPartialCache() throws IOException, AlluxioException {
     createUfsInStreamNoPartialcache(ReadType.NO_CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFIle = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
