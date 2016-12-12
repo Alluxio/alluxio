@@ -184,6 +184,7 @@ public class NettyPacketWriter implements PacketWriter {
       mBufferNotFullOrFail.signal();
       mDoneOrFail.signal();
 
+      // TODO(peis): Better support cancel so that we do not need to close the channel.
       ChannelFuture future = mChannel.close().sync();
       if (future.cause() != null) {
         throw new IOException(future.cause());

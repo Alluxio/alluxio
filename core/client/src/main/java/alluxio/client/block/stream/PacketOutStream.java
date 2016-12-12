@@ -36,6 +36,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
   private ByteBuf mCurrentPacket = null;
 
   private final PacketWriter mPacketWriter;
+  private boolean mClosed;
 
   /**
    * Constructs a new {@link PacketOutStream}.
@@ -46,6 +47,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
   public PacketOutStream(PacketWriter packetWriter, long length) {
     mLength = length;
     mPacketWriter = packetWriter;
+    mClosed = false;
   }
 
   /**
@@ -87,12 +89,25 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
 
   @Override
   public void flush() throws IOException {
+    if (mClosed) {
+      return;
+    }
     updateCurrentPacket(true);
     mPacketWriter.flush();
+
+    // Release the channel used in the packet writer early. This is required to avoid holding the
+    // netty channel unnecessarily because the block out streams are closed after all the blocks
+    // are written.
+    if (mPacketWriter.pos() == mLength) {
+      close();
+    }
   }
 
   @Override
   public void cancel() throws IOException {
+    if (mClosed) {
+      return;
+    }
     releaseCurrentPacket();
     mPacketWriter.cancel();
   }
@@ -103,6 +118,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
       updateCurrentPacket(true);
     } finally {
       mPacketWriter.close();
+      mClosed = true;
     }
   }
 

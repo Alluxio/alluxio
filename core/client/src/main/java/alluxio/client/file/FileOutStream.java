@@ -305,6 +305,7 @@ public class FileOutStream extends AbstractOutStream {
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
       Preconditions.checkState(outStreamRemaining() <= 0, PreconditionMessage.ERR_BLOCK_REMAINING);
+      mCurrentBlockOutStream.flush();
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
