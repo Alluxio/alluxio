@@ -67,14 +67,14 @@ public final class UnknownLengthFileInStream extends FileInStream {
     if (mCurrentBlockInStream != null && mCurrentBlockInStream.remaining() == 0) {
       // Every byte was read from the input stream. Therefore, the read bytes is the length.
       // Complete the file with this new, known length.
-      FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+      FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
       try {
         masterClient.completeFile(new AlluxioURI(mStatus.getPath()),
             CompleteFileOptions.defaults().setUfsLength(mPos));
       } catch (AlluxioException e) {
         throw new IOException(e);
       } finally {
-        mContext.releaseMasterClient(masterClient);
+        mFileSystemContext.releaseMasterClient(masterClient);
       }
     } else {
       LOG.warn("File with unknown length was closed before fully reading the input stream.");
@@ -106,7 +106,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
     return new UnderStoreBlockInStream(blockStart, Constants.UNKNOWN_SIZE, length,
-        getUnderStoreStreamFactory(path, mContext));
+        getUnderStoreStreamFactory(path, mFileSystemContext));
   }
 
   @Override

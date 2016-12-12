@@ -19,6 +19,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
@@ -66,7 +67,8 @@ public class FileOutStream extends AbstractOutStream {
   private final long mBlockSize;
   private final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
-  private final FileSystemContext mContext;
+  private final AlluxioBlockStore mBlockStore;
+  private final FileSystemContext mFileSystemContext;
   private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
@@ -115,7 +117,11 @@ public class FileOutStream extends AbstractOutStream {
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mOptions = options;
-    mContext = context;
+    // Block store in file system context may change due to the change of master address,
+    // cache the block store, so that future master address change won't affect the ongoing
+    // block level operations in this FileOutStream.
+    mBlockStore = context.getAlluxioBlockStore();
+    mFileSystemContext = context;
     mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
@@ -132,7 +138,7 @@ public class FileOutStream extends AbstractOutStream {
       } else {
         mUfsPath = options.getUfsPath();
         if (mUfsDelegation) {
-          mFileSystemWorkerClient = mCloser.register(mContext.createWorkerClient());
+          mFileSystemWorkerClient = mCloser.register(mFileSystemContext.createWorkerClient());
           Permission perm = options.getPermission();
           mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
               CreateUfsFileOptions.defaults().setPermission(perm));
@@ -212,7 +218,7 @@ public class FileOutStream extends AbstractOutStream {
 
       // Complete the file if it's ready to be completed.
       if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
-        try (CloseableResource<FileSystemMasterClient> masterClient = mContext
+        try (CloseableResource<FileSystemMasterClient> masterClient = mFileSystemContext
             .acquireMasterClientResource()) {
           masterClient.get().completeFile(mUri, options);
         }
@@ -309,14 +315,13 @@ public class FileOutStream extends AbstractOutStream {
     }
 
     if (mAlluxioStorageType.isStore()) {
-      mCurrentBlockOutStream =
-          mContext.getAlluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, mOptions);
+      mCurrentBlockOutStream = mBlockStore.getOutStream(getNextBlockId(), mBlockSize, mOptions);
       mShouldCacheCurrentBlock = true;
     }
   }
 
   private long getNextBlockId() throws IOException {
-    try (CloseableResource<FileSystemMasterClient> masterClient = mContext
+    try (CloseableResource<FileSystemMasterClient> masterClient = mFileSystemContext
         .acquireMasterClientResource()) {
       return masterClient.get().getNewBlockIdForFile(mUri);
     } catch (AlluxioException e) {
@@ -342,7 +347,7 @@ public class FileOutStream extends AbstractOutStream {
    * @throws IOException an I/O error occurs
    */
   protected void scheduleAsyncPersist() throws IOException {
-    try (CloseableResource<FileSystemMasterClient> masterClient = mContext
+    try (CloseableResource<FileSystemMasterClient> masterClient = mFileSystemContext
         .acquireMasterClientResource()) {
       masterClient.get().scheduleAsyncPersist(mUri);
     } catch (AlluxioException e) {

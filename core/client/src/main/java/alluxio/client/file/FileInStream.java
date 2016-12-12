@@ -18,7 +18,9 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
 import alluxio.client.Seekable;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockInStream;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
@@ -70,8 +72,12 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected final FileWriteLocationPolicy mLocationPolicy;
   /** Total length of the file in bytes. */
   protected final long mFileLength;
+  /** Block Store context. */
+  protected final BlockStoreContext mBlockStoreContext;
+  /** Alluxio Block Store. */
+  protected final AlluxioBlockStore mBlockStore;
   /** File System context containing the {@link FileSystemMasterClient} pool. */
-  protected final FileSystemContext mContext;
+  protected final FileSystemContext mFileSystemContext;
   /** File information. */
   protected URIStatus mStatus;
 
@@ -127,7 +133,12 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mOutStreamOptions = OutStreamOptions.defaults();
     mBlockSize = status.getBlockSizeBytes();
     mFileLength = status.getLength();
-    mContext = context;
+    // Block store context in file system context may change due to the change of master address,
+    // cache the block store context and the block store, so that future master address change
+    // won't affect the ongoing block level operations in this FileInStream.
+    mBlockStoreContext = context.getBlockStoreContext();
+    mBlockStore = context.getAlluxioBlockStore();
+    mFileSystemContext = context;
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
@@ -289,7 +300,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
     return new UnderStoreBlockInStream(blockStart, length, mBlockSize,
-        getUnderStoreStreamFactory(path, mContext));
+        getUnderStoreStreamFactory(path, mFileSystemContext));
   }
 
   protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path, FileSystemContext
@@ -471,7 +482,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
     // If this block is read from a remote worker but we don't have a local worker, don't cache
     if (mCurrentBlockInStream instanceof RemoteBlockInStream
-        && !mContext.getBlockStoreContext().hasLocalWorker()) {
+        && !mBlockStoreContext.hasLocalWorker()) {
       return;
     }
 
@@ -483,9 +494,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
     try {
       WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-          mContext.getAlluxioBlockStore().getWorkerInfoList(), getBlockSizeAllocation(mPos));
+          mBlockStore.getWorkerInfoList(), getBlockSizeAllocation(mPos));
       // If we reach here, we need to cache.
-      mCurrentCacheStream = mContext.getAlluxioBlockStore()
+      mCurrentCacheStream = mBlockStore
           .getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
     } catch (IOException e) {
       handleCacheStreamIOException(e);
@@ -515,14 +526,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       if (mAlluxioStorageType.isPromote()) {
         try {
-          mContext.getAlluxioBlockStore().promote(blockId);
+          mBlockStore.promote(blockId);
         } catch (IOException e) {
           // Failed to promote.
           LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
-      mCurrentBlockInStream =
-          mContext.getAlluxioBlockStore().getInStream(blockId, mInStreamOptions);
+      mCurrentBlockInStream = mBlockStore.getInStream(blockId, mInStreamOptions);
     } catch (IOException e) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
           e);

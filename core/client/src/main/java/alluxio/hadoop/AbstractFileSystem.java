@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -414,20 +415,25 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     super.initialize(uri, conf);
     LOG.info("initialize({}, {}). Connecting to Alluxio", uri, conf);
+
+    // Set Hadoop configuration.
     HadoopUtils.addS3Credentials(conf);
     HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
-    mAlluxioHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
+
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
+
+    // Set URI.
+    mAlluxioHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     mUri = URI.create(mAlluxioHeader);
 
-    if (sInitialized) {
+    if (noNeedToInitialize()) {
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
-      if (sInitialized) {
+      if (noNeedToInitialize()) {
         return;
       }
       // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
@@ -447,6 +453,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       sFileSystem = FileSystem.Factory.get();
       sInitialized = true;
     }
+  }
+
+  private boolean noNeedToInitialize() {
+    InetSocketAddress currentMasterAddress = ClientContext.getMasterAddress();
+    boolean sameUri = mUri.getHost().equals(currentMasterAddress.getHostString())
+          && mUri.getPort() == currentMasterAddress.getPort();
+    return sInitialized && sameUri;
   }
 
   /**
