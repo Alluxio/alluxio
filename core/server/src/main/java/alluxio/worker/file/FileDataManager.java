@@ -224,7 +224,7 @@ public final class FileDataManager {
    * @param blockIds the list of block ids
    * @throws IOException if the file persistence fails
    */
-  public void persistFile(long fileId, List<Long> blockIds) throws IOException {
+  public void persistFile(long fileId, List<Long> blockIds) throws AlluxioException, IOException {
     Map<Long, Long> blockIdToLockId;
     synchronized (mLock) {
       blockIdToLockId = mPersistingInProgressFiles.get(fileId);
@@ -299,7 +299,7 @@ public final class FileDataManager {
    * @return the path for persistence
    * @throws IOException if the folder creation fails
    */
-  private String prepareUfsFilePath(long fileId) throws IOException {
+  private String prepareUfsFilePath(long fileId) throws AlluxioException, IOException {
     String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     AlluxioURI uri = new AlluxioURI(fileInfo.getPath());
@@ -317,11 +317,7 @@ public final class FileDataManager {
       // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not exist.
       while (!mUfs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
         URIStatus curDirStatus;
-        try {
-          curDirStatus = fs.getStatus(curAlluxioPath);
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        }
+        curDirStatus = fs.getStatus(curAlluxioPath);
         Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
             (short) curDirStatus.getMode());
         ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
@@ -343,7 +339,7 @@ public final class FileDataManager {
     // TODO(peis): Retry only if we are making progress.
     for (; numRetry < maxRetry; numRetry++) {
       if (mUfs.isDirectory(dirPath) || mUfs.mkdirs(dirPath, options)) {
-        break;
+        return;
       }
       // The parentPath can be created between the exists check and mkdirs call by other threads.
       LOG.warn("Failed to create dir: {}, retrying", dirPath);

@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.SetAttributeTOptions;
@@ -18,6 +19,8 @@ import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -28,6 +31,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class SetAttributeOptions {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
@@ -152,6 +157,7 @@ public final class SetAttributeOptions {
    * @return the updated options object
    */
   public SetAttributeOptions setPersisted(boolean persisted) {
+    LOG.info("DEPRECATED: set attribute for persist will be deprecated in Alluxio 1.4 release.");
     mPersisted = persisted;
     return this;
   }
