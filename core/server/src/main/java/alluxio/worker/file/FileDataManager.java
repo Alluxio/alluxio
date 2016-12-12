@@ -222,6 +222,7 @@ public final class FileDataManager {
    *
    * @param fileId the id of the file
    * @param blockIds the list of block ids
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    * @throws IOException if the file persistence fails
    */
   public void persistFile(long fileId, List<Long> blockIds) throws AlluxioException, IOException {
@@ -297,6 +298,7 @@ public final class FileDataManager {
    *
    * @param fileId the file id
    * @return the path for persistence
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    * @throws IOException if the folder creation fails
    */
   private String prepareUfsFilePath(long fileId) throws AlluxioException, IOException {

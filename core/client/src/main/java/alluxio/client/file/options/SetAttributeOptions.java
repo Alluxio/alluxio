@@ -31,12 +31,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class SetAttributeOptions {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private final Logger mLogger = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
-  // Set attribute for persist will be deprecated in Alluxio 1.4 release.
+  // SetAttribute for persist will be deprecated in Alluxio 1.4 release.
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
@@ -157,7 +157,7 @@ public final class SetAttributeOptions {
    * @return the updated options object
    */
   public SetAttributeOptions setPersisted(boolean persisted) {
-    LOG.info("DEPRECATED: set attribute for persist will be deprecated in Alluxio 1.4 release.");
+    mLogger.info("DEPRECATED: SetAttribute for persist will be deprecated in Alluxio 1.4 release.");
     mPersisted = persisted;
     return this;
   }
