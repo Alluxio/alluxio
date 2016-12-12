@@ -16,11 +16,16 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -45,6 +50,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -228,7 +234,6 @@ public final class FileDataManager {
     }
 
     String dstPath = prepareUfsFilePath(fileId);
-    // TODO(chaomin): should also propagate ancestor dirs permission to UFS.
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     Permission perm = new Permission(fileInfo.getOwner(), fileInfo.getGroup(),
         (short) fileInfo.getMode());
@@ -298,28 +303,55 @@ public final class FileDataManager {
     String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     AlluxioURI uri = new AlluxioURI(fileInfo.getPath());
-    String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
+    AlluxioURI dstPath = new AlluxioURI(PathUtils.concatPath(ufsRoot, fileInfo.getPath()));
     LOG.info("persist file {} at {}", fileId, dstPath);
     String parentPath = PathUtils.concatPath(ufsRoot, uri.getParent().getPath());
     // creates the parent folder if it does not exist
     if (!mUfs.isDirectory(parentPath)) {
-      final int maxRetry = 10;
-      int numRetry = 0;
-      // TODO(peis): Retry only if we are making progress.
-      // TODO(chaomin): figure out a way to get parent permission in Alluxio namespace.
-      for (; numRetry < maxRetry; numRetry++) {
-        if (mUfs.mkdirs(parentPath) || mUfs.isDirectory(parentPath)) {
-          break;
+      FileSystem fs = FileSystem.Factory.get();
+      // Create ancestor directories from top to the bottom. We cannot use recursive create parents
+      // here because the permission for the ancestors can be different.
+      Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
+      AlluxioURI curAlluxioPath = uri.getParent();
+      AlluxioURI curUfsPath = dstPath.getParent();
+      // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not exist.
+      while (!mUfs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
+        URIStatus curDirStatus;
+        try {
+          curDirStatus = fs.getStatus(curAlluxioPath);
+        } catch (AlluxioException e) {
+          throw new IOException(e);
         }
-        // The parentPath can be created between the exists check and mkdirs call by other threads.
-        LOG.warn("Failed to create dir: {}, retrying", parentPath);
+        Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
+            (short) curDirStatus.getMode());
+        ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
+            MkdirsOptions.defaults().setCreateParent(false).setPermission(perm)));
+        curAlluxioPath = curAlluxioPath.getParent();
+        curUfsPath = curUfsPath.getParent();
       }
-      if (numRetry == maxRetry && !mUfs.isDirectory(parentPath)) {
-        throw new IOException(
-            String.format("Failed to create dir: %s after %d retries.", parentPath, numRetry));
+      while (!ufsDirsToMakeWithOptions.empty()) {
+        Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
+        createUfsDirWithRetry(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond());
       }
     }
-    return dstPath;
+    return dstPath.toString();
+  }
+
+  private void createUfsDirWithRetry(String dirPath, MkdirsOptions options) throws IOException {
+    final int maxRetry = 10;
+    int numRetry = 0;
+    // TODO(peis): Retry only if we are making progress.
+    for (; numRetry < maxRetry; numRetry++) {
+      if (mUfs.isDirectory(dirPath) || mUfs.mkdirs(dirPath, options)) {
+        break;
+      }
+      // The parentPath can be created between the exists check and mkdirs call by other threads.
+      LOG.warn("Failed to create dir: {}, retrying", dirPath);
+    }
+    if (numRetry == maxRetry && !mUfs.isDirectory(dirPath)) {
+      throw new IOException(
+          String.format("Failed to create dir: %s after %d retries.", dirPath, numRetry));
+    }
   }
 
   /**
