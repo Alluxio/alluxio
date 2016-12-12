@@ -40,7 +40,7 @@ public class LocalFirstWithoutEvictionPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.TB, 0));
     Assert.assertEquals(localhostName,
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
