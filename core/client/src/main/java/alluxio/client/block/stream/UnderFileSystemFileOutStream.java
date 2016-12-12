@@ -34,9 +34,8 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    */
   public UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId)
       throws IOException {
-    super(new PacketOutStream(
-        new NettyPacketWriter(address, ufsFileId, -1, Protocol.RequestType.UFS_FILE),
-        Long.MAX_VALUE));
+    super(new PacketOutStream(new NettyPacketWriter(address, ufsFileId, Long.MAX_VALUE, -1,
+        Protocol.RequestType.UFS_FILE), Long.MAX_VALUE));
   }
 
   @Override

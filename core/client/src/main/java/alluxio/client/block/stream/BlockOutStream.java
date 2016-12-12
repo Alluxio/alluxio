@@ -93,8 +93,8 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
     try {
       BlockWorkerClient client = closer.register(context.createWorkerClient(workerNetAddress));
       PacketWriter packetWriter = closer.register(
-          new NettyPacketWriter(client.getDataServerAddress(), blockId, client.getSessionId(),
-              Protocol.RequestType.ALLUXIO_BLOCK));
+          new NettyPacketWriter(client.getDataServerAddress(), blockId, blockSize,
+              client.getSessionId(), Protocol.RequestType.ALLUXIO_BLOCK));
       return new BlockOutStream(blockId, blockSize, client, packetWriter, options);
     } catch (IOException e) {
       closer.close();
