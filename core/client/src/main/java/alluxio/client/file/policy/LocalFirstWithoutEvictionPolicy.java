@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.
- * If No worker meet the demands, return local host.
+ * If No worker meets the demands, return local host.
  */
 @ThreadSafe
 public class LocalFirstWithoutEvictionPolicy implements FileWriteLocationPolicy {
