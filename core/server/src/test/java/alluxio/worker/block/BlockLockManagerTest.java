@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -35,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Unit tests for {@link BlockLockManager}.
@@ -254,11 +254,10 @@ public final class BlockLockManagerTest {
     final List<Thread> threads = new ArrayList<>();
     final CyclicBarrier barrier = new CyclicBarrier(numBlocks * threadsPerBlock);
     // If there are exceptions, we will store them here.
-    final AtomicReference<List<Throwable>> failedThreadThrowables =
-        new AtomicReference<List<Throwable>>(new ArrayList<Throwable>());
+    final ConcurrentHashSet<Throwable> failedThreadThrowables = new ConcurrentHashSet<>();
     Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
       public void uncaughtException(Thread th, Throwable ex) {
-        failedThreadThrowables.get().add(ex);
+        failedThreadThrowables.add(ex);
       }
     };
     for (int blockId = 0; blockId < numBlocks; blockId++) {
@@ -296,9 +295,9 @@ public final class BlockLockManagerTest {
     for (Thread t : threads) {
       t.join();
     }
-    if (!failedThreadThrowables.get().isEmpty()) {
+    if (!failedThreadThrowables.isEmpty()) {
       StringBuilder sb = new StringBuilder("Failed with the following errors:\n");
-      for (Throwable failedThreadThrowable : failedThreadThrowables.get()) {
+      for (Throwable failedThreadThrowable : failedThreadThrowables) {
         sb.append(Throwables.getStackTraceAsString(failedThreadThrowable));
       }
       Assert.fail(sb.toString());
