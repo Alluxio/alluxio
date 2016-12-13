@@ -85,9 +85,11 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @deprecated the persisted attribute is deprecated since version 1.4 and will be removed in 2.0
    * @return the persisted value of the file; it denotes whether the file has been persisted to the
    *         under file system or not.
    */
+  @Deprecated
   public Boolean getPersisted() {
     return mPersisted;
   }
@@ -152,10 +154,12 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @deprecated the persisted attribute is deprecated since version 1.4 and will be removed in 2.0
    * @param persisted the persisted flag value to use; it specifies whether the file has been
    *        persisted in the under file system or not.
    * @return the updated options object
    */
+  @Deprecated
   public SetAttributeOptions setPersisted(boolean persisted) {
     LOG.warn("Setting the value of the persisted attribute is deprecated since version 1.4 and "
         + "will be removed in 2.0.");
