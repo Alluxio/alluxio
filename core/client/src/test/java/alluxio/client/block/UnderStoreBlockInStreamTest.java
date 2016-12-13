@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Throwables;
@@ -298,9 +299,18 @@ public class UnderStoreBlockInStreamTest {
     }
 
     @Override
-    public InputStream create() {
+    public InputStream create(OpenOptions options) throws IOException {
       try {
-        return new FileInputStream(mFile);
+        InputStream inputStream = new FileInputStream(mFile);
+        if (options.getOffset() > 0) {
+          try {
+            inputStream.skip(options.getOffset());
+          } catch (IOException e) {
+            inputStream.close();
+            throw e;
+          }
+        }
+        return inputStream;
       } catch (FileNotFoundException e) {
         throw Throwables.propagate(e);
       }

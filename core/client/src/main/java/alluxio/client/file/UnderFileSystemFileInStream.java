@@ -56,12 +56,14 @@ public final class UnderFileSystemFileInStream extends InputStream {
    * is empty and invalid.
    *
    * @param address worker address to read from
+   * @param pos position to read in bytes from the start of the file
    * @param ufsFileId worker specific file id referencing the file to read
    * @param reader a reader for reading from the worker
    */
-  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId,
+  public UnderFileSystemFileInStream(InetSocketAddress address, long pos, long ufsFileId,
       UnderFileSystemFileReader reader) {
     mAddress = address;
+    mPos = pos;
     mUfsFileId = ufsFileId;
     mReader = reader;
     mBuffer = allocateBuffer();
