@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class SetAttributeOptions {
-  private final Logger mLogger = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private Boolean mPinned;
   private Long mTtl;
@@ -157,7 +157,7 @@ public final class SetAttributeOptions {
    * @return the updated options object
    */
   public SetAttributeOptions setPersisted(boolean persisted) {
-    mLogger.warn("Setting the value of the persisted attribute is deprecated since version 1.4 and "
+    LOG.warn("Setting the value of the persisted attribute is deprecated since version 1.4 and "
         + "will be removed in 2.0.");
     mPersisted = persisted;
     return this;
