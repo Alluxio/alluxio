@@ -11,7 +11,6 @@
 
 package alluxio.client.file.options;
 
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.SetAttributeTOptions;
@@ -19,8 +18,6 @@ import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
