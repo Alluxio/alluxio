@@ -23,7 +23,6 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -120,7 +119,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public InputStream open(String path) throws IOException {
+  public UnderFileInputStream open(String path) throws IOException {
     return open(path, OpenOptions.defaults());
   }
 

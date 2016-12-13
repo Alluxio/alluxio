@@ -23,7 +23,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
@@ -488,23 +487,23 @@ public interface UnderFileSystem {
   boolean mkdirs(String path, MkdirsOptions options) throws IOException;
 
   /**
-   * Opens an {@link InputStream} at the indicated path.
+   * Opens an {@link UnderFileInputStream} at the indicated path.
    *
    * @param path the file name
    * @return The {@code InputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  InputStream open(String path) throws IOException;
+  UnderFileInputStream open(String path) throws IOException;
 
   /**
-   * Opens an {@link InputStream} at the indicated path.
+   * Opens an {@link UnderFileInputStream} at the indicated path.
    *
    * @param path the file name
    * @param options to open input stream
    * @return The {@code InputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  InputStream open(String path, OpenOptions options) throws IOException;
+  UnderFileInputStream open(String path, OpenOptions options) throws IOException;
 
   /**
    * Renames a directory from {@code src} to {@code dst} in under file system.

@@ -21,6 +21,7 @@ import alluxio.security.authorization.Permission;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -369,7 +370,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public FSDataInputStream open(String path, OpenOptions options) throws IOException {
+  public UnderFileInputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {

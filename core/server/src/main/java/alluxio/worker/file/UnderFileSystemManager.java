@@ -20,6 +20,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.Permission;
+import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -27,7 +28,6 @@ import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.CountingInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,10 +124,8 @@ public final class UnderFileSystemManager {
     /** The string form of the uri to the file in the under file system. */
     private final String mUri;
 
-    /** The initial position of the stream, only valid if mStream != null. */
-    private long mInitPos;
     /** The underlying stream to read data from. */
-    private CountingInputStream mStream;
+    private UnderFileInputStream mStream;
 
     /**
      * Constructor for an input stream agent for a UFS file. The file must exist when this is
@@ -184,25 +182,12 @@ public final class UnderFileSystemManager {
         return null;
       }
 
-      // If no stream has been created or if we need to go backward, make a new stream and cache it.
-      if (mStream == null || mInitPos + mStream.getCount() > position) {
-        if (mStream != null) { // Close the existing stream if needed
-          mStream.close();
-        }
+      // If no stream has been created, make a new stream and cache it.
+      if (mStream == null) {
         UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
-        mStream =
-            new CountingInputStream(ufs.open(mUri, OpenOptions.defaults().setOffset(position)));
-        mInitPos = position;
-      }
-
-      // We are guaranteed mStream has been created and the initial position has been set.
-      // Guaranteed by the previous code block that currentPos <= position.
-      long currentPos = mInitPos + mStream.getCount();
-      if (position > currentPos) { // Can skip to next position with the same stream
-        long toSkip = position - currentPos;
-        if (toSkip != mStream.skip(toSkip)) {
-          throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(toSkip));
-        }
+        mStream = ufs.open(mUri, OpenOptions.defaults().setOffset(position));
+      } else {
+        mStream.seek(position);
       }
       return mStream;
     }
