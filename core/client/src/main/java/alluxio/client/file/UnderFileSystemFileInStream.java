@@ -139,7 +139,7 @@ public final class UnderFileSystemFileInStream extends UnderFileInputStream {
   @Override
   public void seek(long pos) throws IOException {
     if (pos < 0) {
-      throw new IOException(String.format("Unable to seek to negative position %f", pos));
+      throw new IOException(String.format("Unable to seek to negative position %d", pos));
     }
     if (pos != mPos) {
       mIsBufferValid = false;

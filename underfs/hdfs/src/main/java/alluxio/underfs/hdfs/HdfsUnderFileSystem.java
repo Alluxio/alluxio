@@ -382,7 +382,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           inputStream.close();
           throw e;
         }
-        return inputStream;
+        return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
         LOG.error("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage(), e);
         te = e;

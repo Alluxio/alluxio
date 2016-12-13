@@ -20,6 +20,7 @@ import alluxio.security.authorization.Permission;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -40,7 +41,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -273,9 +273,9 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public InputStream open(String path, OpenOptions options) throws IOException {
+  public UnderFileInputStream open(String path, OpenOptions options) throws IOException {
     path = stripPath(path);
-    InputStream inputStream = new FileInputStream(path);
+    FileInputStream inputStream = new FileInputStream(path);
     if (options.getOffset() > 0) {
       try {
         inputStream.skip(options.getOffset());
@@ -284,7 +284,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         throw e;
       }
     }
-    return inputStream;
+    return new LocalUnderFileInputStream(inputStream);
   }
 
   @Override

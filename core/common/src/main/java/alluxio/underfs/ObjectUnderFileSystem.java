@@ -311,8 +311,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public InputStream open(String path, OpenOptions options) throws IOException {
-    return openObject(stripPrefixIfPresent(path), options);
+  public UnderFileInputStream open(String path, OpenOptions options) throws IOException {
+    return new ObjectUnderFileInputStream(this, stripPrefixIfPresent(path), options);
   }
 
   @Override

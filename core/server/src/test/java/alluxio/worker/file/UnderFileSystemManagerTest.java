@@ -16,6 +16,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.Permission;
+import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -58,7 +59,7 @@ public final class UnderFileSystemManagerTest {
   /** The manager object to test. */
   private UnderFileSystemManager mManager;
   /** The mock input stream returned whenever a ufs file is read. */
-  private InputStream mMockInputStream;
+  private UnderFileInputStream mMockInputStream;
   /** The mock output stream returned whenever a ufs file is created. */
   private OutputStream mMockOutputStream;
   /** The mock under file system client. */
@@ -71,7 +72,7 @@ public final class UnderFileSystemManagerTest {
     mManager = new UnderFileSystemManager();
     mMockUfs = Mockito.mock(UnderFileSystem.class);
     mMockOutputStream = Mockito.mock(OutputStream.class);
-    mMockInputStream = Mockito.mock(InputStream.class);
+    mMockInputStream = Mockito.mock(UnderFileInputStream.class);
     mUri = new AlluxioURI(PathUtils.uniqPath());
     Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
     Mockito.when(mMockUfs.create(Mockito.anyString(),

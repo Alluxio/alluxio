@@ -21,7 +21,6 @@ import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.options.OpenOptions;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Factory which creates input streams to a specified path in under storage. The streams are created

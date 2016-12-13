@@ -21,12 +21,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class UnderFileInputStream extends InputStream {
+
   /**
    * Seek to the given offset from the start of the file. The next read() will be from that
-   * location.Can't seek past the end of the file.
-   * 
-   * @param pos offset from the start of the file in bytes
-   * @throws IOException if pos is negative, or if a non-Alluxio error occurs
+   * location. Can't seek past the end of the file.
+   *
+   * @param position offset from the start of the file in bytes
+   * @throws IOException if position is negative, or if a non-Alluxio error occurs
    */
-  abstract public void seek(long pos) throws IOException;
+  public abstract void seek(long position) throws IOException;
 }
