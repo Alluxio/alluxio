@@ -63,5 +63,3 @@ Then you can follow the [Kylin documentation](http://kylin.apache.org/docs16/) t
 
 Follow [Quick Start with Sample Cube](http://kylin.apache.org/docs16/tutorial/kylin_sample.html)
 in Kylin's website, you can verify if Alluxio can accelerate the cube build phase in Kylin.
-
-
