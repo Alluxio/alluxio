@@ -108,7 +108,7 @@ public class SetAttributeOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(SetAttributeOptions.class, "mLogger");
+    CommonTestUtils.testEquals(SetAttributeOptions.class);
   }
 
   @Test

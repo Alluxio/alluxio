@@ -41,7 +41,7 @@ public final class FileSystemUtils {
   // prevent instantiation
   private FileSystemUtils() {}
 
-  // TODO(chaomin): remove this unused util.
+  // TODO(calvin): make this PublicApi as it meant to be user facing.
   /**
    * Shortcut for {@code waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS)}, i.e., wait for an
    * indefinite amount of time. Note that if a file is never completed, the thread will block
