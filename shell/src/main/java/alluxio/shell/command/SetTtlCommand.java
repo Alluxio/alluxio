@@ -13,15 +13,19 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.TtlAction;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -83,9 +87,36 @@ public final class SetTtlCommand extends AbstractShellCommand {
     long ttlMs = Long.parseLong(args[1]);
     Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
     AlluxioURI path = new AlluxioURI(args[0]);
-    CommandUtils.setTtl(mFileSystem, path, ttlMs, mAction);
-    System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs
-        + " milliseconds, with expiry action set to " + mAction);
+    setTtl(path, ttlMs);
+  }
+
+  /**
+   * setTtl to a file or directory.
+   * @param filePath the {@link AlluxioURI} path to setTtl
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
+   */
+  private void setTtl(AlluxioURI filePath, long ttlMs) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(filePath);
+    if (status.isFolder()) {
+      List<URIStatus> statuses = mFileSystem.listStatus(filePath);
+      List<String> errorMessages = new ArrayList<>();
+      for (URIStatus uriStatus : statuses) {
+        AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
+        try {
+          setTtl(newPath, ttlMs);
+        } catch (IOException e) {
+          errorMessages.add(e.getMessage());
+        }
+      }
+      if (errorMessages.size() != 0) {
+        throw new IOException(Joiner.on('\n').join(errorMessages));
+      }
+    } else {
+      CommandUtils.setTtl(mFileSystem, filePath, ttlMs, mAction);
+      System.out.println("TTL of file '" + filePath + "' was successfully set to " + ttlMs
+          + " milliseconds, with expiry action set to " + mAction);
+    }
   }
 
   @Override
