@@ -705,6 +705,8 @@ public final class FileSystemMaster extends AbstractMaster {
     Metrics.GET_FILE_INFO_OPS.inc();
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
 
+    // Get a READ lock first to see if we need to load metadata, note that this assumes load
+    // metadata for direct children is disabled by default.
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       if (inodePath.fullPathExists()) {
