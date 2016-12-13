@@ -117,9 +117,9 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     Assert.assertEquals(mountTable.size(), mountPoints.size());
     for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
       Assert.assertTrue(mountPoints.containsKey(mountPoint.getKey()));
-      String wantUri = mountPoints.get(mountPoint.getKey()).getUfsUri();
-      String gotUri = mountPoint.getValue().getUfsUri().toString();
-      Assert.assertEquals(wantUri, gotUri);
+      String expectedUri = mountPoints.get(mountPoint.getKey()).getUfsUri();
+      String returnedUri = mountPoint.getValue().getUfsUri().toString();
+      Assert.assertEquals(expectedUri, returnedUri);
     }
   }
 
