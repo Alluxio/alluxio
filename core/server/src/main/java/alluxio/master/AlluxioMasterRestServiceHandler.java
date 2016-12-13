@@ -18,11 +18,13 @@ import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
@@ -83,6 +85,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   private final AlluxioMasterService mMaster;
   private final BlockMaster mBlockMaster;
+  private final FileSystemMaster mFileSystemMaster;
   private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
   private final UnderFileSystem mUfs = UnderFileSystem.Factory.get(mUfsRoot);
 
@@ -96,6 +99,7 @@ public final class AlluxioMasterRestServiceHandler {
     mMaster = (AlluxioMasterService) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMaster.getBlockMaster();
+    mFileSystemMaster = mMaster.getFileSystemMaster();
   }
 
   /**
@@ -121,6 +125,7 @@ public final class AlluxioMasterRestServiceHandler {
                 .setCapacity(getCapacityInternal())
                 .setConfiguration(getConfigurationInternal(rawConfig))
                 .setMetrics(getMetricsInternal())
+                .setMountPoints(getMountPointsInternal())
                 .setRpcAddress(mMaster.getRpcAddress().toString())
                 .setStartTimeMs(mMaster.getStartTimeMs())
                 .setTierCapacity(getTierCapacityInternal())
@@ -507,6 +512,21 @@ public final class AlluxioMasterRestServiceHandler {
     }
     metrics.put(filesPinnedProperty, filesPinned.getValue().longValue());
     return metrics;
+  }
+
+  private Map<String, MountPointInfo> getMountPointsInternal() {
+    SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
+    for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable()
+        .entrySet()) {
+      MountInfo mountInfo = mountPoint.getValue();
+      MountPointInfo info = new MountPointInfo();
+      info.setUfsInfo(mountInfo.getUfsUri().toString());
+      info.setReadOnly(mountInfo.getOptions().isReadOnly());
+      info.setProperties(mountInfo.getOptions().getProperties());
+      info.setShared(mountInfo.getOptions().isShared());
+      mountPoints.put(mountPoint.getKey(), info);
+    }
+    return mountPoints;
   }
 
   private Map<String, Capacity> getTierCapacityInternal() {
