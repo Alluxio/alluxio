@@ -153,10 +153,10 @@ public final class UnderStoreBlockInStream extends BlockInStream {
 
   @Override
   public void seek(long pos) throws IOException {
-    if ((mLength != Constants.UNKNOWN_SIZE && pos > mLength) || pos < 0) {
-      throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(pos));
-    }
-    mUnderStoreStream.seek(pos);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
+    Preconditions.checkArgument(pos <= mLength,
+        PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), pos);
+    mUnderStoreStream.seek(mInitPos + pos);
     mPos = pos;
   }
 
@@ -188,9 +188,6 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     if (mUnderStoreStream != null) {
       mUnderStoreStream.close();
     }
-    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
-    Preconditions.checkArgument(pos <= mLength,
-        PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), pos);
     long streamStart = mInitPos + pos;
     mUnderStoreStream =
         mUnderStoreStreamFactory.create(OpenOptions.defaults().setOffset(streamStart));
