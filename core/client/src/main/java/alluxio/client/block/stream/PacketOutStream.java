@@ -18,10 +18,11 @@ import alluxio.exception.PreconditionMessage;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -35,18 +36,31 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
   private final long mLength;
   private ByteBuf mCurrentPacket = null;
 
-  private final PacketWriter mPacketWriter;
+  private final List<PacketWriter> mPacketWriters;
   private boolean mClosed;
 
   /**
-   * Constructs a new {@link PacketOutStream}.
+   * Constructs a new {@link PacketOutStream} with only one {@link PacketWriter}.
    *
    * @param packetWriter the packet writer
    * @param length the length of the stream
    */
   public PacketOutStream(PacketWriter packetWriter, long length) {
     mLength = length;
-    mPacketWriter = packetWriter;
+    mPacketWriters = new ArrayList<>(1);
+    mPacketWriters.add(packetWriter);
+    mClosed = false;
+  }
+
+  /**
+   * Constructs a new {@link PacketOutStream} with multiple {@link PacketWriter}s.
+   *
+   * @param packetWriters the packet writers
+   * @param length the length of the stream
+   */
+  public PacketOutStream(List<PacketWriter> packetWriters, long length) {
+    mLength = length;
+    mPacketWriters = packetWriters;
     mClosed = false;
   }
 
@@ -55,8 +69,11 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    */
   @Override
   public long remaining() {
-    return mLength - mPacketWriter.pos()
-        - (mCurrentPacket != null ? mCurrentPacket.readableBytes() : 0);
+    long pos = Long.MAX_VALUE;
+    for (PacketWriter packetWriter : mPacketWriters) {
+      pos = Math.min(pos, packetWriter.pos());
+    }
+    return mLength - pos - (mCurrentPacket != null ? mCurrentPacket.readableBytes() : 0);
   }
 
   @Override
@@ -93,12 +110,14 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
       return;
     }
     updateCurrentPacket(true);
-    mPacketWriter.flush();
+    for (PacketWriter packetWriter : mPacketWriters) {
+      packetWriter.flush();
+    }
 
     // Release the channel used in the packet writer early. This is required to avoid holding the
     // netty channel unnecessarily because the block out streams are closed after all the blocks
     // are written.
-    if (mPacketWriter.pos() == mLength) {
+    if (remaining() == 0) {
       close();
     }
   }
@@ -109,7 +128,9 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
       return;
     }
     releaseCurrentPacket();
-    mPacketWriter.cancel();
+    for (PacketWriter packetWriter : mPacketWriters) {
+      packetWriter.cancel();
+    }
   }
 
   @Override
@@ -117,8 +138,19 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
     try {
       updateCurrentPacket(true);
     } finally {
-      mPacketWriter.close();
       mClosed = true;
+
+      IOException e = null;
+      for (PacketWriter packetWriter : mPacketWriters) {
+        try {
+          packetWriter.close();
+        } catch (IOException ee) {
+          e = ee;
+        }
+      }
+      if (e != null) {
+        throw e;
+      }
     }
   }
 
@@ -143,7 +175,16 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
 
     if (mCurrentPacket.readableBytes() > 0) {
       if (mCurrentPacket.writableBytes() == 0 || lastPacket) {
-        mPacketWriter.writePacket(mCurrentPacket);
+        try {
+          for (PacketWriter packetWriter : mPacketWriters) {
+            mCurrentPacket.retain();
+            packetWriter.writePacket(mCurrentPacket);
+          }
+        } finally {
+          // We increment the refcount explicitly for every packet writer. So we need to release
+          // here.
+          mCurrentPacket.release();
+        }
         mCurrentPacket = null;
       }
       if (!lastPacket) {
@@ -158,7 +199,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    */
   private void releaseCurrentPacket() {
     if (mCurrentPacket != null) {
-      ReferenceCountUtil.release(mCurrentPacket);
+      mCurrentPacket.release();
       mCurrentPacket = null;
     }
   }
@@ -167,6 +208,6 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @return a newly allocated byte buffer of the user defined default size
    */
   private ByteBuf allocateBuffer() {
-    return PooledByteBufAllocator.DEFAULT.buffer(mPacketWriter.packetSize());
+    return PooledByteBufAllocator.DEFAULT.buffer(mPacketWriters.get(0).packetSize());
   }
 }
