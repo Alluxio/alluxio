@@ -35,7 +35,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -56,13 +62,35 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 7. To make it simple to handle errors, the channel is closed if any error occurs.
  */
 @NotThreadSafe
-public final class NettyPacketReader extends AbstractPacketReader {
+public final class NettyPacketReader implements PacketReader{
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final boolean CANCEL_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_NETWORK_NETTY_READER_CANCEL_ENABLED);
+  private static final int MAX_PACKETS_IN_FLIGHT =
+      Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
+  private static final long READ_TIMEOUT_MS =
+      Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
 
   private final Channel mChannel;
   private final Protocol.RequestType mRequestType;
+  private final InetSocketAddress mAddress;
+  protected final long mId;
+  private final long mStart;
+  private final long mBytesToRead;
+
+  private ReentrantLock mLock = new ReentrantLock();
+  @GuardedBy("mLock")
+  private Queue<ByteBuf> mPackets = new LinkedList<>();
+  @GuardedBy("mLock")
+  private Throwable mPacketReaderException = null;
+  private Condition mNotEmptyOrFail = mLock.newCondition();
+
+  /** The next pos to read. */
+  private long mPosToRead;
+  /** This is true only when an empty packet is received. */
+  private boolean mDone = false;
+
+  private boolean mClosed = false;
 
   /**
    * Creates an instance of {@link NettyPacketReader}.
@@ -78,7 +106,13 @@ public final class NettyPacketReader extends AbstractPacketReader {
    */
   public NettyPacketReader(InetSocketAddress address, long id, long offset, long len,
       long lockId, long sessionId, Protocol.RequestType type) throws IOException {
-    super(address, id, offset, len);
+    Preconditions.checkArgument(offset >= 0 && len > 0);
+
+    mAddress = address;
+    mId = id;
+    mStart = offset;
+    mPosToRead = offset;
+    mBytesToRead = len;
     mRequestType = type;
 
     mChannel = BlockStoreContext.acquireNettyChannel(address);
@@ -88,6 +122,58 @@ public final class NettyPacketReader extends AbstractPacketReader {
             .setLockId(lockId).setSessionId(sessionId).setType(type).build();
     mChannel.writeAndFlush(new RPCProtoMessage(readRequest))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+  }
+
+  @Override
+  public long pos() {
+    return mPosToRead;
+  }
+
+  @Override
+  public ByteBuf readPacket() throws IOException {
+    Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
+    ByteBuf buf = null;
+    mLock.lock();
+    try {
+      while (true) {
+        if (mDone) {
+          return null;
+        }
+        if (mPacketReaderException != null) {
+          throw new IOException(mPacketReaderException);
+        }
+        buf = mPackets.poll();
+        if (!tooManyPacketsPending()) {
+          resume();
+        }
+        if (buf == null) {
+          try {
+            if (!mNotEmptyOrFail.await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+              throw new IOException(
+                  String.format("Timeout while reading packet from block %d @ %s.", mId, mAddress));
+            }
+          } catch (InterruptedException e) {
+            throw Throwables.propagate(e);
+          }
+        } else {
+          if (buf.readableBytes() == 0) {
+            buf.release();
+            mDone = true;
+            return null;
+          }
+          mPosToRead += buf.readableBytes();
+          Preconditions.checkState(mPosToRead - mStart <= mBytesToRead);
+          return buf;
+        }
+      }
+    } catch (Throwable e) {
+      if (buf != null) {
+        buf.release();
+      }
+      throw e;
+    } finally {
+      mLock.unlock();
+    }
   }
 
   @Override
@@ -144,6 +230,20 @@ public final class NettyPacketReader extends AbstractPacketReader {
       BlockStoreContext.releaseNettyChannel(mAddress, mChannel);
       mClosed = true;
     }
+  }
+
+  /**
+   * @return bytes remaining
+   */
+  private long remaining() {
+    return mStart + mBytesToRead - mPosToRead;
+  }
+
+  /**
+   * @return true if there are too many packets pending
+   */
+  private boolean tooManyPacketsPending() {
+    return mPackets.size() >= MAX_PACKETS_IN_FLIGHT;
   }
 
   /**
@@ -247,13 +347,17 @@ public final class NettyPacketReader extends AbstractPacketReader {
     }
   }
 
-  @Override
-  protected void pause() {
+  /**
+   * Pauses the underlying packet reader.
+   */
+  private void pause() {
     mChannel.config().setAutoRead(false);
   }
 
-  @Override
-  protected void resume() {
+  /**
+   * Resumes the underlying packet reader.
+   */
+  private void resume() {
     mChannel.config().setAutoRead(true);
     mChannel.read();
   }
