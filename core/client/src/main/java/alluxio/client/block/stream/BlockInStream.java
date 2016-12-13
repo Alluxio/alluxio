@@ -53,7 +53,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
   private final PacketInStream mInputStream;
 
   /**
-   * Creates an instance of {@link BlockInStream}.
+   * Creates an instance of local {@link BlockInStream} that reads from local worker.
    *
    * @param blockId the block ID
    * @param blockSize the block size
@@ -86,7 +86,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
   }
 
   /**
-   * Creates an instance of {@link BlockInStream}.
+   * Creates an instance of remote {@link BlockInStream} that reads from a remote worker.
    *
    * @param blockId the block ID
    * @param blockSize the block size

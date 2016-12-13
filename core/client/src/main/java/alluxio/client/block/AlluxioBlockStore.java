@@ -194,7 +194,7 @@ public final class AlluxioBlockStore {
    * @param address the address of the worker to write the block to, fails if the worker cannot
    *        serve the request
    * @param options the output stream options
-   * @return a {@link OutputStream} which can be used to write data to the block in a
+   * @return an {@link OutputStream} which can be used to write data to the block in a
    *         streaming fashion
    * @throws IOException if the block cannot be written
    */
@@ -238,7 +238,7 @@ public final class AlluxioBlockStore {
    * @param blockSize the standard block size to write, or -1 if the block already exists (and this
    *        stream is just storing the block in Alluxio again)
    * @param options the output stream option
-   * @return a {@link OutputStream} which can be used to write data to the block in a
+   * @return an {@link OutputStream} which can be used to write data to the block in a
    *         streaming fashion
    * @throws IOException if the block cannot be written
    */

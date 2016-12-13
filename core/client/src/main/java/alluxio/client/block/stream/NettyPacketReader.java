@@ -74,16 +74,16 @@ public final class NettyPacketReader implements PacketReader{
   private final Channel mChannel;
   private final Protocol.RequestType mRequestType;
   private final InetSocketAddress mAddress;
-  protected final long mId;
+  private final long mId;
   private final long mStart;
   private final long mBytesToRead;
 
-  private ReentrantLock mLock = new ReentrantLock();
+  private final ReentrantLock mLock = new ReentrantLock();
   @GuardedBy("mLock")
-  private Queue<ByteBuf> mPackets = new LinkedList<>();
+  private final Queue<ByteBuf> mPackets = new LinkedList<>();
   @GuardedBy("mLock")
   private Throwable mPacketReaderException = null;
-  private Condition mNotEmptyOrFail = mLock.newCondition();
+  private final Condition mNotEmptyOrFail = mLock.newCondition();
 
   /** The next pos to read. */
   private long mPosToRead;
