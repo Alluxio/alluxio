@@ -11,6 +11,7 @@
 
 package alluxio.underfs.local;
 
+import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -25,7 +26,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -145,7 +145,7 @@ public class LocalUnderFileSystemTest {
     os.write(bytes);
     os.close();
 
-    InputStream is = mLocalUfs.open(filepath);
+    UnderFileInputStream is = mLocalUfs.open(filepath);
     byte[] bytes1 = new byte[bytes.length];
     is.read(bytes1);
     is.close();
@@ -190,7 +190,7 @@ public class LocalUnderFileSystemTest {
     String filepath2 = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     mLocalUfs.renameFile(filepath1, filepath2);
 
-    InputStream is = mLocalUfs.open(filepath2);
+    UnderFileInputStream is = mLocalUfs.open(filepath2);
     byte[] bytes1 = new byte[bytes.length];
     is.read(bytes1);
     is.close();

@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.UnderFileSystemFileReader;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileInputStream;
 import alluxio.util.io.BufferUtils;
@@ -56,15 +57,15 @@ public final class UnderFileSystemFileInStream extends UnderFileInputStream {
    * is empty and invalid.
    *
    * @param address worker address to read from
-   * @param pos position to read in bytes from the start of the file
    * @param ufsFileId worker specific file id referencing the file to read
+   * @param pos position to read in bytes from the start of the file
    * @param reader a reader for reading from the worker
    */
-  public UnderFileSystemFileInStream(InetSocketAddress address, long pos, long ufsFileId,
+  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId, long pos,
       UnderFileSystemFileReader reader) {
     mAddress = address;
-    mPos = pos;
     mUfsFileId = ufsFileId;
+    mPos = pos;
     mReader = reader;
     mBuffer = allocateBuffer();
     mIsBufferValid = false; // No data in buffer
@@ -139,7 +140,7 @@ public final class UnderFileSystemFileInStream extends UnderFileInputStream {
   @Override
   public void seek(long pos) throws IOException {
     if (pos < 0) {
-      throw new IOException(String.format("Unable to seek to negative position %d", pos));
+      throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(pos));
     }
     if (pos != mPos) {
       mIsBufferValid = false;

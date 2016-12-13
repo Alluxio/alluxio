@@ -11,6 +11,7 @@
 
 package alluxio.underfs.local;
 
+import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.UnderFileInputStream;
 
 import java.io.FileInputStream;
@@ -61,9 +62,7 @@ public class LocalUnderFileInputStream extends UnderFileInputStream {
   public void seek(long position) throws IOException {
     FileChannel channel = mStream.getChannel();
     if (position > channel.size()) {
-      throw new IOException(
-          String.format("Attempting to seeking beyond file size. curSize = %d, position = %d",
-              channel.size(), position));
+      throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(position));
     }
     channel.position(position);
   }

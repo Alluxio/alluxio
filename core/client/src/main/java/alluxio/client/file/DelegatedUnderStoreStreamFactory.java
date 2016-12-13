@@ -49,7 +49,7 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
   @Override
   public UnderFileInputStream create(OpenOptions options) {
     return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(),
-        options.getOffset(), mFileId, UnderFileSystemFileReader.Factory.create());
+        mFileId, options.getOffset(), UnderFileSystemFileReader.Factory.create());
   }
 
   @Override

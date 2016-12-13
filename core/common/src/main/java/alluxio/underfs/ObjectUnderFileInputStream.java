@@ -79,7 +79,7 @@ public class ObjectUnderFileInputStream extends UnderFileInputStream {
     if (position > currentPos) {
       long toSkip = position - currentPos;
       if (toSkip != skip(toSkip)) {
-        throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(toSkip));
+        throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(position));
       }
     } else {
       openStream(OpenOptions.defaults().setOffset(position));

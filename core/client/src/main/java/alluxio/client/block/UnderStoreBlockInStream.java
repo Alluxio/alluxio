@@ -153,7 +153,11 @@ public final class UnderStoreBlockInStream extends BlockInStream {
 
   @Override
   public void seek(long pos) throws IOException {
+    if ((mLength != Constants.UNKNOWN_SIZE && pos > mLength) || pos < 0) {
+      throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(pos));
+    }
     mUnderStoreStream.seek(pos);
+    mPos = pos;
   }
 
   @Override
