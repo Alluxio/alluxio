@@ -40,7 +40,7 @@ public class LocalFirstWithoutEvictionPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.TB, 0));
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     Assert.assertEquals(localhostName,
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
@@ -54,11 +54,11 @@ public class LocalFirstWithoutEvictionPolicyTest {
     LocalFirstWithoutEvictionPolicy policy = new LocalFirstWithoutEvictionPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.TB, 0));
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, Constants.MB));
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.MB, Constants.MB));
     Assert.assertEquals("worker1",
-        policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost());
+        policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
   /**
@@ -70,7 +70,7 @@ public class LocalFirstWithoutEvictionPolicyTest {
     LocalFirstWithoutEvictionPolicy policy = new LocalFirstWithoutEvictionPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.MB, 0));
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, Constants.MB));
     Assert.assertEquals(localhostName,
