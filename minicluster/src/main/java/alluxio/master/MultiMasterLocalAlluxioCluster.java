@@ -18,8 +18,10 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.CommonUtils;
 import alluxio.worker.AlluxioWorkerService;
 
+import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import org.apache.curator.test.TestingServer;
 
@@ -142,6 +144,20 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     return false;
+  }
+
+  /**
+   * Waits for a new master to start until a timeout occurs.
+   *
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   */
+  public void waitForNewMaster(int timeoutMs) {
+    CommonUtils.waitFor("New leader master starts", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        return getLeaderIndex() != -1;
+      }
+    }, timeoutMs);
   }
 
   private void deleteDir(String path) throws IOException {
