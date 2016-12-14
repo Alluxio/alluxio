@@ -407,9 +407,10 @@ public class AlluxioMasterRestServiceHandlerTest {
       assertTrue("Entry must be a List!", (response.getEntity() instanceof List));
       @SuppressWarnings("unchecked")
       List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
-      assertFalse(entry.isEmpty());
-      assertEquals(worker1, entry.get(0).getId());
-      assertEquals(worker2, entry.get(1).getId());
+      assertEquals(2, entry.size());
+      // list contains both worker ids.
+      assertTrue(entry.get(0).getId() == worker1 || entry.get(1).getId() == worker1);
+      assertTrue(entry.get(0).getId() == worker2 || entry.get(1).getId() == worker2);
     } finally {
       response.close();
     }
