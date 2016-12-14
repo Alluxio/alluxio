@@ -21,7 +21,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A default implementation for {@link UnderFileInputStream}.
+ * A wrapper implementation of {@link UnderFileInputStream} w/ seek.
  */
 @NotThreadSafe
 public class ObjectUnderFileInputStream extends UnderFileInputStream {
