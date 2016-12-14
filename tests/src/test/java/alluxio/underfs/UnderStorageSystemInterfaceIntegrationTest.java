@@ -143,6 +143,27 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests seek.
+   */
+  @Test
+  public void createOpenSeek() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    OutputStream outputStream = mUfs.create(testFile);
+    int numBytes = 1000;
+    for (int i = 0; i < numBytes; ++i) {
+      outputStream.write(i);
+    }
+    outputStream.close();
+    for (int i = 0; i < numBytes; ++i) {
+      UnderFileInputStream inputStream = mUfs.open(testFile);
+      inputStream.seek(i);
+      int readValue = inputStream.read();
+      Assert.assertEquals(i, readValue);
+      inputStream.close();
+    }
+  }
+
+  /**
    * Tests a file can be deleted.
    */
   @Test
