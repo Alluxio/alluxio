@@ -139,6 +139,7 @@ public final class LocalAlluxioMaster {
    * @throws Exception if master thread cannot be interrupted
    */
   public void kill() throws Exception {
+    mAlluxioMaster.stop();
     mMasterThread.interrupt();
   }
 
