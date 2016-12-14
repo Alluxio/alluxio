@@ -287,24 +287,6 @@ public final class UnderFileSystemManagerTest {
   }
 
   /**
-   * Tests getting an input stream returns a new stream if the cached stream is positioned beyond
-   * the requested position.
-   */
-  @Test
-  public void getInputStreamAtPositionInvalidCache() throws Exception {
-    long position = 0;
-    long nextPosition = 100;
-    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
-    long id = mManager.openFile(SESSION_ID, mUri);
-    InputStream in = mManager.getInputStreamAtPosition(id, position);
-    in.skip(nextPosition - position);
-    InputStream in2 = mManager.getInputStreamAtPosition(id, position);
-    Assert.assertNotEquals(in, in2);
-    in.close();
-    in2.close();
-  }
-
-  /**
    * Tests getting an input stream at EOF returns null.
    */
   @Test

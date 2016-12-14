@@ -30,6 +30,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockId;
 import alluxio.thrift.AlluxioTException;
+import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -160,7 +161,8 @@ public class BlockServiceHandlerIntegrationTest {
 
     UnderFileSystem ufs = UnderFileSystem.Factory.get(localPath);
     byte[] data = new byte[blockSize];
-    int bytesRead = ufs.open(localPath).read(data);
+    UnderFileInputStream in = ufs.open(localPath);
+    int bytesRead = in.read(data);
 
     // The data in the local file should equal the data we wrote earlier
     Assert.assertEquals(blockSize, bytesRead);
