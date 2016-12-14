@@ -276,17 +276,16 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public UnderFileStatus[] listStatus(String path) throws IOException {
     FileStatus[] files = listStatusInternal(path);
-    if (files != null && !isFile(path)) {
-      UnderFileStatus[] rtn = new UnderFileStatus[files.length];
-      int i = 0;
-      for (FileStatus status : files) {
-        // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDir());
-      }
-      return rtn;
-    } else {
+    if (files == null) {
       return null;
     }
+    UnderFileStatus[] rtn = new UnderFileStatus[files.length];
+    int i = 0;
+    for (FileStatus status : files) {
+      // only return the relative path, to keep consistent with java.io.File.list()
+      rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDir());
+    }
+    return rtn;
   }
 
   @Override
@@ -521,6 +520,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     try {
       files = mFileSystem.listStatus(new Path(path));
     } catch (FileNotFoundException e) {
+      return null;
+    }
+    // Check if path is a file
+    if (files != null && files.length == 1 && files[0].getPath().toString().equals(path)) {
       return null;
     }
     return files;

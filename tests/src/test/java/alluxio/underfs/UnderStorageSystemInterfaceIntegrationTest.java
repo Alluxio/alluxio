@@ -308,6 +308,16 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests if listStatus returns null for a file.
+   */
+  @Test
+  public void listStatusFile() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    createEmptyFile(testFile);
+    Assert.assertTrue(mUfs.listStatus(testFile) == null);
+  }
+
+  /**
    * Tests if list correctly returns file or folder names for a large directory.
    */
   @Test
