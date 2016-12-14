@@ -18,8 +18,7 @@ USAGE="Usage: alluxio-worker
 
 alluxio-worker launches the Alluxio worker in the foreground and logs to
 both the console and default log file. Configuration can be done by modifying
-alluxio-site.properties or alluxio-env.sh.
-"
+alluxio-site.properties or alluxio-env.sh."
 
 if [[ "$#" -gt "0" ]]; then
   echo "${USAGE}"
