@@ -13,6 +13,8 @@ package alluxio.client.block.stream;
 
 import alluxio.proto.dataserver.Protocol;
 
+import com.google.common.base.Preconditions;
+
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -38,9 +40,12 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
       throws IOException {
     super(new PacketOutStream(new NettyPacketWriter(address, ufsFileId, Long.MAX_VALUE, -1,
         Protocol.RequestType.UFS_FILE), Long.MAX_VALUE));
-    assert out instanceof PacketOutStream;
+    Preconditions.checkState(out instanceof PacketOutStream);
     mOutStream = (PacketOutStream) out;
   }
+
+  // Explicitly overriding some write methods which are not efficiently implemented in
+  // FilterOutStream.
 
   @Override
   public void write(byte[] b) throws IOException {

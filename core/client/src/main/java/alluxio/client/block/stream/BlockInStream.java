@@ -25,6 +25,7 @@ import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import java.io.FilterInputStream;
@@ -41,6 +42,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * This class provides the same methods as a Java {@link InputStream} with additional methods from
  * Alluxio Stream interfaces.
+ *
+ * Block lock ownership:
+ * The read lock of the block is acquired when the stream is created and released when the
+ * stream is closed.
  */
 @NotThreadSafe
 public final class BlockInStream extends FilterInputStream implements BoundedStream, Seekable,
@@ -168,7 +173,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       BlockWorkerClient blockWorkerClient, InStreamOptions options) throws IOException {
     super(new PacketInStream(packetReaderFactory, blockId, blockSize));
 
-    assert in instanceof PacketInStream;
+    Preconditions.checkState(in instanceof PacketInStream);
     mInputStream = (PacketInStream) in;
     mBlockId = blockId;
     mBlockWorkerClient = blockWorkerClient;

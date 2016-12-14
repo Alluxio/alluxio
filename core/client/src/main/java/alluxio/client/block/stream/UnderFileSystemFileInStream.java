@@ -13,6 +13,8 @@ package alluxio.client.block.stream;
 
 import alluxio.client.PositionedReadable;
 
+import com.google.common.base.Preconditions;
+
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -37,7 +39,7 @@ public final class UnderFileSystemFileInStream extends FilterInputStream
    */
   public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId, long length) {
     super(new PacketInStream(new NettyPacketReader.Factory(address, ufsFileId), ufsFileId, length));
-    assert in instanceof PacketInStream;
+    Preconditions.checkState(in instanceof PacketInStream);
     mInStream = (PacketInStream) in;
   }
 

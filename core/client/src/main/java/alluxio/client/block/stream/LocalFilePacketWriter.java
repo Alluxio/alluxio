@@ -33,7 +33,9 @@ public final class LocalFilePacketWriter implements PacketWriter {
   private static final long FILE_BUFFER_BYTES =
       Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
 
+  /** The position to write the next byte at. */
   private long mPos = 0;
+  /** The number of bytes reserved on the block worker to hold the block. */
   private long mPosReserved = 0;
   private final long mBlockId;
   private final LocalFileBlockWriter mWriter;
@@ -41,7 +43,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
   private boolean mClosed = false;
 
   /**
-   * Creates an instance of {@link LocalFilePacketWriter}.
+   * Creates an instance of {@link LocalFilePacketWriter}. This requires the block to be locked
+   * beforehand.
    *
    * @param blockWorkerClient the block worker client, not owned by this class
    * @param blockId the block ID
@@ -65,9 +68,9 @@ public final class LocalFilePacketWriter implements PacketWriter {
 
   @Override
   public void writePacket(final ByteBuf buf) throws IOException {
-    Preconditions.checkState(!mClosed, "PacketWriter is closed while writing packets.");
-    reserve(mPos + buf.readableBytes());
     try {
+      Preconditions.checkState(!mClosed, "PacketWriter is closed while writing packets.");
+      reserve(mPos + buf.readableBytes());
       mPos += buf.readableBytes();
       buf.readBytes(mWriter.getChannel(), buf.readableBytes());
     } finally {
@@ -83,8 +86,14 @@ public final class LocalFilePacketWriter implements PacketWriter {
 
   @Override
   public void close() throws IOException {
-    mWriter.close();
-    mClosed = true;
+    if (mClosed) {
+      return;
+    }
+    try {
+      mWriter.close();
+    } finally {
+      mClosed = true;
+    }
   }
 
   /**

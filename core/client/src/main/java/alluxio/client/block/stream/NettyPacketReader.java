@@ -62,7 +62,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 7. To make it simple to handle errors, the channel is closed if any error occurs.
  */
 @NotThreadSafe
-public final class NettyPacketReader implements PacketReader{
+public final class NettyPacketReader implements PacketReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final boolean CANCEL_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_NETWORK_NETTY_READER_CANCEL_ENABLED);
@@ -93,7 +93,8 @@ public final class NettyPacketReader implements PacketReader{
   private boolean mClosed = false;
 
   /**
-   * Creates an instance of {@link NettyPacketReader}.
+   * Creates an instance of {@link NettyPacketReader}. If this is used to read a block remotely, it
+   * requires the block to be locked beforehand and the lock ID is passed to this class.
    *
    * @param address the netty data server network address
    * @param id the block ID or UFS file ID

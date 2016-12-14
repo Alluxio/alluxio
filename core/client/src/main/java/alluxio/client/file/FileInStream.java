@@ -705,7 +705,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /**
    * @return true if {@code mCurrentBlockInStream} is reading from a local block worker
    */
-  boolean isReadingFromLocalBlockWorker() {
+  private boolean isReadingFromLocalBlockWorker() {
     return (mCurrentBlockInStream instanceof LocalBlockInStream) || (
         mCurrentBlockInStream instanceof Locatable && ((Locatable) mCurrentBlockInStream)
             .isLocal());
@@ -715,7 +715,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @return true if {@code mCurrentBlockInStream} is reading from a remote block worker
    */
-  boolean isReadingFromRemoteBlockWorker() {
+  private boolean isReadingFromRemoteBlockWorker() {
     return (mCurrentBlockInStream instanceof RemoteBlockInStream) || (
         mCurrentBlockInStream instanceof Locatable && !(((Locatable) mCurrentBlockInStream)
             .isLocal()));

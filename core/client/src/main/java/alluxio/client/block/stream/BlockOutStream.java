@@ -21,6 +21,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,6 +104,9 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
     }
   }
 
+  // Explicitly overriding some write methods which are not efficiently implemented in
+  // FilterOutStream.
+
   @Override
   public void write(byte[] b) throws IOException {
     mOutStream.write(b);
@@ -124,7 +128,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
       return;
     }
     try {
-      ((PacketOutStream) out).cancel();
+      mOutStream.cancel();
       mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (AlluxioException e) {
       mCloser.rethrow(new IOException(e));
@@ -152,6 +156,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
       mCloser.rethrow(e);
     } finally {
       mCloser.close();
+      mClosed = true;
     }
   }
 
@@ -170,7 +175,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
       OutStreamOptions options) throws IOException {
     super(new PacketOutStream(packetWriter, blockSize));
 
-    assert out instanceof PacketOutStream;
+    Preconditions.checkState(out instanceof PacketOutStream);
     mOutStream = (PacketOutStream) out;
     mBlockId = blockId;
     mBlockSize = blockSize;
