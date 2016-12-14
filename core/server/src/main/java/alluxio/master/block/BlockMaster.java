@@ -158,9 +158,6 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostWorkerDetectionService;
 
-  /** The next worker id to use. This state must be journaled. */
-  private final AtomicLong mNextWorkerId = new AtomicLong(1);
-
   /** The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private long mJournaledNextContainerId = 0;
