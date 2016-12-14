@@ -158,7 +158,7 @@ public final class FileSystemUtils {
           throw Throwables.propagate(e);
         }
       }
-    }, 20 * 60 * 1000 /* timeout in ms */, 1000 /* sleep interval in ms */);
+    }, 20 * Constants.MINUTE_MS /* timeout */, Constants.SECOND_MS /* sleep interval */);
   }
 
   /**
