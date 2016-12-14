@@ -215,23 +215,6 @@ public final class CommonUtils {
   }
 
   /**
-   * Waits for a condition to be satisfied until a timeout occurs.
-   *
-   * @param description a description of what causes condition to evaluation to true
-   * @param condition the condition to wait on
-   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
-   */
-  public static void waitFor(String description, Function<Void, Boolean> condition, int timeoutMs) {
-    long start = System.currentTimeMillis();
-    while (!condition.apply(null)) {
-      if (System.currentTimeMillis() - start > timeoutMs) {
-        throw new RuntimeException("Timed out waiting for " + description);
-      }
-      CommonUtils.sleepMs(20);
-    }
-  }
-
-  /**
    * Waits indefinitely for a condition to be satisfied.
    *
    * @param description a description of what causes condition to evaluation to true
@@ -240,6 +223,36 @@ public final class CommonUtils {
   public static void waitFor(String description, Function<Void, Boolean> condition) {
     while (!condition.apply(null)) {
       CommonUtils.sleepMs(20);
+    }
+  }
+
+  /**
+   * Waits for a condition to be satisfied until a timeout occurs.
+   *
+   * @param description a description of what causes condition to evaluation to true
+   * @param condition the condition to wait on
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   */
+  public static void waitFor(String description, Function<Void, Boolean> condition, int timeoutMs) {
+    waitFor(description, condition, timeoutMs, 20);
+  }
+
+  /**
+   * Waits for a condition to be satisfied until a timeout occurs, with given sleep interval.
+   *
+   * @param description a description of what causes condition to evaluation to true
+   * @param condition the condition to wait on
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   * @param intervalMs the sleep interval in milliseconds
+   */
+  public static void waitFor(
+      String description, Function<Void, Boolean> condition, int timeoutMs, int intervalMs) {
+    long start = System.currentTimeMillis();
+    while (!condition.apply(null)) {
+      if (System.currentTimeMillis() - start > timeoutMs) {
+        throw new RuntimeException("Timed out waiting for " + description);
+      }
+      CommonUtils.sleepMs(intervalMs);
     }
   }
 

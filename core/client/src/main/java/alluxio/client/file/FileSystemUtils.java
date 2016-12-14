@@ -146,19 +146,19 @@ public final class FileSystemUtils {
     FileSystemMasterClient client = context.acquireMasterClient();
     try {
       client.scheduleAsyncPersist(uri);
-      CommonUtils.waitFor("Wait for the file to be persisted", new Function<Void, Boolean>() {
-        @Override
-        public Boolean apply(Void input) {
-          try {
-            return fs.getStatus(uri).isPersisted();
-          } catch (Exception e) {
-            throw Throwables.propagate(e);
-          }
-        }
-      });
     } finally {
       context.releaseMasterClient(client);
     }
+    CommonUtils.waitFor("Wait for the file to be persisted", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        try {
+          return fs.getStatus(uri).isPersisted();
+        } catch (Exception e) {
+          throw Throwables.propagate(e);
+        }
+      }
+    }, 300 * 1000 /* timeout in ms */, 200 /* sleep interval in ms */);
   }
 
   /**
