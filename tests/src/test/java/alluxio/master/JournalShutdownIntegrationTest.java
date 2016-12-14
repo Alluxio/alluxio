@@ -73,6 +73,7 @@ public class JournalShutdownIntegrationTest {
   @Before
   public final void before() throws Exception {
     mExecutorsForClient = Executors.newFixedThreadPool(1);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
   }
 
   @Test
@@ -105,13 +106,13 @@ public class JournalShutdownIntegrationTest {
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
+    CommonUtils.sleepMs(TEST_TIME_MS);
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
-      CommonUtils.sleepMs(TEST_TIME_MS);
+      cluster.waitForNewMaster(10 * Constants.SECOND_MS);
       Assert.assertTrue(cluster.killLeader());
     }
     cluster.stopFS();
-    CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
     // clean up
