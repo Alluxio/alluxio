@@ -149,7 +149,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   public void createOpenSeek() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     OutputStream outputStream = mUfs.create(testFile);
-    int numBytes = 1000;
+    int numBytes = 100;
     for (int i = 0; i < numBytes; ++i) {
       outputStream.write(i);
     }
