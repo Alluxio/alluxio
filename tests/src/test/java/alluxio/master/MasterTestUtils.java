@@ -12,10 +12,14 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalFactory;
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Function;
 
 import java.io.IOException;
 
@@ -40,5 +44,20 @@ public class MasterTestUtils {
     blockMaster.start(false);
     fsMaster.start(false);
     return fsMaster;
+  }
+
+  /**
+   * Waits for the startup consistency check to complete with a limit of 1 minute.
+   *
+   * @param master the file system master which is starting up
+   */
+  public static void waitForStartupConsistencyCheck(final FileSystemMaster master) {
+    CommonUtils.waitFor("Startup consistency check completion", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void aVoid) {
+        return master.getStartupConsistencyCheck().getStatus()
+            == FileSystemMaster.StartupConsistencyCheckResult.Status.COMPLETE;
+      }
+    }, Constants.MINUTE_MS);
   }
 }

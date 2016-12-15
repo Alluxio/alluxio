@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
@@ -25,6 +26,7 @@ import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.StartupConsistencyCheckStatus;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
@@ -33,6 +35,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +131,7 @@ public final class AlluxioMasterRestServiceHandler {
                 .setMountPoints(getMountPointsInternal())
                 .setRpcAddress(mMaster.getRpcAddress().toString())
                 .setStartTimeMs(mMaster.getStartTimeMs())
+                .setStartupConsistencyCheckStatus(getStartupConsistencyCheckStatusInternal())
                 .setTierCapacity(getTierCapacityInternal())
                 .setUfsCapacity(getUfsCapacityInternal())
                 .setUptimeMs(mMaster.getUptimeMs())
@@ -527,6 +531,20 @@ public final class AlluxioMasterRestServiceHandler {
       mountPoints.put(mountPoint.getKey(), info);
     }
     return mountPoints;
+  }
+
+  private StartupConsistencyCheckStatus getStartupConsistencyCheckStatusInternal() {
+    FileSystemMaster.StartupConsistencyCheckResult result =
+        mFileSystemMaster.getStartupConsistencyCheck();
+    StartupConsistencyCheckStatus ret = new StartupConsistencyCheckStatus();
+    List<AlluxioURI> inconsistentUris = result.getInconsistentUris();
+    List<String> uris = new ArrayList<>(inconsistentUris.size());
+    for (AlluxioURI uri : inconsistentUris) {
+      uris.add(uri.toString());
+    }
+    ret.setInconsistentUris(uris);
+    ret.setStatus(result.getStatus().toString());
+    return ret;
   }
 
   private Map<String, Capacity> getTierCapacityInternal() {
