@@ -1831,65 +1831,108 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   void renameInternal(LockedInodePath srcInodePath, LockedInodePath dstInodePath, boolean replayed,
       long opTimeMs) throws FileDoesNotExistException, InvalidPathException, IOException {
+
+    // Rename logic:
+    // 1. Change the source inode name to the destination name.
+    // 2. Insert the source inode into the destination parent.
+    // 3. Do UFS operations if necessary.
+    // 4. Remove the source inode (by name, since inode is no longer valid) from the source parent.
+    // 5. Set the last modification times for both source and destination parent inodes.
+
     Inode<?> srcInode = srcInodePath.getInode();
     AlluxioURI srcPath = srcInodePath.getUri();
     AlluxioURI dstPath = dstInodePath.getUri();
-    LOG.debug("Renaming {} to {}", srcPath, dstPath);
     InodeDirectory srcParentInode = srcInodePath.getParentInodeDirectory();
+    InodeDirectory dstParentInode = dstInodePath.getParentInodeDirectory();
+    String srcName = srcInode.getName();
+    String dstName = dstPath.getName();
 
+    LOG.debug("Renaming {} to {}", srcPath, dstPath);
+
+    // 1. Change the source inode name to the destination name.
+    srcInode.setName(dstName);
+    srcInode.setParentId(dstParentInode.getId());
+
+    // 2. Insert the source inode into the destination parent.
+    if (!dstParentInode.addChild(srcInode)) {
+      // On failure, revert changes and throw exception.
+      srcInode.setName(srcName);
+      srcInode.setParentId(dstParentInode.getId());
+      throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
+    }
+
+    // 3. Do UFS operations if necessary.
     // If the source file is persisted, rename it in the UFS.
-    if (!replayed && srcInode.isPersisted()) {
-      MountTable.Resolution resolution = mMountTable.resolve(srcPath);
+    try {
+      if (!replayed && srcInode.isPersisted()) {
+        MountTable.Resolution resolution = mMountTable.resolve(srcPath);
 
-      String ufsSrcPath = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
-      String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
-      // Create ancestor directories from top to the bottom. We cannot use recursive create parents
-      // here because the permission for the ancestors can be different.
-      List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
-      Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
-      AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
-      // The dst inode does not exist yet, so the last inode in the list is the existing parent.
-      for (int i = dstInodeList.size() - 1; i >= 0; i--) {
-        if (ufs.isDirectory(curUfsDirPath.toString())) {
-          break;
+        String ufsSrcPath = resolution.getUri().toString();
+        UnderFileSystem ufs = resolution.getUfs();
+        String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
+        // Create ancestor directories from top to the bottom. We cannot use recursive create parents
+        // here because the permission for the ancestors can be different.
+        List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
+        Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
+        AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
+        // The dst inode does not exist yet, so the last inode in the list is the existing parent.
+        for (int i = dstInodeList.size() - 1; i >= 0; i--) {
+          if (ufs.isDirectory(curUfsDirPath.toString())) {
+            break;
+          }
+          Inode<?> curInode = dstInodeList.get(i);
+          Permission perm = new Permission(curInode.getOwner(), curInode.getGroup(),
+              curInode.getMode());
+          MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
+              .setPermission(perm);
+          ufsDirsToMakeWithOptions.push(new Pair<>(curUfsDirPath.toString(), mkdirsOptions));
+          curUfsDirPath = curUfsDirPath.getParent();
         }
-        Inode<?> curInode = dstInodeList.get(i);
-        Permission perm = new Permission(curInode.getOwner(), curInode.getGroup(),
-            curInode.getMode());
-        MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
-            .setPermission(perm);
-        ufsDirsToMakeWithOptions.push(new Pair<>(curUfsDirPath.toString(), mkdirsOptions));
-        curUfsDirPath = curUfsDirPath.getParent();
-      }
-      while (!ufsDirsToMakeWithOptions.empty()) {
-        Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
-        if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
+        while (!ufsDirsToMakeWithOptions.empty()) {
+          Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
+          if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
+            throw new IOException(
+                ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirAndPerm.getFirst()));
+          }
+        }
+        boolean success;
+        if (srcInode.isFile()) {
+          success = ufs.renameFile(ufsSrcPath, ufsDstUri);
+        } else {
+          success = ufs.renameDirectory(ufsSrcPath, ufsDstUri);
+        }
+        if (!success) {
           throw new IOException(
-              ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirAndPerm.getFirst()));
+              ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
         }
       }
-      boolean success;
-      if (srcInode.isFile()) {
-        success = ufs.renameFile(ufsSrcPath, ufsDstUri);
-      } else {
-        success = ufs.renameDirectory(ufsSrcPath, ufsDstUri);
+    } catch (Exception e) {
+      // On failure, revert changes and throw exception.
+      srcInode.setName(srcName);
+      srcInode.setParentId(dstParentInode.getId());
+      if (!dstParentInode.removeChild(dstName)) {
+        LOG.error("Failed to revert rename changes. Alluxio metadata may be inconsistent.");
       }
-      if (!success) {
-        throw new IOException(
-            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
-      }
+      throw e;
     }
 
     // TODO(jiri): A crash between now and the time the rename operation is journaled will result in
     // an inconsistency between Alluxio and UFS.
-    InodeDirectory dstParentInode = dstInodePath.getParentInodeDirectory();
-    srcParentInode.removeChild(srcInode);
-    srcParentInode.setLastModificationTimeMs(opTimeMs);
-    srcInode.setParentId(dstParentInode.getId());
-    srcInode.setName(dstPath.getName());
-    dstParentInode.addChild(srcInode);
+
+    // 4. Remove the source inode (by name, since inode is no longer valid) from the source parent.
+    if (!srcParentInode.removeChild(srcName)) {
+      // This should never happen.
+      LOG.error("Failed to rename within Alluxio. Alluxio and under storage may be inconsistent.");
+      srcInode.setName(srcName);
+      srcInode.setParentId(dstParentInode.getId());
+      if (!dstParentInode.removeChild(dstName)) {
+        LOG.error("Failed to revert rename changes. Alluxio metadata may be inconsistent.");
+      }
+    }
+
+    // 5. Set the last modification times for both source and destination parent inodes.
     dstParentInode.setLastModificationTimeMs(opTimeMs);
+    srcParentInode.setLastModificationTimeMs(opTimeMs);
     Metrics.PATHS_RENAMED.inc();
   }
 
