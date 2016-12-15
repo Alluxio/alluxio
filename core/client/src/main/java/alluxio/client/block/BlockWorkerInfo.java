@@ -11,6 +11,8 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.wire.WorkerNetAddress;
 
@@ -27,6 +29,8 @@ public final class BlockWorkerInfo {
   private final WorkerNetAddress mNetAddress;
   private final long mCapacityBytes;
   private final long mUsedBytes;
+  private long mBlockSizeBytes;
+  private long mUserFileWriteCapacityReservedRatio;
 
   /**
    * Constructs the block worker information.
@@ -53,6 +57,16 @@ public final class BlockWorkerInfo {
    */
   public long getCapacityBytes() {
     return mCapacityBytes;
+  }
+
+  /**
+   * @return the available bytes of the worker
+   */
+  public long getAvailableBytes() {
+    mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mUserFileWriteCapacityReservedRatio = Configuration
+        .getBytes(PropertyKey.USER_FILE_WRITE_CAPACITY_RESERVED_RATIO);
+    return mCapacityBytes - mUsedBytes - (mUserFileWriteCapacityReservedRatio * mBlockSizeBytes);
   }
 
   /**
