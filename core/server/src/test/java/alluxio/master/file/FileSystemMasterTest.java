@@ -1291,22 +1291,6 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Helper for renaming a list of paths serially.
-   * @param src list of source paths
-   * @param dst list of destination paths
-   * @return the time elapsed in nanoseconds
-   */
-  private Long serialRename(final AlluxioURI[] src, final AlluxioURI[] dst)
-      throws Exception {
-    final int numFiles = src.length;
-    long start = System.nanoTime();
-    for (int i = 0; i < numFiles; i++) {
-      mFileSystemMaster.rename(src[i], dst[i]);
-    }
-    return System.nanoTime() - start;
-  }
-
-  /**
    * Tests that many threads concurrently renaming the same file will only succeed once.
    */
   @Test
@@ -1401,6 +1385,22 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Helper for renaming a list of paths serially.
+   * @param src list of source paths
+   * @param dst list of destination paths
+   * @return the time elapsed in nanoseconds
+   */
+  private Long serialRename(final AlluxioURI[] src, final AlluxioURI[] dst)
+      throws Exception {
+    final int numFiles = src.length;
+    long start = System.nanoTime();
+    for (int i = 0; i < numFiles; i++) {
+      mFileSystemMaster.rename(src[i], dst[i]);
+    }
+    return System.nanoTime() - start;
+  }
+
+  /**
    * Helper for renaming a list of paths concurrently. Assumes the srcs are already created and
    * dsts do not exist.
    *
@@ -1447,5 +1447,54 @@ public final class FileSystemMasterTest {
     }
     long duration = System.nanoTime() - start;
     return new Pair<>(duration, errors.size());
+  }
+
+  /**
+   * Tests that getFileInfo (read operation) either returns the correct file info or fails if it
+   * has been renamed while the operation was waiting for the file lock.
+   */
+  @Test
+  public void consistentGetFileInfo() throws Exception {
+    final int iterations = 10000;
+    final AlluxioURI file = new AlluxioURI("/file");
+    final AlluxioURI dst = new AlluxioURI("/dst");
+    final CyclicBarrier barrier = new CyclicBarrier(2);
+    for (int i = 0; i < iterations; i++) {
+      mFileSystemMaster.createFile(file, sNestedFileOptions);
+      Thread renamer = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AuthenticatedClientUser.set(TEST_USER);
+            barrier.await();
+            mFileSystemMaster.rename(file, dst);
+            mFileSystemMaster.delete(dst, true);
+          } catch (Exception e) {
+            Assert.fail(e.getMessage());
+          }
+        }
+      });
+      Thread reader = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AuthenticatedClientUser.set(TEST_USER);
+            barrier.await();
+            FileInfo info = mFileSystemMaster.getFileInfo(file);
+            // If the file info is successfully obtained, then the path should match
+            Assert.assertEquals(info.getPath(), file.getPath());
+          } catch (InvalidPathException | FileDoesNotExistException e) {
+            // InvalidPathException - if the file is renamed while the thread waits for the lock.
+            // FileDoesNotExistException - if the file is fully renamed before the getFileInfo call.
+          } catch (Exception e) {
+            Assert.fail(e.getMessage());
+          }
+        }
+      });
+      renamer.start();
+      reader.start();
+      renamer.join();
+      reader.join();
+    }
   }
 }
