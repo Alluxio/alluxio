@@ -440,10 +440,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       String dir = stripPrefixIfPresent(path);
       // Check if anything begins with <folder_path>/
       try {
+        // TODO(adit): add test case for return of getObjectListingChunk when no folder in ufs
         ObjectListingChunk objs = getObjectListingChunk(dir, true);
         // If there are, this is a folder and we can create the necessary metadata
         if (objs != null && objs.getObjectNames() != null && objs.getObjectNames().length > 0) {
           mkdirsInternal(dir);
+          // TODO(adit): folder metadata is never used
           meta = getObjectStatus(keyAsFolder);
         }
       } catch (IOException e) {
@@ -560,6 +562,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @throws IOException if an I/O error occurs
    */
   protected UnderFileStatus[] listInternal(String path, ListOptions options) throws IOException {
+    // TODO(adit) This call might be redundant
     // if the path not exists, or it is a file, then should return null
     if (!isDirectory(path)) {
       return null;
