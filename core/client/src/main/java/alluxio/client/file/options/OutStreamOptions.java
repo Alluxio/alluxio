@@ -137,6 +137,7 @@ public final class OutStreamOptions {
   public WriteType getWriteType() {
     return mWriteType;
   }
+
   /**
    * Sets the size of the block in bytes.
    *
