@@ -92,15 +92,17 @@ public enum WriteType {
   }
 
   /**
-   * @return true if the write type is {@link #ASYNC_THROUGH}, false otherwise
+   * @return true if by this write type data will be persisted <em>asynchronously</em> to under
+   *         storage (e.g., {@link #ASYNC_THROUGH}), false otherwise
    */
   public boolean isAsync() {
     return mValue == ASYNC_THROUGH.mValue;
   }
 
   /**
-   * @return true if the write type is one of {@link #MUST_CACHE}, {@link #CACHE_THROUGH},
-   *         {@link #TRY_CACHE}, or {@link #ASYNC_THROUGH}
+   * @return true if by this write type data will be cached in Alluxio space (e.g.,
+   *         {@link #MUST_CACHE}, {@link #CACHE_THROUGH}, {@link #TRY_CACHE}, or
+   *         {@link #ASYNC_THROUGH}), false otherwise
    */
   public boolean isCache() {
     return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
@@ -108,7 +110,8 @@ public enum WriteType {
   }
 
   /**
-   * @return true if the write type is {@link #CACHE_THROUGH} or {@link #THROUGH}
+   * @return true if by this write type data will be persisted <em>synchronously</em> to under
+   *         storage (e.g., {@link #CACHE_THROUGH} or {@link #THROUGH}), false otherwise
    */
   public boolean isThrough() {
     return (mValue == CACHE_THROUGH.mValue) || (mValue == THROUGH.mValue);

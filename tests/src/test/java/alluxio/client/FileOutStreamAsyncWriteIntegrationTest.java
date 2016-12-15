@@ -53,7 +53,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
-    checkWrite(filePath, UnderStorageType.ASYNC_PERSIST, length, length);
+    checkFile(filePath, true, true, length);
   }
 
   @Test
@@ -72,6 +72,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
-    checkWrite(filePath, UnderStorageType.ASYNC_PERSIST, 0, 0);
+    checkFile(filePath, true, true, 0);
   }
 }
