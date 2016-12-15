@@ -30,7 +30,6 @@ import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
@@ -49,6 +48,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -471,7 +471,7 @@ public class FileInStreamTest {
           .openUfsFile(new AlluxioURI(mStatus.getUfsPath()), OpenUfsFileOptions.defaults());
     } else {
       UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));
-      UnderFileInputStream stream = Mockito.mock(UnderFileInputStream.class);
+      InputStream stream = Mockito.mock(InputStream.class);
       Mockito.when(ufs.open("testUfsPath")).thenReturn(stream);
       Mockito.when(stream.skip(BLOCK_LENGTH)).thenReturn(BLOCK_LENGTH);
       Mockito.when(stream.skip(BLOCK_LENGTH / 2)).thenReturn(BLOCK_LENGTH / 2);

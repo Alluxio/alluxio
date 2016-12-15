@@ -21,7 +21,6 @@ import alluxio.security.authorization.Permission;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
-import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -45,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -369,7 +369,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UnderFileInputStream open(String path, OpenOptions options) throws IOException {
+  public InputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {

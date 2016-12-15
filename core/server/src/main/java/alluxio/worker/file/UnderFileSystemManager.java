@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.Seekable;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
@@ -20,7 +21,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.Permission;
-import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -125,7 +125,7 @@ public final class UnderFileSystemManager {
     private final String mUri;
 
     /** The underlying stream to read data from. */
-    private UnderFileInputStream mStream;
+    private InputStream mStream;
 
     /**
      * Constructor for an input stream agent for a UFS file. The file must exist when this is
@@ -187,7 +187,7 @@ public final class UnderFileSystemManager {
         UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
         mStream = ufs.open(mUri, OpenOptions.defaults().setOffset(position));
       } else {
-        mStream.seek(position);
+        ((Seekable) mStream).seek(position);
       }
       return mStream;
     }

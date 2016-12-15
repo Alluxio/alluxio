@@ -21,7 +21,6 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.underfs.hdfs.LocalMiniDFSCluster;
@@ -31,6 +30,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,7 +86,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
       String checkpointPath = status.getUfsPath();
       UnderFileSystem ufs = UnderFileSystem.Factory.get(checkpointPath);
 
-      UnderFileInputStream is = ufs.open(checkpointPath);
+      InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) status.getLength()];
       String underFSClass = UnderFileSystemCluster.getUnderFSClass();
       if ((LocalMiniDFSCluster.class.getName().equals(underFSClass)) && 0 == res.length) {

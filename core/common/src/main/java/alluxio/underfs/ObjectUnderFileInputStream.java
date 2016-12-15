@@ -11,12 +11,14 @@
 
 package alluxio.underfs;
 
+import alluxio.Seekable;
 import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.options.OpenOptions;
 
 import com.google.common.io.CountingInputStream;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -24,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A wrapper implementation of {@link UnderFileInputStream} w/ seek.
  */
 @NotThreadSafe
-public class ObjectUnderFileInputStream extends UnderFileInputStream {
+public final class ObjectUnderFileInputStream extends InputStream implements Seekable {
 
   /** The initial position of the stream. */
   private long mInitPos;
@@ -39,7 +41,7 @@ public class ObjectUnderFileInputStream extends UnderFileInputStream {
   private CountingInputStream mStream;
 
   /**
-   * Create a new instance of {@link ObjectUnderFileInputStream}.
+   * Creates a new instance of {@link ObjectUnderFileInputStream}.
    *
    * @param ufs Object UFS for input stream
    * @param key key in the underlying object store

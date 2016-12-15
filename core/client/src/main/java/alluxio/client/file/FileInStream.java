@@ -17,7 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
-import alluxio.client.Seekable;
+import alluxio.Seekable;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.LocalBlockInStream;

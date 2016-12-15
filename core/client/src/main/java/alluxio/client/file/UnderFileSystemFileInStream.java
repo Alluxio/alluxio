@@ -13,15 +13,16 @@ package alluxio.client.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.Seekable;
 import alluxio.client.UnderFileSystemFileReader;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.underfs.UnderFileInputStream;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
@@ -33,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 // TODO(calvin): See if common logic in this class and buffered block in stream can be abstracted
 @NotThreadSafe
-public final class UnderFileSystemFileInStream extends UnderFileInputStream {
+public final class UnderFileSystemFileInStream extends InputStream implements Seekable {
   /** Current position of the stream, relative to the start of the block. */
   private long mPos;
   /** If the bytes in the internal buffer are valid. */

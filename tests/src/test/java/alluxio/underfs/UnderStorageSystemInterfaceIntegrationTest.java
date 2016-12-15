@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.Seekable;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -149,18 +150,39 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   public void createOpenSeek() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     OutputStream outputStream = mUfs.create(testFile);
-    int numBytes = 100;
+    int numBytes = 10;
     for (int i = 0; i < numBytes; ++i) {
       outputStream.write(i);
     }
     outputStream.close();
+    InputStream inputStream = mUfs.open(testFile);
     for (int i = 0; i < numBytes; ++i) {
-      UnderFileInputStream inputStream = mUfs.open(testFile);
-      inputStream.seek(i);
+      ((Seekable) inputStream).seek(i);
       int readValue = inputStream.read();
       Assert.assertEquals(i, readValue);
-      inputStream.close();
     }
+    inputStream.close();
+  }
+
+  /**
+   * Tests seek when new position is going back in the opened stream.
+   */
+  @Test
+  public void createOpenSeekReverse() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    OutputStream outputStream = mUfs.create(testFile);
+    int numBytes = 10;
+    for (int i = 0; i < numBytes; ++i) {
+      outputStream.write(i);
+    }
+    outputStream.close();
+    InputStream inputStream = mUfs.open(testFile);
+    for (int i = numBytes - 1; i >= 0; --i) {
+      ((Seekable) inputStream).seek(i);
+      int readValue = inputStream.read();
+      Assert.assertEquals(i, readValue);
+    }
+    inputStream.close();
   }
 
   /**

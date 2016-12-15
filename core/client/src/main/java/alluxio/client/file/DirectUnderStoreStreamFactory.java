@@ -12,11 +12,11 @@
 package alluxio.client.file;
 
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
-import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Factory which creates input streams to a specified path in under storage. The streams are created
@@ -33,7 +33,7 @@ public final class DirectUnderStoreStreamFactory implements UnderStoreStreamFact
   }
 
   @Override
-  public UnderFileInputStream create(OpenOptions options) throws IOException {
+  public InputStream create(OpenOptions options) throws IOException {
     return UnderFileSystem.Factory.get(mPath).open(mPath, options);
   }
 
