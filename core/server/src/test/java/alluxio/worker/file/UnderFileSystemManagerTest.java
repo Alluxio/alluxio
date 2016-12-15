@@ -12,6 +12,7 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Seekable;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
@@ -66,12 +67,16 @@ public final class UnderFileSystemManagerTest {
   /** The filename in the under storage. */
   private AlluxioURI mUri;
 
+  /** Mock class for a ufs input stream with seek. **/
+  abstract class MockUnderFileInputStream extends InputStream implements Seekable {
+  }
+
   @Before
   public void before() throws Exception {
     mManager = new UnderFileSystemManager();
     mMockUfs = Mockito.mock(UnderFileSystem.class);
     mMockOutputStream = Mockito.mock(OutputStream.class);
-    mMockInputStream = Mockito.mock(InputStream.class);
+    mMockInputStream = Mockito.mock(MockUnderFileInputStream.class);
     mUri = new AlluxioURI(PathUtils.uniqPath());
     Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
     Mockito.when(mMockUfs.create(Mockito.anyString(),
