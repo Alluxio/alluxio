@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A wrapper implementation of {@link UnderFileInputStream} w/ seek.
  */
 @NotThreadSafe
-public class ObjectUnderFileInputStream extends UnderFileInputStream {
+public final class ObjectUnderFileInputStream extends UnderFileInputStream {
 
   /** The initial position of the stream. */
   private long mInitPos;
@@ -39,7 +39,7 @@ public class ObjectUnderFileInputStream extends UnderFileInputStream {
   private CountingInputStream mStream;
 
   /**
-   * Create a new instance of {@link ObjectUnderFileInputStream}.
+   * Creates a new instance of {@link ObjectUnderFileInputStream}.
    *
    * @param ufs Object UFS for input stream
    * @param key key in the underlying object store

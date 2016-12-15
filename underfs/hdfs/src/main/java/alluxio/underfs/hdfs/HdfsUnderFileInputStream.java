@@ -29,7 +29,7 @@ public class HdfsUnderFileInputStream extends UnderFileInputStream {
   private FSDataInputStream mStream;
 
   /**
-   * Create a new instance of {@link HdfsUnderFileInputStream}.
+   * Creates a new instance of {@link HdfsUnderFileInputStream}.
    *
    * @param stream the wrapped input stream
    */

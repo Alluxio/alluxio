@@ -30,7 +30,7 @@ public class LocalUnderFileInputStream extends UnderFileInputStream {
   private FileInputStream mStream;
 
   /**
-   * Create a new instance of {@link LocalUnderFileInputStream}.
+   * Creates a new instance of {@link LocalUnderFileInputStream}.
    *
    * @param stream the wrapped input stream
    */

@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import alluxio.Seekable;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -20,14 +22,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A wrapper over an {@link InputStream} from an {@link UnderFileSystem}.
  */
 @NotThreadSafe
-public abstract class UnderFileInputStream extends InputStream {
+public abstract class UnderFileInputStream extends InputStream implements Seekable {
 
-  /**
-   * Seek to the given offset from the start of the file. The next read() will be from that
-   * location. Can't seek past the end of the file.
-   *
-   * @param position offset from the start of the file in bytes
-   * @throws IOException if position is negative, or if a non-Alluxio error occurs
-   */
+  @Override
   public abstract void seek(long position) throws IOException;
 }
