@@ -96,7 +96,7 @@ ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTE
 
 # Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_PROXY_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.logger.type=PROXY_LOGGER"
+ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_PROXY_LOGGER:-PROXY_LOGGER}"
 
 # Worker specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_WORKER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
