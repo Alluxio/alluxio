@@ -218,8 +218,9 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
       closeResource(client);
       // The master branch of Apache Thrift provides a dedicated exception type for this
       // (CORRUPTED_DATA).
-      if (FRAME_SIZE_NEGATIVE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()
-          || FRAME_SIZE_TOO_LARGE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
+      if (e.getMessage() != null && (
+          FRAME_SIZE_NEGATIVE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()
+              || FRAME_SIZE_TOO_LARGE_EXCEPTION_PATTERN.matcher(e.getMessage()).find())) {
         // See an error like "Frame size (67108864) larger than max length (16777216)!",
         // pointing to the helper page.
         String message = String.format("Failed to connect to %s @ %s: %s. " + "This exception "
