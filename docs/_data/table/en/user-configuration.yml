@@ -30,6 +30,9 @@ alluxio.user.file.worker.client.threads:
   How many threads to use for file worker clients to read from workers.
 alluxio.user.file.write.location.policy.class:
   The default location policy for choosing workers for writing a file's blocks
+alluxio.user.file.write.capacity.reserved.ratio:
+  The portion of space reserced in worker when user use the LocalFirstWithoutEvictionPolicy class
+  as file write location policy (a value between 0 and 1).
 alluxio.user.file.readtype.default:
   Default read type when creating Alluxio files.
   Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage,
