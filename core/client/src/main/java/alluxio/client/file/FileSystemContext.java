@@ -18,6 +18,7 @@ import alluxio.client.block.BlockStoreContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.CloseableResource;
+import alluxio.security.User;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
@@ -42,9 +43,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * so, because thread A holds the lock on {@link FileSystemContext}.
  */
 @ThreadSafe
-public enum FileSystemContext {
-  INSTANCE;
-
+public class FileSystemContext {
   private BlockStoreContext mBlockStoreContext;
 
   private FileSystemMasterClientPool mFileSystemMasterClientPool;
@@ -55,6 +54,8 @@ public enum FileSystemContext {
   private List<WorkerNetAddress> mWorkerAddresses;
   /** Lock for mWorkerAddresses. */
   private final Object mWorkerAddressesLock = new Object();
+
+  private User mParentUser = null;
 
   /**
    * Creates a new file stream context.

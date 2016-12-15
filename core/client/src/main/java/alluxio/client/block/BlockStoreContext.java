@@ -58,13 +58,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockStoreContext {
   private BlockMasterClientPool mBlockMasterClientPool;
 
-  // The following maps never shrink in the current implementation because its
-  // size is limited by the number of Alluxio workers in the cluster. This simplifies the
-  // concurrent access to them.
-  private static final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
-      BLOCK_WORKER_THRIFT_CLIENT_POOL = new ConcurrentHashMapV8<>();
-  private static final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
-      BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL = new ConcurrentHashMapV8<>();
   private static final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
       NETTY_CHANNEL_POOL_MAP = new ConcurrentHashMapV8<>();
 
@@ -209,81 +202,6 @@ public final class BlockStoreContext {
   }
 
   /**
-   * Acquires a block worker thrift client from the block worker thrift client pools. If there is
-   * no available client instance available in the pool, it tries to create a new one. And an
-   * exception is thrown if it fails to create a new one.
-   *
-   * @param address the address of the block worker
-   * @return the block worker thrift client
-   * @throws IOException if it fails to create a new client instance mostly because it fails to
-   *         connect to remote worker
-   */
-  public static BlockWorkerClientService.Client acquireBlockWorkerThriftClient(
-      final InetSocketAddress address) throws IOException {
-    if (!BLOCK_WORKER_THRIFT_CLIENT_POOL.containsKey(address)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(address,
-          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (BLOCK_WORKER_THRIFT_CLIENT_POOL.putIfAbsent(address, pool) != null) {
-        pool.close();
-      }
-    }
-    try {
-      return BLOCK_WORKER_THRIFT_CLIENT_POOL.get(address).acquire();
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
-    }
-  }
-
-  /**
-   * Releases the block worker thrift client to the pool.
-   *
-   * @param address the network address of the block worker thrift client
-   * @param client the block worker thrift client
-   */
-  public static void releaseBlockWorkerThriftClient(InetSocketAddress address,
-      BlockWorkerClientService.Client client) {
-    Preconditions.checkArgument(BLOCK_WORKER_THRIFT_CLIENT_POOL.containsKey(address));
-    BLOCK_WORKER_THRIFT_CLIENT_POOL.get(address).release(client);
-  }
-
-  /**
-   * Acquires a block worker thrift client from the block worker thrift client pools dedicated for
-   * heartbeat. If there is no available client instance available in the pool, it tries to create
-   * a new one. And an exception is thrown if it fails to create a new one.
-   *
-   * @param address the address of the block worker
-   * @return the block worker thrift client
-   * @throws IOException if it fails to create a new client instance mostly because it fails to
-   *         connect to remote worker
-   * @throws InterruptedException if this thread is interrupted
-   */
-  public static BlockWorkerClientService.Client acquireBlockWorkerThriftClientHeartbeat(
-      final InetSocketAddress address) throws IOException, InterruptedException {
-    if (!BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.containsKey(address)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(address,
-          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.putIfAbsent(address, pool) != null) {
-        pool.close();
-      }
-    }
-    return BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.get(address).acquire();
-  }
-
-  /**
-   * Releases the block worker thrift client to the heartbeat pool.
-   *
-   * @param address the network address of the block worker thrift client
-   * @param client the block worker thrift client
-   */
-  public static void releaseBlockWorkerThriftClientHeartbeat(InetSocketAddress address,
-      BlockWorkerClientService.Client client) {
-    Preconditions.checkArgument(BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.containsKey(address));
-    BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL.get(address).release(client);
-  }
-
-  /**
    * @return if there is a local worker running the same machine
    */
   public synchronized boolean hasLocalWorker() {
@@ -305,31 +223,6 @@ public final class BlockStoreContext {
             public Long getValue() {
               long ret = 0;
               for (NettyChannelPool pool : NETTY_CHANNEL_POOL_MAP.values()) {
-                ret += pool.size();
-              }
-              return ret;
-            }
-          });
-      MetricsSystem
-          .registerGaugeIfAbsent(MetricsSystem.getClientMetricName("BlockWorkerClientsOpen"),
-              new Gauge<Long>() {
-                @Override
-                public Long getValue() {
-                  long ret = 0;
-                  for (BlockWorkerThriftClientPool pool : BLOCK_WORKER_THRIFT_CLIENT_POOL
-                      .values()) {
-                    ret += pool.size();
-                  }
-                  return ret;
-                }
-              });
-      MetricsSystem.registerGaugeIfAbsent(
-          MetricsSystem.getClientMetricName("BlockWorkerHeartbeatClientsOpen"), new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              long ret = 0;
-              for (BlockWorkerThriftClientPool pool : BLOCK_WORKER_THRIFT_CLIENT_HEARTBEAT_POOL
-                  .values()) {
                 ret += pool.size();
               }
               return ret;
