@@ -1836,7 +1836,7 @@ public final class FileSystemMaster extends AbstractMaster {
     // 1. Change the source inode name to the destination name.
     // 2. Insert the source inode into the destination parent.
     // 3. Do UFS operations if necessary.
-    // 4. Remove the source inode (by name, since inode is no longer valid) from the source parent.
+    // 4. Remove the source inode (reverting the name) from the source parent.
     // 5. Set the last modification times for both source and destination parent inodes.
 
     Inode<?> srcInode = srcInodePath.getInode();
@@ -1919,8 +1919,9 @@ public final class FileSystemMaster extends AbstractMaster {
     // TODO(jiri): A crash between now and the time the rename operation is journaled will result in
     // an inconsistency between Alluxio and UFS.
 
-    // 4. Remove the source inode (by name, since inode is no longer valid) from the source parent.
-    if (!srcParentInode.removeChild(srcName)) {
+    // 4. Remove the source inode (reverting the name) from the source parent.
+    srcInode.setName(srcName);
+    if (!srcParentInode.removeChild(srcInode)) {
       // This should never happen.
       LOG.error("Failed to rename within Alluxio. Alluxio and under storage may be inconsistent.");
       srcInode.setName(srcName);
@@ -1929,6 +1930,7 @@ public final class FileSystemMaster extends AbstractMaster {
         LOG.error("Failed to revert rename changes. Alluxio metadata may be inconsistent.");
       }
     }
+    srcInode.setName(dstPath.getName());
 
     // 5. Set the last modification times for both source and destination parent inodes.
     dstParentInode.setLastModificationTimeMs(opTimeMs);
