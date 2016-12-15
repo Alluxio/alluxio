@@ -25,7 +25,6 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -258,7 +257,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean isDirectory(String path) throws IOException {
     // Root is always a folder
-    return isRoot(path) || getFolderMetadata(path) != null;
+    String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
+    if (isRoot(path) || getObjectStatus(keyAsFolder) != null) {
+      return true;
+    }
+    return getObjectListingChunkAndCreateNonEmpty(path, true) != null;
   }
 
   @Override
@@ -425,37 +428,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected abstract boolean deleteObject(String key) throws IOException;
 
   /**
-   * Gets the metadata associated with a non-root path if it represents a folder. This method will
-   * return null if the path is not a folder. If the path exists as a prefix but does not have the
-   * folder dummy file, a folder dummy file will be created.
-   *
-   * @param path the path to get the metadata for
-   * @return the metadata of the folder, or null if the path does not represent a folder
-   */
-  protected ObjectStatus getFolderMetadata(String path) {
-    Preconditions.checkArgument(!isRoot(path));
-    String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
-    ObjectStatus meta = getObjectStatus(keyAsFolder);
-    if (meta == null) {
-      String dir = stripPrefixIfPresent(path);
-      // Check if anything begins with <folder_path>/
-      try {
-        // TODO(adit): add test case for return of getObjectListingChunk when no folder in ufs
-        ObjectListingChunk objs = getObjectListingChunk(dir, true);
-        // If there are, this is a folder and we can create the necessary metadata
-        if (objs != null && objs.getObjectNames() != null && objs.getObjectNames().length > 0) {
-          mkdirsInternal(dir);
-          // TODO(adit): folder metadata is never used
-          meta = getObjectStatus(keyAsFolder);
-        }
-      } catch (IOException e) {
-        meta = null;
-      }
-    }
-    return meta;
-  }
-
-  /**
    * Maximum number of items in a single listing chunk supported by the under store.
    *
    * @return the maximum length for a single listing query
@@ -535,7 +507,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected abstract String getFolderSuffix();
 
   /**
-   * Get a (partial) object listing result for the given key.
+   * Gets a (partial) object listing result for the given key.
    *
    * @param key pseudo-directory key excluding header and bucket
    * @param recursive whether to request immediate children only, or all descendants
@@ -544,6 +516,31 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected abstract ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException;
+
+  /**
+   * Gets a (partial) object listing and attempt to create non-empty directory breadcrumb.
+   *
+   * @param path of pseudo-directory
+   * @param recursive whether to request immediate children only, or all descendants
+   * @return null if the prefix is not found or if an IO error occurs
+   */
+  protected ObjectListingChunk getObjectListingChunkAndCreateNonEmpty(String path,
+      boolean recursive) {
+    // Check if anything begins with <folder_path>/
+    String dir = stripPrefixIfPresent(path);
+    try {
+      ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
+      // If there are, this is a folder and we can create the necessary metadata
+      if (objs != null && objs.getObjectNames() != null && objs.getObjectNames().length > 0) {
+        // If the breadcrumb exists, this is a no-op
+        mkdirsInternal(dir);
+        return objs;
+      }
+    } catch (IOException e) {
+      // Return null if an exception occurs
+    }
+    return null;
+  }
 
   /**
    * Get full path of root in object store.
@@ -562,19 +559,18 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @throws IOException if an I/O error occurs
    */
   protected UnderFileStatus[] listInternal(String path, ListOptions options) throws IOException {
-    // TODO(adit) This call might be redundant
-    // if the path not exists, or it is a file, then should return null
-    if (!isDirectory(path)) {
-      return null;
-    }
-    path = stripPrefixIfPresent(path);
-    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-    path = path.equals(PATH_SEPARATOR) ? "" : path;
-    Map<String, Boolean> children = new HashMap<>();
-    ObjectListingChunk chunk = getObjectListingChunk(path, options.isRecursive());
+    ObjectListingChunk chunk = getObjectListingChunkAndCreateNonEmpty(path, options.isRecursive());
     if (chunk == null) {
+      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
+      if (getObjectStatus(keyAsFolder) != null) {
+        // Path is an empty directory
+        return new UnderFileStatus[0];
+      }
       return null;
     }
+    String keyPrefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
+    keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
+    Map<String, Boolean> children = new HashMap<>();
     while (chunk != null) {
       // Directories in UFS can be possibly encoded in two different ways:
       // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
@@ -594,7 +590,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       // Handle case (1)
       for (String obj : chunk.getObjectNames()) {
         // Remove parent portion of the key
-        String child = getChildName(obj, path);
+        String child = getChildName(obj, keyPrefix);
         // Prune the special folder suffix
         boolean isDir = child.endsWith(getFolderSuffix());
         child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
@@ -610,7 +606,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         // from the object store is empty for an empty delimiter.
         HashSet<String> prefixes = new HashSet<>();
         for (String objectName : chunk.getObjectNames()) {
-          while (objectName.startsWith(path)) {
+          while (objectName.startsWith(keyPrefix)) {
             objectName = objectName.substring(0, objectName.lastIndexOf(PATH_SEPARATOR));
             if (!objectName.isEmpty()) {
               prefixes.add(objectName);
@@ -622,9 +618,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         commonPrefixes = chunk.getCommonPrefixes();
       }
       for (String commonPrefix : commonPrefixes) {
-        if (commonPrefix.startsWith(path)) {
+        if (commonPrefix.startsWith(keyPrefix)) {
           // Remove parent portion of the key
-          String child = getChildName(commonPrefix, path);
+          String child = getChildName(commonPrefix, keyPrefix);
           // Remove any portion after the last path delimiter
           int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
           child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
