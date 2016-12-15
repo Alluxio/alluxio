@@ -15,8 +15,8 @@ import alluxio.Seekable;
 import alluxio.exception.ExceptionMessage;
 
 import java.io.FileInputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.channels.FileChannel;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * HDFS implementation for {@link UnderFileInputStream}.
  */
 @NotThreadSafe
-public class LocalUnderFileInputStream extends InputStream implements Seekable {
+public class LocalUnderFileInputStream extends FilterInputStream implements Seekable {
 
   /** The underlying stream to read data from. */
   private FileInputStream mStream;
@@ -36,27 +36,8 @@ public class LocalUnderFileInputStream extends InputStream implements Seekable {
    * @param stream the wrapped input stream
    */
   public LocalUnderFileInputStream(FileInputStream stream) {
+    super(stream);
     mStream = stream;
-  }
-
-  @Override
-  public void close() throws IOException {
-    mStream.close();
-  }
-
-  @Override
-  public int read() throws IOException {
-    return mStream.read();
-  }
-
-  @Override
-  public int read(byte[] b) throws IOException {
-    return read(b, 0, b.length);
-  }
-
-  @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    return mStream.read(b, off, len);
   }
 
   @Override
@@ -66,10 +47,5 @@ public class LocalUnderFileInputStream extends InputStream implements Seekable {
       throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(position));
     }
     channel.position(position);
-  }
-
-  @Override
-  public long skip(long n) throws IOException {
-    return mStream.skip(n);
   }
 }
