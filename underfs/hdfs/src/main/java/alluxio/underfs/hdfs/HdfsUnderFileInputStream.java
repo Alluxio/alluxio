@@ -11,11 +11,12 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.underfs.UnderFileInputStream;
+import alluxio.Seekable;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -23,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * HDFS implementation for {@link UnderFileInputStream}.
  */
 @NotThreadSafe
-public class HdfsUnderFileInputStream extends UnderFileInputStream {
+public class HdfsUnderFileInputStream extends InputStream implements Seekable {
 
   /** The underlying stream to read data from. */
   private FSDataInputStream mStream;

@@ -12,16 +12,17 @@
 package alluxio.client.block;
 
 import alluxio.Constants;
+import alluxio.Seekable;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
-import alluxio.underfs.UnderFileInputStream;
 import alluxio.underfs.options.OpenOptions;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -53,7 +54,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
    */
   private long mPos;
   /** The current under store stream. */
-  private UnderFileInputStream mUnderStoreStream;
+  private InputStream mUnderStoreStream;
 
   /**
    * A factory which can create an input stream to under storage.
@@ -64,7 +65,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
      * @return an input stream to under storage
      * @throws IOException if an IO exception occurs
      */
-    UnderFileInputStream create(OpenOptions options) throws IOException;
+    InputStream create(OpenOptions options) throws IOException;
 
     /**
      * Closes the factory, releasing any resources it was holding.
@@ -156,7 +157,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
     Preconditions.checkArgument(pos <= mLength,
         PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), pos);
-    mUnderStoreStream.seek(mInitPos + pos);
+    ((Seekable) mUnderStoreStream).seek(mInitPos + pos);
     mPos = pos;
   }
 

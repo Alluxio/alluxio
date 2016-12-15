@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.Seekable;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -154,9 +155,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       outputStream.write(i);
     }
     outputStream.close();
-    UnderFileInputStream inputStream = mUfs.open(testFile);
+    InputStream inputStream = mUfs.open(testFile);
     for (int i = 0; i < numBytes; ++i) {
-      inputStream.seek(i);
+      ((Seekable) inputStream).seek(i);
       int readValue = inputStream.read();
       Assert.assertEquals(i, readValue);
     }
@@ -175,9 +176,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       outputStream.write(i);
     }
     outputStream.close();
-    UnderFileInputStream inputStream = mUfs.open(testFile);
+    InputStream inputStream = mUfs.open(testFile);
     for (int i = numBytes - 1; i >= 0; --i) {
-      inputStream.seek(i);
+      ((Seekable) inputStream).seek(i);
       int readValue = inputStream.read();
       Assert.assertEquals(i, readValue);
     }

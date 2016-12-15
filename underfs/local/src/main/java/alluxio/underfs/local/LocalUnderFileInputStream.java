@@ -11,11 +11,12 @@
 
 package alluxio.underfs.local;
 
+import alluxio.Seekable;
 import alluxio.exception.ExceptionMessage;
-import alluxio.underfs.UnderFileInputStream;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.FileChannel;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -24,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * HDFS implementation for {@link UnderFileInputStream}.
  */
 @NotThreadSafe
-public class LocalUnderFileInputStream extends UnderFileInputStream {
+public class LocalUnderFileInputStream extends InputStream implements Seekable {
 
   /** The underlying stream to read data from. */
   private FileInputStream mStream;
