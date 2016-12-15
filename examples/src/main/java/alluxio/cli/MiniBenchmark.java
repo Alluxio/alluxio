@@ -20,7 +20,10 @@ import alluxio.client.ClientContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+
+import com.google.common.base.Preconditions;
 
 import java.util.Arrays;
 
@@ -52,7 +55,7 @@ public final class MiniBenchmark {
     System.out.println("To run a mini benchmark to read or write a file.");
     System.out.println(String
         .format("java -cp %s %s <master address> <[READ, WRITE]> <fileSize> <iterations>",
-        RuntimeConstants.ALLUXIO_JAR, TestRunner.class.getCanonicalName()));
+        RuntimeConstants.ALLUXIO_JAR, MiniBenchmark.class.getCanonicalName()));
   }
 
   /** Directory for the test generated files. */
@@ -69,12 +72,14 @@ public final class MiniBenchmark {
     }
     AlluxioURI masterLocation = new AlluxioURI(args[0]);
     Configuration.set(PropertyKey.MASTER_HOSTNAME, masterLocation.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterLocation.getPort()));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, masterLocation.getPort());
     ClientContext.init();
 
     OperationType operationType = Enum.valueOf(OperationType.class, args[1]);
     long fileSize = FormatUtils.parseSpaceSize(args[2]);
     int iterations = Integer.parseInt(args[3]);
+
+    CommonUtils.warmUpLoop();
 
     switch (operationType) {
       case READ:
@@ -83,10 +88,19 @@ public final class MiniBenchmark {
       case WRITE:
         writeFile(fileSize, iterations);
         break;
+      default:
+        throw new RuntimeException("Unsupported type.");
     }
   }
 
-  public static void readFile(long fileSize, int iterations) throws Exception {
+  /**
+   * Reads a file.
+   *
+   * @param fileSize the file size
+   * @param iterations the number of iterations to run
+   * @throws Exception if it fails to read
+   */
+  private static void readFile(long fileSize, int iterations) throws Exception {
     FileSystem fileSystem = FileSystem.Factory.get();
     byte[] buffer = new byte[(int) Math.min(fileSize, 4 * Constants.MB)];
 
@@ -100,7 +114,14 @@ public final class MiniBenchmark {
         (System.nanoTime() - start) * 1.0 / Constants.SECOND_NANO);
   }
 
-  public static void writeFile(long fileSize, int iterations) throws Exception {
+  /**
+   * Writes a file.
+   *
+   * @param fileSize the file size
+   * @param iterations number of iterations
+   * @throws Exception it if fails to write
+   */
+  private static void writeFile(long fileSize, int iterations) throws Exception {
     FileSystem fileSystem = FileSystem.Factory.get();
     byte[] buffer = new byte[(int) Math.min(fileSize, 4 * Constants.MB)];
     Arrays.fill(buffer, (byte) 'a');
