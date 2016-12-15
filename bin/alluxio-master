@@ -16,9 +16,10 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-master
 
-alluxio-master launches the Alluxio master in the foreground and logs to
-both the console and default log file. Configuration can be done by modifying
-alluxio-site.properties or alluxio-env.sh."
+alluxio-master launches the Alluxio master in the foreground and logs to both
+the console and default log file. To configure the master, add configuration
+properties in alluxio-site.properties or environment variables in
+alluxio-env.sh."
 
 if [[ "$#" -gt "0" ]]; then
   echo "${USAGE}"
