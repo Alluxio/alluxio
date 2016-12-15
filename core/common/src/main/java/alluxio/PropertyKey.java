@@ -252,6 +252,7 @@ public enum PropertyKey {
       Name.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS),
   USER_FILE_WRITE_LOCATION_POLICY(Name.USER_FILE_WRITE_LOCATION_POLICY,
       "alluxio.client.file.policy.LocalFirstPolicy"),
+  USER_FILE_WRITE_CAPACITY_RESERVED_RATIO(Name.USER_FILE_WRITE_CAPACITY_RESERVED_RATIO, 1),
   USER_FILE_WRITE_TYPE_DEFAULT(Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE"),
   USER_HEARTBEAT_INTERVAL_MS(Name.USER_HEARTBEAT_INTERVAL_MS, 1000),
   USER_LINEAGE_ENABLED(Name.USER_LINEAGE_ENABLED, false),
@@ -661,6 +662,8 @@ public enum PropertyKey {
         "alluxio.user.file.worker.client.pool.gc.threshold.ms";
     public static final String USER_FILE_WRITE_LOCATION_POLICY =
         "alluxio.user.file.write.location.policy.class";
+    public static final String USER_FILE_WRITE_CAPACITY_RESERVED_RATIO =
+        "alluxio.user.file.write.capacity.reserved.ratio";
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval.ms";
     public static final String USER_LINEAGE_ENABLED = "alluxio.user.lineage.enabled";
