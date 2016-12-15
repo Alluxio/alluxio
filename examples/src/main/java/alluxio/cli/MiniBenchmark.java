@@ -23,8 +23,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
-import com.google.common.base.Preconditions;
-
 import java.util.Arrays;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -110,7 +108,7 @@ public final class MiniBenchmark {
         while (inStream.read(buffer) != -1) {}
       }
     }
-    System.out.printf("Runtime: %f seconds.\n",
+    System.out.printf("Runtime: %f seconds.%n",
         (System.nanoTime() - start) * 1.0 / Constants.SECOND_NANO);
   }
 
@@ -144,6 +142,6 @@ public final class MiniBenchmark {
       runTime += System.nanoTime() - start;
     }
 
-    System.out.printf("Runtime: %f seconds.\n", runTime * 1.0 / Constants.SECOND_NANO);
+    System.out.printf("Runtime: %f seconds.%n", runTime * 1.0 / Constants.SECOND_NANO);
   }
 }
