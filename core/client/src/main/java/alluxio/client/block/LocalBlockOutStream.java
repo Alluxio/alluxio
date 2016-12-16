@@ -69,7 +69,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
 
     mCloser = Closer.create();
     try {
-      mBlockWorkerClient = mCloser.register(context.createWorkerClient(workerNetAddress));
+      mBlockWorkerClient = mCloser.register(context.createBlockWorkerClient(workerNetAddress));
       long initialSize = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
       String blockPath = mBlockWorkerClient.requestBlockLocation(mBlockId, initialSize);
       mReservedBytes += initialSize;

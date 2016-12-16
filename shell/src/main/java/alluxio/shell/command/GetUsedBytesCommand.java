@@ -11,6 +11,7 @@
 
 package alluxio.shell.command;
 
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 
@@ -46,7 +47,8 @@ public final class GetUsedBytesCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    long usedBytes = FileSystemContext.INSTANCE.getAlluxioBlockStore().getUsedBytes();
+    AlluxioBlockStore blockStore = new AlluxioBlockStore();
+    long usedBytes = blockStore.getUsedBytes();
     System.out.println("Used Bytes: " + usedBytes);
   }
 

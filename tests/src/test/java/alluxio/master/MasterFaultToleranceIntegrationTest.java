@@ -19,7 +19,6 @@ import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -196,7 +195,7 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Test
   public void workerReRegister() throws Exception {
-    AlluxioBlockStore store = FileSystemContext.INSTANCE.getAlluxioBlockStore();
+    AlluxioBlockStore store = new AlluxioBlockStore();
     Assert.assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
 
     List<Pair<Long, AlluxioURI>> emptyAnswer = new ArrayList<>();

@@ -47,7 +47,8 @@ public final class GetCapacityBytesCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    long capacityBytes = FileSystemContext.INSTANCE.getAlluxioBlockStore().getCapacityBytes();
+    AlluxioBlockStore alluxioBlockStore = new AlluxioBlockStore();
+    long capacityBytes = alluxioBlockStore.getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
   }
 

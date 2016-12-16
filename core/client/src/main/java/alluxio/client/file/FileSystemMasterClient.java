@@ -53,10 +53,20 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   /**
    * Creates a new file system master client.
    *
+   * @param subject the subject
    * @param masterAddress the master address
    */
   public FileSystemMasterClient(Subject subject, InetSocketAddress masterAddress) {
     super(subject, masterAddress);
+  }
+
+  /**
+   * Creates a new file system master client.
+   *
+   * @param masterAddress the master address
+   */
+  public FileSystemMasterClient(InetSocketAddress masterAddress) {
+    super(null, masterAddress);
   }
 
   @Override
