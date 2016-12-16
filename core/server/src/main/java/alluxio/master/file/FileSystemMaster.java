@@ -547,19 +547,19 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Class to represent the status and result of the startup consistency check.
    */
-  public static final class StartupConsistencyCheckResult {
+  public static final class StartupConsistencyCheck {
     /** Result for a disabled check. */
-    private static final StartupConsistencyCheckResult DISABLED =
-        new StartupConsistencyCheckResult(Status.DISABLED, null);
+    private static final StartupConsistencyCheck DISABLED =
+        new StartupConsistencyCheck(Status.DISABLED, null);
     /** Result for a failed check. */
-    private static final StartupConsistencyCheckResult FAILED =
-        new StartupConsistencyCheckResult(Status.FAILED, null);
+    private static final StartupConsistencyCheck FAILED =
+        new StartupConsistencyCheck(Status.FAILED, null);
     /** Result for a running check. */
-    private static final StartupConsistencyCheckResult RUNNING =
-        new StartupConsistencyCheckResult(Status.RUNNING, null);
+    private static final StartupConsistencyCheck RUNNING =
+        new StartupConsistencyCheck(Status.RUNNING, null);
 
     /**
-     * State of the check.
+     * Status of the check.
      */
     public enum Status {
       COMPLETE, DISABLED, FAILED, RUNNING
@@ -569,28 +569,28 @@ public final class FileSystemMaster extends AbstractMaster {
      * @param inconsistentUris the uris which are inconsistent with the underlying storage
      * @return a result set to the complete status
      */
-    public static StartupConsistencyCheckResult complete(List<AlluxioURI> inconsistentUris) {
-      return new StartupConsistencyCheckResult(Status.COMPLETE, inconsistentUris);
+    public static StartupConsistencyCheck complete(List<AlluxioURI> inconsistentUris) {
+      return new StartupConsistencyCheck(Status.COMPLETE, inconsistentUris);
     }
 
     /**
      * @return a result set to the disabled status
      */
-    public static StartupConsistencyCheckResult disabled() {
+    public static StartupConsistencyCheck disabled() {
       return DISABLED;
     }
 
     /**
      * @return a result set to the failed status
      */
-    public static StartupConsistencyCheckResult failed() {
+    public static StartupConsistencyCheck failed() {
       return FAILED;
     }
 
     /**
      * @return a result set to the running status
      */
-    public static StartupConsistencyCheckResult running() {
+    public static StartupConsistencyCheck running() {
       return RUNNING;
     }
 
@@ -603,13 +603,13 @@ public final class FileSystemMaster extends AbstractMaster {
      * @param status the state of the check
      * @param inconsistentUris the uris which are inconsistent with the underlying storage
      */
-    private StartupConsistencyCheckResult(Status status, List<AlluxioURI> inconsistentUris) {
+    private StartupConsistencyCheck(Status status, List<AlluxioURI> inconsistentUris) {
       mStatus = status;
       mInconsistentUris = inconsistentUris;
     }
 
     /**
-     * @return the state of the check
+     * @return the status of the check
      */
     public Status getStatus() {
       return mStatus;
@@ -626,19 +626,19 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * @return the status of the startup consistency check and inconsistent paths if it is complete
    */
-  public StartupConsistencyCheckResult getStartupConsistencyCheck() {
+  public StartupConsistencyCheck getStartupConsistencyCheck() {
     if (!Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
-      return StartupConsistencyCheckResult.disabled();
+      return StartupConsistencyCheck.disabled();
     }
     if (!mStartupConsistencyCheck.isDone()) {
-      return StartupConsistencyCheckResult.running();
+      return StartupConsistencyCheck.running();
     }
     try {
       List<AlluxioURI> inconsistentUris = mStartupConsistencyCheck.get();
-      return StartupConsistencyCheckResult.complete(inconsistentUris);
+      return StartupConsistencyCheck.complete(inconsistentUris);
     } catch (Exception e) {
       LOG.warn("Failed to complete start up consistency check.", e);
-      return StartupConsistencyCheckResult.failed();
+      return StartupConsistencyCheck.failed();
     }
   }
 

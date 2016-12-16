@@ -56,7 +56,7 @@ public class MasterTestUtils {
       @Override
       public Boolean apply(Void aVoid) {
         return master.getStartupConsistencyCheck().getStatus()
-            == FileSystemMaster.StartupConsistencyCheckResult.Status.COMPLETE;
+            == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE;
       }
     }, Constants.MINUTE_MS);
   }

@@ -24,7 +24,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.StartupConsistencyCheckStatus;
 import alluxio.wire.WorkerInfo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -138,10 +137,10 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getStartupConsistencyCheckStatus() throws Exception {
     MasterTestUtils.waitForStartupConsistencyCheck(mFileSystemMaster);
-    StartupConsistencyCheckStatus status = getInfo(NO_PARAMS)
-        .getStartupConsistencyCheckStatus();
+    alluxio.wire.StartupConsistencyCheck status = getInfo(NO_PARAMS)
+        .getStartupConsistencyCheck();
     Assert.assertEquals(
-        FileSystemMaster.StartupConsistencyCheckResult.Status.COMPLETE.toString().toLowerCase(),
+        FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
         status.getStatus());
     Assert.assertEquals(0, status.getInconsistentUris().size());
   }

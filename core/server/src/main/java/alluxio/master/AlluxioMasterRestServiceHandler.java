@@ -26,7 +26,6 @@ import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.StartupConsistencyCheckStatus;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
@@ -131,7 +130,7 @@ public final class AlluxioMasterRestServiceHandler {
                 .setMountPoints(getMountPointsInternal())
                 .setRpcAddress(mMaster.getRpcAddress().toString())
                 .setStartTimeMs(mMaster.getStartTimeMs())
-                .setStartupConsistencyCheckStatus(getStartupConsistencyCheckStatusInternal())
+                .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
                 .setTierCapacity(getTierCapacityInternal())
                 .setUfsCapacity(getUfsCapacityInternal())
                 .setUptimeMs(mMaster.getUptimeMs())
@@ -533,17 +532,17 @@ public final class AlluxioMasterRestServiceHandler {
     return mountPoints;
   }
 
-  private StartupConsistencyCheckStatus getStartupConsistencyCheckStatusInternal() {
-    FileSystemMaster.StartupConsistencyCheckResult result =
-        mFileSystemMaster.getStartupConsistencyCheck();
-    StartupConsistencyCheckStatus ret = new StartupConsistencyCheckStatus();
-    List<AlluxioURI> inconsistentUris = result.getInconsistentUris();
+  private alluxio.wire.StartupConsistencyCheck getStartupConsistencyCheckInternal() {
+    FileSystemMaster.StartupConsistencyCheck check = mFileSystemMaster
+        .getStartupConsistencyCheck();
+    alluxio.wire.StartupConsistencyCheck ret = new alluxio.wire.StartupConsistencyCheck();
+    List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
     List<String> uris = new ArrayList<>(inconsistentUris.size());
     for (AlluxioURI uri : inconsistentUris) {
       uris.add(uri.toString());
     }
     ret.setInconsistentUris(uris);
-    ret.setStatus(result.getStatus().toString().toLowerCase());
+    ret.setStatus(check.getStatus().toString().toLowerCase());
     return ret;
   }
 

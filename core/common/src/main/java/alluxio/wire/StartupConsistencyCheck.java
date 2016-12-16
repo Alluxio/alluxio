@@ -16,16 +16,16 @@ import com.google.common.base.Objects;
 import java.util.List;
 
 /**
- * Status of the startup consistency check.
+ * The startup consistency check information.
  */
-public class StartupConsistencyCheckStatus {
+public class StartupConsistencyCheck {
   private List<String> mInconsistentUris;
   private String mStatus;
 
   /**
-   * Creates a new instance of {@link StartupConsistencyCheckStatus}.
+   * Creates a new instance of {@link StartupConsistencyCheck}.
    */
-  public StartupConsistencyCheckStatus() {}
+  public StartupConsistencyCheck() {}
 
   /**
    * @return the inconsistent URIs
@@ -45,7 +45,7 @@ public class StartupConsistencyCheckStatus {
    * @param uris the inconsistent URIs
    * @return the consistency check's result
    */
-  public StartupConsistencyCheckStatus setInconsistentUris(List<String> uris) {
+  public StartupConsistencyCheck setInconsistentUris(List<String> uris) {
     mInconsistentUris = uris;
     return this;
   }
@@ -54,7 +54,7 @@ public class StartupConsistencyCheckStatus {
    * @param status the status of the consistency check
    * @return the consistency check's result
    */
-  public StartupConsistencyCheckStatus setStatus(String status) {
+  public StartupConsistencyCheck setStatus(String status) {
     mStatus = status;
     return this;
   }
@@ -64,10 +64,10 @@ public class StartupConsistencyCheckStatus {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof StartupConsistencyCheckStatus)) {
+    if (!(o instanceof StartupConsistencyCheck)) {
       return false;
     }
-    StartupConsistencyCheckStatus that = (StartupConsistencyCheckStatus) o;
+    StartupConsistencyCheck that = (StartupConsistencyCheck) o;
     return Objects.equal(mInconsistentUris, that.mInconsistentUris)
         && Objects.equal(mStatus, that.mStatus);
   }
