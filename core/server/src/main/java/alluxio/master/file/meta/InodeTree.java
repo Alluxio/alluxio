@@ -1051,9 +1051,6 @@ public class InodeTree implements JournalCheckpointStreamable {
         lockList.lockRead(next);
       } else {
         lockList.lockWrite(next);
-        if (((InodeDirectory) current).getChild(pathComponents[i]) == null) {
-          throw new InvalidPathException("Path no longer exists.");
-        }
       }
       if (next.isFile()) {
         // The inode can't have any children. If this is the last path component, we're good.

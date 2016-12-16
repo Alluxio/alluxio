@@ -1459,6 +1459,13 @@ public final class FileSystemMasterTest {
     final AlluxioURI file = new AlluxioURI("/file");
     final AlluxioURI dst = new AlluxioURI("/dst");
     final CyclicBarrier barrier = new CyclicBarrier(2);
+    // If there are exceptions, we will store them here.
+    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
+    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread th, Throwable ex) {
+        errors.add(ex);
+      }
+    };
     for (int i = 0; i < iterations; i++) {
       mFileSystemMaster.createFile(file, sNestedFileOptions);
       Thread renamer = new Thread(new Runnable() {
@@ -1474,6 +1481,7 @@ public final class FileSystemMasterTest {
           }
         }
       });
+      renamer.setUncaughtExceptionHandler(exceptionHandler);
       Thread reader = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -1482,7 +1490,7 @@ public final class FileSystemMasterTest {
             barrier.await();
             FileInfo info = mFileSystemMaster.getFileInfo(file);
             // If the file info is successfully obtained, then the path should match
-            Assert.assertEquals(info.getPath(), file.getPath());
+            Assert.assertEquals(file.getName(), info.getName());
           } catch (InvalidPathException | FileDoesNotExistException e) {
             // InvalidPathException - if the file is renamed while the thread waits for the lock.
             // FileDoesNotExistException - if the file is fully renamed before the getFileInfo call.
@@ -1491,10 +1499,12 @@ public final class FileSystemMasterTest {
           }
         }
       });
+      reader.setUncaughtExceptionHandler(exceptionHandler);
       renamer.start();
       reader.start();
       renamer.join();
       reader.join();
+      Assert.assertTrue("Errors detected: " + errors, errors.isEmpty());
     }
   }
 }
