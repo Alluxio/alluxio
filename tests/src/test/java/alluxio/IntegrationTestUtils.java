@@ -30,7 +30,6 @@ import java.util.Random;
  * Util methods for writing integration tests.
  */
 public final class IntegrationTestUtils {
-
   /**
    * Convenience method for calling
    * {@link #waitForPersist(LocalAlluxioClusterResource, AlluxioURI, int)} with a default timeout.
