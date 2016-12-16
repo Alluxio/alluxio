@@ -1248,16 +1248,9 @@ public final class FileSystemMasterTest {
       mFileSystemMaster.createFile(srcs[i], sNestedFileOptions);
       dsts[i] = new AlluxioURI("/renamed" + i);
     }
-    // Get baseline for single threaded rename
-    long baselineNs = serialRename(srcs, dsts);
-    // Run concurrent rename switch src and dst
-    Pair<Long, Integer> result = concurrentRename(dsts, srcs);
-    long duration = result.getFirst();
-    int errors = result.getSecond();
 
-    // Speed up is not directly proportional to num files due to journaling, ensure at least 2x
-    Assert.assertTrue("Concurrent rename: " + duration + " Serial rename: " + baselineNs,
-        duration < baselineNs / 2);
+    int errors = concurrentRename(srcs, dsts);
+
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
   }
 
@@ -1279,16 +1272,8 @@ public final class FileSystemMasterTest {
       mFileSystemMaster.createFile(srcs[i], sNestedFileOptions);
       dsts[i] = dir.join("/renamed" + i);
     }
-    // Get baseline for single threaded rename
-    long baselineNs = serialRename(srcs, dsts);
-    // Run concurrent rename switch src and dst
-    Pair<Long, Integer> result = concurrentRename(dsts, srcs);
-    long duration = result.getFirst();
-    int errors = result.getSecond();
+    int errors = concurrentRename(srcs, dsts);
 
-    // Speed up is not directly proportional to num files due to journaling, ensure at least 2x
-    Assert.assertTrue("Concurrent rename: " + duration + " Serial rename: " + baselineNs,
-        duration < baselineNs / 2);
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
   }
 
@@ -1308,8 +1293,7 @@ public final class FileSystemMasterTest {
     // Create the one source file
     mFileSystemMaster.createFile(srcs[0], CreateFileOptions.defaults());
 
-    Pair<Long, Integer> result = concurrentRename(srcs, dsts);
-    int errors = result.getSecond();
+    int errors = concurrentRename(srcs, dsts);
 
     // We should get an error for all but 1 rename
     Assert.assertEquals(numThreads - 1, errors);
@@ -1335,8 +1319,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createDirectory(srcs[0], CreateDirectoryOptions.defaults());
     mFileSystemMaster.createFile(new AlluxioURI("/dir/file"), CreateFileOptions.defaults());
 
-    Pair<Long, Integer> result = concurrentRename(srcs, dsts);
-    int errors = result.getSecond();
+    int errors = concurrentRename(srcs, dsts);
 
     // We should get an error for all but 1 rename
     Assert.assertEquals(numThreads - 1, errors);
@@ -1365,8 +1348,7 @@ public final class FileSystemMasterTest {
       dsts[i] = new AlluxioURI("/renamed");
     }
 
-    Pair<Long, Integer> result = concurrentRename(srcs, dsts);
-    int errors = result.getSecond();
+    int errors = concurrentRename(srcs, dsts);
 
     // We should get an error for all but 1 rename
     Assert.assertEquals(numThreads - 1, errors);
@@ -1407,8 +1389,7 @@ public final class FileSystemMasterTest {
       dsts[i] = dir2.join("renamed" + i);
     }
 
-    Pair<Long, Integer> result = concurrentRename(srcs, dsts);
-    int errors = result.getSecond();
+    int errors = concurrentRename(srcs, dsts);
 
     // We should get no errors
     Assert.assertEquals(0, errors);
@@ -1446,8 +1427,7 @@ public final class FileSystemMasterTest {
       mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
     }
 
-    Pair<Long, Integer> result = concurrentRename(srcs, dsts);
-    int errors = result.getSecond();
+    int errors = concurrentRename(srcs, dsts);
 
     // We should get no errors.
     Assert.assertEquals(0, errors);
@@ -1470,22 +1450,6 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Helper for renaming a list of paths serially.
-   * @param src list of source paths
-   * @param dst list of destination paths
-   * @return the time elapsed in nanoseconds
-   */
-  private Long serialRename(final AlluxioURI[] src, final AlluxioURI[] dst)
-      throws Exception {
-    final int numFiles = src.length;
-    long start = System.nanoTime();
-    for (int i = 0; i < numFiles; i++) {
-      mFileSystemMaster.rename(src[i], dst[i]);
-    }
-    return System.nanoTime() - start;
-  }
-
-  /**
    * Helper for renaming a list of paths concurrently. Assumes the srcs are already created and
    * dsts do not exist.
    *
@@ -1493,7 +1457,7 @@ public final class FileSystemMasterTest {
    * @param dst list of destination paths
    * @return the duration of the rename and how many errors occurred
    */
-  private Pair<Long, Integer> concurrentRename(final AlluxioURI[] src, final AlluxioURI[] dst)
+  private int concurrentRename(final AlluxioURI[] src, final AlluxioURI[] dst)
       throws Exception {
     final int numFiles = src.length;
     final CyclicBarrier barrier = new CyclicBarrier(numFiles);
@@ -1526,12 +1490,10 @@ public final class FileSystemMasterTest {
     for (Thread t : threads) {
       t.start();
     }
-    long start = System.nanoTime();
     for (Thread t : threads) {
       t.join();
     }
-    long duration = System.nanoTime() - start;
-    return new Pair<>(duration, errors.size());
+    return errors.size();
   }
 
   /**
