@@ -84,6 +84,7 @@ import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -1238,11 +1239,11 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void rootConcurrentRename() throws Exception {
-    final int numFiles = 100;
-    AlluxioURI[] srcs = new AlluxioURI[numFiles];
-    AlluxioURI[] dsts = new AlluxioURI[numFiles];
+    final int numThreads = 100;
+    AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    AlluxioURI[] dsts = new AlluxioURI[numThreads];
 
-    for (int i = 0; i < numFiles; i++) {
+    for (int i = 0; i < numThreads; i++) {
       srcs[i] = new AlluxioURI("/file" + i);
       mFileSystemMaster.createFile(srcs[i], sNestedFileOptions);
       dsts[i] = new AlluxioURI("/renamed" + i);
@@ -1265,15 +1266,15 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void folderConcurrentRename() throws Exception {
-    final int numFiles = 100;
-    AlluxioURI[] srcs = new AlluxioURI[numFiles];
-    AlluxioURI[] dsts = new AlluxioURI[numFiles];
+    final int numThreads = 100;
+    AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    AlluxioURI[] dsts = new AlluxioURI[numThreads];
 
     AlluxioURI dir = new AlluxioURI("/dir");
 
     mFileSystemMaster.createDirectory(dir, CreateDirectoryOptions.defaults());
 
-    for (int i = 0; i < numFiles; i++) {
+    for (int i = 0; i < numThreads; i++) {
       srcs[i] = dir.join("/file" + i);
       mFileSystemMaster.createFile(srcs[i], sNestedFileOptions);
       dsts[i] = dir.join("/renamed" + i);
@@ -1299,7 +1300,7 @@ public final class FileSystemMasterTest {
     int numThreads = 10;
     final AlluxioURI[] srcs = new AlluxioURI[numThreads];
     final AlluxioURI[] dsts = new AlluxioURI[numThreads];
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < numThreads; i++) {
       srcs[i] = new AlluxioURI("/file");
       dsts[i] = new AlluxioURI("/renamed" + i);
     }
@@ -1325,7 +1326,7 @@ public final class FileSystemMasterTest {
     int numThreads = 10;
     final AlluxioURI[] srcs = new AlluxioURI[numThreads];
     final AlluxioURI[] dsts = new AlluxioURI[numThreads];
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < numThreads; i++) {
       srcs[i] = new AlluxioURI("/dir");
       dsts[i] = new AlluxioURI("/renamed" + i);
     }
@@ -1350,12 +1351,15 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(1, dirChildren.size());
   }
 
+  /**
+   * Tests renaming files concurrently to the same destination will only succeed once.
+   */
   @Test
   public void sameDstConcurrentRename() throws Exception {
     int numThreads = 10;
     final AlluxioURI[] srcs = new AlluxioURI[numThreads];
     final AlluxioURI[] dsts = new AlluxioURI[numThreads];
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < numThreads; i++) {
       srcs[i] = new AlluxioURI("/file" + i);
       mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
       dsts[i] = new AlluxioURI("/renamed");
@@ -1383,6 +1387,86 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(10, files.size());
     Assert.assertEquals(1, renamedFiles);
     Assert.assertEquals(9, originalFiles);
+  }
+
+  /**
+   * Tests renaming files concurrently from one directory to another succeeds.
+   */
+  @Test
+  public void twoDirConcurrentRename() throws Exception {
+    int numThreads = 10;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    AlluxioURI dir1 = new AlluxioURI("/dir1");
+    AlluxioURI dir2 = new AlluxioURI("/dir2");
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
+    for (int i = 0; i < numThreads; i++) {
+      srcs[i] = dir1.join("file" + i);
+      mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
+      dsts[i] = dir2.join("renamed" + i);
+    }
+
+    Pair<Long, Integer> result = concurrentRename(srcs, dsts);
+    int errors = result.getSecond();
+
+    // We should get no errors
+    Assert.assertEquals(0, errors);
+
+    List<FileInfo> dir1Files =
+        mFileSystemMaster.listStatus(dir1, ListStatusOptions.defaults());
+    List<FileInfo> dir2Files =
+        mFileSystemMaster.listStatus(dir2, ListStatusOptions.defaults());
+
+    Assert.assertEquals(0, dir1Files.size());
+    Assert.assertEquals(10, dir2Files.size());
+  }
+
+  /**
+   * Tests renaming files concurrently from and to two directories succeeds.
+   */
+  @Test
+  public void acrossDirConcurrentRename() throws Exception {
+    int numThreads = 20;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    AlluxioURI dir1 = new AlluxioURI("/dir1");
+    AlluxioURI dir2 = new AlluxioURI("/dir2");
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
+    for (int i = 0; i < numThreads; i++) {
+      // Dir1 has even files, dir2 has odd files.
+      if (i % 2 == 0) {
+        srcs[i] = dir1.join("file" + i);
+        dsts[i] = dir2.join("renamed" + i);
+      } else {
+        srcs[i] = dir2.join("file" + i);
+        dsts[i] = dir1.join("renamed" + i);
+      }
+      mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
+    }
+
+    Pair<Long, Integer> result = concurrentRename(srcs, dsts);
+    int errors = result.getSecond();
+
+    // We should get no errors.
+    Assert.assertEquals(0, errors);
+
+    List<FileInfo> dir1Files =
+        mFileSystemMaster.listStatus(dir1, ListStatusOptions.defaults());
+    List<FileInfo> dir2Files =
+        mFileSystemMaster.listStatus(dir2, ListStatusOptions.defaults());
+
+    for (FileInfo file : dir1Files) {
+      Assert.assertTrue(Pattern.matches("^renamed\\d*[1,3,5,7,9]$", file.getName()));
+    }
+
+    for (FileInfo file : dir2Files) {
+      Assert.assertTrue(Pattern.matches("^renamed\\d*[2,4,6,8,0]$", file.getName()));
+    }
+
+    Assert.assertEquals(numThreads / 2, dir1Files.size());
+    Assert.assertEquals(numThreads / 2, dir2Files.size());
   }
 
   /**
