@@ -1455,7 +1455,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void consistentGetFileInfo() throws Exception {
-    final int iterations = 10000;
+    final int iterations = 100;
     final AlluxioURI file = new AlluxioURI("/file");
     final AlluxioURI dst = new AlluxioURI("/dst");
     final CyclicBarrier barrier = new CyclicBarrier(2);

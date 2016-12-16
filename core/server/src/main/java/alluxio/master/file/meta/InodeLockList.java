@@ -11,6 +11,8 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.exception.InvalidPathException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,8 +36,21 @@ public final class InodeLockList implements AutoCloseable {
    *
    * @param inode the inode to lock
    */
-  public synchronized void lockRead(Inode<?> inode) {
-    inode.lockRead();
+  public synchronized void lockReadAndCheckParent(Inode<?> inode, Inode parent)
+      throws InvalidPathException {
+    inode.lockReadAndCheckParent(parent);
+    mInodes.add(inode);
+    mLockModes.add(InodeTree.LockMode.READ);
+  }
+
+  /**
+   * Locks the given inode in read mode, and adds it to this lock list.
+   *
+   * @param inode the inode to lock
+   */
+  public synchronized void lockReadAndCheckFullPath(Inode<?> inode, Inode parent, String name)
+      throws InvalidPathException {
+    inode.lockReadAndCheckFullPath(parent, name);
     mInodes.add(inode);
     mLockModes.add(InodeTree.LockMode.READ);
   }
@@ -61,8 +76,21 @@ public final class InodeLockList implements AutoCloseable {
    *
    * @param inode the inode to lock
    */
-  public synchronized void lockWrite(Inode<?> inode) {
-    inode.lockWrite();
+  public synchronized void lockWriteAndCheckFullPath(Inode<?> inode, Inode parent, String name)
+      throws InvalidPathException {
+    inode.lockWriteAndCheckFullPath(parent, name);
+    mInodes.add(inode);
+    mLockModes.add(InodeTree.LockMode.WRITE);
+  }
+
+  /**
+   * Locks the given inode in write mode, and adds it to this lock list.
+   *
+   * @param inode the inode to lock
+   */
+  public synchronized void lockWriteAndCheckParent(Inode<?> inode, Inode parent)
+      throws InvalidPathException {
+    inode.lockWriteAndCheckParent(parent);
     mInodes.add(inode);
     mLockModes.add(InodeTree.LockMode.WRITE);
   }

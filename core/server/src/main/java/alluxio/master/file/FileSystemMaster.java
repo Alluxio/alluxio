@@ -486,18 +486,24 @@ public final class FileSystemMaster extends AbstractMaster {
             inconsistentUris.add(parentUri);
           }
           for (Inode childInode : ((InodeDirectory) parentInode).getChildren()) {
-            AlluxioURI childUri = parentUri.join(childInode.getName());
-            if (childInode.isDirectory()) {
-              dirsToCheck.add(childInode.getId());
-            } else {
-              childInode.lockRead();
-              try {
+            try {
+              childInode.lockReadAndCheckParent(parentInode);
+            } catch (InvalidPathException e) {
+              // This should be safe, continue.
+              LOG.debug("A file scheduled for consistency check was moved before the check.");
+              continue;
+            }
+            try {
+              AlluxioURI childUri = parentUri.join(childInode.getName());
+              if (childInode.isDirectory()) {
+                dirsToCheck.add(childInode.getId());
+              } else {
                 if (!checkConsistencyInternal(childInode, childUri)) {
                   inconsistentUris.add(childUri);
                 }
-              } finally {
-                childInode.unlockRead();
               }
+            } finally {
+              childInode.unlockRead();
             }
           }
         } catch (FileDoesNotExistException e) {
@@ -812,7 +818,7 @@ public final class FileSystemMaster extends AbstractMaster {
         TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
         mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, inodePath);
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-          child.lockRead();
+          child.lockReadAndCheckParent(inode);
           try {
             // the path to child for getPath should already be locked.
             tempInodePath.setDescendant(child, mInodeTree.getPath(child));
@@ -1509,13 +1515,20 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public List<AlluxioURI> getInMemoryFiles() {
     List<AlluxioURI> ret = new ArrayList<>();
+    Inode root = mInodeTree.getRoot();
+    // Root has no real parent, use null.
+    try {
+      root.lockReadAndCheckParent(null);
+    } catch (InvalidPathException e) {
+      // This should never happen.
+      return ret;
+    }
     getInMemoryFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), ret);
     return ret;
   }
 
   private void getInMemoryFilesInternal(Inode<?> inode, AlluxioURI uri,
       List<AlluxioURI> inMemoryFiles) {
-    inode.lockRead();
     try {
       AlluxioURI newUri = uri.join(inode.getName());
       if (inode.isFile()) {
@@ -1526,7 +1539,13 @@ public final class FileSystemMaster extends AbstractMaster {
         // This inode is a directory.
         Set<Inode<?>> children = ((InodeDirectory) inode).getChildren();
         for (Inode<?> child : children) {
-          getInMemoryFilesInternal(child, newUri, inMemoryFiles);
+          try {
+            child.lockReadAndCheckParent(inode);
+            getInMemoryFilesInternal(child, newUri, inMemoryFiles);
+          } catch (InvalidPathException e) {
+            // Inode is no longer part of this directory
+            continue;
+          }
         }
       }
     } finally {

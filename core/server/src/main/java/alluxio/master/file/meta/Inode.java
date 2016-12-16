@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
@@ -280,11 +281,41 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   protected abstract T getThis();
 
-  /**
-   * Acquires the read lock for this inode.
-   */
   public void lockRead() {
     mLock.readLock().lock();
+  }
+
+  public void lockReadAndCheckParent(Inode parent) throws InvalidPathException {
+    mLock.readLock().lock();
+    if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
+      mLock.readLock().unlock();
+      throw new InvalidPathException(".");
+    }
+  }
+
+  public void lockReadAndCheckFullPath(Inode parent, String name) throws InvalidPathException {
+    lockReadAndCheckParent(parent);
+    if (!mName.equals(name)) {
+      mLock.readLock().unlock();
+      throw new InvalidPathException(".");
+    }
+  }
+
+  public void lockWriteAndCheckParent(Inode parent) throws InvalidPathException {
+    mLock.writeLock().lock();
+    if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
+      mLock.writeLock().unlock();
+      throw new InvalidPathException(".");
+    }
+  }
+
+  public void lockWriteAndCheckFullPath(Inode parent, String name)
+      throws InvalidPathException {
+    lockWriteAndCheckParent(parent);
+    if (!mName.equals(name)) {
+      mLock.writeLock().unlock();
+      throw new InvalidPathException(".");
+    }
   }
 
   /**
@@ -292,13 +323,6 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public void unlockRead() {
     mLock.readLock().unlock();
-  }
-
-  /**
-   * Acquires the write lock for this inode.
-   */
-  public void lockWrite() {
-    mLock.writeLock().lock();
   }
 
   /**
