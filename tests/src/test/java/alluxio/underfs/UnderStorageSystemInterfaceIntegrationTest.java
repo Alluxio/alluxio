@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.Seekable;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -140,6 +141,48 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       }
     }
     Assert.assertTrue(noReadCount < 3);
+  }
+
+  /**
+   * Tests seek.
+   */
+  @Test
+  public void createOpenSeek() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    OutputStream outputStream = mUfs.create(testFile);
+    int numBytes = 10;
+    for (int i = 0; i < numBytes; ++i) {
+      outputStream.write(i);
+    }
+    outputStream.close();
+    InputStream inputStream = mUfs.open(testFile);
+    for (int i = 0; i < numBytes; ++i) {
+      ((Seekable) inputStream).seek(i);
+      int readValue = inputStream.read();
+      Assert.assertEquals(i, readValue);
+    }
+    inputStream.close();
+  }
+
+  /**
+   * Tests seek when new position is going back in the opened stream.
+   */
+  @Test
+  public void createOpenSeekReverse() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    OutputStream outputStream = mUfs.create(testFile);
+    int numBytes = 10;
+    for (int i = 0; i < numBytes; ++i) {
+      outputStream.write(i);
+    }
+    outputStream.close();
+    InputStream inputStream = mUfs.open(testFile);
+    for (int i = numBytes - 1; i >= 0; --i) {
+      ((Seekable) inputStream).seek(i);
+      int readValue = inputStream.read();
+      Assert.assertEquals(i, readValue);
+    }
+    inputStream.close();
   }
 
   /**
@@ -305,6 +348,16 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
           mUfs.isDirectory(PathUtils.concatPath(testDirNonEmpty, resTopDirStatus[i].getName())),
           resTopDirStatus[i].isDirectory());
     }
+  }
+
+  /**
+   * Tests if listStatus returns null for a file.
+   */
+  @Test
+  public void listStatusFile() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    createEmptyFile(testFile);
+    Assert.assertTrue(mUfs.listStatus(testFile) == null);
   }
 
   /**

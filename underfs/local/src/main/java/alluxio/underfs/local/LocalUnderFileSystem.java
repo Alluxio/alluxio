@@ -275,7 +275,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
     path = stripPath(path);
-    InputStream inputStream = new FileInputStream(path);
+    FileInputStream inputStream = new FileInputStream(path);
     if (options.getOffset() > 0) {
       try {
         inputStream.skip(options.getOffset());
@@ -284,7 +284,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         throw e;
       }
     }
-    return inputStream;
+    return new LocalUnderFileInputStream(inputStream);
   }
 
   @Override

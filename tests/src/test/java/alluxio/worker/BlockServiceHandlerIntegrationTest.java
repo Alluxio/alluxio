@@ -45,6 +45,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
@@ -160,7 +161,8 @@ public class BlockServiceHandlerIntegrationTest {
 
     UnderFileSystem ufs = UnderFileSystem.Factory.get(localPath);
     byte[] data = new byte[blockSize];
-    int bytesRead = ufs.open(localPath).read(data);
+    InputStream in = ufs.open(localPath);
+    int bytesRead = in.read(data);
 
     // The data in the local file should equal the data we wrote earlier
     Assert.assertEquals(blockSize, bytesRead);

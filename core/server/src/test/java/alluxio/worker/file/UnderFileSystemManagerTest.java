@@ -12,6 +12,7 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Seekable;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
@@ -66,12 +67,16 @@ public final class UnderFileSystemManagerTest {
   /** The filename in the under storage. */
   private AlluxioURI mUri;
 
+  /** Mock class for a ufs input stream with seek. **/
+  abstract class MockUnderFileInputStream extends InputStream implements Seekable {
+  }
+
   @Before
   public void before() throws Exception {
     mManager = new UnderFileSystemManager();
     mMockUfs = Mockito.mock(UnderFileSystem.class);
     mMockOutputStream = Mockito.mock(OutputStream.class);
-    mMockInputStream = Mockito.mock(InputStream.class);
+    mMockInputStream = Mockito.mock(MockUnderFileInputStream.class);
     mUri = new AlluxioURI(PathUtils.uniqPath());
     Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
     Mockito.when(mMockUfs.create(Mockito.anyString(),
@@ -283,24 +288,6 @@ public final class UnderFileSystemManagerTest {
     Assert.assertEquals(in, in2);
     Mockito.verify(mMockInputStream, Mockito.never()).skip(position);
     in.close();
-  }
-
-  /**
-   * Tests getting an input stream returns a new stream if the cached stream is positioned beyond
-   * the requested position.
-   */
-  @Test
-  public void getInputStreamAtPositionInvalidCache() throws Exception {
-    long position = 0;
-    long nextPosition = 100;
-    Mockito.when(mMockUfs.isFile(mUri.toString())).thenReturn(true);
-    long id = mManager.openFile(SESSION_ID, mUri);
-    InputStream in = mManager.getInputStreamAtPosition(id, position);
-    in.skip(nextPosition - position);
-    InputStream in2 = mManager.getInputStreamAtPosition(id, position);
-    Assert.assertNotEquals(in, in2);
-    in.close();
-    in2.close();
   }
 
   /**
