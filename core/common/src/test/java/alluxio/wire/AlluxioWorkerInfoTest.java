@@ -60,30 +60,31 @@ public class AlluxioWorkerInfoTest {
     Map<String, String> configuration = new HashMap<>();
     long numConfiguration = random.nextInt(10);
     for (int i = 0; i < numConfiguration; i++) {
-      configuration.put(CommonUtils.randomString(random.nextInt(10)),
-          CommonUtils.randomString(random.nextInt(10)));
+      configuration.put(CommonUtils.randomAlphaNumString(random.nextInt(10)),
+          CommonUtils.randomAlphaNumString(random.nextInt(10)));
     }
     Map<String, Long> metrics = new HashMap<>();
     long numMetrics = random.nextInt(10);
     for (int i = 0; i < numMetrics; i++) {
-      metrics.put(CommonUtils.randomString(random.nextInt(10)), random.nextLong());
+      metrics.put(CommonUtils.randomAlphaNumString(random.nextInt(10)), random.nextLong());
     }
-    String rpcAddress = CommonUtils.randomString(random.nextInt(10));
+    String rpcAddress = CommonUtils.randomAlphaNumString(random.nextInt(10));
     long startTimeMs = random.nextLong();
     Map<String, Capacity> tierCapacity = new HashMap<>();
     Map<String, List<String>> tierPaths = new HashMap<>();
     long numTiers = random.nextInt(10);
     for (int i = 0; i < numTiers; i++) {
-      tierCapacity.put(CommonUtils.randomString(random.nextInt(10)), CapacityTest.createRandom());
+      tierCapacity
+          .put(CommonUtils.randomAlphaNumString(random.nextInt(10)), CapacityTest.createRandom());
       List<String> paths = new ArrayList<>();
       long numPaths = random.nextInt(10);
       for (int j = 0; j < numPaths; j++) {
-        paths.add(CommonUtils.randomString(random.nextInt(10)));
+        paths.add(CommonUtils.randomAlphaNumString(random.nextInt(10)));
       }
-      tierPaths.put(CommonUtils.randomString(random.nextInt(10)), paths);
+      tierPaths.put(CommonUtils.randomAlphaNumString(random.nextInt(10)), paths);
     }
     long uptimeMs = random.nextLong();
-    String version = CommonUtils.randomString(random.nextInt(10));
+    String version = CommonUtils.randomAlphaNumString(random.nextInt(10));
 
     result.setCapacity(capacity);
     result.setConfiguration(configuration);
