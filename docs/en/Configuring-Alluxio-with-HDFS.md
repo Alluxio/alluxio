@@ -64,8 +64,9 @@ For Alluxio servers (masters and workers), copy `hdfs-site.xml` and `core-site.x
 `${ALLUXIO_HOME}/conf`. Alternatively, you can set `alluxio.underfs.hdfs.configuration` to the hadoop property file `hdfs-site.xml`
 (or `core-site.xml`) in `conf/alluxio-site.properties` (make sure all the relative configurations are available in the file).
 
-Then, set the under storage address to `hdfs://nameservice/` if you are mapping HDFS root directory to Alluxio, or `hdfs://nameservice/alluxio/data`
-if only the HDFS directory `/alluxio/data` is mapped to Alluxio.
+Then, set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS service already configured
+in `core-site.xml`) if you are mapping HDFS root directory to Alluxio, or `hdfs://nameservice/alluxio/data` if only the
+HDFS directory `/alluxio/data` is mapped to Alluxio.
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address-ha.md %}
 
