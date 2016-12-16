@@ -12,7 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,48 +39,38 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.
- * An instance of this class can be obtained via {@link AlluxioBlockStore} constructors. The methods
- * in this class are completely opaque to user input.
+ * An instance of this class can be obtained via {@link AlluxioBlockStore} constructors.
  */
 @ThreadSafe
 public final class AlluxioBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final BlockStoreContext mContext;
+  private final FileSystemContext mContext;
   private String mLocalHostName;
 
   /**
-   * Creates a block store using the master address got from config.
+   * Creates an Alluxio block store with default file system context and default local host name.
    */
   public AlluxioBlockStore() {
-    this(ClientContext.getMasterAddress());
+    this(FileSystemContext.INSTANCE, NetworkAddressUtils.getLocalHostName());
   }
 
   /**
-   * Creates a block store with the specified master address.
+   * Creates an Alluxio block store with default local hostname.
    *
-   * @param masterAddress the master's address
+   * @param context the file system context
    */
-  public AlluxioBlockStore(InetSocketAddress masterAddress) {
-    this(BlockStoreContext.get(masterAddress), NetworkAddressUtils.getLocalHostName());
-  }
-
-  /**
-   * Creates a block store with the given block store context.
-   *
-   * @param context the block store context
-   */
-  public AlluxioBlockStore(BlockStoreContext context) {
+  public AlluxioBlockStore(FileSystemContext context) {
     this(context, NetworkAddressUtils.getLocalHostName());
   }
 
   /**
    * Creates an Alluxio block store.
    *
-   * @param context the block store context to use for acquiring worker and master clients
+   * @param context the file system context
    * @param localHostName the local hostname for the block store
    */
-  AlluxioBlockStore(BlockStoreContext context, String localHostName) {
+  public AlluxioBlockStore(FileSystemContext context, String localHostName) {
     mContext = context;
     mLocalHostName = localHostName;
   }
@@ -95,7 +84,7 @@ public final class AlluxioBlockStore {
    */
   public BlockInfo getInfo(long blockId) throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
-        mContext.acquireMasterClientResource()) {
+        mContext.acquireBlockMasterClientResource()) {
       return masterClientResource.get().getBlockInfo(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -110,7 +99,7 @@ public final class AlluxioBlockStore {
   public List<BlockWorkerInfo> getWorkerInfoList() throws IOException, AlluxioException {
     List<BlockWorkerInfo> infoList = new ArrayList<>();
     try (CloseableResource<BlockMasterClient> masterClientResource =
-        mContext.acquireMasterClientResource()) {
+        mContext.acquireBlockMasterClientResource()) {
       for (WorkerInfo workerInfo : masterClientResource.get().getWorkerInfoList()) {
         infoList.add(new BlockWorkerInfo(workerInfo.getAddress(), workerInfo.getCapacityBytes(),
             workerInfo.getUsedBytes()));
@@ -131,7 +120,7 @@ public final class AlluxioBlockStore {
       throws IOException {
     BlockInfo blockInfo;
     try (CloseableResource<BlockMasterClient> masterClientResource =
-        mContext.acquireMasterClientResource()) {
+        mContext.acquireBlockMasterClientResource()) {
       blockInfo = masterClientResource.get().getBlockInfo(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -184,7 +173,7 @@ public final class AlluxioBlockStore {
       OutStreamOptions options) throws IOException {
     if (blockSize == -1) {
       try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-          mContext.acquireMasterClientResource()) {
+          mContext.acquireBlockMasterClientResource()) {
         blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
       } catch (AlluxioException e) {
         throw new IOException(e);
@@ -235,7 +224,7 @@ public final class AlluxioBlockStore {
    */
   public long getCapacityBytes() throws IOException {
     try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-        mContext.acquireMasterClientResource()) {
+        mContext.acquireBlockMasterClientResource()) {
       return blockMasterClientResource.get().getCapacityBytes();
     } catch (ConnectionFailedException e) {
       throw new IOException(e);
@@ -250,7 +239,7 @@ public final class AlluxioBlockStore {
    */
   public long getUsedBytes() throws IOException {
     try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-        mContext.acquireMasterClientResource()) {
+        mContext.acquireBlockMasterClientResource()) {
       return blockMasterClientResource.get().getUsedBytes();
     } catch (ConnectionFailedException e) {
       throw new IOException(e);
@@ -268,7 +257,7 @@ public final class AlluxioBlockStore {
   public void promote(long blockId) throws IOException {
     BlockInfo info;
     try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-        mContext.acquireMasterClientResource()) {
+        mContext.acquireBlockMasterClientResource()) {
       info = blockMasterClientResource.get().getBlockInfo(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -279,7 +268,7 @@ public final class AlluxioBlockStore {
     }
     // Get the first worker address for now, as this will likely be the location being read from
     // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
-    BlockWorkerClient blockWorkerClient = new RetryHandlingBlockWorkerClient(
+    BlockWorkerClient blockWorkerClient = mContext.createBlockWorkerClient(
         info.getLocations().get(0).getWorkerAddress(), null  /* no session */);
     try {
       blockWorkerClient.promoteBlock(blockId);

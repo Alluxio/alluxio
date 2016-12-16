@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.client.RemoteBlockReader;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
@@ -46,7 +47,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   /** Client to communicate with the remote worker. */
   private final BlockWorkerClient mBlockWorkerClient;
   /** The block store context which provides block worker clients. */
-  private final BlockStoreContext mContext;
+  private final FileSystemContext mContext;
   /** {@link RemoteBlockReader} for this instance. */
   private RemoteBlockReader mReader;
 
@@ -61,7 +62,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @throws IOException if the block is not available on the remote worker
    */
   public RemoteBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress,
-      BlockStoreContext context, InStreamOptions options) throws IOException {
+      FileSystemContext context, InStreamOptions options) throws IOException {
     super(blockId, blockSize);
     mWorkerNetAddress = workerNetAddress;
     mWorkerInetSocketAddress =
@@ -71,7 +72,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     mCloser = Closer.create();
 
     try {
-      mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(workerNetAddress));
+      mBlockWorkerClient = mCloser.register(mContext.createBlockWorkerClient(workerNetAddress));
       LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
       mLockId = result.getLockId();
     } catch (AlluxioException e) {
@@ -153,7 +154,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     int bytesLeft = toRead;
 
     if (mReader == null) {
-      mReader = mCloser.register(RemoteBlockReader.Factory.create());
+      mReader = mCloser.register(RemoteBlockReader.Factory.create(mContext));
     }
 
     while (bytesLeft > 0) {

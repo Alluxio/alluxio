@@ -18,8 +18,6 @@ import alluxio.security.login.AppLoginModule;
 import alluxio.security.login.LoginModuleConfiguration;
 
 import java.io.IOException;
-import java.security.AccessControlContext;
-import java.security.AccessController;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -41,7 +39,6 @@ public final class LoginUser {
 
   /** User instance of the login user in Alluxio client process. */
   private static User sLoginUser;
-  private static User sParentUser;
 
   private LoginUser() {} // prevent instantiation
 

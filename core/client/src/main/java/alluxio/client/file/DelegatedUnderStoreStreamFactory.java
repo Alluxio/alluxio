@@ -37,7 +37,7 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
    */
   public DelegatedUnderStoreStreamFactory(FileSystemContext context, String path)
       throws IOException {
-    mClient = context.createWorkerClient();
+    mClient = context.createFileSystemWorkerClient();
     try {
       mFileId = mClient.openUfsFile(new AlluxioURI(path), OpenUfsFileOptions.defaults());
     } catch (AlluxioException | IOException e) {

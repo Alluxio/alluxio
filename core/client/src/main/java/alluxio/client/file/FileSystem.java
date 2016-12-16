@@ -36,6 +36,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
@@ -46,7 +47,7 @@ import java.util.List;
  * by the default implementation.
  */
 @PublicApi
-public interface FileSystem {
+public interface FileSystem extends Closeable {
 
   /**
    * Factory for {@link FileSystem}.
@@ -60,6 +61,13 @@ public interface FileSystem {
         return LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
       }
       return BaseFileSystem.get(FileSystemContext.INSTANCE);
+    }
+
+    public static FileSystem get(FileSystemContext context) {
+      if (Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
+        return LineageFileSystem.get(context, LineageContext.INSTANCE);
+      }
+      return BaseFileSystem.get(context);
     }
   }
 

@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by alluxio clients.
@@ -54,8 +55,8 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    *
    * @param masterAddress the master address
    */
-  public FileSystemMasterClient(InetSocketAddress masterAddress) {
-    super(masterAddress);
+  public FileSystemMasterClient(Subject subject, InetSocketAddress masterAddress) {
+    super(subject, masterAddress);
   }
 
   @Override

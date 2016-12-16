@@ -17,8 +17,6 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ClientContext;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
@@ -146,14 +144,11 @@ public class AbstractFileSystemTest {
   public void resetContext() throws Exception {
     // Change to otherhost:410
     URI uri = URI.create(Constants.HEADER + "otherhost:410/");
-    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+    org.apache.hadoop.fs.FileSystem fileSystem =
+        org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
     // Make sure all contexts are using the new address
     InetSocketAddress newAddress = new InetSocketAddress("otherhost", 410);
-    Assert.assertEquals(newAddress, ClientContext.getMasterAddress());
-    Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(BlockStoreContext.get(),
-        "mBlockMasterClientPool", "mMasterAddress"));
-    Mockito.verify(mMockFileSystemContext).reset();
     Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(LineageContext.INSTANCE,
         "mLineageMasterClientPool", "mMasterAddress"));
   }
@@ -186,7 +181,6 @@ public class AbstractFileSystemTest {
     for (Thread t : threads) {
       t.join();
     }
-    Mockito.verify(mMockFileSystemContext).reset();
   }
 
   /**

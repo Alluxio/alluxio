@@ -12,8 +12,8 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.InvalidPathException;
@@ -29,16 +29,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class FileInfoCommand extends WithWildCardPathCommand {
-
-  /** The block store client. */
-  private final AlluxioBlockStore mBlockStore;
-
   /**
    * @param fs the filesystem of Alluxio
    */
   public FileInfoCommand(FileSystem fs) {
     super(fs);
-    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override
@@ -57,7 +52,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
     System.out.println(status);
     System.out.println("Containing the following blocks: ");
     for (long blockId : status.getBlockIds()) {
-      System.out.println(mBlockStore.getInfo(blockId));
+      System.out.println(FileSystemContext.INSTANCE.getAlluxioBlockStore().getInfo(blockId));
     }
   }
 

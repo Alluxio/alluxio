@@ -13,6 +13,8 @@ package alluxio.client.block;
 
 import alluxio.Constants;
 import alluxio.client.RemoteBlockWriter;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
@@ -46,19 +48,19 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
    * @param blockId the block id
    * @param blockSize the block size
    * @param address the address of the preferred worker
-   * @param blockStoreContext the block store context
+   * @param fileSystemContext the filesystem context
    * @param options the options
    * @throws IOException if I/O error occurs
    */
   public RemoteBlockOutStream(long blockId,
       long blockSize,
       WorkerNetAddress address,
-      BlockStoreContext blockStoreContext,
+      FileSystemContext fileSystemContext,
       OutStreamOptions options) throws IOException {
-    super(blockId, blockSize, blockStoreContext);
+    super(blockId, blockSize, fileSystemContext);
     mCloser = Closer.create();
     try {
-      mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(address));
+      mBlockWorkerClient = mCloser.register(mContext.createBlockWorkerClient(address));
       mRemoteWriter = mCloser.register(RemoteBlockWriter.Factory.create());
 
       mRemoteWriter.open(mBlockWorkerClient.getDataServerAddress(), mBlockId,

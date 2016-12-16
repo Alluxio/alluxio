@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -48,7 +47,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Progressable;
-import org.apache.hadoop.yarn.webapp.hamlet.HamletSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,10 +54,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.security.AccessControlContext;
-import java.security.AccessController;
 import java.security.Principal;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -145,6 +140,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public void close() throws IOException {
     super.close();
+    if (sFileSystem != null) {
+      sFileSystem.close();
+    }
   }
 
   /**
@@ -467,7 +465,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
       // These must be reset to pick up the change to the master address.
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
-      ClientContext.init();
       sFileSystemContext.reset();
       LineageContext.INSTANCE.reset();
 
@@ -490,7 +487,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   // Assures the mUri is the same as the master address in the current client context.
   private void checkMasterAddress() throws IOException {
-    InetSocketAddress masterAddress = ClientContext.getMasterAddress();
+    InetSocketAddress masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
     boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
     boolean samePort = masterAddress.getPort() == mUri.getPort();
     if (sameHost && samePort) {
@@ -643,6 +640,21 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       return sFileSystem.getStatus(path).getFileBlockInfos();
     } catch (AlluxioException e) {
       throw new IOException(e);
+    }
+  }
+
+  /**
+   * @return the hadoop subject if exists
+   */
+  private Subject getHadoopSubject() {
+    try {
+      UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
+      User user = new User(ugi.getUserName());
+      HashSet<Principal> principals = new HashSet<>();
+      principals.add(user);
+      return new Subject(false, principals, null, null);
+    } catch (IOException e) {
+      return null;
     }
   }
 }

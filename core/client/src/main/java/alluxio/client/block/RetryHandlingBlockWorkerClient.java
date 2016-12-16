@@ -30,10 +30,8 @@ import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,10 +64,8 @@ public final class RetryHandlingBlockWorkerClient
   private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
 
-  private static final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
-      CLIENT_POOLS = new ConcurrentHashMapV8<>();
-  private static final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
-      HEARTBEAT_CLIENT_POOLS = new ConcurrentHashMapV8<>();
+  private final BlockWorkerThriftClientPool mClientPools;
+  private final BlockWorkerThriftClientPool mClientHeartbeatPools;
 
   // Tracks the number of active heartbeat close requests.
   private static final AtomicInteger NUM_ACTIVE_SESSIONS = new AtomicInteger(0);
@@ -82,10 +78,6 @@ public final class RetryHandlingBlockWorkerClient
 
   private final ScheduledFuture<?> mHeartbeat;
 
-  static {
-    Metrics.initializeGauges();
-  }
-
   /**
    * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session ID is
    * required when using this client. For example, if you only call RPCs like promote, a session
@@ -95,8 +87,13 @@ public final class RetryHandlingBlockWorkerClient
    * @param sessionId the ID of the session
    * @throws IOException if it fails to register the session with the worker specified
    */
-  public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress, final Long sessionId)
+  public RetryHandlingBlockWorkerClient(
+      BlockWorkerThriftClientPool clientPools,
+      BlockWorkerThriftClientPool clientHeartbeatPools,
+      WorkerNetAddress workerNetAddress, final Long sessionId)
       throws IOException {
+    mClientPools = clientPools;
+    mClientHeartbeatPools = clientHeartbeatPools;
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
@@ -135,7 +132,7 @@ public final class RetryHandlingBlockWorkerClient
   @Override
   public BlockWorkerClientService.Client acquireClient() throws IOException {
     try {
-      return acquireInternal(CLIENT_POOLS);
+      return mClientPools.acquire();
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }
@@ -143,7 +140,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void releaseClient(BlockWorkerClientService.Client client) {
-    releaseInternal(CLIENT_POOLS, client);
+    mClientPools.release(client);
   }
 
   @Override
@@ -306,7 +303,7 @@ public final class RetryHandlingBlockWorkerClient
    */
   @Override
   public void sessionHeartbeat() throws IOException, InterruptedException {
-    BlockWorkerClientService.Client client = acquireInternal(HEARTBEAT_CLIENT_POOLS);
+    BlockWorkerClientService.Client client = mClientHeartbeatPools.acquire();
     try {
       client.sessionHeartbeat(getSessionId(), null);
     } catch (AlluxioTException e) {
@@ -317,78 +314,15 @@ public final class RetryHandlingBlockWorkerClient
       client.getOutputProtocol().getTransport().close();
       throw new IOException(e);
     } finally {
-      releaseInternal(HEARTBEAT_CLIENT_POOLS, client);
+      mClientHeartbeatPools.release(client);
     }
     Metrics.BLOCK_WORKER_HEATBEATS.inc();
-  }
-
-  /**
-   * Acquires a block worker thrift client from the block worker thrift client pools dedicated for
-   * heartbeat. If there is no available client instance available in the pool, it tries to create
-   * a new one. And an exception is thrown if it fails to create a new one.
-   *
-   * @param pools the address of the block worker
-   * @return the block worker thrift client
-   * @throws IOException if it fails to create a new client instance mostly because it fails to
-   *         connect to remote worker
-   * @throws InterruptedException if this thread is interrupted
-   */
-  private BlockWorkerClientService.Client acquireInternal(
-      ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool> pools)
-      throws IOException, InterruptedException {
-    if (!pools.containsKey(mRpcAddress)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(mRpcAddress,
-          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (pools.putIfAbsent(mRpcAddress, pool) != null) {
-        pool.close();
-      }
-    }
-    return pools.get(mRpcAddress).acquire();
-  }
-
-  /**
-   * Releases the block worker thrift client to the pool.
-   *
-   * @param client the block worker thrift client
-   */
-  private void releaseInternal(
-      ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool> pools,
-      BlockWorkerClientService.Client client) {
-    Preconditions.checkArgument(pools.containsKey(mRpcAddress));
-    pools.get(mRpcAddress).release(client);
   }
 
   /**
    * Metrics related to the {@link RetryHandlingBlockWorkerClient}.
    */
   public static final class Metrics {
-    private static void initializeGauges() {
-      MetricsSystem
-          .registerGaugeIfAbsent(MetricsSystem.getClientMetricName("BlockWorkerClientsOpen"),
-              new Gauge<Long>() {
-                @Override
-                public Long getValue() {
-                  long ret = 0;
-                  for (BlockWorkerThriftClientPool pool :CLIENT_POOLS.values()) {
-                    ret += pool.size();
-                  }
-                  return ret;
-                }
-              });
-      MetricsSystem.registerGaugeIfAbsent(
-          MetricsSystem.getClientMetricName("BlockWorkerHeartbeatClientsOpen"), new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              long ret = 0;
-              for (BlockWorkerThriftClientPool pool : HEARTBEAT_CLIENT_POOLS.values()) {
-                ret += pool.size();
-              }
-              return ret;
-            }
-          });
-    }
-
     private static final Counter BLOCK_WORKER_HEATBEATS =
         MetricsSystem.clientCounter("BlockWorkerHeartbeats");
 

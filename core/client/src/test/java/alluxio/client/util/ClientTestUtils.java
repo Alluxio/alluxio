@@ -13,7 +13,6 @@ package alluxio.client.util;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 import alluxio.hadoop.HadoopClientTestUtils;
@@ -36,13 +35,11 @@ public final class ClientTestUtils {
   /**
    * Resets the client to its initial state, re-initializing Alluxio and Hadoop contexts.
    *
-   * This method should only be used as a cleanup mechanism between tests. It should not be used
-   * while any object may be using the {@link ClientContext}.
+   * This method should only be used as a cleanup mechanism between tests.
    */
   public static void resetClient() {
     try {
       HadoopClientTestUtils.resetHadoopClientContext();
-      ClientContext.init();
       resetContexts();
     } catch (Exception e) {
       throw Throwables.propagate(e);

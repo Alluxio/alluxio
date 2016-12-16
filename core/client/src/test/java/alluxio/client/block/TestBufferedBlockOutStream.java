@@ -11,9 +11,12 @@
 
 package alluxio.client.block;
 
+import alluxio.client.file.FileSystemContext;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.logging.FileHandler;
 
 /**
  * Test class for mocking {@link BufferedBlockOutStream} and exposing internal state.
@@ -38,9 +41,9 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
    *
    * @param blockId the id of the block
    * @param blockSize the size of the block in bytes
-   * @param context the block store context
+   * @param context the file system context
    */
-  public TestBufferedBlockOutStream(long blockId, long blockSize, BlockStoreContext context) {
+  public TestBufferedBlockOutStream(long blockId, long blockSize, FileSystemContext context) {
     super(blockId, blockSize, context);
     mDataWritten = ByteBuffer.allocate(MAX_DATA);
     mCanceled = false;

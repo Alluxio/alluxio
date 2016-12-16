@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by alluxio clients.
@@ -47,8 +48,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @param masterAddress the master address
    */
-  public RetryHandlingBlockMasterClient(InetSocketAddress masterAddress) {
-    super(masterAddress);
+  public RetryHandlingBlockMasterClient(Subject subject, InetSocketAddress masterAddress) {
+    super(subject, masterAddress);
   }
 
   @Override

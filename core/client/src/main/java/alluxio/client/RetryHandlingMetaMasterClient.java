@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * A wrapper for the thrift client to interact with the meta master.
@@ -45,8 +46,8 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
    *
    * @param masterAddress the master address
    */
-  public RetryHandlingMetaMasterClient(InetSocketAddress masterAddress) {
-    super(masterAddress);
+  public RetryHandlingMetaMasterClient(Subject subject, InetSocketAddress masterAddress) {
+    super(subject, masterAddress);
   }
 
   @Override

@@ -13,6 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
@@ -50,7 +51,7 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
    */
   BaseKeyValuePartitionReader(long blockId) throws AlluxioException, IOException {
     mBlockId = blockId;
-    BlockInfo info = new AlluxioBlockStore().getInfo(mBlockId);
+    BlockInfo info = FileSystemContext.INSTANCE.getAlluxioBlockStore().getInfo(mBlockId);
     WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
     mClient = new KeyValueWorkerClient(workerAddr);
     mClosed = false;

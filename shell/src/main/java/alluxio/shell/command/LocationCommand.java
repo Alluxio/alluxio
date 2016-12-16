@@ -14,6 +14,7 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.BlockLocation;
@@ -29,10 +30,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LocationCommand extends WithWildCardPathCommand {
-
-  /** The block store client. */
-  private final AlluxioBlockStore mBlockStore;
-
   /**
    * Constructs a new instance to display a list of hosts that have the file specified in args
    * stored.
@@ -41,7 +38,6 @@ public final class LocationCommand extends WithWildCardPathCommand {
    */
   public LocationCommand(FileSystem fs) {
     super(fs);
-    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override
@@ -55,7 +51,8 @@ public final class LocationCommand extends WithWildCardPathCommand {
 
     System.out.println(path + " with file id " + status.getFileId() + " is on nodes: ");
     for (long blockId : status.getBlockIds()) {
-      for (BlockLocation location : mBlockStore.getInfo(blockId).getLocations()) {
+      for (BlockLocation location : FileSystemContext.INSTANCE.getAlluxioBlockStore()
+          .getInfo(blockId).getLocations()) {
         System.out.println(location.getWorkerAddress().getHost());
       }
     }

@@ -19,6 +19,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
@@ -67,6 +68,7 @@ public class FileOutStream extends AbstractOutStream {
   private final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
+  private final AlluxioBlockStore mBlockStore;
   private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
@@ -116,6 +118,7 @@ public class FileOutStream extends AbstractOutStream {
     mUnderStorageType = options.getUnderStorageType();
     mOptions = options;
     mContext = context;
+    mBlockStore = new AlluxioBlockStore(mContext);
     mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
@@ -132,12 +135,12 @@ public class FileOutStream extends AbstractOutStream {
       } else {
         mUfsPath = options.getUfsPath();
         if (mUfsDelegation) {
-          mFileSystemWorkerClient = mCloser.register(mContext.createWorkerClient());
+          mFileSystemWorkerClient = mCloser.register(mContext.createFileSystemWorkerClient());
           Permission perm = options.getPermission();
           mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
               CreateUfsFileOptions.defaults().setPermission(perm));
           mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
-              .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
+              .create(mContext, mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
         } else {
           UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
           // TODO(jiri): Implement collection of temporary files left behind by dead clients.
@@ -310,7 +313,7 @@ public class FileOutStream extends AbstractOutStream {
 
     if (mAlluxioStorageType.isStore()) {
       mCurrentBlockOutStream =
-          mContext.getAlluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, mOptions);
+          mBlockStore.getOutStream(getNextBlockId(), mBlockSize, mOptions);
       mShouldCacheCurrentBlock = true;
     }
   }

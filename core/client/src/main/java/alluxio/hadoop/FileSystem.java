@@ -36,14 +36,11 @@ import javax.security.auth.Subject;
 @PublicApi
 @NotThreadSafe
 public final class FileSystem extends AbstractFileSystem {
-  private Subject mSubject;
-
   /**
    * Constructs a new {@link FileSystem}.
    */
   public FileSystem() {
     super();
-    mSubject = getHadoopSubject();
   }
 
   /**
@@ -64,17 +61,5 @@ public final class FileSystem extends AbstractFileSystem {
   @Override
   protected boolean isZookeeperMode() {
     return false;
-  }
-
-  private Subject getHadoopSubject() {
-    try {
-      UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
-      User user = new User(ugi.getUserName());
-      HashSet<Principal> principals = new HashSet<>();
-      principals.add(user);
-      return new Subject(false, principals, null, null);
-    } catch (IOException e) {
-      return new Subject(false, null, null, null);
-    }
   }
 }
