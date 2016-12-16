@@ -1257,10 +1257,11 @@ public final class FileSystemMasterTest {
     // Speed up is not directly proportional to num files due to journaling, ensure at least 2x
     Assert.assertTrue("Concurrent rename: " + duration + " Serial rename: " + baselineNs,
         duration < baselineNs / 2);
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);  }
+    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+  }
 
   /**
-   * Tests concurrent renames within a folder do not block on each other
+   * Tests concurrent renames within a folder do not block on each other.
    */
   @Test
   public void folderConcurrentRename() throws Exception {

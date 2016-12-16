@@ -35,6 +35,7 @@ public final class InodeLockList implements AutoCloseable {
    * Locks the given inode in read mode, and adds it to this lock list.
    *
    * @param inode the inode to lock
+   * @param parent the expected parent inode
    * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
    */
   public synchronized void lockReadAndCheckParent(Inode<?> inode, Inode parent)
@@ -48,6 +49,8 @@ public final class InodeLockList implements AutoCloseable {
    * Locks the given inode in read mode, and adds it to this lock list.
    *
    * @param inode the inode to lock
+   * @param parent the expected parent inode
+   * @param name the expected name of the inode to be locked
    * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
    */
   public synchronized void lockReadAndCheckFullPath(Inode<?> inode, Inode parent, String name)
@@ -77,6 +80,8 @@ public final class InodeLockList implements AutoCloseable {
    * Locks the given inode in write mode, and adds it to this lock list.
    *
    * @param inode the inode to lock
+   * @param parent the expected parent inode
+   * @param name the expected name of the inode to be locked
    * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
    */
   public synchronized void lockWriteAndCheckFullPath(Inode<?> inode, Inode parent, String name)
@@ -90,6 +95,7 @@ public final class InodeLockList implements AutoCloseable {
    * Locks the given inode in write mode, and adds it to this lock list.
    *
    * @param inode the inode to lock
+   * @param parent the expected parent inode
    * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
    */
   public synchronized void lockWriteAndCheckParent(Inode<?> inode, Inode parent)

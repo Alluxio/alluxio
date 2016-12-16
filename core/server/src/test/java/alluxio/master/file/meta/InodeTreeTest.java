@@ -217,9 +217,13 @@ public final class InodeTreeTest {
     // sleep to ensure a different last modification time
     CommonUtils.sleepMs(10);
 
+    // Need to use updated options to set the correct last mod time.
+    CreateDirectoryOptions dirOptions =
+        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION).setRecursive(true);
+
     // create nested directory
     InodeTree.CreatePathResult createResult =
-        createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
+        createPath(mTree, NESTED_URI, dirOptions);
     List<Inode<?>> modified = createResult.getModified();
     List<Inode<?>> created = createResult.getCreated();
 
@@ -238,7 +242,7 @@ public final class InodeTreeTest {
 
     // creating the directory path again results in no new inodes.
     try {
-      createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
+      createPath(mTree, NESTED_URI, dirOptions);
       Assert.assertTrue("createPath should throw FileAlreadyExistsException", false);
     } catch (FileAlreadyExistsException e) {
       Assert.assertEquals(e.getMessage(),

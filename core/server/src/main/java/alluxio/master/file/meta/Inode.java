@@ -291,8 +291,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
 
   /**
    * Obtains a read lock on the inode. Afterward, checks the inode state to ensure the full inode
-   * path is consistent with what the caller is expecting. If the state is inconsistent, an exception
-   * will be thrown and the lock will be released.
+   * path is consistent with what the caller is expecting. If the state is inconsistent, an
+   * exception will be thrown and the lock will be released.
    *
    * @param parent the expected parent inode
    * @param name the expected name of the inode to be locked
@@ -332,8 +332,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
 
   /**
    * Obtains a write lock on the inode. Afterward, checks the inode state to ensure the full inode
-   * path is consistent with what the caller is expecting. If the state is inconsistent, an exception
-   * will be thrown and the lock will be released.
+   * path is consistent with what the caller is expecting. If the state is inconsistent, an
+   * exception will be thrown and the lock will be released.
    *
    * @param parent the expected parent inode
    * @param name the expected name of the inode to be locked

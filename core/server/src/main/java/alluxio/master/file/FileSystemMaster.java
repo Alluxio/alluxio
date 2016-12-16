@@ -1889,8 +1889,8 @@ public final class FileSystemMaster extends AbstractMaster {
         String ufsSrcPath = resolution.getUri().toString();
         UnderFileSystem ufs = resolution.getUfs();
         String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
-        // Create ancestor directories from top to the bottom. We cannot use recursive create parents
-        // here because the permission for the ancestors can be different.
+        // Create ancestor directories from top to the bottom. We cannot use recursive create
+        // parents here because the permission for the ancestors can be different.
         List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
         Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
         AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
