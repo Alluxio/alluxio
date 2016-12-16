@@ -177,11 +177,11 @@ public class AlluxioMasterInfo {
   }
 
   /**
-   * @param status the status of the consistency check
+   * @param check the consistency check
    * @return the Alluxio master information
    */
-  public AlluxioMasterInfo setStartupConsistencyCheck(StartupConsistencyCheck status) {
-    mStartupConsistencyCheck = status;
+  public AlluxioMasterInfo setStartupConsistencyCheck(StartupConsistencyCheck check) {
+    mStartupConsistencyCheck = check;
     return this;
   }
 

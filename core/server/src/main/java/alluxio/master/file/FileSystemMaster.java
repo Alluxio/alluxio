@@ -548,16 +548,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * Class to represent the status and result of the startup consistency check.
    */
   public static final class StartupConsistencyCheck {
-    /** Result for a disabled check. */
-    private static final StartupConsistencyCheck DISABLED =
-        new StartupConsistencyCheck(Status.DISABLED, null);
-    /** Result for a failed check. */
-    private static final StartupConsistencyCheck FAILED =
-        new StartupConsistencyCheck(Status.FAILED, null);
-    /** Result for a running check. */
-    private static final StartupConsistencyCheck RUNNING =
-        new StartupConsistencyCheck(Status.RUNNING, null);
-
     /**
      * Status of the check.
      */
@@ -577,21 +567,21 @@ public final class FileSystemMaster extends AbstractMaster {
      * @return a result set to the disabled status
      */
     public static StartupConsistencyCheck disabled() {
-      return DISABLED;
+      return new StartupConsistencyCheck(Status.DISABLED, null);
     }
 
     /**
      * @return a result set to the failed status
      */
     public static StartupConsistencyCheck failed() {
-      return FAILED;
+      return new StartupConsistencyCheck(Status.FAILED, null);
     }
 
     /**
      * @return a result set to the running status
      */
     public static StartupConsistencyCheck running() {
-      return RUNNING;
+      return new StartupConsistencyCheck(Status.RUNNING, null);
     }
 
     private Status mStatus;

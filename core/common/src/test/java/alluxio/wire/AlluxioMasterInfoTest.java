@@ -46,8 +46,7 @@ public class AlluxioMasterInfoTest {
     Assert.assertEquals(a.getMetrics(), b.getMetrics());
     Assert.assertEquals(a.getRpcAddress(), b.getRpcAddress());
     Assert.assertEquals(a.getStartTimeMs(), b.getStartTimeMs());
-    Assert.assertEquals(a.getStartupConsistencyCheck(),
-        b.getStartupConsistencyCheck());
+    Assert.assertEquals(a.getStartupConsistencyCheck(), b.getStartupConsistencyCheck());
     Assert.assertEquals(a.getTierCapacity(), b.getTierCapacity());
     Assert.assertEquals(a.getUfsCapacity(), b.getUfsCapacity());
     Assert.assertEquals(a.getUptimeMs(), b.getUptimeMs());
