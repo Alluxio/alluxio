@@ -1384,9 +1384,9 @@ public final class FileSystemMasterTest {
       }
     }
     // One renamed file should exist, and 9 original source files
-    Assert.assertEquals(10, files.size());
+    Assert.assertEquals(numThreads, files.size());
     Assert.assertEquals(1, renamedFiles);
-    Assert.assertEquals(9, originalFiles);
+    Assert.assertEquals(numThreads - 1, originalFiles);
   }
 
   /**
@@ -1419,7 +1419,7 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.listStatus(dir2, ListStatusOptions.defaults());
 
     Assert.assertEquals(0, dir1Files.size());
-    Assert.assertEquals(10, dir2Files.size());
+    Assert.assertEquals(numThreads, dir2Files.size());
   }
 
   /**
