@@ -543,7 +543,7 @@ public final class AlluxioMasterRestServiceHandler {
       uris.add(uri.toString());
     }
     ret.setInconsistentUris(uris);
-    ret.setStatus(result.getStatus().toString());
+    ret.setStatus(result.getStatus().toString().toLowerCase());
     return ret;
   }
 

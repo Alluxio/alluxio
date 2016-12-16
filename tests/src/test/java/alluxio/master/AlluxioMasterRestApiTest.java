@@ -141,7 +141,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     StartupConsistencyCheckStatus status = getInfo(NO_PARAMS)
         .getStartupConsistencyCheckStatus();
     Assert.assertEquals(
-        FileSystemMaster.StartupConsistencyCheckResult.Status.COMPLETE.toString(),
+        FileSystemMaster.StartupConsistencyCheckResult.Status.COMPLETE.toString().toLowerCase(),
         status.getStatus());
     Assert.assertEquals(0, status.getInconsistentUris().size());
   }
