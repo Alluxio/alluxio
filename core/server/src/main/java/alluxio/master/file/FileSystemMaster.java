@@ -322,7 +322,8 @@ public final class FileSystemMaster extends AbstractMaster {
       InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) innerEntry;
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(modTimeEntry.getId(),
           InodeTree.LockMode.WRITE)) {
-        inodePath.getInode().setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
+        inodePath.getInode().setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs(),
+            true);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }

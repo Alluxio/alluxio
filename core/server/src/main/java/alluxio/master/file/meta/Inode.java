@@ -193,8 +193,18 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setLastModificationTimeMs(long lastModificationTimeMs) {
+    return setLastModificationTimeMs(lastModificationTimeMs, false);
+  }
+
+  /**
+   * @param lastModificationTimeMs the last modification time to use
+   * @param override if true, sets the value regardless of the previous last modified time,
+   *                 should be set to true for journal replay
+   * @return the updated object
+   */
+  public T setLastModificationTimeMs(long lastModificationTimeMs, boolean override) {
     synchronized (this) {
-      if (mLastModificationTimeMs < lastModificationTimeMs) {
+      if (override || mLastModificationTimeMs < lastModificationTimeMs) {
         mLastModificationTimeMs = lastModificationTimeMs;
       }
       return getThis();
