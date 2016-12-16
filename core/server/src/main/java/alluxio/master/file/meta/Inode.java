@@ -285,14 +285,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mLock.readLock().lock();
   }
 
-  public void lockReadAndCheckParent(Inode parent) throws InvalidPathException {
-    mLock.readLock().lock();
-    if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
-      mLock.readLock().unlock();
-      throw new InvalidPathException("Path is no longer valid, possibly due to a concurrent move.");
-    }
-  }
-
+  /**
+   * Obtains a read lock on the inode. Afterward, checks the inode state to ensure the full inode
+   * path is consistent with what the caller is expecting. If the state is inconsistent, an exception
+   * will be thrown and the lock will be released.
+   *
+   * @param parent the expected parent inode
+   * @param name the expected name of the inode to be locked
+   * @throws InvalidPathException if the parent and/or name is not as expected
+   */
   public void lockReadAndCheckFullPath(Inode parent, String name) throws InvalidPathException {
     lockReadAndCheckParent(parent);
     if (!mName.equals(name)) {
@@ -301,18 +302,51 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     }
   }
 
-  public void lockWriteAndCheckParent(Inode parent) throws InvalidPathException {
-    mLock.writeLock().lock();
+  /**
+   * Obtains a read lock on the inode. Afterward, checks the inode state to ensure the parent is
+   * consistent with what the caller is expecting. If the state is inconsistent, an exception
+   * will be thrown and the lock will be released.
+   *
+   * @param parent the expected parent inode
+   * @throws InvalidPathException if the parent is not as expected
+   */
+  public void lockReadAndCheckParent(Inode parent) throws InvalidPathException {
+    mLock.readLock().lock();
     if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
+      mLock.readLock().unlock();
+      throw new InvalidPathException("Path is no longer valid, possibly due to a concurrent move.");
+    }
+  }
+
+  /**
+   * Obtains a write lock on the inode. Afterward, checks the inode state to ensure the full inode
+   * path is consistent with what the caller is expecting. If the state is inconsistent, an exception
+   * will be thrown and the lock will be released.
+   *
+   * @param parent the expected parent inode
+   * @param name the expected name of the inode to be locked
+   * @throws InvalidPathException if the parent and/or name is not as expected
+   */
+  public void lockWriteAndCheckFullPath(Inode parent, String name)
+      throws InvalidPathException {
+    lockWriteAndCheckParent(parent);
+    if (!mName.equals(name)) {
       mLock.writeLock().unlock();
       throw new InvalidPathException("Path is no longer valid, possibly due to a concurrent move.");
     }
   }
 
-  public void lockWriteAndCheckFullPath(Inode parent, String name)
-      throws InvalidPathException {
-    lockWriteAndCheckParent(parent);
-    if (!mName.equals(name)) {
+  /**
+   * Obtains a write lock on the inode. Afterward, checks the inode state to ensure the parent is
+   * consistent with what the caller is expecting. If the state is inconsistent, an exception
+   * will be thrown and the lock will be released.
+   *
+   * @param parent the expected parent inode
+   * @throws InvalidPathException if the parent is not as expected
+   */
+  public void lockWriteAndCheckParent(Inode parent) throws InvalidPathException {
+    mLock.writeLock().lock();
+    if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
       mLock.writeLock().unlock();
       throw new InvalidPathException("Path is no longer valid, possibly due to a concurrent move.");
     }
