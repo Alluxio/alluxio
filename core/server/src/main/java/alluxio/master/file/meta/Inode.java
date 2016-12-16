@@ -281,6 +281,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   protected abstract T getThis();
 
+  /**
+   * Obtains a read lock on the inode. This should only be used when the inode is accessed by ID
+   * and not by path or parent.
+   */
   public void lockRead() {
     mLock.readLock().lock();
   }
@@ -316,6 +320,14 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
       mLock.readLock().unlock();
       throw new InvalidPathException("Path is no longer valid, possibly due to a concurrent move.");
     }
+  }
+
+  /**
+   * Obtains a write lock on the inode. This should only be used when the inode is accessed by ID
+   * and not by path or parent.
+   */
+  public void lockWrite() {
+    mLock.readLock().lock();
   }
 
   /**
