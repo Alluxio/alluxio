@@ -58,7 +58,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.MalformedURLException;
+import java.net.InetAddress;
 
+import javax.ws.rs.HttpMethod;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -312,13 +317,21 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @throws Exception if an error occurs while requesting or launching containers
    */
   public void requestAndLaunchContainers() throws Exception {
-    Resource masterResource = Records.newRecord(Resource.class);
-    masterResource.setMemory(mMasterMemInMB);
-    masterResource.setVirtualCores(mMasterCpu);
-    mContainerAllocator = new ContainerAllocator("master", 1, 1, masterResource, mYarnClient,
-        mRMClient, mMasterAddress);
-    List<Container> masterContainers = mContainerAllocator.allocateContainers();
-    launchMasterContainer(Iterables.getOnlyElement(masterContainers));
+
+    if (masterExists()) {
+      InetAddress address = InetAddress.getByName(mMasterAddress);
+      mMasterContainerNetAddress = address.getHostAddress();
+      LOG.info("Found master already running on " + mMasterAddress);
+    } else {
+      LOG.info("Configuring Master container.");
+      Resource masterResource = Records.newRecord(Resource.class);
+      masterResource.setMemory(mMasterMemInMB);
+      masterResource.setVirtualCores(mMasterCpu);
+      mContainerAllocator = new ContainerAllocator("master", 1, 1, masterResource, mYarnClient,
+              mRMClient, mMasterAddress);
+      List<Container> masterContainers = mContainerAllocator.allocateContainers();
+      launchMasterContainer(Iterables.getOnlyElement(masterContainers));
+    }
 
     Resource workerResource = Records.newRecord(Resource.class);
     workerResource.setMemory(mWorkerMemInMB + mRamdiskMemInMB);
@@ -395,6 +408,37 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     } catch (Exception e) {
       LOG.error("Error launching container {}", container.getId(), e);
     }
+  }
+
+  /**
+   * Checks if an Alluxio master node is already running
+   * or not on the master address given.
+   *
+   * @return true if master exists, false otherwise
+   */
+  private boolean masterExists() {
+
+    // TODO(dan): derive port from Constant
+    try {
+      URL myURL = new URL("http://" + mMasterAddress + ":" + "19999" + Constants.REST_API_PREFIX + "/master/version");
+      LOG.debug("Checking for master at: " + myURL.toString());
+      HttpURLConnection connection = (HttpURLConnection) myURL.openConnection();
+      connection.setRequestMethod(HttpMethod.GET);
+
+      int resCode = connection.getResponseCode();
+      LOG.debug("Response code from master was: " + Integer.toString(resCode));
+
+      if (resCode == HttpURLConnection.HTTP_OK) {
+        connection.disconnect();
+        return true;
+      }
+    } catch (MalformedURLException e) {
+      LOG.error("Malformed URL in attempt to check if master is running already", e);
+    } catch (IOException e) {
+      LOG.error("Unable to open connection to master in attempt to check if already running", e);
+    }
+
+    return false;
   }
 
   private static Map<String, LocalResource> setupLocalResources(String resourcePath) {
