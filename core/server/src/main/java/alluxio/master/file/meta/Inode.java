@@ -289,7 +289,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mLock.readLock().lock();
     if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
       mLock.readLock().unlock();
-      throw new InvalidPathException(".");
+      throw new InvalidPathException("Path is no longer valid, possibly due to a concurrent move.");
     }
   }
 
@@ -297,7 +297,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     lockReadAndCheckParent(parent);
     if (!mName.equals(name)) {
       mLock.readLock().unlock();
-      throw new InvalidPathException(".");
+      throw new InvalidPathException("Path is no longer valid, possibly due to a concurrent move.");
     }
   }
 
@@ -305,7 +305,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mLock.writeLock().lock();
     if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
       mLock.writeLock().unlock();
-      throw new InvalidPathException(".");
+      throw new InvalidPathException("Path is no longer valid, possibly due to a concurrent move.");
     }
   }
 
@@ -314,7 +314,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     lockWriteAndCheckParent(parent);
     if (!mName.equals(name)) {
       mLock.writeLock().unlock();
-      throw new InvalidPathException(".");
+      throw new InvalidPathException("Path is no longer valid, possibly due to a concurrent move.");
     }
   }
 
