@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
@@ -172,6 +171,13 @@ public final class FileSystemContext {
   }
 
   /**
+   * @return the parent subject
+   */
+  public synchronized Subject getParentSubject() {
+    return mParentSubject;
+  }
+
+  /**
    * @return the master address
    */
   public synchronized InetSocketAddress getMasterAddress() {
@@ -252,7 +258,7 @@ public final class FileSystemContext {
     InetSocketAddress rpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(address);
 
     if (!mBlockWorkerClientPools.containsKey(rpcAddress)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(rpcAddress,
+      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(mParentSubject, rpcAddress,
           Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
           Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
       if (mBlockWorkerClientPools.putIfAbsent(rpcAddress, pool) != null) {
@@ -261,7 +267,7 @@ public final class FileSystemContext {
     }
 
     if (!mBlockWorkerHeartbeatClientPools.containsKey(rpcAddress)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(rpcAddress,
+      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(mParentSubject, rpcAddress,
           Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
           Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
       if (mBlockWorkerHeartbeatClientPools.putIfAbsent(rpcAddress, pool) != null) {
@@ -291,7 +297,7 @@ public final class FileSystemContext {
 
     InetSocketAddress rpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(address);
     if (!mFileSystemWorkerClientPools.containsKey(rpcAddress)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(rpcAddress,
+      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(mParentSubject, rpcAddress,
           Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
           Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
       if (mBlockWorkerClientPools.putIfAbsent(rpcAddress, pool) != null) {
@@ -300,7 +306,7 @@ public final class FileSystemContext {
     }
 
     if (!mBlockWorkerHeartbeatClientPools.containsKey(rpcAddress)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(rpcAddress,
+      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(mParentSubject, rpcAddress,
           Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
           Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
       if (mBlockWorkerHeartbeatClientPools.putIfAbsent(rpcAddress, pool) != null) {

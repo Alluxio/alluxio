@@ -20,6 +20,7 @@ import org.apache.thrift.protocol.TProtocol;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * Class for managing a pool of {@link BlockWorkerClientService.Client}.
@@ -27,9 +28,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockWorkerThriftClientPool
     extends ThriftClientPool<BlockWorkerClientService.Client> {
-  public BlockWorkerThriftClientPool(InetSocketAddress address, int maxCapacity, long gcThresholdMs) {
-    super(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME, Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION,
-        address, maxCapacity, gcThresholdMs);
+  public BlockWorkerThriftClientPool(Subject subject, InetSocketAddress address, int maxCapacity,
+      long gcThresholdMs) {
+    super(subject, Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
+        Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION, address, maxCapacity, gcThresholdMs);
   }
 
   @Override

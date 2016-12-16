@@ -85,7 +85,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @GuardedBy("INIT_LOCK")
   private static FileSystem sFileSystem = null;
 
-  private static FileSystemContext sFileSystemContext = FileSystemContext.INSTANCE;
+  private static FileSystemContext sFileSystemContext;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
@@ -107,7 +107,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * Constructs a new {@link AbstractFileSystem} instance.
    */
-  AbstractFileSystem() { }
+  AbstractFileSystem() {}
 
   /**
    * Sets the {@link FileSystemContext} instance used in this class, only for injecting
@@ -140,9 +140,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public void close() throws IOException {
     super.close();
-    if (sFileSystem != null) {
-      sFileSystem.close();
-    }
   }
 
   /**
@@ -465,15 +462,19 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
       // These must be reset to pick up the change to the master address.
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
-      sFileSystemContext.reset();
       LineageContext.INSTANCE.reset();
 
+      sFileSystemContext = new FileSystemContext();
+      Subject subject = getHadoopSubject();
+      if (subject != null) {
+        sFileSystemContext.setParentSubject(subject);
+      }
       // Try to connect to master, if it fails, the provided uri is invalid.
       FileSystemMasterClient client = sFileSystemContext.acquireMasterClient();
       try {
         client.connect();
         // Connected, initialize.
-        sFileSystem = FileSystem.Factory.get();
+        sFileSystem = FileSystem.Factory.get(sFileSystemContext);
         sInitialized = true;
       } catch (ConnectionFailedException | IOException e) {
         LOG.error("Failed to connect to the provided master address {}: {}.",
@@ -495,6 +496,21 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
     throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
         .getMessage(mUri.getHost() + ":" + mUri.getPort(), masterAddress));
+  }
+
+  /**
+   * @return the hadoop subject if exists
+   */
+  private Subject getHadoopSubject() {
+    try {
+      UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
+      User user = new User(ugi.getUserName());
+      HashSet<Principal> principals = new HashSet<>();
+      principals.add(user);
+      return new Subject(false, principals, null, null);
+    } catch (IOException e) {
+      return null;
+    }
   }
 
   /**
@@ -640,21 +656,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       return sFileSystem.getStatus(path).getFileBlockInfos();
     } catch (AlluxioException e) {
       throw new IOException(e);
-    }
-  }
-
-  /**
-   * @return the hadoop subject if exists
-   */
-  private Subject getHadoopSubject() {
-    try {
-      UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
-      User user = new User(ugi.getUserName());
-      HashSet<Principal> principals = new HashSet<>();
-      principals.add(user);
-      return new Subject(false, principals, null, null);
-    } catch (IOException e) {
-      return null;
     }
   }
 }
