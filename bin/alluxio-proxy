@@ -27,7 +27,7 @@ if [[ "$#" -gt "0" ]]; then
   exit 0
 fi
 
-# Log to both the console and the master logs file
+# Log to both the console and the proxy logs file
 ALLUXIO_PROXY_LOGGER="Console,PROXY_LOGGER"
 
 . ${BIN}/../libexec/alluxio-config.sh
