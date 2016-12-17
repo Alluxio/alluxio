@@ -51,7 +51,7 @@ public class BlockLocationTest {
 
     long workerId = random.nextLong();
     WorkerNetAddress workerAddress = WorkerNetAddressTest.createRandom();
-    String tierAlias = CommonUtils.randomString(random.nextInt(10));
+    String tierAlias = CommonUtils.randomAlphaNumString(random.nextInt(10));
 
     result.setWorkerId(workerId);
     result.setWorkerAddress(workerAddress);

@@ -57,12 +57,12 @@ public class LineageInfoTest {
     List<String> inputFiles = new ArrayList<>();
     long numInputFiles = random.nextInt(10);
     for (int i = 0; i < numInputFiles; i++) {
-      inputFiles.add(CommonUtils.randomString(random.nextInt(10)));
+      inputFiles.add(CommonUtils.randomAlphaNumString(random.nextInt(10)));
     }
     List<String> outputFiles = new ArrayList<>();
     long numOutputFiles = random.nextInt(10);
     for (int i = 0; i < numOutputFiles; i++) {
-      outputFiles.add(CommonUtils.randomString(random.nextInt(10)));
+      outputFiles.add(CommonUtils.randomAlphaNumString(random.nextInt(10)));
     }
     CommandLineJobInfo job = CommandLineJobInfoTest.createRandom();
     long creationTimeMs = random.nextLong();
