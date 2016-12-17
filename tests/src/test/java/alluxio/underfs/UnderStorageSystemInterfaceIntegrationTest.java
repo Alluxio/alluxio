@@ -351,6 +351,17 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests if listStatus returns an empty array for an empty directory.
+   */
+  @Test
+  public void listStatusEmpty() throws IOException {
+    String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
+    mUfs.mkdirs(testDir);
+    UnderFileStatus[] res = mUfs.listStatus(testDir);
+    Assert.assertEquals(0, res.length);
+  }
+
+  /**
    * Tests if listStatus returns null for a file.
    */
   @Test
