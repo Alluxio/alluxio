@@ -257,8 +257,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean isDirectory(String path) throws IOException {
     // Root is always a folder
+    if (isRoot(path)) {
+      return true;
+    }
     String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
-    if (isRoot(path) || getObjectStatus(keyAsFolder) != null) {
+    if (getObjectStatus(keyAsFolder) != null) {
       return true;
     }
     return getObjectListingChunkAndCreateNonEmpty(path, true) != null;
@@ -511,8 +514,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @param key pseudo-directory key excluding header and bucket
    * @param recursive whether to request immediate children only, or all descendants
-   * @return chunked object listing
-   * @throws IOException if a non-alluxio error occurs
+   * @return chunked object listing, or null if key is not found
+   * @throws IOException if a non-Alluxio error occurs
    */
   protected abstract ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException;
@@ -522,22 +525,19 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @param path of pseudo-directory
    * @param recursive whether to request immediate children only, or all descendants
-   * @return null if the prefix is not found or if an IO error occurs
+   * @return chunked object listing, or null if the path does not exist as a pseudo-directory
+   * @throws IOException when a non-Alluxio error occurs
    */
   protected ObjectListingChunk getObjectListingChunkAndCreateNonEmpty(String path,
-      boolean recursive) {
+      boolean recursive) throws IOException {
     // Check if anything begins with <folder_path>/
     String dir = stripPrefixIfPresent(path);
-    try {
-      ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
-      // If there are, this is a folder and we can create the necessary metadata
-      if (objs != null && objs.getObjectNames() != null && objs.getObjectNames().length > 0) {
-        // If the breadcrumb exists, this is a no-op
-        mkdirsInternal(dir);
-        return objs;
-      }
-    } catch (IOException e) {
-      // Return null if an exception occurs
+    ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
+    // If there are, this is a folder and we can create the necessary metadata
+    if (objs != null && objs.getObjectNames() != null && objs.getObjectNames().length > 0) {
+      // If the breadcrumb exists, this is a no-op
+      mkdirsInternal(dir);
+      return objs;
     }
     return null;
   }

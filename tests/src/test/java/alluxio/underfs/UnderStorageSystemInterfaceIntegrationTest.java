@@ -358,7 +358,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
     mUfs.mkdirs(testDir);
     UnderFileStatus[] res = mUfs.listStatus(testDir);
-    Assert.assertTrue(res != null && res.length == 0);
+    Assert.assertEquals(0, res.length);
   }
 
   /**
