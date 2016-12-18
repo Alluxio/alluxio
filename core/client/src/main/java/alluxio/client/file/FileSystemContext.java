@@ -297,19 +297,21 @@ public final class FileSystemContext {
 
     InetSocketAddress rpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(address);
     if (!mFileSystemWorkerClientPools.containsKey(rpcAddress)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(mParentSubject, rpcAddress,
-          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (mBlockWorkerClientPools.putIfAbsent(rpcAddress, pool) != null) {
+      FileSystemWorkerThriftClientPool pool =
+          new FileSystemWorkerThriftClientPool(mParentSubject, rpcAddress,
+              Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
+              Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
+      if (mFileSystemWorkerClientPools.putIfAbsent(rpcAddress, pool) != null) {
         pool.close();
       }
     }
 
-    if (!mBlockWorkerHeartbeatClientPools.containsKey(rpcAddress)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(mParentSubject, rpcAddress,
-          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (mBlockWorkerHeartbeatClientPools.putIfAbsent(rpcAddress, pool) != null) {
+    if (!mFileSystemWorkerClientHeartbeatPools.containsKey(rpcAddress)) {
+      FileSystemWorkerThriftClientPool pool =
+          new FileSystemWorkerThriftClientPool(mParentSubject, rpcAddress,
+              Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
+              Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
+      if (mFileSystemWorkerClientHeartbeatPools.putIfAbsent(rpcAddress, pool) != null) {
         pool.close();
       }
     }

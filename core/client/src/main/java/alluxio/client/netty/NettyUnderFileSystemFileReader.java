@@ -23,6 +23,7 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -56,7 +57,7 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
    * Creates a new reader for a file in an under file system through a worker's data server.
    */
   public NettyUnderFileSystemFileReader(FileSystemContext context) {
-    mContext = context;
+    mContext = Preconditions.checkNotNull(context);
   }
 
   @Override

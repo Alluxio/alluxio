@@ -19,6 +19,8 @@ import alluxio.client.UnderFileSystemFileReader;
 import alluxio.exception.AlluxioException;
 import alluxio.underfs.options.OpenOptions;
 
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -47,9 +49,10 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
   }
 
   @Override
-  public InputStream create(OpenOptions options) {
+  public InputStream create(FileSystemContext context, OpenOptions options) {
+    Preconditions.checkNotNull(context);
     return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(),
-        mFileId, options.getOffset(), UnderFileSystemFileReader.Factory.create());
+        mFileId, options.getOffset(), UnderFileSystemFileReader.Factory.create(context));
   }
 
   @Override

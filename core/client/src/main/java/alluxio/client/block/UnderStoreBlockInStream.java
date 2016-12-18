@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.Constants;
 import alluxio.Seekable;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
@@ -55,17 +56,19 @@ public final class UnderStoreBlockInStream extends BlockInStream {
   private long mPos;
   /** The current under store stream. */
   private InputStream mUnderStoreStream;
+  private final FileSystemContext mContext;
 
   /**
    * A factory which can create an input stream to under storage.
    */
   public interface UnderStoreStreamFactory extends AutoCloseable {
     /**
+     * @param context file system context
      * @param options for opening a UFS input stream
      * @return an input stream to under storage
      * @throws IOException if an IO exception occurs
      */
-    InputStream create(OpenOptions options) throws IOException;
+    InputStream create(FileSystemContext context, OpenOptions options) throws IOException;
 
     /**
      * Closes the factory, releasing any resources it was holding.
@@ -87,12 +90,13 @@ public final class UnderStoreBlockInStream extends BlockInStream {
    *
    * @throws IOException if an IO exception occurs while creating the under storage input stream
    */
-  public UnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
-      UnderStoreStreamFactory underStoreStreamFactory) throws IOException {
+  public UnderStoreBlockInStream(FileSystemContext context, long initPos, long length,
+      long fileBlockSize, UnderStoreStreamFactory underStoreStreamFactory) throws IOException {
     mInitPos = initPos;
     mLength = length;
     mFileBlockSize = fileBlockSize;
     mUnderStoreStreamFactory = underStoreStreamFactory;
+    mContext = Preconditions.checkNotNull(context);
     setUnderStoreStream(0);
   }
 
@@ -191,7 +195,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     }
     long streamStart = mInitPos + pos;
     mUnderStoreStream =
-        mUnderStoreStreamFactory.create(OpenOptions.defaults().setOffset(streamStart));
+        mUnderStoreStreamFactory.create(mContext, OpenOptions.defaults().setOffset(streamStart));
     // Set the current block position to the specified block position.
     mPos = pos;
   }
