@@ -1340,7 +1340,7 @@ public final class FileSystemMasterTest {
     List<FileInfo> existingDirs =
         mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
     Assert.assertEquals(1, existingDirs.size());
-    Assert.assertTrue(existingDirs.get(0).getName().startsWith("dir"));
+    Assert.assertTrue(existingDirs.get(0).getName().startsWith("renamed"));
     // The directory should contain the file
     List<FileInfo> dirChildren =
         mFileSystemMaster.listStatus(new AlluxioURI(existingDirs.get(0).getPath()),
