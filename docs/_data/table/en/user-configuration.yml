@@ -34,7 +34,8 @@ alluxio.user.file.write.tier.default:
   The default policy for choosing a tier when writing a block Valid options
   are `HIGHEST` (write block to the highest tier), `PREFER_HIGHEST_NON_MEMORY`
   (write block to the highest non-memory tier, but will write to memory tier
-  if its the only available tier), `LOWEST` (write to the lowest tier).
+  if its the only available tier), `LOWEST` (write to the lowest tier). This policy is only
+  applicable when a client is writing to a local worker.
 alluxio.user.file.readtype.default:
   Default read type when creating Alluxio files.
   Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage,

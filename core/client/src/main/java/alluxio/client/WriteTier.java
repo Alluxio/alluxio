@@ -50,34 +50,6 @@ public enum WriteTier{
   }
 
   /**
-   * Converts thrift type to client type.
-   *
-   * @param tTierPolicy {@link TTierPolicy}
-   * @return {@link WriteTier} equivalent
-   */
-  public static WriteTier fromThrift(TTierPolicy tTierPolicy) {
-
-    WriteTier tierPolicy = WriteTier.HIGHEST;
-    if (tTierPolicy != null) {
-      switch (tTierPolicy) {
-        case Highest:
-          tierPolicy = WriteTier.HIGHEST;
-          break;
-        case PreferHighestNonMemory:
-          tierPolicy = WriteTier.PREFER_HIGHEST_NON_MEMORY;
-          break;
-        case Lowest:
-          tierPolicy = WriteTier.LOWEST;
-          break;
-        default:
-          tierPolicy = WriteTier.HIGHEST;
-          break;
-      }
-    }
-    return tierPolicy;
-  }
-
-  /**
    * Converts client type to thrift type.
    *
    * @param writeTier {@link WriteTier}

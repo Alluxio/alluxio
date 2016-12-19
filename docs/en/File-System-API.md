@@ -112,10 +112,12 @@ type, all the blocks of a file must be written to the same worker.
 
 ### Tier policy
 
-Alluxio provides a tier policy allowing a user to select a desired tier
-for allocation when storing the blocks of a file.
+Alluxio provides a policy allowing a client to select a tier preference when writing blocks to a
+local worker. Currently the policy preference is specific to local workers only, not remote workers;
+remote workers will write blocks to the highest tier.
 
-Below is a table of the expected behaviors of `WriteTier`:
+
+Below is a table of the expected behaviors of the different `WriteTier` policies:
 <table class="table table-striped">
 <tr><th>Write Tier</th><th>Behavior</th>
 </tr>
