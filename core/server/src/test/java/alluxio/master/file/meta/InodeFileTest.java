@@ -13,12 +13,16 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
+import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +32,9 @@ import java.util.List;
  */
 public final class InodeFileTest extends AbstractInodeTest {
   private static final long LENGTH = 100;
+
+  @Rule
+  public ExpectedException mExpectedException = ExpectedException.none();
 
   /**
    * Tests the {@link InodeFile#equals(Object)} method.
@@ -166,5 +173,215 @@ public final class InodeFileTest extends AbstractInodeTest {
     Assert.assertEquals(TEST_GROUP_NAME, inode1.getGroup());
     Assert.assertEquals(new Permission(TEST_PERMISSION).applyFileUMask().getMode().toShort(),
         inode1.getMode());
+  }
+
+  /**
+   * Tests the {@link Inode#lockRead()} and {@link Inode#unlockRead()} methods.
+   */
+  @Test
+  public void lockRead() {
+    InodeFile inode1 = createInodeFile(1);
+    Assert.assertFalse(inode1.isReadLocked());
+    Assert.assertFalse(inode1.isWriteLocked());
+    inode1.lockRead();
+    Assert.assertTrue(inode1.isReadLocked());
+    Assert.assertFalse(inode1.isWriteLocked());
+    inode1.unlockRead();
+    Assert.assertFalse(inode1.isReadLocked());
+    Assert.assertFalse(inode1.isWriteLocked());
+  }
+
+  /**
+   * Tests the {@link Inode#lockReadAndCheckParent(Inode)} method.
+   */
+  @Test
+  public void lockReadAndCheckParent() throws Exception {
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setParentId(dir1.getId());
+    inode1.lockReadAndCheckParent(dir1);
+    Assert.assertTrue(inode1.isReadLocked());
+    inode1.unlockRead();
+  }
+
+  /**
+   * Tests the {@link Inode#lockReadAndCheckParent(Inode)} method fails when the parent is
+   * not consistent.
+   */
+  @Test
+  public void lockReadAndCheckParentInvalid() throws Exception {
+    mExpectedException.expect(InvalidPathException.class);
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setParentId(dir1.getId() - 1);
+    inode1.lockReadAndCheckParent(dir1);
+  }
+
+  /**
+   * Tests the {@link Inode#lockReadAndCheckFullPath(Inode, String)} method.
+   */
+  @Test
+  public void lockReadAndCheckFullPath() throws Exception {
+    String name = "file";
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setName(name);
+    inode1.setParentId(dir1.getId());
+    inode1.lockReadAndCheckFullPath(dir1, name);
+    Assert.assertTrue(inode1.isReadLocked());
+    inode1.unlockRead();
+  }
+
+  /**
+   * Tests the {@link Inode#lockReadAndCheckFullPath(Inode, String)} method fails when the parent
+   * and name are not consistent.
+   */
+  @Test
+  public void lockReadAndCheckFullPathInvalid() throws Exception {
+    mExpectedException.expect(InvalidPathException.class);
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    String name = "file";
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setName(name);
+    inode1.setParentId(dir1.getId() - 1);
+    inode1.lockReadAndCheckFullPath(dir1, "invalid");
+  }
+
+  /**
+   * Tests the {@link Inode#lockReadAndCheckFullPath(Inode, String)} method fails when the name
+   * is not consistent.
+   */
+  @Test
+  public void lockReadAndCheckFullPathInvalidName() throws Exception {
+    mExpectedException.expect(InvalidPathException.class);
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    String name = "file";
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setName(name);
+    inode1.setParentId(dir1.getId());
+    inode1.lockReadAndCheckFullPath(dir1, "invalid");
+  }
+
+  /**
+   * Tests the {@link Inode#lockReadAndCheckFullPath(Inode, String)} method fails when the parent
+   * is not consistent.
+   */
+  @Test
+  public void lockReadAndCheckFullPathInvalidParent() throws Exception {
+    mExpectedException.expect(InvalidPathException.class);
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    String name = "file";
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setName(name);
+    inode1.setParentId(dir1.getId() - 1);
+    inode1.lockReadAndCheckFullPath(dir1, name);
+  }
+
+  /**
+   * Tests the {@link Inode#lockWrite()} and {@link Inode#unlockWrite()} methods.
+   */
+  @Test
+  public void lockWrite() {
+    InodeFile inode1 = createInodeFile(1);
+    inode1.lockWrite();
+    Assert.assertFalse(inode1.isReadLocked());
+    Assert.assertTrue(inode1.isWriteLocked());
+    inode1.unlockWrite();
+    Assert.assertFalse(inode1.isReadLocked());
+    Assert.assertFalse(inode1.isWriteLocked());
+  }
+
+  /**
+   * Tests the {@link Inode#lockWriteAndCheckParent(Inode)} method.
+   */
+  @Test
+  public void lockWriteAndCheckParent() throws Exception {
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setParentId(dir1.getId());
+    inode1.lockWriteAndCheckParent(dir1);
+    Assert.assertTrue(inode1.isWriteLocked());
+    inode1.unlockWrite();
+  }
+
+  /**
+   * Tests the {@link Inode#lockWriteAndCheckParent(Inode)} method fails when the parent is
+   * not consistent.
+   */
+  @Test
+  public void lockWriteAndCheckParentInvalid() throws Exception {
+    mExpectedException.expect(InvalidPathException.class);
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setParentId(dir1.getId() - 1);
+    inode1.lockWriteAndCheckParent(dir1);
+  }
+
+  /**
+   * Tests the {@link Inode#lockWriteAndCheckFullPath(Inode, String)} method.
+   */
+  @Test
+  public void lockWriteAndCheckFullPath() throws Exception {
+    String name = "file";
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setName(name);
+    inode1.setParentId(dir1.getId());
+    inode1.lockWriteAndCheckFullPath(dir1, name);
+    Assert.assertTrue(inode1.isWriteLocked());
+    inode1.unlockWrite();
+  }
+
+  /**
+   * Tests the {@link Inode#lockWriteAndCheckFullPath(Inode, String)} method fails when the parent
+   * and name are not consistent.
+   */
+  @Test
+  public void lockWriteAndCheckFullPathInvalid() throws Exception {
+    mExpectedException.expect(InvalidPathException.class);
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    String name = "file";
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setName(name);
+    inode1.setParentId(dir1.getId() - 1);
+    inode1.lockWriteAndCheckFullPath(dir1, "invalid");
+  }
+
+  /**
+   * Tests the {@link Inode#lockWriteAndCheckFullPath(Inode, String)} method fails when the name
+   * is not consistent.
+   */
+  @Test
+  public void lockWriteAndCheckFullPathInvalidName() throws Exception {
+    mExpectedException.expect(InvalidPathException.class);
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    String name = "file";
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setName(name);
+    inode1.setParentId(dir1.getId());
+    inode1.lockWriteAndCheckFullPath(dir1, "invalid");
+  }
+
+  /**
+   * Tests the {@link Inode#lockWriteAndCheckFullPath(Inode, String)} method fails when the parent
+   * is not consistent.
+   */
+  @Test
+  public void lockWriteAndCheckFullPathInvalidParent() throws Exception {
+    mExpectedException.expect(InvalidPathException.class);
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    String name = "file";
+    InodeFile inode1 = createInodeFile(1);
+    InodeDirectory dir1 = createInodeDirectory();
+    inode1.setName(name);
+    inode1.setParentId(dir1.getId() - 1);
+    inode1.lockWriteAndCheckFullPath(dir1, name);
   }
 }
