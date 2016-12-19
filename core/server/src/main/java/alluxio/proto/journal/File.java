@@ -4187,6 +4187,24 @@ public final class File {
      * <code>optional bool direct_children_loaded = 12;</code>
      */
     boolean getDirectChildrenLoaded();
+
+    /**
+     * <code>optional int64 ttl = 13;</code>
+     */
+    boolean hasTtl();
+    /**
+     * <code>optional int64 ttl = 13;</code>
+     */
+    long getTtl();
+
+    /**
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+     */
+    boolean hasTtlAction();
+    /**
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+     */
+    alluxio.proto.journal.File.PTtlAction getTtlAction();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
@@ -4306,6 +4324,22 @@ public final class File {
             case 96: {
               bitField0_ |= 0x00000800;
               directChildrenLoaded_ = input.readBool();
+              break;
+            }
+            case 104: {
+              bitField0_ |= 0x00001000;
+              ttl_ = input.readInt64();
+              break;
+            }
+            case 112: {
+              int rawValue = input.readEnum();
+              alluxio.proto.journal.File.PTtlAction value = alluxio.proto.journal.File.PTtlAction.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(14, rawValue);
+              } else {
+                bitField0_ |= 0x00002000;
+                ttlAction_ = value;
+              }
               break;
             }
           }
@@ -4636,6 +4670,36 @@ public final class File {
       return directChildrenLoaded_;
     }
 
+    public static final int TTL_FIELD_NUMBER = 13;
+    private long ttl_;
+    /**
+     * <code>optional int64 ttl = 13;</code>
+     */
+    public boolean hasTtl() {
+      return ((bitField0_ & 0x00001000) == 0x00001000);
+    }
+    /**
+     * <code>optional int64 ttl = 13;</code>
+     */
+    public long getTtl() {
+      return ttl_;
+    }
+
+    public static final int TTLACTION_FIELD_NUMBER = 14;
+    private alluxio.proto.journal.File.PTtlAction ttlAction_;
+    /**
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+     */
+    public boolean hasTtlAction() {
+      return ((bitField0_ & 0x00002000) == 0x00002000);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+     */
+    public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+      return ttlAction_;
+    }
+
     private void initFields() {
       id_ = 0L;
       parentId_ = 0L;
@@ -4649,6 +4713,8 @@ public final class File {
       mode_ = 0;
       mountPoint_ = false;
       directChildrenLoaded_ = false;
+      ttl_ = 0L;
+      ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -4698,6 +4764,12 @@ public final class File {
       }
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         output.writeBool(12, directChildrenLoaded_);
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        output.writeInt64(13, ttl_);
+      }
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+        output.writeEnum(14, ttlAction_.getNumber());
       }
       getUnknownFields().writeTo(output);
     }
@@ -4755,6 +4827,14 @@ public final class File {
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(12, directChildrenLoaded_);
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(13, ttl_);
+      }
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(14, ttlAction_.getNumber());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4901,6 +4981,10 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000400);
         directChildrenLoaded_ = false;
         bitField0_ = (bitField0_ & ~0x00000800);
+        ttl_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00001000);
+        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        bitField0_ = (bitField0_ & ~0x00002000);
         return this;
       }
 
@@ -4977,6 +5061,14 @@ public final class File {
           to_bitField0_ |= 0x00000800;
         }
         result.directChildrenLoaded_ = directChildrenLoaded_;
+        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+          to_bitField0_ |= 0x00001000;
+        }
+        result.ttl_ = ttl_;
+        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+          to_bitField0_ |= 0x00002000;
+        }
+        result.ttlAction_ = ttlAction_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -5036,6 +5128,12 @@ public final class File {
         }
         if (other.hasDirectChildrenLoaded()) {
           setDirectChildrenLoaded(other.getDirectChildrenLoaded());
+        }
+        if (other.hasTtl()) {
+          setTtl(other.getTtl());
+        }
+        if (other.hasTtlAction()) {
+          setTtlAction(other.getTtlAction());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5620,6 +5718,73 @@ public final class File {
       public Builder clearDirectChildrenLoaded() {
         bitField0_ = (bitField0_ & ~0x00000800);
         directChildrenLoaded_ = false;
+        onChanged();
+        return this;
+      }
+
+      private long ttl_ ;
+      /**
+       * <code>optional int64 ttl = 13;</code>
+       */
+      public boolean hasTtl() {
+        return ((bitField0_ & 0x00001000) == 0x00001000);
+      }
+      /**
+       * <code>optional int64 ttl = 13;</code>
+       */
+      public long getTtl() {
+        return ttl_;
+      }
+      /**
+       * <code>optional int64 ttl = 13;</code>
+       */
+      public Builder setTtl(long value) {
+        bitField0_ |= 0x00001000;
+        ttl_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 ttl = 13;</code>
+       */
+      public Builder clearTtl() {
+        bitField0_ = (bitField0_ & ~0x00001000);
+        ttl_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      /**
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+       */
+      public boolean hasTtlAction() {
+        return ((bitField0_ & 0x00002000) == 0x00002000);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+       */
+      public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+        return ttlAction_;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+       */
+      public Builder setTtlAction(alluxio.proto.journal.File.PTtlAction value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00002000;
+        ttlAction_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+       */
+      public Builder clearTtlAction() {
+        bitField0_ = (bitField0_ & ~0x00002000);
+        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
         onChanged();
         return this;
       }
@@ -12281,41 +12446,43 @@ public final class File {
       "ime_ms\030\004 \001(\003\"D\n\017DeleteFileEntry\022\n\n\002id\030\001 ",
       "\001(\003\022\021\n\trecursive\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001" +
       "(\003\"-\n\025DeleteMountPointEntry\022\024\n\014alluxio_p" +
-      "ath\030\001 \001(\t\"\213\002\n\023InodeDirectoryEntry\022\n\n\002id\030" +
+      "ath\030\001 \001(\t\"\326\002\n\023InodeDirectoryEntry\022\n\n\002id\030" +
       "\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031" +
       "\n\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(" +
       "\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_modi" +
       "fication_time_ms\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n" +
       "\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013mount_poin" +
-      "t\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001(\010\"" +
-      "O\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014con",
-      "tainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003" +
-      "\"\374\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparen" +
-      "t_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_" +
-      "state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_" +
-      "time_ms\030\006 \001(\003\022!\n\031last_modification_time_" +
-      "ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006le" +
-      "ngth\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheab" +
-      "le\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n" +
-      "\005owner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(" +
-      "\005\022<\n\tttlAction\030\021 \001(\0162!.alluxio.proto.jou",
-      "rnal.PTtlAction:\006DELETE\"O\n\036InodeLastModi" +
-      "ficationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_mo" +
-      "dification_time_ms\030\002 \001(\003\"#\n\025PersistDirec" +
-      "toryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntr" +
-      "y\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time" +
-      "_ms\030\003 \001(\003\"\212\001\n\025ReinitializeFileEntry\022\014\n\004p" +
-      "ath\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003t" +
-      "tl\030\003 \001(\003\022<\n\tttlAction\030\004 \001(\0162!.alluxio.pr" +
-      "oto.journal.PTtlAction:\006DELETE\"?\n\013Rename" +
-      "Entry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\no",
-      "p_time_ms\030\003 \001(\003\"\323\001\n\021SetAttributeEntry\022\n\n" +
-      "\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030" +
-      "\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n" +
-      "\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermissio" +
-      "n\030\010 \001(\005\022<\n\tttlAction\030\t \001(\0162!.alluxio.pro" +
-      "to.journal.PTtlAction:\006DELETE*\"\n\nPTtlAct" +
-      "ion\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001"
+      "t\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001(\010\022" +
+      "\013\n\003ttl\030\r \001(\003\022<\n\tttlAction\030\016 \001(\0162!.alluxi",
+      "o.proto.journal.PTtlAction:\006DELETE\"O\n\036In" +
+      "odeDirectoryIdGeneratorEntry\022\024\n\014containe" +
+      "r_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"\374\002\n\016" +
+      "InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030" +
+      "\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state" +
+      "\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_" +
+      "ms\030\006 \001(\003\022!\n\031last_modification_time_ms\030\007 " +
+      "\001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006length\030" +
+      "\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheable\030\013 " +
+      "\001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owne",
+      "r\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\022<\n\t" +
+      "ttlAction\030\021 \001(\0162!.alluxio.proto.journal." +
+      "PTtlAction:\006DELETE\"O\n\036InodeLastModificat" +
+      "ionTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modific" +
+      "ation_time_ms\030\002 \001(\003\"#\n\025PersistDirectoryE" +
+      "ntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n\002" +
+      "id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_ms\030\003" +
+      " \001(\003\"\212\001\n\025ReinitializeFileEntry\022\014\n\004path\030\001" +
+      " \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 " +
+      "\001(\003\022<\n\tttlAction\030\004 \001(\0162!.alluxio.proto.j",
+      "ournal.PTtlAction:\006DELETE\"?\n\013RenameEntry" +
+      "\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_tim" +
+      "e_ms\030\003 \001(\003\"\323\001\n\021SetAttributeEntry\022\n\n\002id\030\001" +
+      " \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010" +
+      "\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005owne" +
+      "r\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010 \001" +
+      "(\005\022<\n\tttlAction\030\t \001(\0162!.alluxio.proto.jo" +
+      "urnal.PTtlAction:\006DELETE*\"\n\nPTtlAction\022\n" +
+      "\n\006DELETE\020\000\022\010\n\004FREE\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -12370,7 +12537,7 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", "Ttl", "TtlAction", });
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
       getDescriptor().getMessageTypes().get(7);
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new

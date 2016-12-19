@@ -59,6 +59,8 @@ message InodeDirectoryEntry {
   optional int32 mode = 10;
   optional bool mount_point = 11;
   optional bool direct_children_loaded = 12;
+  optional int64 ttl = 13;
+  optional PTtlAction ttlAction = 14 [default = DELETE];
 }
 
 // next available id: 3
