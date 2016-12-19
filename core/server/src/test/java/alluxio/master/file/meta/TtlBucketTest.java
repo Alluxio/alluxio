@@ -11,6 +11,7 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 
 import org.junit.Assert;
@@ -69,34 +70,66 @@ public class TtlBucketTest {
   }
 
   /**
-   * Tests the {@link TtlBucket#addFile(InodeFile)} and {@link TtlBucket#removeFile(InodeFile)}
+   * Tests the {@link TtlBucket#addInode(Inode<?>)} and {@link TtlBucket#removeInode(Inode<?>)}
    * methods.
    */
   @Test
-  public void addAndRemoveFile() {
+  public void addAndRemoveInodeFile() {
     InodeFile mFileTtl1 =
         InodeFile.create(0, 0, "test1", 0, CreateFileOptions.defaults().setTtl(1));
     InodeFile mFileTtl2 =
         InodeFile.create(1, 0, "test1", 0, CreateFileOptions.defaults().setTtl(2));
-    Assert.assertTrue(mBucket.getFiles().isEmpty());
+    Assert.assertTrue(mBucket.getInodes().isEmpty());
 
-    mBucket.addFile(mFileTtl1);
-    Assert.assertEquals(1, mBucket.getFiles().size());
+    mBucket.addInode(mFileTtl1);
+    Assert.assertEquals(1, mBucket.getInodes().size());
 
     // The same file, won't be added.
-    mBucket.addFile(mFileTtl1);
-    Assert.assertEquals(1, mBucket.getFiles().size());
+    mBucket.addInode(mFileTtl1);
+    Assert.assertEquals(1, mBucket.getInodes().size());
 
     // Different file, will be added.
-    mBucket.addFile(mFileTtl2);
-    Assert.assertEquals(2, mBucket.getFiles().size());
+    mBucket.addInode(mFileTtl2);
+    Assert.assertEquals(2, mBucket.getInodes().size());
 
     // Remove files;
-    mBucket.removeFile(mFileTtl1);
-    Assert.assertEquals(1, mBucket.getFiles().size());
-    Assert.assertTrue(mBucket.getFiles().contains(mFileTtl2));
-    mBucket.removeFile(mFileTtl2);
-    Assert.assertEquals(0, mBucket.getFiles().size());
+    mBucket.removeInode(mFileTtl1);
+    Assert.assertEquals(1, mBucket.getInodes().size());
+    Assert.assertTrue(mBucket.getInodes().contains(mFileTtl2));
+    mBucket.removeInode(mFileTtl2);
+    Assert.assertEquals(0, mBucket.getInodes().size());
+  }
+
+  /**
+   * Tests the {@link TtlBucket#addInode(Inode<?>)} and {@link TtlBucket#removeInode(Inode<?>)}
+   * methods.
+   */
+  @Test
+  public void addAndRemoveInodeDirectory() {
+    InodeDirectory mDirectoryTtl1 =
+            InodeDirectory.create(0, 0, "test1", CreateDirectoryOptions.defaults().setTtl(1));
+    InodeDirectory mDirectoryTtl2 =
+            InodeDirectory.create(1, 0, "test1", CreateDirectoryOptions.defaults().setTtl(2));
+    Assert.assertTrue(mBucket.getInodes().isEmpty());
+
+    mBucket.addInode(mDirectoryTtl1);
+    Assert.assertEquals(1, mBucket.getInodes().size());
+
+    // The same directory, won't be added.
+    mBucket.addInode(mDirectoryTtl1);
+    Assert.assertEquals(1, mBucket.getInodes().size());
+
+    // Different directory, will be added.
+    mBucket.addInode(mDirectoryTtl2);
+    Assert.assertEquals(2, mBucket.getInodes().size());
+
+    // Remove directorys;
+    mBucket.removeInode(mDirectoryTtl1);
+    Assert.assertEquals(1, mBucket.getInodes().size());
+    Assert.assertTrue(mBucket.getInodes().contains(mDirectoryTtl2));
+    mBucket.removeInode(mDirectoryTtl2);
+    Assert.assertEquals(0, mBucket.getInodes().size());
+
   }
 
   /**
