@@ -11,6 +11,8 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -45,7 +47,7 @@ public class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPolicy {
     for (BlockWorkerInfo workerInfo : workerInfoList) {
       if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)) {
         localWorkerNetAddress = workerInfo.getNetAddress();
-        if (workerInfo.getAvailableBytes() >= blockSizeBytes) {
+        if (getAvailableBytes(workerInfo) >= blockSizeBytes) {
           return localWorkerNetAddress;
         }
       }
@@ -55,11 +57,23 @@ public class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPolicy {
     List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
     Collections.shuffle(shuffledWorkers);
     for (BlockWorkerInfo workerInfo : shuffledWorkers) {
-      if (workerInfo.getAvailableBytes() >= blockSizeBytes) {
+      if (getAvailableBytes(workerInfo) >= blockSizeBytes) {
         return workerInfo.getNetAddress();
       }
     }
     return localWorkerNetAddress;
+  }
+
+  /**
+   * @param workerInfo BlockWorkerInfo of the worker
+   * @return the available bytes of the worker
+   */
+  private long getAvailableBytes(BlockWorkerInfo workerInfo) {
+    long mUserFileWriteCapacityReserved = Configuration
+            .getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
+    long mCapacityBytes = workerInfo.getCapacityBytes();
+    long mUsedBytes = workerInfo.getUsedBytes();
+    return mCapacityBytes - mUsedBytes - mUserFileWriteCapacityReserved;
   }
 
   @Override
