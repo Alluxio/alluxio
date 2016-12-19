@@ -106,6 +106,7 @@ public class JournalShutdownIntegrationTest {
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
+    // Run the test client thread for some time.
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
