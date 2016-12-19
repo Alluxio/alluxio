@@ -28,7 +28,7 @@ alluxio.user.file.worker.client.threads:
   文件worker client从worker读取数据时使用的线程数目。
 alluxio.user.file.write.location.policy.class:
   选择worker进行写文件数据块时的默认定位机制。
-alluxio.user.file.write.capacity.reserved:
+alluxio.user.file.write.capacity.reserved.size.bytes:
   当用户选择LocalFirstAvoidEvictionPolicy作为写文件数据块的定位机制时,用户需要配置worker预留一些数据量来保证数据的存储，默认是0MB。
 alluxio.user.file.readtype.default:
   创建Alluxio文件时的默认读类型。可选值为`CACHE_PROMOTE` (如果数据已经在Alluxio存储内，将其移动到最高存储层，如果数据需要从底层存储进行读取，将其写到本地Alluxio的最高存储层)、`CACHE` (如果数据需要从底层存储进行读取，将其写到本地Alluxio的最高存储层), `NO_CACHE` (数据不与Alluxio交互，如果是从Alluxio中进行读取，将不会发生数据块迁移或者剔除)。
