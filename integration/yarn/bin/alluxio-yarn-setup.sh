@@ -10,7 +10,6 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
 # prepare Alluxio dir structure for a YARN container to launch master or worker
 # the name of this tar file is referenced in code
 tar zxf alluxio.tar.gz

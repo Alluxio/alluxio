@@ -10,8 +10,19 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
-DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}/../../libexec"
-ALLUXIO_LIBEXEC_DIR="${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}"
-source "${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh"
+
+# Yarn will set $CLASSPATH to point to important Yarn resources, but then
+# common.sh will reset $CLASSPATH to point to the jars needed by Alluxio.
+# We save $CLASSPATH before calling common.sh, then combine the two.
+YARN_CLASSPATH="${CLASSPATH}"
+source "${SCRIPT_DIR}/common.sh"
+export CLASSPATH="${CLASSPATH}:${YARN_CLASSPATH}"
+
+echo "Launching Application Master"
+
+"${JAVA}" -cp "${CLASSPATH}" \
+  ${ALLUXIO_JAVA_OPTS} \
+  -Dalluxio.logger.type=Console \
+  -Xmx256M \
+  alluxio.yarn.ApplicationMaster $@
