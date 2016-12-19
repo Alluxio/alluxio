@@ -1251,6 +1251,11 @@ public final class FileSystemMasterTest {
     int errors = concurrentRename(srcs, dsts);
 
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    List<FileInfo> files =
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
+    for (FileInfo file : files) {
+      Assert.assertTrue(file.getName().startsWith("renamed"));
+    }
   }
 
   /**
@@ -1274,6 +1279,11 @@ public final class FileSystemMasterTest {
     int errors = concurrentRename(srcs, dsts);
 
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    List<FileInfo> files =
+        mFileSystemMaster.listStatus(dir, ListStatusOptions.defaults());
+    for (FileInfo file : files) {
+      Assert.assertTrue(file.getName().startsWith("renamed"));
+    }
   }
 
   /**
@@ -1296,9 +1306,13 @@ public final class FileSystemMasterTest {
 
     // We should get an error for all but 1 rename
     Assert.assertEquals(numThreads - 1, errors);
+
+    List<FileInfo> files =
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
+
     // Only one renamed file should exist
-    Assert.assertEquals(1,
-        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
+    Assert.assertEquals(1, files.size());
+    Assert.assertTrue(files.get(0).getName().startsWith("renamed"));
   }
 
   /**
@@ -1326,6 +1340,7 @@ public final class FileSystemMasterTest {
     List<FileInfo> existingDirs =
         mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
     Assert.assertEquals(1, existingDirs.size());
+    Assert.assertTrue(existingDirs.get(0).getName().startsWith("dir"));
     // The directory should contain the file
     List<FileInfo> dirChildren =
         mFileSystemMaster.listStatus(new AlluxioURI(existingDirs.get(0).getPath()),
@@ -1400,6 +1415,9 @@ public final class FileSystemMasterTest {
 
     Assert.assertEquals(0, dir1Files.size());
     Assert.assertEquals(numThreads, dir2Files.size());
+    for (FileInfo file : dir2Files) {
+      Assert.assertTrue(file.getName().startsWith("renamed"));
+    }
   }
 
   /**
@@ -1454,7 +1472,7 @@ public final class FileSystemMasterTest {
    *
    * @param src list of source paths
    * @param dst list of destination paths
-   * @return the duration of the rename and how many errors occurred
+   * @return how many errors occurred
    */
   private int concurrentRename(final AlluxioURI[] src, final AlluxioURI[] dst)
       throws Exception {
