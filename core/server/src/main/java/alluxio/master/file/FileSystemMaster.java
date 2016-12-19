@@ -1515,37 +1515,48 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return absolute paths of all in memory files
    */
   public List<AlluxioURI> getInMemoryFiles() {
-    List<AlluxioURI> ret = new ArrayList<>();
+    List<AlluxioURI> files = new ArrayList<>();
     Inode root = mInodeTree.getRoot();
     // Root has no parent, lock directly.
     root.lockRead();
-    getInMemoryFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), ret);
-    return ret;
+    try {
+      getInMemoryFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), files);
+    } finally {
+      root.unlockRead();
+    }
+    return files;
   }
 
-  private void getInMemoryFilesInternal(Inode<?> inode, AlluxioURI uri,
-      List<AlluxioURI> inMemoryFiles) {
-    try {
-      AlluxioURI newUri = uri.join(inode.getName());
-      if (inode.isFile()) {
-        if (isFullyInMemory((InodeFile) inode)) {
-          inMemoryFiles.add(newUri);
+  /**
+   * Adds in memory files to the array list passed in. This method assumes the inode passed in is
+   * already read locked.
+   *
+   * @param inode the root of the subtree to search
+   * @param uri the uri of the parent of the inode
+   * @param files the list to accumulate the results in
+   */
+  private void getInMemoryFilesInternal(Inode<?> inode, AlluxioURI uri, List<AlluxioURI> files) {
+    AlluxioURI newUri = uri.join(inode.getName());
+    if (inode.isFile()) {
+      if (isFullyInMemory((InodeFile) inode)) {
+        files.add(newUri);
+      }
+    } else {
+      // This inode is a directory.
+      Set<Inode<?>> children = ((InodeDirectory) inode).getChildren();
+      for (Inode<?> child : children) {
+        try {
+          child.lockReadAndCheckParent(inode);
+        } catch (InvalidPathException e) {
+          // Inode is no longer part of this directory.
+          continue;
         }
-      } else {
-        // This inode is a directory.
-        Set<Inode<?>> children = ((InodeDirectory) inode).getChildren();
-        for (Inode<?> child : children) {
-          try {
-            child.lockReadAndCheckParent(inode);
-            getInMemoryFilesInternal(child, newUri, inMemoryFiles);
-          } catch (InvalidPathException e) {
-            // Inode is no longer part of this directory
-            continue;
-          }
+        try {
+          getInMemoryFilesInternal(child, newUri, files);
+        } finally {
+          child.unlockRead();
         }
       }
-    } finally {
-      inode.unlockRead();
     }
   }
 
