@@ -35,6 +35,17 @@ public final class InodeLockList implements AutoCloseable {
    * Locks the given inode in read mode, and adds it to this lock list.
    *
    * @param inode the inode to lock
+   */
+  public synchronized void lockRead(Inode<?> inode) {
+    inode.lockRead();
+    mInodes.add(inode);
+    mLockModes.add(InodeTree.LockMode.READ);
+  }
+
+  /**
+   * Locks the given inode in read mode, and adds it to this lock list.
+   *
+   * @param inode the inode to lock
    * @param parent the expected parent inode
    * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
    */
@@ -80,15 +91,11 @@ public final class InodeLockList implements AutoCloseable {
    * Locks the given inode in write mode, and adds it to this lock list.
    *
    * @param inode the inode to lock
-   * @param parent the expected parent inode
-   * @param name the expected name of the inode to be locked
-   * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
    */
-  public synchronized void lockWriteAndCheckFullPath(Inode<?> inode, Inode parent, String name)
-      throws InvalidPathException {
-    inode.lockWriteAndCheckFullPath(parent, name);
+  public synchronized void lockWrite(Inode<?> inode) {
+    inode.lockWrite();
     mInodes.add(inode);
-    mLockModes.add(InodeTree.LockMode.WRITE);
+    mLockModes.add(InodeTree.LockMode.READ);
   }
 
   /**
@@ -101,6 +108,21 @@ public final class InodeLockList implements AutoCloseable {
   public synchronized void lockWriteAndCheckParent(Inode<?> inode, Inode parent)
       throws InvalidPathException {
     inode.lockWriteAndCheckParent(parent);
+    mInodes.add(inode);
+    mLockModes.add(InodeTree.LockMode.WRITE);
+  }
+
+  /**
+   * Locks the given inode in write mode, and adds it to this lock list.
+   *
+   * @param inode the inode to lock
+   * @param parent the expected parent inode
+   * @param name the expected name of the inode to be locked
+   * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
+   */
+  public synchronized void lockWriteAndCheckFullPath(Inode<?> inode, Inode parent, String name)
+      throws InvalidPathException {
+    inode.lockWriteAndCheckFullPath(parent, name);
     mInodes.add(inode);
     mLockModes.add(InodeTree.LockMode.WRITE);
   }

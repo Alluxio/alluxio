@@ -962,10 +962,10 @@ public class InodeTree implements JournalCheckpointStreamable {
           if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
               == LockMode.READ) {
             // Do not need to check parent for root.
-            lockList.lockReadAndCheckParent(mRoot, null);
+            lockList.lockRead(mRoot);
           } else {
             // Do not need to check parent for root.
-            lockList.lockWriteAndCheckParent(mRoot, null);
+            lockList.lockWrite(mRoot);
           }
           inodes.add(mRoot);
           valid = true;
@@ -978,10 +978,10 @@ public class InodeTree implements JournalCheckpointStreamable {
 
       if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints) == LockMode.READ) {
         // Do not need to check parent for root.
-        lockList.lockReadAndCheckParent(mRoot, null);
+        lockList.lockRead(mRoot);
       } else {
         // Do not need to check parent for root.
-        lockList.lockWriteAndCheckParent(mRoot, null);
+        lockList.lockWrite(mRoot);
       }
       inodes.add(mRoot);
       TraversalResult result =
