@@ -36,8 +36,8 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * value is the same as the configuration of {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
    */
   private long mTtlIntervalStartTimeMs;
-  /** A set of InodeFiles whose ttl value is in the range of this bucket's interval. */
-  private Set<InodeFile> mFiles;
+  /** A set of Inode whose ttl value is in the range of this bucket's interval. */
+  private Set<Inode<?>> mInodes;
 
   /**
    * Creates a new instance of {@link TtlBucket}.
@@ -46,7 +46,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mFiles = new HashSet<>();
+    mInodes = new HashSet<>();
   }
 
   /**
@@ -75,26 +75,26 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * @return the set of all files in the bucket backed by the internal set, changes made to the
    *         returned set will be shown in the internal set, and vice versa
    */
-  public Set<InodeFile> getFiles() {
-    return mFiles;
+  public Set<Inode<?>> getInodes() {
+    return mInodes;
   }
 
   /**
    * Adds a file to the bucket.
    *
-   * @param file the file to be added
+   * @param inode the file to be added
    */
-  public void addFile(InodeFile file) {
-    mFiles.add(file);
+  public void addInode(Inode<?> inode) {
+    mInodes.add(inode);
   }
 
   /**
    * Removes a file from the bucket.
    *
-   * @param file the file to be removed
+   * @param inode the file to be removed
    */
-  public void removeFile(InodeFile file) {
-    mFiles.remove(file);
+  public void removeInode(Inode<?> inode) {
+    mInodes.remove(inode);
   }
 
   /**
