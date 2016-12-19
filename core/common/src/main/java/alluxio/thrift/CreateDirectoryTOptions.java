@@ -42,6 +42,8 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
   private static final org.apache.thrift.protocol.TField ALLOW_EXISTS_FIELD_DESC = new org.apache.thrift.protocol.TField("allowExists", org.apache.thrift.protocol.TType.BOOL, (short)3);
   private static final org.apache.thrift.protocol.TField MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("mode", org.apache.thrift.protocol.TType.I16, (short)4);
+  private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)5);
+  private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -53,13 +55,21 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
   private boolean recursive; // optional
   private boolean allowExists; // optional
   private short mode; // optional
+  private long ttl; // optional
+  private alluxio.thrift.TTtlAction ttlAction; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     PERSISTED((short)1, "persisted"),
     RECURSIVE((short)2, "recursive"),
     ALLOW_EXISTS((short)3, "allowExists"),
-    MODE((short)4, "mode");
+    MODE((short)4, "mode"),
+    TTL((short)5, "ttl"),
+    /**
+     * 
+     * @see alluxio.thrift.TTtlAction
+     */
+    TTL_ACTION((short)6, "ttlAction");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -82,6 +92,10 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
           return ALLOW_EXISTS;
         case 4: // MODE
           return MODE;
+        case 5: // TTL
+          return TTL;
+        case 6: // TTL_ACTION
+          return TTL_ACTION;
         default:
           return null;
       }
@@ -126,8 +140,9 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
   private static final int __RECURSIVE_ISSET_ID = 1;
   private static final int __ALLOWEXISTS_ISSET_ID = 2;
   private static final int __MODE_ISSET_ID = 3;
+  private static final int __TTL_ISSET_ID = 4;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.ALLOW_EXISTS,_Fields.MODE};
+  private static final _Fields optionals[] = {_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.ALLOW_EXISTS,_Fields.MODE,_Fields.TTL,_Fields.TTL_ACTION};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -139,6 +154,10 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.MODE, new org.apache.thrift.meta_data.FieldMetaData("mode", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I16)));
+    tmpMap.put(_Fields.TTL, new org.apache.thrift.meta_data.FieldMetaData("ttl", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.TTL_ACTION, new org.apache.thrift.meta_data.FieldMetaData("ttlAction", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(CreateDirectoryTOptions.class, metaDataMap);
   }
@@ -155,6 +174,10 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
     this.recursive = other.recursive;
     this.allowExists = other.allowExists;
     this.mode = other.mode;
+    this.ttl = other.ttl;
+    if (other.isSetTtlAction()) {
+      this.ttlAction = other.ttlAction;
+    }
   }
 
   public CreateDirectoryTOptions deepCopy() {
@@ -171,6 +194,9 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
     this.allowExists = false;
     setModeIsSet(false);
     this.mode = 0;
+    setTtlIsSet(false);
+    this.ttl = 0;
+    this.ttlAction = null;
   }
 
   public boolean isPersisted() {
@@ -265,6 +291,61 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MODE_ISSET_ID, value);
   }
 
+  public long getTtl() {
+    return this.ttl;
+  }
+
+  public CreateDirectoryTOptions setTtl(long ttl) {
+    this.ttl = ttl;
+    setTtlIsSet(true);
+    return this;
+  }
+
+  public void unsetTtl() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TTL_ISSET_ID);
+  }
+
+  /** Returns true if field ttl is set (has been assigned a value) and false otherwise */
+  public boolean isSetTtl() {
+    return EncodingUtils.testBit(__isset_bitfield, __TTL_ISSET_ID);
+  }
+
+  public void setTtlIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TTL_ISSET_ID, value);
+  }
+
+  /**
+   * 
+   * @see alluxio.thrift.TTtlAction
+   */
+  public alluxio.thrift.TTtlAction getTtlAction() {
+    return this.ttlAction;
+  }
+
+  /**
+   * 
+   * @see alluxio.thrift.TTtlAction
+   */
+  public CreateDirectoryTOptions setTtlAction(alluxio.thrift.TTtlAction ttlAction) {
+    this.ttlAction = ttlAction;
+    return this;
+  }
+
+  public void unsetTtlAction() {
+    this.ttlAction = null;
+  }
+
+  /** Returns true if field ttlAction is set (has been assigned a value) and false otherwise */
+  public boolean isSetTtlAction() {
+    return this.ttlAction != null;
+  }
+
+  public void setTtlActionIsSet(boolean value) {
+    if (!value) {
+      this.ttlAction = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case PERSISTED:
@@ -299,6 +380,22 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       }
       break;
 
+    case TTL:
+      if (value == null) {
+        unsetTtl();
+      } else {
+        setTtl((Long)value);
+      }
+      break;
+
+    case TTL_ACTION:
+      if (value == null) {
+        unsetTtlAction();
+      } else {
+        setTtlAction((alluxio.thrift.TTtlAction)value);
+      }
+      break;
+
     }
   }
 
@@ -315,6 +412,12 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
 
     case MODE:
       return getMode();
+
+    case TTL:
+      return getTtl();
+
+    case TTL_ACTION:
+      return getTtlAction();
 
     }
     throw new IllegalStateException();
@@ -335,6 +438,10 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       return isSetAllowExists();
     case MODE:
       return isSetMode();
+    case TTL:
+      return isSetTtl();
+    case TTL_ACTION:
+      return isSetTtlAction();
     }
     throw new IllegalStateException();
   }
@@ -388,6 +495,24 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
         return false;
     }
 
+    boolean this_present_ttl = true && this.isSetTtl();
+    boolean that_present_ttl = true && that.isSetTtl();
+    if (this_present_ttl || that_present_ttl) {
+      if (!(this_present_ttl && that_present_ttl))
+        return false;
+      if (this.ttl != that.ttl)
+        return false;
+    }
+
+    boolean this_present_ttlAction = true && this.isSetTtlAction();
+    boolean that_present_ttlAction = true && that.isSetTtlAction();
+    if (this_present_ttlAction || that_present_ttlAction) {
+      if (!(this_present_ttlAction && that_present_ttlAction))
+        return false;
+      if (!this.ttlAction.equals(that.ttlAction))
+        return false;
+    }
+
     return true;
   }
 
@@ -414,6 +539,16 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
     list.add(present_mode);
     if (present_mode)
       list.add(mode);
+
+    boolean present_ttl = true && (isSetTtl());
+    list.add(present_ttl);
+    if (present_ttl)
+      list.add(ttl);
+
+    boolean present_ttlAction = true && (isSetTtlAction());
+    list.add(present_ttlAction);
+    if (present_ttlAction)
+      list.add(ttlAction.getValue());
 
     return list.hashCode();
   }
@@ -466,6 +601,26 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetTtl()).compareTo(other.isSetTtl());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetTtl()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ttl, other.ttl);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetTtlAction()).compareTo(other.isSetTtlAction());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetTtlAction()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ttlAction, other.ttlAction);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -507,6 +662,22 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       if (!first) sb.append(", ");
       sb.append("mode:");
       sb.append(this.mode);
+      first = false;
+    }
+    if (isSetTtl()) {
+      if (!first) sb.append(", ");
+      sb.append("ttl:");
+      sb.append(this.ttl);
+      first = false;
+    }
+    if (isSetTtlAction()) {
+      if (!first) sb.append(", ");
+      sb.append("ttlAction:");
+      if (this.ttlAction == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ttlAction);
+      }
       first = false;
     }
     sb.append(")");
@@ -586,6 +757,22 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 5: // TTL
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.ttl = iprot.readI64();
+              struct.setTtlIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // TTL_ACTION
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
+              struct.setTtlActionIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -621,6 +808,18 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
         oprot.writeI16(struct.mode);
         oprot.writeFieldEnd();
       }
+      if (struct.isSetTtl()) {
+        oprot.writeFieldBegin(TTL_FIELD_DESC);
+        oprot.writeI64(struct.ttl);
+        oprot.writeFieldEnd();
+      }
+      if (struct.ttlAction != null) {
+        if (struct.isSetTtlAction()) {
+          oprot.writeFieldBegin(TTL_ACTION_FIELD_DESC);
+          oprot.writeI32(struct.ttlAction.getValue());
+          oprot.writeFieldEnd();
+        }
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -651,7 +850,13 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       if (struct.isSetMode()) {
         optionals.set(3);
       }
-      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetTtl()) {
+        optionals.set(4);
+      }
+      if (struct.isSetTtlAction()) {
+        optionals.set(5);
+      }
+      oprot.writeBitSet(optionals, 6);
       if (struct.isSetPersisted()) {
         oprot.writeBool(struct.persisted);
       }
@@ -664,12 +869,18 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       if (struct.isSetMode()) {
         oprot.writeI16(struct.mode);
       }
+      if (struct.isSetTtl()) {
+        oprot.writeI64(struct.ttl);
+      }
+      if (struct.isSetTtlAction()) {
+        oprot.writeI32(struct.ttlAction.getValue());
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, CreateDirectoryTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(4);
+      BitSet incoming = iprot.readBitSet(6);
       if (incoming.get(0)) {
         struct.persisted = iprot.readBool();
         struct.setPersistedIsSet(true);
@@ -685,6 +896,14 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       if (incoming.get(3)) {
         struct.mode = iprot.readI16();
         struct.setModeIsSet(true);
+      }
+      if (incoming.get(4)) {
+        struct.ttl = iprot.readI64();
+        struct.setTtlIsSet(true);
+      }
+      if (incoming.get(5)) {
+        struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
+        struct.setTtlActionIsSet(true);
       }
     }
   }
