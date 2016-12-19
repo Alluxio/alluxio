@@ -54,8 +54,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -400,6 +402,9 @@ public class AlluxioMasterRestServiceHandlerTest {
   public void getWorkerInfoList() {
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
+    Set<Long> expected = new HashSet<>();
+    expected.add(worker1);
+    expected.add(worker2);
     Response response = mHandler.getWorkerInfoList();
     try {
       assertNotNull("Response must be not null!", response);
@@ -407,10 +412,11 @@ public class AlluxioMasterRestServiceHandlerTest {
       assertTrue("Entry must be a List!", (response.getEntity() instanceof List));
       @SuppressWarnings("unchecked")
       List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
-      assertEquals(2, entry.size());
-      // list contains both worker ids.
-      assertTrue(entry.get(0).getId() == worker1 || entry.get(1).getId() == worker1);
-      assertTrue(entry.get(0).getId() == worker2 || entry.get(1).getId() == worker2);
+      Set<Long> actual = new HashSet<>();
+      for (WorkerInfo info : entry) {
+        actual.add(info.getId());
+      }
+      assertEquals(expected, actual);
     } finally {
       response.close();
     }
