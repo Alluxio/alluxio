@@ -46,15 +46,26 @@ fi
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 
-# Make sure alluxio-env.sh exists
-if [[ ! -e ${ALLUXIO_CONF_DIR}/alluxio-env.sh ]]; then
-  echo "Cannot find ${ALLUXIO_CONF_DIR}/alluxio-env.sh. To proceed, you can" >&2
-  echo "(1) create one based on the provided template file ${ALLUXIO_CONF_DIR}/alluxio-env.sh.template, or" >&2
-  echo "(2) use a bootstraping tool by running: ${ALLUXIO_HOME}/bin/alluxio bootstrapConf" >&2
-  exit 1
+# Determine reasonable defaults for worker memory and ramdisk folder
+if [[ $(uname -s) == Darwin ]]; then
+  # Assuming Mac OS X
+  DEFAULT_TOTAL_MEM=$(sysctl hw.memsize | cut -d ' ' -f2)
+  DEFAULT_TOTAL_MEM=$[DEFAULT_TOTAL_MEM / 1024 / 1024]
+  DEFAULT_TOTAL_MEM=$[DEFAULT_TOTAL_MEM * 2 / 3]
+  DEFAULT_RAM_FOLDER="/Volumes/ramdisk"
+else
+  # Assuming Linux
+  DEFAULT_TOTAL_MEM=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+  DEFAULT_TOTAL_MEM=$[TOTAL_MEM / 1024 * 2 / 3]
+  DEFAULT_RAM_FOLDER="/mnt/ramdisk"
 fi
+ALLUXIO_WORKER_MEMORY_SIZE=${ALLUXIO_WORKER_MEMORY_SIZE:-${DEFAULT_TOTAL_MEM}MB}
+# If ALLUXIO_RAM_FOLDER is explicitly set to the empty string, do not overwrite.
+ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER-${DEFAULT_RAM_FOLDER}}
 
-. "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
+if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
+  . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
+fi
 
 if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
   echo "ALLUXIO_MASTER_ADDRESS is deprecated since version 1.1 and will be remove in version 2.0."

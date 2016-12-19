@@ -11,7 +11,9 @@
 
 package alluxio.cli;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.shell.command.ShellCommand;
 import alluxio.util.CommonUtils;
@@ -55,6 +57,13 @@ public final class AlluxioShell implements Closeable {
    */
   public static void main(String[] argv) throws IOException {
     int ret;
+
+    if (!Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
+      System.out.println("Cannot run alluxio shell; master hostname is not configured. " +
+          "Please set alluxio.master.hostname in alluxio-site.properties.");
+      System.exit(1);
+    }
+
     try (AlluxioShell shell = new AlluxioShell()) {
       ret = shell.run(argv);
     }

@@ -30,6 +30,7 @@ function init_env() {
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
+  ALLUXIO_WORKER_MEMORY_SIZE=$(bin/alluxio getConf alluxio.worker.memory.size)
   if [[ -z ${ALLUXIO_WORKER_MEMORY_SIZE} ]]; then
     echo "ALLUXIO_WORKER_MEMORY_SIZE was not set. Using the default one: 1GB"
     ALLUXIO_WORKER_MEMORY_SIZE="1GB"
@@ -139,6 +140,7 @@ function mac_hfs_provision_sectors() {
 function mount_ramfs_linux() {
   init_env $1
 
+  ALLUXIO_WORKER_MEMORY_SIZE=$(bin/alluxio getConf alluxio.worker.memory.size)
   if [[ -z ${ALLUXIO_RAM_FOLDER} ]]; then
     ALLUXIO_RAM_FOLDER=/mnt/ramdisk
     echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: ${ALLUXIO_RAM_FOLDER}"

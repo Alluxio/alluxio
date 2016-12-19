@@ -16,7 +16,6 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -92,8 +91,6 @@ public final class Configuration {
       }
     }
     // Override runtime default
-    defaultProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(),
-        NetworkAddressUtils.getLocalHostName(250));
     defaultProps.setProperty(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL.toString(),
         String.valueOf(ChannelType.defaultType()));
     defaultProps.setProperty(PropertyKey.USER_NETWORK_NETTY_CHANNEL.toString(),
@@ -122,12 +119,15 @@ public final class Configuration {
       }
     }
 
-    String masterHostname = get(PropertyKey.MASTER_HOSTNAME);
-    String masterPort = get(PropertyKey.MASTER_RPC_PORT);
-    boolean useZk = Boolean.parseBoolean(get(PropertyKey.ZOOKEEPER_ENABLED));
-    String masterAddress =
-        (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-    set(PropertyKey.MASTER_ADDRESS, masterAddress);
+    // TODO(andrew): get rid of the MASTER_ADDRESS property key
+    if (containsKey(PropertyKey.MASTER_HOSTNAME)) {
+      String masterHostname = get(PropertyKey.MASTER_HOSTNAME);
+      String masterPort = get(PropertyKey.MASTER_RPC_PORT);
+      boolean useZk = Boolean.parseBoolean(get(PropertyKey.ZOOKEEPER_ENABLED));
+      String masterAddress =
+          (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
+      set(PropertyKey.MASTER_ADDRESS, masterAddress);
+    }
     checkUserFileBufferBytes();
 
     // Make sure the user hasn't set worker ports when there may be multiple workers per host
