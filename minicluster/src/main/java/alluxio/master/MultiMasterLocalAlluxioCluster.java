@@ -152,7 +152,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
    */
   public void waitForNewMaster(int timeoutMs) {
-    CommonUtils.waitFor("New leader master starts", new Function<Void, Boolean>() {
+    CommonUtils.waitFor("the new leader master to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         return getLeaderIndex() != -1;
