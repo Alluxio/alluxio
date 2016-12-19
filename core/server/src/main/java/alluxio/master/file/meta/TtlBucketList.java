@@ -42,16 +42,16 @@ public final class TtlBucketList {
   /**
    * Gets the bucket in the list that contains the file.
    *
-   * @param file the file to be contained
+   * @param inode the file to be contained
    * @return the bucket containing the file, or null if no such bucket exists
    */
-  private TtlBucket getBucketContaining(InodeFile file) {
-    if (file.getTtl() == Constants.NO_TTL) {
+  private TtlBucket getBucketContaining(Inode<?> inode) {
+    if (inode.getTtl() == Constants.NO_TTL) {
       // no bucket will contain a file with NO_TTL.
       return null;
     }
 
-    long ttlEndTimeMs = file.getCreationTimeMs() + file.getTtl();
+    long ttlEndTimeMs = inode.getCreationTimeMs() + inode.getTtl();
     // Gets the last bucket with interval start time less than or equal to the file's life end
     // time.
     TtlBucket bucket = mBucketList.floor(new TtlBucket(ttlEndTimeMs));
@@ -73,16 +73,16 @@ public final class TtlBucketList {
    * this file, if ttl value is {@link Constants#NO_TTL}, the file won't be inserted to any buckets
    * and nothing will happen.
    *
-   * @param file the file to be inserted
+   * @param inode the file to be inserted
    */
-  public void insert(InodeFile file) {
-    if (file.getTtl() == Constants.NO_TTL) {
+  public void insert(Inode<?> inode) {
+    if (inode.getTtl() == Constants.NO_TTL) {
       return;
     }
 
-    TtlBucket bucket = getBucketContaining(file);
+    TtlBucket bucket = getBucketContaining(inode);
     if (bucket == null) {
-      long ttlEndTimeMs = file.getCreationTimeMs() + file.getTtl();
+      long ttlEndTimeMs = inode.getCreationTimeMs() + inode.getTtl();
       // No bucket contains the file, so a new bucket should be added with an appropriate interval
       // start. Assume the list of buckets have continuous intervals, and the first interval starts
       // at 0, then ttlEndTimeMs should be in number (ttlEndTimeMs / interval) interval, so the
@@ -91,7 +91,7 @@ public final class TtlBucketList {
       bucket = new TtlBucket(interval == 0 ? ttlEndTimeMs : ttlEndTimeMs / interval * interval);
       mBucketList.add(bucket);
     }
-    bucket.addFile(file);
+    bucket.addInode(inode);
   }
 
   /**
@@ -103,12 +103,12 @@ public final class TtlBucketList {
    * If a file with valid ttl value is inserted to the buckets and its ttl value is going to be set
    * to {@link Constants#NO_TTL} later, be sure to remove the file from the buckets first.
    *
-   * @param file the file to be removed
+   * @param inode the file to be removed
    */
-  public void remove(InodeFile file) {
-    TtlBucket bucket = getBucketContaining(file);
+  public void remove(Inode<?> inode) {
+    TtlBucket bucket = getBucketContaining(inode);
     if (bucket != null) {
-      bucket.removeFile(file);
+      bucket.removeInode(inode);
     }
   }
 
