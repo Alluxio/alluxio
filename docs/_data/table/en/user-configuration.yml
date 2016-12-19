@@ -31,7 +31,7 @@ alluxio.user.file.worker.client.threads:
 alluxio.user.file.write.location.policy.class:
   The default location policy for choosing workers for writing a file's blocks
 alluxio.user.file.write.capacity.reserved.size.bytes:
-  The portion of space reserced in worker when user use the LocalFirstAvoidEvictionPolicy class
+  The portion of space reserved in worker when user use the LocalFirstAvoidEvictionPolicy class
   as file write location policy, default 0 MB.
 alluxio.user.file.readtype.default:
   Default read type when creating Alluxio files.
