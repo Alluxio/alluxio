@@ -11,8 +11,11 @@
 
 package alluxio.master.file.options;
 
+import alluxio.Constants;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
@@ -26,7 +29,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirectoryOptions> {
   private boolean mAllowExists;
-
+  private long mTtl;
+  private TtlAction mTtlAction;
   /**
    * @return the default {@link CreateDirectoryOptions}
    */
@@ -47,6 +51,8 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mAllowExists = options.isAllowExists();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
+    mTtl = options.getTtl();
+    mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
     mPermission = Permission.defaults().setOwnerFromThriftClient();
     if (options.isSetMode()) {
       mDefaultMode = false;
@@ -57,6 +63,8 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   private CreateDirectoryOptions() {
     super();
     mAllowExists = false;
+    mTtl = Constants.NO_TTL;
+    mTtlAction = TtlAction.DELETE;
   }
 
   /**
@@ -68,6 +76,21 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   }
 
   /**
+   * @return the TTL (time to live) value; it identifies duration (in seconds) the created directory
+   *         should be kept around before it is automatically deleted or free
+   */
+  public long getTtl() {
+    return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
+  }
+
+  /**
    * @param allowExists the allowExists flag value to use; it specifies whether an exception
    *        should be thrown if the object being made already exists.
    * @return the updated options object
@@ -75,6 +98,25 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   public CreateDirectoryOptions setAllowExists(boolean allowExists) {
     mAllowExists = allowExists;
     return this;
+  }
+
+  /**
+   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created directory should be kept around before it is automatically deleted
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return getThis();
+  }
+
+  /**
+   * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is expired;
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
+    return getThis();
   }
 
   @Override
@@ -94,18 +136,19 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
       return false;
     }
     CreateDirectoryOptions that = (CreateDirectoryOptions) o;
-    return Objects.equal(mAllowExists, that.mAllowExists);
+    return Objects.equal(mAllowExists, that.mAllowExists) && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlAction, that.mTtlAction);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mAllowExists);
+    return super.hashCode() + Objects.hashCode(mAllowExists, mTtl, mTtlAction);
   }
 
   @Override
   public String toString() {
     return toStringHelper()
-        .add("allowExists", mAllowExists)
-        .toString();
+        .add("allowExists", mAllowExists).add("ttl", mTtl)
+        .add("ttlAction", mTtlAction).toString();
   }
 }
