@@ -12,13 +12,14 @@
 
 set -e
 
-BIN=$(cd "$( dirname "$0" )"; pwd)
+INTEGRATION_BIN=$(cd "$( dirname "$0" )"; pwd)
 
-USAGE="Usage: alluxio-master
+USAGE="Usage: alluxio-proxy
 
-alluxio-master launches the Alluxio master in the foreground and logs to both
-the console and default log file. To configure the master, add configuration
-properties in alluxio-site.properties or environment variables in
+alluxio-proxy launches the Alluxio proxy in the foreground and logs to both the
+console and default log file. The proxy will provide a REST interface for
+interacting with the Alluxio filesystem. To configure the proxy, add
+configuration properties in alluxio-site.properties or environment variables in
 alluxio-env.sh."
 
 if [[ "$#" -gt "0" ]]; then
@@ -26,9 +27,9 @@ if [[ "$#" -gt "0" ]]; then
   exit 0
 fi
 
-# Log to both the console and the master logs file
-ALLUXIO_MASTER_LOGGER="Console,MASTER_LOGGER"
+# Log to both the console and the proxy logs file
+ALLUXIO_PROXY_LOGGER="Console,PROXY_LOGGER"
 
-. ${BIN}/../libexec/alluxio-config.sh
+. ${INTEGRATION_BIN}/../../libexec/alluxio-config.sh
 
-${JAVA} -cp ${CLASSPATH} ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.AlluxioMaster
+${JAVA} -cp ${CLASSPATH} ${ALLUXIO_PROXY_JAVA_OPTS} alluxio.proxy.AlluxioProxy

@@ -12,7 +12,7 @@
 
 set -e
 
-BIN=$(cd "$( dirname "$0" )"; pwd)
+INTEGRATION_BIN=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-worker
 
@@ -29,6 +29,6 @@ fi
 # Log to both the console and the worker logs file
 ALLUXIO_WORKER_LOGGER="Console,WORKER_LOGGER"
 
-. ${BIN}/../libexec/alluxio-config.sh
+. ${INTEGRATION_BIN}/../../libexec/alluxio-config.sh
 
 ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_WORKER_JAVA_OPTS} alluxio.worker.AlluxioWorker
