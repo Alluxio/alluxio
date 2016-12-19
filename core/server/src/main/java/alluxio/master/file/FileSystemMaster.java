@@ -1517,13 +1517,8 @@ public final class FileSystemMaster extends AbstractMaster {
   public List<AlluxioURI> getInMemoryFiles() {
     List<AlluxioURI> ret = new ArrayList<>();
     Inode root = mInodeTree.getRoot();
-    // Root has no real parent, use null.
-    try {
-      root.lockReadAndCheckParent(null);
-    } catch (InvalidPathException e) {
-      // This should never happen.
-      return ret;
-    }
+    // Root has no parent, lock directly.
+    root.lockRead();
     getInMemoryFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), ret);
     return ret;
   }
@@ -1928,29 +1923,33 @@ public final class FileSystemMaster extends AbstractMaster {
       }
     } catch (Exception e) {
       // On failure, revert changes and throw exception.
-      srcInode.setName(srcName);
-      srcInode.setParentId(dstParentInode.getId());
       if (!dstParentInode.removeChild(dstName)) {
         LOG.error("Failed to revert rename changes. Alluxio metadata may be inconsistent.");
       }
+      srcInode.setName(srcName);
+      srcInode.setParentId(srcParentInode.getId());
       throw e;
     }
 
     // TODO(jiri): A crash between now and the time the rename operation is journaled will result in
     // an inconsistency between Alluxio and UFS.
 
-    // 4. Remove the source inode (reverting the name) from the source parent.
+    // 4. Remove the source inode (reverting the name) from the source parent. The name must be
+    // reverted or removeChild will not be able to find the appropriate child entry since it is
+    // keyed on the original name.
     srcInode.setName(srcName);
     if (!srcParentInode.removeChild(srcInode)) {
       // This should never happen.
       LOG.error("Failed to rename within Alluxio. Alluxio and under storage may be inconsistent.");
-      srcInode.setName(srcName);
-      srcInode.setParentId(dstParentInode.getId());
+      srcInode.setName(dstName);
       if (!dstParentInode.removeChild(dstName)) {
         LOG.error("Failed to revert rename changes. Alluxio metadata may be inconsistent.");
       }
+      srcInode.setName(srcName);
+      srcInode.setParentId(srcParentInode.getId());
+      throw new IOException("Failed to remove source path " + srcPath + " from parent");
     }
-    srcInode.setName(dstPath.getName());
+    srcInode.setName(dstName);
 
     // 5. Set the last modification times for both source and destination parent inodes.
     dstParentInode.setLastModificationTimeMs(opTimeMs);

@@ -337,7 +337,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * and not by path or parent.
    */
   public void lockWrite() {
-    mLock.readLock().lock();
+    mLock.writeLock().lock();
   }
 
   /**
