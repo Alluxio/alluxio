@@ -94,10 +94,12 @@ public class FileOutStream extends AbstractOutStream {
    *
    * @param path the file path
    * @param options the client options
+   * @param context the file system context
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
-    this(path, options, FileSystemContext.INSTANCE, UnderFileSystemFileOutStream.Factory.get());
+  public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
+      throws IOException {
+    this(path, options, context, UnderFileSystemFileOutStream.Factory.get());
   }
 
   /**
