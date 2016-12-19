@@ -141,7 +141,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     int seekBufferSizeBytes = Math.max((int) options.getSeekBufferSizeBytes(), 1);
     mSeekBuffer = new byte[seekBufferSizeBytes];
-    mBlockStore = new AlluxioBlockStore(context);
+    mBlockStore = AlluxioBlockStore.create(context);
     LOG.debug("Init FileInStream with options {}", options);
   }
 

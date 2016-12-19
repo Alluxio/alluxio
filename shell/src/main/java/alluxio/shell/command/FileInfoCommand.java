@@ -51,7 +51,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
 
     System.out.println(status);
     System.out.println("Containing the following blocks: ");
-    AlluxioBlockStore blockStore = new AlluxioBlockStore();
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create();
     for (long blockId : status.getBlockIds()) {
       System.out.println(blockStore.getInfo(blockId));
     }

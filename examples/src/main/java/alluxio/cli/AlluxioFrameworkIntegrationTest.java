@@ -99,7 +99,8 @@ public final class AlluxioFrameworkIntegrationTest {
     try {
       startAlluxioFramework(env);
       LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
-      String masterHostName = Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
+      String masterHostName =
+          Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
       int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
       InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
       try (final BlockMasterClient client = new RetryHandlingBlockMasterClient(null,

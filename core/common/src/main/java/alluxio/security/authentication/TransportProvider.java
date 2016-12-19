@@ -77,7 +77,6 @@ public interface TransportProvider {
    */
   TTransport getClientTransport(InetSocketAddress serverAddress) throws IOException;
 
-
   /**
    * Similar as {@link TransportProvider#getClientTransport(InetSocketAddress)} but it also
    * specifies the {@link Subject} explicitly.

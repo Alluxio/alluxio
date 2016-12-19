@@ -51,7 +51,8 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    * @param masterAddress the master address
    * @param clientThreads the number of client threads to use
    */
-  public FileSystemMasterClientPool(Subject subject, InetSocketAddress masterAddress, int clientThreads) {
+  public FileSystemMasterClientPool(Subject subject, InetSocketAddress masterAddress,
+      int clientThreads) {
     super(clientThreads);
     mMasterAddress = masterAddress;
     mClientList = new ConcurrentLinkedQueue<>();

@@ -79,6 +79,8 @@ public class FileSystemWorkerClient
   /**
    * Constructor for a client that communicates with the {@link FileSystemWorkerClientService}.
    *
+   * @param clientPool the client pool
+   * @param clientHeartbeatPool the client pool for heartbeat
    * @param workerNetAddress the worker address to connect to
    * @param sessionId the session id to use, this should be unique
    * @throws IOException if it fails to register the session with the worker specified

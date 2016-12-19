@@ -28,6 +28,14 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public final class BlockWorkerThriftClientPool
     extends ThriftClientPool<BlockWorkerClientService.Client> {
+  /**
+   * Creates an instance of {@link BlockWorkerThriftClientPool}.
+   *
+   * @param subject the parent subject, set to null if not present
+   * @param address the worke address
+   * @param maxCapacity the maximum capacity of the pool
+   * @param gcThresholdMs the threshold to GC clients in the pool
+   */
   public BlockWorkerThriftClientPool(Subject subject, InetSocketAddress address, int maxCapacity,
       long gcThresholdMs) {
     super(subject, Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,

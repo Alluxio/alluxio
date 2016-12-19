@@ -248,7 +248,7 @@ public class RemoteBlockInStreamIntegrationTest {
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
-      AlluxioBlockStore blockStore = new AlluxioBlockStore();
+      AlluxioBlockStore blockStore = AlluxioBlockStore.create();
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
@@ -280,7 +280,7 @@ public class RemoteBlockInStreamIntegrationTest {
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
-      BlockInfo info = new AlluxioBlockStore().getInfo(blockId);
+      BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
           workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
@@ -307,7 +307,7 @@ public class RemoteBlockInStreamIntegrationTest {
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
-      BlockInfo info = new AlluxioBlockStore().getInfo(blockId);
+      BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
           workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
@@ -526,7 +526,7 @@ public class RemoteBlockInStreamIntegrationTest {
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
-      BlockInfo info = new AlluxioBlockStore().getInfo(blockId);
+      BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),

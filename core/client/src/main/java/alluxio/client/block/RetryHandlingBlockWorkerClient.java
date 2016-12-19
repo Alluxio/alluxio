@@ -64,8 +64,8 @@ public final class RetryHandlingBlockWorkerClient
   private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
 
-  private final BlockWorkerThriftClientPool mClientPools;
-  private final BlockWorkerThriftClientPool mClientHeartbeatPools;
+  private final BlockWorkerThriftClientPool mClientPool;
+  private final BlockWorkerThriftClientPool mClientHeartbeatPool;
 
   // Tracks the number of active heartbeat close requests.
   private static final AtomicInteger NUM_ACTIVE_SESSIONS = new AtomicInteger(0);
@@ -83,17 +83,19 @@ public final class RetryHandlingBlockWorkerClient
    * required when using this client. For example, if you only call RPCs like promote, a session
    * ID is not required.
    *
+   * @param clientPool the block worker client pool
+   * @param clientHeartbeatPool the block worker client heartbeat pool
    * @param workerNetAddress to worker's location
    * @param sessionId the ID of the session
    * @throws IOException if it fails to register the session with the worker specified
    */
   public RetryHandlingBlockWorkerClient(
-      BlockWorkerThriftClientPool clientPools,
-      BlockWorkerThriftClientPool clientHeartbeatPools,
+      BlockWorkerThriftClientPool clientPool,
+      BlockWorkerThriftClientPool clientHeartbeatPool,
       WorkerNetAddress workerNetAddress, final Long sessionId)
       throws IOException {
-    mClientPools = clientPools;
-    mClientHeartbeatPools = clientHeartbeatPools;
+    mClientPool = clientPool;
+    mClientHeartbeatPool = clientHeartbeatPool;
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
@@ -132,7 +134,7 @@ public final class RetryHandlingBlockWorkerClient
   @Override
   public BlockWorkerClientService.Client acquireClient() throws IOException {
     try {
-      return mClientPools.acquire();
+      return mClientPool.acquire();
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }
@@ -140,7 +142,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void releaseClient(BlockWorkerClientService.Client client) {
-    mClientPools.release(client);
+    mClientPool.release(client);
   }
 
   @Override
@@ -303,7 +305,7 @@ public final class RetryHandlingBlockWorkerClient
    */
   @Override
   public void sessionHeartbeat() throws IOException, InterruptedException {
-    BlockWorkerClientService.Client client = mClientHeartbeatPools.acquire();
+    BlockWorkerClientService.Client client = mClientHeartbeatPool.acquire();
     try {
       client.sessionHeartbeat(getSessionId(), null);
     } catch (AlluxioTException e) {
@@ -314,7 +316,7 @@ public final class RetryHandlingBlockWorkerClient
       client.getOutputProtocol().getTransport().close();
       throw new IOException(e);
     } finally {
-      mClientHeartbeatPools.release(client);
+      mClientHeartbeatPool.release(client);
     }
     Metrics.BLOCK_WORKER_HEATBEATS.inc();
   }

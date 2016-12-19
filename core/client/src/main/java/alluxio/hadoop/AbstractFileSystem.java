@@ -441,14 +441,12 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
-    if (sInitialized) {
-      checkMasterAddress();
+    if (sInitialized && checkFileSystemContext()) {
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
-      if (sInitialized) {
-        checkMasterAddress();
+      if (sInitialized && checkFileSystemContext()) {
         return;
       }
 
@@ -464,11 +462,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
       LineageContext.INSTANCE.reset();
 
-      sFileSystemContext = new FileSystemContext();
-      Subject subject = getHadoopSubject();
-      if (subject != null) {
-        sFileSystemContext.setParentSubject(subject);
-      }
+      sFileSystemContext = FileSystemContext.create(getHadoopSubject());
       // Try to connect to master, if it fails, the provided uri is invalid.
       FileSystemMasterClient client = sFileSystemContext.acquireMasterClient();
       try {
@@ -486,16 +480,26 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
   }
 
-  // Assures the mUri is the same as the master address in the current client context.
-  private void checkMasterAddress() throws IOException {
-    InetSocketAddress masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
+  /**
+   * @return true if the new context is the same as the existing file system context
+   */
+  private boolean checkFileSystemContext() {
+    InetSocketAddress masterAddress = sFileSystemContext.getMasterAddress();
+    Subject subject = sFileSystemContext.getParentSubject();
+    Subject newSubject = getHadoopSubject();
     boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
     boolean samePort = masterAddress.getPort() == mUri.getPort();
-    if (sameHost && samePort) {
-      return;
+    boolean sameSubject = false;
+    if (subject == null) {
+      sameSubject = newSubject == null;
+    } else {
+      sameSubject = subject.equals(newSubject);
     }
+    return sameHost && samePort && sameSubject;
+    /*
     throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
         .getMessage(mUri.getHost() + ":" + mUri.getPort(), masterAddress));
+        */
   }
 
   /**
@@ -504,10 +508,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private Subject getHadoopSubject() {
     try {
       UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
-      User user = new User(ugi.getUserName());
-      HashSet<Principal> principals = new HashSet<>();
-      principals.add(user);
-      return new Subject(false, principals, null, null);
+      String username = ugi.getUserName();
+      if (username != null && !username.isEmpty()) {
+        User user = new User(ugi.getUserName());
+        HashSet<Principal> principals = new HashSet<>();
+        principals.add(user);
+        return new Subject(false, principals, new HashSet<>(), new HashSet<>());
+      }
+      return null;
     } catch (IOException e) {
       return null;
     }

@@ -63,7 +63,8 @@ public enum LineageContext {
       mLineageMasterClientPool.close();
     }
 
-    String masterHostName = Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    String masterHostName =
+        Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
     mLineageMasterClientPool = new LineageMasterClientPool(masterAddress);

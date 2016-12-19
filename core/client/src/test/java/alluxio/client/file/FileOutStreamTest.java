@@ -117,8 +117,9 @@ public class FileOutStreamTest {
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mFactory = PowerMockito.mock(UnderFileSystemFileOutStream.Factory.class);
 
-    PowerMockito.whenNew(AlluxioBlockStore.class).withArguments(mFileSystemContext)
-        .thenReturn(mBlockStore);
+    PowerMockito.mockStatic(AlluxioBlockStore.class);
+    PowerMockito.when(AlluxioBlockStore.create(mFileSystemContext)).thenReturn(mBlockStore);
+
     when(mFileSystemContext.acquireMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mFileSystemMasterClient));
     when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class))).thenReturn(
@@ -172,8 +173,8 @@ public class FileOutStreamTest {
     };
     mUnderStorageFlushed = underStorageFlushed;
 
-    when(mFactory.create(mFileSystemContext, any(InetSocketAddress.class), anyLong())).thenReturn(
-        mUnderStorageOutputStream);
+    when(mFactory.create(any(FileSystemContext.class), any(InetSocketAddress.class), anyLong()))
+        .thenReturn(mUnderStorageOutputStream);
 
     // Set up underFileStorage so that we can test UnderStorageType.SYNC_PERSIST
     mUnderFileSystem = ClientMockUtils.mockUnderFileSystem();

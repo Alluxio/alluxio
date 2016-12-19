@@ -50,18 +50,22 @@ public final class AlluxioBlockStore {
 
   /**
    * Creates an Alluxio block store with default file system context and default local host name.
+   *
+   * @return the {@link AlluxioBlockStore} created
    */
-  public AlluxioBlockStore() {
-    this(FileSystemContext.INSTANCE, NetworkAddressUtils.getLocalHostName());
+  public static AlluxioBlockStore create() {
+    return new AlluxioBlockStore(FileSystemContext.INSTANCE,
+        NetworkAddressUtils.getLocalHostName());
   }
 
   /**
    * Creates an Alluxio block store with default local hostname.
    *
    * @param context the file system context
+   * @return the {@link AlluxioBlockStore} created
    */
-  public AlluxioBlockStore(FileSystemContext context) {
-    this(context, NetworkAddressUtils.getLocalHostName());
+  public static AlluxioBlockStore create(FileSystemContext context) {
+    return new AlluxioBlockStore(context, NetworkAddressUtils.getLocalHostName());
   }
 
   /**

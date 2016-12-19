@@ -55,6 +55,8 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
 
   /**
    * Creates a new {@link NettyRemoteBlockWriter}.
+   *
+   * @param context the file system context
    */
   public NettyRemoteBlockWriter(FileSystemContext context) {
     mOpen = false;

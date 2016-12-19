@@ -44,6 +44,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   /**
    * Creates a new block master client.
    *
+   * @param subject the parent subject, set to null if not present
    * @param masterAddress the master address
    */
   public RetryHandlingMetaMasterClient(Subject subject, InetSocketAddress masterAddress) {

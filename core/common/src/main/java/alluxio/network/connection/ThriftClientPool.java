@@ -88,6 +88,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   /**
    * Creates a thrift client pool instance with a minimum capacity of 1.
    *
+   * @param subject the parent subject, set to null if not present
    * @param serviceName the service name (e.g. BlockWorkerClient)
    * @param serviceVersion the service version
    * @param address the server address

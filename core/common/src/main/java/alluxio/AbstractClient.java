@@ -82,6 +82,7 @@ public abstract class AbstractClient implements Client {
   /**
    * Creates a new client base.
    *
+   * @param subject the parent subject, set to null if not present
    * @param address the address
    * @param mode the mode of the client for display
    */

@@ -91,9 +91,10 @@ public class FileInStreamTest {
 
     ClientTestUtils.setSmallBufferSizes();
 
-    mContext = PowerMockito.mock(FileSystemContext.class);
-    mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
-    PowerMockito.whenNew(AlluxioBlockStore.class).withArguments(mContext).thenReturn(mBlockStore);
+    mContext = Mockito.mock(FileSystemContext.class);
+    mBlockStore = Mockito.mock(AlluxioBlockStore.class);
+    PowerMockito.mockStatic(AlluxioBlockStore.class);
+    PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
 
     // Set up BufferedBlockInStreams and caching streams
     mCacheStreams = new ArrayList<>();

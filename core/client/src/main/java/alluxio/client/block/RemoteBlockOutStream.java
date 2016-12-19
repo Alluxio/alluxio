@@ -13,7 +13,6 @@ package alluxio.client.block;
 
 import alluxio.Constants;
 import alluxio.client.RemoteBlockWriter;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;

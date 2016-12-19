@@ -23,7 +23,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
@@ -51,6 +50,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.security.auth.Subject;
 
 /**
  * Unit tests for {@link AbstractFileSystem}.
@@ -81,7 +82,7 @@ public class AbstractFileSystemTest {
   @Before
   public void before() throws Exception {
     mockFileSystemContextAndMasterClient();
-    mockUserGroupInformation();
+    mockUserGroupInformation("");
 
     if (HadoopClientTestUtils.isHadoop1x()) {
       LOG.debug("Running Alluxio FS tests against hadoop 1x");
@@ -161,6 +162,8 @@ public class AbstractFileSystemTest {
   public void concurrentInitialize() throws Exception {
     List<Thread> threads = new ArrayList<>();
     final org.apache.hadoop.conf.Configuration conf = getConf();
+    Mockito.when(mMockFileSystemContext.getMasterAddress())
+        .thenReturn(new InetSocketAddress("host", 1));
     for (int i = 0; i < 100; i++) {
       Thread t = new Thread(new Runnable() {
         @Override
@@ -206,21 +209,15 @@ public class AbstractFileSystemTest {
   @Test
   public void reinitializeWithDifferentURI() throws Exception {
     final org.apache.hadoop.conf.Configuration conf = getConf();
-    String originalURI = "host1:1";
     URI uri = URI.create(Constants.HEADER + "host1:1");
     org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
-    String[] newURIs = new String[]{"host2:1", "host1:2", "host2:2"};
-    for (String newURI : newURIs) {
-      mExpectedException.expect(IOException.class);
-      mExpectedException.expectMessage(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
-          .getMessage(newURI, originalURI));
+    Mockito.when(mMockFileSystemContext.getMasterAddress())
+        .thenReturn(new InetSocketAddress("host1", 1));
 
-      uri = URI.create(Constants.HEADER + newURI);
-      org.apache.hadoop.fs.FileSystem.get(uri, conf);
-      // The above code should throw an exception.
-      Assert.fail("Initialization should throw an exception.");
-    }
+    String newURI = "host2:1";
+    uri = URI.create(Constants.HEADER + newURI);
+    org.apache.hadoop.fs.FileSystem.get(uri, conf);
   }
 
   /**
@@ -274,6 +271,15 @@ public class AbstractFileSystemTest {
     assertFileInfoEqualsFileStatus(fileInfo, fileStatus);
   }
 
+  @Test
+  public void initializeWithCustomizedUgi() throws Exception {
+    mockUserGroupInformation("testuser");
+
+    final org.apache.hadoop.conf.Configuration conf = getConf();
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    org.apache.hadoop.fs.FileSystem.get(uri, conf);
+  }
+
   private org.apache.hadoop.conf.Configuration getConf() throws Exception {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     if (HadoopClientTestUtils.isHadoop1x()) {
@@ -282,19 +288,23 @@ public class AbstractFileSystemTest {
     return conf;
   }
 
-  private void mockFileSystemContextAndMasterClient() {
+  private void mockFileSystemContextAndMasterClient() throws Exception {
     mMockFileSystemContext = Mockito.mock(FileSystemContext.class);
-    AbstractFileSystem.setFileSystemContext(mMockFileSystemContext);
+    PowerMockito.mockStatic(FileSystemContext.class);
+    PowerMockito.when(FileSystemContext.create(Mockito.any(Subject.class)))
+        .thenReturn(mMockFileSystemContext);
     mMockFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
     Mockito.when(mMockFileSystemContext.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
+    Mockito.doNothing().when(mMockFileSystemMasterClient).connect();
   }
 
-  private void mockUserGroupInformation() throws IOException {
+  private void mockUserGroupInformation(String username) throws IOException {
     // need to mock out since FileSystem.get calls UGI, which some times has issues on some systems
     PowerMockito.mockStatic(UserGroupInformation.class);
     final UserGroupInformation ugi = Mockito.mock(UserGroupInformation.class);
     Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
+    Mockito.when(ugi.getUserName()).thenReturn(username);
   }
 
   private void assertFileInfoEqualsFileStatus(FileInfo info, FileStatus status) {

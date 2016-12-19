@@ -16,7 +16,6 @@ import alluxio.client.file.FileSystemContext;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.logging.FileHandler;
 
 /**
  * Test class for mocking {@link BufferedBlockOutStream} and exposing internal state.

@@ -13,19 +13,8 @@ package alluxio.hadoop;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.security.User;
-
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.util.Progressable;
-
-import java.io.IOException;
-import java.security.Principal;
-import java.util.HashSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * An Alluxio client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}

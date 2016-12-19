@@ -50,7 +50,7 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
    */
   BaseKeyValuePartitionReader(long blockId) throws AlluxioException, IOException {
     mBlockId = blockId;
-    AlluxioBlockStore blockStore = new AlluxioBlockStore();
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create();
     BlockInfo info = blockStore.getInfo(mBlockId);
     WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
     mClient = new KeyValueWorkerClient(workerAddr);

@@ -47,6 +47,7 @@ import java.nio.ByteBuffer;
 @PrepareForTest(NettyClient.class)
 public class NettyRemoteBlockReaderTest {
 
+  private FileSystemContext mContext;
   private NettyRemoteBlockReader mNettyRemoteBlockReader;
   private static Bootstrap sBootstrap = Mockito.mock(Bootstrap.class);
   private static ClientHandler sClientHandler = new ClientHandler();
@@ -65,11 +66,14 @@ public class NettyRemoteBlockReaderTest {
    * Set up.
    */
   @Before
-  public void before() throws InterruptedException {
+  public void before() throws Exception {
     PowerMockito.mockStatic(NettyClient.class);
     BDDMockito.given(NettyClient.createClientBootstrap()).willReturn(sBootstrap);
-    mNettyRemoteBlockReader = new NettyRemoteBlockReader(Mockito.any(FileSystemContext.class));
+    mContext = PowerMockito.mock(FileSystemContext.class);
+    mNettyRemoteBlockReader = new NettyRemoteBlockReader(mContext);
     mChannel = Mockito.mock(Channel.class);
+    Mockito.when(mContext.acquireNettyChannel(Mockito.any(InetSocketAddress.class)))
+        .thenReturn(mChannel);
     mChannelFuture = Mockito.mock(ChannelFuture.class);
     mChannelPipeline = Mockito.mock(ChannelPipeline.class);
 

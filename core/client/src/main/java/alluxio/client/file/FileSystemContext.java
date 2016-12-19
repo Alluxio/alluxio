@@ -58,8 +58,8 @@ import javax.security.auth.Subject;
  * so, because thread A holds the lock on {@link FileSystemContext}.
  */
 @ThreadSafe
-public final class FileSystemContext {
-  public static final FileSystemContext INSTANCE = new FileSystemContext();
+public class FileSystemContext {
+  public static final FileSystemContext INSTANCE = new FileSystemContext(null);
 
   static {
     MetricsSystem.startSinks();
@@ -102,13 +102,33 @@ public final class FileSystemContext {
   private Boolean mHasLocalWorker;
 
   /** The parent user associated with the {@link FileSystemContext}. */
-  @GuardedBy("this")
-  private Subject mParentSubject = null;
+  private final Subject mParentSubject;
 
   /**
    * Creates a new file stream context.
+   * @return the context
    */
-  public FileSystemContext() {
+  public static FileSystemContext create() {
+    return create(null);
+  }
+
+  /**
+   * Creates a file system context with a subject.
+   *
+   * @param subject the parent subject, set to null if not present
+   * @return the context
+   */
+  public static FileSystemContext create(Subject subject) {
+    return new FileSystemContext(subject);
+  }
+
+  /**
+   * Creates a file system context with a subject.
+   *
+   * @param subject the parent subject, set to null if not present
+   */
+  private FileSystemContext(Subject subject) {
+    mParentSubject = subject;
     init();
   }
 
@@ -116,7 +136,8 @@ public final class FileSystemContext {
    * Initializes the context. Only called in the ctor.
    */
   private void init() {
-    String masterHostName = Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    String masterHostName =
+        Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     mMasterAddress = new InetSocketAddress(masterHostName, masterPort);
 
@@ -151,7 +172,6 @@ public final class FileSystemContext {
       mMasterAddress = null;
       mWorkerAddresses = null;
       mHasLocalWorker = null;
-      mParentSubject = null;
     }
   }
 
@@ -161,13 +181,6 @@ public final class FileSystemContext {
   public synchronized void reset() {
     close();
     init();
-  }
-
-  /**
-   * @param subject the parent subject
-   */
-  public synchronized void setParentSubject(Subject subject) {
-    mParentSubject = subject;
   }
 
   /**
@@ -248,6 +261,7 @@ public final class FileSystemContext {
    * Creates a client for a worker with the given address.
    *
    * @param address the address of the worker to get a client to
+   * @param sessionId the session ID
    * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
    * @throws IOException if it fails to create a client for a given hostname (e.g. no Alluxio
    *         worker is available for the given worker RPC address)
@@ -364,6 +378,7 @@ public final class FileSystemContext {
 
   /**
    * @return if there is a local worker running the same machine
+   * @throws IOException if it fails to get the workers
    */
   public synchronized boolean hasLocalWorker() throws IOException {
     if (mHasLocalWorker == null) {
