@@ -126,7 +126,7 @@ public final class AlluxioFrameworkIntegrationTest {
 
   private void startAlluxioFramework(Map<String, String> extraEnv) {
     String startScript = PathUtils.concatPath(Configuration.get(PropertyKey.HOME),
-        "integration", "mesos" "bin", "alluxio-mesos-start.sh");
+        "integration", "mesos", "bin", "alluxio-mesos-start.sh");
     ProcessBuilder pb = new ProcessBuilder(startScript, mMesosAddress);
     Map<String, String> env = pb.environment();
     env.putAll(extraEnv);
