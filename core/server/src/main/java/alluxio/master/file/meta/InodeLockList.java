@@ -124,7 +124,7 @@ public final class InodeLockList implements AutoCloseable {
    * @param inode the inode to lock
    * @param parent the expected parent inode
    * @param name the expected name of the inode to be locked
-   * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
+   * @throws InvalidPathException if the inode is not consistent with the caller's expectations
    */
   public synchronized void lockWriteAndCheckFullPath(Inode<?> inode, Inode parent, String name)
       throws InvalidPathException {
