@@ -32,7 +32,8 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * Locks the given inode in read mode, and adds it to this lock list.
+   * Locks the given inode in read mode, and adds it to this lock list. This call should only be
+   * used when locking the root or an inode by id and not path or parent.
    *
    * @param inode the inode to lock
    */
@@ -43,7 +44,8 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * Locks the given inode in read mode, and adds it to this lock list.
+   * Locks the given inode in read mode, and adds it to this lock list. This method ensures the
+   * parent is the expected parent inode.
    *
    * @param inode the inode to lock
    * @param parent the expected parent inode
@@ -57,12 +59,13 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * Locks the given inode in read mode, and adds it to this lock list.
+   * Locks the given inode in read mode, and adds it to this lock list. This method ensures the
+   * parent is the expected parent inode, and the name of the inode is the expected name.
    *
    * @param inode the inode to lock
    * @param parent the expected parent inode
    * @param name the expected name of the inode to be locked
-   * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
+   * @throws InvalidPathException if the inode is not consistent with the caller's expectations
    */
   public synchronized void lockReadAndCheckFullPath(Inode<?> inode, Inode parent, String name)
       throws InvalidPathException {
@@ -88,22 +91,24 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * Locks the given inode in write mode, and adds it to this lock list.
+   * Locks the given inode in write mode, and adds it to this lock list. This call should only be
+   * used when locking the root or an inode by id and not path or parent.
    *
    * @param inode the inode to lock
    */
   public synchronized void lockWrite(Inode<?> inode) {
     inode.lockWrite();
     mInodes.add(inode);
-    mLockModes.add(InodeTree.LockMode.READ);
+    mLockModes.add(InodeTree.LockMode.WRITE);
   }
 
   /**
-   * Locks the given inode in write mode, and adds it to this lock list.
+   * Locks the given inode in write mode, and adds it to this lock list. This method ensures the
+   * parent is the expected parent inode.
    *
    * @param inode the inode to lock
    * @param parent the expected parent inode
-   * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
+   * @throws InvalidPathException if the inode is not consistent with the caller's expectations
    */
   public synchronized void lockWriteAndCheckParent(Inode<?> inode, Inode parent)
       throws InvalidPathException {
@@ -113,7 +118,8 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * Locks the given inode in write mode, and adds it to this lock list.
+   * Locks the given inode in write mode, and adds it to this lock list. This method ensures the
+   * parent is the expected parent inode, and the name of the inode is the expected name.
    *
    * @param inode the inode to lock
    * @param parent the expected parent inode

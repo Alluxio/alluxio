@@ -1870,7 +1870,7 @@ public final class FileSystemMaster extends AbstractMaster {
     AlluxioURI dstPath = dstInodePath.getUri();
     InodeDirectory srcParentInode = srcInodePath.getParentInodeDirectory();
     InodeDirectory dstParentInode = dstInodePath.getParentInodeDirectory();
-    String srcName = srcInode.getName();
+    String srcName = srcPath.getName();
     String dstName = dstPath.getName();
 
     LOG.debug("Renaming {} to {}", srcPath, dstPath);
