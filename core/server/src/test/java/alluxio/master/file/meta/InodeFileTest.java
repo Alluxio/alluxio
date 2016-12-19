@@ -211,7 +211,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void lockReadAndCheckParentInvalid() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
-    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     InodeFile inode1 = createInodeFile(1);
     InodeDirectory dir1 = createInodeDirectory();
     inode1.setParentId(dir1.getId() - 1);
@@ -240,7 +240,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void lockReadAndCheckFullPathInvalid() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
-    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
     InodeFile inode1 = createInodeFile(1);
     InodeDirectory dir1 = createInodeDirectory();
@@ -256,7 +256,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void lockReadAndCheckFullPathInvalidName() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
-    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
     InodeFile inode1 = createInodeFile(1);
     InodeDirectory dir1 = createInodeDirectory();
@@ -272,7 +272,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void lockReadAndCheckFullPathInvalidParent() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
-    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
     InodeFile inode1 = createInodeFile(1);
     InodeDirectory dir1 = createInodeDirectory();
@@ -315,7 +315,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void lockWriteAndCheckParentInvalid() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
-    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     InodeFile inode1 = createInodeFile(1);
     InodeDirectory dir1 = createInodeDirectory();
     inode1.setParentId(dir1.getId() - 1);
@@ -344,7 +344,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void lockWriteAndCheckFullPathInvalid() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
-    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
     InodeFile inode1 = createInodeFile(1);
     InodeDirectory dir1 = createInodeDirectory();
@@ -360,7 +360,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void lockWriteAndCheckFullPathInvalidName() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
-    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
     InodeFile inode1 = createInodeFile(1);
     InodeDirectory dir1 = createInodeDirectory();
@@ -376,7 +376,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void lockWriteAndCheckFullPathInvalidParent() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
-    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
+    mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
     InodeFile inode1 = createInodeFile(1);
     InodeDirectory dir1 = createInodeDirectory();

@@ -961,10 +961,8 @@ public class InodeTree implements JournalCheckpointStreamable {
         if (pathComponents[0].equals("")) {
           if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
               == LockMode.READ) {
-            // Do not need to check parent for root.
             lockList.lockRead(mRoot);
           } else {
-            // Do not need to check parent for root.
             lockList.lockWrite(mRoot);
           }
           inodes.add(mRoot);
@@ -977,10 +975,8 @@ public class InodeTree implements JournalCheckpointStreamable {
       }
 
       if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints) == LockMode.READ) {
-        // Do not need to check parent for root.
         lockList.lockRead(mRoot);
       } else {
-        // Do not need to check parent for root.
         lockList.lockWrite(mRoot);
       }
       inodes.add(mRoot);
@@ -1049,8 +1045,7 @@ public class InodeTree implements JournalCheckpointStreamable {
           // looking for has not been created in the meantime.
           lockList.unlockLast();
           if (inodes.size() == 1) {
-            // Do not need to check parent for root.
-            lockList.lockWriteAndCheckParent(current, null);
+            lockList.lockWrite(current);
           } else {
             lockList.lockWriteAndCheckFullPath(current, inodes.get(inodes.size() - 2),
                 pathComponents[(i - 1)]);
