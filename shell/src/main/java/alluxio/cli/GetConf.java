@@ -20,7 +20,7 @@ import java.util.Map.Entry;
  * Utility for printing Alluxio configuration.
  */
 public final class GetConf {
-  private final static String USAGE = "USAGE: GetConf [KEY]\n\n"
+  private static final String USAGE = "USAGE: GetConf [KEY]\n\n"
       + "GetConf [KEY] prints the configured value for the given key. If the key is invalid, the "
       + "exit code will be nonzero. If the key is valid but isn't set, an empty string is printed. "
       + "If no key is specified, all configuration is printed.";
@@ -56,4 +56,6 @@ public final class GetConf {
         System.exit(1);
     }
   }
+
+  private GetConf() {} // this class is not intended for instantiation
 }
