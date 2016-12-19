@@ -309,9 +309,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @throws InvalidPathException if the parent is not as expected
    */
   public void lockReadAndCheckParent(Inode parent) throws InvalidPathException {
-    mLock.readLock().lock();
+    lockRead();
     if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
-      mLock.readLock().unlock();
+      unlockRead();
       throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
     }
   }
@@ -328,7 +328,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   public void lockReadAndCheckFullPath(Inode parent, String name) throws InvalidPathException {
     lockReadAndCheckParent(parent);
     if (!mName.equals(name)) {
-      mLock.readLock().unlock();
+      unlockRead();
       throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
     }
   }
@@ -350,9 +350,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @throws InvalidPathException if the parent is not as expected
    */
   public void lockWriteAndCheckParent(Inode parent) throws InvalidPathException {
-    mLock.writeLock().lock();
+    lockWrite();
     if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
-      mLock.writeLock().unlock();
+      unlockWrite();
       throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
     }
   }
@@ -370,7 +370,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
       throws InvalidPathException {
     lockWriteAndCheckParent(parent);
     if (!mName.equals(name)) {
-      mLock.writeLock().unlock();
+      unlockWrite();
       throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_MOVE.getMessage());
     }
   }
