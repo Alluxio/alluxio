@@ -29,8 +29,7 @@ public final class BlockWorkerInfo {
   private final WorkerNetAddress mNetAddress;
   private final long mCapacityBytes;
   private final long mUsedBytes;
-  private long mBlockSizeBytes;
-  private long mUserFileWriteCapacityReservedRatio;
+  private long mUserFileWriteCapacityReserved;
 
   /**
    * Constructs the block worker information.
@@ -63,10 +62,9 @@ public final class BlockWorkerInfo {
    * @return the available bytes of the worker
    */
   public long getAvailableBytes() {
-    mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    mUserFileWriteCapacityReservedRatio = Configuration
-        .getBytes(PropertyKey.USER_FILE_WRITE_CAPACITY_RESERVED_RATIO);
-    return mCapacityBytes - mUsedBytes - (mUserFileWriteCapacityReservedRatio * mBlockSizeBytes);
+    mUserFileWriteCapacityReserved = Configuration
+        .getBytes(PropertyKey.USER_FILE_WRITE_CAPACITY_RESERVED_SIZE_BYTES);
+    return mCapacityBytes - mUsedBytes - mUserFileWriteCapacityReserved;
   }
 
   /**

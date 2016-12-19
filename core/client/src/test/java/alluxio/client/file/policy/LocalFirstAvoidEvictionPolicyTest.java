@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tests {@link LocalFirstWithoutEvictionPolicy}.
+ * Tests {@link LocalFirstAvoidEvictionPolicy}.
  */
-public class LocalFirstWithoutEvictionPolicyTest {
+public class LocalFirstAvoidEvictionPolicyTest {
   private static final int PORT = 1;
 
   /**
@@ -35,7 +35,7 @@ public class LocalFirstWithoutEvictionPolicyTest {
   @Test
   public void getLocalFirst() {
     String localhostName = NetworkAddressUtils.getLocalHostName();
-    LocalFirstWithoutEvictionPolicy policy = new LocalFirstWithoutEvictionPolicy();
+    LocalFirstAvoidEvictionPolicy policy = new LocalFirstAvoidEvictionPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
@@ -51,7 +51,7 @@ public class LocalFirstWithoutEvictionPolicyTest {
   @Test
   public void getOthersWhenNotEnoughSpaceOnLocal() {
     String localhostName = NetworkAddressUtils.getLocalHostName();
-    LocalFirstWithoutEvictionPolicy policy = new LocalFirstWithoutEvictionPolicy();
+    LocalFirstAvoidEvictionPolicy policy = new LocalFirstAvoidEvictionPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
@@ -67,10 +67,10 @@ public class LocalFirstWithoutEvictionPolicyTest {
   @Test
   public void getLocalWhenNoneHasSpace() {
     String localhostName = NetworkAddressUtils.getLocalHostName();
-    LocalFirstWithoutEvictionPolicy policy = new LocalFirstWithoutEvictionPolicy();
+    LocalFirstAvoidEvictionPolicy policy = new LocalFirstAvoidEvictionPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, Constants.MB));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, Constants.MB));
     Assert.assertEquals(localhostName,
@@ -79,7 +79,7 @@ public class LocalFirstWithoutEvictionPolicyTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(LocalFirstWithoutEvictionPolicy.class);
+    CommonTestUtils.testEquals(LocalFirstAvoidEvictionPolicy.class);
   }
 
 }

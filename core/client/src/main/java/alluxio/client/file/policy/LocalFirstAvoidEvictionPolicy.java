@@ -28,12 +28,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * If No worker meets the demands, return local host.
  */
 @ThreadSafe
-public class LocalFirstWithoutEvictionPolicy implements FileWriteLocationPolicy {
+public class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPolicy {
   private String mLocalHostName;
   /**
-   * Constructs a {@link LocalFirstWithoutEvictionPolicy}.
+   * Constructs a {@link LocalFirstAvoidEvictionPolicy}.
    */
-  public LocalFirstWithoutEvictionPolicy() {
+  public LocalFirstAvoidEvictionPolicy() {
     mLocalHostName = NetworkAddressUtils.getLocalHostName();
   }
 
@@ -67,10 +67,10 @@ public class LocalFirstWithoutEvictionPolicy implements FileWriteLocationPolicy 
     if (this == o) {
       return true;
     }
-    if (!(o instanceof LocalFirstWithoutEvictionPolicy)) {
+    if (!(o instanceof LocalFirstAvoidEvictionPolicy)) {
       return false;
     }
-    LocalFirstWithoutEvictionPolicy that = (LocalFirstWithoutEvictionPolicy) o;
+    LocalFirstAvoidEvictionPolicy that = (LocalFirstAvoidEvictionPolicy) o;
     return Objects.equal(mLocalHostName, that.mLocalHostName);
   }
 
