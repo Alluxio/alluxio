@@ -135,6 +135,17 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getStartupConsistencyCheckStatus() throws Exception {
+    MasterTestUtils.waitForStartupConsistencyCheck(mFileSystemMaster);
+    alluxio.wire.StartupConsistencyCheck status = getInfo(NO_PARAMS)
+        .getStartupConsistencyCheck();
+    Assert.assertEquals(
+        FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
+        status.getStatus());
+    Assert.assertEquals(0, status.getInconsistentUris().size());
+  }
+
+  @Test
   public void getTierCapacity() throws Exception {
     long total = Configuration.getLong(PropertyKey.WORKER_MEMORY_SIZE);
     Capacity capacity = getInfo(NO_PARAMS).getTierCapacity().get("MEM");

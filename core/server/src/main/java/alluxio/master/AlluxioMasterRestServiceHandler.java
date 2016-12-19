@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
@@ -33,6 +34,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +130,7 @@ public final class AlluxioMasterRestServiceHandler {
                 .setMountPoints(getMountPointsInternal())
                 .setRpcAddress(mMaster.getRpcAddress().toString())
                 .setStartTimeMs(mMaster.getStartTimeMs())
+                .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
                 .setTierCapacity(getTierCapacityInternal())
                 .setUfsCapacity(getUfsCapacityInternal())
                 .setUptimeMs(mMaster.getUptimeMs())
@@ -527,6 +530,20 @@ public final class AlluxioMasterRestServiceHandler {
       mountPoints.put(mountPoint.getKey(), info);
     }
     return mountPoints;
+  }
+
+  private alluxio.wire.StartupConsistencyCheck getStartupConsistencyCheckInternal() {
+    FileSystemMaster.StartupConsistencyCheck check = mFileSystemMaster
+        .getStartupConsistencyCheck();
+    alluxio.wire.StartupConsistencyCheck ret = new alluxio.wire.StartupConsistencyCheck();
+    List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
+    List<String> uris = new ArrayList<>(inconsistentUris.size());
+    for (AlluxioURI uri : inconsistentUris) {
+      uris.add(uri.toString());
+    }
+    ret.setInconsistentUris(uris);
+    ret.setStatus(check.getStatus().toString().toLowerCase());
+    return ret;
   }
 
   private Map<String, Capacity> getTierCapacityInternal() {

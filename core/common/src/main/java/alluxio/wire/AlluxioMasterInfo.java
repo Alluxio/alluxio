@@ -26,6 +26,7 @@ public class AlluxioMasterInfo {
   private Map<String, MountPointInfo> mMountPoints;
   private String mRpcAddress;
   private long mStartTimeMs;
+  private StartupConsistencyCheck mStartupConsistencyCheck;
   private Map<String, Capacity> mTierCapacity;
   private Capacity mUfsCapacity;
   private long mUptimeMs;
@@ -77,6 +78,13 @@ public class AlluxioMasterInfo {
    */
   public long getStartTimeMs() {
     return mStartTimeMs;
+  }
+
+  /**
+   * @return the startup consistency check's status
+   */
+  public StartupConsistencyCheck getStartupConsistencyCheck() {
+    return mStartupConsistencyCheck;
   }
 
   /**
@@ -169,6 +177,15 @@ public class AlluxioMasterInfo {
   }
 
   /**
+   * @param check the consistency check
+   * @return the Alluxio master information
+   */
+  public AlluxioMasterInfo setStartupConsistencyCheck(StartupConsistencyCheck check) {
+    mStartupConsistencyCheck = check;
+    return this;
+  }
+
+  /**
    * @param tierCapacity the capacity per tier to use
    * @return the Alluxio master information
    */
@@ -228,6 +245,7 @@ public class AlluxioMasterInfo {
         && Objects.equal(mMountPoints, that.mMountPoints)
         && Objects.equal(mRpcAddress, that.mRpcAddress)
         && mStartTimeMs == that.mStartTimeMs
+        && Objects.equal(mStartupConsistencyCheck, that.mStartupConsistencyCheck)
         && Objects.equal(mTierCapacity, that.mTierCapacity)
         && Objects.equal(mUfsCapacity, that.mUfsCapacity)
         && mUptimeMs == that.mUptimeMs
@@ -239,7 +257,8 @@ public class AlluxioMasterInfo {
   public int hashCode() {
     return Objects
         .hashCode(mCapacity, mConfiguration, mMetrics, mMountPoints, mRpcAddress, mStartTimeMs,
-            mTierCapacity, mUfsCapacity, mUptimeMs, mVersion, mWorkers);
+            mStartupConsistencyCheck, mTierCapacity, mUfsCapacity, mUptimeMs, mVersion,
+            mWorkers);
   }
 
   @Override
@@ -251,6 +270,7 @@ public class AlluxioMasterInfo {
         .add("mount points", mMountPoints)
         .add("rpc address", mRpcAddress)
         .add("start time", mStartTimeMs)
+        .add("startup consistency check", mStartupConsistencyCheck)
         .add("tier capacity", mTierCapacity)
         .add("ufs capacity", mUfsCapacity)
         .add("uptime", mUptimeMs)
