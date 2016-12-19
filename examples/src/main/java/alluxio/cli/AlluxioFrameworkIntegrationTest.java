@@ -126,7 +126,7 @@ public final class AlluxioFrameworkIntegrationTest {
 
   private void startAlluxioFramework(Map<String, String> extraEnv) {
     String startScript = PathUtils.concatPath(Configuration.get(PropertyKey.HOME),
-        "integration", "bin", "alluxio-mesos.sh");
+        "integration", "mesos", "bin", "alluxio-mesos-start.sh");
     ProcessBuilder pb = new ProcessBuilder(startScript, mMesosAddress);
     Map<String, String> env = pb.environment();
     env.putAll(extraEnv);
@@ -188,7 +188,7 @@ public final class AlluxioFrameworkIntegrationTest {
 
   private static void stopAlluxioFramework() throws Exception {
     String stopScript = PathUtils.concatPath(Configuration.get(PropertyKey.HOME),
-        "integration", "bin", "stop-alluxio-framework.sh");
+        "integration", "mesos", "bin", "alluxio-mesos-stop.sh");
     ProcessBuilder pb = new ProcessBuilder(stopScript);
     pb.start().waitFor();
     // Wait for Mesos to unregister and shut down the Alluxio Framework.
