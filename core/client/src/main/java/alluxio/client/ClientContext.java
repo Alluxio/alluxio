@@ -14,8 +14,7 @@ package alluxio.client;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.metrics.MetricsSystem;
-
-import com.google.common.base.Preconditions;
+import alluxio.util.network.NetworkAddressUtils;
 
 import java.net.InetSocketAddress;
 
@@ -42,8 +41,12 @@ public final class ClientContext {
    * This method requires that configuration has been initialized.
    */
   public static void init() {
-    String masterHostname =
-        Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    String masterHostname;
+    if (Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
+      masterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
+    } else {
+      masterHostname = NetworkAddressUtils.getLocalHostName();
+    }
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
