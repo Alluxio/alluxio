@@ -42,8 +42,8 @@ public final class AlluxioWorker {
     }
 
     if (!Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
-      System.out.println("Cannot start worker; master hostname is not configured. " +
-          "Please set alluxio.master.hostname in alluxio-site.properties.");
+      System.out.println("Cannot start worker; master hostname is not configured. "
+          + "Please set alluxio.master.hostname in alluxio-site.properties.");
       System.exit(1);
     }
 
