@@ -30,11 +30,19 @@ function init_env() {
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
-  ALLUXIO_WORKER_MEMORY_SIZE=$(bin/alluxio getConf alluxio.worker.memory.size)
-  if [[ -z ${ALLUXIO_WORKER_MEMORY_SIZE} ]]; then
-    echo "ALLUXIO_WORKER_MEMORY_SIZE was not set. Using the default one: 1GB"
-    ALLUXIO_WORKER_MEMORY_SIZE="1GB"
+  # Determine a reasonable default for worker memory
+  if [[ $(uname -s) == Darwin ]]; then
+    # Assuming Mac OS X
+    DEFAULT_TOTAL_MEM=$(sysctl hw.memsize | cut -d ' ' -f2)
+    DEFAULT_TOTAL_MEM=$[DEFAULT_TOTAL_MEM / 1024 / 1024]
+    DEFAULT_TOTAL_MEM=$[DEFAULT_TOTAL_MEM * 2 / 3]MB
+  else
+    # Assuming Linux
+    DEFAULT_TOTAL_MEM=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+    DEFAULT_TOTAL_MEM=$[TOTAL_MEM / 1024 * 2 / 3]MB
   fi
+  ALLUXIO_WORKER_MEMORY_SIZE=$(${BIN}/alluxio getConf alluxio.worker.memory.size)
+  ALLUXIO_WORKER_MEMORY_SIZE=${ALLUXIO_WORKER_MEMORY_SIZE:-${DEFAULT_TOTAL_MEM}}
 
   MEM_SIZE=$(echo "${ALLUXIO_WORKER_MEMORY_SIZE}" | tr -s '[:upper:]' '[:lower:]')
 }
@@ -140,7 +148,7 @@ function mac_hfs_provision_sectors() {
 function mount_ramfs_linux() {
   init_env $1
 
-  ALLUXIO_WORKER_MEMORY_SIZE=$(bin/alluxio getConf alluxio.worker.memory.size)
+  ALLUXIO_WORKER_MEMORY_SIZE=$(${BIN}/alluxio getConf alluxio.worker.memory.size)
   if [[ -z ${ALLUXIO_RAM_FOLDER} ]]; then
     ALLUXIO_RAM_FOLDER=/mnt/ramdisk
     echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: ${ALLUXIO_RAM_FOLDER}"

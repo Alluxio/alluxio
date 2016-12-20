@@ -49,17 +49,11 @@ JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 # Determine reasonable defaults for worker memory and ramdisk folder
 if [[ $(uname -s) == Darwin ]]; then
   # Assuming Mac OS X
-  DEFAULT_TOTAL_MEM=$(sysctl hw.memsize | cut -d ' ' -f2)
-  DEFAULT_TOTAL_MEM=$[DEFAULT_TOTAL_MEM / 1024 / 1024]
-  DEFAULT_TOTAL_MEM=$[DEFAULT_TOTAL_MEM * 2 / 3]
   DEFAULT_RAM_FOLDER="/Volumes/ramdisk"
 else
   # Assuming Linux
-  DEFAULT_TOTAL_MEM=$(awk '/MemTotal/{print $2}' /proc/meminfo)
-  DEFAULT_TOTAL_MEM=$[TOTAL_MEM / 1024 * 2 / 3]
   DEFAULT_RAM_FOLDER="/mnt/ramdisk"
 fi
-ALLUXIO_WORKER_MEMORY_SIZE=${ALLUXIO_WORKER_MEMORY_SIZE:-${DEFAULT_TOTAL_MEM}MB}
 # If ALLUXIO_RAM_FOLDER is explicitly set to the empty string, do not overwrite.
 ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER-${DEFAULT_RAM_FOLDER}}
 
