@@ -50,7 +50,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * @param blockId the block id
    * @param blockSize the size of the block
    * @param workerNetAddress the address of the local worker
-   * @param context the block store context to use for acquiring worker and master clients
+   * @param context the file system context
    * @param options the instream options
    * @throws IOException if I/O error occurs
    */

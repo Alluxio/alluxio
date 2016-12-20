@@ -46,7 +46,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
 
   /** Client to communicate with the remote worker. */
   private final BlockWorkerClient mBlockWorkerClient;
-  /** The block store context which provides block worker clients. */
+  /** The file system context which provides block worker clients. */
   private final FileSystemContext mContext;
   /** {@link RemoteBlockReader} for this instance. */
   private RemoteBlockReader mReader;
@@ -57,7 +57,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @param blockId the block id
    * @param blockSize the block size
    * @param workerNetAddress the worker address
-   * @param context the block store context to use for acquiring worker and master clients
+   * @param context the file system context to use for acquiring worker and master clients
    * @param options the instream options
    * @throws IOException if the block is not available on the remote worker
    */

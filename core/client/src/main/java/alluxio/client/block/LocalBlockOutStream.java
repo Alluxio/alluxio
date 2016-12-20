@@ -52,7 +52,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
    * @param blockId the block id
    * @param blockSize the block size
    * @param workerNetAddress the address of the local worker
-   * @param context the block store context
+   * @param context the file system context
    * @param options the options
    * @throws IOException if an I/O error occurs
    */

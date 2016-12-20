@@ -61,7 +61,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
    *
    * @param blockId the id of the block
    * @param blockSize the size of the block
-   * @param context the block store context
+   * @param context the file system context
    */
   public BufferedBlockOutStream(long blockId, long blockSize, FileSystemContext context) {
     mBlockId = blockId;
