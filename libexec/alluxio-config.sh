@@ -54,7 +54,9 @@ else
   # Assuming Linux
   DEFAULT_RAM_FOLDER="/mnt/ramdisk"
 fi
-# If ALLUXIO_RAM_FOLDER is explicitly set to the empty string, do not overwrite.
+# If ALLUXIO_RAM_FOLDER is explicitly set to the empty string, do not overwrite. This way a user
+# could set ALLUXIO_RAM_FOLDER="" to avoid using ramdisk at all. The ${X-Y} syntax will return $X
+# unless X is UNSET (not just empty), in which case it returns Y.
 ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER-${DEFAULT_RAM_FOLDER}}
 
 if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
