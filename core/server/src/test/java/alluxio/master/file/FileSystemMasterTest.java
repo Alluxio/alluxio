@@ -76,6 +76,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -83,6 +84,7 @@ import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -1234,6 +1236,28 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Uses the integer suffix of a path to determine order. Paths without integer suffixes will be
+   * ordered last.
+   */
+  private class IntegerSuffixedPathComparator implements Comparator<FileInfo> {
+    @Override
+    public int compare(FileInfo o1, FileInfo o2) {
+      return extractIntegerSuffix(o1.getName()) - extractIntegerSuffix(o2.getName());
+
+    }
+
+    private int extractIntegerSuffix(String name) {
+      Pattern p = Pattern.compile("\\D*(\\d+$)");
+      Matcher m = p.matcher(name);
+      if (m.matches()) {
+        return Integer.parseInt(m.group(1));
+      } else {
+        return Integer.MAX_VALUE;
+      }
+    }
+  }
+
+  /**
    * Tests concurrent renames within the root do not block on each other.
    */
   @Test
@@ -1253,9 +1277,11 @@ public final class FileSystemMasterTest {
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<FileInfo> files =
         mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
-    for (FileInfo file : files) {
-      Assert.assertTrue(file.getName().startsWith("renamed"));
+    Collections.sort(files, new IntegerSuffixedPathComparator());
+    for (int i = 0; i < numThreads; i++) {
+      Assert.assertEquals(dsts[i].getName(), files.get(i).getName());
     }
+    Assert.assertEquals(numThreads, files.size());
   }
 
   /**
@@ -1281,9 +1307,11 @@ public final class FileSystemMasterTest {
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<FileInfo> files =
         mFileSystemMaster.listStatus(dir, ListStatusOptions.defaults());
-    for (FileInfo file : files) {
-      Assert.assertTrue(file.getName().startsWith("renamed"));
+    Collections.sort(files, new IntegerSuffixedPathComparator());
+    for (int i = 0; i < numThreads; i++) {
+      Assert.assertEquals(dsts[i].getName(), files.get(i).getName());
     }
+    Assert.assertEquals(numThreads, files.size());
   }
 
   /**
@@ -1364,25 +1392,26 @@ public final class FileSystemMasterTest {
 
     int errors = concurrentRename(srcs, dsts);
 
-    // We should get an error for all but 1 rename
+    // We should get an error for all but 1 rename.
     Assert.assertEquals(numThreads - 1, errors);
 
     List<FileInfo> files =
         mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
-    int renamedFiles = 0;
-    int originalFiles = 0;
+    // Store file names in a set to ensure the names are all unique.
+    Set<String> renamedFiles = new HashSet<>();
+    Set<String> originalFiles = new HashSet<>();
     for (FileInfo file : files) {
       if (file.getName().startsWith("renamed")) {
-        renamedFiles++;
+        renamedFiles.add(file.getName());
       }
       if (file.getName().startsWith("file")) {
-        originalFiles++;
+        originalFiles.add(file.getName());
       }
     }
     // One renamed file should exist, and 9 original source files
     Assert.assertEquals(numThreads, files.size());
-    Assert.assertEquals(1, renamedFiles);
-    Assert.assertEquals(numThreads - 1, originalFiles);
+    Assert.assertEquals(1, renamedFiles.size());
+    Assert.assertEquals(numThreads - 1, originalFiles.size());
   }
 
   /**
@@ -1415,8 +1444,10 @@ public final class FileSystemMasterTest {
 
     Assert.assertEquals(0, dir1Files.size());
     Assert.assertEquals(numThreads, dir2Files.size());
-    for (FileInfo file : dir2Files) {
-      Assert.assertTrue(file.getName().startsWith("renamed"));
+
+    Collections.sort(dir2Files, new IntegerSuffixedPathComparator());
+    for (int i = 0; i < numThreads; i++) {
+      Assert.assertEquals(dsts[i].getName(), dir2Files.get(i).getName());
     }
   }
 
@@ -1454,16 +1485,18 @@ public final class FileSystemMasterTest {
     List<FileInfo> dir2Files =
         mFileSystemMaster.listStatus(dir2, ListStatusOptions.defaults());
 
-    for (FileInfo file : dir1Files) {
-      Assert.assertTrue(Pattern.matches("^renamed\\d*[1,3,5,7,9]$", file.getName()));
-    }
-
-    for (FileInfo file : dir2Files) {
-      Assert.assertTrue(Pattern.matches("^renamed\\d*[2,4,6,8,0]$", file.getName()));
-    }
-
     Assert.assertEquals(numThreads / 2, dir1Files.size());
     Assert.assertEquals(numThreads / 2, dir2Files.size());
+
+    Collections.sort(dir1Files, new IntegerSuffixedPathComparator());
+    for (int i = 1; i < numThreads; i+=2) {
+      Assert.assertEquals(dsts[i].getName(), dir1Files.get(i / 2).getName());
+    }
+
+    Collections.sort(dir2Files, new IntegerSuffixedPathComparator());
+    for (int i = 0; i < numThreads; i+=2) {
+      Assert.assertEquals(dsts[i].getName(), dir2Files.get(i / 2).getName());
+    }
   }
 
   /**

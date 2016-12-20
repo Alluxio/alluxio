@@ -62,6 +62,8 @@ public final class InodeLockList implements AutoCloseable {
    * Locks the given inode in read mode, and adds it to this lock list. This method ensures the
    * parent is the expected parent inode, and the name of the inode is the expected name.
    *
+   * This method assumes that the inode path to the parent has been read locked.
+   *
    * @param inode the inode to lock
    * @param parent the expected parent inode
    * @param name the expected name of the inode to be locked
@@ -120,6 +122,8 @@ public final class InodeLockList implements AutoCloseable {
   /**
    * Locks the given inode in write mode, and adds it to this lock list. This method ensures the
    * parent is the expected parent inode, and the name of the inode is the expected name.
+   *
+   * This method assumes that the inode path to the parent has been read locked.
    *
    * @param inode the inode to lock
    * @param parent the expected parent inode

@@ -161,6 +161,14 @@ public final class FileSystemMaster extends AbstractMaster {
    *    }
    * </pre></blockquote>
    *
+   * When locking a path in the inode tree, it is possible that other concurrent operations have
+   * modified the inode tree while a thread is waiting to acquire a lock on the inode. Lock
+   * acquisitions throw {@link InvalidPathException} to indicate that the inode structure is no
+   * longer consistent with what the caller original expected, for example if the inode
+   * previously obtained at /pathA has been renamed to /pathB during the wait for the inode lock.
+   * Methods which specifically act on a path will propagate this exception to the caller, while
+   * methods which iterate over child nodes can safely ignore the exception and treat the inode
+   * as no longer a child.
    *
    * Method Conventions in the FileSystemMaster
    *
@@ -491,7 +499,7 @@ public final class FileSystemMaster extends AbstractMaster {
               childInode.lockReadAndCheckParent(parentInode);
             } catch (InvalidPathException e) {
               // This should be safe, continue.
-              LOG.debug("A file scheduled for consistency check was moved before the check.");
+              LOG.debug("Error during startup check consistency, ignoring and continuing.", e);
               continue;
             }
             try {

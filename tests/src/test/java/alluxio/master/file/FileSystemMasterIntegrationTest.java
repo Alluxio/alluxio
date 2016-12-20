@@ -77,7 +77,7 @@ public class FileSystemMasterIntegrationTest {
   private static final AlluxioURI ROOT_PATH2 = new AlluxioURI("/root2");
   // Modify current time so that implementations can't accidentally pass unit tests by ignoring
   // this specified time and always using System.currentTimeMillis()
-  private static final long TEST_TIME_OFFSET_MS = 300000;
+  private static final long TEST_TIME_MS = Long.MAX_VALUE;
   private static final long TTL_CHECKER_INTERVAL_MS = 1000;
   private static final String TEST_USER = "test";
   // Time to wait for shutting down thread pool.
@@ -399,7 +399,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeCompleteFile() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
-    long opTimeMs = System.currentTimeMillis() + TEST_TIME_OFFSET_MS;
+    long opTimeMs = TEST_TIME_MS;
     try (LockedInodePath inodePath =
         mInodeTree.lockFullInodePath(new AlluxioURI("/testFile"), InodeTree.LockMode.WRITE)) {
       mFsMaster.completeFileInternal(new ArrayList<Long>(), inodePath, 0, opTimeMs);
@@ -411,7 +411,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeCreateFile() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
-    long opTimeMs = System.currentTimeMillis() + TEST_TIME_OFFSET_MS;
+    long opTimeMs = TEST_TIME_MS;
     CreateFileOptions options = CreateFileOptions.defaults().setOperationTimeMs(opTimeMs);
     try (LockedInodePath inodePath = mInodeTree
         .lockInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
@@ -440,7 +440,7 @@ public class FileSystemMasterIntegrationTest {
   public void lastModificationTimeRename() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), CreateFileOptions.defaults());
-    long opTimeMs = System.currentTimeMillis() + TEST_TIME_OFFSET_MS;
+    long opTimeMs = TEST_TIME_MS;
 
     try (InodePathPair inodePathPair = mInodeTree.lockInodePathPair(
         new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
@@ -605,7 +605,7 @@ public class FileSystemMasterIntegrationTest {
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
     mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
 
-    long opTimeMs = System.currentTimeMillis() + TEST_TIME_OFFSET_MS;
+    long opTimeMs = TEST_TIME_MS;
     try (InodePathPair inodePathPair = mInodeTree.lockInodePathPair(
         new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
         new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
