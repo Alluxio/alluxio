@@ -61,6 +61,7 @@ public enum PropertyKey {
       String.format("${%s}/core-site.xml", Name.CONF_DIR)),
   UNDERFS_HDFS_IMPL(Name.UNDERFS_HDFS_IMPL, "org.apache.hadoop.hdfs.DistributedFileSystem"),
   UNDERFS_HDFS_PREFIXES(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///"),
+  UNDERFS_HDFS_REMOTE(Name.UNDERFS_HDFS_REMOTE, false),
   UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY,
       false),
   UNDERFS_OSS_CONNECT_MAX(Name.UNDERFS_OSS_CONNECT_MAX, 1024),
@@ -406,6 +407,7 @@ public enum PropertyKey {
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
+    public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
