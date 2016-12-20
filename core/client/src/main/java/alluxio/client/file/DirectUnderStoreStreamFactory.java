@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,8 +33,13 @@ public final class DirectUnderStoreStreamFactory implements UnderStoreStreamFact
   }
 
   @Override
+<<<<<<< HEAD
   public InputStream create(long length) throws IOException {
     return UnderFileSystem.Factory.get(mPath).open(mPath);
+=======
+  public InputStream create(OpenOptions options) throws IOException {
+    return UnderFileSystem.Factory.get(mPath).open(mPath, options);
+>>>>>>> upstream/streaming
   }
 
   @Override

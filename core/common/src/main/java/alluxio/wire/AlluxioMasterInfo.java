@@ -23,8 +23,10 @@ public class AlluxioMasterInfo {
   private Capacity mCapacity;
   private Map<String, String> mConfiguration;
   private Map<String, Long> mMetrics;
+  private Map<String, MountPointInfo> mMountPoints;
   private String mRpcAddress;
   private long mStartTimeMs;
+  private StartupConsistencyCheck mStartupConsistencyCheck;
   private Map<String, Capacity> mTierCapacity;
   private Capacity mUfsCapacity;
   private long mUptimeMs;
@@ -58,6 +60,13 @@ public class AlluxioMasterInfo {
   }
 
   /**
+   * @return the mount points
+   */
+  public Map<String, MountPointInfo> getMountPoints() {
+    return mMountPoints;
+  }
+
+  /**
    * @return the RPC address
    */
   public String getRpcAddress() {
@@ -69,6 +78,13 @@ public class AlluxioMasterInfo {
    */
   public long getStartTimeMs() {
     return mStartTimeMs;
+  }
+
+  /**
+   * @return the startup consistency check's status
+   */
+  public StartupConsistencyCheck getStartupConsistencyCheck() {
+    return mStartupConsistencyCheck;
   }
 
   /**
@@ -134,6 +150,15 @@ public class AlluxioMasterInfo {
   }
 
   /**
+   * @param mountPoints the mount points to use
+   * @return the Alluxio master information
+   */
+  public AlluxioMasterInfo setMountPoints(Map<String, MountPointInfo> mountPoints) {
+    mMountPoints = mountPoints;
+    return this;
+  }
+
+  /**
    * @param rpcAddress the RPC address to use
    * @return the Alluxio master information
    */
@@ -148,6 +173,15 @@ public class AlluxioMasterInfo {
    */
   public AlluxioMasterInfo setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
+    return this;
+  }
+
+  /**
+   * @param check the consistency check
+   * @return the Alluxio master information
+   */
+  public AlluxioMasterInfo setStartupConsistencyCheck(StartupConsistencyCheck check) {
+    mStartupConsistencyCheck = check;
     return this;
   }
 
@@ -208,8 +242,10 @@ public class AlluxioMasterInfo {
     return Objects.equal(mCapacity, that.mCapacity)
         && Objects.equal(mConfiguration, that.mConfiguration)
         && Objects.equal(mMetrics, that.mMetrics)
+        && Objects.equal(mMountPoints, that.mMountPoints)
         && Objects.equal(mRpcAddress, that.mRpcAddress)
         && mStartTimeMs == that.mStartTimeMs
+        && Objects.equal(mStartupConsistencyCheck, that.mStartupConsistencyCheck)
         && Objects.equal(mTierCapacity, that.mTierCapacity)
         && Objects.equal(mUfsCapacity, that.mUfsCapacity)
         && mUptimeMs == that.mUptimeMs
@@ -220,8 +256,9 @@ public class AlluxioMasterInfo {
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mCapacity, mConfiguration, mMetrics, mRpcAddress, mStartTimeMs, mTierCapacity,
-            mUfsCapacity, mUptimeMs, mVersion, mWorkers);
+        .hashCode(mCapacity, mConfiguration, mMetrics, mMountPoints, mRpcAddress, mStartTimeMs,
+            mStartupConsistencyCheck, mTierCapacity, mUfsCapacity, mUptimeMs, mVersion,
+            mWorkers);
   }
 
   @Override
@@ -230,8 +267,10 @@ public class AlluxioMasterInfo {
         .add("capacity", mCapacity)
         .add("configuration", mConfiguration)
         .add("metrics", mMetrics)
+        .add("mount points", mMountPoints)
         .add("rpc address", mRpcAddress)
         .add("start time", mStartTimeMs)
+        .add("startup consistency check", mStartupConsistencyCheck)
         .add("tier capacity", mTierCapacity)
         .add("ufs capacity", mUfsCapacity)
         .add("uptime", mUptimeMs)

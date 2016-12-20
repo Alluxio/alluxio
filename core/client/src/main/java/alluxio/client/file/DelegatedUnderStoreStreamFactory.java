@@ -19,6 +19,7 @@ import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.options.CloseUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.underfs.options.OpenOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +52,7 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
   }
 
   @Override
+<<<<<<< HEAD
   public InputStream create(long length) {
     if (!PACKET_STREAMING_ENABLED) {
       return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mFileId,
@@ -59,6 +61,11 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
       return new alluxio.client.block.stream.UnderFileSystemFileInStream(
           mClient.getWorkerDataServerAddress(), mFileId, length);
     }
+=======
+  public InputStream create(OpenOptions options) {
+    return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(),
+        mFileId, options.getOffset(), UnderFileSystemFileReader.Factory.create());
+>>>>>>> upstream/streaming
   }
 
   @Override

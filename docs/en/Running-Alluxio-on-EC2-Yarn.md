@@ -129,7 +129,7 @@ master/workers, put `alluxio-site.properties` under `~/.alluxio/` on each EC2 ma
 
 If Yarn does not reside in HADOOP_HOME, you'll want to export the environment variable YARN_HOME to the base path of Yarn.
 
-Use the script `integration/bin/alluxio-yarn.sh` to start Alluxio. This script takes three arguments:
+Use the script `integration/yarn/bin/alluxio-yarn.sh` to start Alluxio. This script takes three arguments:
 
 1. The total number of Alluxio workers to start. (required)
 2. An HDFS path to distribute the binaries for Alluxio ApplicationMaster. (required)

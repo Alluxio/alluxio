@@ -21,15 +21,17 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
 Where ACTION is one of:
-  all [MOPT]     \tStart master, proxy and all workers.
-  local [MOPT]   \tStart a master and worker locally.
+  all [MOPT]     \tStart master and all proxies and workers.
+  local [MOPT]   \tStart a master, proxy, and worker locally.
   master         \tStart the master on this node.
   proxy          \tStart the proxy on this node.
+  proxies        \tStart proxies on worker nodes.
   safe           \tScript will run continuously and start the master if it's not running.
   worker [MOPT]  \tStart a worker on this node.
   workers [MOPT] \tStart workers on worker nodes.
   restart_worker \tRestart a failed worker on this node.
   restart_workers\tRestart any failed workers on worker nodes.
+
 MOPT (Mount Option) is one of:
   Mount    \tMount the configured RamFS. Notice: this will format the existing RamFS.
   SudoMount\tMount the configured RamFS using sudo.
@@ -79,7 +81,7 @@ is_ram_folder_mounted() {
 }
 
 check_mount_mode() {
-  case "$1" in
+  case $1 in
     Mount);;
     SudoMount);;
     NoMount)
@@ -197,6 +199,18 @@ restart_worker() {
   fi
 }
 
+restart_workers() {
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "restart_worker"
+}
+
+start_proxies() {
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "proxy"
+}
+
+start_workers() {
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" $1
+}
+
 run_safe() {
   while [ 1 ]
   do
@@ -271,16 +285,17 @@ main() {
   case "${ACTION}" in
     all)
       if [[ "${killonstart}" != "no" ]]; then
-        stop ${BIN}
+        stop
       fi
       start_master "${FORMAT}"
-      sleep 2
-      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}"
       start_proxy
+      sleep 2
+      start_workers "${MOPT}"
+      start_proxies
       ;;
     local)
       if [[ "${killonstart}" != "no" ]]; then
-        stop ${BIN}
+        stop
         sleep 1
       fi
       start_master "${FORMAT}"
@@ -294,20 +309,23 @@ main() {
     proxy)
       start_proxy
       ;;
-    worker)
-      start_worker "${MOPT}"
-      ;;
-    safe)
-      run_safe
-      ;;
-    workers)
-      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}"
+    proxies)
+      start_proxies
       ;;
     restart_worker)
       restart_worker
       ;;
     restart_workers)
-      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" restart_worker
+      restart_workers
+      ;;
+    safe)
+      run_safe
+      ;;
+    worker)
+      start_worker "${MOPT}"
+      ;;
+    workers)
+      start_workers "${MOPT}"
       ;;
     *)
     echo "Error: Invalid ACTION: ${ACTION}" >&2

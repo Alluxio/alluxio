@@ -57,7 +57,7 @@ public class FileBlockInfoTest {
     List<String> ufsLocations = new ArrayList<>();
     long numUfsLocations = random.nextInt(10);
     for (int i = 0; i < numUfsLocations; i++) {
-      ufsLocations.add(HostAndPort.fromParts(CommonUtils.randomString(random.nextInt(10)),
+      ufsLocations.add(HostAndPort.fromParts(CommonUtils.randomAlphaNumString(random.nextInt(10)),
           random.nextInt(Constants.MAX_PORT)).toString());
     }
 

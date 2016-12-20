@@ -20,6 +20,7 @@ import org.powermock.reflect.Whitebox;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -96,7 +97,7 @@ public final class CommonTestUtils {
     EqualsTester equalsTester = new EqualsTester();
     equalsTester.addEqualityGroup(createBaseObject(clazz), createBaseObject(clazz));
     // For each non-excluded field, create an object of the class with only that field changed.
-    for (Field field : getAllFields(clazz)) {
+    for (Field field : getNonStaticFields(clazz)) {
       if (excludedFieldsSet.contains(field.getName())) {
         continue;
       }
@@ -122,7 +123,7 @@ public final class CommonTestUtils {
       Constructor<T> constructor = clazz.getDeclaredConstructor();
       constructor.setAccessible(true);
       T instance = constructor.newInstance();
-      for (Field field : getAllFields(clazz)) {
+      for (Field field : getNonStaticFields(clazz)) {
         field.setAccessible(true);
         field.set(instance, getValuesForFieldType(field.getType()).get(0));
       }
@@ -169,13 +170,17 @@ public final class CommonTestUtils {
   }
 
   /**
-   * @param type the type to get the field for
-   * @return all fields of an object of the given type
+   * @param type the type to get the fields for
+   * @return all nonstatic fields of an object of the given type
    */
-  private static List<Field> getAllFields(Class<?> type) {
+  private static List<Field> getNonStaticFields(Class<?> type) {
     List<Field> fields = new ArrayList<>();
     for (Class<?> c = type; c != null; c = c.getSuperclass()) {
-      fields.addAll(Arrays.asList(c.getDeclaredFields()));
+      for (Field field : c.getDeclaredFields()) {
+        if (!Modifier.isStatic(field.getModifiers())) {
+          fields.add(field);
+        }
+      }
     }
     return fields;
   }

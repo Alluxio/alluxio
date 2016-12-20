@@ -14,6 +14,8 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
@@ -21,6 +23,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,9 +42,11 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link AlluxioMasterRestServiceHandler}.
  */
 public final class AlluxioMasterRestApiTest extends RestApiTest {
+  private FileSystemMaster mFileSystemMaster;
 
   @Before
   public void before() {
+    mFileSystemMaster = mResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
@@ -106,6 +111,19 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getMountPoints() throws Exception {
+    Map<String, MountInfo> mountTable = mFileSystemMaster.getMountTable();
+    Map<String, MountPointInfo> mountPoints = getInfo(NO_PARAMS).getMountPoints();
+    Assert.assertEquals(mountTable.size(), mountPoints.size());
+    for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
+      Assert.assertTrue(mountPoints.containsKey(mountPoint.getKey()));
+      String expectedUri = mountPoints.get(mountPoint.getKey()).getUfsUri();
+      String returnedUri = mountPoint.getValue().getUfsUri().toString();
+      Assert.assertEquals(expectedUri, returnedUri);
+    }
+  }
+
+  @Test
   public void getRpcAddress() throws Exception {
     Assert.assertTrue(getInfo(NO_PARAMS).getRpcAddress()
         .contains(String.valueOf(NetworkAddressUtils.getPort(ServiceType.MASTER_RPC))));
@@ -114,6 +132,17 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getStartTimeMs() throws Exception {
     Assert.assertTrue(getInfo(NO_PARAMS).getStartTimeMs() > 0);
+  }
+
+  @Test
+  public void getStartupConsistencyCheckStatus() throws Exception {
+    MasterTestUtils.waitForStartupConsistencyCheck(mFileSystemMaster);
+    alluxio.wire.StartupConsistencyCheck status = getInfo(NO_PARAMS)
+        .getStartupConsistencyCheck();
+    Assert.assertEquals(
+        FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
+        status.getStatus());
+    Assert.assertEquals(0, status.getInconsistentUris().size());
   }
 
   @Test

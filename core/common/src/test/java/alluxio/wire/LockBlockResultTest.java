@@ -48,7 +48,7 @@ public class LockBlockResultTest {
     Random random = new Random();
 
     long lockId = random.nextLong();
-    String blockPath = CommonUtils.randomString(random.nextInt(10));
+    String blockPath = CommonUtils.randomAlphaNumString(random.nextInt(10));
 
     result.setLockId(lockId);
     result.setBlockPath(blockPath);

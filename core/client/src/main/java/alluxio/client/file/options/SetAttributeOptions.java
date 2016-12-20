@@ -31,6 +31,7 @@ public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
+  // SetAttribute for persist will be deprecated in Alluxio 1.4 release.
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
@@ -79,9 +80,11 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @deprecated the persisted attribute is deprecated since version 1.4 and will be removed in 2.0
    * @return the persisted value of the file; it denotes whether the file has been persisted to the
    *         under file system or not.
    */
+  @Deprecated
   public Boolean getPersisted() {
     return mPersisted;
   }
@@ -146,10 +149,12 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @deprecated the persisted attribute is deprecated since version 1.4 and will be removed in 2.0
    * @param persisted the persisted flag value to use; it specifies whether the file has been
    *        persisted in the under file system or not.
    * @return the updated options object
    */
+  @Deprecated
   public SetAttributeOptions setPersisted(boolean persisted) {
     mPersisted = persisted;
     return this;

@@ -18,6 +18,7 @@ function printUsage {
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
   echo -e "  fs            \t Command line input for generic filesystem user client."
+  echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
   echo -e "  runClass      \t Run an Alluxio class with main method."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
@@ -239,6 +240,10 @@ function main {
   ;;
   "fs")
     CLASS="alluxio.cli.AlluxioShell"
+    runJavaClass "$@"
+  ;;
+  "getConf")
+    CLASS="alluxio.cli.GetConf"
     runJavaClass "$@"
   ;;
   "loadufs")

@@ -101,6 +101,16 @@ Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.
 
 {% include File-System-API/read-file.md %}
 
+# REST API
+
+考虑到与其他语言的可移植性，Alluxio本地API也可以以REST API的形式通过HTTP代理访问。
+
+REST API文档是作为Alluxio构建的一部分来生成的，并可以通过`${ALLUXIO_HOME}/core/server/target/miredot/index.html`来访问。
+
+HTTP代理是一个独立的服务器，可以通过`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy`来启动，以及通过`${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy`来停止。默认情况下，REST API在端口39999可用。
+
+使用HTTP代理会影响系统性能。特别是使用代理需要额外一跳来访问。为了获得最佳性能，建议在每个计算节点运行代理服务器和Alluxio worker进程。
+
 # Hadoop API
 
 Alluxio有一个原生客户端的封装，其提供了兼容Hadoop的`FileSystem`接口。利用该客户端实例，Hadoop的文件操作将被转换为FileSystem操作。最新的`FileSystem`接口的文档可以在[这里](http://hadoop.apache.org/docs/current/api/org/apache/hadoop/fs/FileSystem.html)找到。

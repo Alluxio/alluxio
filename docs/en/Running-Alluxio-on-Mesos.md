@@ -86,6 +86,7 @@ This means you can configure the launched Alluxio cluster by setting configurati
 
 #### Log files
 
-The `./integration/bin/alluxio-mesos.sh` script will launch an `AlluxioFramework` Java process which will log to `alluxio/logs/framework.out`.
+The `./integration/mesos/bin/alluxio-mesos-start.sh` script will launch an `AlluxioFramework` Java process which will log to `alluxio/logs/framework.out`.
+
 Alluxio masters and workers launched on Mesos will write their Alluxio logs to `mesos_container/logs/`. There
 may also be useful information in the `mesos_container/stderr` file.

@@ -11,9 +11,9 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
-import alluxio.client.Seekable;
 import alluxio.exception.PreconditionMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
