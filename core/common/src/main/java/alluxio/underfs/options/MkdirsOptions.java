@@ -60,7 +60,7 @@ public final class MkdirsOptions {
   }
 
   /**
-   * Sets the block size.
+   * Sets option to create parent directories.
    *
    * @param createParent if true, creates any necessary but nonexistent parent directories
    * @return the updated option object

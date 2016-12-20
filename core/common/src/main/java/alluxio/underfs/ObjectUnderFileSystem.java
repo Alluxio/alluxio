@@ -477,13 +477,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Checks if the key is the root.
+   * Checks if the path is the root.
    *
-   * @param key ufs path including scheme and bucket
-   * @return true if the key is the root, false otherwise
+   * @param path ufs path including scheme and bucket
+   * @return true if the path is the root, false otherwise
    */
-  protected boolean isRoot(String key) {
-    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
+  protected boolean isRoot(String path) {
+    return PathUtils.normalizePath(path, PATH_SEPARATOR).equals(
         PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
   }
 
