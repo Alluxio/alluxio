@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
@@ -22,9 +21,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.CommonUtils;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
@@ -77,7 +74,7 @@ public class StartupConsistencyCheckTest {
   public void consistent() throws Exception {
     mCluster.stopFS();
     final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-    waitForStartupConsistencyCheck(master);
+    MasterTestUtils.waitForStartupConsistencyCheck(master);
     Assert.assertTrue(master.getStartupConsistencyCheck().getInconsistentUris().isEmpty());
   }
 
@@ -94,26 +91,11 @@ public class StartupConsistencyCheckTest {
     ufs.deleteFile(topLevelFileUfsPath);
     ufs.deleteDirectory(secondLevelDirUfsPath, DeleteOptions.defaults().setRecursive(true));
     final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-    waitForStartupConsistencyCheck(master);
+    MasterTestUtils.waitForStartupConsistencyCheck(master);
     List expected = Lists.newArrayList(TOP_LEVEL_FILE, SECOND_LEVEL_DIR, THIRD_LEVEL_FILE);
     List result = master.getStartupConsistencyCheck().getInconsistentUris();
     Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
-  }
-
-  /**
-   * Waits for the startup consistency check to complete with a limit of 1 minute.
-   *
-   * @param master the file system master which is starting up
-   */
-  private void waitForStartupConsistencyCheck(final FileSystemMaster master) {
-    CommonUtils.waitFor("Startup consistency check completion", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void aVoid) {
-        return master.getStartupConsistencyCheck().getStatus()
-            == FileSystemMaster.StartupConsistencyCheckResult.Status.COMPLETE;
-      }
-    }, Constants.MINUTE_MS);
   }
 }

@@ -15,28 +15,18 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
 import alluxio.client.file.options.CheckConsistencyOptions;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.security.authorization.Permission;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 
-import com.google.common.io.Closer;
-import org.apache.commons.io.IOUtils;
+import com.google.common.base.Function;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
-import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -51,6 +41,7 @@ public final class FileSystemUtils {
   // prevent instantiation
   private FileSystemUtils() {}
 
+  // TODO(calvin): make this PublicApi as it meant to be user facing.
   /**
    * Shortcut for {@code waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS)}, i.e., wait for an
    * indefinite amount of time. Note that if a file is never completed, the thread will block
@@ -145,59 +136,29 @@ public final class FileSystemUtils {
    *
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
-   * @param status the status info of the file
-   * @return the size of the file persisted
    * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws AlluxioException if an unexpected Alluxio error occurs
    */
-  public static long persistFile(FileSystem fs, AlluxioURI uri, URIStatus status)
-      throws IOException, FileDoesNotExistException, AlluxioException {
-    // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
-    Closer closer = Closer.create();
-    long ret;
+  public static void persistFile(final FileSystem fs, final AlluxioURI uri)
+      throws AlluxioException, IOException {
+    FileSystemContext context = FileSystemContext.INSTANCE;
+    FileSystemMasterClient client = context.acquireMasterClient();
     try {
-      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-      FileInStream in = closer.register(fs.openFile(uri, options));
-      AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
-      UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath.toString());
-      // Create ancestor directories from top to the bottom. We cannot use recursive create parents
-      // here because the permission for the ancestors can be different.
-      Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
-      AlluxioURI curAlluxioPath = uri.getParent();
-      AlluxioURI curUfsPath = dstPath.getParent();
-      // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not exist.
-      while (!ufs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
-        URIStatus curDirStatus = fs.getStatus(curAlluxioPath);
-        Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
-            (short) curDirStatus.getMode());
-        ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
-            MkdirsOptions.defaults().setCreateParent(false).setPermission(perm)));
-
-        curAlluxioPath = curAlluxioPath.getParent();
-        curUfsPath = curUfsPath.getParent();
-      }
-      while (!ufsDirsToMakeWithOptions.empty()) {
-        Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
-        if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
-          throw new IOException("Failed to create " + ufsDirAndPerm.getFirst() + " with permission "
-              + ufsDirAndPerm.getSecond().toString());
+      client.scheduleAsyncPersist(uri);
+    } finally {
+      context.releaseMasterClient(client);
+    }
+    CommonUtils.waitFor("Wait for the file to be persisted", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        try {
+          return fs.getStatus(uri).isPersisted();
+        } catch (Exception e) {
+          throw Throwables.propagate(e);
         }
       }
-      URIStatus uriStatus = fs.getStatus(uri);
-      Permission perm = new Permission(uriStatus.getOwner(), uriStatus.getGroup(),
-          (short) uriStatus.getMode());
-      OutputStream out = closer.register(ufs.create(dstPath.toString(),
-          CreateOptions.defaults().setPermission(perm)));
-      ret = IOUtils.copyLarge(in, out);
-    } catch (Exception e) {
-      throw closer.rethrow(e);
-    } finally {
-      closer.close();
-    }
-    // Tell the master to mark the file as persisted
-    fs.setAttribute(uri, SetAttributeOptions.defaults().setPersisted(true));
-    return ret;
+    }, 20 * Constants.MINUTE_MS /* timeout */, Constants.SECOND_MS /* sleep interval */);
   }
 
   /**

@@ -12,14 +12,14 @@
 
 #
 # Usage:
-#  alluxio-mesos.sh <mesos-master-hostname>
+#  alluxio-mesos-start.sh <mesos-master-hostname>
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
 ALLUXIO_FRAMEWORK_JAVA_OPTS="${ALLUXIO_FRAMEWORK_JAVA_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 
-Usage="Usage: alluxio-mesos.sh [-hw] MESOS_MASTER_ADDRESS [ALLUXIO_MASTER_HOSTNAME]
+Usage="Usage: alluxio-mesos-start.sh [-hw] MESOS_MASTER_ADDRESS [ALLUXIO_MASTER_HOSTNAME]
 MESOS_MASTER_ADDRESS is of the form 'mesos.example.com:5050'
 
 ALLUXIO_MASTER_HOSTNAME can be used to specify the hostname of the Mesos slave to launch the

@@ -43,7 +43,7 @@ fi
 YARN_HOME=${YARN_HOME:-${HADOOP_HOME}}
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
-ALLUXIO_HOME="$(cd "${SCRIPT_DIR}/../.."; pwd)"
+ALLUXIO_HOME="$(cd "${SCRIPT_DIR}/../../.."; pwd)"
 
 source "${SCRIPT_DIR}/common.sh"
 
@@ -56,9 +56,9 @@ rm -rf $ALLUXIO_TARFILE
 tar -C $ALLUXIO_HOME -zcf $ALLUXIO_TARFILE \
   assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar libexec \
   core/server/src/main/webapp \
-  bin conf integration/bin/common.sh integration/bin/alluxio-master-yarn.sh \
-  integration/bin/alluxio-worker-yarn.sh \
-  integration/bin/alluxio-application-master.sh \
+  bin conf integration/yarn/bin/common.sh integration/yarn/bin/alluxio-master-yarn.sh \
+  integration/yarn/bin/alluxio-worker-yarn.sh \
+  integration/yarn/bin/alluxio-application-master.sh \
 
 JAR_LOCAL=${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar
 

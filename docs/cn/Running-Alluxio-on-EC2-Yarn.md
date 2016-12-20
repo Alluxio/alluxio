@@ -108,7 +108,9 @@ Alluxio master/worker读取,将`~/.alluxio/`下的`alluxio-site.properties`放�
 
 # 启动Alluxio
 
-使用`integration/bin/alluxio-yarn.sh`脚本启动Alluxio。该脚本有3个参数：
+如果Yarn不是存放在HADOOP_HOME目录下，则需要将Yarn的基本路径保存到YARN_HOME环境变量。
+
+使用`integration/yarn/bin/alluxio-yarn.sh`脚本启动Alluxio。该脚本有3个参数：
 1. 需要启动的Alluxio worker的总数。(必填项)
 2. 分布存储Alluxio ApplicationMaster可执行文件的HDFS路径。(必填项)
 3. 运行Alluxio Master的节点的YARN的名称。（选填项，默认为`ALLUXIO_MASTER_HOSTNAME`）

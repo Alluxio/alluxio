@@ -47,7 +47,7 @@ public class CommandLineJobInfoTest {
     CommandLineJobInfo result = new CommandLineJobInfo();
     Random random = new Random();
 
-    String command = CommonUtils.randomString(random.nextInt(10));
+    String command = CommonUtils.randomAlphaNumString(random.nextInt(10));
     JobConfInfo jobConfInfo = JobConfInfoTest.createRandom();
 
     result.setCommand(command);

@@ -12,9 +12,11 @@
 package alluxio.client.block;
 
 import alluxio.Constants;
+import alluxio.Seekable;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
+import alluxio.underfs.options.OpenOptions;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -59,10 +61,11 @@ public final class UnderStoreBlockInStream extends BlockInStream {
    */
   public interface UnderStoreStreamFactory extends AutoCloseable {
     /**
+     * @param options for opening a UFS input stream
      * @return an input stream to under storage
      * @throws IOException if an IO exception occurs
      */
-    InputStream create() throws IOException;
+    InputStream create(OpenOptions options) throws IOException;
 
     /**
      * Closes the factory, releasing any resources it was holding.
@@ -151,14 +154,11 @@ public final class UnderStoreBlockInStream extends BlockInStream {
 
   @Override
   public void seek(long pos) throws IOException {
-    if (pos < mPos) {
-      setUnderStoreStream(pos);
-    } else {
-      long toSkip = pos - mPos;
-      if (skip(toSkip) != toSkip) {
-        throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(pos));
-      }
-    }
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
+    Preconditions.checkArgument(pos <= mLength,
+        PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), pos);
+    ((Seekable) mUnderStoreStream).seek(mInitPos + pos);
+    mPos = pos;
   }
 
   @Override
@@ -189,16 +189,9 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     if (mUnderStoreStream != null) {
       mUnderStoreStream.close();
     }
-    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
-    Preconditions.checkArgument(pos <= mLength,
-        PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), pos);
-    mUnderStoreStream = mUnderStoreStreamFactory.create();
     long streamStart = mInitPos + pos;
-    // The stream is at the beginning of the file, so skip to the correct absolute position.
-    if (streamStart != 0 && streamStart != mUnderStoreStream.skip(streamStart)) {
-      mUnderStoreStream.close();
-      throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
-    }
+    mUnderStoreStream =
+        mUnderStoreStreamFactory.create(OpenOptions.defaults().setOffset(streamStart));
     // Set the current block position to the specified block position.
     mPos = pos;
   }

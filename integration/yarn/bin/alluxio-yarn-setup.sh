@@ -10,7 +10,6 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
 # prepare Alluxio dir structure for a YARN container to launch master or worker
 # the name of this tar file is referenced in code
 tar zxf alluxio.tar.gz
@@ -20,11 +19,11 @@ shift
 
 # launch master or worker on this container
 if [[ $CONTAINER_TYPE == 'alluxio-master' ]]; then
-  ./integration/bin/alluxio-master-yarn.sh $@
+  ./integration/yarn/bin/alluxio-master-yarn.sh $@
 elif [[ $CONTAINER_TYPE == 'alluxio-worker' ]]; then
-  ./integration/bin/alluxio-worker-yarn.sh $@
+  ./integration/yarn/bin/alluxio-worker-yarn.sh $@
 elif [[ $CONTAINER_TYPE == 'application-master' ]]; then
-  ./integration/bin/alluxio-application-master.sh $@
+  ./integration/yarn/bin/alluxio-application-master.sh $@
 else
   echo "Unrecognized container type: $CONTAINER_TYPE" >&2
   exit 1

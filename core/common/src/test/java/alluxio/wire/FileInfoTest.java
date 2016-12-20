@@ -70,9 +70,9 @@ public class FileInfoTest {
     Random random = new Random();
 
     long fileId = random.nextLong();
-    String name = CommonUtils.randomString(random.nextInt(10));
-    String path = CommonUtils.randomString(random.nextInt(10));
-    String ufsPath = CommonUtils.randomString(random.nextInt(10));
+    String name = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    String path = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    String ufsPath = CommonUtils.randomAlphaNumString(random.nextInt(10));
     long length = random.nextLong();
     long blockSizeBytes = random.nextLong();
     long creationTimeMs = random.nextLong();
@@ -89,10 +89,10 @@ public class FileInfoTest {
     int inMemoryPercentage = random.nextInt();
     long lastModificationTimeMs = random.nextLong();
     long ttl = random.nextLong();
-    String userName = CommonUtils.randomString(random.nextInt(10));
-    String groupName = CommonUtils.randomString(random.nextInt(10));
+    String userName = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    String groupName = CommonUtils.randomAlphaNumString(random.nextInt(10));
     int permission = random.nextInt();
-    String persistenceState = CommonUtils.randomString(random.nextInt(10));
+    String persistenceState = CommonUtils.randomAlphaNumString(random.nextInt(10));
     boolean mountPoint = random.nextBoolean();
     List<FileBlockInfo> fileBlocksInfos = new ArrayList<>();
     long numFileBlockInfos = random.nextInt(10);
