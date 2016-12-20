@@ -12,7 +12,7 @@
 
 set -e
 
-INTEGRATION_BIN=$(cd "$( dirname "$0" )"; pwd)
+DOCKER_BIN=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-master
 
@@ -29,6 +29,6 @@ fi
 # Log to both the console and the master logs file
 ALLUXIO_MASTER_LOGGER="Console,MASTER_LOGGER"
 
-. ${INTEGRATION_BIN}/../../libexec/alluxio-config.sh
+. ${DOCKER_BIN}/../../../libexec/alluxio-config.sh
 
 ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.AlluxioMaster
