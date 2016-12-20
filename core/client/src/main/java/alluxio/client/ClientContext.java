@@ -12,9 +12,13 @@
 package alluxio.client;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.network.NetworkAddressUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 
@@ -26,6 +30,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class ClientContext {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private static InetSocketAddress sMasterAddress;
 
   static {
@@ -46,6 +52,9 @@ public final class ClientContext {
       masterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
     } else {
       masterHostname = NetworkAddressUtils.getLocalHostName();
+      if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+        LOG.warn("No master hostname specified, defaulting to {}", masterHostname);
+      }
     }
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);

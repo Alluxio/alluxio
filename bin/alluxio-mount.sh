@@ -148,7 +148,6 @@ function mac_hfs_provision_sectors() {
 function mount_ramfs_linux() {
   init_env $1
 
-  ALLUXIO_WORKER_MEMORY_SIZE=$(${BIN}/alluxio getConf alluxio.worker.memory.size)
   if [[ -z ${ALLUXIO_RAM_FOLDER} ]]; then
     ALLUXIO_RAM_FOLDER=/mnt/ramdisk
     echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: ${ALLUXIO_RAM_FOLDER}"

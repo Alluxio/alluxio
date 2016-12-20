@@ -46,6 +46,10 @@ fi
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 
+if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
+  . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
+fi
+
 # Determine reasonable defaults for worker memory and ramdisk folder
 if [[ $(uname -s) == Darwin ]]; then
   # Assuming Mac OS X
@@ -58,10 +62,6 @@ fi
 # could set ALLUXIO_RAM_FOLDER="" to avoid using ramdisk at all. The ${X-Y} syntax will return $X
 # unless X is UNSET (not just empty), in which case it returns Y.
 ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER-${DEFAULT_RAM_FOLDER}}
-
-if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
-  . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
-fi
 
 if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
   echo "ALLUXIO_MASTER_ADDRESS is deprecated since version 1.1 and will be remove in version 2.0."
