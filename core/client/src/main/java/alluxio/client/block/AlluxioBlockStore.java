@@ -11,10 +11,9 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
+import alluxio.client.block.stream.StreamFactory;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -50,8 +49,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final boolean PACKET_STREAMING_ENABLED =
-      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
 
   private final BlockStoreContext mContext;
   private String mLocalHostName;
@@ -158,14 +155,9 @@ public final class AlluxioBlockStore {
       if (workerNetAddress.getHost().equals(mLocalHostName)) {
         // There is a local worker and the block is local.
         try {
-          if (!PACKET_STREAMING_ENABLED) {
-            return new LocalBlockInStream(blockId, blockInfo.getLength(), workerNetAddress,
-                mContext, options);
-          } else {
-            return alluxio.client.block.stream.BlockInStream
-                .createLocalBlockInStream(blockId, blockInfo.getLength(), workerNetAddress,
-                    mContext, options);
-          }
+          return StreamFactory
+              .createLocalBlockInStream(mContext, blockId, blockInfo.getLength(), workerNetAddress,
+                  options);
         } catch (IOException e) {
           LOG.warn("Failed to open local stream for block " + blockId + ". " + e.getMessage());
           // Getting a local stream failed, do not try again
@@ -175,14 +167,9 @@ public final class AlluxioBlockStore {
     }
     // No local worker/block, get the first location since it's nearest to memory tier.
     WorkerNetAddress workerNetAddress = blockInfo.getLocations().get(0).getWorkerAddress();
-    if (!PACKET_STREAMING_ENABLED) {
-      return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerNetAddress, mContext,
-          options);
-    } else {
-      return alluxio.client.block.stream.BlockInStream
-          .createRemoteBlockInStream(blockId, blockInfo.getLength(), workerNetAddress, mContext,
-              options);
-    }
+    return StreamFactory
+        .createRemoteBlockInStream(mContext, blockId, blockInfo.getLength(), workerNetAddress,
+            options);
   }
 
   /**
@@ -214,20 +201,12 @@ public final class AlluxioBlockStore {
     }
     // Location is local.
     if (mLocalHostName.equals(address.getHost())) {
-      if (!PACKET_STREAMING_ENABLED) {
-        return new LocalBlockOutStream(blockId, blockSize, address, mContext, options);
-      } else {
-        return alluxio.client.block.stream.BlockOutStream
-            .createLocalBlockOutStream(blockId, blockSize, address, mContext, options);
-      }
+      return StreamFactory
+          .createLocalBlockOutStream(mContext, blockId, blockSize, address, options);
     }
     // Location is specified and it is remote.
-    if (!PACKET_STREAMING_ENABLED) {
-      return new RemoteBlockOutStream(blockId, blockSize, address, mContext, options);
-    } else {
-      return alluxio.client.block.stream.BlockOutStream
-          .createRemoteBlockOutStream(blockId, blockSize, address, mContext, options);
-    }
+    return StreamFactory
+        .createRemoteBlockOutStream(mContext, blockId, blockSize, address, options);
   }
 
   /**
