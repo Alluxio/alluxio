@@ -258,12 +258,12 @@ function main {
   ;;
   "runTest")
     CLASS="alluxio.cli.TestRunner"
-    ALLUXIO_MASTER_HOSTNAME=$(${BIN}/alluxio getConf alluxio.master.hostname)
-    if [[ -z ${ALLUXIO_MASTER_HOSTNAME} ]]; then
+    master_hostname=$(${BIN}/alluxio getConf alluxio.master.hostname)
+    if [[ -z ${master_hostname} ]]; then
       echo "alluxio.master.hostname or ALLUXIO_MASTER_HOSTNAME must be configured to use runTest" >&2
       exit 1
     fi
-    PARAMETER="alluxio://${ALLUXIO_MASTER_HOSTNAME}:19998"
+    PARAMETER="alluxio://${master_hostname}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
@@ -275,12 +275,12 @@ function main {
   ;;
   "runTests")
     CLASS="alluxio.cli.TestRunner"
-    ALLUXIO_MASTER_HOSTNAME=$(${BIN}/alluxio getConf alluxio.master.hostname)
-    if [[ -z ${ALLUXIO_MASTER_HOSTNAME} ]]; then
+    local master_hostname=$(${BIN}/alluxio getConf alluxio.master.hostname)
+    if [[ -z ${master_hostname} ]]; then
       echo "alluxio.master.hostname or ALLUXIO_MASTER_HOSTNAME must be configured to use runTests" >&2
       exit 1
     fi
-    PARAMETER="alluxio://${ALLUXIO_MASTER_HOSTNAME}:19998"
+    PARAMETER="alluxio://${master_hostname}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
