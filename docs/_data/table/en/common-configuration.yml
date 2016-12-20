@@ -43,6 +43,11 @@ alluxio.underfs.hdfs.impl:
 alluxio.underfs.hdfs.prefixes:
   Optionally, specify which prefixes should run through the Apache Hadoop implementation of
   UnderFileSystem. The delimiter is any whitespace and/or ','.
+alluxio.underfs.hdfs.remote:
+  Boolean indicating whether or not the under storage worker nodes are co-located with Alluxio
+  worker nodes. If set to true, Alluxio will not attempt to discover locality information from the
+  under storage because locality is impossible. This will improve performance. The default value is
+  false.
 alluxio.underfs.listing.length:
   The maximum number of directory entries to list in a single query to under file system. If the
   total number of entries is greater than the specified length, multiple queries will be issued.
