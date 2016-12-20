@@ -219,26 +219,26 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckFullPath(Inode, String)} method.
+   * Tests the {@link Inode#lockReadAndCheckNameAndParent(Inode, String)} method.
    */
   @Test
-  public void lockReadAndCheckFullPath() throws Exception {
+  public void lockReadAndCheckNameAndParent() throws Exception {
     String name = "file";
     InodeFile inode1 = createInodeFile(1);
     InodeDirectory dir1 = createInodeDirectory();
     inode1.setName(name);
     inode1.setParentId(dir1.getId());
-    inode1.lockReadAndCheckFullPath(dir1, name);
+    inode1.lockReadAndCheckNameAndParent(dir1, name);
     Assert.assertTrue(inode1.isReadLocked());
     inode1.unlockRead();
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckFullPath(Inode, String)} method fails when the parent
-   * and name are not consistent.
+   * Tests the {@link Inode#lockReadAndCheckNameAndParent(Inode, String)} method fails when the
+   * parent and name are not consistent.
    */
   @Test
-  public void lockReadAndCheckFullPathInvalid() throws Exception {
+  public void lockReadAndCheckNameAndParentInvalid() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
     mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
@@ -246,15 +246,15 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeDirectory dir1 = createInodeDirectory();
     inode1.setName(name);
     inode1.setParentId(dir1.getId() - 1);
-    inode1.lockReadAndCheckFullPath(dir1, "invalid");
+    inode1.lockReadAndCheckNameAndParent(dir1, "invalid");
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckFullPath(Inode, String)} method fails when the name
+   * Tests the {@link Inode#lockReadAndCheckNameAndParent(Inode, String)} method fails when the name
    * is not consistent.
    */
   @Test
-  public void lockReadAndCheckFullPathInvalidName() throws Exception {
+  public void lockReadAndCheckNameAndParentInvalidName() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
     mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
@@ -262,15 +262,15 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeDirectory dir1 = createInodeDirectory();
     inode1.setName(name);
     inode1.setParentId(dir1.getId());
-    inode1.lockReadAndCheckFullPath(dir1, "invalid");
+    inode1.lockReadAndCheckNameAndParent(dir1, "invalid");
   }
 
   /**
-   * Tests the {@link Inode#lockReadAndCheckFullPath(Inode, String)} method fails when the parent
-   * is not consistent.
+   * Tests the {@link Inode#lockReadAndCheckNameAndParent(Inode, String)} method fails when the
+   * parent is not consistent.
    */
   @Test
-  public void lockReadAndCheckFullPathInvalidParent() throws Exception {
+  public void lockReadAndCheckNameAndParentInvalidParent() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
     mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
@@ -278,7 +278,7 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeDirectory dir1 = createInodeDirectory();
     inode1.setName(name);
     inode1.setParentId(dir1.getId() - 1);
-    inode1.lockReadAndCheckFullPath(dir1, name);
+    inode1.lockReadAndCheckNameAndParent(dir1, name);
   }
 
   /**
@@ -323,26 +323,26 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link Inode#lockWriteAndCheckFullPath(Inode, String)} method.
+   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(Inode, String)} method.
    */
   @Test
-  public void lockWriteAndCheckFullPath() throws Exception {
+  public void lockWriteAndCheckNameAndParent() throws Exception {
     String name = "file";
     InodeFile inode1 = createInodeFile(1);
     InodeDirectory dir1 = createInodeDirectory();
     inode1.setName(name);
     inode1.setParentId(dir1.getId());
-    inode1.lockWriteAndCheckFullPath(dir1, name);
+    inode1.lockWriteAndCheckNameAndParent(dir1, name);
     Assert.assertTrue(inode1.isWriteLocked());
     inode1.unlockWrite();
   }
 
   /**
-   * Tests the {@link Inode#lockWriteAndCheckFullPath(Inode, String)} method fails when the parent
-   * and name are not consistent.
+   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(Inode, String)} method fails when the
+   * parent and name are not consistent.
    */
   @Test
-  public void lockWriteAndCheckFullPathInvalid() throws Exception {
+  public void lockWriteAndCheckNameAndParentInvalid() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
     mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
@@ -350,15 +350,15 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeDirectory dir1 = createInodeDirectory();
     inode1.setName(name);
     inode1.setParentId(dir1.getId() - 1);
-    inode1.lockWriteAndCheckFullPath(dir1, "invalid");
+    inode1.lockWriteAndCheckNameAndParent(dir1, "invalid");
   }
 
   /**
-   * Tests the {@link Inode#lockWriteAndCheckFullPath(Inode, String)} method fails when the name
-   * is not consistent.
+   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(Inode, String)} method fails when the
+   * name is not consistent.
    */
   @Test
-  public void lockWriteAndCheckFullPathInvalidName() throws Exception {
+  public void lockWriteAndCheckNameAndParentInvalidName() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
     mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
@@ -366,15 +366,15 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeDirectory dir1 = createInodeDirectory();
     inode1.setName(name);
     inode1.setParentId(dir1.getId());
-    inode1.lockWriteAndCheckFullPath(dir1, "invalid");
+    inode1.lockWriteAndCheckNameAndParent(dir1, "invalid");
   }
 
   /**
-   * Tests the {@link Inode#lockWriteAndCheckFullPath(Inode, String)} method fails when the parent
-   * is not consistent.
+   * Tests the {@link Inode#lockWriteAndCheckNameAndParent(Inode, String)} method fails when the
+   * parent is not consistent.
    */
   @Test
-  public void lockWriteAndCheckFullPathInvalidParent() throws Exception {
+  public void lockWriteAndCheckNameAndParentInvalidParent() throws Exception {
     mExpectedException.expect(InvalidPathException.class);
     mExpectedException.expectMessage(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
     String name = "file";
@@ -382,6 +382,6 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeDirectory dir1 = createInodeDirectory();
     inode1.setName(name);
     inode1.setParentId(dir1.getId() - 1);
-    inode1.lockWriteAndCheckFullPath(dir1, name);
+    inode1.lockWriteAndCheckNameAndParent(dir1, name);
   }
 }

@@ -47,6 +47,8 @@ public final class InodeLockList implements AutoCloseable {
    * Locks the given inode in read mode, and adds it to this lock list. This method ensures the
    * parent is the expected parent inode.
    *
+   * This method assumes that the inode path to the parent has been read locked.
+   *
    * @param inode the inode to lock
    * @param parent the expected parent inode
    * @throws InvalidPathException if the inode is no long consistent with the caller's expectations
@@ -69,9 +71,9 @@ public final class InodeLockList implements AutoCloseable {
    * @param name the expected name of the inode to be locked
    * @throws InvalidPathException if the inode is not consistent with the caller's expectations
    */
-  public synchronized void lockReadAndCheckFullPath(Inode<?> inode, Inode parent, String name)
+  public synchronized void lockReadAndCheckNameAndParent(Inode<?> inode, Inode parent, String name)
       throws InvalidPathException {
-    inode.lockReadAndCheckFullPath(parent, name);
+    inode.lockReadAndCheckNameAndParent(parent, name);
     mInodes.add(inode);
     mLockModes.add(InodeTree.LockMode.READ);
   }
@@ -108,6 +110,8 @@ public final class InodeLockList implements AutoCloseable {
    * Locks the given inode in write mode, and adds it to this lock list. This method ensures the
    * parent is the expected parent inode.
    *
+   * This method assumes that the inode path to the parent has been read locked.
+   *
    * @param inode the inode to lock
    * @param parent the expected parent inode
    * @throws InvalidPathException if the inode is not consistent with the caller's expectations
@@ -130,9 +134,9 @@ public final class InodeLockList implements AutoCloseable {
    * @param name the expected name of the inode to be locked
    * @throws InvalidPathException if the inode is not consistent with the caller's expectations
    */
-  public synchronized void lockWriteAndCheckFullPath(Inode<?> inode, Inode parent, String name)
+  public synchronized void lockWriteAndCheckNameAndParent(Inode<?> inode, Inode parent, String name)
       throws InvalidPathException {
-    inode.lockWriteAndCheckFullPath(parent, name);
+    inode.lockWriteAndCheckNameAndParent(parent, name);
     mInodes.add(inode);
     mLockModes.add(InodeTree.LockMode.WRITE);
   }

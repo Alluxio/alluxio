@@ -308,6 +308,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * consistent with what the caller is expecting. If the state is inconsistent, an exception
    * will be thrown and the lock will be released.
    *
+   * This method assumes that the inode path to the parent has been read locked.
+   *
    * @param parent the expected parent inode
    * @throws InvalidPathException if the parent is not as expected
    */
@@ -330,7 +332,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param name the expected name of the inode to be locked
    * @throws InvalidPathException if the parent and/or name is not as expected
    */
-  public void lockReadAndCheckFullPath(Inode parent, String name) throws InvalidPathException {
+  public void lockReadAndCheckNameAndParent(Inode parent, String name) throws InvalidPathException {
     lockReadAndCheckParent(parent);
     if (!mName.equals(name)) {
       unlockRead();
@@ -350,6 +352,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * Obtains a write lock on the inode. Afterward, checks the inode state to ensure the parent is
    * consistent with what the caller is expecting. If the state is inconsistent, an exception
    * will be thrown and the lock will be released.
+   *
+   * This method assumes that the inode path to the parent has been read locked.
    *
    * @param parent the expected parent inode
    * @throws InvalidPathException if the parent is not as expected
@@ -373,7 +377,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param name the expected name of the inode to be locked
    * @throws InvalidPathException if the parent and/or name is not as expected
    */
-  public void lockWriteAndCheckFullPath(Inode parent, String name)
+  public void lockWriteAndCheckNameAndParent(Inode parent, String name)
       throws InvalidPathException {
     lockWriteAndCheckParent(parent);
     if (!mName.equals(name)) {

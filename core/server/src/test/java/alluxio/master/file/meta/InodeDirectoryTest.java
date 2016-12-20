@@ -153,18 +153,28 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   }
 
   /**
+   * Tests the last modification time is initially set to the creation time.
+   */
+  @Test
+  public void initialLastModificationTime() {
+    long lowerBoundMs = System.currentTimeMillis();
+    InodeDirectory inodeDirectory = createInodeDirectory();
+    long upperBoundMs = System.currentTimeMillis();
+    long lastModificationTimeMs = inodeDirectory.getLastModificationTimeMs();
+    Assert.assertTrue(lowerBoundMs <= lastModificationTimeMs);
+    Assert.assertTrue(upperBoundMs >= lastModificationTimeMs);
+  }
+
+  /**
    * Tests the {@link InodeDirectory#setLastModificationTimeMs(long)} method.
    */
   @Test
   public void setLastModificationTime() {
     InodeDirectory inodeDirectory = createInodeDirectory();
-    // This is not perfect, since time could have passed between creation and this call.
-    long createTimeMs = System.currentTimeMillis();
-    Assert.assertTrue(Math.abs(createTimeMs - inodeDirectory.getLastModificationTimeMs()) < 5);
-
-    long modificationTimeMs = createTimeMs + Constants.SECOND_MS;
-    inodeDirectory.setLastModificationTimeMs(modificationTimeMs);
-    Assert.assertEquals(modificationTimeMs, inodeDirectory.getLastModificationTimeMs());
+    long lastModificationTimeMs = inodeDirectory.getLastModificationTimeMs();
+    long newLastModificationTimeMs = lastModificationTimeMs + Constants.SECOND_MS;
+    inodeDirectory.setLastModificationTimeMs(newLastModificationTimeMs);
+    Assert.assertEquals(newLastModificationTimeMs, inodeDirectory.getLastModificationTimeMs());
   }
 
   /**
@@ -174,14 +184,10 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   @Test
   public void setInvalidLastModificationTime() {
     InodeDirectory inodeDirectory = createInodeDirectory();
-    // This is not perfect, since time could have passed between creation and this call.
-    long createTimeMs = System.currentTimeMillis();
-    long actualCreateTimeMs = inodeDirectory.getLastModificationTimeMs();
-    Assert.assertTrue(Math.abs(createTimeMs - actualCreateTimeMs) < 5);
-
-    long modificationTimeMs = createTimeMs - Constants.SECOND_MS;
-    inodeDirectory.setLastModificationTimeMs(modificationTimeMs);
-    Assert.assertEquals(actualCreateTimeMs, inodeDirectory.getLastModificationTimeMs());
+    long lastModificationTimeMs = inodeDirectory.getLastModificationTimeMs();
+    long invalidModificationTimeMs = lastModificationTimeMs - Constants.SECOND_MS;
+    inodeDirectory.setLastModificationTimeMs(invalidModificationTimeMs);
+    Assert.assertEquals(lastModificationTimeMs, inodeDirectory.getLastModificationTimeMs());
   }
 
   /**
