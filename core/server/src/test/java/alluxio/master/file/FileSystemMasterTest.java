@@ -1243,7 +1243,6 @@ public final class FileSystemMasterTest {
     @Override
     public int compare(FileInfo o1, FileInfo o2) {
       return extractIntegerSuffix(o1.getName()) - extractIntegerSuffix(o2.getName());
-
     }
 
     private int extractIntegerSuffix(String name) {

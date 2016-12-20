@@ -1971,6 +1971,8 @@ public final class FileSystemMaster extends AbstractMaster {
     srcInode.setName(dstName);
 
     // 5. Set the last modification times for both source and destination parent inodes.
+    // Note this step relies on setLastModificationTimeMs being thread safe to guarantee the
+    // correct behavior when multiple files are being renamed within a directory.
     dstParentInode.setLastModificationTimeMs(opTimeMs);
     srcParentInode.setLastModificationTimeMs(opTimeMs);
     Metrics.PATHS_RENAMED.inc();

@@ -190,6 +190,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
+   * Sets the last modification time of the inode to the new time if the new time is more recent.
+   * This method can be called concurrently with deterministic results.
+   *
    * @param lastModificationTimeMs the last modification time to use
    * @return the updated object
    */
