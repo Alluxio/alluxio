@@ -26,25 +26,24 @@ USAGE="Usage: alluxio-mount.sh [Mount|SudoMount] [MACHINE]
   workers\t\tMount all the workers on worker nodes"
 
 function init_env() {
-  DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
-  . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+  local libexec_dir=${ALLUXIO_LIBEXEC_DIR:-"${BIN}"/../libexec}
+  . ${libexec_dir}/alluxio-config.sh
 
   # Determine a reasonable default for worker memory
   if [[ $(uname -s) == Darwin ]]; then
     # Assuming Mac OS X
-    DEFAULT_TOTAL_MEM=$(sysctl hw.memsize | cut -d ' ' -f2)
-    DEFAULT_TOTAL_MEM=$[DEFAULT_TOTAL_MEM / 1024 / 1024]
-    DEFAULT_TOTAL_MEM=$[DEFAULT_TOTAL_MEM * 2 / 3]MB
+    local default_total_mem=$(sysctl hw.memsize | cut -d ' ' -f2)
+    default_total_mem=$[default_total_mem / 1024 / 1024]
+    default_total_mem=$[default_total_mem * 2 / 3]MB
   else
     # Assuming Linux
-    DEFAULT_TOTAL_MEM=$(awk '/MemTotal/{print $2}' /proc/meminfo)
-    DEFAULT_TOTAL_MEM=$[TOTAL_MEM / 1024 * 2 / 3]MB
+    local default_total_mem=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+    default_total_mem=$[TOTAL_MEM / 1024 * 2 / 3]MB
   fi
-  ALLUXIO_WORKER_MEMORY_SIZE=$(${BIN}/alluxio getConf alluxio.worker.memory.size)
-  ALLUXIO_WORKER_MEMORY_SIZE=${ALLUXIO_WORKER_MEMORY_SIZE:-${DEFAULT_TOTAL_MEM}}
+  local worker_mem_size=$(${BIN}/alluxio getConf alluxio.worker.memory.size)
+  worker_mem_size=${worker_mem_size:-${default_total_mem}}
 
-  MEM_SIZE=$(echo "${ALLUXIO_WORKER_MEMORY_SIZE}" | tr -s '[:upper:]' '[:lower:]')
+  MEM_SIZE=$(echo "${worker_mem_size}" | tr -s '[:upper:]' '[:lower:]')
 }
 
 #enable the regexp case match
