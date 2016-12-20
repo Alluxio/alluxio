@@ -21,7 +21,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,9 +65,9 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createWorkerClient(workerNetAddress));
-      PacketWriter packetWriter =
-          closer.register(LocalFilePacketWriter.createLocalPacketWriter(client, blockId));
-      return new BlockOutStream(blockId, blockSize, client, packetWriter, options);
+      return new BlockOutStream(
+          PacketOutStream.createLocalPacketOutStream(client, blockId, blockSize), blockId,
+          blockSize, client, options);
     } catch (IOException e) {
       closer.close();
       throw e;
@@ -94,10 +93,12 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createWorkerClient(workerNetAddress));
-      PacketWriter packetWriter = closer.register(
-          new NettyPacketWriter(client.getDataServerAddress(), blockId, blockSize,
-              client.getSessionId(), Protocol.RequestType.ALLUXIO_BLOCK));
-      return new BlockOutStream(blockId, blockSize, client, packetWriter, options);
+
+      PacketOutStream outStream = PacketOutStream.createNettyPacketOutStream(
+          client.getDataServerAddress(), client.getSessionId(), blockId, blockSize,
+          Protocol.RequestType.ALLUXIO_BLOCK);
+      closer.register(outStream);
+      return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (IOException e) {
       closer.close();
       throw e;
@@ -168,15 +169,15 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
    * @param options the options
    * @throws IOException if an I/O error occurs
    */
-  private BlockOutStream(long blockId,
+  private BlockOutStream(
+      PacketOutStream outStream,
+      long blockId,
       long blockSize,
       BlockWorkerClient blockWorkerClient,
-      PacketWriter packetWriter,
       OutStreamOptions options) throws IOException {
-    super(new PacketOutStream(packetWriter, blockSize));
+    super(outStream);
 
-    Preconditions.checkState(out instanceof PacketOutStream);
-    mOutStream = (PacketOutStream) out;
+    mOutStream = outStream;
     mBlockId = blockId;
     mBlockSize = blockSize;
     mCloser = Closer.create();

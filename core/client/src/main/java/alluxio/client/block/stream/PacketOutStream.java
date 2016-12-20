@@ -13,7 +13,9 @@ package alluxio.client.block.stream;
 
 import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
+import alluxio.client.block.BlockWorkerClient;
 import alluxio.exception.PreconditionMessage;
+import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -21,7 +23,9 @@ import io.netty.buffer.PooledByteBufAllocator;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -38,6 +42,64 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
 
   private final List<PacketWriter> mPacketWriters;
   private boolean mClosed;
+
+  /**
+   * Creates a {@link PacketOutStream} that writes to a local file.
+   *
+   * @param client the block worker client
+   * @param id the ID
+   * @param length the block or file length
+   * @return the {@link PacketOutStream} created
+   * @throws IOException if it fails to create the object
+   */
+  public static PacketOutStream createLocalPacketOutStream(BlockWorkerClient client,
+      long id, long length) throws IOException {
+    PacketWriter packetWriter = LocalFilePacketWriter.createLocalPacketWriter(client, id);
+    return new PacketOutStream(packetWriter, length);
+  }
+
+  /**
+   * Creates a {@link PacketOutStream} that writes to a netty data server.
+   *
+   * @param address the netty data server address
+   * @param sessionId the session ID
+   * @param id the ID (block ID or UFS file ID)
+   * @param length the block or file length
+   * @param type the request type (either block write or UFS file write)
+   * @return the {@link PacketOutStream} created
+   * @throws IOException if it fails to create the object
+   */
+  public static PacketOutStream createNettyPacketOutStream(InetSocketAddress address,
+      long sessionId, long id, long length, Protocol.RequestType type) throws IOException {
+    List<InetSocketAddress> addresses = new ArrayList<>();
+    addresses.add(address);
+    List<Long> sessionIds = new ArrayList<>();
+    sessionIds.add(sessionId);
+    return createNettyPacketOutStream(addresses, sessionIds, id, length, type);
+  }
+
+  /**
+   * Creates a {@link PacketOutStream} that writes to a list of netty data servers.
+   *
+   * @param addresses the netty data server addresses
+   * @param sessionIds the session IDs for all the data servers
+   * @param id the ID (block ID or UFS file ID)
+   * @param length the block or file length
+   * @param type the request type (either block write or UFS file write)
+   * @return the {@link PacketOutStream} created
+   * @throws IOException if it fails to create the object
+   */
+  public static PacketOutStream createNettyPacketOutStream(List<InetSocketAddress> addresses,
+      List<Long> sessionIds, long id, long length, Protocol.RequestType type) throws IOException {
+    Preconditions.checkArgument(addresses.size() == sessionIds.size());
+
+    Iterator<Long> iterator = sessionIds.iterator();
+    List<PacketWriter> packetWriters = new ArrayList<>();
+    for (InetSocketAddress address : addresses) {
+      packetWriters.add(new NettyPacketWriter(address, id, length, iterator.next(), type));
+    }
+    return new PacketOutStream(packetWriters, length);
+  }
 
   /**
    * Constructs a new {@link PacketOutStream} with only one {@link PacketWriter}.

@@ -15,7 +15,9 @@ import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
 import alluxio.client.Seekable;
 import alluxio.exception.PreconditionMessage;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
+import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -23,6 +25,7 @@ import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -49,7 +52,39 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   private boolean mClosed = false;
   private boolean mEOF = false;
 
-  // private boolean mBlockIsRead = false;
+  /**
+   * Creates a {@link PacketInStream} to read from a local file.
+   *
+   * @param path the local file path
+   * @param id the ID
+   * @param length the block or file length
+   * @return the {@link PacketInStream} created
+   * @throws IOException if it fails to create the object
+   */
+  public static PacketInStream createLocalPacketInstream(String path, long id, long length)
+      throws IOException {
+    LocalFileBlockReader localFileBlockReader = new LocalFileBlockReader(path);
+    return new PacketInStream(new LocalFilePacketReader.Factory(localFileBlockReader), id, length);
+  }
+
+  /**
+   * Creates a {@link PacketInStream} to read from a netty data server.
+   *
+   * @param address the network address of the netty data server
+   * @param id the ID
+   * @param lockId the lock ID (set to -1 if not applicable)
+   * @param sessionId the session ID (set to -1 if not applicable)
+   * @param length the block or file length
+   * @param type the read request type (either block read or UFS file read)
+   * @return the {@link PacketInStream} created
+   * @throws IOException if it fails to create the object
+   */
+  public static PacketInStream createNettyPacketInStream(InetSocketAddress address, long id,
+      long lockId, long sessionId, long length, Protocol.RequestType type) {
+    PacketReader.Factory factory =
+        new NettyPacketReader.Factory(address, id, lockId, sessionId, type);
+    return new PacketInStream(factory, id, length);
+  }
 
   /**
    * Creates an instance of {@link PacketInStream}.

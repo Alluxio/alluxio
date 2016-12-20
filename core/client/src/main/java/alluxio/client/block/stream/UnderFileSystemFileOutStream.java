@@ -13,8 +13,6 @@ package alluxio.client.block.stream;
 
 import alluxio.proto.dataserver.Protocol;
 
-import com.google.common.base.Preconditions;
-
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -38,9 +36,8 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    */
   public UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId)
       throws IOException {
-    super(new PacketOutStream(new NettyPacketWriter(address, ufsFileId, Long.MAX_VALUE, -1,
-        Protocol.RequestType.UFS_FILE), Long.MAX_VALUE));
-    Preconditions.checkState(out instanceof PacketOutStream);
+    super(PacketOutStream.createNettyPacketOutStream(address, -1, ufsFileId, Long.MAX_VALUE,
+        Protocol.RequestType.UFS_FILE));
     mOutStream = (PacketOutStream) out;
   }
 

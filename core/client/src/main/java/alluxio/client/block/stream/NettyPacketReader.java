@@ -377,30 +377,18 @@ public final class NettyPacketReader implements PacketReader {
      * Creates an instance of {@link NettyPacketReader.Factory} for block reads.
      *
      * @param address the worker address
-     * @param blockId the block ID
+     * @param id the block ID or UFS ID
      * @param lockId the lock ID
      * @param sessionId the session ID
+     * @param type the request type
      */
-    public Factory(InetSocketAddress address, long blockId, long lockId, long sessionId) {
+    public Factory(InetSocketAddress address, long id, long lockId, long sessionId,
+        Protocol.RequestType type) {
       mAddress = address;
-      mId = blockId;
+      mId = id;
       mLockId = lockId;
       mSessionId = sessionId;
-      mRequestType = Protocol.RequestType.ALLUXIO_BLOCK;
-    }
-
-    /**
-     * Creates an instance of {@link NettyPacketReader.Factory} for UFS file reads.
-     *
-     * @param address the worker address
-     * @param ufsFileId the UFS file ID
-     */
-    public Factory(InetSocketAddress address, long ufsFileId) {
-      mAddress = address;
-      mId = ufsFileId;
-      mLockId = -1;
-      mSessionId = -1;
-      mRequestType = Protocol.RequestType.UFS_FILE;
+      mRequestType = type;
     }
 
     @Override

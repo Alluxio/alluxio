@@ -12,8 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.PositionedReadable;
-
-import com.google.common.base.Preconditions;
+import alluxio.proto.dataserver.Protocol;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -38,8 +37,8 @@ public final class UnderFileSystemFileInStream extends FilterInputStream
    * @param length the length of file to read which can be set to LONG.MAX_VALUE if unknown
    */
   public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId, long length) {
-    super(new PacketInStream(new NettyPacketReader.Factory(address, ufsFileId), ufsFileId, length));
-    Preconditions.checkState(in instanceof PacketInStream);
+    super(PacketInStream.createNettyPacketInStream(address, ufsFileId, -1, -1, length,
+        Protocol.RequestType.UFS_FILE));
     mInStream = (PacketInStream) in;
   }
 

@@ -19,13 +19,11 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.exception.AlluxioException;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.io.LocalFileBlockReader;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import java.io.FilterInputStream;
@@ -73,20 +71,24 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       throws IOException {
     Closer closer = Closer.create();
 
+    BlockWorkerClient blockWorkerClient = null;
+    LockBlockResult lockBlockResult = null;
     try {
-      BlockWorkerClient blockWorkerClient =
-          closer.register(context.createWorkerClient(workerNetAddress));
-      LockBlockResult lockBlockResult = blockWorkerClient.lockBlock(blockId);
-      LocalFileBlockReader localFileBlockReader =
-          new LocalFileBlockReader(lockBlockResult.getBlockPath());
-      PacketReader.Factory factory = new LocalFilePacketReader.Factory(localFileBlockReader);
-      return new BlockInStream(factory, blockId, blockSize, blockWorkerClient, options);
-    } catch (AlluxioException e) {
+      blockWorkerClient = closer.register(context.createWorkerClient(workerNetAddress));
+      lockBlockResult = blockWorkerClient.lockBlock(blockId);
+      PacketInStream inStream = closer.register(PacketInStream
+          .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
+      return new BlockInStream(inStream, blockId, blockSize, blockWorkerClient, options);
+    } catch (Exception e) {
+      if (lockBlockResult != null) {
+        blockWorkerClient.unlockBlock(blockId);
+      }
       closer.close();
-      throw new IOException(e);
-    } catch (IOException e) {
-      closer.close();
-      throw e;
+      if (e instanceof IOException) {
+        throw (IOException) e;
+      } else {
+        throw new IOException(e);
+      }
     }
   }
 
@@ -106,20 +108,27 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
     throws IOException {
     Closer closer = Closer.create();
 
+    BlockWorkerClient blockWorkerClient = null;
+    LockBlockResult lockBlockResult = null;
     try {
-      BlockWorkerClient blockWorkerClient =
+      blockWorkerClient =
           closer.register(context.createWorkerClient(workerNetAddress));
-      LockBlockResult lockBlockResult = blockWorkerClient.lockBlock(blockId);
-      PacketReader.Factory factory = new NettyPacketReader.Factory(
-          blockWorkerClient.getDataServerAddress(), blockId, lockBlockResult.getLockId(),
-          blockWorkerClient.getSessionId());
-      return new BlockInStream(factory, blockId, blockSize, blockWorkerClient, options);
-    } catch (AlluxioException e) {
+      lockBlockResult = blockWorkerClient.lockBlock(blockId);
+      PacketInStream inStream = closer.register(PacketInStream
+          .createNettyPacketInStream(blockWorkerClient.getDataServerAddress(), blockId,
+              lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
+              Protocol.RequestType.ALLUXIO_BLOCK));
+      return new BlockInStream(inStream, blockId, blockSize, blockWorkerClient, options);
+    } catch (Exception e) {
+      if (lockBlockResult != null) {
+        blockWorkerClient.unlockBlock(blockId);
+      }
       closer.close();
-      throw new IOException(e);
-    } catch (IOException e) {
-      closer.close();
-      throw e;
+      if (e instanceof IOException) {
+        throw (IOException) e;
+      } else {
+        throw new IOException(e);
+      }
     }
   }
 
@@ -162,19 +171,18 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
   /**
    * Creates an instance of {@link BlockInStream}.
    *
-   * @param packetReaderFactory the packet reader factory
+   * @param inputStream the packet inputstream
    * @param blockId the block ID
    * @param blockSize the block size
    * @param blockWorkerClient the block worker client
    * @param options the options
    * @throws IOException if it fails to create an instance
    */
-  private BlockInStream(PacketReader.Factory packetReaderFactory, long blockId, long blockSize,
+  private BlockInStream(PacketInStream inputStream, long blockId, long blockSize,
       BlockWorkerClient blockWorkerClient, InStreamOptions options) throws IOException {
-    super(new PacketInStream(packetReaderFactory, blockId, blockSize));
+    super(inputStream);
 
-    Preconditions.checkState(in instanceof PacketInStream);
-    mInputStream = (PacketInStream) in;
+    mInputStream = inputStream;
     mBlockId = blockId;
     mBlockWorkerClient = blockWorkerClient;
 
