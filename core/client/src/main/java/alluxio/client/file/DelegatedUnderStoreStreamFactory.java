@@ -14,12 +14,15 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.Seekable;
 import alluxio.client.UnderFileSystemFileReader;
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.options.CloseUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.underfs.options.OpenOptions;
+
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,20 +55,23 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
   }
 
   @Override
-<<<<<<< HEAD
-  public InputStream create(long length) {
+  public InputStream create(OpenOptions options) throws IOException {
+    InputStream inputStream;
     if (!PACKET_STREAMING_ENABLED) {
-      return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mFileId,
+      inputStream = new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mFileId,
           UnderFileSystemFileReader.Factory.create());
     } else {
-      return new alluxio.client.block.stream.UnderFileSystemFileInStream(
-          mClient.getWorkerDataServerAddress(), mFileId, length);
+      inputStream = new alluxio.client.block.stream.UnderFileSystemFileInStream(
+          mClient.getWorkerDataServerAddress(), mFileId, options.getLength());
     }
-=======
-  public InputStream create(OpenOptions options) {
-    return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(),
-        mFileId, options.getOffset(), UnderFileSystemFileReader.Factory.create());
->>>>>>> upstream/streaming
+    try {
+      Preconditions.checkState(inputStream instanceof Seekable);
+      ((Seekable) inputStream).seek(options.getOffset());
+      return inputStream;
+    } catch (IOException e) {
+      inputStream.close();
+      throw e;
+    }
   }
 
   @Override

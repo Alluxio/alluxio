@@ -14,19 +14,13 @@ package alluxio.client.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
-<<<<<<< HEAD
 import alluxio.client.Cancelable;
 import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
-import alluxio.client.Seekable;
-=======
-import alluxio.Seekable;
-import alluxio.client.block.BlockInStream;
-import alluxio.client.block.BufferedBlockOutStream;
->>>>>>> upstream/streaming
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;

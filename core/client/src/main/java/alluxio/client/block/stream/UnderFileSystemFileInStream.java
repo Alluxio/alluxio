@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Seekable;
 import alluxio.client.PositionedReadable;
 import alluxio.proto.dataserver.Protocol;
 
@@ -26,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UnderFileSystemFileInStream extends FilterInputStream
-    implements PositionedReadable {
+    implements PositionedReadable, Seekable {
   private final PacketInStream mInStream;
 
   /**
@@ -45,5 +46,10 @@ public final class UnderFileSystemFileInStream extends FilterInputStream
   @Override
   public int read(long pos, byte[] b, int off, int len) throws IOException {
     return mInStream.read(pos, b, off, len);
+  }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    mInStream.seek(pos);
   }
 }

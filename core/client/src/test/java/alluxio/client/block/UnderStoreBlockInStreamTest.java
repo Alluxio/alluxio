@@ -300,11 +300,7 @@ public class UnderStoreBlockInStreamTest {
     }
 
     @Override
-<<<<<<< HEAD
-    public InputStream create(long length) {
-=======
     public InputStream create(OpenOptions options) throws IOException {
->>>>>>> upstream/streaming
       try {
         FileInputStream inputStream = new FileInputStream(mFile);
         if (options.getOffset() > 0) {
