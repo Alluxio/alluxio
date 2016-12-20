@@ -47,8 +47,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
 /**
- * A shared context in {@link FileSystem}s for common file master client functionality such as a
- * pool of master clients. Any remote clients will be created and destroyed on a per use basis.
+ * A shared context that isolates all operations within a {@link FileSystem}. Usually, one user
+ * only needs one instance of {@link FileSystemContext}.
  *
  * <p>
  * NOTE: The context maintains a pool of file system master clients that is already thread-safe.
@@ -66,23 +66,23 @@ public class FileSystemContext {
     Metrics.initializeGauges();
   }
 
-  // Master contexts.
+  // Master client pools.
   private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
   private volatile BlockMasterClientPool mBlockMasterClientPool;
 
-  // Block worker contexts.
+  // Block worker client pools.
   private final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
       mBlockWorkerClientPools = new ConcurrentHashMapV8<>();
   private final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
       mBlockWorkerHeartbeatClientPools = new ConcurrentHashMapV8<>();
 
-  // The file system worker contexts.
+  // The file system worker client pools.
   private final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
       mFileSystemWorkerClientPools = new ConcurrentHashMapV8<>();
   private final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
       mFileSystemWorkerClientHeartbeatPools = new ConcurrentHashMapV8<>();
 
-  // The netty data server contexts.
+  // The netty data server channel pools.
   private final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
       mNettyChannelPools = new ConcurrentHashMapV8<>();
 
@@ -133,7 +133,7 @@ public class FileSystemContext {
   }
 
   /**
-   * Initializes the context. Only called in the ctor.
+   * Initializes the context. Only called in the ctor and reset.
    */
   private void init() {
     String masterHostName =
@@ -146,8 +146,10 @@ public class FileSystemContext {
   }
 
   /**
-   * Closes all the resources asscoated with the context. Make sure all the resources are released
-   * back to this context before calling this close. Usually, you don't need to call this.
+   * Closes all the resources associated with the context. Make sure all the resources are released
+   * back to this context before calling this close. After closing the context, all the resources
+   * that acquired from this context might fail. Only call this when you are done with using
+   * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
   public void close() {
     mFileSystemMasterClientPool.close();
@@ -176,7 +178,8 @@ public class FileSystemContext {
   }
 
   /**
-   * Resets the context.
+   * Resets the context. This method is hacky and not threadsafe. It is only used in
+   * {@link alluxio.hadoop.AbstractFileSystem} and tests to reset the default file system context.
    */
   public void reset() {
     close();
@@ -186,7 +189,7 @@ public class FileSystemContext {
   /**
    * @return the parent subject
    */
-  public synchronized Subject getParentSubject() {
+  public Subject getParentSubject() {
     return mParentSubject;
   }
 
@@ -207,9 +210,9 @@ public class FileSystemContext {
   }
 
   /**
-   * Releases a block master client into the block master client pool.
+   * Releases a file system master client into the file system master client pool.
    *
-   * @param masterClient a block master client to release
+   * @param masterClient a file system master client to release
    */
   public void releaseMasterClient(FileSystemMasterClient masterClient) {
     mFileSystemMasterClientPool.release(masterClient);
@@ -266,6 +269,7 @@ public class FileSystemContext {
    * @throws IOException if it fails to create a client for a given hostname (e.g. no Alluxio
    *         worker is available for the given worker RPC address)
    */
+  // TODO(peis): Abstract the logic to operate on the pools.
   public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address,
       Long sessionId) throws IOException {
     Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
