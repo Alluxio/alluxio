@@ -12,7 +12,7 @@
 
 set -e
 
-DOCKER_BIN=$(cd "$( dirname "$0" )"; pwd)
+SCRIPT_DIR=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-proxy
 
@@ -30,6 +30,6 @@ fi
 # Log to both the console and the proxy logs file
 ALLUXIO_PROXY_LOGGER="Console,PROXY_LOGGER"
 
-. ${DOCKER_BIN}/../../../libexec/alluxio-config.sh
+. ${SCRIPT_DIR}/../../../libexec/alluxio-config.sh
 
 ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_PROXY_JAVA_OPTS} alluxio.proxy.AlluxioProxy
