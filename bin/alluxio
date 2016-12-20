@@ -258,7 +258,7 @@ function main {
   ;;
   "runTest")
     CLASS="alluxio.cli.TestRunner"
-    master_hostname=$(${BIN}/alluxio getConf alluxio.master.hostname)
+    local master_hostname=$(${BIN}/alluxio getConf alluxio.master.hostname)
     if [[ -z ${master_hostname} ]]; then
       echo "alluxio.master.hostname or ALLUXIO_MASTER_HOSTNAME must be configured to use runTest" >&2
       exit 1
