@@ -161,6 +161,14 @@ public final class FileSystemMaster extends AbstractMaster {
    *    }
    * </pre></blockquote>
    *
+   * When locking a path in the inode tree, it is possible that other concurrent operations have
+   * modified the inode tree while a thread is waiting to acquire a lock on the inode. Lock
+   * acquisitions throw {@link InvalidPathException} to indicate that the inode structure is no
+   * longer consistent with what the caller original expected, for example if the inode
+   * previously obtained at /pathA has been renamed to /pathB during the wait for the inode lock.
+   * Methods which specifically act on a path will propagate this exception to the caller, while
+   * methods which iterate over child nodes can safely ignore the exception and treat the inode
+   * as no longer a child.
    *
    * Method Conventions in the FileSystemMaster
    *
@@ -322,7 +330,8 @@ public final class FileSystemMaster extends AbstractMaster {
       InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) innerEntry;
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(modTimeEntry.getId(),
           InodeTree.LockMode.WRITE)) {
-        inodePath.getInode().setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
+        inodePath.getInode().setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs(),
+            true);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -486,18 +495,24 @@ public final class FileSystemMaster extends AbstractMaster {
             inconsistentUris.add(parentUri);
           }
           for (Inode childInode : ((InodeDirectory) parentInode).getChildren()) {
-            AlluxioURI childUri = parentUri.join(childInode.getName());
-            if (childInode.isDirectory()) {
-              dirsToCheck.add(childInode.getId());
-            } else {
-              childInode.lockRead();
-              try {
+            try {
+              childInode.lockReadAndCheckParent(parentInode);
+            } catch (InvalidPathException e) {
+              // This should be safe, continue.
+              LOG.debug("Error during startup check consistency, ignoring and continuing.", e);
+              continue;
+            }
+            try {
+              AlluxioURI childUri = parentUri.join(childInode.getName());
+              if (childInode.isDirectory()) {
+                dirsToCheck.add(childInode.getId());
+              } else {
                 if (!checkConsistencyInternal(childInode, childUri)) {
                   inconsistentUris.add(childUri);
                 }
-              } finally {
-                childInode.unlockRead();
               }
+            } finally {
+              childInode.unlockRead();
             }
           }
         } catch (FileDoesNotExistException e) {
@@ -813,7 +828,7 @@ public final class FileSystemMaster extends AbstractMaster {
         TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
         mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, inodePath);
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-          child.lockRead();
+          child.lockReadAndCheckParent(inode);
           try {
             // the path to child for getPath should already be locked.
             tempInodePath.setDescendant(child, mInodeTree.getPath(child));
@@ -1509,29 +1524,48 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return absolute paths of all in memory files
    */
   public List<AlluxioURI> getInMemoryFiles() {
-    List<AlluxioURI> ret = new ArrayList<>();
-    getInMemoryFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), ret);
-    return ret;
+    List<AlluxioURI> files = new ArrayList<>();
+    Inode root = mInodeTree.getRoot();
+    // Root has no parent, lock directly.
+    root.lockRead();
+    try {
+      getInMemoryFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), files);
+    } finally {
+      root.unlockRead();
+    }
+    return files;
   }
 
-  private void getInMemoryFilesInternal(Inode<?> inode, AlluxioURI uri,
-      List<AlluxioURI> inMemoryFiles) {
-    inode.lockRead();
-    try {
-      AlluxioURI newUri = uri.join(inode.getName());
-      if (inode.isFile()) {
-        if (isFullyInMemory((InodeFile) inode)) {
-          inMemoryFiles.add(newUri);
+  /**
+   * Adds in memory files to the array list passed in. This method assumes the inode passed in is
+   * already read locked.
+   *
+   * @param inode the root of the subtree to search
+   * @param uri the uri of the parent of the inode
+   * @param files the list to accumulate the results in
+   */
+  private void getInMemoryFilesInternal(Inode<?> inode, AlluxioURI uri, List<AlluxioURI> files) {
+    AlluxioURI newUri = uri.join(inode.getName());
+    if (inode.isFile()) {
+      if (isFullyInMemory((InodeFile) inode)) {
+        files.add(newUri);
+      }
+    } else {
+      // This inode is a directory.
+      Set<Inode<?>> children = ((InodeDirectory) inode).getChildren();
+      for (Inode<?> child : children) {
+        try {
+          child.lockReadAndCheckParent(inode);
+        } catch (InvalidPathException e) {
+          // Inode is no longer part of this directory.
+          continue;
         }
-      } else {
-        // This inode is a directory.
-        Set<Inode<?>> children = ((InodeDirectory) inode).getChildren();
-        for (Inode<?> child : children) {
-          getInMemoryFilesInternal(child, newUri, inMemoryFiles);
+        try {
+          getInMemoryFilesInternal(child, newUri, files);
+        } finally {
+          child.unlockRead();
         }
       }
-    } finally {
-      inode.unlockRead();
     }
   }
 
@@ -1715,10 +1749,11 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Metrics.RENAME_PATH_OPS.inc();
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-    // Both src and dst paths should lock WRITE_PARENT, to modify the parent inodes for both paths.
-    try (InodePathPair inodePathPair = mInodeTree
-        .lockInodePathPair(srcPath, InodeTree.LockMode.WRITE_PARENT, dstPath,
-            InodeTree.LockMode.WRITE_PARENT)) {
+    // Both src and dst paths use WRITE locks, despite possibly updating the parent inodes. The
+    // modify operations on the parent inodes are thread safe.
+    try (InodePathPair inodePathPair =
+        mInodeTree.lockInodePathPair(srcPath, InodeTree.LockMode.WRITE, dstPath,
+            InodeTree.LockMode.WRITE)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, srcInodePath);
@@ -1831,65 +1866,116 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   void renameInternal(LockedInodePath srcInodePath, LockedInodePath dstInodePath, boolean replayed,
       long opTimeMs) throws FileDoesNotExistException, InvalidPathException, IOException {
+
+    // Rename logic:
+    // 1. Change the source inode name to the destination name.
+    // 2. Insert the source inode into the destination parent.
+    // 3. Do UFS operations if necessary.
+    // 4. Remove the source inode (reverting the name) from the source parent.
+    // 5. Set the last modification times for both source and destination parent inodes.
+
     Inode<?> srcInode = srcInodePath.getInode();
     AlluxioURI srcPath = srcInodePath.getUri();
     AlluxioURI dstPath = dstInodePath.getUri();
-    LOG.debug("Renaming {} to {}", srcPath, dstPath);
     InodeDirectory srcParentInode = srcInodePath.getParentInodeDirectory();
+    InodeDirectory dstParentInode = dstInodePath.getParentInodeDirectory();
+    String srcName = srcPath.getName();
+    String dstName = dstPath.getName();
 
+    LOG.debug("Renaming {} to {}", srcPath, dstPath);
+
+    // 1. Change the source inode name to the destination name.
+    srcInode.setName(dstName);
+    srcInode.setParentId(dstParentInode.getId());
+
+    // 2. Insert the source inode into the destination parent.
+    if (!dstParentInode.addChild(srcInode)) {
+      // On failure, revert changes and throw exception.
+      srcInode.setName(srcName);
+      srcInode.setParentId(dstParentInode.getId());
+      throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
+    }
+
+    // 3. Do UFS operations if necessary.
     // If the source file is persisted, rename it in the UFS.
-    if (!replayed && srcInode.isPersisted()) {
-      MountTable.Resolution resolution = mMountTable.resolve(srcPath);
+    try {
+      if (!replayed && srcInode.isPersisted()) {
+        MountTable.Resolution resolution = mMountTable.resolve(srcPath);
 
-      String ufsSrcPath = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
-      String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
-      // Create ancestor directories from top to the bottom. We cannot use recursive create parents
-      // here because the permission for the ancestors can be different.
-      List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
-      Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
-      AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
-      // The dst inode does not exist yet, so the last inode in the list is the existing parent.
-      for (int i = dstInodeList.size() - 1; i >= 0; i--) {
-        if (ufs.isDirectory(curUfsDirPath.toString())) {
-          break;
+        String ufsSrcPath = resolution.getUri().toString();
+        UnderFileSystem ufs = resolution.getUfs();
+        String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
+        // Create ancestor directories from top to the bottom. We cannot use recursive create
+        // parents here because the permission for the ancestors can be different.
+        List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
+        Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
+        AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
+        // The dst inode does not exist yet, so the last inode in the list is the existing parent.
+        for (int i = dstInodeList.size() - 1; i >= 0; i--) {
+          if (ufs.isDirectory(curUfsDirPath.toString())) {
+            break;
+          }
+          Inode<?> curInode = dstInodeList.get(i);
+          Permission perm = new Permission(curInode.getOwner(), curInode.getGroup(),
+              curInode.getMode());
+          MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
+              .setPermission(perm);
+          ufsDirsToMakeWithOptions.push(new Pair<>(curUfsDirPath.toString(), mkdirsOptions));
+          curUfsDirPath = curUfsDirPath.getParent();
         }
-        Inode<?> curInode = dstInodeList.get(i);
-        Permission perm = new Permission(curInode.getOwner(), curInode.getGroup(),
-            curInode.getMode());
-        MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
-            .setPermission(perm);
-        ufsDirsToMakeWithOptions.push(new Pair<>(curUfsDirPath.toString(), mkdirsOptions));
-        curUfsDirPath = curUfsDirPath.getParent();
-      }
-      while (!ufsDirsToMakeWithOptions.empty()) {
-        Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
-        if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
+        while (!ufsDirsToMakeWithOptions.empty()) {
+          Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
+          if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
+            throw new IOException(
+                ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirAndPerm.getFirst()));
+          }
+        }
+        boolean success;
+        if (srcInode.isFile()) {
+          success = ufs.renameFile(ufsSrcPath, ufsDstUri);
+        } else {
+          success = ufs.renameDirectory(ufsSrcPath, ufsDstUri);
+        }
+        if (!success) {
           throw new IOException(
-              ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirAndPerm.getFirst()));
+              ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
         }
       }
-      boolean success;
-      if (srcInode.isFile()) {
-        success = ufs.renameFile(ufsSrcPath, ufsDstUri);
-      } else {
-        success = ufs.renameDirectory(ufsSrcPath, ufsDstUri);
+    } catch (Exception e) {
+      // On failure, revert changes and throw exception.
+      if (!dstParentInode.removeChild(dstName)) {
+        LOG.error("Failed to revert rename changes. Alluxio metadata may be inconsistent.");
       }
-      if (!success) {
-        throw new IOException(
-            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
-      }
+      srcInode.setName(srcName);
+      srcInode.setParentId(srcParentInode.getId());
+      throw e;
     }
 
     // TODO(jiri): A crash between now and the time the rename operation is journaled will result in
     // an inconsistency between Alluxio and UFS.
-    InodeDirectory dstParentInode = dstInodePath.getParentInodeDirectory();
-    srcParentInode.removeChild(srcInode);
-    srcParentInode.setLastModificationTimeMs(opTimeMs);
-    srcInode.setParentId(dstParentInode.getId());
-    srcInode.setName(dstPath.getName());
-    dstParentInode.addChild(srcInode);
+
+    // 4. Remove the source inode (reverting the name) from the source parent. The name must be
+    // reverted or removeChild will not be able to find the appropriate child entry since it is
+    // keyed on the original name.
+    srcInode.setName(srcName);
+    if (!srcParentInode.removeChild(srcInode)) {
+      // This should never happen.
+      LOG.error("Failed to rename within Alluxio. Alluxio and under storage may be inconsistent.");
+      srcInode.setName(dstName);
+      if (!dstParentInode.removeChild(dstName)) {
+        LOG.error("Failed to revert rename changes. Alluxio metadata may be inconsistent.");
+      }
+      srcInode.setName(srcName);
+      srcInode.setParentId(srcParentInode.getId());
+      throw new IOException("Failed to remove source path " + srcPath + " from parent");
+    }
+    srcInode.setName(dstName);
+
+    // 5. Set the last modification times for both source and destination parent inodes.
+    // Note this step relies on setLastModificationTimeMs being thread safe to guarantee the
+    // correct behavior when multiple files are being renamed within a directory.
     dstParentInode.setLastModificationTimeMs(opTimeMs);
+    srcParentInode.setLastModificationTimeMs(opTimeMs);
     Metrics.PATHS_RENAMED.inc();
   }
 
