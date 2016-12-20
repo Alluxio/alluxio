@@ -1488,12 +1488,12 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(numThreads / 2, dir2Files.size());
 
     Collections.sort(dir1Files, new IntegerSuffixedPathComparator());
-    for (int i = 1; i < numThreads; i+=2) {
+    for (int i = 1; i < numThreads; i += 2) {
       Assert.assertEquals(dsts[i].getName(), dir1Files.get(i / 2).getName());
     }
 
     Collections.sort(dir2Files, new IntegerSuffixedPathComparator());
-    for (int i = 0; i < numThreads; i+=2) {
+    for (int i = 0; i < numThreads; i += 2) {
       Assert.assertEquals(dsts[i].getName(), dir2Files.get(i / 2).getName());
     }
   }
