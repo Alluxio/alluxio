@@ -227,7 +227,7 @@ function main {
 
     ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
 
-    echo "Formatting Alluxio Master @ ${ALLUXIO_MASTER_HOSTNAME}"
+    echo "Formatting Alluxio Master @ `hostname -f`"
     CLASS="alluxio.cli.Format"
     PARAMETER="master"
     runJavaClass "$@"
@@ -258,6 +258,11 @@ function main {
   ;;
   "runTest")
     CLASS="alluxio.cli.TestRunner"
+    ALLUXIO_MASTER_HOSTNAME=$(${BIN}/alluxio getConf alluxio.master.hostname)
+    if [[ -z ${ALLUXIO_MASTER_HOSTNAME} ]]; then
+      echo "alluxio.master.hostname or ALLUXIO_MASTER_HOSTNAME must be configured to use runTest" >&2
+      exit 1
+    fi
     PARAMETER="alluxio://${ALLUXIO_MASTER_HOSTNAME}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
@@ -270,6 +275,11 @@ function main {
   ;;
   "runTests")
     CLASS="alluxio.cli.TestRunner"
+    ALLUXIO_MASTER_HOSTNAME=$(${BIN}/alluxio getConf alluxio.master.hostname)
+    if [[ -z ${ALLUXIO_MASTER_HOSTNAME} ]]; then
+      echo "alluxio.master.hostname or ALLUXIO_MASTER_HOSTNAME must be configured to use runTests" >&2
+      exit 1
+    fi
     PARAMETER="alluxio://${ALLUXIO_MASTER_HOSTNAME}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"

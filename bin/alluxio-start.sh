@@ -138,11 +138,6 @@ stop() {
 
 
 start_master() {
-  MASTER_ADDRESS=${ALLUXIO_MASTER_HOSTNAME}
-  if [[ -z ${ALLUXIO_MASTER_HOSTNAME} ]]; then
-    MASTER_ADDRESS=localhost
-  fi
-
   if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
     ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
   fi
@@ -151,7 +146,7 @@ start_master() {
     ${LAUNCHER} ${BIN}/alluxio format
   fi
 
-  echo "Starting master @ ${MASTER_ADDRESS}. Logging to ${ALLUXIO_LOGS_DIR}"
+  echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
   (nohup ${JAVA} -cp ${CLASSPATH} \
    ${ALLUXIO_MASTER_JAVA_OPTS} \
    alluxio.master.AlluxioMaster > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
