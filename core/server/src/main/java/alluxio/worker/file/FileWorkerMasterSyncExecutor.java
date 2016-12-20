@@ -149,7 +149,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
         LOG.info("persist file {} of blocks {}", mFileId, mBlockIds);
         try {
           mFileDataManager.persistFile(mFileId, mBlockIds);
-        } catch (IOException e) {
+        } catch (AlluxioException | IOException e) {
           LOG.error("Failed to persist file {}", mFileId, e);
         }
       }

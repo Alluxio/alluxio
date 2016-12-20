@@ -301,42 +301,6 @@ public class BufferUtilsTest {
   }
 
   /**
-   * Tests the {@link BufferUtils#getIncreasingIntBuffer(int, int)} method.
-   */
-  @Test
-  public void getIncreasingIntBuffer() {
-    class TestCase {
-      ByteBuffer mExpected;
-      int mLength;
-      int mStart;
-
-      public TestCase(ByteBuffer expected, int length, int start) {
-        mExpected = expected;
-        mLength = length;
-        mStart = start;
-      }
-    }
-
-    LinkedList<TestCase> testCases = new LinkedList<>();
-    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 0));
-    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 3));
-    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {0, 0, 0, 0}), 1, 0));
-    testCases.add(new TestCase(ByteBuffer.wrap(
-        new byte[] {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2}), 3, 0));
-    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {0, 0, 0, 3}), 1, 3));
-    testCases.add(new TestCase(ByteBuffer.wrap(
-        new byte[] {0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5}), 3, 3));
-
-    for (TestCase testCase : testCases) {
-      ByteBuffer result = BufferUtils.getIncreasingIntBuffer(testCase.mStart, testCase.mLength);
-      Assert.assertEquals(testCase.mExpected.limit(), result.limit());
-      for (int k = 0; k < result.limit(); k++) {
-        Assert.assertEquals(testCase.mExpected.get(k), result.get(k));
-      }
-    }
-  }
-
-  /**
    * {@link BufferUtils#cleanDirectBuffer(ByteBuffer)} forces to unmap an unused direct buffer.
    * This test repeated allocates and de-allocates a direct buffer of size 16MB to make sure
    * cleanDirectBuffer is doing its job. The bufferArray is used to store references to the direct

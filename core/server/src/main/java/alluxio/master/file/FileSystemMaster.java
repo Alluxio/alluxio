@@ -547,19 +547,9 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Class to represent the status and result of the startup consistency check.
    */
-  public static final class StartupConsistencyCheckResult {
-    /** Result for a disabled check. */
-    private static final StartupConsistencyCheckResult DISABLED =
-        new StartupConsistencyCheckResult(Status.DISABLED, null);
-    /** Result for a failed check. */
-    private static final StartupConsistencyCheckResult FAILED =
-        new StartupConsistencyCheckResult(Status.FAILED, null);
-    /** Result for a running check. */
-    private static final StartupConsistencyCheckResult RUNNING =
-        new StartupConsistencyCheckResult(Status.RUNNING, null);
-
+  public static final class StartupConsistencyCheck {
     /**
-     * State of the check.
+     * Status of the check.
      */
     public enum Status {
       COMPLETE, DISABLED, FAILED, RUNNING
@@ -569,29 +559,29 @@ public final class FileSystemMaster extends AbstractMaster {
      * @param inconsistentUris the uris which are inconsistent with the underlying storage
      * @return a result set to the complete status
      */
-    public static StartupConsistencyCheckResult complete(List<AlluxioURI> inconsistentUris) {
-      return new StartupConsistencyCheckResult(Status.COMPLETE, inconsistentUris);
+    public static StartupConsistencyCheck complete(List<AlluxioURI> inconsistentUris) {
+      return new StartupConsistencyCheck(Status.COMPLETE, inconsistentUris);
     }
 
     /**
      * @return a result set to the disabled status
      */
-    public static StartupConsistencyCheckResult disabled() {
-      return DISABLED;
+    public static StartupConsistencyCheck disabled() {
+      return new StartupConsistencyCheck(Status.DISABLED, null);
     }
 
     /**
      * @return a result set to the failed status
      */
-    public static StartupConsistencyCheckResult failed() {
-      return FAILED;
+    public static StartupConsistencyCheck failed() {
+      return new StartupConsistencyCheck(Status.FAILED, null);
     }
 
     /**
      * @return a result set to the running status
      */
-    public static StartupConsistencyCheckResult running() {
-      return RUNNING;
+    public static StartupConsistencyCheck running() {
+      return new StartupConsistencyCheck(Status.RUNNING, null);
     }
 
     private Status mStatus;
@@ -603,13 +593,13 @@ public final class FileSystemMaster extends AbstractMaster {
      * @param status the state of the check
      * @param inconsistentUris the uris which are inconsistent with the underlying storage
      */
-    private StartupConsistencyCheckResult(Status status, List<AlluxioURI> inconsistentUris) {
+    private StartupConsistencyCheck(Status status, List<AlluxioURI> inconsistentUris) {
       mStatus = status;
       mInconsistentUris = inconsistentUris;
     }
 
     /**
-     * @return the state of the check
+     * @return the status of the check
      */
     public Status getStatus() {
       return mStatus;
@@ -626,19 +616,19 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * @return the status of the startup consistency check and inconsistent paths if it is complete
    */
-  public StartupConsistencyCheckResult getStartupConsistencyCheck() {
+  public StartupConsistencyCheck getStartupConsistencyCheck() {
     if (!Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
-      return StartupConsistencyCheckResult.disabled();
+      return StartupConsistencyCheck.disabled();
     }
     if (!mStartupConsistencyCheck.isDone()) {
-      return StartupConsistencyCheckResult.running();
+      return StartupConsistencyCheck.running();
     }
     try {
       List<AlluxioURI> inconsistentUris = mStartupConsistencyCheck.get();
-      return StartupConsistencyCheckResult.complete(inconsistentUris);
+      return StartupConsistencyCheck.complete(inconsistentUris);
     } catch (Exception e) {
       LOG.warn("Failed to complete start up consistency check.", e);
-      return StartupConsistencyCheckResult.failed();
+      return StartupConsistencyCheck.failed();
     }
   }
 
@@ -704,6 +694,17 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     Metrics.GET_FILE_INFO_OPS.inc();
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+
+    // Get a READ lock first to see if we need to load metadata, note that this assumes load
+    // metadata for direct children is disabled by default.
+    try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+      if (inodePath.fullPathExists()) {
+        // The file already exists, so metadata does not need to be loaded.
+        return getFileInfoInternal(inodePath);
+      }
+    }
+
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       // This is WRITE locked, since loading metadata is possible.
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);

@@ -46,6 +46,7 @@ public class AlluxioMasterInfoTest {
     Assert.assertEquals(a.getMetrics(), b.getMetrics());
     Assert.assertEquals(a.getRpcAddress(), b.getRpcAddress());
     Assert.assertEquals(a.getStartTimeMs(), b.getStartTimeMs());
+    Assert.assertEquals(a.getStartupConsistencyCheck(), b.getStartupConsistencyCheck());
     Assert.assertEquals(a.getTierCapacity(), b.getTierCapacity());
     Assert.assertEquals(a.getUfsCapacity(), b.getUfsCapacity());
     Assert.assertEquals(a.getUptimeMs(), b.getUptimeMs());
@@ -62,24 +63,33 @@ public class AlluxioMasterInfoTest {
     Map<String, String> configuration = new HashMap<>();
     long numConfiguration = random.nextInt(10);
     for (int i = 0; i < numConfiguration; i++) {
-      configuration.put(CommonUtils.randomString(random.nextInt(10)),
-          CommonUtils.randomString(random.nextInt(10)));
+      configuration.put(CommonUtils.randomAlphaNumString(random.nextInt(10)),
+          CommonUtils.randomAlphaNumString(random.nextInt(10)));
     }
     Map<String, Long> metrics = new HashMap<>();
     long numMetrics = random.nextInt(10);
     for (int i = 0; i < numMetrics; i++) {
-      metrics.put(CommonUtils.randomString(random.nextInt(10)), random.nextLong());
+      metrics.put(CommonUtils.randomAlphaNumString(random.nextInt(10)), random.nextLong());
     }
-    String rpcAddress = CommonUtils.randomString(random.nextInt(10));
+    String rpcAddress = CommonUtils.randomAlphaNumString(random.nextInt(10));
     long startTimeMs = random.nextLong();
+    StartupConsistencyCheck check = new StartupConsistencyCheck();
+    check.setStatus(CommonUtils.randomAlphaNumString(random.nextInt(10)));
+    int numUris = random.nextInt(10);
+    List<String> uris = new ArrayList<>(numUris);
+    for (int i = 0; i < numUris; i++) {
+      uris.add(CommonUtils.randomAlphaNumString(random.nextInt(10)));
+    }
+    check.setInconsistentUris(uris);
     Map<String, Capacity> tierCapacity = new HashMap<>();
     long numTiers = random.nextInt(10);
     for (int i = 0; i < numTiers; i++) {
-      tierCapacity.put(CommonUtils.randomString(random.nextInt(10)), CapacityTest.createRandom());
+      tierCapacity
+          .put(CommonUtils.randomAlphaNumString(random.nextInt(10)), CapacityTest.createRandom());
     }
     Capacity ufsCapacity = CapacityTest.createRandom();
     long uptimeMs = random.nextLong();
-    String version = CommonUtils.randomString(random.nextInt(10));
+    String version = CommonUtils.randomAlphaNumString(random.nextInt(10));
     List<WorkerInfo> workers = new ArrayList<>();
     long numWorkers = random.nextInt(10);
     for (int i = 0; i < numWorkers; i++) {
@@ -91,6 +101,7 @@ public class AlluxioMasterInfoTest {
     result.setMetrics(metrics);
     result.setRpcAddress(rpcAddress);
     result.setStartTimeMs(startTimeMs);
+    result.setStartupConsistencyCheck(check);
     result.setTierCapacity(tierCapacity);
     result.setUfsCapacity(ufsCapacity);
     result.setUptimeMs(uptimeMs);

@@ -10,33 +10,27 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
-ALLUXIO_WORKER_JAVA_OPTS="${ALLUXIO_WORKER_JAVA_OPTS:-${ALLUXIO_JAVA_OPTS}}"
-
-# ${ALLUXIO_WORKER_MEMORY_SIZE} needs to be set to mount ramdisk
-echo "Mounting ramdisk of ${ALLUXIO_WORKER_MEMORY_SIZE} MB on Worker"
-${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount
+ALLUXIO_MASTER_JAVA_OPTS="${ALLUXIO_MASTER_JAVA_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 
 # Yarn will set LOG_DIRS to point to the Yarn application log directory
 YARN_LOG_DIR="$LOG_DIRS"
 
-echo "Formatting Alluxio Worker"
+echo "Formatting Alluxio Master"
 
 "${JAVA}" -cp "${CLASSPATH}" \
-  ${ALLUXIO_WORKER_JAVA_OPTS} \
+  ${ALLUXIO_MASTER_JAVA_OPTS} \
   -Dalluxio.home="${ALLUXIO_HOME}" \
-  -Dalluxio.logger.type="WORKER_LOGGER" \
+  -Dalluxio.logger.type="MASTER_LOGGER" \
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
-  alluxio.cli.Format WORKER > "${YARN_LOG_DIR}"/worker.out 2>&1
+  alluxio.cli.Format master > "${YARN_LOG_DIR}"/master.out 2>&1
 
-echo "Starting Alluxio Worker"
+echo "Starting Alluxio Master"
 
 "${JAVA}" -cp "${CLASSPATH}" \
-  ${ALLUXIO_WORKER_JAVA_OPTS} \
+  ${ALLUXIO_MASTER_JAVA_OPTS} \
   -Dalluxio.home="${ALLUXIO_HOME}" \
-  -Dalluxio.logger.type="WORKER_LOGGER" \
+  -Dalluxio.logger.type="MASTER_LOGGER" \
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
-  -Dalluxio.master.hostname="${ALLUXIO_MASTER_HOSTNAME}" \
-  alluxio.worker.AlluxioWorker >> "${YARN_LOG_DIR}"/worker.out 2>&1
+  alluxio.master.AlluxioMaster >> "${YARN_LOG_DIR}"/master.out 2>&1

@@ -10,21 +10,14 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-if [[ -n "${BASH_VERSION}" ]]; then
-    BIN="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-elif [[ -n "${ZSH_VERSION}" ]]; then
-    BIN="$( cd "$( dirname "${(%):-%x}" )" && pwd )"
-else
-    echo "Please, launch your scripts from zsh or bash only." >&2
-    exit 1
-fi
+SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 
 get_env () {
-  DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
+  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
-  ALLUXIO_FUSE_JAR=${BIN}/../integration/fuse/target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
+  ALLUXIO_FUSE_JAR=${SCRIPT_DIR}/../target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
   FUSE_MAX_WRITE=131072
 }
 

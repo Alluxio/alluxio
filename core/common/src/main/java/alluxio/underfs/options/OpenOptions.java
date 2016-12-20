@@ -41,14 +41,14 @@ public final class OpenOptions {
   }
 
   /**
-   * @return offset within a file in bytes
+   * @return offset from the start of a file in bytes
    */
   public long getOffset() {
     return mOffset;
   }
 
   /**
-   * Sets the offset for which locations are to be queried.
+   * Sets the offset from the start of a file to be opened for reading.
    *
    * @param offset within a file in bytes
    * @return the updated option object
