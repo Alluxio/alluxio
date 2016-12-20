@@ -313,7 +313,8 @@ public class AbstractFileSystemTest {
     Mockito.when(mMockFileSystemContextCustomized.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
     Mockito.doNothing().when(mMockFileSystemMasterClient).connect();
-
+    Mockito.when(mMockFileSystemContext.getMasterAddress())
+        .thenReturn(new InetSocketAddress("defaultHost", 1));
   }
 
   private void mockUserGroupInformation(String username) throws IOException {

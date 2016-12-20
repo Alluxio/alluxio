@@ -433,48 +433,72 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
+    boolean masterAddIsSameAsDefault = checkMasterAddress();
+
     if (sInitialized) {
-      checkMasterAddress();
+      if (!masterAddIsSameAsDefault) {
+        throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+            .getMessage(mUri.getHost() + ":" + mUri.getPort(),
+                FileSystemContext.INSTANCE.getMasterAddress()));
+      }
       setFileSystemAndContext();
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
       if (sInitialized) {
-        checkMasterAddress();
+        if (!masterAddIsSameAsDefault) {
+          throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+              .getMessage(mUri.getHost() + ":" + mUri.getPort(),
+                  FileSystemContext.INSTANCE.getMasterAddress()));
+        }
         setFileSystemAndContext();
         return;
       }
 
-      // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
-      // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
-      // We assume here that all clients use the same configuration.
-      ConfUtils.mergeHadoopConfiguration(conf);
-      Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-      Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
-
-      // These must be reset to pick up the change to the master address.
-      // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
-      LineageContext.INSTANCE.reset();
-      FileSystemContext.INSTANCE.reset();
-
-      // Try to connect to master, if it fails, the provided uri is invalid.
-      FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
-      try {
-        client.connect();
-        // Connected, initialize.
-        sInitialized = true;
-      } catch (ConnectionFailedException | IOException e) {
-        LOG.error("Failed to connect to the provided master address {}: {}.",
-            uri.toString(), e.toString());
-        throw new IOException(e);
-      } finally {
-        FileSystemContext.INSTANCE.releaseMasterClient(client);
+      if (!masterAddIsSameAsDefault) {
+        initializeInternal(uri, conf);
       }
+      sInitialized = true;
     }
 
     setFileSystemAndContext();
+  }
+
+  /**
+   * Initializes the default contexts if the master address specified in the URI is different
+   * from the default one.
+   *
+   * @param uri the uri
+   * @param conf the hadoop conf
+   * @throws IOException if it fails to initialize
+   */
+  void initializeInternal(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
+    // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
+    // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
+    // We assume here that all clients use the same configuration.
+    ConfUtils.mergeHadoopConfiguration(conf);
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
+
+    // These must be reset to pick up the change to the master address.
+    // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
+    LineageContext.INSTANCE.reset();
+    FileSystemContext.INSTANCE.reset();
+
+    // Try to connect to master, if it fails, the provided uri is invalid.
+    FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      client.connect();
+      // Connected, initialize.
+    } catch (ConnectionFailedException | IOException e) {
+      LOG.error("Failed to connect to the provided master address {}: {}.",
+          uri.toString(), e.toString());
+      throw new IOException(e);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(client);
+    }
   }
 
   /**
@@ -491,16 +515,18 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
   }
 
-  // Assures the mUri is the same as the master address in the current client context.
-  private void checkMasterAddress() throws IOException {
+  /**
+   * @return true if the master address in mUri is the same as the one in the default file
+   *         system context.
+   */
+  private boolean checkMasterAddress() {
     InetSocketAddress masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
     boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
     boolean samePort = masterAddress.getPort() == mUri.getPort();
     if (sameHost && samePort) {
-      return;
+      return true;
     }
-    throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
-        .getMessage(mUri.getHost() + ":" + mUri.getPort(), masterAddress));
+    return false;
   }
 
   /**
