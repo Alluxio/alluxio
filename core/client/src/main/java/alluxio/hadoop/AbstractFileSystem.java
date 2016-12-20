@@ -456,9 +456,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         return;
       }
 
-      if (!masterAddIsSameAsDefault) {
-        initializeInternal(uri, conf);
-      }
+      initializeInternal(uri, conf);
       sInitialized = true;
     }
 
