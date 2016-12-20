@@ -44,7 +44,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   protected final long mBlockId;
   /** Size of the block. */
   protected final long mBlockSize;
-  /** Block store context. */
+  /** File system context. */
   protected final FileSystemContext mContext;
   /** Java heap buffer to store writes before flushing them to the backing store. */
   protected final ByteBuffer mBuffer;

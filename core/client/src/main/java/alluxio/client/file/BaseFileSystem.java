@@ -328,6 +328,8 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void close() {
-    mFileSystemContext.close();
+    if (mFileSystemContext != FileSystemContext.INSTANCE) {
+      mFileSystemContext.close();
+    }
   }
 }

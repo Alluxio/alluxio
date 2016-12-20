@@ -13,6 +13,7 @@ package alluxio.client.lineage;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ public final class DummyFileOutputStream extends FileOutStream {
    * @throws IOException if an I/O error occurs
    */
   public DummyFileOutputStream(AlluxioURI path, OutStreamOptions options) throws IOException {
-    super(path, options);
+    super(path, options, FileSystemContext.INSTANCE);
   }
 
   @Override
