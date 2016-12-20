@@ -222,8 +222,7 @@ public final class InodeTreeTest {
         CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION).setRecursive(true);
 
     // create nested directory
-    InodeTree.CreatePathResult createResult =
-        createPath(mTree, NESTED_URI, dirOptions);
+    InodeTree.CreatePathResult createResult = createPath(mTree, NESTED_URI, dirOptions);
     List<Inode<?>> modified = createResult.getModified();
     List<Inode<?>> created = createResult.getCreated();
 

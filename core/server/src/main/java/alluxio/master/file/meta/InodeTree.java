@@ -698,14 +698,14 @@ public class InodeTree implements JournalCheckpointStreamable {
         try {
           inodeGroup.lockReadAndCheckParent(child, inodeDirectory);
         } catch (InvalidPathException e) {
-          // Inode is no longer a descendant, continue.
+          // Inode is no longer a child, continue.
           continue;
         }
       } else {
         try {
           inodeGroup.lockWriteAndCheckParent(child, inodeDirectory);
         } catch (InvalidPathException e) {
-          // Inode is no longer a descendant, continue.
+          // Inode is no longer a child, continue.
           continue;
         }
       }

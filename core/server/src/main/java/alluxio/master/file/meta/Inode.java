@@ -308,7 +308,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * consistent with what the caller is expecting. If the state is inconsistent, an exception
    * will be thrown and the lock will be released.
    *
-   * This method assumes that the inode path to the parent has been read locked.
+   * NOTE: This method assumes that the inode path to the parent has been read locked.
    *
    * @param parent the expected parent inode
    * @throws InvalidPathException if the parent is not as expected
@@ -326,7 +326,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * path is consistent with what the caller is expecting. If the state is inconsistent, an
    * exception will be thrown and the lock will be released.
    *
-   * This method assumes that the inode path to the parent has been read locked.
+   * NOTE: This method assumes that the inode path to the parent has been read locked.
    *
    * @param parent the expected parent inode
    * @param name the expected name of the inode to be locked
@@ -353,7 +353,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * consistent with what the caller is expecting. If the state is inconsistent, an exception
    * will be thrown and the lock will be released.
    *
-   * This method assumes that the inode path to the parent has been read locked.
+   * NOTE: This method assumes that the inode path to the parent has been read locked.
    *
    * @param parent the expected parent inode
    * @throws InvalidPathException if the parent is not as expected
@@ -371,7 +371,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * path is consistent with what the caller is expecting. If the state is inconsistent, an
    * exception will be thrown and the lock will be released.
    *
-   * This method assumes that the inode path to the parent has been read locked.
+   * NOTE: This method assumes that the inode path to the parent has been read locked.
    *
    * @param parent the expected parent inode
    * @param name the expected name of the inode to be locked
