@@ -11,10 +11,10 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
-import alluxio.client.Seekable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
