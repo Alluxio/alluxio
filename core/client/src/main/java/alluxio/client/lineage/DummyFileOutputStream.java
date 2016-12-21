@@ -35,7 +35,7 @@ public final class DummyFileOutputStream extends FileOutStream {
    * @throws IOException if an I/O error occurs
    */
   public DummyFileOutputStream(AlluxioURI path, OutStreamOptions options) throws IOException {
-    super(path, options, FileSystemContext.INSTANCE);
+    super(FileSystemContext.INSTANCE, path, options);
   }
 
   @Override

@@ -60,7 +60,7 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class FileSystemContext implements Closeable {
-  public static final FileSystemContext INSTANCE = new FileSystemContext(null);
+  public static final FileSystemContext INSTANCE = create(null);
 
   static {
     MetricsSystem.startSinks();
@@ -256,8 +256,8 @@ public final class FileSystemContext implements Closeable {
    *
    * @param address the address of the worker to get a client to
    * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
-   * @throws IOException if it fails to create a block worker client for a given hostname (e.g.
-   * no block worker is available for the given worker RPC address)
+   * @throws IOException if it fails to create a worker client for a given hostname (e.g. no block
+   *         worker is available for the given worker RPC address)
    */
   public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address) throws IOException {
     return createBlockWorkerClient(address, IdUtils.getRandomNonNegativeLong());

@@ -44,7 +44,7 @@ import java.nio.ByteBuffer;
  * Tests for the {@link NettyRemoteBlockReader} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(NettyClient.class)
+@PrepareForTest({FileSystemContext.class, NettyClient.class})
 public class NettyRemoteBlockReaderTest {
 
   private FileSystemContext mContext;
