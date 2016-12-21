@@ -81,7 +81,7 @@ public interface TransportProvider {
    * Similar as {@link TransportProvider#getClientTransport(InetSocketAddress)} but it also
    * specifies the {@link Subject} explicitly.
    *
-   * @param subject the subject
+   * @param subject the subject, set to null if not present
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
    * @throws IOException if building a TransportFactory fails or user login fails
