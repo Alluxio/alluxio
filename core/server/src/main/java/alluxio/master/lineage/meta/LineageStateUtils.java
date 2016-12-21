@@ -92,7 +92,7 @@ public final class LineageStateUtils {
       FileSystemMasterView fileSystemMasterView) throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
       if (fileSystemMasterView
-          .getFilePersistenceState(outputFile) == PersistenceState.IN_PROGRESS) {
+          .getFilePersistenceState(outputFile) == PersistenceState.TO_BE_PERSISTED) {
         return true;
       }
     }
