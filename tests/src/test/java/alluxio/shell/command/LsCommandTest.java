@@ -102,6 +102,38 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
   }
 
   /**
+   * Tests ls -d command when security is not enabled.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsDirectoryAsPlainFileNoAcl() throws IOException, AlluxioException {
+    URIStatus[] files = createFiles();
+    mFsShell.run("ls", "-d", "/testRoot");
+    URIStatus dirStatus = mFileSystem.getStatus(new AlluxioURI("/testRoot/"));
+    String expected = "";
+    expected += getLsNoAclResultStr("/testRoot", dirStatus.getCreationTimeMs(),
+        3 /* number of direct children under /testRoot/ dir */, LsCommand.STATE_FOLDER);
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  /**
+   * Tests ls -d command on root directory when security is not enabled.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsRootNoAcl() throws IOException, AlluxioException {
+    mFsShell.run("ls", "-d", "/");
+    URIStatus dirStatus = mFileSystem.getStatus(new AlluxioURI("/"));
+    String expected = "";
+    expected += getLsNoAclResultStr("/", dirStatus.getCreationTimeMs(), 0, LsCommand.STATE_FOLDER);
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  /**
    * Tests ls command when security is enabled.
    */
   @Test
