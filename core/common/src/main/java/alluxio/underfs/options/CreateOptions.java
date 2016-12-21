@@ -24,6 +24,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class CreateOptions {
+  // Determine whether to create any necessary but nonexistent parent directories.
+  private boolean mCreateParent;
+
   // Ensure writes are not readable till close.
   private boolean mEnsureAtomic;
 
@@ -41,8 +44,16 @@ public final class CreateOptions {
    * Constructs a default {@link CreateOptions}.
    */
   private CreateOptions() {
+    mCreateParent = true;
     mEnsureAtomic = true;
     mPermission = Permission.defaults().applyFileUMask();
+  }
+
+  /**
+   * @return whether to create any necessary but nonexistent parent directories
+   */
+  public boolean getCreateParent() {
+    return mCreateParent;
   }
 
   /**
@@ -57,6 +68,17 @@ public final class CreateOptions {
    */
   public boolean isEnsureAtomic() {
     return mEnsureAtomic;
+  }
+
+  /**
+   * Sets option to create parent directories.
+   *
+   * @param createParent if true, creates any necessary but nonexistent parent directories
+   * @return the updated option object
+   */
+  public CreateOptions setCreateParent(boolean createParent) {
+    mCreateParent = createParent;
+    return this;
   }
 
   /**
@@ -92,18 +114,20 @@ public final class CreateOptions {
       return false;
     }
     CreateOptions that = (CreateOptions) o;
-    return (mEnsureAtomic == that.mEnsureAtomic)
+    return (mCreateParent == that.mCreateParent)
+        && (mEnsureAtomic == that.mEnsureAtomic)
         && Objects.equal(mPermission, that.mPermission);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mEnsureAtomic, mPermission);
+    return Objects.hashCode(mCreateParent, mEnsureAtomic, mPermission);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("createParent", mCreateParent)
         .add("ensureAtomic", mEnsureAtomic)
         .add("permission", mPermission)
         .toString();

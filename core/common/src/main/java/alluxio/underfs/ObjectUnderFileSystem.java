@@ -140,10 +140,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    if (mkdirs(getParentPath(path))) {
-      return createObject(stripPrefixIfPresent(path));
+    if (options.getCreateParent()) {
+      if (!mkdirs(getParentPath(path))) {
+        throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
+      }
     }
-    throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
+    return createObject(stripPrefixIfPresent(path));
   }
 
   @Override

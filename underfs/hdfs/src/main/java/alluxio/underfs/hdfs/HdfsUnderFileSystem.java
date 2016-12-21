@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
@@ -154,7 +155,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       try {
         LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
-        return FileSystem.create(mFileSystem, new Path(path),
+        Path hdfsPath = new Path(path);
+        if (!options.getCreateParent()) {
+          if (!mFileSystem.exists(hdfsPath.getParent())) {
+            throw new IOException(ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(path));
+          }
+        }
+        return FileSystem.create(mFileSystem, hdfsPath,
             new FsPermission(perm.getMode().toShort()));
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
