@@ -170,6 +170,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
     // Locking this object protects against removing the exact object, but does not protect against
     // removing a distinct, but equivalent object.
     synchronized (object) {
+      // add() will atomically add the object to the index, if it doesn't exist.
       if (!mPrimaryIndex.add(object)) {
         // This object is already added, possibly by another concurrent thread.
         return false;
