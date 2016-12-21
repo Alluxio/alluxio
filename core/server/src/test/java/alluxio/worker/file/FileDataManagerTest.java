@@ -281,7 +281,6 @@ public final class FileDataManagerTest {
     Mockito.when(mUfs.create(dstPath)).thenReturn(outputStream);
     Mockito.when(mUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
         .thenReturn(outputStream);
-
     Mockito.when(mMockFileSystem.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
         new URIStatus(fileInfo));
 
