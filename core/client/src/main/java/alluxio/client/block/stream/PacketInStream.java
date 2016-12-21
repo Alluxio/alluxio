@@ -88,7 +88,6 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
 
   /**
    * Creates an instance of {@link PacketInStream}.
-   * NOTE: Do not throw exception in this constructor.
    *
    * @param packetReaderFactory the packet reader factory
    * @param id the ID (either block ID or UFS file ID)
@@ -114,7 +113,6 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
     }
 
     mPos++;
-    // mBlockIsRead = true;
     return BufferUtils.byteToInt(mCurrentPacket.readByte());
   }
 
@@ -172,7 +170,6 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
           buf.readBytes(b, off, toRead);
           len -= toRead;
           off += toRead;
-          return toRead;
         } finally {
           if (buf != null) {
             buf.release();

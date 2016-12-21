@@ -78,7 +78,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       lockBlockResult = blockWorkerClient.lockBlock(blockId);
       PacketInStream inStream = closer.register(PacketInStream
           .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
-      return new BlockInStream(inStream, blockId, blockSize, blockWorkerClient, options);
+      return new BlockInStream(inStream, blockId, blockWorkerClient, options);
     } catch (Exception e) {
       if (lockBlockResult != null) {
         blockWorkerClient.unlockBlock(blockId);
@@ -118,7 +118,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
           .createNettyPacketInStream(blockWorkerClient.getDataServerAddress(), blockId,
               lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
               Protocol.RequestType.ALLUXIO_BLOCK));
-      return new BlockInStream(inStream, blockId, blockSize, blockWorkerClient, options);
+      return new BlockInStream(inStream, blockId, blockWorkerClient, options);
     } catch (Exception e) {
       if (lockBlockResult != null) {
         blockWorkerClient.unlockBlock(blockId);
@@ -173,12 +173,11 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    *
    * @param inputStream the packet inputstream
    * @param blockId the block ID
-   * @param blockSize the block size
    * @param blockWorkerClient the block worker client
    * @param options the options
    * @throws IOException if it fails to create an instance
    */
-  private BlockInStream(PacketInStream inputStream, long blockId, long blockSize,
+  private BlockInStream(PacketInStream inputStream, long blockId,
       BlockWorkerClient blockWorkerClient, InStreamOptions options) throws IOException {
     super(inputStream);
 

@@ -224,8 +224,10 @@ public final class NettyPacketReader implements PacketReader {
       }
     } finally {
       if (mChannel.isOpen()) {
-        Preconditions.checkState(mChannel.pipeline().last() instanceof Handler);
+        Preconditions.checkState(mChannel.pipeline().last() instanceof PacketReadHandler);
         mChannel.pipeline().removeLast();
+
+        // Make sure "autoread" is on before realsing the channel.
         resume();
       }
       BlockStoreContext.releaseNettyChannel(mAddress, mChannel);
@@ -248,7 +250,7 @@ public final class NettyPacketReader implements PacketReader {
   }
 
   /**
-   * Add {@link Handler} to the channel pipeline.
+   * Add {@link PacketReadHandler} to the channel pipeline.
    */
   private void addHandler() {
     ChannelPipeline pipeline = mChannel.pipeline();
@@ -256,17 +258,17 @@ public final class NettyPacketReader implements PacketReader {
       throw new RuntimeException(String.format("Channel pipeline has unexpected handlers %s.",
           pipeline.last().getClass().getCanonicalName()));
     }
-    mChannel.pipeline().addLast(new Handler());
+    mChannel.pipeline().addLast(new PacketReadHandler());
   }
 
   /**
    * The netty handler that reads packets from the channel.
    */
-  private class Handler extends ChannelInboundHandlerAdapter {
+  private class PacketReadHandler extends ChannelInboundHandlerAdapter {
     /**
      * Default constructor.
      */
-    public Handler() {}
+    public PacketReadHandler() {}
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {

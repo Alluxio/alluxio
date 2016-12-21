@@ -257,7 +257,7 @@ public class NettyPacketWriter implements PacketWriter {
     } finally {
       mLock.unlock();
       if (mChannel.isOpen()) {
-        Preconditions.checkState(mChannel.pipeline().last() instanceof Handler);
+        Preconditions.checkState(mChannel.pipeline().last() instanceof PacketWriteHandler);
         mChannel.pipeline().removeLast();
       }
       BlockStoreContext.releaseNettyChannel(mAddress, mChannel);
@@ -266,7 +266,7 @@ public class NettyPacketWriter implements PacketWriter {
   }
 
   /**
-   * Add {@link Handler} to the channel pipeline.
+   * Add {@link PacketWriteHandler} to the channel pipeline.
    */
   private void addHandler() {
     ChannelPipeline pipeline = mChannel.pipeline();
@@ -274,7 +274,7 @@ public class NettyPacketWriter implements PacketWriter {
       throw new RuntimeException(String.format("Channel pipeline has unexpected handlers %s.",
           pipeline.last().getClass().getCanonicalName()));
     }
-    mChannel.pipeline().addLast(new Handler());
+    mChannel.pipeline().addLast(new PacketWriteHandler());
   }
 
   /**
@@ -320,11 +320,11 @@ public class NettyPacketWriter implements PacketWriter {
   /**
    * The netty handler that handles netty write response.
    */
-  private final class Handler extends ChannelInboundHandlerAdapter {
+  private final class PacketWriteHandler extends ChannelInboundHandlerAdapter {
     /**
      * Default constructor.
      */
-    public Handler() {}
+    public PacketWriteHandler() {}
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {

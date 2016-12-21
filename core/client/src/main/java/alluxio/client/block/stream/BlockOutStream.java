@@ -65,9 +65,10 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createWorkerClient(workerNetAddress));
-      return new BlockOutStream(
-          PacketOutStream.createLocalPacketOutStream(client, blockId, blockSize), blockId,
-          blockSize, client, options);
+      PacketOutStream outStream =
+          PacketOutStream.createLocalPacketOutStream(client, blockId, blockSize);
+      closer.register(outStream);
+      return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (IOException e) {
       closer.close();
       throw e;
@@ -128,16 +129,33 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
     if (mClosed) {
       return;
     }
+    Throwable throwable = null;
     try {
       mOutStream.cancel();
-      mBlockWorkerClient.cancelBlock(mBlockId);
-    } catch (AlluxioException e) {
-      mCloser.rethrow(new IOException(e));
     } catch (Throwable e) {
-      mCloser.rethrow(e);
-    } finally {
-      mCloser.close();
+      throwable = e;
+    }
+    try {
+      mBlockWorkerClient.cancelBlock(mBlockId);
+    } catch (Throwable e) {
+      throwable = e;
+    }
+
+    if (throwable == null) {
       mClosed = true;
+      return;
+    }
+
+    try {
+      mCloser.close();
+    } catch (Throwable e) {
+      // Ignore
+    } finally {
+      mClosed = true;
+      if (throwable instanceof IOException) {
+        throw (IOException) throwable;
+      }
+      throw new IOException(throwable);
     }
   }
 
@@ -147,7 +165,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
       return;
     }
     try {
-      out.close();
+      mOutStream.close();
       if (remaining() < mBlockSize) {
         mBlockWorkerClient.cacheBlock(mBlockId);
       }
@@ -167,14 +185,13 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
    * @param blockId the block id
    * @param blockSize the block size
    * @param options the options
-   * @throws IOException if an I/O error occurs
    */
   private BlockOutStream(
       PacketOutStream outStream,
       long blockId,
       long blockSize,
       BlockWorkerClient blockWorkerClient,
-      OutStreamOptions options) throws IOException {
+      OutStreamOptions options) {
     super(outStream);
 
     mOutStream = outStream;
