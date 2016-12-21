@@ -216,17 +216,16 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
 
-    if (!mPacketInStreamEnabled) {
-      return readWithoutPacketStreaming(position, buffer, offset, length);
-    } else {
+    if (mPacketInStreamEnabled) {
       return readWithPacketStreaming(position, buffer, offset, length);
+    } else {
+      return readWithoutPacketStreaming(position, buffer, offset, length);
     }
   }
 
   /**
-   * Read upto the specified number of bytes, from a given
-   * position within a file, and return the number of bytes read. This does not
-   * change the current offset of a file, and is thread-safe.
+   * Reads upto the specified number of bytes, from a given position within a file, and return the
+   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
    * This is used if packet streaming is enabled.
    *
    * @param position the start position to read from the stream
@@ -253,9 +252,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Read upto the specified number of bytes, from a given
-   * position within a file, and return the number of bytes read. This does not
-   * change the current offset of a file, and is thread-safe.
+   * Reads upto the specified number of bytes, from a given position within a file, and return the
+   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
    * This is used if packet streaming is not enabled.
    *
    * @param position the start position to read from the stream

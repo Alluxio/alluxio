@@ -182,16 +182,14 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
   /**
    * Creates a new block output stream.
    *
+   * @param outStream the {@link PacketOutStream} associated with this {@link BlockOutStream}
    * @param blockId the block id
    * @param blockSize the block size
+   * @param blockWorkerClient the block worker client
    * @param options the options
    */
-  private BlockOutStream(
-      PacketOutStream outStream,
-      long blockId,
-      long blockSize,
-      BlockWorkerClient blockWorkerClient,
-      OutStreamOptions options) {
+  private BlockOutStream(PacketOutStream outStream, long blockId, long blockSize,
+      BlockWorkerClient blockWorkerClient, OutStreamOptions options) {
     super(outStream);
 
     mOutStream = outStream;

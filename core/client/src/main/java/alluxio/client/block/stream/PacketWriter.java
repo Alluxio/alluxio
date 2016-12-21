@@ -43,7 +43,7 @@ public interface PacketWriter extends Closeable {
   void cancel() throws IOException;
 
   /**
-   * @return the packet size used
+   * @return the packet size in bytes used
    */
   int packetSize();
 

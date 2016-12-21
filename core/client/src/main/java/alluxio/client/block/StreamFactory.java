@@ -9,11 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.block.stream;
+package alluxio.client.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.block.BlockStoreContext;
+import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.wire.WorkerNetAddress;
@@ -25,7 +26,7 @@ import java.io.OutputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A factory class to create various block or UFS streams in Alluxio.
+ * A factory class to create various block streams in Alluxio.
  */
 @NotThreadSafe
 public final class StreamFactory {
@@ -39,13 +40,13 @@ public final class StreamFactory {
   }
 
   /**
-   * Creates an {@link OutputStream} that writes to a local block.
+   * Creates an {@link OutputStream} that writes to a block on local worker.
    *
    * @param context the block store context
    * @param blockId the block ID
-   * @param blockSize the block size
+   * @param blockSize the block size in bytes
    * @param address the Alluxio worker address
-   * @param options the in stream options
+   * @param options the out stream options
    * @return the {@link OutputStream} object
    * @throws IOException if it fails to create the output stream
    */
@@ -65,20 +66,20 @@ public final class StreamFactory {
    *
    * @param context the block store context
    * @param blockId the block ID
-   * @param blockSize the block size
+   * @param blockSize the block size in bytes
    * @param address the Alluxio worker address
-   * @param options the in stream options
+   * @param options the out stream options
    * @return the {@link OutputStream} object
    * @throws IOException if it fails to create the output stream
    */
   public static OutputStream createRemoteBlockOutStream(BlockStoreContext context, long blockId,
       long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
-    if (!PACKET_STREAMING_ENABLED) {
-      return new alluxio.client.block.RemoteBlockOutStream(blockId, blockSize, address, context,
-          options);
-    } else {
+    if (PACKET_STREAMING_ENABLED) {
       return BlockOutStream
           .createRemoteBlockOutStream(blockId, blockSize, address, context, options);
+    } else {
+      return new alluxio.client.block.RemoteBlockOutStream(blockId, blockSize, address, context,
+          options);
     }
   }
 
@@ -87,19 +88,19 @@ public final class StreamFactory {
    *
    * @param context the block store context
    * @param blockId the block ID
-   * @param blockSize the block size
+   * @param blockSize the block size in bytes
    * @param address the Alluxio worker address
-   * @param options the out stream options
+   * @param options the in stream options
    * @return the {@link InputStream} object
    * @throws IOException if it fails to create the input stream
    */
   public static InputStream createLocalBlockInStream(BlockStoreContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
-    if (!PACKET_STREAMING_ENABLED) {
+    if (PACKET_STREAMING_ENABLED) {
+      return BlockInStream.createLocalBlockInStream(blockId, blockSize, address, context, options);
+    } else {
       return new alluxio.client.block.LocalBlockInStream(blockId, blockSize, address, context,
           options);
-    } else {
-      return BlockInStream.createLocalBlockInStream(blockId, blockSize, address, context, options);
     }
   }
 
@@ -108,19 +109,19 @@ public final class StreamFactory {
    *
    * @param context the block store context
    * @param blockId the block ID
-   * @param blockSize the block size
+   * @param blockSize the block size in bytes
    * @param address the Alluxio worker address
-   * @param options the out stream options
+   * @param options the in stream options
    * @return the {@link InputStream} object
    * @throws IOException if it fails to create the input stream
    */
   public static InputStream createRemoteBlockInStream(BlockStoreContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
-    if (!PACKET_STREAMING_ENABLED) {
+    if (PACKET_STREAMING_ENABLED) {
+      return BlockInStream.createRemoteBlockInStream(blockId, blockSize, address, context, options);
+    } else {
       return new alluxio.client.block.RemoteBlockInStream(blockId, blockSize, address, context,
           options);
-    } else {
-      return BlockInStream.createRemoteBlockInStream(blockId, blockSize, address, context, options);
     }
   }
 }

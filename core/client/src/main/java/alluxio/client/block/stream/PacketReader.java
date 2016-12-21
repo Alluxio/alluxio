@@ -17,7 +17,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * The interface to read remote block from data server.
+ * The interface to read packets.
  */
 public interface PacketReader extends Closeable {
 

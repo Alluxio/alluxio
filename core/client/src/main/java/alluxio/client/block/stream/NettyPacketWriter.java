@@ -45,7 +45,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A netty packet writer that streams a full block or file to a netty data server.
+ * A netty packet writer that streams a full block or a UFS file to a netty data server.
  *
  * Protocol:
  * 1. The client streams packets (start from pos 0) to the server. The client pauses if the client
@@ -81,7 +81,10 @@ public class NettyPacketWriter implements PacketWriter {
   /** The next pos to write to the channel. */
   @GuardedBy("mLock")
   private long mPosToWrite = 0;
-  /** The next pos to queue to the netty buffer. */
+  /**
+   * The next pos to queue to the netty buffer. mPosToQueue - mPosToWrite is the data sitting
+   * in the netty buffer.
+   */
   @GuardedBy("mLock")
   private long mPosToQueue = 0;
   @GuardedBy("mLock")
@@ -115,7 +118,13 @@ public class NettyPacketWriter implements PacketWriter {
     mRequestType = type;
     mLength = length;
     mChannel = BlockStoreContext.acquireNettyChannel(address);
-    addHandler();
+
+    ChannelPipeline pipeline = mChannel.pipeline();
+    if (!(pipeline.last() instanceof RPCMessageDecoder)) {
+      throw new RuntimeException(String.format("Channel pipeline has unexpected handlers %s.",
+          pipeline.last().getClass().getCanonicalName()));
+    }
+    mChannel.pipeline().addLast(new PacketWriteHandler());
   }
 
   @Override
@@ -263,18 +272,6 @@ public class NettyPacketWriter implements PacketWriter {
       BlockStoreContext.releaseNettyChannel(mAddress, mChannel);
       mClosed = true;
     }
-  }
-
-  /**
-   * Add {@link PacketWriteHandler} to the channel pipeline.
-   */
-  private void addHandler() {
-    ChannelPipeline pipeline = mChannel.pipeline();
-    if (!(pipeline.last() instanceof RPCMessageDecoder)) {
-      throw new RuntimeException(String.format("Channel pipeline has unexpected handlers %s.",
-          pipeline.last().getClass().getCanonicalName()));
-    }
-    mChannel.pipeline().addLast(new PacketWriteHandler());
   }
 
   /**

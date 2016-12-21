@@ -62,7 +62,10 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   /** Set to true if the packet reader is active .*/
   @GuardedBy("mLock")
   private boolean mPacketReaderActive = false;
-  /** The next pos to queue to the netty buffer. */
+  /**
+   * The next pos to queue to the netty buffer. mPosToQueue - mPosToWrite is the bytes that are
+   * in netty buffer.
+   */
   @GuardedBy("mLock")
   private long mPosToQueue = -1;
   /** The next pos to write to the channel. */

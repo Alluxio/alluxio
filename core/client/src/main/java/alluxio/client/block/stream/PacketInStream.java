@@ -227,7 +227,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   }
 
   /**
-   * Reads a new packet from the channel.
+   * Reads a new packet from the channel if all of the current packet is read.
    *
    * @throws IOException if it fails to read the packet
    */

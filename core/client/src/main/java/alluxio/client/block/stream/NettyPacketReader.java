@@ -78,6 +78,8 @@ public final class NettyPacketReader implements PacketReader {
   private final long mStart;
   private final long mBytesToRead;
 
+  // TODO(peis): Investigate whether we can remove this lock. The main reason to keep this lock
+  // is to protect mPacketReaderException.
   private final ReentrantLock mLock = new ReentrantLock();
   @GuardedBy("mLock")
   private final Queue<ByteBuf> mPackets = new LinkedList<>();
@@ -117,7 +119,14 @@ public final class NettyPacketReader implements PacketReader {
     mRequestType = type;
 
     mChannel = BlockStoreContext.acquireNettyChannel(address);
-    addHandler();
+
+    ChannelPipeline pipeline = mChannel.pipeline();
+    if (!(pipeline.last() instanceof RPCMessageDecoder)) {
+      throw new RuntimeException(String.format("Channel pipeline has unexpected handlers %s.",
+          pipeline.last().getClass().getCanonicalName()));
+    }
+    mChannel.pipeline().addLast(new PacketReadHandler());
+
     Protocol.ReadRequest readRequest =
         Protocol.ReadRequest.newBuilder().setId(id).setOffset(offset).setLength(len)
             .setLockId(lockId).setSessionId(sessionId).setType(type).build();
@@ -144,6 +153,8 @@ public final class NettyPacketReader implements PacketReader {
           throw new IOException(mPacketReaderException);
         }
         buf = mPackets.poll();
+
+        // TODO(peis): Have a better criteria to resume so that we can have fewer state changes.
         if (!tooManyPacketsPending()) {
           resume();
         }
@@ -247,18 +258,6 @@ public final class NettyPacketReader implements PacketReader {
    */
   private boolean tooManyPacketsPending() {
     return mPackets.size() >= MAX_PACKETS_IN_FLIGHT;
-  }
-
-  /**
-   * Add {@link PacketReadHandler} to the channel pipeline.
-   */
-  private void addHandler() {
-    ChannelPipeline pipeline = mChannel.pipeline();
-    if (!(pipeline.last() instanceof RPCMessageDecoder)) {
-      throw new RuntimeException(String.format("Channel pipeline has unexpected handlers %s.",
-          pipeline.last().getClass().getCanonicalName()));
-    }
-    mChannel.pipeline().addLast(new PacketReadHandler());
   }
 
   /**
