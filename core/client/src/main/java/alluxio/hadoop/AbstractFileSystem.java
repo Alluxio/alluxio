@@ -416,6 +416,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * invalidate the current contexts. This must be called before client operations in order to
    * guarantee the integrity of the contexts, meaning users should not alternate between using the
    * Hadoop compatible API and native Alluxio API in the same process.
+   *
+   * If hadoop file system cache is enabled, this method should only be called when switching user.
    */
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
@@ -441,7 +443,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
             .getMessage(mUri.getHost() + ":" + mUri.getPort(),
                 FileSystemContext.INSTANCE.getMasterAddress()));
       }
-      setFileSystemAndContext();
+      updateFileSystemAndContext();
       return;
     }
     synchronized (INIT_LOCK) {
@@ -452,7 +454,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
               .getMessage(mUri.getHost() + ":" + mUri.getPort(),
                   FileSystemContext.INSTANCE.getMasterAddress()));
         }
-        setFileSystemAndContext();
+        updateFileSystemAndContext();
         return;
       }
 
@@ -460,7 +462,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       sInitialized = true;
     }
 
-    setFileSystemAndContext();
+    updateFileSystemAndContext();
   }
 
   /**
@@ -477,8 +479,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // We assume here that all clients use the same configuration.
     ConfUtils.mergeHadoopConfiguration(conf);
     Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort());
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
 
     // These must be reset to pick up the change to the master address.
     // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
@@ -502,7 +504,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * Sets the file system and context.
    */
-  void setFileSystemAndContext() {
+  private void updateFileSystemAndContext() {
     Subject subject = getHadoopSubject();
     if (subject != null) {
       mContext = FileSystemContext.create(subject);
@@ -528,7 +530,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * @return the hadoop subject if exists
+   * @return the hadoop subject if exists, null if not exist
    */
   private Subject getHadoopSubject() {
     try {

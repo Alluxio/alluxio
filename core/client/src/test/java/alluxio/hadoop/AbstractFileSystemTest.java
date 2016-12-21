@@ -301,8 +301,8 @@ public class AbstractFileSystemTest {
   }
 
   private void mockFileSystemContextAndMasterClient() throws Exception {
-    mMockFileSystemContext = Mockito.mock(FileSystemContext.class);
-    mMockFileSystemContextCustomized = Mockito.mock(FileSystemContext.class);
+    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystemContextCustomized = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.mockStatic(FileSystemContext.class);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mMockFileSystemContext);
     PowerMockito.when(FileSystemContext.create(Mockito.any(Subject.class)))

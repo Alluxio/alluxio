@@ -36,6 +36,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ import javax.security.auth.Subject;
  * so, because thread A holds the lock on {@link FileSystemContext}.
  */
 @ThreadSafe
-public class FileSystemContext {
+public final class FileSystemContext implements Closeable {
   public static final FileSystemContext INSTANCE = new FileSystemContext(null);
 
   static {
@@ -105,7 +106,8 @@ public class FileSystemContext {
   private final Subject mParentSubject;
 
   /**
-   * Creates a new file stream context.
+   * Creates a new file system context.
+   *
    * @return the context
    */
   public static FileSystemContext create() {
@@ -119,7 +121,9 @@ public class FileSystemContext {
    * @return the context
    */
   public static FileSystemContext create(Subject subject) {
-    return new FileSystemContext(subject);
+    FileSystemContext context = new FileSystemContext(subject);
+    context.init();
+    return context;
   }
 
   /**
@@ -127,13 +131,12 @@ public class FileSystemContext {
    *
    * @param subject the parent subject, set to null if not present
    */
-  public FileSystemContext(Subject subject) {
+  private FileSystemContext(Subject subject) {
     mParentSubject = subject;
-    init();
   }
 
   /**
-   * Initializes the context. Only called in the ctor and reset.
+   * Initializes the context. Only called in the factory methods and reset.
    */
   private void init() {
     String masterHostName =
@@ -249,19 +252,19 @@ public class FileSystemContext {
   }
 
   /**
-   * Creates a client for a worker with the given address.
+   * Creates a client for a block worker with the given address.
    *
    * @param address the address of the worker to get a client to
    * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
-   * @throws IOException if it fails to create a client for a given hostname (e.g. no Alluxio
-   *         worker is available for the given worker RPC address)
+   * @throws IOException if it fails to create a block worker client for a given hostname (e.g.
+   * no block worker is available for the given worker RPC address)
    */
   public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address) throws IOException {
     return createBlockWorkerClient(address, IdUtils.getRandomNonNegativeLong());
   }
 
   /**
-   * Creates a client for a worker with the given address.
+   * Creates a client for a block worker with the given address.
    *
    * @param address the address of the worker to get a client to
    * @param sessionId the session ID
@@ -317,8 +320,8 @@ public class FileSystemContext {
     if (!mFileSystemWorkerClientPools.containsKey(rpcAddress)) {
       FileSystemWorkerThriftClientPool pool =
           new FileSystemWorkerThriftClientPool(mParentSubject, rpcAddress,
-              Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-              Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
+              Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX),
+              Configuration.getLong(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
       if (mFileSystemWorkerClientPools.putIfAbsent(rpcAddress, pool) != null) {
         pool.close();
       }
@@ -327,8 +330,8 @@ public class FileSystemContext {
     if (!mFileSystemWorkerClientHeartbeatPools.containsKey(rpcAddress)) {
       FileSystemWorkerThriftClientPool pool =
           new FileSystemWorkerThriftClientPool(mParentSubject, rpcAddress,
-              Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-              Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
+              Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX),
+              Configuration.getLong(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
       if (mFileSystemWorkerClientHeartbeatPools.putIfAbsent(rpcAddress, pool) != null) {
         pool.close();
       }

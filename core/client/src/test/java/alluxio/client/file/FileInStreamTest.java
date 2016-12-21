@@ -91,7 +91,7 @@ public class FileInStreamTest {
 
     ClientTestUtils.setSmallBufferSizes();
 
-    mContext = Mockito.mock(FileSystemContext.class);
+    mContext = PowerMockito.mock(FileSystemContext.class);
     mBlockStore = Mockito.mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
