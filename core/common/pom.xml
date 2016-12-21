@@ -19,7 +19,7 @@
   </parent>
   <artifactId>alluxio-core-common</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Core - Common Utilities</name>
+  <name>Alluxio Core - Common</name>
   <description>Common utilities shared in Alluxio core modules</description>
 
   <properties>
