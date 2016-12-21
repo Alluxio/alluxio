@@ -91,11 +91,11 @@ public class NettyPacketWriter implements PacketWriter {
   @GuardedBy("mLock")
   private boolean mEOFSent = false;
   /** This condition meets if mThrowable != null or mDone = true. */
-  private Condition mDoneOrFail = mLock.newCondition();
+  private Condition mDoneOrFailed = mLock.newCondition();
   /** This condition meets if mThrowable != null or the buffer is not full. */
-  private Condition mBufferNotFullOrFail = mLock.newCondition();
+  private Condition mBufferNotFullOrFailed = mLock.newCondition();
   /** This condition meets if there is nothing in the netty buffer. */
-  private Condition mBufferEmptyOrFail = mLock.newCondition();
+  private Condition mBufferEmptyOrFailed = mLock.newCondition();
 
   /**
    * Creates an instance of {@link NettyPacketWriter}.
@@ -147,7 +147,7 @@ public class NettyPacketWriter implements PacketWriter {
           break;
         }
         try {
-          if (!mBufferNotFullOrFail.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+          if (!mBufferNotFullOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             throw new IOException(
                 String.format("Timeout to write packet to %d @ %s.", mId, mAddress));
           }
@@ -184,9 +184,9 @@ public class NettyPacketWriter implements PacketWriter {
     mLock.lock();
     try {
       mThrowable = new IOException("PacketWriter is cancelled.");
-      mBufferEmptyOrFail.signal();
-      mBufferNotFullOrFail.signal();
-      mDoneOrFail.signal();
+      mBufferEmptyOrFailed.signal();
+      mBufferNotFullOrFailed.signal();
+      mDoneOrFailed.signal();
 
       // TODO(peis): Better support cancel so that we do not need to close the channel.
       ChannelFuture future = mChannel.close().sync();
@@ -214,7 +214,7 @@ public class NettyPacketWriter implements PacketWriter {
         if (mThrowable != null) {
           throw new IOException(mThrowable);
         }
-        if (!mBufferEmptyOrFail.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+        if (!mBufferEmptyOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
           throw new IOException(
               String.format("Timeout to flush packets to %d @ %s.", mId, mAddress));
         }
@@ -244,7 +244,7 @@ public class NettyPacketWriter implements PacketWriter {
             mChannel.close().sync();
             throw new IOException(mThrowable);
           }
-          if (!mDoneOrFail.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+          if (!mDoneOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             mChannel.close().sync();
             throw new IOException(String.format(
                 "Timeout to close the NettyPacketWriter (block: %d, address: %s).", mId,
@@ -340,7 +340,7 @@ public class NettyPacketWriter implements PacketWriter {
       mLock.lock();
       try {
         mDone = true;
-        mDoneOrFail.signal();
+        mDoneOrFailed.signal();
       } finally {
         mLock.unlock();
       }
@@ -353,9 +353,9 @@ public class NettyPacketWriter implements PacketWriter {
       mLock.lock();
       try {
         mThrowable = cause;
-        mBufferNotFullOrFail.signal();
-        mDoneOrFail.signal();
-        mBufferEmptyOrFail.signal();
+        mBufferNotFullOrFailed.signal();
+        mDoneOrFailed.signal();
+        mBufferEmptyOrFailed.signal();
       } finally {
         mLock.unlock();
       }
@@ -370,9 +370,9 @@ public class NettyPacketWriter implements PacketWriter {
         if (mThrowable == null) {
           mThrowable = new IOException("Channel closed.");
         }
-        mBufferNotFullOrFail.signal();
-        mDoneOrFail.signal();
-        mBufferEmptyOrFail.signal();
+        mBufferNotFullOrFailed.signal();
+        mDoneOrFailed.signal();
+        mBufferEmptyOrFailed.signal();
       } finally {
         mLock.unlock();
       }
@@ -417,16 +417,16 @@ public class NettyPacketWriter implements PacketWriter {
 
         if (future.cause() != null) {
           mThrowable = future.cause();
-          mDoneOrFail.signal();
-          mBufferNotFullOrFail.signal();
-          mBufferEmptyOrFail.signal();
+          mDoneOrFailed.signal();
+          mBufferNotFullOrFailed.signal();
+          mBufferEmptyOrFailed.signal();
           return;
         }
         if (mPosToWrite == mPosToQueue) {
-          mBufferEmptyOrFail.signal();
+          mBufferEmptyOrFailed.signal();
         }
         if (!tooManyPacketsInFlight()) {
-          mBufferNotFullOrFail.signal();
+          mBufferNotFullOrFailed.signal();
         }
         if (mPosToWrite == mLength) {
           shouldSendEOF = true;

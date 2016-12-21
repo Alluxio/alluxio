@@ -83,7 +83,7 @@ public final class NettyPacketReader implements PacketReader {
   private final Queue<ByteBuf> mPackets = new LinkedList<>();
   @GuardedBy("mLock")
   private Throwable mPacketReaderException = null;
-  private final Condition mNotEmptyOrFail = mLock.newCondition();
+  private final Condition mNotEmptyOrFailed = mLock.newCondition();
 
   /** The next pos to read. */
   private long mPosToRead;
@@ -149,7 +149,7 @@ public final class NettyPacketReader implements PacketReader {
         }
         if (buf == null) {
           try {
-            if (!mNotEmptyOrFail.await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            if (!mNotEmptyOrFailed.await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
               throw new IOException(
                   String.format("Timeout while reading packet from block %d @ %s.", mId, mAddress));
             }
@@ -295,7 +295,7 @@ public final class NettyPacketReader implements PacketReader {
           buf = (ByteBuf) dataBuffer.getNettyOutput();
         }
         Preconditions.checkState(mPackets.offer(buf));
-        mNotEmptyOrFail.signal();
+        mNotEmptyOrFailed.signal();
 
         if (tooManyPacketsPending()) {
           pause();
@@ -316,7 +316,7 @@ public final class NettyPacketReader implements PacketReader {
       mLock.lock();
       try {
         mPacketReaderException = cause;
-        mNotEmptyOrFail.signal();
+        mNotEmptyOrFailed.signal();
       } finally {
         mLock.unlock();
       }
@@ -330,7 +330,7 @@ public final class NettyPacketReader implements PacketReader {
         if (mPacketReaderException == null) {
           mPacketReaderException = new IOException("ChannelClosed");
         }
-        mNotEmptyOrFail.signal();
+        mNotEmptyOrFailed.signal();
       } finally {
         mLock.unlock();
       }
