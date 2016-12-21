@@ -325,11 +325,4 @@ public class BaseFileSystem implements FileSystem {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
   }
-
-  @Override
-  public void close() {
-    if (mFileSystemContext != FileSystemContext.INSTANCE) {
-      mFileSystemContext.close();
-    }
-  }
 }

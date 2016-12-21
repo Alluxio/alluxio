@@ -36,7 +36,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
@@ -47,7 +46,7 @@ import java.util.List;
  * by the default implementation.
  */
 @PublicApi
-public interface FileSystem extends Closeable {
+public interface FileSystem {
 
   /**
    * Factory for {@link FileSystem}.
