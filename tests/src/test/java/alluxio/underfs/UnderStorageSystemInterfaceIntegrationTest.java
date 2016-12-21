@@ -24,6 +24,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -87,6 +88,22 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
     Assert.assertTrue(mUfs.isFile(testFile));
+  }
+
+  /**
+   * Tests that create with parent creation option off throws an Exception.
+   */
+  @Test
+  public void createNoParent() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
+    try {
+      OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(false));
+      o.close();
+    } catch (IOException e) {
+      // IOException is expected
+      return;
+    }
+    Assert.fail("Create with no parent should throw an exception");
   }
 
   /**
