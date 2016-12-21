@@ -16,14 +16,12 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.UnderFileSystemUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -305,13 +303,11 @@ public final class FileDataManager {
   private String prepareUfsFilePath(long fileId) throws AlluxioException, IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     AlluxioURI alluxioPath = new AlluxioURI(fileInfo.getPath());
-    FileSystemContext context = FileSystemContext.INSTANCE;
-    try (CloseableResource<FileSystemMasterClient> client = context.acquireMasterClientResource()) {
-      URIStatus status = client.get().getStatus(alluxioPath);
-      String ufsPath = status.getUfsPath();
-      UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, client.get(), mUfs);
-      return ufsPath;
-    }
+    FileSystem fs = FileSystem.Factory.get();
+    URIStatus status = fs.getStatus(alluxioPath);
+    String ufsPath = status.getUfsPath();
+    UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, mUfs);
+    return ufsPath;
   }
 
   /**

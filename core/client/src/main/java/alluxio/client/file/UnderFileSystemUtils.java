@@ -41,7 +41,7 @@ public final class UnderFileSystemUtils {
    * @throws IOException if folder creation fails
    */
   public static void prepareFilePath(AlluxioURI alluxioPath, String ufsPath,
-      FileSystemMasterClient fs, UnderFileSystem ufs) throws AlluxioException, IOException {
+      FileSystem fs, UnderFileSystem ufs) throws AlluxioException, IOException {
     AlluxioURI dstPath = new AlluxioURI(ufsPath);
     String parentPath = dstPath.getParent().getPath();
     // creates the parent folder if it does not exist
