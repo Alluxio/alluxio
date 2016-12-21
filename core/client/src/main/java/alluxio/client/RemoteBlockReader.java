@@ -33,6 +33,7 @@ public interface RemoteBlockReader extends Closeable {
     /**
      * Factory for {@link RemoteBlockReader}.
      *
+     * @param context the file system context
      * @return a new instance of {@link RemoteBlockReader}
      */
     public static RemoteBlockReader create(FileSystemContext context) {
