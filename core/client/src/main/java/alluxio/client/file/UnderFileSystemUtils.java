@@ -33,18 +33,15 @@ public final class UnderFileSystemUtils {
   /**
    * Create parent directories for path with correct permissions if required.
    *
-   * @param ufs the under file system
    * @param alluxioPath Alluxio path
-   * @return path in the under file system
+   * @param ufsPath path in the under file system
+   * @param fs file system master client
+   * @param ufs the under file system
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    * @throws IOException if folder creation fails
    */
-  public static String prepareFilePath(UnderFileSystem ufs, AlluxioURI alluxioPath)
-      throws AlluxioException, IOException {
-    FileSystem fs = FileSystem.Factory.get();
-    // Get UFS path
-    URIStatus status = fs.getStatus(alluxioPath);
-    String ufsPath = status.getUfsPath();
+  public static void prepareFilePath(AlluxioURI alluxioPath, String ufsPath,
+      FileSystemMasterClient fs, UnderFileSystem ufs) throws AlluxioException, IOException {
     AlluxioURI dstPath = new AlluxioURI(ufsPath);
     String parentPath = dstPath.getParent().getPath();
     // creates the parent folder if it does not exist
@@ -55,7 +52,8 @@ public final class UnderFileSystemUtils {
       AlluxioURI curAlluxioPath = alluxioPath.getParent();
       AlluxioURI curUfsPath = dstPath.getParent();
       // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not exist.
-      while (!ufs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
+      while (curUfsPath != null && !ufs.isDirectory(curUfsPath.toString())
+          && curAlluxioPath != null) {
         URIStatus curDirStatus;
         curDirStatus = fs.getStatus(curAlluxioPath);
         Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
@@ -75,7 +73,6 @@ public final class UnderFileSystemUtils {
         }
       }
     }
-    return dstPath.toString();
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation
