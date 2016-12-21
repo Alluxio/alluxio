@@ -2814,7 +2814,6 @@ public final class FileSystemMaster extends AbstractMaster {
       inode.setLastModificationTimeMs(opTimeMs);
     }
     if (options.getTtl() != null) {
-      //Preconditions.checkArgument(inode.isFile(), PreconditionMessage.TTL_ONLY_FOR_FILE);
       if (inode.isDirectory()) {
         InodeDirectory directory = (InodeDirectory) inode;
         Set<Inode<?>> children = directory.getChildren();
@@ -2825,6 +2824,9 @@ public final class FileSystemMaster extends AbstractMaster {
         }
       }
       long ttl = options.getTtl();
+      InodeDirectory parent = inodePath.getParentInodeDirectory();
+      Preconditions.checkArgument(parent.getTtl() < 0 || ttl < parent.getTtl(),
+          PreconditionMessage.TTL_FILE_SHOULD_LESS_THAN_PARENT_DIRECTORY);
       if (inode.getTtl() != ttl) {
         mTtlBuckets.remove(inode);
         inode.setTtl(ttl);
