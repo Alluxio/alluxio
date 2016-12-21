@@ -167,14 +167,14 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "ls [-R] [-f] [-d] <path>";
+    return "ls [-R] [-d] [-f] <path>";
   }
 
   @Override
   public String getDescription() {
     return "Displays information for all files and directories directly under the specified path."
         + " Specify -R to display files and directories recursively."
-        + " Specify -f to force loading files in the directory."
-        + " Specify -d to list directories as plain files.";
+        + " Specify -d to list directories as plain files."
+        + " Specify -f to force loading files in the directory.";
   }
 }
