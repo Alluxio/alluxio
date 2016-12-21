@@ -269,8 +269,10 @@ public enum PropertyKey {
       "8MB"),
   USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES,
       "2MB"),
+  // Deprecated. It will be removed in 2.0.0.
   USER_UFS_FILE_READER_CLASS(Name.USER_UFS_FILE_READER_CLASS,
       "alluxio.client.netty.NettyUnderFileSystemFileReader"),
+  // Deprecated. It will be removed in 2.0.0.
   USER_UFS_FILE_WRITER_CLASS(Name.USER_UFS_FILE_WRITER_CLASS,
       "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
 

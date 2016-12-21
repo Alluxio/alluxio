@@ -11,6 +11,7 @@
 
 package alluxio.client;
 
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.netty.NettyRemoteBlockWriter;
 
 import java.io.Closeable;
@@ -32,10 +33,11 @@ public interface RemoteBlockWriter extends Closeable {
     /**
      * Factory for {@link RemoteBlockWriter}.
      *
+     * @param context the file system context
      * @return a new instance of {@link RemoteBlockWriter}
      */
-    public static RemoteBlockWriter create() {
-      return new NettyRemoteBlockWriter();
+    public static RemoteBlockWriter create(FileSystemContext context) {
+      return new NettyRemoteBlockWriter(context);
     }
   }
 
