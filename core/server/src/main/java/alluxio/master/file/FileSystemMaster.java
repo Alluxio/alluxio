@@ -1749,11 +1749,12 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Metrics.RENAME_PATH_OPS.inc();
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-    // Both src and dst paths use WRITE locks, despite possibly updating the parent inodes. The
-    // modify operations on the parent inodes are thread safe.
+    // Require a WRITE lock on the source but only a READ lock on the destination. Since the
+    // destination should not exist, we will only obtain a READ lock on the destination parent. The
+    // modify operations on the parent inodes are thread safe so WRITE locks are not required.
     try (InodePathPair inodePathPair =
         mInodeTree.lockInodePathPair(srcPath, InodeTree.LockMode.WRITE, dstPath,
-            InodeTree.LockMode.WRITE)) {
+            InodeTree.LockMode.READ)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, srcInodePath);
@@ -1960,10 +1961,12 @@ public final class FileSystemMaster extends AbstractMaster {
     srcInode.setName(srcName);
     if (!srcParentInode.removeChild(srcInode)) {
       // This should never happen.
-      LOG.error("Failed to rename within Alluxio. Alluxio and under storage may be inconsistent.");
+      LOG.error("Failed to rename {} to {} in Alluxio. Alluxio and under storage may be "
+          + "inconsistent.", srcPath, dstPath);
       srcInode.setName(dstName);
       if (!dstParentInode.removeChild(dstName)) {
-        LOG.error("Failed to revert rename changes. Alluxio metadata may be inconsistent.");
+        LOG.error("Failed to revert changes when renaming {} to {}. Alluxio metadata may be "
+            + "inconsistent.", srcPath, dstPath);
       }
       srcInode.setName(srcName);
       srcInode.setParentId(srcParentInode.getId());
