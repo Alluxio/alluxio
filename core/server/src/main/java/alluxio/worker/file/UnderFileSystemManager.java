@@ -238,7 +238,6 @@ public final class UnderFileSystemManager {
       UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-      // TODO(adit): Prepare parent directories before create
       mStream = ufs.create(mUri, CreateOptions.defaults().setPermission(mPermission));
     }
 

@@ -140,7 +140,6 @@ public class FileOutStream extends AbstractOutStream {
               .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
         } else {
           UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
-          UnderFileSystemUtils.prepareFilePath(path, mUfsPath, FileSystem.Factory.get(), ufs);
           // TODO(jiri): Implement collection of temporary files left behind by dead clients.
           CreateOptions createOptions = CreateOptions.defaults()
               .setPermission(options.getPermission());
