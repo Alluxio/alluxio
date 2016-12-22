@@ -34,6 +34,8 @@ alluxio.underfs.hdfs.impl:
   作为底层存储系统的hdfs的实现类。
 alluxio.underfs.hdfs.prefixes:
   可选配置项，指定以哪些前缀开头的文件应该存放在Apache Hadoop底层文件系统。分隔符为任何空白符或者','。
+alluxio.underfs.hdfs.remote:
+  底层存储系统的worker节点对于Alluxio worker节点来说是否是远程的。如果该值为true，那么Alluxio将不会尝试从底层存储系统获取locality相关信息，因为这种情况下不可能存在任何locality，这样做可以提高性能。默认值为false。
 alluxio.underfs.listing.length:
   底层文件系统在一次查询中可以列出的目录条目的最大数量。如果条目数量大于指定长度，则需要多次查询才能列出。
 alluxio.underfs.object.store.mount.shared.publicly:

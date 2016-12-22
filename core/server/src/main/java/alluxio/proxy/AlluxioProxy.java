@@ -47,6 +47,12 @@ public final class AlluxioProxy implements Server {
       System.exit(-1);
     }
 
+    if (!Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
+      System.out.println("Cannot start proxy; master hostname is not configured. Please set "
+          + PropertyKey.MASTER_HOSTNAME.toString() + " in alluxio-site.properties.");
+      System.exit(1);
+    }
+
     AlluxioProxy proxy = new AlluxioProxy();
     try {
       proxy.start();
