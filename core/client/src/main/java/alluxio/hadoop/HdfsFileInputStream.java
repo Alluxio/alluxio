@@ -240,7 +240,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     int bytesRead = -1;
 
     if (mAlluxioFileInputStream != null) {
-      bytesRead = mAlluxioFileInputStream.read(position, buffer, offset, length);
+      bytesRead = mAlluxioFileInputStream.positionedRead(position, buffer, offset, length);
     } else {
       getHdfsInputStream();
       bytesRead = mHdfsInputStream.read(position, buffer, offset, length);

@@ -146,7 +146,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   }
 
   @Override
-  public int read(long pos, byte[] b, int off, int len) throws IOException {
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
     if (len == 0) {
       return 0;
     }

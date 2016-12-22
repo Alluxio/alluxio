@@ -79,7 +79,9 @@ public final class LocalFilePacketWriter implements PacketWriter {
   }
 
   @Override
-  public void cancel() {}
+  public void cancel() throws IOException {
+    close();
+  }
 
   @Override
   public void flush() {}

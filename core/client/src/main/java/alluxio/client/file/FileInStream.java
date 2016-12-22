@@ -238,10 +238,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   @Override
-  public int read(long pos, byte[] b, int off, int len) throws IOException {
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
     if (!PACKET_STREAMING_ENABLED) {
-      throw new RuntimeException(
-          "PositionedReadable interface is implemented only if packet streaming is enabled.");
+      throw new RuntimeException(String.format(
+          "Positioned read is not supported, please set %s to true to enable positioned read.",
+          PropertyKey.USER_PACKET_STREAMING_ENABLED.toString()));
     }
     if (pos < 0 || pos >= mFileLength) {
       return -1;
@@ -270,7 +271,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       long blockPos = pos % mBlockSize;
       try (InputStream inputStream = getBlockInStream(blockId)) {
         assert inputStream instanceof PositionedReadable;
-        int bytesRead = ((PositionedReadable) inputStream).read(blockPos, b, off, len);
+        int bytesRead = ((PositionedReadable) inputStream).positionedRead(blockPos, b, off, len);
         Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
         pos += bytesRead;
         off += bytesRead;

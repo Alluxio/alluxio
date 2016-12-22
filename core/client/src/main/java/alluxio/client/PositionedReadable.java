@@ -34,5 +34,5 @@ public interface PositionedReadable {
    * @return actual number of bytes read; -1 means "EOF";
    * @throws IOException IO problems
    */
-  int read(long position, byte[] buffer, int offset, int length) throws IOException;
+  int positionedRead(long position, byte[] buffer, int offset, int length) throws IOException;
 }

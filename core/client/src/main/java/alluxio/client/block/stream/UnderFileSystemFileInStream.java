@@ -44,8 +44,8 @@ public final class UnderFileSystemFileInStream extends FilterInputStream
   }
 
   @Override
-  public int read(long pos, byte[] b, int off, int len) throws IOException {
-    return mInStream.read(pos, b, off, len);
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
+    return mInStream.positionedRead(pos, b, off, len);
   }
 
   @Override

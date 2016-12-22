@@ -158,7 +158,7 @@ public final class UnderStoreBlockInStream extends BlockInStream implements Posi
   }
 
   @Override
-  public int read(long pos, byte[] b, int off, int len) throws IOException {
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
     Preconditions.checkState(PACKET_STREAMING_ENABLED,
         "PositionedReadable interface is implemented only if packet streaming is enabled.");
 
@@ -167,7 +167,7 @@ public final class UnderStoreBlockInStream extends BlockInStream implements Posi
     }
 
     if (mUnderStoreStream instanceof PositionedReadable) {
-      return ((PositionedReadable) mUnderStoreStream).read(pos, b, off, len);
+      return ((PositionedReadable) mUnderStoreStream).positionedRead(pos, b, off, len);
     }
     if (mUnderStoreStream instanceof org.apache.hadoop.fs.PositionedReadable) {
       return ((org.apache.hadoop.fs.PositionedReadable) mUnderStoreStream).read(pos, b, off, len);

@@ -154,8 +154,8 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
   }
 
   @Override
-  public int read(long pos, byte[] b, int off, int len) throws IOException {
-    return mInputStream.read(pos, b, off, len);
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
+    return mInputStream.positionedRead(pos, b, off, len);
   }
 
   @Override
