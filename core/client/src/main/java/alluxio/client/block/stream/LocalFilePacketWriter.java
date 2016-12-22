@@ -51,7 +51,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @throws IOException if it fails to create the packet writer
    * @return the {@link LocalFilePacketWriter} created
    */
-  public static LocalFilePacketWriter createLocalPacketWriter(BlockWorkerClient blockWorkerClient,
+  public static LocalFilePacketWriter create(BlockWorkerClient blockWorkerClient,
       long blockId) throws IOException {
     return new LocalFilePacketWriter(blockWorkerClient, blockId);
   }
@@ -70,7 +70,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
   public void writePacket(final ByteBuf buf) throws IOException {
     try {
       Preconditions.checkState(!mClosed, "PacketWriter is closed while writing packets.");
-      reserve(mPos + buf.readableBytes());
+      ensureReserved(mPos + buf.readableBytes());
       mPos += buf.readableBytes();
       buf.readBytes(mWriter.getChannel(), buf.readableBytes());
     } finally {
@@ -120,7 +120,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @param pos the pos of the file/block to reserve to
    * @throws IOException if it fails to reserve the space
    */
-  private void reserve(long pos) throws IOException {
+  private void ensureReserved(long pos) throws IOException {
     if (pos <= mPosReserved) {
       return;
     }

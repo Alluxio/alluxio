@@ -55,7 +55,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    */
   public static PacketOutStream createLocalPacketOutStream(BlockWorkerClient client,
       long id, long length) throws IOException {
-    PacketWriter packetWriter = LocalFilePacketWriter.createLocalPacketWriter(client, id);
+    PacketWriter packetWriter = LocalFilePacketWriter.create(client, id);
     return new PacketOutStream(packetWriter, length);
   }
 
@@ -112,7 +112,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param packetWriter the packet writer
    * @param length the length of the stream
    */
-  public PacketOutStream(PacketWriter packetWriter, long length) {
+  private PacketOutStream(PacketWriter packetWriter, long length) {
     mLength = length;
     mPacketWriters = new ArrayList<>(1);
     mPacketWriters.add(packetWriter);
@@ -125,7 +125,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param packetWriters the packet writers
    * @param length the length of the stream
    */
-  public PacketOutStream(List<PacketWriter> packetWriters, long length) {
+  private PacketOutStream(List<PacketWriter> packetWriters, long length) {
     mLength = length;
     mPacketWriters = packetWriters;
     mClosed = false;

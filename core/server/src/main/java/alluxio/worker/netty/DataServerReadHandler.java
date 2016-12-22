@@ -83,6 +83,8 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     public long mId = -1;
     public long mStart = -1;
     public long mEnd = -1;
+    // The position at which the read request is cancelled. If this is no smaller than mEnd,
+    // the cancel request does nothing.
     public long mCancelled = Long.MAX_VALUE;
 
     /**
@@ -149,12 +151,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
       // TODO(peis): Check the state of mPosToQueue and mPosToWrite.
       mPosToQueue = mRequest.mStart;
       mPosToWrite = mRequest.mStart;
-    } finally {
-      mLock.unlock();
-    }
 
-    mLock.lock();
-    try {
       mPacketReaderExecutor.submit(new PacketReader(ctx.channel()));
       mPacketReaderActive = true;
     } finally {
@@ -169,6 +166,8 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
+   * Requires to hold mLock when calling this.
+   *
    * @return true if there are too many packets in-flight
    */
   private boolean tooManyPendingPackets() {
@@ -176,6 +175,8 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
+   * Requires to hold mLock when calling this.
+   *
    * @return true if we should restart the packet reader
    */
   private boolean shouldRestartPacketReader() {
@@ -183,6 +184,8 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
+   * Requires to hold mLock when calling this.
+   *
    * @return the number of bytes remaining to push to the netty queue. Return 0 if it is cancelled
    */
   private long remainingToQueue() {
@@ -190,6 +193,8 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
+   * Requires to hold mLock when calling this.
+   *
    * @return the number of bytes remaining to flush. Return 0 if it is cancelled
    */
   private long remainingToWrite() {
@@ -305,10 +310,10 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     /**
      * Creates an instance of the {@link WriteListener}.
      *
-     * @param pos the pos
+     * @param posToWriteUncommitted the position to commit (i.e. update mPosToWrite)
      */
-    public WriteListener(long pos) {
-      mPosToWriteUncommitted = pos;
+    public WriteListener(long posToWriteUncommitted) {
+      mPosToWriteUncommitted = posToWriteUncommitted;
     }
 
     @Override
@@ -370,7 +375,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     private void runInternal() {
       while (true) {
         final long start;
-        final int packet_size;
+        final int packetSize;
         mLock.lock();
         try {
           start = mPosToQueue;
@@ -380,15 +385,15 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
             break;
           }
 
-          packet_size = (int) Math.min(remaining, PACKET_SIZE);
-          mPosToQueue += packet_size;
+          packetSize = (int) Math.min(remaining, PACKET_SIZE);
+          mPosToQueue += packetSize;
         } finally {
           mLock.unlock();
         }
 
         DataBuffer packet;
         try {
-          packet = getDataBuffer(mChannel, start, packet_size);
+          packet = getDataBuffer(mChannel, start, packetSize);
         } catch (Exception e) {
           mChannel.pipeline().fireExceptionCaught(e);
           break;
@@ -409,7 +414,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
         mChannel.eventLoop().submit(new Runnable() {
           @Override
           public void run() {
-            mChannel.writeAndFlush(response).addListener(new WriteListener(start + packet_size));
+            mChannel.writeAndFlush(response).addListener(new WriteListener(start + packetSize));
           }
         });
       }

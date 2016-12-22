@@ -79,7 +79,6 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
    * @param length the block or file length
    * @param type the read request type (either block read or UFS file read)
    * @return the {@link PacketInStream} created
-   * @throws IOException if it fails to create the object
    */
   public static PacketInStream createNettyPacketInStream(FileSystemContext context,
       InetSocketAddress address, long id, long lockId, long sessionId, long length,

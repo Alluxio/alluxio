@@ -25,7 +25,7 @@ public interface PositionedReadable {
    * the PositionedReadable interface in Hadoop, those that do not meet the requirement cannot
    * be used as a backing store for some applications, such as Apache HBase.
    *
-   * All implementations of this interface in Alluxio meets the thread safety requirement.
+   * All implementations of this interface in Alluxio must meet the thread safety requirement.
    *
    * @param position position within file
    * @param buffer destination buffer

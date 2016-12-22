@@ -276,8 +276,8 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
         }
 
         try {
-          // This is the last packet.
           if (buf.readableBytes() == 0) {
+            // This is the last packet.
             replySuccess(mCtx.channel());
             break;
           }
@@ -285,6 +285,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
           incrementMetrics(buf.readableBytes());
           writeBuf(buf, mPosToWrite);
         } catch (Exception e) {
+          mPacketWriterActive = false;
           mCtx.fireExceptionCaught(e);
           break;
         } finally {

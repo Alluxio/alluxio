@@ -398,8 +398,11 @@ public class NettyPacketWriter implements PacketWriter {
   private final class WriteListener implements ChannelFutureListener {
     private final long mPosToWriteUncommitted;
 
-    public WriteListener(long pos) {
-      mPosToWriteUncommitted = pos;
+    /**
+     * @param posToWriteUncommitted the pos to commit (i.e. update mPosToWrite)
+     */
+    public WriteListener(long posToWriteUncommitted) {
+      mPosToWriteUncommitted = posToWriteUncommitted;
     }
 
     @Override
