@@ -323,7 +323,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       mMasterContainerNetAddress = address.getHostAddress();
       LOG.info("Found master already running on " + mMasterAddress);
     } else {
-      LOG.info("Configuring Master container.");
+      LOG.info("Configuring master container request.");
       Resource masterResource = Records.newRecord(Resource.class);
       masterResource.setMemory(mMasterMemInMB);
       masterResource.setVirtualCores(mMasterCpu);
@@ -418,24 +418,26 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    */
   private boolean masterExists() {
 
-    // TODO(dan): derive port from Constant
+    String webPort = Configuration.get(PropertyKey.MASTER_WEB_PORT);
+    
     try {
-      URL myURL = new URL("http://" + mMasterAddress + ":" + "19999" + Constants.REST_API_PREFIX + "/master/version");
+      URL myURL = new URL("http://" + mMasterAddress + ":" + webPort + Constants.REST_API_PREFIX + "/master/version");
       LOG.debug("Checking for master at: " + myURL.toString());
       HttpURLConnection connection = (HttpURLConnection) myURL.openConnection();
       connection.setRequestMethod(HttpMethod.GET);
-
       int resCode = connection.getResponseCode();
       LOG.debug("Response code from master was: " + Integer.toString(resCode));
 
       if (resCode == HttpURLConnection.HTTP_OK) {
         connection.disconnect();
         return true;
+      } else {
+        connection.disconnect();
       }
     } catch (MalformedURLException e) {
       LOG.error("Malformed URL in attempt to check if master is running already", e);
     } catch (IOException e) {
-      LOG.error("Unable to open connection to master in attempt to check if already running", e);
+      LOG.debug("Unable to open connection to master in attempt to check if already running", e);
     }
 
     return false;
