@@ -86,6 +86,7 @@ public final class NettyPacketReader implements PacketReader {
   private final Queue<ByteBuf> mPackets = new LinkedList<>();
   @GuardedBy("mLock")
   private Throwable mPacketReaderException = null;
+  /** The condition is met when mPackets.size() > 0 or mPacketReaderException != null. */
   private final Condition mNotEmptyOrFailed = mLock.newCondition();
 
   /** The next pos to read. */

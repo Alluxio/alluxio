@@ -89,16 +89,16 @@ public class NettyPacketWriter implements PacketWriter {
   @GuardedBy("mLock")
   private long mPosToQueue = 0;
   @GuardedBy("mLock")
-  private Throwable mThrowable = null;
+  private Throwable mPacketWriteException = null;
   @GuardedBy("mLock")
   private boolean mDone = false;
   @GuardedBy("mLock")
   private boolean mEOFSent = false;
-  /** This condition meets if mThrowable != null or mDone = true. */
+  /** This condition is met if mPacketWriteException != null or mDone = true. */
   private Condition mDoneOrFailed = mLock.newCondition();
-  /** This condition meets if mThrowable != null or the buffer is not full. */
+  /** This condition is met if mPacketWriteException != null or the buffer is not full. */
   private Condition mBufferNotFullOrFailed = mLock.newCondition();
-  /** This condition meets if there is nothing in the netty buffer. */
+  /** This condition is met if there is nothing in the netty buffer. */
   private Condition mBufferEmptyOrFailed = mLock.newCondition();
 
   /**
@@ -149,8 +149,8 @@ public class NettyPacketWriter implements PacketWriter {
       Preconditions.checkState(!mClosed && !mEOFSent);
       Preconditions.checkArgument(buf.readableBytes() <= PACKET_SIZE);
       while (true) {
-        if (mThrowable != null) {
-          throw new IOException(mThrowable);
+        if (mPacketWriteException != null) {
+          throw new IOException(mPacketWriteException);
         }
         if (!tooManyPacketsInFlight()) {
           offset = mPosToQueue;
@@ -195,7 +195,7 @@ public class NettyPacketWriter implements PacketWriter {
 
     mLock.lock();
     try {
-      mThrowable = new IOException("PacketWriter is cancelled.");
+      mPacketWriteException = new IOException("PacketWriter is cancelled.");
       mBufferEmptyOrFailed.signal();
       mBufferNotFullOrFailed.signal();
       mDoneOrFailed.signal();
@@ -223,8 +223,8 @@ public class NettyPacketWriter implements PacketWriter {
         if (mPosToWrite == mPosToQueue) {
           return;
         }
-        if (mThrowable != null) {
-          throw new IOException(mThrowable);
+        if (mPacketWriteException != null) {
+          throw new IOException(mPacketWriteException);
         }
         if (!mBufferEmptyOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
           throw new IOException(
@@ -252,9 +252,9 @@ public class NettyPacketWriter implements PacketWriter {
           return;
         }
         try {
-          if (mThrowable != null) {
+          if (mPacketWriteException != null) {
             mChannel.close().sync();
-            throw new IOException(mThrowable);
+            throw new IOException(mPacketWriteException);
           }
           if (!mDoneOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             mChannel.close().sync();
@@ -352,7 +352,7 @@ public class NettyPacketWriter implements PacketWriter {
           cause);
       mLock.lock();
       try {
-        mThrowable = cause;
+        mPacketWriteException = cause;
         mBufferNotFullOrFailed.signal();
         mDoneOrFailed.signal();
         mBufferEmptyOrFailed.signal();
@@ -367,8 +367,8 @@ public class NettyPacketWriter implements PacketWriter {
     public void channelUnregistered(ChannelHandlerContext ctx) {
       mLock.lock();
       try {
-        if (mThrowable == null) {
-          mThrowable = new IOException("Channel closed.");
+        if (mPacketWriteException == null) {
+          mPacketWriteException = new IOException("Channel closed.");
         }
         mBufferNotFullOrFailed.signal();
         mDoneOrFailed.signal();
@@ -416,7 +416,7 @@ public class NettyPacketWriter implements PacketWriter {
         mPosToWrite = mPosToWriteUncommitted;
 
         if (future.cause() != null) {
-          mThrowable = future.cause();
+          mPacketWriteException = future.cause();
           mDoneOrFailed.signal();
           mBufferNotFullOrFailed.signal();
           mBufferEmptyOrFailed.signal();
