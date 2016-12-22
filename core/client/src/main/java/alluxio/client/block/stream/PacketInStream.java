@@ -22,7 +22,6 @@ import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -266,7 +265,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
    * @param packet the packet
    */
   private void destroyPacket(ByteBuf packet) {
-    ReferenceCountUtil.release(packet);
+    packet.release();
   }
 
   /**
