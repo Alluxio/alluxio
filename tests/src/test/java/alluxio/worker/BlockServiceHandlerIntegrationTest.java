@@ -30,7 +30,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockId;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.TTierPolicy;
+import alluxio.thrift.TWriteTier;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -93,7 +93,7 @@ public class BlockServiceHandlerIntegrationTest {
   public void cacheBlock() throws Exception {
     mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
-    final TTierPolicy tierPolicy = TTierPolicy.Highest;
+    final TWriteTier writeTier = TWriteTier.Highest;
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
     // Construct the block ids for the file.
@@ -101,7 +101,7 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId1 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 1);
 
     String filename = mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId0,
-        blockSize, tierPolicy);
+        blockSize, writeTier);
     createBlockFile(filename, blockSize);
     mBlockWorkerServiceHandler.cacheBlock(SESSION_ID, blockId0);
 
@@ -123,13 +123,13 @@ public class BlockServiceHandlerIntegrationTest {
   public void cancelBlock() throws Exception {
     mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
-    final TTierPolicy tierPolicy = TTierPolicy.Highest;
+    final TWriteTier writeTier = TWriteTier.Highest;
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 
     String filename =
-        mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId, blockSize, tierPolicy);
+        mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId, blockSize, writeTier);
     createBlockFile(filename, blockSize);
     mBlockWorkerServiceHandler.cancelBlock(SESSION_ID, blockId);
 
@@ -234,10 +234,10 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId2 = 12346L;
     final int chunkSize = (int) WORKER_CAPACITY_BYTES / 10;
 
-    /* only a single tier, so PreferHighestNonMemory still refers to the memory tier */
-    final TTierPolicy tierPolicy = TTierPolicy.PreferHighestNonMemory;
+    /* only a single tier, so SecondHighest still refers to the memory tier */
+    final TWriteTier writeTier = TWriteTier.SecondHighest;
 
-    mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId1, chunkSize, tierPolicy);
+    mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId1, chunkSize, writeTier);
     boolean result = mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, chunkSize);
 
     // Initial request and first additional request should succeed
@@ -261,7 +261,7 @@ public class BlockServiceHandlerIntegrationTest {
     Exception exception = null;
     try {
       mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2,
-          WORKER_CAPACITY_BYTES + 1, tierPolicy);
+          WORKER_CAPACITY_BYTES + 1, writeTier);
     } catch (AlluxioTException e) {
       exception = e;
     }
@@ -278,12 +278,12 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId2 = 23456L;
 
     /* only a single tier, so lowest still refers to the memory tier */
-    final TTierPolicy tierPolicy = TTierPolicy.Lowest;
+    final TWriteTier writeTier = TWriteTier.Lowest;
 
     String filePath1 =
-        mBlockWorkerServiceHandler.requestBlockLocation(userId1, blockId1, chunkSize, tierPolicy);
+        mBlockWorkerServiceHandler.requestBlockLocation(userId1, blockId1, chunkSize, writeTier);
     String filePath2 =
-        mBlockWorkerServiceHandler.requestBlockLocation(userId2, blockId2, chunkSize, tierPolicy);
+        mBlockWorkerServiceHandler.requestBlockLocation(userId2, blockId2, chunkSize, writeTier);
 
     // Initial requests should succeed
     Assert.assertTrue(filePath1 != null);

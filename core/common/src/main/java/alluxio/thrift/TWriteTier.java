@@ -11,14 +11,14 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum TTierPolicy implements org.apache.thrift.TEnum {
+public enum TWriteTier implements org.apache.thrift.TEnum {
   Highest(1),
-  PreferHighestNonMemory(2),
+  SecondHighest(2),
   Lowest(3);
 
   private final int value;
 
-  private TTierPolicy(int value) {
+  private TWriteTier(int value) {
     this.value = value;
   }
 
@@ -33,12 +33,12 @@ public enum TTierPolicy implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static TTierPolicy findByValue(int value) { 
+  public static TWriteTier findByValue(int value) { 
     switch (value) {
       case 1:
         return Highest;
       case 2:
-        return PreferHighestNonMemory;
+        return SecondHighest;
       case 3:
         return Lowest;
       default:

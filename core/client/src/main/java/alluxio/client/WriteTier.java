@@ -12,24 +12,24 @@
 package alluxio.client;
 
 import alluxio.annotation.PublicApi;
-import alluxio.thrift.TTierPolicy;
+import alluxio.thrift.TWriteTier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Write Tier policy when writing blocks for a file in Alluxio.
+ * Write Tier writing blocks for a file in Alluxio.
  */
 @PublicApi
 @ThreadSafe
-public enum WriteTier{
+public enum WriteTier {
   /**
    * Write the blocks to the highest tier in the Alluxio Worker.
    */
   HIGHEST(1),
   /**
-   * Preference to write blocks to the highest non-memory tier in an Alluxio Worker.
+   * Write blocks to the second highest tier in an Alluxio Worker. If only tier exists, write to it.
    */
-  PREFER_HIGHEST_NON_MEMORY(2),
+  SECOND_HIGHEST(2),
   /**
    * Write the blocks to the lowest tier in an Alluxio Worker.
    */
@@ -53,27 +53,27 @@ public enum WriteTier{
    * Converts client type to thrift type.
    *
    * @param writeTier {@link WriteTier}
-   * @return {@link TTierPolicy} equivalent
+   * @return {@link TWriteTier} equivalent
    */
-  public static TTierPolicy toThrift(WriteTier writeTier) {
+  public static TWriteTier toThrift(WriteTier writeTier) {
 
-    TTierPolicy tTierPolicy = TTierPolicy.Highest;
+    TWriteTier tWriteTier = TWriteTier.Highest;
     if (writeTier != null) {
       switch (writeTier) {
         case HIGHEST:
-          tTierPolicy = TTierPolicy.Highest;
+          tWriteTier = TWriteTier.Highest;
           break;
-        case PREFER_HIGHEST_NON_MEMORY:
-          tTierPolicy = TTierPolicy.PreferHighestNonMemory;
+        case SECOND_HIGHEST:
+          tWriteTier = TWriteTier.SecondHighest;
           break;
         case LOWEST:
-          tTierPolicy = TTierPolicy.Lowest;
+          tWriteTier = TWriteTier.Lowest;
           break;
         default:
-          tTierPolicy = TTierPolicy.Highest;
+          tWriteTier = TWriteTier.Highest;
           break;
       }
     }
-    return tTierPolicy;
+    return tWriteTier;
   }
 }
