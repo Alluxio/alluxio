@@ -67,6 +67,10 @@ public final class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPol
   }
 
   /**
+   * The information of BlockWorkerInfo is update after a file complete write. To avoid evict,
+   * user should configure "alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes"
+   * to reserve some space to store the block.
+   *
    * @param workerInfo BlockWorkerInfo of the worker
    * @return the available bytes of the worker
    */
