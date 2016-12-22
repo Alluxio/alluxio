@@ -210,8 +210,9 @@ public final class NettyPacketWriter implements PacketWriter {
       throw Throwables.propagate(e);
     } finally {
       mLock.unlock();
-      mClosed = true;
     }
+    // NOTE: PacketWriter#cancel doesn't imply PacketWriter#close. close must be called for every
+    // PacketWriter instance.
   }
 
   @Override
