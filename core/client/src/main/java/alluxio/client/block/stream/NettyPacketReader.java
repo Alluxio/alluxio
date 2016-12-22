@@ -276,16 +276,16 @@ public final class NettyPacketReader implements PacketReader {
     public PacketReadHandler() {}
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type %s, %s.",
           msg.getClass().getCanonicalName(), msg);
 
       RPCProtoMessage response = (RPCProtoMessage) msg;
       Protocol.Status status = ((Protocol.Response) response.getMessage()).getStatus();
       if (!Status.isOk(status)) {
-        throw new IOException(String
+        ctx.fireExceptionCaught(new IOException(String
             .format("Failed to read block %d from %s with status %s.", mId, mAddress,
-                status.toString()));
+                status.toString())));
       }
       mLock.lock();
       try {
@@ -299,18 +299,12 @@ public final class NettyPacketReader implements PacketReader {
           assert dataBuffer.getNettyOutput() instanceof ByteBuf;
           buf = (ByteBuf) dataBuffer.getNettyOutput();
         }
-        Preconditions.checkState(mPackets.offer(buf));
+        mPackets.offer(buf);
         mNotEmptyOrFailed.signal();
 
         if (tooManyPacketsPending()) {
           pause();
         }
-      } catch (Throwable e) {
-        if (response.getPayloadDataBuffer() != null) {
-          // This is the same as buf.release.
-          response.getPayloadDataBuffer().release();
-        }
-        throw e;
       } finally {
         mLock.unlock();
       }
