@@ -197,6 +197,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
+    // If the user has hinted the underlying storage nodes are not co-located with Alluxio
+    // workers, short circuit without querying the locations
+    if (Configuration.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)) {
+      return null;
+    }
     List<String> ret = new ArrayList<>();
     try {
       FileStatus fStatus = mFileSystem.getFileStatus(new Path(path));

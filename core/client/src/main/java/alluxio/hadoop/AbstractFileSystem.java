@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -32,6 +31,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileBlockInfo;
@@ -45,6 +45,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Progressable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,11 +54,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * Base class for Apache Hadoop based Alluxio {@link org.apache.hadoop.fs.FileSystem}. This class
@@ -78,10 +82,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /** Flag for if the contexts have been initialized. */
   @GuardedBy("INIT_LOCK")
   private static volatile boolean sInitialized = false;
-  @GuardedBy("INIT_LOCK")
-  private static FileSystem sFileSystem = null;
 
-  private static FileSystemContext sFileSystemContext = FileSystemContext.INSTANCE;
+  private FileSystemContext mContext = null;
+  private FileSystem mFileSystem = null;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
@@ -96,7 +99,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   AbstractFileSystem(FileSystem fileSystem) {
-    sFileSystem = fileSystem;
+    mFileSystem = fileSystem;
     sInitialized = true;
   }
 
@@ -104,16 +107,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * Constructs a new {@link AbstractFileSystem} instance.
    */
   AbstractFileSystem() {}
-
-  /**
-   * Sets the {@link FileSystemContext} instance used in this class, only for injecting
-   * mocked {@link FileSystemContext} in tests.
-   *
-   * @param context the file system context
-   */
-  public static void setFileSystemContext(FileSystemContext context) {
-    sFileSystemContext = context;
-  }
 
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
@@ -124,10 +117,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     try {
-      if (sFileSystem.exists(uri)) {
+      if (mFileSystem.exists(uri)) {
         throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
       }
-      return new FSDataOutputStream(sFileSystem.createFile(uri), mStatistics);
+      return new FSDataOutputStream(mFileSystem.createFile(uri), mStatistics);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -135,6 +128,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public void close() throws IOException {
+    if (mContext != FileSystemContext.INSTANCE) {
+      mContext.close();
+    }
     super.close();
   }
 
@@ -164,15 +160,15 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Check whether the file already exists, and delete it if overwrite is true
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     try {
-      if (sFileSystem.exists(uri)) {
+      if (mFileSystem.exists(uri)) {
         if (!overwrite) {
           throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
         }
-        if (sFileSystem.getStatus(uri).isFolder()) {
+        if (mFileSystem.getStatus(uri).isFolder()) {
           throw new IOException(
               ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(uri));
         }
-        sFileSystem.delete(uri);
+        mFileSystem.delete(uri);
       }
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -182,7 +178,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(blockSize)
         .setMode(new Mode(permission.toShort()));
     try {
-      FileOutStream outStream = sFileSystem.createFile(uri, options);
+      FileOutStream outStream = mFileSystem.createFile(uri, options);
       return new FSDataOutputStream(outStream, mStatistics);
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -250,7 +246,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
     try {
-      sFileSystem.delete(uri, options);
+      mFileSystem.delete(uri, options);
       return true;
     } catch (InvalidPathException | FileDoesNotExistException e) {
       LOG.error("delete failed: {}", e.getMessage());
@@ -322,7 +318,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     URIStatus fileStatus;
     try {
-      fileStatus = sFileSystem.getStatus(uri);
+      fileStatus = mFileSystem.getStatus(uri);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(e.getMessage());
     } catch (AlluxioException e) {
@@ -363,7 +359,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
     if (ownerOrGroupChanged) {
       try {
-        sFileSystem.setAttribute(uri, options);
+        mFileSystem.setAttribute(uri, options);
       } catch (AlluxioException e) {
         throw new IOException(e);
       }
@@ -384,7 +380,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     SetAttributeOptions options =
         SetAttributeOptions.defaults().setMode(new Mode(permission.toShort())).setRecursive(false);
     try {
-      sFileSystem.setAttribute(uri, options);
+      mFileSystem.setAttribute(uri, options);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -420,6 +416,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * invalidate the current contexts. This must be called before client operations in order to
    * guarantee the integrity of the contexts, meaning users should not alternate between using the
    * Hadoop compatible API and native Alluxio API in the same process.
+   *
+   * If hadoop file system cache is enabled, this method should only be called when switching user.
    */
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
@@ -437,58 +435,117 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
+    boolean masterAddIsSameAsDefault = checkMasterAddress();
+
     if (sInitialized) {
-      checkMasterAddress();
+      if (!masterAddIsSameAsDefault) {
+        throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+            .getMessage(mUri.getHost() + ":" + mUri.getPort(),
+                FileSystemContext.INSTANCE.getMasterAddress()));
+      }
+      updateFileSystemAndContext();
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
       if (sInitialized) {
-        checkMasterAddress();
+        if (!masterAddIsSameAsDefault) {
+          throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+              .getMessage(mUri.getHost() + ":" + mUri.getPort(),
+                  FileSystemContext.INSTANCE.getMasterAddress()));
+        }
+        updateFileSystemAndContext();
         return;
       }
 
-      // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
-      // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
-      // We assume here that all clients use the same configuration.
-      ConfUtils.mergeHadoopConfiguration(conf);
-      Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-      Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
+      initializeInternal(uri, conf);
+      sInitialized = true;
+    }
 
-      // These must be reset to pick up the change to the master address.
-      // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
-      ClientContext.init();
-      sFileSystemContext.reset();
-      LineageContext.INSTANCE.reset();
+    updateFileSystemAndContext();
+  }
 
-      // Try to connect to master, if it fails, the provided uri is invalid.
-      FileSystemMasterClient client = sFileSystemContext.acquireMasterClient();
-      try {
-        client.connect();
-        // Connected, initialize.
-        sFileSystem = FileSystem.Factory.get();
-        sInitialized = true;
-      } catch (ConnectionFailedException | IOException e) {
-        LOG.error("Failed to connect to the provided master address {}: {}.",
-            uri.toString(), e.toString());
-        throw new IOException(e);
-      } finally {
-        sFileSystemContext.releaseMasterClient(client);
-      }
+  /**
+   * Initializes the default contexts if the master address specified in the URI is different
+   * from the default one.
+   *
+   * @param uri the uri
+   * @param conf the hadoop conf
+   * @throws IOException if it fails to initialize
+   */
+  void initializeInternal(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
+    // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
+    // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
+    // We assume here that all clients use the same configuration.
+    ConfUtils.mergeHadoopConfiguration(conf);
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort());
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
+
+    // These must be reset to pick up the change to the master address.
+    // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
+    LineageContext.INSTANCE.reset();
+    FileSystemContext.INSTANCE.reset();
+
+    // Try to connect to master, if it fails, the provided uri is invalid.
+    FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      client.connect();
+      // Connected, initialize.
+    } catch (ConnectionFailedException | IOException e) {
+      LOG.error("Failed to connect to the provided master address {}: {}.",
+          uri.toString(), e.toString());
+      throw new IOException(e);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
   }
 
-  // Assures the mUri is the same as the master address in the current client context.
-  private void checkMasterAddress() throws IOException {
-    InetSocketAddress masterAddress = ClientContext.getMasterAddress();
+  /**
+   * Sets the file system and context.
+   */
+  private void updateFileSystemAndContext() {
+    Subject subject = getHadoopSubject();
+    if (subject != null) {
+      mContext = FileSystemContext.create(subject);
+      mFileSystem = FileSystem.Factory.get(mContext);
+    } else {
+      mContext = FileSystemContext.INSTANCE;
+      mFileSystem = FileSystem.Factory.get();
+    }
+  }
+
+  /**
+   * @return true if the master address in mUri is the same as the one in the default file
+   *         system context.
+   */
+  private boolean checkMasterAddress() {
+    InetSocketAddress masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
     boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
     boolean samePort = masterAddress.getPort() == mUri.getPort();
     if (sameHost && samePort) {
-      return;
+      return true;
     }
-    throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
-        .getMessage(mUri.getHost() + ":" + mUri.getPort(), masterAddress));
+    return false;
+  }
+
+  /**
+   * @return the hadoop subject if exists, null if not exist
+   */
+  private Subject getHadoopSubject() {
+    try {
+      UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
+      String username = ugi.getUserName();
+      if (username != null && !username.isEmpty()) {
+        User user = new User(ugi.getUserName());
+        HashSet<Principal> principals = new HashSet<>();
+        principals.add(user);
+        return new Subject(false, principals, new HashSet<>(), new HashSet<>());
+      }
+      return null;
+    } catch (IOException e) {
+      return null;
+    }
   }
 
   /**
@@ -511,7 +568,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     List<URIStatus> statuses;
     try {
-      statuses = sFileSystem.listStatus(uri);
+      statuses = mFileSystem.listStatus(uri);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(HadoopUtils.getPathWithoutScheme(path));
     } catch (AlluxioException e) {
@@ -549,7 +606,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         CreateDirectoryOptions.defaults().setRecursive(true).setAllowExists(true)
             .setMode(new Mode(permission.toShort()));
     try {
-      sFileSystem.createDirectory(uri, options);
+      mFileSystem.createDirectory(uri, options);
       return true;
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -572,7 +629,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    return new FSDataInputStream(new HdfsFileInputStream(uri, getConf(), bufferSize, mStatistics));
+    return new FSDataInputStream(
+        new HdfsFileInputStream(mContext, uri, getConf(), bufferSize, mStatistics));
   }
 
   @Override
@@ -587,7 +645,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     ensureExists(srcPath);
     URIStatus dstStatus;
     try {
-      dstStatus = sFileSystem.getStatus(dstPath);
+      dstStatus = mFileSystem.getStatus(dstPath);
     } catch (IOException | AlluxioException e) {
       dstStatus = null;
     }
@@ -596,7 +654,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       dstPath = dstPath.join(srcPath.getName());
     }
     try {
-      sFileSystem.rename(srcPath, dstPath);
+      mFileSystem.rename(srcPath, dstPath);
       return true;
     } catch (IOException | AlluxioException e) {
       LOG.error("Failed to rename {} to {}", src, dst, e);
@@ -623,7 +681,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   private void ensureExists(AlluxioURI path) throws IOException {
     try {
-      sFileSystem.getStatus(path);
+      mFileSystem.getStatus(path);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -631,7 +689,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   private List<FileBlockInfo> getFileBlocks(AlluxioURI path) throws IOException {
     try {
-      return sFileSystem.getStatus(path).getFileBlockInfos();
+      return mFileSystem.getStatus(path).getFileBlockInfos();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }

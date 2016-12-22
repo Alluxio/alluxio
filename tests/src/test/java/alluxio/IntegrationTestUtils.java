@@ -52,7 +52,7 @@ public final class IntegrationTestUtils {
   public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
       final AlluxioURI uri, int timeoutMs) {
 
-    try (FileSystemMasterClient client = new FileSystemMasterClient(
+    try (FileSystemMasterClient client = new FileSystemMasterClient(null,
         localAlluxioClusterResource.get().getMaster().getAddress())) {
       CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override

@@ -32,7 +32,6 @@ import alluxio.PropertyKey;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
@@ -118,7 +117,9 @@ public class FileOutStreamTest {
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mFactory = PowerMockito.mock(UnderFileSystemFileOutStream.Factory.class);
 
-    when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
+    PowerMockito.mockStatic(AlluxioBlockStore.class);
+    PowerMockito.when(AlluxioBlockStore.create(mFileSystemContext)).thenReturn(mBlockStore);
+
     when(mFileSystemContext.acquireMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mFileSystemMasterClient));
     when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class))).thenReturn(
@@ -126,7 +127,7 @@ public class FileOutStreamTest {
 
     // Worker file client mocking
     mWorkerClient = PowerMockito.mock(FileSystemWorkerClient.class);
-    when(mFileSystemContext.createWorkerClient()).thenReturn(mWorkerClient);
+    when(mFileSystemContext.createFileSystemWorkerClient()).thenReturn(mWorkerClient);
     when(mWorkerClient.createUfsFile(any(AlluxioURI.class), any(CreateUfsFileOptions.class)))
         .thenReturn(UFS_FILE_ID);
 
@@ -150,7 +151,7 @@ public class FileOutStreamTest {
             Long blockId = invocation.getArgumentAt(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
               TestBufferedBlockOutStream newStream =
-                  new TestBufferedBlockOutStream(blockId, BLOCK_LENGTH, BlockStoreContext.get());
+                  new TestBufferedBlockOutStream(blockId, BLOCK_LENGTH, mFileSystemContext);
               outStreamMap.put(blockId, newStream);
             }
             return outStreamMap.get(blockId);
@@ -172,8 +173,8 @@ public class FileOutStreamTest {
     };
     mUnderStorageFlushed = underStorageFlushed;
 
-    when(mFactory.create(any(InetSocketAddress.class), anyLong())).thenReturn(
-        mUnderStorageOutputStream);
+    when(mFactory.create(any(FileSystemContext.class), any(InetSocketAddress.class), anyLong()))
+        .thenReturn(mUnderStorageOutputStream);
 
     // Set up underFileStorage so that we can test UnderStorageType.SYNC_PERSIST
     mUnderFileSystem = ClientMockUtils.mockUnderFileSystem();

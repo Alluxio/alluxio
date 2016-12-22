@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ClientContext;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -44,7 +43,7 @@ import java.util.List;
 * Unit test for functionality in {@link BaseFileSystem}.
 */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, ClientContext.class})
+@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class})
 public final class BaseFileSystemTest {
 
   private static final RuntimeException EXCEPTION = new RuntimeException("test exception");

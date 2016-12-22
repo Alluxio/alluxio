@@ -13,7 +13,7 @@ package alluxio.hadoop.mapreduce;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.keyvalue.KeyValueMasterClient;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
@@ -45,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesWritable> {
   private final KeyValueMasterClient mKeyValueMasterClient =
-      new KeyValueMasterClient(ClientContext.getMasterAddress());
+      new KeyValueMasterClient(FileSystemContext.INSTANCE.getMasterAddress());
 
   /**
    * Constructs a new {@link KeyValueInputFormat}.

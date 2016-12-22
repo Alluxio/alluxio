@@ -29,9 +29,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,31 +65,34 @@ public class FileSystemWorkerClient
   // Tracks the number of active heartbeats.
   private static final AtomicInteger NUM_ACTIVE_SESSIONS = new AtomicInteger(0);
 
-  private static final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
-      CLIENT_POOLS = new ConcurrentHashMapV8<>();
-  private static final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
-      HEARTBEAT_CLIENT_POOLS = new ConcurrentHashMapV8<>();
+  private final FileSystemWorkerThriftClientPool mClientPool;
+  private final FileSystemWorkerThriftClientPool mClientHeartbeatPool;
 
   /** The current session id, managed by the caller. */
   private final long mSessionId;
 
   /** Address of the data server on the worker. */
   private final InetSocketAddress mWorkerDataServerAddress;
-  /** Address of the rpc server on the worker. */
-  private final InetSocketAddress mWorkerRpcServerAddress;
 
   private final ScheduledFuture<?> mHeartbeat;
 
   /**
    * Constructor for a client that communicates with the {@link FileSystemWorkerClientService}.
    *
+   * @param clientPool the client pool
+   * @param clientHeartbeatPool the client pool for heartbeat
    * @param workerNetAddress the worker address to connect to
    * @param sessionId the session id to use, this should be unique
    * @throws IOException if it fails to register the session with the worker specified
    */
-  public FileSystemWorkerClient(WorkerNetAddress workerNetAddress, final long sessionId)
+  public FileSystemWorkerClient(
+      FileSystemWorkerThriftClientPool clientPool,
+      FileSystemWorkerThriftClientPool clientHeartbeatPool,
+      WorkerNetAddress workerNetAddress, final long sessionId)
       throws IOException {
-    mWorkerRpcServerAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
+    mClientPool = clientPool;
+    mClientHeartbeatPool = clientHeartbeatPool;
+
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
 
@@ -123,12 +124,16 @@ public class FileSystemWorkerClient
 
   @Override
   public FileSystemWorkerClientService.Client acquireClient() throws IOException {
-    return acquireInternalNoInterrupt(CLIENT_POOLS);
+    try {
+      return mClientPool.acquire();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   @Override
   public void releaseClient(FileSystemWorkerClientService.Client client) {
-    releaseInternal(client, CLIENT_POOLS);
+    mClientPool.release(client);
   }
 
   @Override
@@ -265,7 +270,7 @@ public class FileSystemWorkerClient
    * @throws InterruptedException if the heartbeat is interrupted
    */
   public void sessionHeartbeat() throws IOException, InterruptedException {
-    FileSystemWorkerClientService.Client client = acquireInternal(HEARTBEAT_CLIENT_POOLS);
+    FileSystemWorkerClientService.Client client = mClientHeartbeatPool.acquire();
     try {
       client.sessionHeartbeat(mSessionId, null);
     } catch (AlluxioTException e) {
@@ -276,63 +281,7 @@ public class FileSystemWorkerClient
       client.getOutputProtocol().getTransport().close();
       throw new IOException(e);
     } finally {
-      releaseInternal(client, HEARTBEAT_CLIENT_POOLS);
+      mClientHeartbeatPool.release(client);
     }
-  }
-
-  /**
-   * Acquire a client from the specified pool. It creates a new client if the pool doesn't
-   * have any clients available and have remaining capacity. Otherwise, it blocks.
-   *
-   * @param pools the client pool for the workers
-   * @return the client
-   * @throws IOException if it fails to create a new client there is no client available and
-   *         there is enough capacity
-   * @throws InterruptedException if it is interrupted
-   */
-  private FileSystemWorkerClientService.Client acquireInternal(
-      ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> pools)
-      throws IOException, InterruptedException {
-    if (!pools.containsKey(mWorkerRpcServerAddress)) {
-      FileSystemWorkerThriftClientPool pool =
-          new FileSystemWorkerThriftClientPool(mWorkerRpcServerAddress,
-              Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX),
-              Configuration.getLong(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (pools.putIfAbsent(mWorkerRpcServerAddress, pool) != null) {
-        pool.close();
-      }
-    }
-    return pools.get(mWorkerRpcServerAddress).acquire();
-  }
-
-  /**
-   * Acquire a client from the specified pool. It creates a new client if the pool doesn't
-   * have any clients available and have remaining capacity. Otherwise, it blocks.
-   *
-   * @param pools the client pool for the workers
-   * @return the client
-   * @throws IOException if it fails to create a new client there is no client available and
-   *         there is enough capacity
-   */
-  private FileSystemWorkerClientService.Client acquireInternalNoInterrupt(
-      ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> pools)
-      throws IOException {
-    try {
-      return acquireInternal(pools);
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
-    }
-  }
-
-  /**
-   * Release the client to the specified pool.
-   *
-   * @param client the client to release
-   * @param pools the client pool for the workers
-   */
-  private void releaseInternal(FileSystemWorkerClientService.Client client,
-      ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool> pools) {
-    Preconditions.checkArgument(pools.containsKey(mWorkerRpcServerAddress));
-    pools.get(mWorkerRpcServerAddress).release(client);
   }
 }

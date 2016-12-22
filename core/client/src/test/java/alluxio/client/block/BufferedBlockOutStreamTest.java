@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -44,7 +45,7 @@ public class BufferedBlockOutStreamTest {
    */
   @Before
   public void before() {
-    mTestStream = new TestBufferedBlockOutStream(1L, BLOCK_LENGTH, BlockStoreContext.get());
+    mTestStream = new TestBufferedBlockOutStream(1L, BLOCK_LENGTH, FileSystemContext.INSTANCE);
   }
 
   /**

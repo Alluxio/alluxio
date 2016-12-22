@@ -19,9 +19,9 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
-import alluxio.client.block.BlockStoreContextTestUtils;
 import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
@@ -67,7 +67,7 @@ public class JournalShutdownIntegrationTest {
     ConfigurationTestUtils.resetConfiguration();
     RetryHandlingBlockWorkerClientTestUtils.reset();
     FileSystemWorkerClientTestUtils.reset();
-    BlockStoreContextTestUtils.resetPool();
+    FileSystemContext.INSTANCE.reset();
   }
 
   @Before

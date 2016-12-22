@@ -20,6 +20,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * Class for managing block master clients. After obtaining a client with
@@ -30,14 +31,17 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private final InetSocketAddress mMasterAddress;
   private final Queue<BlockMasterClient> mClientList;
+  private final Subject mSubject;
 
   /**
    * Creates a new block master client pool.
    *
+   * @param subject the parent subject
    * @param masterAddress the master address
    */
-  public BlockMasterClientPool(InetSocketAddress masterAddress) {
+  public BlockMasterClientPool(Subject subject, InetSocketAddress masterAddress) {
     super(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
+    mSubject = subject;
     mMasterAddress = masterAddress;
     mClientList = new ConcurrentLinkedQueue<>();
   }
@@ -45,11 +49,14 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
   /**
    * Creates a new block master client pool.
    *
+   * @param subject the parent subject
    * @param masterAddress the master address
    * @param clientThreads the number of client threads to use
    */
-  public BlockMasterClientPool(InetSocketAddress masterAddress, int clientThreads) {
+  public BlockMasterClientPool(Subject subject, InetSocketAddress masterAddress,
+      int clientThreads) {
     super(clientThreads);
+    mSubject = subject;
     mMasterAddress = masterAddress;
     mClientList = new ConcurrentLinkedQueue<>();
   }
@@ -64,6 +71,6 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    return new RetryHandlingBlockMasterClient(mMasterAddress);
+    return new RetryHandlingBlockMasterClient(mSubject, mMasterAddress);
   }
 }
