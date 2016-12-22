@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
@@ -51,11 +52,13 @@ public final class UnderFileSystemUtils {
       Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
       AlluxioURI curAlluxioPath = alluxioPath.getParent();
       AlluxioURI curUfsPath = dstPath.getParent();
-      // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not exist.
+      // Stop at Alluxio mount point because the mapped directory in UFS may not exist.
       while (curUfsPath != null && !ufs.isDirectory(curUfsPath.toString())
           && curAlluxioPath != null) {
-        URIStatus curDirStatus;
-        curDirStatus = fs.getStatus(curAlluxioPath);
+        URIStatus curDirStatus = fs.getStatus(curAlluxioPath);
+        if (curDirStatus.isMountPoint()) {
+          throw new IOException(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(curUfsPath));
+        }
         Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
             (short) curDirStatus.getMode());
         ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
