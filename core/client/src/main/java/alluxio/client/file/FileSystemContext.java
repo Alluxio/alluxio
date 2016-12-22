@@ -164,10 +164,22 @@ public final class FileSystemContext implements Closeable {
       pool.close();
     }
     mBlockWorkerClientPools.clear();
+
+    for (BlockWorkerThriftClientPool pool : mBlockWorkerHeartbeatClientPools.values()) {
+      pool.close();
+    }
+    mBlockWorkerHeartbeatClientPools.clear();
+
     for (FileSystemWorkerThriftClientPool pool : mFileSystemWorkerClientPools.values()) {
       pool.close();
     }
     mFileSystemWorkerClientPools.clear();
+
+    for (FileSystemWorkerThriftClientPool pool : mFileSystemWorkerClientHeartbeatPools.values()) {
+      pool.close();
+    }
+    mFileSystemWorkerClientHeartbeatPools.clear();
+
     for (NettyChannelPool pool : mNettyChannelPools.values()) {
       pool.close();
     }
