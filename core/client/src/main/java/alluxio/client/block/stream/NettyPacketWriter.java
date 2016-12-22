@@ -58,7 +58,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 4. To make it simple to handle errors, the channel is closed if any error occurs.
  */
 @NotThreadSafe
-public class NettyPacketWriter implements PacketWriter {
+public final class NettyPacketWriter implements PacketWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long PACKET_SIZE =
@@ -110,7 +110,7 @@ public class NettyPacketWriter implements PacketWriter {
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param sessionId the session ID
    * @param type the request type (block or UFS file)
-   * @throws IOException it fails to create the object because it fails to acquire a netty channel
+   * @throws IOException it fails to acquire a netty channel
    */
   public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long id,
       long length, long sessionId, Protocol.RequestType type) throws IOException {
@@ -124,8 +124,9 @@ public class NettyPacketWriter implements PacketWriter {
 
     ChannelPipeline pipeline = mChannel.pipeline();
     if (!(pipeline.last() instanceof RPCMessageDecoder)) {
-      throw new RuntimeException(String.format("Channel pipeline has unexpected handlers %s.",
-          pipeline.last().getClass().getCanonicalName()));
+      throw new RuntimeException(String
+          .format("Channel pipeline has unexpected handlers %s (expects RPCMessageDecoder).",
+              pipeline.last().getClass().getCanonicalName()));
     }
     mChannel.pipeline().addLast(new PacketWriteHandler());
   }

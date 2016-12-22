@@ -108,7 +108,7 @@ public final class NettyPacketReader implements PacketReader {
    * @param lockId the lock ID
    * @param sessionId the session ID
    * @param type the request type (block or UFS file)
-   * @throws IOException if it fails to create the object
+   * @throws IOException if it fails to acquire a netty channel
    */
   private NettyPacketReader(FileSystemContext context, InetSocketAddress address, long id,
       long offset, long len, long lockId, long sessionId, Protocol.RequestType type)
