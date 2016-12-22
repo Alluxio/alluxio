@@ -265,7 +265,9 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
    * @param packet the packet
    */
   private void destroyPacket(ByteBuf packet) {
-    packet.release();
+    if (packet != null) {
+      packet.release();
+    }
   }
 
   /**
