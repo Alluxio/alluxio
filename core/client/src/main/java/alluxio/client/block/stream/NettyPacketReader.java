@@ -307,6 +307,7 @@ public final class NettyPacketReader implements PacketReader {
         }
       } catch (Throwable e) {
         if (response.getPayloadDataBuffer() != null) {
+          // This is the same as buf.release.
           response.getPayloadDataBuffer().release();
         }
         throw e;

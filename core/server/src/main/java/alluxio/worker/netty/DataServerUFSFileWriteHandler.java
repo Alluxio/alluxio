@@ -27,10 +27,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This handler handles file write request. Check more information in
- * {@link DataServerWriteHandler}.
+ * {@link DataServerUFSFileWriteHandler}.
  */
 @NotThreadSafe
-public final class DataServerFileWriteHandler extends DataServerWriteHandler {
+public final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
   /** Filesystem worker which handles file level operations for the worker. */
   private final FileSystemWorker mWorker;
 
@@ -47,12 +47,12 @@ public final class DataServerFileWriteHandler extends DataServerWriteHandler {
   }
 
   /**
-   * Creates an instance of {@link DataServerFileWriteHandler}.
+   * Creates an instance of {@link DataServerUFSFileWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
    * @param worker the file system worker
    */
-  public DataServerFileWriteHandler(ExecutorService executorService, FileSystemWorker worker) {
+  public DataServerUFSFileWriteHandler(ExecutorService executorService, FileSystemWorker worker) {
     super(executorService);
     mWorker = worker;
   }

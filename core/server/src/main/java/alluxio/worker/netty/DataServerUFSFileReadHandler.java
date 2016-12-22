@@ -35,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This handler handles file read request. Check more information in {@link DataServerReadHandler}.
  */
 @NotThreadSafe
-public final class DataServerFileReadHandler extends DataServerReadHandler {
+public final class DataServerUFSFileReadHandler extends DataServerReadHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
@@ -67,12 +67,12 @@ public final class DataServerFileReadHandler extends DataServerReadHandler {
   }
 
   /**
-   * Creates an instance of {@link DataServerReadHandler}.
+   * Creates an instance of {@link DataServerUFSFileReadHandler}.
    *
    * @param executorService the executor service to run {@link PacketReader}s
    * @param worker the file system worker
    */
-  public DataServerFileReadHandler(ExecutorService executorService, FileSystemWorker worker) {
+  public DataServerUFSFileReadHandler(ExecutorService executorService, FileSystemWorker worker) {
     super(executorService);
     mWorker = worker;
   }

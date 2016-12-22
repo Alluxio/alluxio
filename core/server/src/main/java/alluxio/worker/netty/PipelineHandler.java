@@ -58,10 +58,10 @@ final class PipelineHandler extends ChannelInitializer<SocketChannel> {
         new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR,
             mWorker.getBlockWorker()));
     pipeline.addLast("dataServerFileReadHandler",
-        new DataServerFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR,
+        new DataServerUFSFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR,
             mWorker.getFileSystemWorker()));
     pipeline.addLast("dataServerFileWriteHandler",
-        new DataServerFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR,
+        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR,
             mWorker.getFileSystemWorker()));
   }
 }
