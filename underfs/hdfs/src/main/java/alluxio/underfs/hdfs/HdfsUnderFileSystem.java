@@ -154,8 +154,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       try {
         LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
-        Path hdfsPath = new Path(path);
-        return FileSystem.create(mFileSystem, hdfsPath,
+        return FileSystem.create(mFileSystem, new Path(path),
             new FsPermission(perm.getMode().toShort()));
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
