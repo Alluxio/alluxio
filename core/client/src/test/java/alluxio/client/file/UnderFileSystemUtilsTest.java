@@ -33,22 +33,22 @@ import java.io.IOException;
 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystem.class, UnderFileSystem.class})
-public class UnderFileSystemUtilsTest {
+public final class UnderFileSystemUtilsTest {
 
   private FileSystem mFileSystem;
   private UnderFileSystem mUnderFileSystem;
 
   // Test paths in Alluxio
-  AlluxioURI mAlluxioRoot;
-  AlluxioURI mAlluxioA;
-  AlluxioURI mAlluxioB;
-  AlluxioURI mAlluxioFile;
+  final AlluxioURI mAlluxioRoot = new AlluxioURI("/");
+  final AlluxioURI mAlluxioA = new AlluxioURI("/a");
+  final AlluxioURI mAlluxioB = new AlluxioURI("/a/b");
+  final AlluxioURI mAlluxioFile = new AlluxioURI("/a/b/file");
 
   // Test paths in UFS
-  String mUfsRoot;
-  String mUfsA;
-  String mUfsB;
-  String mUfsFile;
+  final String mUfsRoot = "/ufs";
+  final String mUfsA = "/ufs/a";
+  final String mUfsB = "/ufs/a/b";
+  final String mUfsFile = "/ufs/a/b/file";
 
   /**
    * The exception expected to be thrown.
@@ -60,21 +60,6 @@ public class UnderFileSystemUtilsTest {
   public final void before() throws Exception {
     mFileSystem = PowerMockito.mock(FileSystem.class);
     mUnderFileSystem = PowerMockito.mock(UnderFileSystem.class);
-
-    String alluxioRoot = "/";
-    String alluxioA = alluxioRoot + "a";
-    String alluxioB = alluxioA + "/b";
-    String alluxioFile = alluxioB + "/file";
-
-    mAlluxioRoot = new AlluxioURI(alluxioRoot);
-    mAlluxioA = new AlluxioURI(alluxioA);
-    mAlluxioB = new AlluxioURI(alluxioB);
-    mAlluxioFile = new AlluxioURI(alluxioFile);
-
-    mUfsRoot = "/ufs";
-    mUfsA = mUfsRoot + "/a";
-    mUfsB = mUfsA + "/b";
-    mUfsFile = mUfsB + "/file";
 
     Mockito.when(mUnderFileSystem.mkdirs(Mockito.anyString(), Mockito.any(MkdirsOptions.class)))
         .thenReturn(true);
