@@ -49,7 +49,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @param masterAddress the master address
    */
   public LineageMasterClient(InetSocketAddress masterAddress) {
-    super(masterAddress);
+    super(null, masterAddress);
   }
 
   @Override

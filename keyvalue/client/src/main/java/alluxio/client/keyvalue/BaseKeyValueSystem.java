@@ -13,7 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -34,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BaseKeyValueSystem implements KeyValueSystem {
   private final KeyValueMasterClient mMasterClient =
-      new KeyValueMasterClient(ClientContext.getMasterAddress());
+      new KeyValueMasterClient(FileSystemContext.INSTANCE.getMasterAddress());
 
   /**
    * Constructs a new {@link BaseKeyValueSystem}.

@@ -195,7 +195,7 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Test
   public void workerReRegister() throws Exception {
-    AlluxioBlockStore store = new AlluxioBlockStore();
+    AlluxioBlockStore store = AlluxioBlockStore.create();
     Assert.assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
 
     List<Pair<Long, AlluxioURI>> emptyAnswer = new ArrayList<>();

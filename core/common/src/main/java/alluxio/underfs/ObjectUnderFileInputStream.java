@@ -78,6 +78,9 @@ public final class ObjectUnderFileInputStream extends InputStream implements See
   @Override
   public void seek(long position) throws IOException {
     long currentPos = mInitPos + mStream.getCount();
+    if (position == currentPos) {
+      return;
+    }
     if (position > currentPos) {
       long toSkip = position - currentPos;
       if (toSkip != skip(toSkip)) {

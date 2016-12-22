@@ -61,6 +61,13 @@ public interface FileSystem {
       }
       return BaseFileSystem.get(FileSystemContext.INSTANCE);
     }
+
+    public static FileSystem get(FileSystemContext context) {
+      if (Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
+        return LineageFileSystem.get(context, LineageContext.INSTANCE);
+      }
+      return BaseFileSystem.get(context);
+    }
   }
 
   /**

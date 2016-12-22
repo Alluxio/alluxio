@@ -76,7 +76,7 @@ Alluxio-FUSE is based on the standard java alluxio-core-client to perform its op
 want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you
 would for any other client application.
 
-One possibility, for example, is to edit `$ALLUXIO_HOME/bin/alluxio-fuse.sh` and add your
+One possibility, for example, is to edit `$ALLUXIO_HOME/integration/fuse/bin/alluxio-fuse.sh` and add your
 specific alluxio client options in the `ALLUXIO_JAVA_OPTS` variable.
 
 # Operational assumptions and status

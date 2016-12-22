@@ -56,6 +56,23 @@ or `hdfs://localhost:9000/alluxio/data` if only the HDFS directory `/alluxio/dat
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
+## Configuring Alluxio with HDFS namenode HA mode
+
+If HDFS namenodes are running in HA mode, both Alluxio servers and clients should be configured properly in order to access HDFS.
+
+For Alluxio servers (masters and workers), copy `hdfs-site.xml` and `core-site.xml` from your hadoop installation into
+`${ALLUXIO_HOME}/conf`. Alternatively, you can set `alluxio.underfs.hdfs.configuration` to the hadoop property file `hdfs-site.xml`
+(or `core-site.xml`) in `conf/alluxio-site.properties` (make sure all the relative configurations are available in the file).
+
+Then, set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS service already configured
+in `core-site.xml`) if you are mapping HDFS root directory to Alluxio, or `hdfs://nameservice/alluxio/data` if only the
+HDFS directory `/alluxio/data` is mapped to Alluxio.
+
+{% include Configuring-Alluxio-with-HDFS/underfs-address-ha.md %}
+
+Next, for Alluxio clients, `alluxio.underfs.hdfs.configuration` should also be set to the hadoop property file
+`hdfs-site.xml` (or `core-site.xml`).
+
 # Running Alluxio Locally with HDFS
 
 Before this step, please make sure your HDFS cluster is running and the directory mapped to Alluxio exists.

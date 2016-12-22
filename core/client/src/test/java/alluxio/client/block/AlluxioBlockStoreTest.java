@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -47,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Tests for {@link AlluxioBlockStore}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockStoreContext.class})
+@PrepareForTest({FileSystemContext.class})
 public final class AlluxioBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 100L;
@@ -97,20 +98,21 @@ public final class AlluxioBlockStoreTest {
   private BlockMasterClient mMasterClient;
   private BlockWorkerClient mBlockWorkerClient;
   private AlluxioBlockStore mBlockStore;
+  private FileSystemContext mContext;
 
   @Before
   public void before() throws Exception {
     mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
     mMasterClient = PowerMockito.mock(BlockMasterClient.class);
 
-    BlockStoreContext blockStoreContext = PowerMockito.mock(BlockStoreContext.class);
+    mContext = PowerMockito.mock(FileSystemContext.class);
     // Mock block store context to return our mock clients
-    Mockito.when(blockStoreContext.createWorkerClient(Mockito.any(WorkerNetAddress.class)))
+    Mockito.when(mContext.createBlockWorkerClient(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(mBlockWorkerClient);
-    Mockito.when(blockStoreContext.acquireMasterClientResource()).thenReturn(
+    Mockito.when(mContext.acquireBlockMasterClientResource()).thenReturn(
         new DummyCloseableResource<>(mMasterClient));
 
-    mBlockStore = new AlluxioBlockStore(blockStoreContext, WORKER_HOSTNAME_LOCAL);
+    mBlockStore = new AlluxioBlockStore(mContext, WORKER_HOSTNAME_LOCAL);
   }
 
   /**
