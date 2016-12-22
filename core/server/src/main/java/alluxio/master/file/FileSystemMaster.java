@@ -2814,25 +2814,40 @@ public final class FileSystemMaster extends AbstractMaster {
       inode.setLastModificationTimeMs(opTimeMs);
     }
     if (options.getTtl() != null) {
+      long ttl = options.getTtl();
       if (inode.isDirectory()) {
         InodeDirectory directory = (InodeDirectory) inode;
+        InodeDirectory parent = inodePath.getParentInodeDirectory();
+        if (parent != null) {
+          System.out.println("parent:" + parent.getTtl() + " " + ttl);
+          Preconditions.checkArgument(parent.getTtl() < 0 || ttl <= parent.getTtl(),
+              PreconditionMessage.TTL_FILE_SHOULD_LESS_THAN_PARENT_DIRECTORY);
+        }
+        if (directory.getTtl() != ttl) {
+          mTtlBuckets.remove(directory);
+          directory.setTtl(ttl);
+          mTtlBuckets.insert(directory);
+          directory.setLastModificationTimeMs(opTimeMs);
+          directory.setTtlAction(options.getTtlAction());
+        }
         Set<Inode<?>> children = directory.getChildren();
         for (Inode<?> child : children) {
           AlluxioURI alluxioURI = new AlluxioURI(inodePath.getUri().getPath()
               + "/" + child.getName());
           setAttribute(alluxioURI, options);
         }
-      }
-      long ttl = options.getTtl();
-      InodeDirectory parent = inodePath.getParentInodeDirectory();
-      Preconditions.checkArgument(parent.getTtl() < 0 || ttl < parent.getTtl(),
-          PreconditionMessage.TTL_FILE_SHOULD_LESS_THAN_PARENT_DIRECTORY);
-      if (inode.getTtl() != ttl) {
-        mTtlBuckets.remove(inode);
-        inode.setTtl(ttl);
-        mTtlBuckets.insert(inode);
-        inode.setLastModificationTimeMs(opTimeMs);
-        inode.setTtlAction(options.getTtlAction());
+      } else {
+        InodeDirectory parent = inodePath.getParentInodeDirectory();
+        System.out.println("parent:" + parent.getTtl() + " " + ttl);
+        Preconditions.checkArgument(parent.getTtl() < 0 || ttl <= parent.getTtl(),
+            PreconditionMessage.TTL_FILE_SHOULD_LESS_THAN_PARENT_DIRECTORY);
+        if (inode.getTtl() != ttl) {
+          mTtlBuckets.remove(inode);
+          inode.setTtl(ttl);
+          mTtlBuckets.insert(inode);
+          inode.setLastModificationTimeMs(opTimeMs);
+          inode.setTtlAction(options.getTtlAction());
+        }
       }
     }
     if (options.getPersisted() != null) {
