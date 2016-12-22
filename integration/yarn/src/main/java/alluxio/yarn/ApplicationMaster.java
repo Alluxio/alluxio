@@ -419,7 +419,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private boolean masterExists() {
 
     String webPort = Configuration.get(PropertyKey.MASTER_WEB_PORT);
-    
+
     try {
       URL myURL = new URL("http://" + mMasterAddress + ":" + webPort + Constants.REST_API_PREFIX + "/master/version");
       LOG.debug("Checking for master at: " + myURL.toString());
