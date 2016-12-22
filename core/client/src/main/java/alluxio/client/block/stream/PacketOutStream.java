@@ -17,6 +17,7 @@ import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.PreconditionMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -74,18 +75,16 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
       InetSocketAddress address, long sessionId, long id, long length, Protocol.RequestType type)
       throws IOException {
-    List<InetSocketAddress> addresses = new ArrayList<>();
-    addresses.add(address);
-    List<Long> sessionIds = new ArrayList<>();
-    sessionIds.add(sessionId);
-    return createNettyPacketOutStream(context, addresses, sessionIds, id, length, type);
+    NettyPacketWriter packetWriter =
+        new NettyPacketWriter(context, address, id, length, sessionId, type);
+    return new PacketOutStream(packetWriter, length);
   }
 
   /**
-   * Creates a {@link PacketOutStream} that writes to a list of netty data servers.
+   * Creates a {@link PacketOutStream} that writes to a list of locations.
    *
    * @param context the file system context
-   * @param addresses the netty data server addresses
+   * @param clients the netty data server addresses
    * @param sessionIds the session IDs for all the data servers
    * @param id the ID (block ID or UFS file ID)
    * @param length the block or file length
@@ -93,15 +92,21 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @return the {@link PacketOutStream} created
    * @throws IOException if it fails to create the object
    */
-  public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      List<InetSocketAddress> addresses, List<Long> sessionIds, long id, long length,
+  public static PacketOutStream createReplicatedPacketOutStream(FileSystemContext context,
+      List<BlockWorkerClient> clients, List<Long> sessionIds, long id, long length,
       Protocol.RequestType type) throws IOException {
-    Preconditions.checkArgument(addresses.size() == sessionIds.size());
+    Preconditions.checkArgument(clients.size() == sessionIds.size());
+    String localHost = NetworkAddressUtils.getLocalHostName();
 
     Iterator<Long> iterator = sessionIds.iterator();
     List<PacketWriter> packetWriters = new ArrayList<>();
-    for (InetSocketAddress address : addresses) {
-      packetWriters.add(new NettyPacketWriter(context, address, id, length, iterator.next(), type));
+    for (BlockWorkerClient client: clients) {
+      if (client.getWorkerNetAddress().getHost().equals(localHost)) {
+        packetWriters.add(LocalFilePacketWriter.create(client, id));
+      } else {
+        packetWriters.add(new NettyPacketWriter(context, client.getDataServerAddress(), id, length,
+            iterator.next(), type));
+      }
     }
     return new PacketOutStream(packetWriters, length);
   }
