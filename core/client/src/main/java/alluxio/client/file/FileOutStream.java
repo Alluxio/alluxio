@@ -21,6 +21,11 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.client.UnderStorageType;
+<<<<<<< HEAD
+=======
+import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BufferedBlockOutStream;
+>>>>>>> upstream/streaming
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
@@ -68,6 +73,7 @@ public class FileOutStream extends AbstractOutStream {
   private final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
+  private final AlluxioBlockStore mBlockStore;
   private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
@@ -91,12 +97,14 @@ public class FileOutStream extends AbstractOutStream {
   /**
    * Creates a new file output stream.
    *
+   * @param context the file system context
    * @param path the file path
    * @param options the client options
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
-    this(path, options, FileSystemContext.INSTANCE, UnderFileSystemFileOutStream.Factory.get());
+  public FileOutStream(FileSystemContext context, AlluxioURI path, OutStreamOptions options)
+      throws IOException {
+    this(path, options, context, UnderFileSystemFileOutStream.Factory.get());
   }
 
   /**
@@ -117,6 +125,7 @@ public class FileOutStream extends AbstractOutStream {
     mUnderStorageType = options.getUnderStorageType();
     mOptions = options;
     mContext = context;
+    mBlockStore = AlluxioBlockStore.create(mContext);
     mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
@@ -133,12 +142,12 @@ public class FileOutStream extends AbstractOutStream {
       } else {
         mUfsPath = options.getUfsPath();
         if (mUfsDelegation) {
-          mFileSystemWorkerClient = mCloser.register(mContext.createWorkerClient());
+          mFileSystemWorkerClient = mCloser.register(mContext.createFileSystemWorkerClient());
           Permission perm = options.getPermission();
           mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
               CreateUfsFileOptions.defaults().setPermission(perm));
           mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
-              .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
+              .create(mContext, mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
         } else {
           UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
           // TODO(jiri): Implement collection of temporary files left behind by dead clients.
@@ -311,7 +320,7 @@ public class FileOutStream extends AbstractOutStream {
 
     if (mAlluxioStorageType.isStore()) {
       mCurrentBlockOutStream =
-          mContext.getAlluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, mOptions);
+          mBlockStore.getOutStream(getNextBlockId(), mBlockSize, mOptions);
       mShouldCacheCurrentBlock = true;
     }
   }

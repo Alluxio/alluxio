@@ -18,9 +18,15 @@ import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
+<<<<<<< HEAD
 import alluxio.client.Cancelable;
 import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
+=======
+import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockInStream;
+import alluxio.client.block.BufferedBlockOutStream;
+>>>>>>> upstream/streaming
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
@@ -78,6 +84,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected final long mFileLength;
   /** File System context containing the {@link FileSystemMasterClient} pool. */
   protected final FileSystemContext mContext;
+  private final AlluxioBlockStore mBlockStore;
   /** File information. */
   protected URIStatus mStatus;
 
@@ -145,6 +152,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     int seekBufferSizeBytes = Math.max((int) options.getSeekBufferSizeBytes(), 1);
     mSeekBuffer = new byte[seekBufferSizeBytes];
+    mBlockStore = AlluxioBlockStore.create(context);
     LOG.debug("Init FileInStream with options {}", options);
   }
 
@@ -338,7 +346,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   protected InputStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
-    return new UnderStoreBlockInStream(blockStart, length, mBlockSize,
+    return new UnderStoreBlockInStream(mContext, blockStart, length, mBlockSize,
         getUnderStoreStreamFactory(path, mContext));
   }
 
@@ -408,7 +416,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         LOG.info("Block {} does not exist when being cancelled.", getCurrentBlockId());
       } else if (e.getCause() instanceof InvalidWorkerStateException) {
         // This happens if two concurrent readers trying to cache the same block and they acquired
-        // different BlockClient (e.g. BlockStoreContext.acquireRemoteWorkerClient)
+        // different file system contexts.
         // instances (each instance has its only session ID).
         LOG.info("Block {} has invalid worker state when being cancelled.", getCurrentBlockId());
       } else if (e.getCause() instanceof BlockAlreadyExistsException) {
@@ -527,7 +535,12 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
 
     // If this block is read from a remote worker but we don't have a local worker, don't cache
+<<<<<<< HEAD
     if (isReadingFromRemoteBlockWorker() && !mContext.getBlockStoreContext().hasLocalWorker()) {
+=======
+    if (mCurrentBlockInStream instanceof RemoteBlockInStream
+        && !mContext.hasLocalWorker()) {
+>>>>>>> upstream/streaming
       return;
     }
 
@@ -539,10 +552,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
     try {
       WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-          mContext.getAlluxioBlockStore().getWorkerInfoList(), getBlockSizeAllocation(mPos));
+          mBlockStore.getWorkerInfoList(), getBlockSizeAllocation(mPos));
       // If we reach here, we need to cache.
-      mCurrentCacheStream = mContext.getAlluxioBlockStore()
-          .getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
+      mCurrentCacheStream =
+          mBlockStore.getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
     } catch (IOException e) {
       handleCacheStreamIOException(e);
     } catch (AlluxioException e) {
@@ -582,13 +595,17 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       if (mAlluxioStorageType.isPromote()) {
         try {
-          mContext.getAlluxioBlockStore().promote(blockId);
+          mBlockStore.promote(blockId);
         } catch (IOException e) {
           // Failed to promote.
           LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
+<<<<<<< HEAD
       return mContext.getAlluxioBlockStore().getInStream(blockId, mInStreamOptions);
+=======
+      mCurrentBlockInStream = mBlockStore.getInStream(blockId, mInStreamOptions);
+>>>>>>> upstream/streaming
     } catch (IOException e) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
           e);

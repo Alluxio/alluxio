@@ -213,7 +213,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
-        .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+        .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
         .setPermission(permission)
         .setMountPoint(entry.getMountPoint())
         .setDirectChildrenLoaded(entry.getDirectChildrenLoaded());

@@ -22,6 +22,7 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * The base class for master clients.
@@ -39,10 +40,11 @@ public abstract class AbstractMasterClient extends AbstractClient {
   /**
    * Creates a new master client base.
    *
+   * @param subject the parent subject
    * @param masterAddress the master address
    */
-  public AbstractMasterClient(InetSocketAddress masterAddress) {
-    super(masterAddress, "master");
+  public AbstractMasterClient(Subject subject, InetSocketAddress masterAddress) {
+    super(subject, masterAddress, "master");
     if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       mZkLeaderPath = Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
     } else {
@@ -53,10 +55,11 @@ public abstract class AbstractMasterClient extends AbstractClient {
   /**
    * Creates a new master client base.
    *
+   * @param subject the parent subject
    * @param zkLeaderPath the Zookeeper path holding the leader master address
    */
-  public AbstractMasterClient(String zkLeaderPath) {
-    super(NetworkAddressUtils.getLeaderAddressFromZK(zkLeaderPath), "master");
+  public AbstractMasterClient(Subject subject, String zkLeaderPath) {
+    super(subject, NetworkAddressUtils.getLeaderAddressFromZK(zkLeaderPath), "master");
     Preconditions.checkState(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     mZkLeaderPath = zkLeaderPath;
   }

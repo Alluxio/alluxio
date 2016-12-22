@@ -48,7 +48,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * @param workerNetAddress location of the worker to connect to
    */
   public KeyValueWorkerClient(WorkerNetAddress workerNetAddress) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "key-value-worker");
+    super(null, NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "key-value-worker");
   }
 
   @Override

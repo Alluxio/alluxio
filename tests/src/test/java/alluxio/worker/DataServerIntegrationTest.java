@@ -20,10 +20,10 @@ import alluxio.client.FileSystemTestUtils;
 import alluxio.client.RemoteBlockReader;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -94,10 +94,10 @@ public class DataServerIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
-    mBlockWorkerClient = BlockStoreContext.get()
-        .createWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress());
+    mBlockWorkerClient = FileSystemContext.INSTANCE
+        .createBlockWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress());
     mBlockMasterClient = new RetryHandlingBlockMasterClient(
-        new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
+        null, new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
             mLocalAlluxioClusterResource.get().getMasterRpcPort()));
   }
 
@@ -231,7 +231,7 @@ public class DataServerIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
 
-    RemoteBlockReader client = RemoteBlockReader.Factory.create();
+    RemoteBlockReader client = RemoteBlockReader.Factory.create(FileSystemContext.INSTANCE);
     ByteBuffer result = readRemotely(client, block, length);
 
     Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(length), result);
@@ -253,7 +253,7 @@ public class DataServerIntegrationTest {
       }
     }
 
-    RemoteBlockReader client = RemoteBlockReader.Factory.create();
+    RemoteBlockReader client = RemoteBlockReader.Factory.create(FileSystemContext.INSTANCE);
     block.setBlockId(maxBlockId + 1);
     ByteBuffer result = readRemotely(client, block, length);
 

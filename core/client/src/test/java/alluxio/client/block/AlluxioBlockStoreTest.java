@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -56,7 +57,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Tests for {@link AlluxioBlockStore}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockStoreContext.class})
+@PrepareForTest({FileSystemContext.class})
 public final class AlluxioBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 100L;
@@ -106,9 +107,13 @@ public final class AlluxioBlockStoreTest {
   private BlockMasterClient mMasterClient;
   private BlockWorkerClient mBlockWorkerClient;
   private AlluxioBlockStore mBlockStore;
+<<<<<<< HEAD
   private Channel mChannel;
   private ChannelPipeline mPipeline;
   private InetSocketAddress mLocalAddr;
+=======
+  private FileSystemContext mContext;
+>>>>>>> upstream/streaming
 
   @Before
   public void before() throws Exception {
@@ -117,10 +122,11 @@ public final class AlluxioBlockStoreTest {
     mChannel = PowerMockito.mock(Channel.class);
     mPipeline = PowerMockito.mock(ChannelPipeline.class);
 
-    BlockStoreContext blockStoreContext = PowerMockito.mock(BlockStoreContext.class);
+    mContext = PowerMockito.mock(FileSystemContext.class);
     // Mock block store context to return our mock clients
-    Mockito.when(blockStoreContext.createWorkerClient(Mockito.any(WorkerNetAddress.class)))
+    Mockito.when(mContext.createBlockWorkerClient(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(mBlockWorkerClient);
+<<<<<<< HEAD
     mLocalAddr = new InetSocketAddress(NetworkAddressUtils.getLocalHostName(), 0);
     Mockito.when(mBlockWorkerClient.getDataServerAddress()).thenReturn(mLocalAddr);
     Mockito.when(blockStoreContext.acquireMasterClientResource()).thenReturn(
@@ -134,6 +140,12 @@ public final class AlluxioBlockStoreTest {
     Mockito.when(mPipeline.addLast(Mockito.any(ChannelHandler.class))).thenReturn(mPipeline);
 
     mBlockStore = new AlluxioBlockStore(blockStoreContext, WORKER_HOSTNAME_LOCAL);
+=======
+    Mockito.when(mContext.acquireBlockMasterClientResource()).thenReturn(
+        new DummyCloseableResource<>(mMasterClient));
+
+    mBlockStore = new AlluxioBlockStore(mContext, WORKER_HOSTNAME_LOCAL);
+>>>>>>> upstream/streaming
   }
 
   /**

@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.underfs.local.LocalUnderFileInputStream;
 import alluxio.underfs.options.OpenOptions;
@@ -59,10 +60,12 @@ public class UnderStoreBlockInStreamTest {
     // Create a file of 2 block sizes.
     os.write(BufferUtils.getIncreasingByteArray((int) FILE_LENGTH));
     os.close();
-    mBlockStream = new UnderStoreBlockInStream(0, BLOCK_LENGTH, BLOCK_LENGTH,
-        new FileUnderStoreStreamFactory(file));
-    mEOFBlockStream = new UnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
-        new FileUnderStoreStreamFactory(file));
+    mBlockStream =
+        new UnderStoreBlockInStream(FileSystemContext.INSTANCE, 0, BLOCK_LENGTH, BLOCK_LENGTH,
+            new FileUnderStoreStreamFactory(file));
+    mEOFBlockStream =
+        new UnderStoreBlockInStream(FileSystemContext.INSTANCE, BLOCK_LENGTH, BLOCK_LENGTH,
+            BLOCK_LENGTH, new FileUnderStoreStreamFactory(file));
   }
 
   /**
@@ -300,7 +303,7 @@ public class UnderStoreBlockInStreamTest {
     }
 
     @Override
-    public InputStream create(OpenOptions options) throws IOException {
+    public InputStream create(FileSystemContext context, OpenOptions options) throws IOException {
       try {
         FileInputStream inputStream = new FileInputStream(mFile);
         if (options.getOffset() > 0) {

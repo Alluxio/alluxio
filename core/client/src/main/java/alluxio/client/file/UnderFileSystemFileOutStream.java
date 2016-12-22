@@ -35,6 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 // TODO(calvin): See if common logic in this class and buffered block out stream can be abstracted
 @NotThreadSafe
 public final class UnderFileSystemFileOutStream extends OutputStream {
+  private final FileSystemContext mContext;
   /** Java heap buffer to buffer writes before flushing them to the worker. */
   private final ByteBuffer mBuffer;
   /** Writer to the worker, currently only implemented through Netty. */
@@ -73,27 +74,37 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
     protected Factory() {} // prevent external instantiation.
 
     /**
+     * @param context the file system context
      * @param address the address of an Alluxio worker
      * @param ufsFileId the file ID of the ufs fild to write to
      * @return a new {@link UnderFileSystemFileOutStream}
      * @throws IOException if it fails to create the out stream
      */
+<<<<<<< HEAD
     public OutputStream create(InetSocketAddress address, long ufsFileId) throws IOException {
       if (!PACKET_STREAMING_ENABLED) {
         return new UnderFileSystemFileOutStream(address, ufsFileId);
       } else {
         return new alluxio.client.block.stream.UnderFileSystemFileOutStream(address, ufsFileId);
       }
+=======
+    public OutputStream create(FileSystemContext context, InetSocketAddress address,
+        long ufsFileId) {
+      return new UnderFileSystemFileOutStream(context, address, ufsFileId);
+>>>>>>> upstream/streaming
     }
   }
 
   /**
    * Constructor for a under file system file output stream.
    *
+   * @param context the file system context
    * @param address address of the worker
    * @param ufsFileId the worker specific file id
    */
-  private UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
+  private UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
+      long ufsFileId) {
+    mContext = context;
     mBuffer = allocateBuffer();
     mAddress = address;
     mUfsFileId = ufsFileId;
@@ -101,7 +112,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
     mWrittenBytes = 0;
     mClosed = false;
     mCloser = Closer.create();
-    mWriter = mCloser.register(UnderFileSystemFileWriter.Factory.create());
+    mWriter = mCloser.register(UnderFileSystemFileWriter.Factory.create(mContext));
   }
 
   @Override

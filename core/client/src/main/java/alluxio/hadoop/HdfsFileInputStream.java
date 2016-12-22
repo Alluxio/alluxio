@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
@@ -68,20 +69,22 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * Constructs a new stream for reading a file from HDFS.
    *
+   * @param context the file system context
    * @param uri the Alluxio file URI
    * @param conf Hadoop configuration
    * @param bufferSize the buffer size
    * @param stats filesystem statistics
    * @throws IOException if the underlying file does not exist or its stream cannot be created
    */
-  public HdfsFileInputStream(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf,
-      int bufferSize, org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
+  public HdfsFileInputStream(FileSystemContext context, AlluxioURI uri,
+      org.apache.hadoop.conf.Configuration conf, int bufferSize,
+      org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
     LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, conf, bufferSize, stats);
     long bufferBytes = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     mPacketInStreamEnabled = Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
-    FileSystem fs = FileSystem.Factory.get();
+    FileSystem fs = FileSystem.Factory.get(context);
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
     mStatistics = stats;

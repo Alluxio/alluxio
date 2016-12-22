@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -45,8 +46,8 @@ public abstract class BufferedBlockOutStream extends OutputStream
   protected final long mBlockId;
   /** Size of the block. */
   protected final long mBlockSize;
-  /** Block store context. */
-  protected final BlockStoreContext mContext;
+  /** File system context. */
+  protected final FileSystemContext mContext;
   /** Java heap buffer to store writes before flushing them to the backing store. */
   protected final ByteBuffer mBuffer;
 
@@ -62,14 +63,14 @@ public abstract class BufferedBlockOutStream extends OutputStream
    *
    * @param blockId the id of the block
    * @param blockSize the size of the block
-   * @param blockStoreContext the block store context
+   * @param context the file system context
    */
-  public BufferedBlockOutStream(long blockId, long blockSize, BlockStoreContext blockStoreContext) {
+  public BufferedBlockOutStream(long blockId, long blockSize, FileSystemContext context) {
     mBlockId = blockId;
     mBlockSize = blockSize;
     mBuffer = allocateBuffer();
     mClosed = false;
-    mContext = blockStoreContext;
+    mContext = context;
   }
 
   /**

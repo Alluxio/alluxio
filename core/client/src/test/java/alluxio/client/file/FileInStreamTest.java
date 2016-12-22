@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockInStream;
 import alluxio.client.block.BufferedBlockOutStream;
@@ -86,23 +85,23 @@ public class FileInStreamTest {
    * @throws IOException when the read and write streams fail
    */
   @Before
-  public void before() throws AlluxioException, IOException {
+  public void before() throws Exception {
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
     mDelegateUfsOps = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
 
     ClientTestUtils.setSmallBufferSizes();
 
     mContext = PowerMockito.mock(FileSystemContext.class);
-    mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
-    Mockito.when(mContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
+    mBlockStore = Mockito.mock(AlluxioBlockStore.class);
+    PowerMockito.mockStatic(AlluxioBlockStore.class);
+    PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
 
     // Set up BufferedBlockInStreams and caching streams
     mCacheStreams = new ArrayList<>();
     List<Long> blockIds = new ArrayList<>();
     for (int i = 0; i < NUM_STREAMS; i++) {
       blockIds.add((long) i);
-      mCacheStreams.add(
-          new TestBufferedBlockOutStream(i, getBlockLength(i), BlockStoreContext.get()));
+      mCacheStreams.add(new TestBufferedBlockOutStream(i, getBlockLength(i), mContext));
       Mockito
           .when(mBlockStore.getInStream(Mockito.eq((long) i), Mockito.any(InStreamOptions.class)))
           .thenAnswer(new Answer<BufferedBlockInStream>() {
@@ -129,7 +128,7 @@ public class FileInStreamTest {
 
     // Worker file client mocking
     mWorkerClient = PowerMockito.mock(FileSystemWorkerClient.class);
-    Mockito.when(mContext.createWorkerClient()).thenReturn(mWorkerClient);
+    Mockito.when(mContext.createFileSystemWorkerClient()).thenReturn(mWorkerClient);
     Mockito.when(
         mWorkerClient.openUfsFile(Mockito.any(AlluxioURI.class),
             Mockito.any(OpenUfsFileOptions.class))).thenReturn(1L);

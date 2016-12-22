@@ -45,7 +45,7 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
    */
   public DelegatedUnderStoreStreamFactory(FileSystemContext context, String path)
       throws IOException {
-    mClient = context.createWorkerClient();
+    mClient = context.createFileSystemWorkerClient();
     try {
       mFileId = mClient.openUfsFile(new AlluxioURI(path), OpenUfsFileOptions.defaults());
     } catch (AlluxioException | IOException e) {
@@ -55,6 +55,7 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
   }
 
   @Override
+<<<<<<< HEAD
   public InputStream create(OpenOptions options) throws IOException {
     InputStream inputStream;
     if (PACKET_STREAMING_ENABLED) {
@@ -72,6 +73,12 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
       inputStream.close();
       throw e;
     }
+=======
+  public InputStream create(FileSystemContext context, OpenOptions options) {
+    Preconditions.checkNotNull(context);
+    return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(),
+        mFileId, options.getOffset(), UnderFileSystemFileReader.Factory.create(context));
+>>>>>>> upstream/streaming
   }
 
   @Override

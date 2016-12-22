@@ -21,6 +21,7 @@ import org.apache.thrift.transport.TTransportFactory;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 import javax.security.sasl.SaslException;
 
 /**
@@ -45,6 +46,13 @@ public final class NoSaslTransportProvider implements TransportProvider {
 
   @Override
   public TTransport getClientTransport(InetSocketAddress serverAddress) {
+    TTransport tTransport =
+        TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
+    return new TFramedTransport(tTransport, mThriftFrameSizeMax);
+  }
+
+  @Override
+  public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress) {
     TTransport tTransport =
         TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
     return new TFramedTransport(tTransport, mThriftFrameSizeMax);

@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ClientContext;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileInStream;
@@ -28,6 +27,7 @@ import alluxio.util.io.PathUtils;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
@@ -36,11 +36,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * Integration tests for {@link AlluxioFramework}. These tests assume that a Mesos cluster is
+ * Integration tests for AlluxioFramework. These tests assume that a Mesos cluster is
  * running locally.
  */
 public final class AlluxioFrameworkIntegrationTest {
@@ -98,8 +99,12 @@ public final class AlluxioFrameworkIntegrationTest {
     try {
       startAlluxioFramework(env);
       LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
-      try (final BlockMasterClient client =
-          new RetryHandlingBlockMasterClient(ClientContext.getMasterAddress())) {
+      String masterHostName =
+          Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
+      int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
+      InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
+      try (final BlockMasterClient client = new RetryHandlingBlockMasterClient(null,
+          masterAddress)) {
         CommonUtils.waitFor("Alluxio worker to register with master",
             new Function<Void, Boolean>() {
               @Override

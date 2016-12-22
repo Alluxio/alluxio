@@ -77,7 +77,7 @@ public class BlockServiceHandlerIntegrationTest {
     mBlockWorkerServiceHandler =
         mLocalAlluxioClusterResource.get().getWorker().getBlockWorker().getWorkerServiceHandler();
 
-    mBlockMasterClient = new RetryHandlingBlockMasterClient(
+    mBlockMasterClient = new RetryHandlingBlockMasterClient(null,
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
             mLocalAlluxioClusterResource.get().getMasterRpcPort()));
   }

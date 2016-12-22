@@ -105,7 +105,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
   @Override
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
-    return new UnderStoreBlockInStream(blockStart, Constants.UNKNOWN_SIZE, length,
+    return new UnderStoreBlockInStream(mContext, blockStart, Constants.UNKNOWN_SIZE, length,
         getUnderStoreStreamFactory(path, mContext));
   }
 
