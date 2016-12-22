@@ -11,9 +11,11 @@
 
 package alluxio.worker;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.ServerUtils;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.ServerUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,12 @@ public final class AlluxioWorker {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
           AlluxioWorker.class.getCanonicalName());
       System.exit(-1);
+    }
+
+    if (!Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
+      System.out.println("Cannot start worker; master hostname is not configured. Please set "
+          + PropertyKey.MASTER_HOSTNAME.toString() + " in alluxio-site.properties.");
+      System.exit(1);
     }
 
     AlluxioWorkerService worker = AlluxioWorkerService.Factory.create();
