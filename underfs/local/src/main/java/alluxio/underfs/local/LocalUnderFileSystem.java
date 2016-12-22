@@ -92,10 +92,10 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     path = stripPath(path);
-    if (!options.getCreateParent()) {
-      File file = new File(path);
-      if (!file.getParentFile().exists()) {
-        throw new IOException(ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(path));
+    if (options.getCreateParent()) {
+      File parent = new File(path).getParentFile();
+      if (parent != null && !parent.mkdirs() && !parent.isDirectory()) {
+        throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
       }
     }
     OutputStream stream = new FileOutputStream(path);

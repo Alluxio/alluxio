@@ -106,6 +106,18 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
     OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(false));
     o.close();
+    Assert.assertFalse(mUfs.exists(testFile));
+  }
+
+  /**
+   * Tests that create with parent creation option on succeeds.
+   */
+  @Test
+  public void createParent() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
+    OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(true));
+    o.close();
+    Assert.assertTrue(mUfs.exists(testFile));
   }
 
   /**
