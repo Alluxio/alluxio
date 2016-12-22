@@ -110,7 +110,7 @@ public final class NettyPacketReader implements PacketReader {
    * @param type the request type (block or UFS file)
    * @throws IOException if it fails to create the object
    */
-  public NettyPacketReader(FileSystemContext context, InetSocketAddress address, long id,
+  private NettyPacketReader(FileSystemContext context, InetSocketAddress address, long id,
       long offset, long len, long lockId, long sessionId, Protocol.RequestType type)
       throws IOException {
     Preconditions.checkArgument(offset >= 0 && len > 0);
@@ -163,6 +163,7 @@ public final class NettyPacketReader implements PacketReader {
         if (!tooManyPacketsPending()) {
           resume();
         }
+        // Queue is empty.
         if (buf == null) {
           try {
             if (!mNotEmptyOrFailed.await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {

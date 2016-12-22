@@ -22,7 +22,7 @@ import java.io.IOException;
 public interface PacketReader extends Closeable {
 
   /**
-   * Reads a packet.
+   * Reads a packet. The caller needs to release the packet.
    *
    * @return the data buffer or null if EOF is reached
    * @throws IOException if it fails to read a packet

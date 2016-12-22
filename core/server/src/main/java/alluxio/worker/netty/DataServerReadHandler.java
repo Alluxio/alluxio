@@ -178,7 +178,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   /**
    * @return true if we should restart the packet reader
    */
-  private boolean shouldStartPacketReader() {
+  private boolean shouldRestartPacketReader() {
     return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.end();
   }
 
@@ -326,7 +326,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
         incrementMetrics(mPosToWriteUncommitted - mPosToWrite);
         mPosToWrite = mPosToWriteUncommitted;
 
-        if (shouldStartPacketReader()) {
+        if (shouldRestartPacketReader()) {
           mPacketReaderExecutor.submit(new PacketReader(future.channel()));
           mPacketReaderActive = true;
         }
