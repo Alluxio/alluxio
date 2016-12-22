@@ -24,6 +24,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
@@ -102,11 +103,14 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    */
   @Test
   public void createNoParent() throws IOException {
-    mThrown.expect(IOException.class);
-    String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
-    OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(false));
-    o.close();
-    Assert.assertFalse(mUfs.exists(testFile));
+    // Run the test only for local UFS. Other UFSs succeed if no parents are present
+    if (mUfs instanceof LocalUnderFileSystem) {
+      mThrown.expect(IOException.class);
+      String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
+      OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(false));
+      o.close();
+      Assert.assertFalse(mUfs.exists(testFile));
+    }
   }
 
   /**

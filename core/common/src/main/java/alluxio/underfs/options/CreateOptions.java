@@ -72,9 +72,10 @@ public final class CreateOptions {
   }
 
   /**
-   * Sets option to create parent directories.
+   * Sets option to force creation of parent directories. If true, any necessary but nonexistent
+   * parent directories are created. If false, the behavior is implementation dependent.
    *
-   * @param createParent if true, creates any necessary but nonexistent parent directories
+   * @param createParent option to force parent directory creation
    * @return the updated option object
    */
   public CreateOptions setCreateParent(boolean createParent) {
