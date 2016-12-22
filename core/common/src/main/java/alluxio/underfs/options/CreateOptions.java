@@ -25,6 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CreateOptions {
   // Determine whether to create any necessary but nonexistent parent directories.
+  // When setting permissions, this option should be = false to remain in sync w/ master
   private boolean mCreateParent;
 
   // Ensure writes are not readable till close.

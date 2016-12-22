@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UnderFileSystemUtils {
 
   /**
-   * Create parent directories for path with correct permissions if required.
+   * Creates parent directories for path with correct permissions if required.
    *
    * @param alluxioPath Alluxio path
    * @param ufsPath path in the under file system

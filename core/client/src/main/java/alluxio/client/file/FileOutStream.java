@@ -141,8 +141,10 @@ public class FileOutStream extends AbstractOutStream {
         } else {
           UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
           // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-          CreateOptions createOptions = CreateOptions.defaults()
-              .setPermission(options.getPermission());
+          // Parent directory creation in ufs is not required as FileSystemMaster will create any
+          // required directories as part of inode creation if sync persist = true
+          CreateOptions createOptions =
+              CreateOptions.defaults().setPermission(options.getPermission());
           mUnderStorageOutputStream = mCloser.register(ufs.create(mUfsPath, createOptions));
 
           // Set delegation related vars to null as we are not using worker delegation for ufs ops
