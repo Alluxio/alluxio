@@ -14,6 +14,7 @@ package alluxio.client.block.stream;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.PreconditionMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
@@ -70,6 +71,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   /**
    * Creates a {@link PacketInStream} to read from a netty data server.
    *
+   * @param context the file system context
    * @param address the network address of the netty data server
    * @param id the ID
    * @param lockId the lock ID (set to -1 if not applicable)
@@ -79,10 +81,11 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
    * @return the {@link PacketInStream} created
    * @throws IOException if it fails to create the object
    */
-  public static PacketInStream createNettyPacketInStream(InetSocketAddress address, long id,
-      long lockId, long sessionId, long length, Protocol.RequestType type) {
+  public static PacketInStream createNettyPacketInStream(FileSystemContext context,
+      InetSocketAddress address, long id, long lockId, long sessionId, long length,
+      Protocol.RequestType type) {
     PacketReader.Factory factory =
-        new NettyPacketReader.Factory(address, id, lockId, sessionId, type);
+        new NettyPacketReader.Factory(context, address, id, lockId, sessionId, type);
     return new PacketInStream(factory, id, length);
   }
 

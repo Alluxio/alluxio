@@ -107,13 +107,10 @@ public final class AlluxioBlockStoreTest {
   private BlockMasterClient mMasterClient;
   private BlockWorkerClient mBlockWorkerClient;
   private AlluxioBlockStore mBlockStore;
-<<<<<<< HEAD
   private Channel mChannel;
   private ChannelPipeline mPipeline;
   private InetSocketAddress mLocalAddr;
-=======
   private FileSystemContext mContext;
->>>>>>> upstream/streaming
 
   @Before
   public void before() throws Exception {
@@ -126,26 +123,19 @@ public final class AlluxioBlockStoreTest {
     // Mock block store context to return our mock clients
     Mockito.when(mContext.createBlockWorkerClient(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(mBlockWorkerClient);
-<<<<<<< HEAD
     mLocalAddr = new InetSocketAddress(NetworkAddressUtils.getLocalHostName(), 0);
     Mockito.when(mBlockWorkerClient.getDataServerAddress()).thenReturn(mLocalAddr);
-    Mockito.when(blockStoreContext.acquireMasterClientResource()).thenReturn(
-        new DummyCloseableResource<>(mMasterClient));
 
-    PowerMockito.mockStatic(BlockStoreContext.class);
-    Mockito.when(BlockStoreContext.acquireNettyChannel(Mockito.any(InetSocketAddress.class)))
+    Mockito.when(mContext.acquireBlockMasterClientResource())
+        .thenReturn(new DummyCloseableResource<>(mMasterClient));
+
+    mBlockStore = new AlluxioBlockStore(mContext, WORKER_HOSTNAME_LOCAL);
+
+    Mockito.when(mContext.acquireNettyChannel(Mockito.any(InetSocketAddress.class)))
         .thenReturn(mChannel);
     Mockito.when(mChannel.pipeline()).thenReturn(mPipeline);
     Mockito.when(mPipeline.last()).thenReturn(new RPCMessageDecoder());
     Mockito.when(mPipeline.addLast(Mockito.any(ChannelHandler.class))).thenReturn(mPipeline);
-
-    mBlockStore = new AlluxioBlockStore(blockStoreContext, WORKER_HOSTNAME_LOCAL);
-=======
-    Mockito.when(mContext.acquireBlockMasterClientResource()).thenReturn(
-        new DummyCloseableResource<>(mMasterClient));
-
-    mBlockStore = new AlluxioBlockStore(mContext, WORKER_HOSTNAME_LOCAL);
->>>>>>> upstream/streaming
   }
 
   /**

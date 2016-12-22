@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.Seekable;
 import alluxio.client.PositionedReadable;
+import alluxio.client.file.FileSystemContext;
 import alluxio.proto.dataserver.Protocol;
 
 import java.io.FilterInputStream;
@@ -33,12 +34,14 @@ public final class UnderFileSystemFileInStream extends FilterInputStream
   /**
    * Creates an instance of {@link UnderFileSystemFileInStream}.
    *
+   * @param context the file system context
    * @param address the data server address
    * @param ufsFileId the ufs file ID
    * @param length the length of file to read which can be set to LONG.MAX_VALUE if unknown
    */
-  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId, long length) {
-    super(PacketInStream.createNettyPacketInStream(address, ufsFileId, -1, -1, length,
+  public UnderFileSystemFileInStream(FileSystemContext context, InetSocketAddress address,
+      long ufsFileId, long length) {
+    super(PacketInStream.createNettyPacketInStream(context, address, ufsFileId, -1, -1, length,
         Protocol.RequestType.UFS_FILE));
     mInStream = (PacketInStream) in;
   }

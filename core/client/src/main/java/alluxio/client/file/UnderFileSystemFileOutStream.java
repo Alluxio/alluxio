@@ -80,18 +80,14 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
      * @return a new {@link UnderFileSystemFileOutStream}
      * @throws IOException if it fails to create the out stream
      */
-<<<<<<< HEAD
-    public OutputStream create(InetSocketAddress address, long ufsFileId) throws IOException {
-      if (!PACKET_STREAMING_ENABLED) {
-        return new UnderFileSystemFileOutStream(address, ufsFileId);
+    public OutputStream create(FileSystemContext context, InetSocketAddress address, long ufsFileId)
+        throws IOException {
+      if (PACKET_STREAMING_ENABLED) {
+        return new alluxio.client.block.stream.UnderFileSystemFileOutStream(context, address,
+            ufsFileId);
       } else {
-        return new alluxio.client.block.stream.UnderFileSystemFileOutStream(address, ufsFileId);
+        return new UnderFileSystemFileOutStream(context, address, ufsFileId);
       }
-=======
-    public OutputStream create(FileSystemContext context, InetSocketAddress address,
-        long ufsFileId) {
-      return new UnderFileSystemFileOutStream(context, address, ufsFileId);
->>>>>>> upstream/streaming
     }
   }
 

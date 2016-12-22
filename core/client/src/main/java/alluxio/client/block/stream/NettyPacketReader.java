@@ -14,7 +14,7 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.block.BlockStoreContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
@@ -71,6 +71,7 @@ public final class NettyPacketReader implements PacketReader {
   private static final long READ_TIMEOUT_MS =
       Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
 
+  private final FileSystemContext mContext;
   private final Channel mChannel;
   private final Protocol.RequestType mRequestType;
   private final InetSocketAddress mAddress;
@@ -98,6 +99,7 @@ public final class NettyPacketReader implements PacketReader {
    * Creates an instance of {@link NettyPacketReader}. If this is used to read a block remotely, it
    * requires the block to be locked beforehand and the lock ID is passed to this class.
    *
+   * @param context the file system context
    * @param address the netty data server network address
    * @param id the block ID or UFS file ID
    * @param offset the offset
@@ -107,10 +109,12 @@ public final class NettyPacketReader implements PacketReader {
    * @param type the request type (block or UFS file)
    * @throws IOException if it fails to create the object
    */
-  public NettyPacketReader(InetSocketAddress address, long id, long offset, long len,
-      long lockId, long sessionId, Protocol.RequestType type) throws IOException {
+  public NettyPacketReader(FileSystemContext context, InetSocketAddress address, long id,
+      long offset, long len, long lockId, long sessionId, Protocol.RequestType type)
+      throws IOException {
     Preconditions.checkArgument(offset >= 0 && len > 0);
 
+    mContext = context;
     mAddress = address;
     mId = id;
     mStart = offset;
@@ -118,7 +122,7 @@ public final class NettyPacketReader implements PacketReader {
     mBytesToRead = len;
     mRequestType = type;
 
-    mChannel = BlockStoreContext.acquireNettyChannel(address);
+    mChannel = context.acquireNettyChannel(address);
 
     ChannelPipeline pipeline = mChannel.pipeline();
     if (!(pipeline.last() instanceof RPCMessageDecoder)) {
@@ -241,7 +245,7 @@ public final class NettyPacketReader implements PacketReader {
         // Make sure "autoread" is on before realsing the channel.
         resume();
       }
-      BlockStoreContext.releaseNettyChannel(mAddress, mChannel);
+      mContext.releaseNettyChannel(mAddress, mChannel);
       mClosed = true;
     }
   }
@@ -368,6 +372,7 @@ public final class NettyPacketReader implements PacketReader {
    * Factory class to create {@link NettyPacketReader}s.
    */
   public static class Factory implements PacketReader.Factory {
+    private final FileSystemContext mContext;
     private final InetSocketAddress mAddress;
     private final long mId;
     private final long mLockId;
@@ -377,14 +382,16 @@ public final class NettyPacketReader implements PacketReader {
     /**
      * Creates an instance of {@link NettyPacketReader.Factory} for block reads.
      *
+     * @param context the file system context
      * @param address the worker address
      * @param id the block ID or UFS ID
      * @param lockId the lock ID
      * @param sessionId the session ID
      * @param type the request type
      */
-    public Factory(InetSocketAddress address, long id, long lockId, long sessionId,
-        Protocol.RequestType type) {
+    public Factory(FileSystemContext context, InetSocketAddress address, long id, long lockId,
+        long sessionId, Protocol.RequestType type) {
+      mContext = context;
       mAddress = address;
       mId = id;
       mLockId = lockId;
@@ -394,7 +401,8 @@ public final class NettyPacketReader implements PacketReader {
 
     @Override
     public PacketReader create(long offset, long len) throws IOException {
-      return new NettyPacketReader(mAddress, mId, offset, len, mLockId, mSessionId, mRequestType);
+      return new NettyPacketReader(mContext, mAddress, mId, offset, len, mLockId, mSessionId,
+          mRequestType);
     }
   }
 }

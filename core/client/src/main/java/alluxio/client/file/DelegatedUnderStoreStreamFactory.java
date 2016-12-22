@@ -55,15 +55,14 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
   }
 
   @Override
-<<<<<<< HEAD
-  public InputStream create(OpenOptions options) throws IOException {
+  public InputStream create(FileSystemContext context, OpenOptions options) throws IOException {
     InputStream inputStream;
     if (PACKET_STREAMING_ENABLED) {
-      inputStream = new alluxio.client.block.stream.UnderFileSystemFileInStream(
+      inputStream = new alluxio.client.block.stream.UnderFileSystemFileInStream(context,
           mClient.getWorkerDataServerAddress(), mFileId, options.getLength());
     } else {
       inputStream = new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mFileId,
-          UnderFileSystemFileReader.Factory.create());
+          UnderFileSystemFileReader.Factory.create(context));
     }
     try {
       Preconditions.checkState(inputStream instanceof Seekable);
@@ -73,12 +72,6 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
       inputStream.close();
       throw e;
     }
-=======
-  public InputStream create(FileSystemContext context, OpenOptions options) {
-    Preconditions.checkNotNull(context);
-    return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(),
-        mFileId, options.getOffset(), UnderFileSystemFileReader.Factory.create(context));
->>>>>>> upstream/streaming
   }
 
   @Override

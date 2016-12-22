@@ -18,15 +18,10 @@ import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
-<<<<<<< HEAD
 import alluxio.client.Cancelable;
 import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
-=======
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockInStream;
-import alluxio.client.block.BufferedBlockOutStream;
->>>>>>> upstream/streaming
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
@@ -535,12 +530,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
 
     // If this block is read from a remote worker but we don't have a local worker, don't cache
-<<<<<<< HEAD
-    if (isReadingFromRemoteBlockWorker() && !mContext.getBlockStoreContext().hasLocalWorker()) {
-=======
-    if (mCurrentBlockInStream instanceof RemoteBlockInStream
-        && !mContext.hasLocalWorker()) {
->>>>>>> upstream/streaming
+    if (isReadingFromRemoteBlockWorker() && !mContext.hasLocalWorker()) {
       return;
     }
 
@@ -601,11 +591,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
-<<<<<<< HEAD
-      return mContext.getAlluxioBlockStore().getInStream(blockId, mInStreamOptions);
-=======
-      mCurrentBlockInStream = mBlockStore.getInStream(blockId, mInStreamOptions);
->>>>>>> upstream/streaming
+      return mBlockStore.getInStream(blockId, mInStreamOptions);
     } catch (IOException e) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
           e);

@@ -94,7 +94,7 @@ public final class HdfsFileInputStreamIntegrationTest {
     alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
     alluxio.Configuration.set(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, "false");
     FileSystemTestUtils.createByteFile(mFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
-    mUfsInputStream = new HdfsFileInputStream(
+    mUfsInputStream = new HdfsFileInputStream(FileSystemContext.INSTANCE,
         new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
     alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
     alluxio.Configuration

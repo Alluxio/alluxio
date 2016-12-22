@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.wire.WorkerNetAddress;
@@ -42,7 +43,7 @@ public final class StreamFactory {
   /**
    * Creates an {@link OutputStream} that writes to a block on local worker.
    *
-   * @param context the block store context
+   * @param context the file system context
    * @param blockId the block ID
    * @param blockSize the block size in bytes
    * @param address the Alluxio worker address
@@ -50,7 +51,7 @@ public final class StreamFactory {
    * @return the {@link OutputStream} object
    * @throws IOException if it fails to create the output stream
    */
-  public static OutputStream createLocalBlockOutStream(BlockStoreContext context, long blockId,
+  public static OutputStream createLocalBlockOutStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
     if (PACKET_STREAMING_ENABLED) {
       return BlockOutStream
@@ -64,7 +65,7 @@ public final class StreamFactory {
   /**
    * Creates an {@link OutputStream} that writes to a remote worker.
    *
-   * @param context the block store context
+   * @param context the file system context
    * @param blockId the block ID
    * @param blockSize the block size in bytes
    * @param address the Alluxio worker address
@@ -72,7 +73,7 @@ public final class StreamFactory {
    * @return the {@link OutputStream} object
    * @throws IOException if it fails to create the output stream
    */
-  public static OutputStream createRemoteBlockOutStream(BlockStoreContext context, long blockId,
+  public static OutputStream createRemoteBlockOutStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
     if (PACKET_STREAMING_ENABLED) {
       return BlockOutStream
@@ -86,7 +87,7 @@ public final class StreamFactory {
   /**
    * Creates an {@link InputStream} that writes to a local block.
    *
-   * @param context the block store context
+   * @param context the file system context
    * @param blockId the block ID
    * @param blockSize the block size in bytes
    * @param address the Alluxio worker address
@@ -94,7 +95,7 @@ public final class StreamFactory {
    * @return the {@link InputStream} object
    * @throws IOException if it fails to create the input stream
    */
-  public static InputStream createLocalBlockInStream(BlockStoreContext context, long blockId,
+  public static InputStream createLocalBlockInStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
     if (PACKET_STREAMING_ENABLED) {
       return BlockInStream.createLocalBlockInStream(blockId, blockSize, address, context, options);
@@ -107,7 +108,7 @@ public final class StreamFactory {
   /**
    * Creates an {@link InputStream} that writes to a local block.
    *
-   * @param context the block store context
+   * @param context the file system context
    * @param blockId the block ID
    * @param blockSize the block size in bytes
    * @param address the Alluxio worker address
@@ -115,7 +116,7 @@ public final class StreamFactory {
    * @return the {@link InputStream} object
    * @throws IOException if it fails to create the input stream
    */
-  public static InputStream createRemoteBlockInStream(BlockStoreContext context, long blockId,
+  public static InputStream createRemoteBlockInStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
     if (PACKET_STREAMING_ENABLED) {
       return BlockInStream.createRemoteBlockInStream(blockId, blockSize, address, context, options);

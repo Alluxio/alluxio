@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.client.file.FileSystemContext;
 import alluxio.proto.dataserver.Protocol;
 
 import java.io.FilterOutputStream;
@@ -30,14 +31,16 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   /**
    * Creates an instance of {@link UnderFileSystemFileOutStream}.
    *
+   * @param context the file system context
    * @param address the data server address
    * @param ufsFileId the UFS file ID
    * @throws IOException if it fails to create the object
    */
-  public UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId)
-      throws IOException {
-    super(PacketOutStream.createNettyPacketOutStream(address, -1, ufsFileId, Long.MAX_VALUE,
-        Protocol.RequestType.UFS_FILE));
+  public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
+      long ufsFileId) throws IOException {
+    super(PacketOutStream
+        .createNettyPacketOutStream(context, address, -1, ufsFileId, Long.MAX_VALUE,
+            Protocol.RequestType.UFS_FILE));
     mOutStream = (PacketOutStream) out;
   }
 

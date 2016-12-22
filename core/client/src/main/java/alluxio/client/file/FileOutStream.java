@@ -21,11 +21,7 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.client.UnderStorageType;
-<<<<<<< HEAD
-=======
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BufferedBlockOutStream;
->>>>>>> upstream/streaming
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;

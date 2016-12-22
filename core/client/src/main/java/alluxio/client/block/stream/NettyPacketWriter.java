@@ -14,7 +14,7 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.block.BlockStoreContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
@@ -68,6 +68,7 @@ public class NettyPacketWriter implements PacketWriter {
   private static final long WRITE_TIMEOUT_MS =
       Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
 
+  private final FileSystemContext mContext;
   private final Channel mChannel;
   private final InetSocketAddress mAddress;
   private final long mId;
@@ -103,6 +104,7 @@ public class NettyPacketWriter implements PacketWriter {
   /**
    * Creates an instance of {@link NettyPacketWriter}.
    *
+   * @param context the file system context
    * @param address the data server network address
    * @param id the block ID or UFS file ID
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
@@ -110,14 +112,15 @@ public class NettyPacketWriter implements PacketWriter {
    * @param type the request type (block or UFS file)
    * @throws IOException it fails to create the object because it fails to acquire a netty channel
    */
-  public NettyPacketWriter(final InetSocketAddress address, long id, long length, long sessionId,
-      Protocol.RequestType type) throws IOException {
+  public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long id,
+      long length, long sessionId, Protocol.RequestType type) throws IOException {
+    mContext = context;
     mAddress = address;
     mSessionId = sessionId;
     mId = id;
     mRequestType = type;
     mLength = length;
-    mChannel = BlockStoreContext.acquireNettyChannel(address);
+    mChannel = context.acquireNettyChannel(address);
 
     ChannelPipeline pipeline = mChannel.pipeline();
     if (!(pipeline.last() instanceof RPCMessageDecoder)) {
@@ -269,7 +272,7 @@ public class NettyPacketWriter implements PacketWriter {
         Preconditions.checkState(mChannel.pipeline().last() instanceof PacketWriteHandler);
         mChannel.pipeline().removeLast();
       }
-      BlockStoreContext.releaseNettyChannel(mAddress, mChannel);
+      mContext.releaseNettyChannel(mAddress, mChannel);
       mClosed = true;
     }
   }

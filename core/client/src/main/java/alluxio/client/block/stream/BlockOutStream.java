@@ -14,8 +14,8 @@ package alluxio.client.block.stream;
 import alluxio.Constants;
 import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.proto.dataserver.Protocol;
@@ -52,7 +52,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
    * @param blockId the block id
    * @param blockSize the block size
    * @param workerNetAddress the worker network address
-   * @param context the block store context
+   * @param context the file system context
    * @param options the options
    * @throws IOException if an I/O error occurs
    * @return the {@link BlockOutStream} instance created
@@ -60,11 +60,11 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
   public static BlockOutStream createLocalBlockOutStream(long blockId,
       long blockSize,
       WorkerNetAddress workerNetAddress,
-      BlockStoreContext context,
+      FileSystemContext context,
       OutStreamOptions options) throws IOException {
     Closer closer = Closer.create();
     try {
-      BlockWorkerClient client = closer.register(context.createWorkerClient(workerNetAddress));
+      BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
       PacketOutStream outStream =
           PacketOutStream.createLocalPacketOutStream(client, blockId, blockSize);
       closer.register(outStream);
@@ -81,7 +81,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
    * @param blockId the block id
    * @param blockSize the block size
    * @param workerNetAddress the worker network address
-   * @param context the block store context
+   * @param context the file system context
    * @param options the options
    * @throws IOException if an I/O error occurs
    * @return the {@link BlockOutStream} instance created
@@ -89,15 +89,15 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
   public static BlockOutStream createRemoteBlockOutStream(long blockId,
       long blockSize,
       WorkerNetAddress workerNetAddress,
-      BlockStoreContext context,
+      FileSystemContext context,
       OutStreamOptions options) throws IOException {
     Closer closer = Closer.create();
     try {
-      BlockWorkerClient client = closer.register(context.createWorkerClient(workerNetAddress));
+      BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
 
-      PacketOutStream outStream = PacketOutStream.createNettyPacketOutStream(
-          client.getDataServerAddress(), client.getSessionId(), blockId, blockSize,
-          Protocol.RequestType.ALLUXIO_BLOCK);
+      PacketOutStream outStream = PacketOutStream
+          .createNettyPacketOutStream(context, client.getDataServerAddress(), client.getSessionId(),
+              blockId, blockSize, Protocol.RequestType.ALLUXIO_BLOCK);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (IOException e) {

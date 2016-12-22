@@ -15,11 +15,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Seekable;
-<<<<<<< HEAD
 import alluxio.client.PositionedReadable;
-=======
 import alluxio.client.file.FileSystemContext;
->>>>>>> upstream/streaming
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
@@ -239,13 +236,8 @@ public final class UnderStoreBlockInStream extends BlockInStream implements Posi
     Preconditions.checkArgument(pos <= mLength,
         PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), pos);
     long streamStart = mInitPos + pos;
-<<<<<<< HEAD
-    mUnderStoreStream = mUnderStoreStreamFactory
-        .create(OpenOptions.defaults().setOffset(streamStart).setLength(mInitPos + mFileBlockSize));
-=======
-    mUnderStoreStream =
-        mUnderStoreStreamFactory.create(mContext, OpenOptions.defaults().setOffset(streamStart));
->>>>>>> upstream/streaming
+    mUnderStoreStream = mUnderStoreStreamFactory.create(mContext,
+        OpenOptions.defaults().setOffset(streamStart).setLength(mInitPos + mFileBlockSize));
     // Set the current block position to the specified block position.
     mPos = pos;
   }

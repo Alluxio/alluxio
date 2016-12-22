@@ -16,8 +16,8 @@ import alluxio.client.BoundedStream;
 import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.network.NetworkAddressUtils;
@@ -61,20 +61,20 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @param blockId the block ID
    * @param blockSize the block size
    * @param workerNetAddress the worker network address
-   * @param context the block store context
+   * @param context the file system context
    * @param options the options
    * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
   public static BlockInStream createLocalBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, BlockStoreContext context, InStreamOptions options)
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
       throws IOException {
     Closer closer = Closer.create();
 
     BlockWorkerClient blockWorkerClient = null;
     LockBlockResult lockBlockResult = null;
     try {
-      blockWorkerClient = closer.register(context.createWorkerClient(workerNetAddress));
+      blockWorkerClient = closer.register(context.createBlockWorkerClient(workerNetAddress));
       lockBlockResult = blockWorkerClient.lockBlock(blockId);
       PacketInStream inStream = closer.register(PacketInStream
           .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
@@ -98,13 +98,13 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @param blockId the block ID
    * @param blockSize the block size
    * @param workerNetAddress the worker network address
-   * @param context the block store context
+   * @param context the file system context
    * @param options the options
    * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
   public static BlockInStream createRemoteBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, BlockStoreContext context, InStreamOptions options)
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
     throws IOException {
     Closer closer = Closer.create();
 
@@ -112,10 +112,10 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
     LockBlockResult lockBlockResult = null;
     try {
       blockWorkerClient =
-          closer.register(context.createWorkerClient(workerNetAddress));
+          closer.register(context.createBlockWorkerClient(workerNetAddress));
       lockBlockResult = blockWorkerClient.lockBlock(blockId);
       PacketInStream inStream = closer.register(PacketInStream
-          .createNettyPacketInStream(blockWorkerClient.getDataServerAddress(), blockId,
+          .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
               lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
               Protocol.RequestType.ALLUXIO_BLOCK));
       return new BlockInStream(inStream, blockId, blockWorkerClient, options);
