@@ -38,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +54,12 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       new LocalAlluxioClusterResource.Builder().build();
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
+
+  /**
+   * The exception expected to be thrown.
+   */
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public final void before() throws Exception {
@@ -95,15 +102,10 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    */
   @Test
   public void createNoParent() throws IOException {
+    mThrown.expect(IOException.class);
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
-    try {
-      OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(false));
-      o.close();
-    } catch (IOException e) {
-      // IOException is expected
-      return;
-    }
-    Assert.fail("Create with no parent should throw an exception");
+    OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(false));
+    o.close();
   }
 
   /**
