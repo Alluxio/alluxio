@@ -75,7 +75,7 @@ public final class FileSystemContext implements Closeable {
   private final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
       mBlockWorkerClientPools = new ConcurrentHashMapV8<>();
   private final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
-      mBlockWorkerHeartbeatClientPools = new ConcurrentHashMapV8<>();
+      mBlockWorkerClientHeartbeatPools = new ConcurrentHashMapV8<>();
 
   // The file system worker client pools.
   private final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
@@ -164,10 +164,22 @@ public final class FileSystemContext implements Closeable {
       pool.close();
     }
     mBlockWorkerClientPools.clear();
+
+    for (BlockWorkerThriftClientPool pool : mBlockWorkerClientHeartbeatPools.values()) {
+      pool.close();
+    }
+    mBlockWorkerClientHeartbeatPools.clear();
+
     for (FileSystemWorkerThriftClientPool pool : mFileSystemWorkerClientPools.values()) {
       pool.close();
     }
     mFileSystemWorkerClientPools.clear();
+
+    for (FileSystemWorkerThriftClientPool pool : mFileSystemWorkerClientHeartbeatPools.values()) {
+      pool.close();
+    }
+    mFileSystemWorkerClientHeartbeatPools.clear();
+
     for (NettyChannelPool pool : mNettyChannelPools.values()) {
       pool.close();
     }
@@ -287,17 +299,17 @@ public final class FileSystemContext implements Closeable {
       }
     }
 
-    if (!mBlockWorkerHeartbeatClientPools.containsKey(rpcAddress)) {
+    if (!mBlockWorkerClientHeartbeatPools.containsKey(rpcAddress)) {
       BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(mParentSubject, rpcAddress,
           Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
           Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (mBlockWorkerHeartbeatClientPools.putIfAbsent(rpcAddress, pool) != null) {
+      if (mBlockWorkerClientHeartbeatPools.putIfAbsent(rpcAddress, pool) != null) {
         pool.close();
       }
     }
 
     return new RetryHandlingBlockWorkerClient(mBlockWorkerClientPools.get(rpcAddress),
-        mBlockWorkerHeartbeatClientPools.get(rpcAddress), address, sessionId);
+        mBlockWorkerClientHeartbeatPools.get(rpcAddress), address, sessionId);
   }
 
   /**
@@ -468,7 +480,7 @@ public final class FileSystemContext implements Closeable {
             @Override
             public Long getValue() {
               long ret = 0;
-              for (BlockWorkerThriftClientPool pool : INSTANCE.mBlockWorkerHeartbeatClientPools
+              for (BlockWorkerThriftClientPool pool : INSTANCE.mBlockWorkerClientHeartbeatPools
                   .values()) {
                 ret += pool.size();
               }
