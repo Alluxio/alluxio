@@ -114,13 +114,13 @@ function killAll {
 
   keyword=$1
   count=0
-  for pid in `ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'`; do
+  for pid in $(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'); do
     kill -15 ${pid} > /dev/null 2>&1
     local cnt=30
     while kill -0 ${pid} > /dev/null 2>&1; do
       if [[ ${cnt} -gt 1 ]]; then
         # still not dead, wait
-        cnt=`expr ${cnt} - 1`
+        cnt=$(expr ${cnt} - 1)
         sleep 1
       else
         # waited long enough, kill the process
@@ -128,9 +128,9 @@ function killAll {
         kill -9 ${pid} 2> /dev/null
       fi
     done
-    count=`expr ${count} + 1`
+    count=$(expr ${count} + 1)
   done
-  echo "Killed ${count} processes on `hostname`"
+  echo "Killed ${count} processes on $(hostname)"
 }
 
 function copyDir {
@@ -139,11 +139,11 @@ function copyDir {
     exit 1
   fi
 
-  WORKERS=`cat ${ALLUXIO_CONF_DIR}/workers | grep -v '^#'`
+  WORKERS=$(cat ${ALLUXIO_CONF_DIR}/workers | grep -v '^#')
 
-  DIR=`readlink -f "$1"`
-  DIR=`echo ${DIR}|sed 's@/$@@'`
-  DEST=`dirname ${DIR}`
+  DIR=$(readlink -f "$1")
+  DIR=$(echo ${DIR}|sed 's@/$@@')
+  DEST=$(dirname ${DIR})
 
   SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=5"
 
@@ -227,13 +227,13 @@ function main {
 
     ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
 
-    echo "Formatting Alluxio Master @ ${ALLUXIO_MASTER_HOSTNAME}"
+    echo "Formatting Alluxio Master @ $(hostname -f)"
     CLASS="alluxio.cli.Format"
     PARAMETER="master"
     runJavaClass "$@"
   ;;
   "formatWorker")
-    echo "Formatting Alluxio Worker @ `hostname -f`"
+    echo "Formatting Alluxio Worker @ $(hostname -f)"
     CLASS="alluxio.cli.Format"
     PARAMETER="worker"
     runJavaClass "$@"
@@ -258,7 +258,12 @@ function main {
   ;;
   "runTest")
     CLASS="alluxio.cli.TestRunner"
-    PARAMETER="alluxio://${ALLUXIO_MASTER_HOSTNAME}:19998"
+    local master_hostname=$(${BIN}/alluxio getConf alluxio.master.hostname)
+    if [[ -z ${master_hostname} ]]; then
+      echo "alluxio.master.hostname or ALLUXIO_MASTER_HOSTNAME must be configured to use runTest" >&2
+      exit 1
+    fi
+    PARAMETER="alluxio://${master_hostname}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
@@ -270,7 +275,12 @@ function main {
   ;;
   "runTests")
     CLASS="alluxio.cli.TestRunner"
-    PARAMETER="alluxio://${ALLUXIO_MASTER_HOSTNAME}:19998"
+    local master_hostname=$(${BIN}/alluxio getConf alluxio.master.hostname)
+    if [[ -z ${master_hostname} ]]; then
+      echo "alluxio.master.hostname or ALLUXIO_MASTER_HOSTNAME must be configured to use runTests" >&2
+      exit 1
+    fi
+    PARAMETER="alluxio://${master_hostname}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
@@ -307,7 +317,7 @@ function main {
   "protoGen")
     rm -rf ${BIN}/../core/server/src/main/java/alluxio/proto
     for src_file in $(find ${BIN}/../core/server/src/proto -name '*.proto' -type f); do
-      protoc --java_out=${BIN}/../core/server/src/main/java --proto_path=`dirname ${src_file}` ${src_file}
+      protoc --java_out=${BIN}/../core/server/src/main/java --proto_path=$(dirname ${src_file}) ${src_file}
     done
   ;;
   "clearCache")

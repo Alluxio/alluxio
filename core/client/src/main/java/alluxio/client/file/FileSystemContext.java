@@ -139,10 +139,14 @@ public final class FileSystemContext implements Closeable {
    * Initializes the context. Only called in the factory methods and reset.
    */
   private void init() {
-    String masterHostName =
-        Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    String masterHostname;
+    if (Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
+      masterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
+    } else {
+      masterHostname = NetworkAddressUtils.getLocalHostName();
+    }
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
-    mMasterAddress = new InetSocketAddress(masterHostName, masterPort);
+    mMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(mParentSubject, mMasterAddress);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterAddress);

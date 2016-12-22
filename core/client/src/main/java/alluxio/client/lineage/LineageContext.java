@@ -13,8 +13,7 @@ package alluxio.client.lineage;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-
-import com.google.common.base.Preconditions;
+import alluxio.util.network.NetworkAddressUtils;
 
 import java.net.InetSocketAddress;
 
@@ -63,10 +62,14 @@ public enum LineageContext {
       mLineageMasterClientPool.close();
     }
 
-    String masterHostName =
-        Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    String masterHostname;
+    if (Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
+      masterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
+    } else {
+      masterHostname = NetworkAddressUtils.getLocalHostName();
+    }
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
-    InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
+    InetSocketAddress masterAddress = new InetSocketAddress(masterHostname, masterPort);
     mLineageMasterClientPool = new LineageMasterClientPool(masterAddress);
   }
 }
