@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.wire.FileInfo;
@@ -44,6 +45,13 @@ public final class UnderFileSystemUtilsTest {
   final AlluxioURI mAlluxioB = new AlluxioURI("/a/b");
   final AlluxioURI mAlluxioFile = new AlluxioURI("/a/b/file");
 
+  // Permissions for directories in Alluxio
+  final String mOwnerRoot = "ownerRoot";
+  final String mOwnerA = "ownerA";
+  final String mOwnerB = "ownerB";
+  final String mGroup = "group";
+  final short mMode = 777;
+
   // Test paths in UFS
   final String mUfsRoot = "/ufs";
   final String mUfsA = "/ufs/a";
@@ -72,11 +80,11 @@ public final class UnderFileSystemUtilsTest {
   public void prepareFilePath1() throws Exception {
     // Alluxio root is mount point
     Mockito.when(mFileSystem.getStatus(mAlluxioRoot))
-        .thenReturn(createStatus("owner", "group", (short) 777, true));
+        .thenReturn(createStatus(mOwnerRoot, mGroup, mMode, true));
     Mockito.when(mFileSystem.getStatus(mAlluxioA))
-        .thenReturn(createStatus("owner", "group", (short) 777, false));
+        .thenReturn(createStatus(mOwnerA, mGroup, mMode, false));
     Mockito.when(mFileSystem.getStatus(mAlluxioB))
-        .thenReturn(createStatus("owner", "group", (short) 777, false));
+        .thenReturn(createStatus(mOwnerB, mGroup, mMode, false));
 
     // Parent directories 'a' and 'b' do not exist in UFS
     Mockito.when(mUnderFileSystem.isDirectory(mUfsRoot)).thenReturn(true);
@@ -89,6 +97,9 @@ public final class UnderFileSystemUtilsTest {
     Mockito.verify(mFileSystem, Mockito.times(2)).getStatus(Mockito.any(AlluxioURI.class));
     Mockito.verify(mFileSystem, Mockito.times(1)).getStatus(mAlluxioA);
     Mockito.verify(mFileSystem, Mockito.times(1)).getStatus(mAlluxioA);
+    // Verify mkdir is called with the correct permissions
+    Mockito.verify(mUnderFileSystem, Mockito.times(1)).mkdirs(mUfsA, createMkdirsOptions(mOwnerA));
+    Mockito.verify(mUnderFileSystem, Mockito.times(1)).mkdirs(mUfsB, createMkdirsOptions(mOwnerB));
   }
 
   /**
@@ -98,11 +109,11 @@ public final class UnderFileSystemUtilsTest {
   public void prepareFilePath2() throws Exception {
     // Alluxio 'a' is mount point
     Mockito.when(mFileSystem.getStatus(mAlluxioRoot))
-        .thenReturn(createStatus("owner", "group", (short) 777, true));
+        .thenReturn(createStatus(mOwnerRoot, mGroup, mMode, true));
     Mockito.when(mFileSystem.getStatus(mAlluxioA))
-        .thenReturn(createStatus("owner", "group", (short) 777, true));
+        .thenReturn(createStatus(mOwnerA, mGroup, mMode, true));
     Mockito.when(mFileSystem.getStatus(mAlluxioB))
-        .thenReturn(createStatus("owner", "group", (short) 777, false));
+        .thenReturn(createStatus(mOwnerB, mGroup, mMode, false));
 
     // Parent directory 'b' does not exist in UFS
     Mockito.when(mUnderFileSystem.isDirectory(mUfsRoot)).thenReturn(true);
@@ -114,6 +125,9 @@ public final class UnderFileSystemUtilsTest {
     // Verify getStatus is called for all non-existent directories
     Mockito.verify(mFileSystem, Mockito.times(1)).getStatus(Mockito.any(AlluxioURI.class));
     Mockito.verify(mFileSystem, Mockito.times(1)).getStatus(mAlluxioB);
+
+    // Verify mkdir is called with the correct permissions
+    Mockito.verify(mUnderFileSystem, Mockito.times(1)).mkdirs(mUfsB, createMkdirsOptions(mOwnerB));
   }
 
   /**
@@ -127,11 +141,11 @@ public final class UnderFileSystemUtilsTest {
 
     // Alluxio 'a' is mount point
     Mockito.when(mFileSystem.getStatus(mAlluxioRoot))
-        .thenReturn(createStatus("owner", "group", (short) 777, true));
+        .thenReturn(createStatus(mOwnerRoot, mGroup, mMode, true));
     Mockito.when(mFileSystem.getStatus(mAlluxioA))
-        .thenReturn(createStatus("owner", "group", (short) 777, true));
+        .thenReturn(createStatus(mOwnerA, mGroup, mMode, true));
     Mockito.when(mFileSystem.getStatus(mAlluxioB))
-        .thenReturn(createStatus("owner", "group", (short) 777, false));
+        .thenReturn(createStatus(mOwnerB, mGroup, mMode, false));
 
     // Parent directories 'a' and 'b' do not exist in UFS
     Mockito.when(mUnderFileSystem.isDirectory(mUfsRoot)).thenReturn(true);
@@ -143,6 +157,14 @@ public final class UnderFileSystemUtilsTest {
     // Verify getStatus is called for all non-existent directories
     Mockito.verify(mFileSystem, Mockito.times(1)).getStatus(Mockito.any(AlluxioURI.class));
     Mockito.verify(mFileSystem, Mockito.times(1)).getStatus(mAlluxioB);
+    // Verify no directories are created in UFS
+    Mockito.verify(mUnderFileSystem, Mockito.times(0)).mkdirs(Mockito.anyString(),
+        Mockito.any(MkdirsOptions.class));
+  }
+
+  private MkdirsOptions createMkdirsOptions(String owner) {
+    return MkdirsOptions.defaults().setCreateParent(false)
+        .setPermission(new Permission(owner, mGroup, mMode));
   }
 
   private URIStatus createStatus(String owner, String group, short mode, boolean isMountPoint) {
