@@ -103,17 +103,17 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   /**
-   * Iterates over the masters in the order of master creation, kill the first standby master.
+   * Iterates over the masters in the order of master creation, stops the first standby master.
    *
-   * @return true if a standby master is successfully killed, otherwise, false
+   * @return true if a standby master is successfully stopped, otherwise, false
    */
-  public boolean killStandby() {
+  public boolean stopStandby() {
     for (int k = 0; k < mNumOfMasters; k++) {
       if (!mMasters.get(k).isServing()) {
         try {
-          LOG.info("master {} is a standby. killing it...", k);
-          mMasters.get(k).kill();
-          LOG.info("master {} killed.", k);
+          LOG.info("master {} is a standby. stopping it...", k);
+          mMasters.get(k).stop();
+          LOG.info("master {} stopped.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -125,17 +125,17 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   /**
-   * Iterates over the masters in the order of master creation, kill the leader master.
+   * Iterates over the masters in the order of master creation, stops the leader master.
    *
-   * @return true if the leader master is successfully killed, false otherwise
+   * @return true if the leader master is successfully stopped, false otherwise
    */
-  public boolean killLeader() {
+  public boolean stopLeader() {
     for (int k = 0; k < mNumOfMasters; k++) {
       if (mMasters.get(k).isServing()) {
         try {
-          LOG.info("master {} is the leader. killing it...", k);
-          mMasters.get(k).kill();
-          LOG.info("master {} killed.", k);
+          LOG.info("master {} is the leader. stopping it...", k);
+          mMasters.get(k).stop();
+          LOG.info("master {} stopped.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -229,7 +229,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     stopWorkers();
     for (int k = 0; k < mNumOfMasters; k++) {
       // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
-      mMasters.get(k).kill();
+      mMasters.get(k).stop();
+
     }
     LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
     mCuratorServer.stop();

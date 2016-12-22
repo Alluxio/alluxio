@@ -111,7 +111,7 @@ public class JournalShutdownIntegrationTest {
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
       cluster.waitForNewMaster(60 * Constants.SECOND_MS);
-      Assert.assertTrue(cluster.killLeader());
+      Assert.assertTrue(cluster.stopLeader());
     }
     cluster.stopFS();
     awaitClientTermination();

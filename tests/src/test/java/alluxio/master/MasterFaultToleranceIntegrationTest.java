@@ -113,7 +113,7 @@ public class MasterFaultToleranceIntegrationTest {
     faultTestDataCheck(answer);
 
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
+      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(60 * Constants.SECOND_MS);
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
@@ -125,7 +125,7 @@ public class MasterFaultToleranceIntegrationTest {
     // Kill leader -> create files -> kill leader -> delete files, repeat.
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
+      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(60 * Constants.SECOND_MS);
 
       if (kills % 2 != 0) {
@@ -185,7 +185,7 @@ public class MasterFaultToleranceIntegrationTest {
     faultTestDataCheck(answer);
 
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killStandby());
+      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopStandby());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
 
       // Leader should not change.
@@ -203,7 +203,7 @@ public class MasterFaultToleranceIntegrationTest {
 
     List<Pair<Long, AlluxioURI>> emptyAnswer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
+      Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(60 * Constants.SECOND_MS);
 
       // TODO(cc) Why this test fail without this line? [ALLUXIO-970]
@@ -247,7 +247,7 @@ public class MasterFaultToleranceIntegrationTest {
           .workerHeartbeat(workerId2a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
               Collections.EMPTY_MAP).getCommandType());
 
-      Assert.assertTrue(cluster.killLeader());
+      Assert.assertTrue(cluster.stopLeader());
       cluster.waitForNewMaster(60 * Constants.SECOND_MS);
 
       // Get the new block master, after the failover

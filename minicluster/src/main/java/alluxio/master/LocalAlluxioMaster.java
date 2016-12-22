@@ -127,20 +127,11 @@ public final class LocalAlluxioMaster {
     clearClients();
 
     mAlluxioMaster.stop();
+    mMasterThread.interrupt();
 
     System.clearProperty("alluxio.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
 
-  }
-
-  /**
-   * Kills the master thread, by calling {@link Thread#interrupt()}.
-   *
-   * @throws Exception if master thread cannot be interrupted
-   */
-  public void kill() throws Exception {
-    mAlluxioMaster.stop();
-    mMasterThread.interrupt();
   }
 
   /**
