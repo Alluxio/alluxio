@@ -47,8 +47,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final boolean PACKET_STREAMING_ENABLED =
+      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
 
-  private final boolean mPacketInStreamEnabled;
   private long mCurrentPosition;
   private Path mHdfsPath;
   private org.apache.hadoop.conf.Configuration mHadoopConf;
@@ -81,7 +82,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
     LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, conf, bufferSize, stats);
     long bufferBytes = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
-    mPacketInStreamEnabled = Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
     FileSystem fs = FileSystem.Factory.get(context);
@@ -218,7 +218,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
 
-    if (mPacketInStreamEnabled) {
+    if (PACKET_STREAMING_ENABLED) {
       return readWithPacketStreaming(position, buffer, offset, length);
     } else {
       return readWithoutPacketStreaming(position, buffer, offset, length);
