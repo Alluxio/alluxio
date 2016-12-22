@@ -63,8 +63,8 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class FileSystemContext implements Closeable {
-  public static final FileSystemContext INSTANCE = create(null);
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  public static final FileSystemContext INSTANCE = create(null);
 
   static {
     MetricsSystem.startSinks();
