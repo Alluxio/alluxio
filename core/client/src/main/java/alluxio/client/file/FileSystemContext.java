@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
@@ -36,8 +35,6 @@ import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -63,7 +60,6 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class FileSystemContext implements Closeable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   public static final FileSystemContext INSTANCE = create(null);
 
   static {
@@ -148,9 +144,6 @@ public final class FileSystemContext implements Closeable {
       masterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
     } else {
       masterHostname = NetworkAddressUtils.getLocalHostName();
-      if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-        LOG.warn("No master hostname specified, defaulting to {}", masterHostname);
-      }
     }
     int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     mMasterAddress = new InetSocketAddress(masterHostname, masterPort);
