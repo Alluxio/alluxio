@@ -84,8 +84,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * Creates a {@link PacketOutStream} that writes to a list of locations.
    *
    * @param context the file system context
-   * @param clients the netty data server addresses
-   * @param sessionIds the session IDs for all the data servers
+   * @param clients a list of block worker clients
    * @param id the ID (block ID or UFS file ID)
    * @param length the block or file length
    * @param type the request type (either block write or UFS file write)
@@ -93,19 +92,17 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @throws IOException if it fails to create the object
    */
   public static PacketOutStream createReplicatedPacketOutStream(FileSystemContext context,
-      List<BlockWorkerClient> clients, List<Long> sessionIds, long id, long length,
+      List<BlockWorkerClient> clients, long id, long length,
       Protocol.RequestType type) throws IOException {
-    Preconditions.checkArgument(clients.size() == sessionIds.size());
     String localHost = NetworkAddressUtils.getLocalHostName();
 
-    Iterator<Long> iterator = sessionIds.iterator();
     List<PacketWriter> packetWriters = new ArrayList<>();
-    for (BlockWorkerClient client: clients) {
+    for (BlockWorkerClient client : clients) {
       if (client.getWorkerNetAddress().getHost().equals(localHost)) {
         packetWriters.add(LocalFilePacketWriter.create(client, id));
       } else {
         packetWriters.add(new NettyPacketWriter(context, client.getDataServerAddress(), id, length,
-            iterator.next(), type));
+            client.getSessionId(), type));
       }
     }
     return new PacketOutStream(packetWriters, length);
