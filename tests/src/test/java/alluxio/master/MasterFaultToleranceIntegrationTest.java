@@ -114,7 +114,7 @@ public class MasterFaultToleranceIntegrationTest {
 
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
-      mMultiMasterLocalAlluxioCluster.waitForNewMaster(10 * Constants.SECOND_MS);
+      mMultiMasterLocalAlluxioCluster.waitForNewMaster(60 * Constants.SECOND_MS);
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
     }
@@ -126,7 +126,7 @@ public class MasterFaultToleranceIntegrationTest {
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
-      mMultiMasterLocalAlluxioCluster.waitForNewMaster(10 * Constants.SECOND_MS);
+      mMultiMasterLocalAlluxioCluster.waitForNewMaster(60 * Constants.SECOND_MS);
 
       if (kills % 2 != 0) {
         // Delete files.
@@ -204,7 +204,7 @@ public class MasterFaultToleranceIntegrationTest {
     List<Pair<Long, AlluxioURI>> emptyAnswer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
-      mMultiMasterLocalAlluxioCluster.waitForNewMaster(10 * Constants.SECOND_MS);
+      mMultiMasterLocalAlluxioCluster.waitForNewMaster(60 * Constants.SECOND_MS);
 
       // TODO(cc) Why this test fail without this line? [ALLUXIO-970]
       faultTestDataCheck(emptyAnswer);
@@ -216,6 +216,10 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Test
   public void failoverWorkerRegister() throws Exception {
+    // Stop the default cluster.
+    after();
+
+    // Create a new cluster, with no workers initially
     final MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(2, 0);
     cluster.initConfiguration();
     cluster.start();
@@ -244,7 +248,7 @@ public class MasterFaultToleranceIntegrationTest {
               Collections.EMPTY_MAP).getCommandType());
 
       Assert.assertTrue(cluster.killLeader());
-      cluster.waitForNewMaster(10 * Constants.SECOND_MS);
+      cluster.waitForNewMaster(60 * Constants.SECOND_MS);
 
       // Get the new block master, after the failover
       BlockMaster blockMaster2 = cluster.getMaster().getInternalMaster().getBlockMaster();
@@ -274,5 +278,8 @@ public class MasterFaultToleranceIntegrationTest {
     } finally {
       cluster.stop();
     }
+
+    // Start the default cluster.
+    before();
   }
 }

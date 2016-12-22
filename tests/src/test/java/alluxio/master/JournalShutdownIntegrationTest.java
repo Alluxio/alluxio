@@ -95,7 +95,7 @@ public class JournalShutdownIntegrationTest {
     CommonUtils.sleepMs(TEST_TIME_MS);
     cluster.stopWorkers();
     // Crash the master
-    cluster.getMaster().kill();
+    cluster.getMaster().stop();
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
@@ -110,7 +110,7 @@ public class JournalShutdownIntegrationTest {
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
-      cluster.waitForNewMaster(10 * Constants.SECOND_MS);
+      cluster.waitForNewMaster(60 * Constants.SECOND_MS);
       Assert.assertTrue(cluster.killLeader());
     }
     cluster.stopFS();
