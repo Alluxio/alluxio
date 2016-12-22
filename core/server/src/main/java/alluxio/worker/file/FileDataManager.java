@@ -236,8 +236,7 @@ public final class FileDataManager {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     Permission perm = new Permission(fileInfo.getOwner(), fileInfo.getGroup(),
         (short) fileInfo.getMode());
-    OutputStream outputStream =
-        mUfs.create(dstPath, CreateOptions.defaults().setPermission(perm).setCreateParent(false));
+    OutputStream outputStream = mUfs.create(dstPath, CreateOptions.defaults().setPermission(perm));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     List<Throwable> errors = new ArrayList<>();

@@ -44,7 +44,7 @@ public final class CreateOptions {
    * Constructs a default {@link CreateOptions}.
    */
   private CreateOptions() {
-    mCreateParent = true;
+    mCreateParent = false;
     mEnsureAtomic = true;
     mPermission = Permission.defaults().applyFileUMask();
   }
