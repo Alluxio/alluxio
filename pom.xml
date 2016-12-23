@@ -162,6 +162,7 @@
     <powermock.version>1.6.1</powermock.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
+    <netty.version>4.1.6.Final</netty.version>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <test.output.redirect>true</test.output.redirect>
   </properties>

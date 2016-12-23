@@ -57,11 +57,9 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
    * @throws IOException if an I/O error occurs
    * @return the {@link BlockOutStream} instance created
    */
-  public static BlockOutStream createLocalBlockOutStream(long blockId,
-      long blockSize,
-      WorkerNetAddress workerNetAddress,
-      FileSystemContext context,
-      OutStreamOptions options) throws IOException {
+  public static BlockOutStream createLocalBlockOutStream(long blockId, long blockSize,
+      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
+      throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
@@ -86,11 +84,9 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
    * @throws IOException if an I/O error occurs
    * @return the {@link BlockOutStream} instance created
    */
-  public static BlockOutStream createRemoteBlockOutStream(long blockId,
-      long blockSize,
-      WorkerNetAddress workerNetAddress,
-      FileSystemContext context,
-      OutStreamOptions options) throws IOException {
+  public static BlockOutStream createRemoteBlockOutStream(long blockId, long blockSize,
+      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
+      throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
