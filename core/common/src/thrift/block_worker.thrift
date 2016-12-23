@@ -85,7 +85,7 @@ service BlockWorkerClientService extends common.AlluxioService {
     /** the id of the current session */ 1: i64 sessionId,
     /** the id of the block being accessed */ 2: i64 blockId,
     /** initial number of bytes requested */ 3: i64 initialBytes,
-    /** Tier preference for this block */ 4: TWriteTier writeTier
+    /** the target tier to write to */ 4: TWriteTier writeTier,
     )
 
   /**
