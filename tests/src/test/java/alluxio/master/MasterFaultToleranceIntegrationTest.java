@@ -40,7 +40,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class MasterFaultToleranceIntegrationTest {
-
+  // Fail if the cluster doesn't come up after this amount of time.
+  private static final int CLUSTER_WAIT_TIMEOUT_MS = 120 * Constants.SECOND_MS;
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int BLOCK_SIZE = 30;
   private static final int MASTERS = 5;
@@ -114,7 +115,7 @@ public class MasterFaultToleranceIntegrationTest {
 
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
-      mMultiMasterLocalAlluxioCluster.waitForNewMaster(60 * Constants.SECOND_MS);
+      mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
     }
@@ -126,7 +127,7 @@ public class MasterFaultToleranceIntegrationTest {
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
-      mMultiMasterLocalAlluxioCluster.waitForNewMaster(60 * Constants.SECOND_MS);
+      mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
 
       if (kills % 2 != 0) {
         // Delete files.
@@ -204,7 +205,7 @@ public class MasterFaultToleranceIntegrationTest {
     List<Pair<Long, AlluxioURI>> emptyAnswer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
-      mMultiMasterLocalAlluxioCluster.waitForNewMaster(60 * Constants.SECOND_MS);
+      mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
 
       // TODO(cc) Why this test fail without this line? [ALLUXIO-970]
       faultTestDataCheck(emptyAnswer);
@@ -248,7 +249,7 @@ public class MasterFaultToleranceIntegrationTest {
               Collections.EMPTY_MAP).getCommandType());
 
       Assert.assertTrue(cluster.stopLeader());
-      cluster.waitForNewMaster(60 * Constants.SECOND_MS);
+      cluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
 
       // Get the new block master, after the failover
       BlockMaster blockMaster2 = cluster.getMaster().getInternalMaster().getBlockMaster();
