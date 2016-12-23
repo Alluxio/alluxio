@@ -410,7 +410,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   @Test
   public void positionedReadCacheNoPartialCache() throws IOException, AlluxioException {
     createUfsInStreamNoPartialcache(ReadType.CACHE);
-    mUfsInputStream.readFully(0, new byte[FILE_LEN]);
+    mUfsInputStream.readFully(0, new byte[FILE_LEN - 1]);
     URIStatus statusUfsOnlyFile = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
     Assert.assertEquals(0, statusUfsOnlyFile.getInMemoryPercentage());
   }
