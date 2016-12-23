@@ -390,4 +390,12 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   public boolean seekToNewSource(long targetPos) throws IOException {
     throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
   }
+
+  @Override
+  public long skip(long n) throws IOException {
+    if (mClosed) {
+      throw new IOException("Cannot skip bytes in a closed stream.");
+    }
+    return mAlluxioFileInputStream.skip(n);
+  }
 }
