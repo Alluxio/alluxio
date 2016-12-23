@@ -18,13 +18,15 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for file locations in {@link UnderFileSystem}.
+ * Method options for file locations in {@link alluxio.underfs.UnderFileSystem}.
  */
 @PublicApi
 @NotThreadSafe
 public final class OpenOptions {
   // Offset within file in bytes
   private long mOffset;
+
+  private long mLength;
 
   /**
    * @return the default {@link OpenOptions}
@@ -38,6 +40,7 @@ public final class OpenOptions {
    */
   private OpenOptions() {
     mOffset = 0;
+    mLength = Long.MAX_VALUE;
   }
 
   /**
@@ -45,6 +48,13 @@ public final class OpenOptions {
    */
   public long getOffset() {
     return mOffset;
+  }
+
+  /**
+   * @return the maximum length of a file
+   */
+  public long getLength() {
+    return mLength;
   }
 
   /**
@@ -58,6 +68,15 @@ public final class OpenOptions {
     return this;
   }
 
+  /**
+   * @param length the maximum length of the file
+   * @return the updated option object
+   */
+  public OpenOptions setLength(long length) {
+    mLength = length;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -67,18 +86,19 @@ public final class OpenOptions {
       return false;
     }
     OpenOptions that = (OpenOptions) o;
-    return Objects.equal(mOffset, that.mOffset);
+    return Objects.equal(mOffset, that.mOffset) && Objects.equal(mLength, that.mLength);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mOffset);
+    return Objects.hashCode(mOffset, mLength);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("offset", mOffset)
+        .add("length", mLength)
         .toString();
   }
 }

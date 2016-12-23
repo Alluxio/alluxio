@@ -87,6 +87,20 @@ public final class HdfsFileInputStreamIntegrationTest {
     alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
   }
 
+  private void createUfsInStreamNoPartialcache(ReadType readType) throws IOException {
+    String defaultReadType = alluxio.Configuration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT);
+    String defaultPartialCache =
+        alluxio.Configuration.get(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
+    alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
+    alluxio.Configuration.set(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, "false");
+    FileSystemTestUtils.createByteFile(mFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
+    mUfsInputStream = new HdfsFileInputStream(FileSystemContext.INSTANCE,
+        new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
+    alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
+    alluxio.Configuration
+        .set(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, defaultPartialCache);
+  }
+
   /**
    * Tests {@link HdfsFileInputStream#available()}.
    */
@@ -386,18 +400,34 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   @Test
-  public void readCache() throws IOException, AlluxioException {
+  public void positionedReadCache() throws IOException, AlluxioException {
     createUfsInStream(ReadType.CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFile = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
-    Assert.assertTrue(statusUfsOnlyFile.getInMemoryPercentage() == 100);
+    Assert.assertEquals(100, statusUfsOnlyFile.getInMemoryPercentage());
   }
 
   @Test
-  public void readNoCache() throws IOException, AlluxioException {
+  public void positionedReadCacheNoPartialCache() throws IOException, AlluxioException {
+    createUfsInStreamNoPartialcache(ReadType.CACHE);
+    mUfsInputStream.readFully(0, new byte[FILE_LEN]);
+    URIStatus statusUfsOnlyFile = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
+    Assert.assertEquals(0, statusUfsOnlyFile.getInMemoryPercentage());
+  }
+
+  @Test
+  public void positionedReadNoCache() throws IOException, AlluxioException {
     createUfsInStream(ReadType.NO_CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFIle = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
-    Assert.assertTrue(statusUfsOnlyFIle.getInMemoryPercentage() == 0);
+    Assert.assertEquals(0, statusUfsOnlyFIle.getInMemoryPercentage());
+  }
+
+  @Test
+  public void positionedReadNoCacheNoPartialCache() throws IOException, AlluxioException {
+    createUfsInStreamNoPartialcache(ReadType.NO_CACHE);
+    mUfsInputStream.readFully(0, new byte[FILE_LEN]);
+    URIStatus statusUfsOnlyFIle = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
+    Assert.assertEquals(0, statusUfsOnlyFIle.getInMemoryPercentage());
   }
 }

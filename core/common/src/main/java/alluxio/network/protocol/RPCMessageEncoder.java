@@ -73,6 +73,5 @@ public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage>
           "The payload must be a ByteBuf or a FileRegion.");
       out.add(output);
     }
-
   }
 }

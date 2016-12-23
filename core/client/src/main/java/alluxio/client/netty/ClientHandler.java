@@ -67,9 +67,11 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
    * Adds a {@link ResponseListener} listener to the client handler.
    *
    * @param listener the listener to add
+   * @return the current handler
    */
-  public void addListener(ResponseListener listener) {
+  public ClientHandler addListener(ResponseListener listener) {
     mListeners.add(Preconditions.checkNotNull(listener));
+    return this;
   }
 
   /**

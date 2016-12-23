@@ -174,6 +174,7 @@ public enum PropertyKey {
   WORKER_FILE_PERSIST_POOL_SIZE(Name.WORKER_FILE_PERSIST_POOL_SIZE, 64),
   WORKER_FILE_PERSIST_RATE_LIMIT(Name.WORKER_FILE_PERSIST_RATE_LIMIT, "2GB"),
   WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED(Name.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, false),
+  WORKER_FILE_BUFFER_SIZE(Name.WORKER_FILE_BUFFER_SIZE, "1MB"),
   WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS, 1000),
   WORKER_HOSTNAME(Name.WORKER_HOSTNAME, null),
   WORKER_KEYTAB_FILE(Name.WORKER_KEYTAB_FILE, null),
@@ -189,6 +190,21 @@ public enum PropertyKey {
   WORKER_NETWORK_NETTY_WATERMARK_HIGH(Name.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "32KB"),
   WORKER_NETWORK_NETTY_WATERMARK_LOW(Name.WORKER_NETWORK_NETTY_WATERMARK_LOW, "8KB"),
   WORKER_NETWORK_NETTY_WORKER_THREADS(Name.WORKER_NETWORK_NETTY_WORKER_THREADS, 0),
+  WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS(
+      Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS, 16),
+  WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS(
+      Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16),
+  WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES(
+      Name.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"),
+  WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 128),
+  WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX, 128),
+  WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX, 128),
+  WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 128),
+
   WORKER_PRINCIPAL(Name.WORKER_PRINCIPAL, null),
   WORKER_RPC_PORT(Name.WORKER_RPC_PORT, 29998),
   WORKER_SESSION_TIMEOUT_MS(Name.WORKER_SESSION_TIMEOUT_MS, 60000),
@@ -264,6 +280,13 @@ public enum PropertyKey {
   USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS(
       Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS),
   USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED(Name.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED, false),
+  USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES,
+      "64KB"),
+  USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS,
+      16),
+  USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS,
+      16),
+  USER_NETWORK_NETTY_READER_CANCEL_ENABLED(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true),
   USER_UFS_DELEGATION_ENABLED(Name.USER_UFS_DELEGATION_ENABLED, true),
   USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES,
       "8MB"),
@@ -275,6 +298,9 @@ public enum PropertyKey {
   // Deprecated. It will be removed in 2.0.0.
   USER_UFS_FILE_WRITER_CLASS(Name.USER_UFS_FILE_WRITER_CLASS,
       "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
+  USER_LOCAL_READER_PACKET_SIZE_BYTES(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES, "64KB"),
+  USER_LOCAL_WRITER_PACKET_SIZE_BYTES(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB"),
+  USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, true),
 
   //
   // FUSE integration related properties
@@ -551,6 +577,7 @@ public enum PropertyKey {
         "alluxio.worker.file.persist.rate.limit";
     public static final String WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
         "alluxio.worker.file.persist.rate.limit.enabled";
+    public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
@@ -576,6 +603,20 @@ public enum PropertyKey {
         "alluxio.worker.network.netty.watermark.low";
     public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.worker.network.netty.worker.threads";
+    public static final String WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+        "alluxio.worker.network.netty.writer.buffer.size.packets";
+    public static final String WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+        "alluxio.worker.network.netty.reader.buffer.size.packets";
+    public static final String WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
+        "alluxio.worker.network.netty.reader.packet.size.bytes";
+    public static final String WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
+        "alluxio.worker.network.netty.block.reader.threads.max";
+    public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.block.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
+        "alluxio.worker.network.netty.file.reader.threads.max";
+    public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.file.writer.threads.max";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
@@ -681,6 +722,14 @@ public enum PropertyKey {
         "alluxio.user.network.netty.channel.pool.gc.threshold.ms";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
         "alluxio.user.network.netty.channel.pool.disabled";
+    public static final String USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
+        "alluxio.user.network.netty.writer.packet.size.bytes";
+    public static final String USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+        "alluxio.user.network.netty.writer.buffer.size.packets";
+    public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+        "alluxio.user.network.netty.reader.buffer.size.packets";
+    public static final String USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
+        "alluxio.user.network.netty.reader.cancel.enabled";
     public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
@@ -690,6 +739,12 @@ public enum PropertyKey {
         "alluxio.user.ufs.file.reader.class";
     public static final String USER_UFS_FILE_WRITER_CLASS =
         "alluxio.user.ufs.file.writer.class";
+    public static final String USER_LOCAL_READER_PACKET_SIZE_BYTES =
+        "alluxio.user.local.reader.packet.size.bytes";
+    public static final String USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
+        "alluxio.user.local.writer.packet.size.bytes";
+    public static final String USER_PACKET_STREAMING_ENABLED =
+        "alluxio.user.packet.streaming.enabled";
 
     //
     // FUSE integration related properties

@@ -68,7 +68,7 @@ public class UnderFileSystemFileInStreamTest {
             return ByteBuffer.wrap(mData, (int) offset, len);
           }
         });
-    mTestStream = new UnderFileSystemFileInStream(mockAddr, FILE_ID, 0, mMockReader);
+    mTestStream = new UnderFileSystemFileInStream(mockAddr, FILE_ID, mMockReader);
   }
 
   /**
