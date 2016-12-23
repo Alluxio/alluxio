@@ -24,7 +24,6 @@ import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Util methods for writing integration tests.
@@ -65,19 +64,6 @@ public final class IntegrationTestUtils {
         }
       }, timeoutMs);
     }
-  }
-
-  /**
-   * @return a random sequence of characters from 'a' to 'z' of random length up to 100 characters
-   */
-  public static String randomString() {
-    Random random = new Random();
-    int length = random.nextInt(100) + 1;
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < length; i++) {
-      sb.append((char) (random.nextInt(26) + 97));
-    }
-    return sb.toString();
   }
 
   /**
