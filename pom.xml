@@ -162,7 +162,6 @@
     <powermock.version>1.6.1</powermock.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
-    <netty.version>4.1.6.Final</netty.version>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <test.output.redirect>true</test.output.redirect>
   </properties>
@@ -196,6 +195,11 @@
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
         <version>1.10</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
+        <version>4.1.6.Final</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>
