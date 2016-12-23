@@ -396,6 +396,12 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (mClosed) {
       throw new IOException("Cannot skip bytes in a closed stream.");
     }
-    return mAlluxioFileInputStream.skip(n);
+    if (n <= 0) {
+      return 0;
+    }
+
+    long toSkip = Math.min(n, available());
+    seek(mCurrentPosition + toSkip);
+    return toSkip;
   }
 }
