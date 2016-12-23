@@ -255,6 +255,10 @@
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <relocations>
                 <relocation>
+                  <pattern>com.google.protobuf</pattern>
+                  <shadedPattern>alluxio.com.google.protobuf</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>org.apache.thrift</pattern>
                   <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
                 </relocation>
