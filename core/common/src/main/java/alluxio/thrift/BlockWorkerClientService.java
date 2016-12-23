@@ -108,7 +108,7 @@ public class BlockWorkerClientService {
      * 
      * @param initialBytes initial number of bytes requested
      * 
-     * @param writeTier Tier preference for this block
+     * @param writeTier the target tier to write to
      */
     public String requestBlockLocation(long sessionId, long blockId, long initialBytes, TWriteTier writeTier) throws org.apache.thrift.TException;
 
@@ -7093,7 +7093,7 @@ public class BlockWorkerClientService {
        */
       INITIAL_BYTES((short)3, "initialBytes"),
       /**
-       * Tier preference for this block
+       * the target tier to write to
        * 
        * @see TWriteTier
        */
@@ -7314,7 +7314,7 @@ public class BlockWorkerClientService {
     }
 
     /**
-     * Tier preference for this block
+     * the target tier to write to
      * 
      * @see TWriteTier
      */
@@ -7323,7 +7323,7 @@ public class BlockWorkerClientService {
     }
 
     /**
-     * Tier preference for this block
+     * the target tier to write to
      * 
      * @see TWriteTier
      */
