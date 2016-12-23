@@ -10,6 +10,10 @@ public final class Protocol {
   }
   /**
    * Protobuf enum {@code alluxio.proto.dataserver.RequestType}
+   *
+   * <pre>
+   * The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
+   * </pre>
    */
   public enum RequestType
       implements com.google.protobuf.ProtocolMessageEnum {
@@ -92,6 +96,10 @@ public final class Protocol {
 
   /**
    * Protobuf enum {@code alluxio.proto.dataserver.DataServerVersion}
+   *
+   * <pre>
+   * The netty data server version.
+   * </pre>
    */
   public enum DataServerVersion
       implements com.google.protobuf.ProtocolMessageEnum {
@@ -1921,10 +1929,18 @@ public final class Protocol {
 
     /**
      * <code>optional bool cancel = 5;</code>
+     *
+     * <pre>
+     * If set, this request is to cancel the reading request for the id.
+     * </pre>
      */
     boolean hasCancel();
     /**
      * <code>optional bool cancel = 5;</code>
+     *
+     * <pre>
+     * If set, this request is to cancel the reading request for the id.
+     * </pre>
      */
     boolean getCancel();
 
@@ -1948,6 +1964,10 @@ public final class Protocol {
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.ReadRequest}
+   *
+   * <pre>
+   * The read request.
+   * </pre>
    */
   public static final class ReadRequest extends
       com.google.protobuf.GeneratedMessage implements
@@ -2151,12 +2171,20 @@ public final class Protocol {
     private boolean cancel_;
     /**
      * <code>optional bool cancel = 5;</code>
+     *
+     * <pre>
+     * If set, this request is to cancel the reading request for the id.
+     * </pre>
      */
     public boolean hasCancel() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
      * <code>optional bool cancel = 5;</code>
+     *
+     * <pre>
+     * If set, this request is to cancel the reading request for the id.
+     * </pre>
      */
     public boolean getCancel() {
       return cancel_;
@@ -2352,6 +2380,10 @@ public final class Protocol {
     }
     /**
      * Protobuf type {@code alluxio.proto.dataserver.ReadRequest}
+     *
+     * <pre>
+     * The read request.
+     * </pre>
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
@@ -2673,18 +2705,30 @@ public final class Protocol {
       private boolean cancel_ ;
       /**
        * <code>optional bool cancel = 5;</code>
+       *
+       * <pre>
+       * If set, this request is to cancel the reading request for the id.
+       * </pre>
        */
       public boolean hasCancel() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
        * <code>optional bool cancel = 5;</code>
+       *
+       * <pre>
+       * If set, this request is to cancel the reading request for the id.
+       * </pre>
        */
       public boolean getCancel() {
         return cancel_;
       }
       /**
        * <code>optional bool cancel = 5;</code>
+       *
+       * <pre>
+       * If set, this request is to cancel the reading request for the id.
+       * </pre>
        */
       public Builder setCancel(boolean value) {
         bitField0_ |= 0x00000010;
@@ -2694,6 +2738,10 @@ public final class Protocol {
       }
       /**
        * <code>optional bool cancel = 5;</code>
+       *
+       * <pre>
+       * If set, this request is to cancel the reading request for the id.
+       * </pre>
        */
       public Builder clearCancel() {
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -2827,6 +2875,10 @@ public final class Protocol {
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.WriteRequest}
+   *
+   * <pre>
+   * The write request.
+   * </pre>
    */
   public static final class WriteRequest extends
       com.google.protobuf.GeneratedMessage implements
@@ -3147,6 +3199,10 @@ public final class Protocol {
     }
     /**
      * Protobuf type {@code alluxio.proto.dataserver.WriteRequest}
+     *
+     * <pre>
+     * The write request.
+     * </pre>
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
@@ -3468,6 +3524,10 @@ public final class Protocol {
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.Response}
+   *
+   * <pre>
+   * The response.
+   * </pre>
    */
   public static final class Response extends
       com.google.protobuf.GeneratedMessage implements
@@ -3704,6 +3764,10 @@ public final class Protocol {
     }
     /**
      * Protobuf type {@code alluxio.proto.dataserver.Response}
+     *
+     * <pre>
+     * The response.
+     * </pre>
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
