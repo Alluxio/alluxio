@@ -28,8 +28,5 @@ public final class Status {
     return status.getCode() == Protocol.Status.Code.OK;
   }
 
-  /**
-   * Private constructor.
-   */
-  private Status() {}
+  private Status() {} // prevent instantiation
 }

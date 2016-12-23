@@ -34,11 +34,7 @@ public final class StreamFactory {
   private static final boolean PACKET_STREAMING_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
 
-  /**
-   * Private constructor.
-   */
-  private StreamFactory() {
-  }
+  private StreamFactory() {} // prevent instantiation
 
   /**
    * Creates an {@link OutputStream} that writes to a block on local worker.
