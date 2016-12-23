@@ -13,10 +13,13 @@ package alluxio.worker.file;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.underfs.UnderFileSystem;
@@ -53,12 +56,14 @@ import java.util.List;
  * Tests {@link FileDataManager}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockWorker.class, BufferUtils.class, BlockMeta.class})
+@PrepareForTest({BlockWorker.class, BufferUtils.class, BlockMeta.class, FileSystem.class,
+    FileSystem.Factory.class})
 public final class FileDataManagerTest {
   private UnderFileSystem mUfs;
   private BlockWorker mBlockWorker;
   private MockRateLimiter mMockRateLimiter;
   private FileDataManager mManager;
+  private FileSystem mMockFileSystem;
 
   @Before
   public void before() throws Exception {
@@ -67,6 +72,11 @@ public final class FileDataManagerTest {
     mMockRateLimiter =
         new MockRateLimiter(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
     mManager = new FileDataManager(mBlockWorker, mUfs, mMockRateLimiter.getGuavaRateLimiter());
+
+    mMockFileSystem = PowerMockito.mock(FileSystem.class);
+    PowerMockito.mockStatic(FileSystem.Factory.class);
+    Mockito.when(FileSystem.Factory.get()).thenReturn(mMockFileSystem);
+    Mockito.when(mUfs.isDirectory(Mockito.anyString())).thenReturn(true);
   }
 
   @After
@@ -85,7 +95,7 @@ public final class FileDataManagerTest {
     writeFileWithBlocks(fileId, blockIds);
 
     // verify file persisted
-    Assert.assertEquals(Arrays.asList(fileId), mManager.getPersistedFiles());
+    assertEquals(Arrays.asList(fileId), mManager.getPersistedFiles());
 
     // verify fastCopy called twice, once per block
     PowerMockito.verifyStatic(Mockito.times(2));
@@ -103,7 +113,7 @@ public final class FileDataManagerTest {
   public void clearPersistedFiles() throws Exception {
     writeFileWithBlocks(1L, ImmutableList.of(2L, 3L));
     mManager.clearPersistedFiles(ImmutableList.of(1L));
-    Assert.assertEquals(Collections.emptyList(), mManager.getPersistedFiles());
+    assertEquals(Collections.emptyList(), mManager.getPersistedFiles());
   }
 
   /**
@@ -127,13 +137,11 @@ public final class FileDataManagerTest {
     for (long blockId : blockIds) {
       Mockito.when(mBlockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
           .thenReturn(blockId);
-      Mockito
-          .when(mBlockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
+      Mockito.when(mBlockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
           .thenReturn(reader);
       BlockMeta mockedBlockMeta = PowerMockito.mock(BlockMeta.class);
       Mockito.when(mockedBlockMeta.getBlockSize()).thenReturn(100L);
-      Mockito
-          .when(mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
+      Mockito.when(mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
           .thenReturn(mockedBlockMeta);
     }
 
@@ -146,9 +154,12 @@ public final class FileDataManagerTest {
     PowerMockito.mockStatic(BufferUtils.class);
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
+    fileInfo.setUfsPath(dstPath);
     Mockito.when(mUfs.create(dstPath)).thenReturn(outputStream);
     Mockito.when(mUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
         .thenReturn(outputStream);
+    Mockito.when(mMockFileSystem.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
+        new URIStatus(fileInfo));
 
     mManager.lockBlocks(fileId, blockIds);
     mManager.persistFile(fileId, blockIds);
@@ -191,7 +202,7 @@ public final class FileDataManagerTest {
       mManager.lockBlocks(fileId, blockIds);
       Assert.fail("the lock should fail");
     } catch (IOException e) {
-      Assert.assertEquals(
+      assertEquals(
           "failed to lock all blocks of file 1\n"
               + "alluxio.exception.BlockDoesNotExistException: block 3 does not exist\n",
           e.getMessage());
@@ -226,16 +237,19 @@ public final class FileDataManagerTest {
     // mock BufferUtils
     PowerMockito.mockStatic(BufferUtils.class);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
+    fileInfo.setUfsPath(dstPath);
     Mockito.when(mUfs.create(dstPath)).thenReturn(outputStream);
     Mockito.when(mUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
         .thenReturn(outputStream);
+    Mockito.when(mMockFileSystem.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
+        new URIStatus(fileInfo));
 
     mManager.lockBlocks(fileId, blockIds);
     try {
       mManager.persistFile(fileId, blockIds);
       Assert.fail("the persist should fail");
     } catch (IOException e) {
-      Assert.assertEquals("the blocks of file1 are failed to persist\n"
+      assertEquals("the blocks of file1 are failed to persist\n"
           + "alluxio.exception.InvalidWorkerStateException: invalid worker\n", e.getMessage());
       // verify the locks are all unlocked
       Mockito.verify(mBlockWorker).unlockBlock(1L);
@@ -263,9 +277,12 @@ public final class FileDataManagerTest {
     PowerMockito.mockStatic(BufferUtils.class);
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
+    fileInfo.setUfsPath(dstPath);
     Mockito.when(mUfs.create(dstPath)).thenReturn(outputStream);
     Mockito.when(mUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
         .thenReturn(outputStream);
+    Mockito.when(mMockFileSystem.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
+        new URIStatus(fileInfo));
 
     mManager.lockBlocks(fileId, blockIds);
     mManager.persistFile(fileId, blockIds);

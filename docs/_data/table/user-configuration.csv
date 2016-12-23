@@ -14,6 +14,7 @@ alluxio.user.file.worker.client.threads,10
 alluxio.user.file.write.location.policy.class,alluxio.client.file.policy.LocalFirstPolicy
 alluxio.user.file.readtype.default,CACHE_PROMOTE
 alluxio.user.file.writetype.default,MUST_CACHE
+alluxio.user.file.write.tier.default,HIGHEST
 alluxio.user.heartbeat.interval.ms,1000
 alluxio.user.lineage.enabled,false
 alluxio.user.lineage.master.client.threads,10

@@ -352,8 +352,8 @@ public final class JournalWriter {
       mJournalFormatter = journalFormatter;
       mJournalWriter = journalWriter;
       mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
-      mRawOutputStream =
-          mUfs.create(mCurrentLogPath, CreateOptions.defaults().setEnsureAtomic(false));
+      mRawOutputStream = mUfs.create(mCurrentLogPath,
+          CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
       LOG.info("Opened current log file: {}", mCurrentLogPath);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
@@ -440,8 +440,8 @@ public final class JournalWriter {
     private void rotateLog() throws IOException {
       mDataOutputStream.close();
       mJournalWriter.completeCurrentLog();
-      mRawOutputStream =
-          mUfs.create(mCurrentLogPath, CreateOptions.defaults().setEnsureAtomic(false));
+      mRawOutputStream = mUfs.create(mCurrentLogPath,
+          CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
       LOG.info("Opened current log file: {}", mCurrentLogPath);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }

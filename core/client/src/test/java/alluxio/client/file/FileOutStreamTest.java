@@ -181,6 +181,7 @@ public class FileOutStreamTest {
     when(mUnderFileSystem.create(anyString())).thenReturn(mUnderStorageOutputStream);
     when(mUnderFileSystem.create(anyString(), any(CreateOptions.class)))
         .thenReturn(mUnderStorageOutputStream);
+    when(mUnderFileSystem.isDirectory(anyString())).thenReturn(true);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults())
@@ -280,9 +281,9 @@ public class FileOutStreamTest {
   @Test
   public void cancelWithoutDelegation() throws Exception {
     Configuration.set(PropertyKey.USER_UFS_DELEGATION_ENABLED, false);
-    OutStreamOptions options =
-        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults());
+    OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+        .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults())
+        .setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.cancel();

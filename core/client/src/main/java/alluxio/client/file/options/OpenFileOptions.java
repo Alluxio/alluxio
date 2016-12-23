@@ -113,7 +113,7 @@ public final class OpenFileOptions {
   }
 
   /**
-   * @return the {@link OutStreamOptions} representation of this object
+   * @return the {@link InStreamOptions} representation of this object
    */
   public InStreamOptions toInStreamOptions() {
     return InStreamOptions.defaults().setReadType(mReadType).setLocationPolicy(mLocationPolicy);
