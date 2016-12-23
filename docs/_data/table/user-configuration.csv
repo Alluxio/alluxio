@@ -24,3 +24,4 @@ alluxio.user.ufs.delegation.read.buffer.size.bytes,8MB
 alluxio.user.ufs.delegation.write.buffer.size.bytes,2MB
 alluxio.user.ufs.file.reader.class,alluxio.client.netty.&#8203;NettyUnderFileSystemFileReader
 alluxio.user.ufs.file.writer.class,alluxio.client.netty.&#8203;NettyUnderFileSystemFileWriter
+alluxio.user.packet.streaming.enabled,false
