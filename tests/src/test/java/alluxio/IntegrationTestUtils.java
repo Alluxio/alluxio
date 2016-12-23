@@ -68,19 +68,6 @@ public final class IntegrationTestUtils {
   }
 
   /**
-   * @return a random sequence of characters from 'a' to 'z' of random length up to 100 characters
-   */
-  public static String randomString() {
-    Random random = new Random();
-    int length = random.nextInt(100) + 1;
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < length; i++) {
-      sb.append((char) (random.nextInt(26) + 97));
-    }
-    return sb.toString();
-  }
-
-  /**
    * Triggers two heartbeats to wait for a given list of blocks to be removed from both master and
    * worker.
    * Blocks until the master and block are in sync with the state of the blocks.
