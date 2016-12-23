@@ -24,7 +24,6 @@ import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Util methods for writing integration tests.
