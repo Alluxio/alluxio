@@ -157,32 +157,32 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
 
-    // Check whether the file already exists, and delete it if overwrite is true
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    try {
-      if (mFileSystem.exists(uri)) {
-        if (!overwrite) {
-          throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
-        }
-        if (mFileSystem.getStatus(uri).isFolder()) {
-          throw new IOException(
-              ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(uri));
-        }
-        mFileSystem.delete(uri);
-      }
-    } catch (AlluxioException e) {
-      throw new IOException(e);
-    }
-
-    // The file no longer exists at this point, so we can create it
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(blockSize)
         .setMode(new Mode(permission.toShort()));
+
+    FileOutStream outStream;
     try {
-      FileOutStream outStream = mFileSystem.createFile(uri, options);
-      return new FSDataOutputStream(outStream, mStatistics);
+      outStream = mFileSystem.createFile(uri, options);
     } catch (AlluxioException e) {
-      throw new IOException(e);
+      //now we should consider the override parameter
+      try {
+        if (mFileSystem.exists(uri)) {
+          if (!overwrite) {
+            throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
+          }
+          if (mFileSystem.getStatus(uri).isFolder()) {
+            throw new IOException(
+                ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(uri));
+          }
+          mFileSystem.delete(uri);
+        }
+        outStream = mFileSystem.createFile(uri, options);
+      } catch (AlluxioException e2) {
+        throw new IOException(e2);
+      }
     }
+    return new FSDataOutputStream(outStream, mStatistics);
   }
 
   /**
@@ -642,24 +642,31 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     AlluxioURI srcPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(src));
     AlluxioURI dstPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(dst));
-    ensureExists(srcPath);
-    URIStatus dstStatus;
-    try {
-      dstStatus = mFileSystem.getStatus(dstPath);
-    } catch (IOException | AlluxioException e) {
-      dstStatus = null;
-    }
-    // If the destination is an existing folder, try to move the src into the folder
-    if (dstStatus != null && dstStatus.isFolder()) {
-      dstPath = dstPath.join(srcPath.getName());
-    }
     try {
       mFileSystem.rename(srcPath, dstPath);
-      return true;
-    } catch (IOException | AlluxioException e) {
+    } catch (AlluxioException e) {
+      ensureExists(srcPath);
+      URIStatus dstStatus;
+      try {
+        dstStatus = mFileSystem.getStatus(dstPath);
+      } catch (IOException | AlluxioException e2) {
+        dstStatus = null;
+      }
+      // If the destination is an existing folder, try to move the src into the folder
+      if (dstStatus != null && dstStatus.isFolder()) {
+        dstPath = dstPath.join(srcPath.getName());
+      }
+      try {
+        mFileSystem.rename(srcPath, dstPath);
+      } catch (IOException | AlluxioException e2) {
+        LOG.error("Failed to rename {} to {}", src, dst, e2);
+        return false;
+      }
+    } catch (IOException e) {
       LOG.error("Failed to rename {} to {}", src, dst, e);
       return false;
     }
+    return true;
   }
 
   @Override
