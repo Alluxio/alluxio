@@ -231,8 +231,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    */
   @Override
   public String requestBlockLocation(final long sessionId, final long blockId,
-                                     final long initialBytes,
-                                     final TWriteTier writeTier)
+      final long initialBytes, final TWriteTier writeTier)
       throws AlluxioTException, ThriftIOException {
     return RpcUtils.call(new RpcCallableThrowsIOException<String>() {
       @Override
