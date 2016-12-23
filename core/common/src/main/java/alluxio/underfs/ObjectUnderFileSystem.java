@@ -140,10 +140,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    if (mkdirs(getParentPath(path))) {
-      return createObject(stripPrefixIfPresent(path));
+    if (options.getCreateParent() && !mkdirs(getParentPath(path))) {
+      throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
     }
-    throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
+    return createObject(stripPrefixIfPresent(path));
   }
 
   @Override
@@ -477,13 +477,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Checks if the key is the root.
+   * Checks if the path is the root.
    *
-   * @param key ufs path including scheme and bucket
-   * @return true if the key is the root, false otherwise
+   * @param path ufs path including scheme and bucket
+   * @return true if the path is the root, false otherwise
    */
-  protected boolean isRoot(String key) {
-    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
+  protected boolean isRoot(String path) {
+    return PathUtils.normalizePath(path, PATH_SEPARATOR).equals(
         PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
   }
 

@@ -62,7 +62,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return create(path, CreateOptions.defaults());
+    return create(path, CreateOptions.defaults().setCreateParent(true));
   }
 
   @Override
