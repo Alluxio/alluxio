@@ -437,25 +437,22 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     boolean masterAddIsSameAsDefault = checkMasterAddress();
 
-    if (sInitialized) {
-      if (!masterAddIsSameAsDefault) {
-        throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
-            .getMessage(mUri.getHost() + ":" + mUri.getPort(),
-                FileSystemContext.INSTANCE.getMasterAddress()));
-      }
+    if (sInitialized && masterAddIsSameAsDefault) {
       updateFileSystemAndContext();
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
       if (sInitialized) {
-        if (!masterAddIsSameAsDefault) {
-          throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+        if (masterAddIsSameAsDefault) {
+          updateFileSystemAndContext();
+          return;
+        } else {
+          LOG.warn(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
               .getMessage(mUri.getHost() + ":" + mUri.getPort(),
                   FileSystemContext.INSTANCE.getMasterAddress()));
+          sInitialized = false;
         }
-        updateFileSystemAndContext();
-        return;
       }
 
       initializeInternal(uri, conf);
