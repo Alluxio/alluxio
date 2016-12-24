@@ -197,10 +197,10 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Resets the context. This method is hacky and not threadsafe. It is only used in
-   * {@link alluxio.hadoop.AbstractFileSystem} and tests to reset the default file system context.
+   * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and
+   * tests to reset the default file system context.
    */
-  public void reset() {
+  public synchronized void reset() {
     close();
     init();
   }
