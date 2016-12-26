@@ -32,6 +32,7 @@ public class HdfsFileInputStreamTest {
     Mockito.when(hdfsFileInputStream.available()).thenReturn(1000);
 
     Mockito.doCallRealMethod().when(hdfsFileInputStream).skip(111L);
+    hdfsFileInputStream.skip(111L);
     //0 means mCurrentPostion, need to find a better way.
     Mockito.verify(hdfsFileInputStream).seek(0 + 111L);
 
