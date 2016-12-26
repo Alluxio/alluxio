@@ -391,6 +391,15 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
   }
 
+  /**
+   * Skips over the given bytes from the current position. Since the inherited
+   * {@link InputStream#skip(long)} is inefficient, {@link #skip(long)} should be explicitly
+   * overrided.
+   *
+   * @param n the number of bytes to be skipped
+   * @return the actual number of bytes skipped
+   * @throws IOException if the after position exceeds the end of the file
+   */
   @Override
   public long skip(long n) throws IOException {
     if (mClosed) {
