@@ -290,7 +290,12 @@ public class AbstractFileSystemTest {
 
     final org.apache.hadoop.conf.Configuration conf = getConf();
     URI uri = URI.create(Constants.HEADER + "host:1");
-    org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    try {
+      org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      Assert.assertTrue(fs instanceof FileSystem);
+    } catch (IOException e) {
+      Assert.fail();
+    }
   }
 
   @Test
@@ -299,7 +304,12 @@ public class AbstractFileSystemTest {
 
     final org.apache.hadoop.conf.Configuration conf = getConf();
     URI uri = URI.create(Constants.HEADER + "host:1");
-    org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    try {
+      org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      Assert.assertTrue(fs instanceof FileSystem);
+    } catch (IOException e) {
+      Assert.fail();
+    }
   }
 
   private org.apache.hadoop.conf.Configuration getConf() throws Exception {
