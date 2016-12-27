@@ -245,13 +245,18 @@
         <version>2.2</version>
         <executions>
           <execution>
-            <id>uber-jar</id>
+            <id>shade-proto-thrift</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
             <configuration>
-              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <artifactSet>
+                <includes>
+                  <include>com.google.protobuf:protobuf-java</include>
+                  <include>org.apache.thrift:libthrift</include>
+                </includes>
+              </artifactSet>
               <relocations>
                 <relocation>
                   <pattern>com.google.protobuf</pattern>
@@ -262,6 +267,34 @@
                   <shadedPattern>shaded.alluxio.org.apache.thrift</shadedPattern>
                 </relocation>
               </relocations>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+          <execution>
+            <id>uber-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <artifactSet>
+                <excludes>
+                  <exclude>com.google.protobuf:protobuf-java</exclude>
+                  <exclude>org.apache.thrift:libthrift</exclude>
+                </excludes>
+              </artifactSet>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
