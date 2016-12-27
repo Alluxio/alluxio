@@ -1428,9 +1428,9 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
     for (int i = 0; i < numThreads; i++) {
       if (i % 2 == 0) {
-        srcs[i] = dir1.join("file" + i);
+        srcs[i] = dir1.join("file1_" + i);
       } else {
-        srcs[i] = dir2.join("file" + i);
+        srcs[i] = dir2.join("file2_" + i);
       }
       mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
       dsts[i] = new AlluxioURI("/renamed");
@@ -1455,7 +1455,7 @@ public final class FileSystemMasterTest {
 
     List<FileInfo> dir1Files = mFileSystemMaster.listStatus(dir1, ListStatusOptions.defaults());
     for (FileInfo file : dir1Files) {
-      if (file.getName().startsWith("file")) {
+      if (file.getName().startsWith("file1_")) {
         originalFiles.add(file.getName());
       } else {
         // Should not have any other types of files
@@ -1465,7 +1465,7 @@ public final class FileSystemMasterTest {
 
     List<FileInfo> dir2Files = mFileSystemMaster.listStatus(dir2, ListStatusOptions.defaults());
     for (FileInfo file : dir2Files) {
-      if (file.getName().startsWith("file")) {
+      if (file.getName().startsWith("file2_")) {
         originalFiles.add(file.getName());
       } else {
         // Should not have any other types of files
