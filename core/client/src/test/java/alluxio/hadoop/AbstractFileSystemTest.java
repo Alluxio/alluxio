@@ -291,6 +291,17 @@ public class AbstractFileSystemTest {
     final org.apache.hadoop.conf.Configuration conf = getConf();
     URI uri = URI.create(Constants.HEADER + "host:1");
     org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    // FileSystem.get would have thrown an exception if the initialization failed.
+  }
+
+  @Test
+  public void initializeWithFullPrincipalUgi() throws Exception {
+    mockUserGroupInformation("testuser@ALLUXIO.COM");
+
+    final org.apache.hadoop.conf.Configuration conf = getConf();
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    // FileSystem.get would have thrown an exception if the initialization failed.
   }
 
   private org.apache.hadoop.conf.Configuration getConf() throws Exception {
@@ -324,6 +335,7 @@ public class AbstractFileSystemTest {
     final UserGroupInformation ugi = Mockito.mock(UserGroupInformation.class);
     Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
     Mockito.when(ugi.getUserName()).thenReturn(username);
+    Mockito.when(ugi.getShortUserName()).thenReturn(username.split("@")[0]);
   }
 
   private void assertFileInfoEqualsFileStatus(FileInfo info, FileStatus status) {
