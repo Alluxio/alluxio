@@ -52,6 +52,16 @@ public final class DataByteArrayChannel implements DataBuffer {
   }
 
   @Override
+  public void readBytes(byte[] dst, int dstIndex, int length) {
+    throw new RuntimeException("DataByteArrayChannel#readBytes is not implemented.");
+  }
+
+  @Override
+  public int readableBytes() {
+    throw new RuntimeException("DataByteArrayChannel#readableBytes is not implemented.");
+  }
+
+  @Override
   public void release() {
     // Nothing we need to release explicitly, let GC take care of all objects.
   }

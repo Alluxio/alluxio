@@ -13,12 +13,12 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -50,14 +50,14 @@ public final class LocalFilePacketReader implements PacketReader {
   }
 
   @Override
-  public ByteBuf readPacket() throws IOException {
+  public DataBuffer readPacket() throws IOException {
     if (mPos >= mEnd) {
       return null;
     }
-    ByteBuf buf =
-        Unpooled.wrappedBuffer(mReader.read(mPos, Math.min(LOCAL_READ_PACKET_SIZE, mEnd - mPos)));
-    mPos += buf.readableBytes();
-    return buf;
+    ByteBuffer buffer = mReader.read(mPos, Math.min(LOCAL_READ_PACKET_SIZE, mEnd - mPos));
+    DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.limit());
+    mPos += dataBuffer.getLength();
+    return dataBuffer;
   }
 
   @Override

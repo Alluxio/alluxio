@@ -11,7 +11,7 @@
 
 package alluxio.client.block.stream;
 
-import io.netty.buffer.ByteBuf;
+import alluxio.network.protocol.databuffer.DataBuffer;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -27,7 +27,7 @@ public interface PacketReader extends Closeable {
    * @return the data buffer or null if EOF is reached
    * @throws IOException if it fails to read a packet
    */
-  ByteBuf readPacket() throws IOException;
+  DataBuffer readPacket() throws IOException;
 
   /**
    * @return the current stream position
