@@ -12,7 +12,7 @@ or let us know by email (project.alluxio@gmail.com) or
 
 * [Alibaba](http://www.alibaba.com/)
 * [Alluxio](http://www.alluxio.com/)
-* [Ants Programmatic AD](http://ants.vn/)
+* [ANTS Programmatic AD](http://ants.vn/)
 * [Arimo](http://arimo.com/)
 * [Atigeo](http://atigeo.com/)
 * [Baidu](http://www.baidu.com/)
