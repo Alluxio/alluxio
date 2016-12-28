@@ -38,6 +38,10 @@
       <artifactId>jcommander</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.mesos</groupId>
       <artifactId>mesos</artifactId>
       <version>0.23.0</version>
