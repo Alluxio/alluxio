@@ -4210,7 +4210,7 @@ public final class File {
    * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
    *
    * <pre>
-   * next available id: 13
+   * next available id: 15
    * </pre>
    */
   public static final class InodeDirectoryEntry extends
@@ -4918,7 +4918,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
      *
      * <pre>
-     * next available id: 13
+     * next available id: 15
      * </pre>
      */
     public static final class Builder extends
