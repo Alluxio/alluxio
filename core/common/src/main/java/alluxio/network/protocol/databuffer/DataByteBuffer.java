@@ -56,6 +56,16 @@ public final class DataByteBuffer implements DataBuffer {
   }
 
   @Override
+  public void readBytes(byte[] dst, int dstIndex, int length) {
+    mBuffer.get(dst, dstIndex, length);
+  }
+
+  @Override
+  public int readableBytes() {
+    return mBuffer.remaining();
+  }
+
+  @Override
   public void release() {
     if (mBuffer.isDirect()) {
       BufferUtils.cleanDirectBuffer(mBuffer);
