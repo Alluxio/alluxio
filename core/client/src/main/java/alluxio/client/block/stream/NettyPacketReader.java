@@ -19,6 +19,7 @@ import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
@@ -145,7 +146,7 @@ public final class NettyPacketReader implements PacketReader {
   }
 
   @Override
-  public ByteBuf readPacket() throws IOException {
+  public DataBuffer readPacket() throws IOException {
     Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
     ByteBuf buf = null;
     mLock.lock();
@@ -181,7 +182,7 @@ public final class NettyPacketReader implements PacketReader {
           }
           mPosToRead += buf.readableBytes();
           Preconditions.checkState(mPosToRead - mStart <= mBytesToRead);
-          return buf;
+          return new DataNettyBufferV2(buf);
         }
       }
     } catch (Throwable e) {
@@ -222,7 +223,7 @@ public final class NettyPacketReader implements PacketReader {
 
       while (true) {
         try {
-          ByteBuf buf = readPacket();
+          DataBuffer buf = readPacket();
           // A null packet indicates the end of the stream.
           if (buf == null) {
             return;

@@ -72,6 +72,16 @@ public final class DataNettyBuffer implements DataBuffer {
     return buffer;
   }
 
+  @Override
+  public void readBytes(byte[] dst, int dstIndex, int length) {
+    throw new RuntimeException("DataNettyBuffer#readBytes is not implemented.");
+  }
+
+  @Override
+  public int readableBytes() {
+    throw new RuntimeException("DataNettyBuffer#readBytes is not implemented.");
+  }
+
   /**
    * Release the Netty ByteBuf.
    */

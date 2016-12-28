@@ -532,9 +532,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private Subject getHadoopSubject() {
     try {
       UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
-      String username = ugi.getUserName();
+      String username = ugi.getShortUserName();
       if (username != null && !username.isEmpty()) {
-        User user = new User(ugi.getUserName());
+        User user = new User(ugi.getShortUserName());
         HashSet<Principal> principals = new HashSet<>();
         principals.add(user);
         return new Subject(false, principals, new HashSet<>(), new HashSet<>());
