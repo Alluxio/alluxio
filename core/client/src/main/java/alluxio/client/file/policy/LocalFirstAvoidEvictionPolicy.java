@@ -63,7 +63,10 @@ public final class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPol
         return workerInfo.getNetAddress();
       }
     }
-    return localWorkerNetAddress;
+    if (localWorkerNetAddress == null && shuffledWorkers.size() > 0) {
+      return shuffledWorkers.get(0).getNetAddress();
+    }
+    return null;
   }
 
   /**
