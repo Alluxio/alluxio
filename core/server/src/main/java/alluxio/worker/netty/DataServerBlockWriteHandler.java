@@ -22,6 +22,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -108,7 +109,8 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     }
     BlockWriter blockWriter = ((BlockWriteRequestInternal) mRequest).mBlockWriter;
     GatheringByteChannel outputChannel = blockWriter.getChannel();
-    buf.readBytes(outputChannel, buf.readableBytes());
+    int sz = buf.readableBytes();
+    Preconditions.checkState(buf.readBytes(outputChannel, sz) == sz);
   }
 
   @Override
