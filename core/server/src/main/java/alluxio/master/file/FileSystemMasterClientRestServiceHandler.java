@@ -14,7 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.master.AlluxioMaster;
+import alluxio.master.AlluxioMasterService;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -22,10 +22,11 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.web.MasterUIWebServer;
+import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -49,10 +50,13 @@ import javax.ws.rs.core.Response;
 
 /**
  * This class is a REST handler for file system master requests.
+ *
+ * @deprecated since version 1.4 and will be removed in version 2.0
  */
 @NotThreadSafe
 @Path(FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
+@Deprecated
 public final class FileSystemMasterClientRestServiceHandler {
   public static final String SERVICE_PREFIX = "master/file";
   public static final String SERVICE_NAME = "service_name";
@@ -81,9 +85,8 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    AlluxioMaster master =
-        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
-    mFileSystemMaster = master.getFileSystemMaster();
+    mFileSystemMaster = ((AlluxioMasterService) context
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).getFileSystemMaster();
   }
 
   /**
@@ -185,6 +188,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param recursive whether parent directories should be created if they do not already exist
    * @param blockSizeBytes the target block size in bytes
    * @param ttl the time-to-live (in milliseconds)
+   * @param ttlAction action to take after TTL is expired
    * @return the response object
    */
   @POST
@@ -193,7 +197,8 @@ public final class FileSystemMasterClientRestServiceHandler {
   public Response createFile(@QueryParam("path") final String path,
       @QueryParam("persisted") final Boolean persisted,
       @QueryParam("recursive") final Boolean recursive,
-      @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl) {
+      @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl,
+      @QueryParam("ttlAction") final TtlAction ttlAction) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -210,6 +215,12 @@ public final class FileSystemMasterClientRestServiceHandler {
         }
         if (ttl != null) {
           options.setTtl(ttl);
+        }
+        if (ttl != null) {
+          options.setTtl(ttl);
+          if (ttlAction != null) {
+            options.setTtlAction(ttlAction);
+          }
         }
         mFileSystemMaster.createFile(new AlluxioURI(path), options);
         return null;
@@ -435,6 +446,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param group the file group
    * @param permission the file permission bits
    * @param recursive whether the attribute should be set recursively
+   * @param ttlAction action to take after TTL is expired
    * @return the response object
    */
   @POST
@@ -444,7 +456,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("pinned") final Boolean pinned, @QueryParam("ttl") final Long ttl,
       @QueryParam("persisted") final Boolean persisted, @QueryParam("owner") final String owner,
       @QueryParam("group") final String group, @QueryParam("permission") final Short permission,
-      @QueryParam("recursive") final Boolean recursive) {
+      @QueryParam("recursive") final Boolean recursive,
+      @QueryParam("ttxAction") final TtlAction ttlAction) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
@@ -455,6 +468,9 @@ public final class FileSystemMasterClientRestServiceHandler {
         }
         if (ttl != null) {
           options.setTtl(ttl);
+        }
+        if (ttlAction != null) {
+          options.setTtlAction(ttlAction);
         }
         if (persisted != null) {
           options.setPersisted(persisted);

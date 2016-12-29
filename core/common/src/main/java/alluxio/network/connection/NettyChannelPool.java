@@ -21,7 +21,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -44,7 +43,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
           ThreadFactoryUtils.build("NettyChannelPoolGcThreads-%d", true));
   private static final boolean POOL_DISABLED =
       Configuration.getBoolean(alluxio.PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED);
-  private Callable<Bootstrap> mBootstrap;
+  private final Bootstrap mBootstrap;
   private final long mGcThresholdMs;
 
   /**
@@ -55,7 +54,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
    * @param gcThresholdMs when a channel is older than this threshold and the pool's capacity
    *        is above the minimum capacity(1), it is closed and removed from the pool.
    */
-  public NettyChannelPool(Callable<Bootstrap> bootstrap, int maxCapacity, long gcThresholdMs) {
+  public NettyChannelPool(Bootstrap bootstrap, int maxCapacity, long gcThresholdMs) {
     super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
     mBootstrap = bootstrap;
     mGcThresholdMs = gcThresholdMs;
@@ -83,7 +82,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   protected Channel createNewResource() throws IOException {
     Bootstrap bs;
     try {
-      bs = mBootstrap.call();
+      bs = mBootstrap.clone();
     } catch (Exception e) {
       // No exception should happen here.
       throw Throwables.propagate(e);
@@ -91,10 +90,10 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
     try {
       ChannelFuture channelFuture = bs.connect().sync();
       if (channelFuture.isSuccess()) {
-        LOG.info("Created netty channel to with netty boostrap {}.", mBootstrap);
+        LOG.info("Created netty channel with netty bootstrap {}.", mBootstrap);
         return channelFuture.channel();
       } else {
-        LOG.error("Failed to create netty channel with netty boostrap {} and error {}.",
+        LOG.error("Failed to create netty channel with netty bootstrap {} and error {}.",
             mBootstrap, channelFuture.cause().getMessage());
         throw new IOException(channelFuture.cause());
       }
@@ -113,7 +112,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   protected boolean isHealthy(Channel channel) {
     if (POOL_DISABLED) {
       // If we always return false here, channels acquired by NettyChannelPool#acquire() will always
-      // be newly created channel. With this feature turned on, >= 1.3.0 client will be backward
+      // be newly created channels. With this feature turned on, >= 1.3.0 client will be backward
       // compatible with <= 1.2.0 server.
       return false;
     }

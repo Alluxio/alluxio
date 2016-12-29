@@ -13,6 +13,7 @@ package alluxio.underfs.oss;
 
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.io.PathUtils;
 
 import java.io.IOException;
@@ -32,8 +33,8 @@ public class OSSUnderStorageCluster extends UnderFileSystemCluster {
 
   @Override
   public void cleanup() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir);
-    ufs.delete(mBaseDir, true);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mBaseDir);
+    ufs.deleteDirectory(mBaseDir, DeleteOptions.defaults().setRecursive(true));
     mBaseDir = PathUtils.concatPath(mOSSBucket, UUID.randomUUID());
   }
 

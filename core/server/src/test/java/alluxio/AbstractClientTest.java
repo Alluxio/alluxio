@@ -11,12 +11,16 @@
 
 package alluxio;
 
-import alluxio.exception.ExceptionMessage;
+import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
+
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioService.Client;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
+
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -26,11 +30,15 @@ import java.net.InetSocketAddress;
  * Unit tests for {@link AbstractClient}.
  */
 public final class AbstractClientTest {
+
   private static final String SERVICE_NAME = "Test Service Name";
+  @Rule
+  public ExpectedException mExpectedException = ExpectedException.none();
 
   private final class TestClient extends AbstractClient {
+
     private TestClient() {
-      super(Mockito.mock(InetSocketAddress.class), "");
+      super(null, Mockito.mock(InetSocketAddress.class), "");
     }
 
     @Override
@@ -48,6 +56,7 @@ public final class AbstractClientTest {
       return 1;
     }
 
+    @Override
     public void checkVersion(AlluxioService.Client thriftClient, long version) throws IOException {
       super.checkVersion(thriftClient, version);
     }
@@ -57,13 +66,12 @@ public final class AbstractClientTest {
   public void unsupportedVersion() throws Exception {
     final AlluxioService.Client thriftClient = Mockito.mock(AlluxioService.Client.class);
     Mockito.when(thriftClient.getServiceVersion()).thenReturn(1L);
+    mExpectedException.expect(IOException.class);
+    mExpectedException.expectMessage(INCOMPATIBLE_VERSION.getMessage(SERVICE_NAME, 0, 1));
 
     try (TestClient client = new TestClient()) {
       client.checkVersion(thriftClient, 0);
       Assert.fail("checkVersion() should fail");
-    } catch (IOException e) {
-      Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(SERVICE_NAME, 0, 1),
-          e.getMessage());
     }
   }
 

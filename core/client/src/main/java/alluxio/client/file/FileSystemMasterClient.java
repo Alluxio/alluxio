@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by alluxio clients.
@@ -51,10 +53,20 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   /**
    * Creates a new file system master client.
    *
+   * @param subject the subject
+   * @param masterAddress the master address
+   */
+  public FileSystemMasterClient(Subject subject, InetSocketAddress masterAddress) {
+    super(subject, masterAddress);
+  }
+
+  /**
+   * Creates a new file system master client.
+   *
    * @param masterAddress the master address
    */
   public FileSystemMasterClient(InetSocketAddress masterAddress) {
-    super(masterAddress);
+    super(null, masterAddress);
   }
 
   @Override
@@ -75,6 +87,32 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   @Override
   protected void afterConnect() throws IOException {
     mClient = new FileSystemMasterClientService.Client(mProtocol);
+  }
+
+  /**
+   * Checks the consistency of Alluxio metadata against the under storage for all files and
+   * directories in a given subtree.
+   *
+   * @param path the root of the subtree to check
+   * @param options method options
+   * @return a list of inconsistent files and directories
+   * @throws AlluxioException if an Alluxio error occurs
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path,
+      final CheckConsistencyOptions options) throws AlluxioException, IOException {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<List<AlluxioURI>>() {
+      @Override
+      public List<AlluxioURI> call() throws AlluxioTException, TException {
+        List<String> inconsistentPaths =
+            mClient.checkConsistency(path.getPath(), options.toThrift());
+        List<AlluxioURI> inconsistentUris = new ArrayList<>(inconsistentPaths.size());
+        for (String path : inconsistentPaths) {
+          inconsistentUris.add(new AlluxioURI(path));
+        }
+        return inconsistentUris;
+      }
+    });
   }
 
   /**

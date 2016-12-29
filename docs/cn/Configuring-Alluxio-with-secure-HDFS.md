@@ -69,6 +69,13 @@ priority: 3
 # 使用安全认证模式下的HDFS在本地运行Alluxio
 
 在这一步开始之前，请确保你的HDFS集群处于运行状态，并且挂载到Alluxio的HDFS目录已经存在。
+
+在Alluxio节点运行`kinit`的时候，请使用相应master/worker上的principal和keytab文件来提供Kerberos票据缓存。一个已知的限制是Kerberos TGT可能会在达到最大更新周期后失效。你可以通过定期更新TGT来解决这个问题。否则，在启动Alluxio服务的时候，你可能会看到下面的错误：
+
+```
+javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
+```
+
 配置完成后，你可以在本地启动Alluxio，观察是否正确运行：
 
 {% include Common-Commands/start-alluxio.md %}
@@ -79,7 +86,7 @@ priority: 3
 
 {% include Common-Commands/runTests.md %}
 
-运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/default_tests_files/BasicFile_STORE_SYNC_PERSIST`。
+运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/default_tests_files/Basic_CACHE_THROUGH`。
 
 运行以下命令停止Alluxio：
 

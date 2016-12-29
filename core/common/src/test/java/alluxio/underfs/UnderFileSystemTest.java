@@ -11,9 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.AlluxioURI;
-import alluxio.collections.Pair;
-
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
@@ -22,67 +19,6 @@ import org.junit.Test;
  * Unit tests for {@link UnderFileSystem}.
  */
 public final class UnderFileSystemTest {
-  /**
-   * Tests the {@link UnderFileSystem#parse(AlluxioURI)} method.
-   */
-  @Test
-  public void parse() {
-    Pair<String, String> result = UnderFileSystem.parse(new AlluxioURI("/path"));
-    Assert.assertEquals(result.getFirst(), "/");
-    Assert.assertEquals(result.getSecond(), "/path");
-
-    result = UnderFileSystem.parse(new AlluxioURI("file:///path"));
-    Assert.assertEquals(result.getFirst(), "/");
-    Assert.assertEquals(result.getSecond(), "/path");
-
-    result = UnderFileSystem.parse(new AlluxioURI("alluxio://localhost:19998"));
-    Assert.assertEquals(result.getFirst(), "alluxio://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/");
-
-    result = UnderFileSystem.parse(new AlluxioURI("alluxio://localhost:19998/"));
-    Assert.assertEquals(result.getFirst(), "alluxio://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/");
-
-    result = UnderFileSystem.parse(new AlluxioURI("alluxio://localhost:19998/path"));
-    Assert.assertEquals(result.getFirst(), "alluxio://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/path");
-
-    result = UnderFileSystem.parse(new AlluxioURI("alluxio-ft://localhost:19998/path"));
-    Assert.assertEquals(result.getFirst(), "alluxio-ft://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/path");
-
-    result = UnderFileSystem.parse(new AlluxioURI("hdfs://localhost:19998/path"));
-    Assert.assertEquals(result.getFirst(), "hdfs://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/path");
-
-    result = UnderFileSystem.parse(new AlluxioURI("s3://localhost:19998/path"));
-    Assert.assertEquals(result.getFirst(), "s3://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/path");
-
-    result = UnderFileSystem.parse(new AlluxioURI("s3a://localhost:19998/path"));
-    Assert.assertEquals(result.getFirst(), "s3a://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/path");
-
-    result = UnderFileSystem.parse(new AlluxioURI("s3n://localhost:19998/path"));
-    Assert.assertEquals(result.getFirst(), "s3n://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/path");
-
-    result = UnderFileSystem.parse(new AlluxioURI("oss://localhost:19998"));
-    Assert.assertEquals(result.getFirst(), "oss://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/");
-
-    result = UnderFileSystem.parse(new AlluxioURI("oss://localhost:19998/"));
-    Assert.assertEquals(result.getFirst(), "oss://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/");
-
-    result = UnderFileSystem.parse(new AlluxioURI("oss://localhost:19998/path"));
-    Assert.assertEquals(result.getFirst(), "oss://localhost:19998");
-    Assert.assertEquals(result.getSecond(), "/path");
-
-    Assert.assertEquals(UnderFileSystem.parse(AlluxioURI.EMPTY_URI), null);
-    Assert.assertEquals(UnderFileSystem.parse(new AlluxioURI("anythingElse")), null);
-  }
-
   /**
    * Tests the {@link UnderFileSystemRegistry#find(String)} method when using a core
    * factory.

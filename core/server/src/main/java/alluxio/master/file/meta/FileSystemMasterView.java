@@ -60,8 +60,10 @@ public final class FileSystemMasterView {
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission denied
    */
-  public synchronized FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
+  public synchronized FileInfo getFileInfo(long fileId)
+      throws FileDoesNotExistException, AccessControlException {
     return mFileSystemMaster.getFileInfo(fileId);
   }
 

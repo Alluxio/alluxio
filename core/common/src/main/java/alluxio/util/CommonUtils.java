@@ -105,7 +105,7 @@ public final class CommonUtils {
    * @param length the length
    * @return a random string
    */
-  public static String randomString(int length) {
+  public static String randomAlphaNumString(int length) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < length; i++) {
       sb.append(ALPHANUM.charAt(RANDOM.nextInt(ALPHANUM.length())));
@@ -215,6 +215,18 @@ public final class CommonUtils {
   }
 
   /**
+   * Waits indefinitely for a condition to be satisfied.
+   *
+   * @param description a description of what causes condition to evaluation to true
+   * @param condition the condition to wait on
+   */
+  public static void waitFor(String description, Function<Void, Boolean> condition) {
+    while (!condition.apply(null)) {
+      CommonUtils.sleepMs(20);
+    }
+  }
+
+  /**
    * Waits for a condition to be satisfied until a timeout occurs.
    *
    * @param description a description of what causes condition to evaluation to true
@@ -222,12 +234,25 @@ public final class CommonUtils {
    * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
    */
   public static void waitFor(String description, Function<Void, Boolean> condition, int timeoutMs) {
+    waitFor(description, condition, timeoutMs, 20);
+  }
+
+  /**
+   * Waits for a condition to be satisfied until a timeout occurs, with given sleep interval.
+   *
+   * @param description a description of what causes condition to evaluation to true
+   * @param condition the condition to wait on
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   * @param intervalMs the sleep interval in milliseconds
+   */
+  public static void waitFor(
+      String description, Function<Void, Boolean> condition, int timeoutMs, int intervalMs) {
     long start = System.currentTimeMillis();
     while (!condition.apply(null)) {
       if (System.currentTimeMillis() - start > timeoutMs) {
         throw new RuntimeException("Timed out waiting for " + description);
       }
-      CommonUtils.sleepMs(20);
+      CommonUtils.sleepMs(intervalMs);
     }
   }
 
@@ -316,6 +341,19 @@ public final class CommonUtils {
         .withKeyValueSeparator("=")
         .split(mapping);
     return m.get(key);
+  }
+
+  /**
+   * Gets the root cause of an exception.
+   *
+   * @param e the exception
+   * @return the root cause
+   */
+  public static Throwable getRootCause(Throwable e) {
+    while (e.getCause() != null) {
+      e = e.getCause();
+    }
+    return e;
   }
 
   private CommonUtils() {} // prevent instantiation

@@ -11,12 +11,12 @@
 
 package alluxio.cli;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
 import alluxio.shell.command.ShellCommand;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
@@ -56,11 +56,14 @@ public final class AlluxioShell implements Closeable {
    * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
-    if (!ConfigurationUtils.validateConf()) {
-      System.out.println("Invalid configuration found, please check user log for details");
-      System.exit(-1);
-    }
     int ret;
+
+    if (!Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
+      System.out.println("Cannot run alluxio shell; master hostname is not configured. Please set "
+          + PropertyKey.MASTER_HOSTNAME.toString() + " in alluxio-site.properties.");
+      System.exit(1);
+    }
+
     try (AlluxioShell shell = new AlluxioShell()) {
       ret = shell.run(argv);
     }
@@ -131,8 +134,7 @@ public final class AlluxioShell implements Closeable {
   }
 
   /**
-   * Method which determines how to handle the user's request, will display usage help to the user
-   * if command format is incorrect.
+   * Handles the specified shell command request, displaying usage if the command format is invalid.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred
@@ -176,7 +178,7 @@ public final class AlluxioShell implements Closeable {
     try {
       command.run(cmdline);
       return 0;
-    } catch (AlluxioException | IOException e) {
+    } catch (Exception e) {
       System.out.println(e.getMessage());
       LOG.error("Error running " + StringUtils.join(argv, " "), e);
       return -1;

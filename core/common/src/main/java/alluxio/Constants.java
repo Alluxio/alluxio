@@ -80,14 +80,6 @@ public final class Constants {
 
   public static final int MAX_PORT = 65535;
 
-  public static final int DEFAULT_MASTER_PORT = 19998;
-  public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
-  public static final int DEFAULT_WORKER_PORT = 29998;
-  public static final int DEFAULT_WORKER_DATA_PORT = DEFAULT_WORKER_PORT + 1;
-  public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
-
-  public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
-
   // Service versions should be incremented every time a backwards incompatible change occurs.
   public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 1;
@@ -97,6 +89,7 @@ public final class Constants {
   public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long META_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
@@ -112,12 +105,13 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";
   public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
+  public static final String META_MASTER_SERVICE_NAME = "MetaMaster";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
-  public static final String REST_API_PREFIX = "/v1/api";
+  public static final String REST_API_PREFIX = "/api/v1";
 
   public static final String LOGGER_TYPE = PropertyKey.Name.LOGGER_TYPE;
 

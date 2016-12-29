@@ -15,11 +15,19 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
+import alluxio.underfs.AtomicFileOutputStream;
+import alluxio.underfs.AtomicFileOutputStreamCallback;
+import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -51,7 +59,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * </p>
  */
 @ThreadSafe
-public class LocalUnderFileSystem extends UnderFileSystem {
+public class LocalUnderFileSystem extends BaseUnderFileSystem
+    implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -69,17 +78,27 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void close() throws IOException {}
-
-  @Override
-  public OutputStream create(String path) throws IOException {
-    return create(path, new CreateOptions());
+  public void close() throws IOException {
   }
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
+    if (!options.isEnsureAtomic()) {
+      return createDirect(path, options);
+    }
+    return new AtomicFileOutputStream(path, this, options);
+  }
+
+  @Override
+  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     path = stripPath(path);
-    FileOutputStream stream = new FileOutputStream(path);
+    if (options.getCreateParent()) {
+      File parent = new File(path).getParentFile();
+      if (parent != null && !parent.mkdirs() && !parent.isDirectory()) {
+        throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
+      }
+    }
+    OutputStream stream = new FileOutputStream(path);
     try {
       setMode(path, options.getPermission().getMode().toShort());
     } catch (IOException e) {
@@ -90,30 +109,38 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     path = stripPath(path);
     File file = new File(path);
+    if (!file.isDirectory()) {
+      return false;
+    }
     boolean success = true;
-    if (recursive && file.isDirectory()) {
+    if (options.isRecursive()) {
       String[] files = file.list();
 
       // File.list() will return null if an I/O error occurs.
       // e.g.: Reading an non-readable directory
       if (files != null) {
         for (String child : files) {
-          success = success && delete(PathUtils.concatPath(path, child), true);
+          String childPath = PathUtils.concatPath(path, child);
+          if (isDirectory(childPath)) {
+            success = success && deleteDirectory(childPath,
+                DeleteOptions.defaults().setRecursive(true));
+          } else {
+            success = success && deleteFile(PathUtils.concatPath(path, child));
+          }
         }
       }
     }
-
     return success && file.delete();
   }
 
   @Override
-  public boolean exists(String path) throws IOException {
+  public boolean deleteFile(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
-    return file.exists();
+    return file.isFile() && file.delete();
   }
 
   @Override
@@ -139,7 +166,8 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public List<String> getFileLocations(String path, long offset) throws IOException {
+  public List<String> getFileLocations(String path, FileLocationOptions options)
+      throws IOException {
     return getFileLocations(path);
   }
 
@@ -174,6 +202,13 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public boolean isDirectory(String path) throws IOException {
+    path = stripPath(path);
+    File file = new File(path);
+    return file.isDirectory();
+  }
+
+  @Override
   public boolean isFile(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
@@ -181,25 +216,20 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public String[] list(String path) throws IOException {
+  public UnderFileStatus[] listStatus(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     File[] files = file.listFiles();
     if (files != null) {
-      String[] rtn = new String[files.length];
+      UnderFileStatus[] rtn = new UnderFileStatus[files.length];
       int i = 0;
       for (File f : files) {
-        rtn[i++] = f.getName();
+        rtn[i++] = new UnderFileStatus(f.getName(), f.isDirectory());
       }
       return rtn;
     } else {
       return null;
     }
-  }
-
-  @Override
-  public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
   }
 
   @Override
@@ -250,17 +280,37 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public InputStream open(String path) throws IOException {
+  public InputStream open(String path, OpenOptions options) throws IOException {
     path = stripPath(path);
-    return new FileInputStream(path);
+    FileInputStream inputStream = new FileInputStream(path);
+    if (options.getOffset() > 0) {
+      try {
+        inputStream.skip(options.getOffset());
+      } catch (IOException e) {
+        inputStream.close();
+        throw e;
+      }
+    }
+    return new LocalUnderFileInputStream(inputStream);
   }
 
   @Override
-  public boolean rename(String src, String dst) throws IOException {
-    src = stripPath(src);
-    dst = stripPath(dst);
-    File file = new File(src);
-    return file.renameTo(new File(dst));
+  public boolean renameDirectory(String src, String dst) throws IOException {
+    if (!isDirectory(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist or is a file", src, dst);
+      return false;
+    }
+    return rename(src, dst);
+  }
+
+  @Override
+  public boolean renameFile(String src, String dst) throws IOException {
+    if (!isFile(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist or is a directory",
+          src, dst);
+      return false;
+    }
+    return rename(src, dst);
   }
 
   @Override
@@ -277,7 +327,8 @@ public class LocalUnderFileSystem extends UnderFileSystem {
         FileUtils.changeLocalFileGroup(path, group);
       }
     } catch (IOException e) {
-      LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group, e);
+      LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group);
+      LOG.debug("Exception: ", e);
       LOG.warn("In order for Alluxio to set local files with the correct user and groups, "
           + "Alluxio should be the local file system superusers.");
       if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
@@ -322,6 +373,26 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public void connectFromWorker(String hostname) throws IOException {
     // No-op
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return true;
+  }
+
+  /**
+   * Rename a file to a file or a directory to a directory.
+   *
+   * @param src path of source file or directory
+   * @param dst path of destination file or directory
+   * @return true if rename succeeds
+   * @throws IOException
+   */
+  private boolean rename(String src, String dst) throws IOException {
+    src = stripPath(src);
+    dst = stripPath(dst);
+    File file = new File(src);
+    return file.renameTo(new File(dst));
   }
 
   /**

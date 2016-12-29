@@ -11,11 +11,8 @@
 
 package alluxio.client;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.util.CommonUtils;
-
-import com.google.common.base.Throwables;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.netty.NettyRemoteBlockReader;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -31,22 +28,16 @@ public interface RemoteBlockReader extends Closeable {
    * The factory for the {@link RemoteBlockReader}.
    */
   class Factory {
-
     private Factory() {} // prevent instantiation
 
     /**
      * Factory for {@link RemoteBlockReader}.
      *
+     * @param context the file system context
      * @return a new instance of {@link RemoteBlockReader}
      */
-    public static RemoteBlockReader create() {
-      try {
-        return CommonUtils.createNewClassInstance(
-            Configuration.<RemoteBlockReader>getClass(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS),
-            null, null);
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
-      }
+    public static RemoteBlockReader create(FileSystemContext context) {
+      return new NettyRemoteBlockReader(context);
     }
   }
 

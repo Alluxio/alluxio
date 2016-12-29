@@ -19,7 +19,7 @@ import org.powermock.reflect.Whitebox;
 /**
  * Rule for temporarily setting the TTL (time to live) checking interval.
  */
-public class TtlIntervalRule implements TestRule {
+public final class TtlIntervalRule implements TestRule {
   private final long mIntervalMs;
 
   /**

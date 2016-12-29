@@ -11,8 +11,14 @@
 
 package alluxio.master.journal;
 
+import alluxio.Constants;
 import alluxio.proto.journal.Journal.JournalEntry;
 
+import com.google.protobuf.CodedInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ProtoBufJournalFormatter implements JournalFormatter {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Constructs a new {@link ProtoBufJournalFormatter}.
@@ -40,11 +47,35 @@ public final class ProtoBufJournalFormatter implements JournalFormatter {
   @Override
   public JournalInputStream deserialize(final InputStream inputStream) throws IOException {
     return new JournalInputStream() {
+      private final byte[] mBuffer = new byte[1024];
       private long mLatestSequenceNumber;
 
       @Override
       public JournalEntry getNextEntry() throws IOException {
-        JournalEntry entry = JournalEntry.parseDelimitedFrom(inputStream);
+        int firstByte = inputStream.read();
+        if (firstByte == -1) {
+          return null;
+        }
+        // All journal entries start with their size in bytes written as a varint.
+        int size = CodedInputStream.readRawVarint32(firstByte, inputStream);
+        byte[] buffer = size <= mBuffer.length ? mBuffer : new byte[size];
+        // Total bytes read so far for journal entry.
+        int totalBytesRead = 0;
+        while (totalBytesRead < size) {
+          // Bytes read in last read request.
+          int latestBytesRead = inputStream.read(buffer, totalBytesRead, size - totalBytesRead);
+          if (latestBytesRead < 0) {
+            break;
+          }
+          totalBytesRead += latestBytesRead;
+        }
+        if (totalBytesRead < size) {
+          LOG.warn("Journal entry was truncated. Expected to read " + size + " bytes but only got "
+              + totalBytesRead);
+          return null;
+        }
+
+        JournalEntry entry = JournalEntry.parseFrom(new ByteArrayInputStream(buffer, 0, size));
         if (entry != null) {
           mLatestSequenceNumber = entry.getSequenceNumber();
         }

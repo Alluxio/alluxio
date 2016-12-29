@@ -57,5 +57,5 @@ alluxio.integration.mesos.jdk.url=LOCAL
 
 #### 日志文件
 
-`./integration/bin/alluxio-mesos.sh`脚本会启动一个名为`AlluxioFramework`的Java进程，其日志记录在`alluxio/logs/framework.out`。
+`./integration/mesos/bin/alluxio-mesos-start.sh`脚本会启动一个名为`AlluxioFramework`的Java进程，其日志记录在`alluxio/logs/framework.out`。
 在Mesos上启动的Alluxio masters和workers会将其日志记录在`mesos_container/logs/`，另外在`mesos_container/stderr`文件里或许也会有些有用的信息。

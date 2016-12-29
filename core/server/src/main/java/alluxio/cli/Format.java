@@ -16,8 +16,10 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
-import alluxio.master.AlluxioMaster;
+import alluxio.underfs.UnderFileStatus;
+import alluxio.ServerUtils;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
@@ -29,7 +31,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Formats Alluxio file system.
+ * Formats the Alluxio file system.
  */
 @ThreadSafe
 public final class Format {
@@ -38,16 +40,24 @@ public final class Format {
       RuntimeConstants.ALLUXIO_JAR, Format.class.getCanonicalName());
 
   private static boolean formatFolder(String name, String folder) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(folder);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
-    if (ufs.exists(folder)) {
-      for (String file : ufs.list(folder)) {
-        if (!ufs.delete(PathUtils.concatPath(folder, file), true)) {
-          LOG.info("Failed to remove {}:{}", name, file);
+    if (ufs.isDirectory(folder)) {
+      for (UnderFileStatus p : ufs.listStatus(folder)) {
+        String childPath = PathUtils.concatPath(folder, p.getName());
+        boolean failedToDelete;
+        if (p.isDirectory()) {
+          failedToDelete = !ufs.deleteDirectory(childPath,
+              DeleteOptions.defaults().setRecursive(true));
+        } else {
+          failedToDelete = !ufs.deleteFile(childPath);
+        }
+        if (failedToDelete) {
+          LOG.info("Failed to delete {}", childPath);
           return false;
         }
       }
-    } else if (!ufs.mkdirs(folder, true)) {
+    } else if (!ufs.mkdirs(folder)) {
       LOG.info("Failed to create {}:{}", name, folder);
       return false;
     }
@@ -73,9 +83,9 @@ public final class Format {
         System.exit(-1);
       }
 
-      for (String masterServiceName : AlluxioMaster.getServiceNames()) {
-        if (!formatFolder(masterServiceName + "_JOURNAL_FOLDER", PathUtils.concatPath(masterJournal,
-            masterServiceName))) {
+      for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
+        if (!formatFolder(masterServiceName + "_JOURNAL_FOLDER",
+            PathUtils.concatPath(masterJournal, masterServiceName))) {
           System.exit(-1);
         }
       }
@@ -94,8 +104,8 @@ public final class Format {
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
           String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-          UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder);
-          if (ufs.exists(dirWorkerDataFolder)) {
+          UnderFileSystem ufs = UnderFileSystem.Factory.get(dirWorkerDataFolder);
+          if (ufs.isDirectory(dirWorkerDataFolder)) {
             if (!formatFolder(name, dirWorkerDataFolder)) {
               System.exit(-1);
             }
@@ -109,5 +119,5 @@ public final class Format {
     System.exit(0);
   }
 
-  private Format() {}  // Prevent instantiation.
+  private Format() {}  // prevent instantiation
 }

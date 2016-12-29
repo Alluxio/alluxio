@@ -19,6 +19,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.oss.OSSUnderFileSystem;
 import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.underfs.s3a.S3AUnderFileSystem;
@@ -89,7 +90,7 @@ public final class FileSystemAclIntegrationTest {
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     sUfsRoot = PathUtils.concatPath(alluxio.Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    sUfs = UnderFileSystem.get(sUfsRoot);
+    sUfs = UnderFileSystem.Factory.get(sUfsRoot);
   }
 
   @After
@@ -136,9 +137,16 @@ public final class FileSystemAclIntegrationTest {
 
     create(sTFS, fileA);
     FileStatus fs = sTFS.getFileStatus(fileA);
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
-    // Default permission should be 0644
-    Assert.assertEquals((short) 0644, fs.getPermission().toShort());
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
+
+    if (sUfs instanceof HdfsUnderFileSystem && HadoopClientTestUtils.isHadoop1x()) {
+      // If the UFS is hadoop 1.0, the org.apache.hadoop.fs.FileSystem.create uses default
+      // permission option 0777.
+      Assert.assertEquals((short) 0777, fs.getPermission().toShort());
+    } else {
+      // Default permission should be 0644.
+      Assert.assertEquals((short) 0644, fs.getPermission().toShort());
+    }
 
     sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
     Assert.assertEquals((short) 0755, sTFS.getFileStatus(fileA).getPermission().toShort());
@@ -434,8 +442,9 @@ public final class FileSystemAclIntegrationTest {
    */
   @Test
   public void loadFileMetadataMode() throws Exception {
-    if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
-      // Skip non-local and non-HDFS UFSs.
+    if (!(sUfs instanceof LocalUnderFileSystem)
+        && !(sUfs instanceof HdfsUnderFileSystem && HadoopClientTestUtils.isHadoop2x())) {
+      // Skip non-local and non-HDFS-2 UFSs.
       return;
     }
     List<Integer> permissionValues =
@@ -447,7 +456,7 @@ public final class FileSystemAclIntegrationTest {
       String ufsPath = PathUtils.concatPath(sUfsRoot, file);
       sUfs.create(ufsPath).close();
       sUfs.setMode(ufsPath, (short) value);
-      Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, file)));
+      Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, file)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
       Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
     }
@@ -469,9 +478,9 @@ public final class FileSystemAclIntegrationTest {
       Path file = new Path("/loadDirMetadataMode" + value);
       // Create a directory directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, file);
-      sUfs.mkdirs(ufsPath, false);
+      sUfs.mkdirs(ufsPath, MkdirsOptions.defaults().setCreateParent(false));
       sUfs.setMode(ufsPath, (short) value);
-      Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, file)));
+      Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, file)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
       Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
     }
@@ -484,7 +493,7 @@ public final class FileSystemAclIntegrationTest {
     alluxio.Configuration.set(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "");
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
     // Without providing "alluxio.underfs.s3.canonical.owner.id.to.username.mapping", the default
     // display name of the S3 owner account is NOT empty.
@@ -500,7 +509,7 @@ public final class FileSystemAclIntegrationTest {
     alluxio.Configuration.set(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, "");
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
     // Without providing "alluxio.underfs.gcs.owner.id.to.username.mapping", the default
     // display name of the GCS owner account is empty. The owner will be the GCS account id, which
@@ -516,7 +525,7 @@ public final class FileSystemAclIntegrationTest {
 
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
     Assert.assertNotEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertNotEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
@@ -529,7 +538,7 @@ public final class FileSystemAclIntegrationTest {
 
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
     // Verify the owner, group and permission of OSS UFS is not supported and thus returns default
     // values.

@@ -11,6 +11,7 @@
 
 package alluxio.master.lineage.meta;
 
+import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -35,9 +36,10 @@ public final class LineageStateUtils {
    * @param fileSystemMasterView the view of the file system master where the output file lies
    * @return true if all the output files of the given lineage are completed, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission denied
    */
   public static boolean isCompleted(Lineage lineage, FileSystemMasterView fileSystemMasterView)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, AccessControlException {
     for (long outputFile : lineage.getOutputFiles()) {
       FileInfo fileInfo = fileSystemMasterView.getFileInfo(outputFile);
       if (!fileInfo.isCompleted()) {
@@ -90,7 +92,7 @@ public final class LineageStateUtils {
       FileSystemMasterView fileSystemMasterView) throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
       if (fileSystemMasterView
-          .getFilePersistenceState(outputFile) == PersistenceState.IN_PROGRESS) {
+          .getFilePersistenceState(outputFile) == PersistenceState.TO_BE_PERSISTED) {
         return true;
       }
     }

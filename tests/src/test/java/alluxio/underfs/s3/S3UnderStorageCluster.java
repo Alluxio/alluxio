@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -41,7 +42,7 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   public S3UnderStorageCluster(String baseDir) {
     super(baseDir);
     mS3Bucket = PathUtils.concatPath(System.getProperty(INTEGRATION_S3_BUCKET), UUID.randomUUID());
-    Preconditions.checkState(mS3Bucket != null && mS3Bucket != "",
+    Preconditions.checkState(mS3Bucket != null && !mS3Bucket.equals(""),
         PreconditionMessage.S3_BUCKET_MUST_BE_SET.toString(), INTEGRATION_S3_BUCKET);
     mBaseDir = PathUtils.concatPath(mS3Bucket, UUID.randomUUID());
     mStarted = false;
@@ -65,8 +66,8 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   @Override
   public void shutdown() throws IOException {
     LOG.info("Shutting down S3 testing cluster, deleting bucket contents in: " + mS3Bucket);
-    UnderFileSystem ufs = UnderFileSystem.get(mS3Bucket);
-    ufs.delete(mS3Bucket, true);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mS3Bucket);
+    ufs.deleteDirectory(mS3Bucket, DeleteOptions.defaults().setRecursive(true));
   }
 
   @Override

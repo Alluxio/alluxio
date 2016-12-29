@@ -65,7 +65,7 @@ public final class LineageFileSystem extends BaseFileSystem {
     LineageMasterClient masterClient = mLineageContext.acquireMasterClient();
     try {
       return masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
-          options.getTtl());
+          options.getTtl(), options.getTtlAction());
     } finally {
       mLineageContext.releaseMasterClient(masterClient);
     }

@@ -13,7 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
@@ -36,7 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 class BaseKeyValueStoreReader implements KeyValueStoreReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final InetSocketAddress mMasterAddress = ClientContext.getMasterAddress();
+  private final InetSocketAddress mMasterAddress = FileSystemContext.INSTANCE.getMasterAddress();
   private final KeyValueMasterClient mMasterClient;
 
   /** A list of partitions of the store. */
@@ -84,7 +84,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
       } else if (key.compareTo(partition.bufferForKeyLimit()) > 0) {
         left = middle + 1;
       } else {
-        // The key is either in this partition or not in the kv store
+        // The key is either in this partition or not in the key-value store
         long blockId = partition.getBlockId();
         try (KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId)) {
           return reader.get(key);

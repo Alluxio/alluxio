@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * This class lets you add blocks with the {@link alluxio.worker.block.meta.StorageDir}s they reside
  * in, the blockIds and the sizes in bytes, then it tells you which StorageDir added so far has the
- * maximum sum of available bytes and total bytes of added blocks. Assume meta data of StorageDir
+ * maximum sum of available bytes and total bytes of added blocks. Assume metadata of StorageDir
  * will not be changed during adding blocks.
  *
  * Example usage can be found in {@link LRUEvictor#freeSpaceWithView}.

@@ -25,6 +25,7 @@ alluxio.worker.network.netty.watermark.low,8192
 alluxio.worker.network.netty.worker.threads,0
 alluxio.worker.port,29998
 alluxio.worker.session.timeout.ms,60000
+alluxio.worker.tieredstore.block.lock.readers,1000
 alluxio.worker.tieredstore.block.locks,1000
 alluxio.worker.tieredstore.levels,1
 alluxio.worker.tieredstore.level0.alias,MEM
@@ -33,6 +34,7 @@ alluxio.worker.tieredstore.level0.dirs.quota,${alluxio.worker.memory.size}
 alluxio.worker.tieredstore.level0.reserved.ratio,0.1
 alluxio.worker.tieredstore.reserver.enabled,false
 alluxio.worker.tieredstore.reserver.interval.ms,1000
+alluxio.worker.tieredstore.retry,3
 alluxio.worker.web.bind.host,0.0.0.0
 alluxio.worker.web.hostname,localhost
 alluxio.worker.web.port,30000

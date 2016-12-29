@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.client.ClientContext;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.job.CommandLineJob;
@@ -37,7 +36,7 @@ import java.util.List;
  * Tests {@link AlluxioLineage}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({LineageContext.class, LineageMasterClient.class, ClientContext.class})
+@PrepareForTest({LineageContext.class, LineageMasterClient.class})
 public final class AlluxioLineageTest {
   private LineageContext mLineageContext;
   private LineageMasterClient mLineageMasterClient;

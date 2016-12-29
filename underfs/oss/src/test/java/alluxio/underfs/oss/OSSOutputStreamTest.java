@@ -146,11 +146,10 @@ public class OSSOutputStreamTest {
   @Test
   @PrepareForTest(OSSOutputStream.class)
   public void testCloseError() throws Exception {
-    String errorMessage = "Invoke the putObject method error.";
+    String errorMessage = "Invoke the createEmptyObject method error.";
     BufferedInputStream inputStream = PowerMockito.mock(BufferedInputStream.class);
     PowerMockito.whenNew(BufferedInputStream.class)
             .withArguments(Mockito.any(FileInputStream.class)).thenReturn(inputStream);
-    ObjectMetadata objMeta = new ObjectMetadata();
     PowerMockito
             .when(mOssClient.putObject(Mockito.anyString(), Mockito.anyString(),
                     Mockito.any(InputStream.class), Mockito.any(ObjectMetadata.class)))

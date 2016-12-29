@@ -20,6 +20,7 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateFileTOptions;
+import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -47,9 +48,9 @@ public class CreateFileOptionsTest {
     CreateFileOptions options = CreateFileOptions.defaults();
     Assert.assertTrue(options.isRecursive());
     Assert.assertEquals(mDefaultBlockSizeBytes, options.getBlockSizeBytes());
-    Assert.assertEquals(mDefaultWriteType.getAlluxioStorageType(), options.getAlluxioStorageType());
-    Assert.assertEquals(mDefaultWriteType.getUnderStorageType(), options.getUnderStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
+    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
+    Assert.assertEquals(mDefaultWriteType, options.getWriteType());
   }
 
   /**
@@ -71,6 +72,7 @@ public class CreateFileOptionsTest {
     options.setMode(mode);
     options.setRecursive(recursive);
     options.setTtl(ttl);
+    options.setTtlAction(TtlAction.FREE);
     options.setWriteType(writeType);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
@@ -78,8 +80,8 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(mode, options.getMode());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());
-    Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
-    Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
+    Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
+    Assert.assertEquals(writeType, options.getWriteType());
   }
 
   /**
@@ -95,6 +97,7 @@ public class CreateFileOptionsTest {
         .isPersisted());
     Assert.assertEquals(mDefaultBlockSizeBytes, thriftOptions.getBlockSizeBytes());
     Assert.assertEquals(Constants.NO_TTL, thriftOptions.getTtl());
+    Assert.assertEquals(alluxio.thrift.TTtlAction.Delete, thriftOptions.getTtlAction());
     Assert.assertFalse(thriftOptions.isSetMode());
   }
 

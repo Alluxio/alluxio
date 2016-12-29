@@ -16,6 +16,10 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.UnderFileSystemUtils;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.Permission;
@@ -162,7 +166,7 @@ public final class FileDataManager {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
 
-    return mUfs.exists(dstPath);
+    return mUfs.isFile(dstPath);
   }
 
   /**
@@ -216,9 +220,10 @@ public final class FileDataManager {
    *
    * @param fileId the id of the file
    * @param blockIds the list of block ids
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    * @throws IOException if the file persistence fails
    */
-  public void persistFile(long fileId, List<Long> blockIds) throws IOException {
+  public void persistFile(long fileId, List<Long> blockIds) throws AlluxioException, IOException {
     Map<Long, Long> blockIdToLockId;
     synchronized (mLock) {
       blockIdToLockId = mPersistingInProgressFiles.get(fileId);
@@ -228,11 +233,10 @@ public final class FileDataManager {
     }
 
     String dstPath = prepareUfsFilePath(fileId);
-    // TODO(chaomin): should also propagate ancestor dirs permission to UFS.
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     Permission perm = new Permission(fileInfo.getOwner(), fileInfo.getGroup(),
         (short) fileInfo.getMode());
-    OutputStream outputStream = mUfs.create(dstPath, new CreateOptions().setPermission(perm));
+    OutputStream outputStream = mUfs.create(dstPath, CreateOptions.defaults().setPermission(perm));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     List<Throwable> errors = new ArrayList<>();
@@ -292,34 +296,17 @@ public final class FileDataManager {
    *
    * @param fileId the file id
    * @return the path for persistence
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    * @throws IOException if the folder creation fails
    */
-  private String prepareUfsFilePath(long fileId) throws IOException {
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+  private String prepareUfsFilePath(long fileId) throws AlluxioException, IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    AlluxioURI uri = new AlluxioURI(fileInfo.getPath());
-    String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
-    LOG.info("persist file {} at {}", fileId, dstPath);
-    String parentPath = PathUtils.concatPath(ufsRoot, uri.getParent().getPath());
-    // creates the parent folder if it does not exist
-    if (!mUfs.exists(parentPath)) {
-      final int maxRetry = 10;
-      int numRetry = 0;
-      // TODO(peis): Retry only if we are making progress.
-      // TODO(chaomin): figure out a way to get parent permission in Alluxio namespace.
-      for (; numRetry < maxRetry; numRetry++) {
-        if (mUfs.mkdirs(parentPath, true) || mUfs.exists(parentPath)) {
-          break;
-        }
-        // The parentPath can be created between the exists check and mkdirs call by other threads.
-        LOG.warn("Failed to create dir: {}, retrying", parentPath);
-      }
-      if (numRetry == maxRetry && !mUfs.exists(parentPath)) {
-        throw new IOException(
-            String.format("Failed to create dir: %s after %d retries.", parentPath, numRetry));
-      }
-    }
-    return dstPath;
+    AlluxioURI alluxioPath = new AlluxioURI(fileInfo.getPath());
+    FileSystem fs = FileSystem.Factory.get();
+    URIStatus status = fs.getStatus(alluxioPath);
+    String ufsPath = status.getUfsPath();
+    UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, mUfs);
+    return ufsPath;
   }
 
   /**

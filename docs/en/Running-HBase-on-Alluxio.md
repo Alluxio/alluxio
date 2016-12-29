@@ -59,7 +59,7 @@ There are two ways to achieve that:
 on all cluster nodes). For example:
 
 ```bash
-export HBASE_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${HBASE_CLASSPATH}
+export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
 #### Add additional Alluxio site properties to HBase

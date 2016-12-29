@@ -12,8 +12,10 @@ alluxio.user.block.remote.read.buffer.size.bytes:
 alluxio.user.block.remote.reader.class:
   Selects networking stack to run the client with. Currently only
   `alluxio.client.netty.NettyRemoteBlockReader` (read remote data using netty) is valid.
+  This is deprecated and will be removed in 2.0.0.
 alluxio.user.block.remote.writer.class:
   Selects networking stack to run the client with for block writes.
+  This is deprecated and will be removed in 2.0.0.
 alluxio.user.block.size.bytes.default:
   Default block size for Alluxio files.
 alluxio.user.failed.space.request.limits:
@@ -28,6 +30,11 @@ alluxio.user.file.worker.client.threads:
   How many threads to use for file worker clients to read from workers.
 alluxio.user.file.write.location.policy.class:
   The default location policy for choosing workers for writing a file's blocks
+alluxio.user.file.write.tier.default:
+  The default policy for choosing a tier when writing a block. Valid options are `HIGHEST` (write
+  block to the highest tier), `SECOND_HIGHEST` (write block to the second highest, or top tier if
+  only tier exists), `LOWEST` (write to the lowest tier). This policy is only applicable when a
+  client is writing to a local worker.
 alluxio.user.file.readtype.default:
   Default read type when creating Alluxio files.
   Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage,
@@ -83,3 +90,6 @@ alluxio.user.ufs.file.writer.class:
   Selects networking stack to run the client with for writing to under file system through a
   worker's data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileWriter`
   (remote write using netty) is valid.
+alluxio.user.packet.streaming.enabled:
+  If set to true, the packet streaming data transfer protocol is used. Packet streaming is an experimental feature. It
+  provides a more efficient data transfer mechanism.

@@ -67,18 +67,18 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
    * Adds a {@link ResponseListener} listener to the client handler.
    *
    * @param listener the listener to add
+   * @return the current handler
    */
-  public void addListener(ResponseListener listener) {
+  public ClientHandler addListener(ResponseListener listener) {
     mListeners.add(Preconditions.checkNotNull(listener));
+    return this;
   }
 
   /**
-   * Removes a {@link ResponseListener} listener from the client handler.
-   *
-   * @param listener the listener to remove
+   * Removes all {@link ResponseListener} listeners from the client handler.
    */
-  public void removeListener(ResponseListener listener) {
-    mListeners.remove(listener);
+  public void removeListeners() {
+    mListeners.clear();
   }
 
   @Override

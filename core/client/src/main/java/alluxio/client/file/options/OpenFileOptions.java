@@ -14,11 +14,11 @@ package alluxio.client.file.options;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
@@ -56,31 +56,55 @@ public final class OpenFileOptions {
   }
 
   /**
-   * @return the location policy to use when storing data to Alluxio
+   * @return the location policy used when storing data to Alluxio
    */
+  @JsonIgnore
   public FileWriteLocationPolicy getLocationPolicy() {
     return mLocationPolicy;
   }
 
   /**
-   * @return the Alluxio storage type
+   * @return the location policy class used when storing data to Alluxio
    */
-  public AlluxioStorageType getAlluxioStorageType() {
-    return mReadType.getAlluxioStorageType();
+  public String getLocationPolicyClass() {
+    return mLocationPolicy.getClass().getCanonicalName();
   }
 
   /**
-   * @param policy the location policy to use when storing data to Alluxio
+   * @return the read type
+   */
+  public ReadType getReadType() {
+    return mReadType;
+  }
+
+  /**
+   * @param locationPolicy the location policy to use when storing data to Alluxio
    * @return the updated options object
    */
-  public OpenFileOptions setLocationPolicy(FileWriteLocationPolicy policy) {
-    mLocationPolicy = policy;
+  @JsonIgnore
+  public OpenFileOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
+    mLocationPolicy = locationPolicy;
     return this;
   }
 
   /**
-   * @param readType the {@link ReadType} for this operation. Setting this will
-   *        override the {@link AlluxioStorageType}.
+   * @param className the location policy class to use when storing data to Alluxio
+   * @return the updated options object
+   */
+  public OpenFileOptions setLocationPolicyClass(String className) {
+    try {
+      @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
+          (Class<FileWriteLocationPolicy>) Class.forName(className);
+      mLocationPolicy = CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
+      return this;
+    } catch (Exception e) {
+      Throwables.propagate(e);
+    }
+    return this;
+  }
+
+  /**
+   * @param readType the {@link ReadType} for this operation
    * @return the updated options object
    */
   public OpenFileOptions setReadType(ReadType readType) {
@@ -89,7 +113,7 @@ public final class OpenFileOptions {
   }
 
   /**
-   * @return the {@link OutStreamOptions} representation of this object
+   * @return the {@link InStreamOptions} representation of this object
    */
   public InStreamOptions toInStreamOptions() {
     return InStreamOptions.defaults().setReadType(mReadType).setLocationPolicy(mLocationPolicy);

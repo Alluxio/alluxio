@@ -21,13 +21,13 @@ import alluxio.job.Job;
 import alluxio.job.JobConf;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
@@ -67,11 +67,12 @@ public final class LineageMasterTest {
    */
   @Before
   public void before() throws Exception {
-    Journal journal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
+    JournalFactory journalFactory =
+        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
-    mLineageMaster = new LineageMaster(mFileSystemMaster, journal,
+    mLineageMaster = new LineageMaster(mFileSystemMaster, journalFactory,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mJob = new CommandLineJob("test", new JobConf("output"));
   }
@@ -169,7 +170,7 @@ public final class LineageMasterTest {
   }
 
   /**
-   * Tests the {@link LineageMaster#reinitializeFile(String, long, long)} method.
+   * Tests the {@link LineageMaster#reinitializeFile(String, long, long, TtlAction)} method.
    */
   @Test
   public void reinitializeFile() throws Exception {
@@ -179,8 +180,9 @@ public final class LineageMasterTest {
     mLineageMaster.start(true);
     mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
-    mLineageMaster.reinitializeFile("/test1", 500L, 10L);
-    Mockito.verify(mFileSystemMaster).reinitializeFile(new AlluxioURI("/test1"), 500L, 10L);
+    mLineageMaster.reinitializeFile("/test1", 500L, 10L, TtlAction.DELETE);
+    Mockito.verify(mFileSystemMaster).reinitializeFile(new AlluxioURI("/test1"), 500L, 10L,
+        TtlAction.DELETE);
   }
 
   /**

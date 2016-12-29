@@ -20,10 +20,11 @@ import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
-import alluxio.master.AlluxioMaster;
+import alluxio.master.AlluxioMasterService;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.wire.LineageInfo;
+import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,13 +46,13 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link LineageMasterClientRestServiceHandler}.
  */
 public final class LineageMasterClientRestApiTest extends RestApiTest {
-  private AlluxioMaster mMaster;
+  private AlluxioMasterService mMaster;
   private LineageFileSystem mLineageClient;
 
   @Before
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getMaster().getWebLocalPort();
+    mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = LineageMasterClientRestServiceHandler.SERVICE_PREFIX;
     mLineageClient = LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
     mMaster = mResource.get().getMaster().getInternalMaster();
@@ -130,6 +131,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
     params.put("path", "/test");
     params.put("blockSizeBytes", "1");
     params.put("ttl", "1");
+    params.put("ttlAction", TtlAction.DELETE.toString());
 
     new TestCase(mHostname, mPort,
         getEndpoint(LineageMasterClientRestServiceHandler.REINITIALIZE_FILE), params,

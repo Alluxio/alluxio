@@ -39,6 +39,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -61,7 +62,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
-public final class InodeTree implements JournalCheckpointStreamable {
+public class InodeTree implements JournalCheckpointStreamable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
 
@@ -102,8 +103,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /** Mount table manages the file system mount points. */
   private final MountTable mMountTable;
 
-  @SuppressWarnings("unchecked")
-  /** use UniqueFieldIndex directly for Id index rather than using IndexedSet */
+  /** Use UniqueFieldIndex directly for ID index rather than using IndexedSet. */
   private final FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<>(ID_INDEX);
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
@@ -317,7 +317,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Locks existing inodes on the specified path, in the specified {@link LockMode}. The target
    * inode must exist.
    *
-   * @param path the path to lock
+   * @param path the {@link AlluxioURI} path to lock
    * @param lockMode the {@link LockMode} to lock the inodes with
    * @return the {@link LockedInodePath} representing the locked path of inodes
    * @throws InvalidPathException if the path is invalid
@@ -408,7 +408,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /**
    * Appends components of the path from a given inode.
    *
-   * @param inode the inode to compute the path for
+   * @param inode the {@link Inode} to compute the path for
    * @param builder a {@link StringBuilder} that is updated with the path components
    * @throws FileDoesNotExistException if an inode in the path does not exist
    */
@@ -565,7 +565,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
               currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
       // Lock the newly created inode before subsequent operations, and add it to the lock group.
-      lockList.lockWrite(dir);
+      lockList.lockWriteAndCheckNameAndParent(dir, currentInodeDirectory, pathComponents[k]);
 
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
@@ -585,7 +585,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     Inode<?> lastInode = currentInodeDirectory.getChild(name);
     if (lastInode != null) {
       // Lock the last inode before subsequent operations, and add it to the lock group.
-      lockList.lockWrite(lastInode);
+      lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
 
       if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
           .isPersisted() && options.isPersisted()) {
@@ -605,23 +605,23 @@ public final class InodeTree implements JournalCheckpointStreamable {
         lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
             currentInodeDirectory.getId(), name, directoryOptions);
         // Lock the created inode before subsequent operations, and add it to the lock group.
-        lockList.lockWrite(lastInode);
+        lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
         if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
         }
-      }
-      if (options instanceof CreateFileOptions) {
+        lastInode.setPinned(currentInodeDirectory.isPinned());
+      } else if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
         lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
             currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
         // Lock the created inode before subsequent operations, and add it to the lock group.
-        lockList.lockWrite(lastInode);
+        lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());
         }
+        lastInode.setPinned(currentInodeDirectory.isPinned());
       }
-      lastInode.setPinned(currentInodeDirectory.isPinned());
 
       createdInodes.add(lastInode);
       mInodes.add(lastInode);
@@ -638,9 +638,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
       String ufsUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
       Permission permission = new Permission(inode.getOwner(), inode.getGroup(), inode.getMode());
-      MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(false)
+      MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
           .setPermission(permission);
-      if (ufs.exists(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
+      if (ufs.isDirectory(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
         inode.setPersistenceState(PersistenceState.PERSISTED);
       }
     }
@@ -657,15 +657,18 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param inodePath the path to the file
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
+   * @param ttlAction action to perform after TTL expiry
    * @return the file id
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the path does not exist
    */
-  public long reinitializeFile(LockedInodePath inodePath, long blockSizeBytes, long ttl)
+  public long reinitializeFile(LockedInodePath inodePath, long blockSizeBytes, long ttl,
+      TtlAction ttlAction)
       throws InvalidPathException, FileDoesNotExistException {
     InodeFile file = inodePath.getInodeFile();
     file.setBlockSizeBytes(blockSizeBytes);
     file.setTtl(ttl);
+    file.setTtlAction(ttlAction);
     return file.getId();
   }
 
@@ -692,9 +695,19 @@ public final class InodeTree implements JournalCheckpointStreamable {
       LockMode lockMode, InodeLockList inodeGroup) {
     for (Inode<?> child : inodeDirectory.getChildren()) {
       if (lockMode == LockMode.READ) {
-        inodeGroup.lockRead(child);
+        try {
+          inodeGroup.lockReadAndCheckParent(child, inodeDirectory);
+        } catch (InvalidPathException e) {
+          // Inode is no longer a child, continue.
+          continue;
+        }
       } else {
-        inodeGroup.lockWrite(child);
+        try {
+          inodeGroup.lockWriteAndCheckParent(child, inodeDirectory);
+        } catch (InvalidPathException e) {
+          // Inode is no longer a child, continue.
+          continue;
+        }
       }
       if (child.isDirectory()) {
         lockDescendantsInternal((InodeDirectory) child, lockMode, inodeGroup);
@@ -752,17 +765,23 @@ public final class InodeTree implements JournalCheckpointStreamable {
     inode.setLastModificationTimeMs(opTimeMs);
 
     if (inode.isFile()) {
-      if (inode.isPinned()) {
-        mPinnedInodeFileIds.add(inode.getId());
+      InodeFile inodeFile = (InodeFile) inode;
+      if (inodeFile.isPinned()) {
+        mPinnedInodeFileIds.add(inodeFile.getId());
       } else {
-        mPinnedInodeFileIds.remove(inode.getId());
+        mPinnedInodeFileIds.remove(inodeFile.getId());
       }
     } else {
       assert inode instanceof InodeDirectory;
       // inode is a directory. Set the pinned state for all children.
       TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
       for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-        child.lockWrite();
+        try {
+          child.lockWriteAndCheckParent(inode);
+        } catch (InvalidPathException e) {
+          // Inode is no longer a child of the directory, continue.
+          continue;
+        }
         try {
           tempInodePath.setDescendant(child, getPath(child));
           setPinned(tempInodePath, pinned, opTimeMs);
@@ -1025,8 +1044,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
           // lock can be acquired. As a consequence, we need to recheck if the child we are
           // looking for has not been created in the meantime.
           lockList.unlockLast();
-          lockList.lockWrite(current);
-          Inode recheckNext = ((InodeDirectory) current).getChild(pathComponents[i]);
+          if (inodes.size() == 1) {
+            lockList.lockWrite(current);
+          } else {
+            lockList.lockWriteAndCheckNameAndParent(current, inodes.get(inodes.size() - 2),
+                pathComponents[(i - 1)]);
+          }
+          Inode<?> recheckNext = ((InodeDirectory) current).getChild(pathComponents[i]);
           if (recheckNext != null) {
             // When releasing the lock and reacquiring the lock, another thread inserted the node we
             // are looking for. Use this existing next node.
@@ -1044,9 +1068,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
       // Lock the existing next inode before proceeding.
       if (getLockModeForComponent(i, pathComponents.length, lockMode, lockHints)
           == LockMode.READ) {
-        lockList.lockRead(next);
+        lockList.lockReadAndCheckNameAndParent(next, current, pathComponents[i]);
       } else {
-        lockList.lockWrite(next);
+        lockList.lockWriteAndCheckNameAndParent(next, current, pathComponents[i]);
       }
       if (next.isFile()) {
         // The inode can't have any children. If this is the last path component, we're good.
@@ -1071,25 +1095,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   private static final class TraversalResult {
+    /** True if the traversal found the target inode, false otherwise. */
     private final boolean mFound;
-    /**
-     * When the path is not found in a traversal, the index of the first path component that
-     * couldn't be found.
-     */
-    private final int mNonexistentIndex;
-    /**
-     * The found inode when the traversal succeeds; otherwise the last path component navigated.
-     */
-    private final Inode<?> mInode;
 
-    /**
-     * The list of non-persisted inodes encountered during the traversal.
-     */
+    /** The list of non-persisted inodes encountered during the traversal. */
     private final List<Inode<?>> mNonPersisted;
 
-    /**
-     * The list of all inodes encountered during the traversal.
-     */
+    /** The list of all inodes encountered during the traversal. */
     private final List<Inode<?>> mInodes;
 
     /** The {@link InodeLockList} managing the locks for the inodes. */
@@ -1098,37 +1110,27 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // TODO(gpang): consider a builder paradigm to iteratively build the traversal result.
     static TraversalResult createFoundResult(List<Inode<?>> nonPersisted, List<Inode<?>> inodes,
         InodeLockList lockList) {
-      return new TraversalResult(true, -1, nonPersisted, inodes, lockList);
+      return new TraversalResult(true, nonPersisted, inodes, lockList);
     }
 
     static TraversalResult createNotFoundResult(int index, List<Inode<?>> nonPersisted,
         List<Inode<?>> inodes, InodeLockList lockList) {
-      return new TraversalResult(false, index, nonPersisted, inodes, lockList);
+      return new TraversalResult(false, nonPersisted, inodes, lockList);
     }
 
-    private TraversalResult(boolean found, int index, List<Inode<?>> nonPersisted,
+    private TraversalResult(boolean found, List<Inode<?>> nonPersisted,
         List<Inode<?>> inodes, InodeLockList lockList) {
       mFound = found;
-      mNonexistentIndex = index;
-      mInode = inodes.get(inodes.size() - 1);
       mNonPersisted = nonPersisted;
       mInodes = inodes;
       mLockList = lockList;
     }
 
+    /**
+     * @return true if target inode was found, false otherwise
+     */
     boolean isFound() {
       return mFound;
-    }
-
-    int getNonexistentPathIndex() {
-      if (mFound) {
-        throw new UnsupportedOperationException("The traversal is successful");
-      }
-      return mNonexistentIndex;
-    }
-
-    Inode<?> getInode() {
-      return mInode;
     }
 
     /**
@@ -1167,10 +1169,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     private final List<Inode<?>> mPersisted;
 
     /**
-     * Constructs the results of modified and created inodes when creating a path.
+     * Constructs the results of modified, created, and persisted inodes when creating a path.
      *
      * @param modified a list of modified inodes
      * @param created a list of created inodes
+     * @param persisted a list of persisted inodes
      */
     CreatePathResult(List<Inode<?>> modified, List<Inode<?>> created, List<Inode<?>> persisted) {
       mModified = Preconditions.checkNotNull(modified);

@@ -20,10 +20,12 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.GetStatusOptions;
+import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
@@ -94,13 +96,17 @@ public class BaseFileSystem implements FileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    URIStatus status;
     try {
       masterClient.createFile(path, options);
+      status = masterClient.getStatus(path);
       LOG.debug("Created file " + path.getPath());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
-    return new FileOutStream(path, options.toOutStreamOptions());
+    OutStreamOptions outStreamOptions = options.toOutStreamOptions();
+    outStreamOptions.setUfsPath(status.getUfsPath());
+    return new FileOutStream(mFileSystemContext, path, outStreamOptions);
   }
 
   @Override
@@ -135,9 +141,7 @@ public class BaseFileSystem implements FileSystem {
       // TODO(calvin): Make this more efficient
       masterClient.getStatus(path);
       return true;
-    } catch (FileDoesNotExistException e) {
-      return false;
-    } catch (InvalidPathException e) {
+    } catch (FileDoesNotExistException | InvalidPathException e) {
       return false;
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
@@ -264,7 +268,8 @@ public class BaseFileSystem implements FileSystem {
       throw new FileNotFoundException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
-    return FileInStream.create(status, options.toInStreamOptions(), mFileSystemContext);
+    InStreamOptions inStreamOptions = options.toInStreamOptions();
+    return FileInStream.create(status, inStreamOptions, mFileSystemContext);
   }
 
   @Override

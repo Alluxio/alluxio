@@ -11,6 +11,8 @@
 
 package alluxio.exception;
 
+import alluxio.PropertyKey;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -40,6 +42,7 @@ public enum PreconditionMessage {
   ERR_SEEK_NEGATIVE("Seek position is negative: %s"),
   ERR_SEEK_PAST_END_OF_BLOCK("Seek position past end of block: %s"),
   ERR_SEEK_PAST_END_OF_FILE("Seek position past end of file: %s"),
+  ERR_SEEK_PAST_END_OF_REGION("Seek position past the end of the read region (block or file)."),
   ERR_SET_STATE_UNPERSIST("Cannot set the state of a file to not-persisted"),
   ERR_TIER_QUOTA_BLANK("Tier capacity configuration should not be blank"),
   ERR_UFS_MANAGER_OPERATION_INVALID_SESSION("Attempted to %s ufs file with invalid session id."),
@@ -51,12 +54,7 @@ public enum PreconditionMessage {
   FILE_WRITE_LOCATION_POLICY_UNSPECIFIED("The location policy is not specified"),
   GCS_BUCKET_MUST_BE_SET("The %s system property must be set to use the GCSUnderStorageCluster"),
   INODE_TREE_UNINITIALIZED_IS_ROOT_ID("Cannot call isRootId() before initializeRoot()"),
-  MUST_SET_PINNED("The pinned flag must be set"),
-  MUST_SET_TTL("The TTL value must be set"),
-  MUST_SET_PERSISTED("The persisted value must be set"),
-  MUST_SET_OWNER("The owner must be set"),
-  MUST_SET_GROUP("The group must be set"),
-  MUST_SET_MODE("The mode must be set"),
+  INVALID_USER_FILE_BUFFER_BYTES("Invalid \"" + PropertyKey.USER_FILE_BUFFER_BYTES + "\": %d"),
   PERMISSION_GROUP_IS_NULL("Group cannot be null when constructing Permission"),
   PERMISSION_MODE_IS_NULL("Mode cannot be null when constructing Permission"),
   PERMISSION_OWNER_IS_NULL("Owner cannot be null when constructing Permission"),

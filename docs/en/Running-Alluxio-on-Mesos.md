@@ -14,6 +14,32 @@ of the memory needed by the ramdisk.
 
 Alluxio is compatible with Mesos 0.23.0 and later.
 
+## Mesos requirements
+
+By default, the Alluxio Master needs ports 19998 and 19999, and the Alluxio Worker needs ports 29998, 29999, and 30000.
+For Mesos to run Alluxio, you must either make these ports available to Mesos frameworks, or change the Alluxio ports.
+
+#### Making ports available
+
+When you launch the Mesos slave, you can specify the port resources for it to manage.
+
+```bash
+$ /usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
+```
+
+#### Changing Alluxio ports
+
+Alternately, you may specify the Alluxio ports in your `alluxio-site.properties` file like so:
+
+```bash
+alluxio.master.port=31398
+alluxio.master.web.port=31399
+
+alluxio.worker.port=31498
+alluxio.worker.data.port=31499
+alluxio.worker.web.port=31500
+```
+
 ## Deploying Alluxio on Mesos
 
 To deploy Alluxio on Mesos, we need to make the Alluxio distribution available to Mesos. There are two ways to do this:
@@ -60,6 +86,7 @@ This means you can configure the launched Alluxio cluster by setting configurati
 
 #### Log files
 
-The `./integration/bin/alluxio-mesos.sh` script will launch an `AlluxioFramework` Java process which will log to `alluxio/logs/framework.out`.
+The `./integration/mesos/bin/alluxio-mesos-start.sh` script will launch an `AlluxioFramework` Java process which will log to `alluxio/logs/framework.out`.
+
 Alluxio masters and workers launched on Mesos will write their Alluxio logs to `mesos_container/logs/`. There
 may also be useful information in the `mesos_container/stderr` file.

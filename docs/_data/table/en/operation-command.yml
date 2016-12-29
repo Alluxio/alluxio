@@ -1,5 +1,7 @@
 cat:
   Print the content of the file to the console.
+checkConsistency:
+  Check the metadata consistency between Alluxio and the under storage.
 checksum:
   Calculate the md5 checksum for a file.
 chgrp:
@@ -57,7 +59,6 @@ mv:
   will fail if "destination" already exists.
 persist:
   Persist files or directories currently stored only in Alluxio to the underlying file system.
-
 pin:
   Pin the given file to avoid evicting it from memory. If the given path is a directory, it
   recursively pins all the files contained and any new files created within this directory.
@@ -70,7 +71,8 @@ rmr:
   Remove a file, or a directory with all the files and sub-directories that this directory
   contains.
 setTtl:
-  Set the TTL (time to live) in milliseconds to a file.
+  Set the TTL (time to live) in milliseconds to a file. Allowing to perform either "delete"
+  or "free" after expiry of ttl interval.
 tail:
   Print the last 1KB of the specified file to the console.
 touch:

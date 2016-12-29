@@ -18,27 +18,28 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
+import alluxio.client.BoundedStream;
+import alluxio.client.Cancelable;
 import alluxio.client.UnderStorageType;
-import alluxio.client.block.BufferedBlockOutStream;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
 import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.util.IdUtils;
-import alluxio.util.io.PathUtils;
-import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,13 +63,16 @@ import javax.annotation.concurrent.ThreadSafe;
 public class FileOutStream extends AbstractOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Used to manage closeable resources. */
+  private final Closer mCloser;
   private final long mBlockSize;
-  protected final AlluxioStorageType mAlluxioStorageType;
+  private final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
+  private final AlluxioBlockStore mBlockStore;
   private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
-  private final long mNonce;
+  private final OutStreamOptions mOptions;
   /** Whether this stream should delegate operations to the ufs to a worker. */
   private final boolean mUfsDelegation;
   /** The client to a file system worker, null if mUfsDelegation is false. */
@@ -77,25 +81,26 @@ public class FileOutStream extends AbstractOutStream {
   private final Long mUfsFileId;
 
   private String mUfsPath;
-  private FileWriteLocationPolicy mLocationPolicy;
 
-  protected boolean mCanceled;
-  protected boolean mClosed;
+  private boolean mCanceled;
+  private boolean mClosed;
   private boolean mShouldCacheCurrentBlock;
-  protected BufferedBlockOutStream mCurrentBlockOutStream;
-  protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
+  private OutputStream mCurrentBlockOutStream;
+  private List<OutputStream> mPreviousBlockOutStreams;
 
   protected final AlluxioURI mUri;
 
   /**
    * Creates a new file output stream.
    *
+   * @param context the file system context
    * @param path the file path
    * @param options the client options
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
-    this(path, options, FileSystemContext.INSTANCE, UnderFileSystemFileOutStream.Factory.get());
+  public FileOutStream(FileSystemContext context, AlluxioURI path, OutStreamOptions options)
+      throws IOException {
+    this(path, options, context, UnderFileSystemFileOutStream.Factory.get());
   }
 
   /**
@@ -109,64 +114,55 @@ public class FileOutStream extends AbstractOutStream {
    */
   public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context,
       UnderFileSystemFileOutStream.Factory underOutStreamFactory) throws IOException {
+    mCloser = Closer.create();
     mUri = Preconditions.checkNotNull(path);
-    mNonce = IdUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
+    mOptions = options;
     mContext = context;
+    mBlockStore = AlluxioBlockStore.create(mContext);
     mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
-    if (mUnderStorageType.isSyncPersist()) {
-      // Get the ufs path from the master.
-      FileSystemMasterClient client = mContext.acquireMasterClient();
-      try {
-        mUfsPath = client.getStatus(mUri).getUfsPath();
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      } finally {
-        mContext.releaseMasterClient(client);
-      }
-      if (mUfsDelegation) {
-        mFileSystemWorkerClient = mContext.createWorkerClient();
-        try {
-          Permission perm = options.getPermission();
-          mUfsFileId =
-              mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
-                  CreateUfsFileOptions.defaults().setPermission(perm));
-          mUnderStorageOutputStream = mUnderOutStreamFactory
-              .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId);
-        } catch (AlluxioException e) {
-          mFileSystemWorkerClient.close();
-          throw new IOException(e);
-        } catch (IOException e) {
-          mFileSystemWorkerClient.close();
-          throw e;
-        }
-      } else {
-        String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-        UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
-        // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-        CreateOptions createOptions = new CreateOptions().setPermission(options.getPermission());
-        mUnderStorageOutputStream = ufs.create(tmpPath, createOptions);
-
-        // Set delegation related vars to null as we are not using worker delegation for ufs ops
-        mFileSystemWorkerClient = null;
-        mUfsFileId = null;
-      }
-    } else {
-      mUfsPath = null;
-      mUnderStorageOutputStream = null;
-      mFileSystemWorkerClient = null;
-      mUfsFileId = null;
-    }
     mClosed = false;
     mCanceled = false;
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     mBytesWritten = 0;
-    mLocationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
-        PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
+    try {
+      if (!mUnderStorageType.isSyncPersist()) {
+        mUfsPath = null;
+        mUnderStorageOutputStream = null;
+        mFileSystemWorkerClient = null;
+        mUfsFileId = null;
+      } else {
+        mUfsPath = options.getUfsPath();
+        if (mUfsDelegation) {
+          mFileSystemWorkerClient = mCloser.register(mContext.createFileSystemWorkerClient());
+          Permission perm = options.getPermission();
+          mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
+              CreateUfsFileOptions.defaults().setPermission(perm));
+          mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
+              .create(mContext, mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
+        } else {
+          UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
+          // TODO(jiri): Implement collection of temporary files left behind by dead clients.
+          // Parent directory creation in ufs is not required as FileSystemMaster will create any
+          // required directories as part of inode creation if sync persist = true
+          CreateOptions createOptions =
+              CreateOptions.defaults().setPermission(options.getPermission());
+          mUnderStorageOutputStream = mCloser.register(ufs.create(mUfsPath, createOptions));
+
+          // Set delegation related vars to null as we are not using worker delegation for ufs ops
+          mFileSystemWorkerClient = null;
+          mUfsFileId = null;
+        }
+      }
+    } catch (AlluxioException | IOException e) {
+      mCloser.close();
+      Throwables.propagateIfInstanceOf(e, IOException.class);
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -180,79 +176,67 @@ public class FileOutStream extends AbstractOutStream {
     if (mClosed) {
       return;
     }
-    if (mCurrentBlockOutStream != null) {
-      mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
-    }
+    try {
+      if (mCurrentBlockOutStream != null) {
+        mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
+      }
 
-    CompleteFileOptions options = CompleteFileOptions.defaults();
-    if (mUnderStorageType.isSyncPersist()) {
-      if (mUfsDelegation) {
-        try {
+      CompleteFileOptions options = CompleteFileOptions.defaults();
+      if (mUnderStorageType.isSyncPersist()) {
+        if (mUfsDelegation) {
           mUnderStorageOutputStream.close();
           if (mCanceled) {
             mFileSystemWorkerClient.cancelUfsFile(mUfsFileId, CancelUfsFileOptions.defaults());
           } else {
-            long len =
-                mFileSystemWorkerClient.completeUfsFile(mUfsFileId,
-                    CompleteUfsFileOptions.defaults());
+            long len = mFileSystemWorkerClient
+                .completeUfsFile(mUfsFileId, CompleteUfsFileOptions.defaults());
             options.setUfsLength(len);
           }
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        } finally {
-          mFileSystemWorkerClient.close();
-        }
-      } else {
-        String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-        UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
-        if (mCanceled) {
-          // TODO(yupeng): Handle this special case in under storage integrations.
-          mUnderStorageOutputStream.close();
-          ufs.delete(tmpPath, false);
         } else {
-          mUnderStorageOutputStream.flush();
-          mUnderStorageOutputStream.close();
-          if (!ufs.rename(tmpPath, mUfsPath)) { // Failed to commit file
-            ufs.delete(tmpPath, false);
-            throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
+          UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
+          if (mCanceled) {
+            // TODO(yupeng): Handle this special case in under storage integrations.
+            mUnderStorageOutputStream.close();
+            ufs.deleteFile(mUfsPath);
+          } else {
+            mUnderStorageOutputStream.flush();
+            mUnderStorageOutputStream.close();
+            options.setUfsLength(ufs.getFileSize(mUfsPath));
           }
-          options.setUfsLength(ufs.getFileSize(mUfsPath));
         }
       }
-    }
 
-    if (mAlluxioStorageType.isStore()) {
-      try {
+      if (mAlluxioStorageType.isStore()) {
         if (mCanceled) {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.cancel();
+          for (OutputStream bos : mPreviousBlockOutStreams) {
+            outStreamCancel(bos);
           }
         } else {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
+          for (OutputStream bos : mPreviousBlockOutStreams) {
             bos.close();
           }
         }
-      } catch (IOException e) {
-        handleCacheWriteException(e);
       }
-    }
 
-    // Complete the file if it's ready to be completed.
-    if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
-      FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-      try {
-        masterClient.completeFile(mUri, options);
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      } finally {
-        mContext.releaseMasterClient(masterClient);
+      // Complete the file if it's ready to be completed.
+      if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
+        try (CloseableResource<FileSystemMasterClient> masterClient = mContext
+            .acquireMasterClientResource()) {
+          masterClient.get().completeFile(mUri, options);
+        }
       }
-    }
 
-    if (mUnderStorageType.isAsyncPersist()) {
-      scheduleAsyncPersist();
+      if (mUnderStorageType.isAsyncPersist()) {
+        scheduleAsyncPersist();
+      }
+    } catch (AlluxioException e) {
+      throw mCloser.rethrow(new IOException(e));
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is
+    } finally {
+      mClosed = true;
+      mCloser.close();
     }
-    mClosed = true;
   }
 
   @Override
@@ -267,7 +251,7 @@ public class FileOutStream extends AbstractOutStream {
   public void write(int b) throws IOException {
     if (mShouldCacheCurrentBlock) {
       try {
-        if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
+        if (mCurrentBlockOutStream == null || outStreamRemaining() == 0) {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
@@ -300,10 +284,10 @@ public class FileOutStream extends AbstractOutStream {
         int tLen = len;
         int tOff = off;
         while (tLen > 0) {
-          if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
+          if (mCurrentBlockOutStream == null || outStreamRemaining() == 0) {
             getNextBlock();
           }
-          long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
+          long currentBlockLeftBytes = outStreamRemaining();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             tLen = 0;
@@ -327,44 +311,36 @@ public class FileOutStream extends AbstractOutStream {
 
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
-      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0,
-          PreconditionMessage.ERR_BLOCK_REMAINING);
+      Preconditions.checkState(outStreamRemaining() <= 0, PreconditionMessage.ERR_BLOCK_REMAINING);
+      mCurrentBlockOutStream.flush();
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
     if (mAlluxioStorageType.isStore()) {
-      try {
-        WorkerNetAddress address = mLocationPolicy
-            .getWorkerForNextBlock(mContext.getAlluxioBlockStore().getWorkerInfoList(), mBlockSize);
-        mCurrentBlockOutStream =
-            mContext.getAlluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
-        mShouldCacheCurrentBlock = true;
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      }
+      mCurrentBlockOutStream =
+          mBlockStore.getOutStream(getNextBlockId(), mBlockSize, mOptions);
+      mShouldCacheCurrentBlock = true;
     }
   }
 
   private long getNextBlockId() throws IOException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      return masterClient.getNewBlockIdForFile(mUri);
+    try (CloseableResource<FileSystemMasterClient> masterClient = mContext
+        .acquireMasterClientResource()) {
+      return masterClient.get().getNewBlockIdForFile(mUri);
     } catch (AlluxioException e) {
       throw new IOException(e);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
     }
   }
 
-  protected void handleCacheWriteException(IOException e) throws IOException {
+  private void handleCacheWriteException(IOException e) throws IOException {
+    LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (!mUnderStorageType.isSyncPersist()) {
       throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
     }
 
-    LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
-      mCurrentBlockOutStream.cancel();
+      outStreamCancel(mCurrentBlockOutStream);
     }
   }
 
@@ -374,14 +350,30 @@ public class FileOutStream extends AbstractOutStream {
    * @throws IOException an I/O error occurs
    */
   protected void scheduleAsyncPersist() throws IOException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      masterClient.scheduleAsyncPersist(mUri);
+    try (CloseableResource<FileSystemMasterClient> masterClient = mContext
+        .acquireMasterClientResource()) {
+      masterClient.get().scheduleAsyncPersist(mUri);
     } catch (AlluxioException e) {
       throw new IOException(e);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  /**
+   * @return the remaining bytes in the out stream
+   */
+  private long outStreamRemaining() {
+    assert mCurrentBlockOutStream instanceof BoundedStream;
+    return ((BoundedStream) mCurrentBlockOutStream).remaining();
+  }
+
+  /**
+   * Cancels the out stream.
+   *
+   * @throws IOException if it fails to cancel the out stream
+   */
+  private void outStreamCancel(OutputStream outputStream) throws IOException {
+    assert outputStream instanceof Cancelable;
+    ((Cancelable) outputStream).cancel();
   }
 
   /**

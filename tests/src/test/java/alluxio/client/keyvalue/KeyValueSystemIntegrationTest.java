@@ -16,8 +16,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -331,7 +331,8 @@ public final class KeyValueSystemIntegrationTest {
   }
 
   private int getPartitionNumber(AlluxioURI storeUri) throws Exception {
-    try (KeyValueMasterClient client = new KeyValueMasterClient(ClientContext.getMasterAddress())) {
+    try (KeyValueMasterClient client = new KeyValueMasterClient(
+        FileSystemContext.INSTANCE.getMasterAddress())) {
       return client.getPartitionInfo(storeUri).size();
     }
   }
@@ -504,5 +505,14 @@ public final class KeyValueSystemIntegrationTest {
         testMergeStore(storeUri1, pairs1, storeUri2, pairs2);
       }
     }
+  }
+
+  /**
+   * Tests that the factory can create an instance of {@link KeyValueSystem}.
+   */
+  @Test
+  public void create() {
+    KeyValueSystem system = KeyValueSystem.Factory.create();
+    Assert.assertNotNull(system);
   }
 }

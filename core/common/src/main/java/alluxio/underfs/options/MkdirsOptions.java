@@ -30,9 +30,16 @@ public final class MkdirsOptions {
   private boolean mCreateParent;
 
   /**
+   * @return the default {@link MkdirsOptions}
+   */
+  public static MkdirsOptions defaults() {
+    return new MkdirsOptions();
+  }
+
+  /**
    * Constructs a default {@link MkdirsOptions}.
    */
-  public MkdirsOptions() {
+  private MkdirsOptions() {
     mPermission = Permission.defaults().applyDirectoryUMask();
     // By default create parent is true.
     mCreateParent = true;
@@ -53,7 +60,7 @@ public final class MkdirsOptions {
   }
 
   /**
-   * Sets the block size.
+   * Sets option to create parent directories.
    *
    * @param createParent if true, creates any necessary but nonexistent parent directories
    * @return the updated option object

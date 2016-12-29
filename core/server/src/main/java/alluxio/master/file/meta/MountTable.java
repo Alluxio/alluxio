@@ -57,7 +57,7 @@ public final class MountTable implements JournalCheckpointStreamable {
 
   /** Maps from Alluxio path string, to {@link MountInfo}. */
   @GuardedBy("mLock")
-  private Map<String, MountInfo> mMountTable;
+  private final Map<String, MountInfo> mMountTable;
 
   /**
    * Creates a new instance of {@link MountTable}.
@@ -237,7 +237,7 @@ public final class MountTable implements JournalCheckpointStreamable {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
         // TODO(gpang): this ufs should probably be cached.
-        UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString());
+        UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsUri.toString());
         ufs.setProperties(info.getOptions().getProperties());
         AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
         return new Resolution(resolvedUri, ufs, info.getOptions().isShared());

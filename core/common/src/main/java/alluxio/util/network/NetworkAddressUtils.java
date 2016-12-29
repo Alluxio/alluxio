@@ -14,7 +14,7 @@ package alluxio.util.network;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.LeaderInquireClient;
+import alluxio.MasterInquireClient;
 import alluxio.PropertyKey;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -34,6 +34,7 @@ import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -67,34 +68,37 @@ public final class NetworkAddressUtils {
      * Master RPC service (Thrift).
      */
     MASTER_RPC("Alluxio Master RPC service", PropertyKey.MASTER_HOSTNAME,
-        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_RPC_PORT, Constants.DEFAULT_MASTER_PORT),
+        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_RPC_PORT),
 
     /**
      * Master web service (Jetty).
      */
     MASTER_WEB("Alluxio Master Web service", PropertyKey.MASTER_WEB_HOSTNAME,
-        PropertyKey.MASTER_WEB_BIND_HOST, PropertyKey.MASTER_WEB_PORT,
-        Constants.DEFAULT_MASTER_WEB_PORT),
+        PropertyKey.MASTER_WEB_BIND_HOST, PropertyKey.MASTER_WEB_PORT),
 
     /**
      * Worker RPC service (Thrift).
      */
     WORKER_RPC("Alluxio Worker RPC service", PropertyKey.WORKER_HOSTNAME,
-        PropertyKey.WORKER_BIND_HOST, PropertyKey.WORKER_RPC_PORT, Constants.DEFAULT_WORKER_PORT),
+        PropertyKey.WORKER_BIND_HOST, PropertyKey.WORKER_RPC_PORT),
 
     /**
      * Worker data service (Netty).
      */
     WORKER_DATA("Alluxio Worker data service", PropertyKey.WORKER_DATA_HOSTNAME,
-        PropertyKey.WORKER_DATA_BIND_HOST, PropertyKey.WORKER_DATA_PORT,
-        Constants.DEFAULT_WORKER_DATA_PORT),
+        PropertyKey.WORKER_DATA_BIND_HOST, PropertyKey.WORKER_DATA_PORT),
 
     /**
      * Worker web service (Jetty).
      */
     WORKER_WEB("Alluxio Worker Web service", PropertyKey.WORKER_WEB_HOSTNAME,
-        PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_WEB_PORT,
-        Constants.DEFAULT_WORKER_WEB_PORT),
+        PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_WEB_PORT),
+
+    /**
+     * Proxy web service (Jetty).
+     */
+    PROXY_WEB("Alluxio Proxy Web service", PropertyKey.PROXY_WEB_HOSTNAME,
+        PropertyKey.PROXY_WEB_BIND_HOST, PropertyKey.PROXY_WEB_PORT),
     ;
 
     // service name
@@ -109,16 +113,12 @@ public final class NetworkAddressUtils {
     // the key of service port
     private final PropertyKey mPortKey;
 
-    // default port number
-    private final int mDefaultPort;
-
     ServiceType(String serviceName, PropertyKey hostNameKey, PropertyKey bindHostKey,
-        PropertyKey portKey, int defaultPort) {
+        PropertyKey portKey) {
       mServiceName = serviceName;
       mHostNameKey = hostNameKey;
       mBindHostKey = bindHostKey;
       mPortKey = portKey;
-      mDefaultPort = defaultPort;
     }
 
     /**
@@ -163,7 +163,7 @@ public final class NetworkAddressUtils {
      * @return default port
      */
     public int getDefaultPort() {
-      return mDefaultPort;
+      return Integer.parseInt(mPortKey.getDefaultValue());
     }
   }
 
@@ -324,7 +324,6 @@ public final class NetworkAddressUtils {
       sLocalHost = InetAddress.getByName(getLocalIpAddress(timeoutMs)).getCanonicalHostName();
       return sLocalHost;
     } catch (UnknownHostException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
@@ -398,7 +397,6 @@ public final class NetworkAddressUtils {
       sLocalIP = address.getHostAddress();
       return sLocalIP;
     } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
@@ -583,21 +581,48 @@ public final class NetworkAddressUtils {
 
   /**
    * Get the active master address from zookeeper for the fault tolerant Alluxio masters.
-   * The zookeeper path is specified by the config: {@link PropertyKey#ZOOKEEPER_LEADER_PATH}.
    *
+   * @param zkLeaderPath the Zookeeper path containing the leader master address
    * @return InetSocketAddress the active master address retrieved from zookeeper
    */
-  public static InetSocketAddress getMasterAddressFromZK() {
+  public static InetSocketAddress getLeaderAddressFromZK(String zkLeaderPath) {
     Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
-    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_LEADER_PATH));
-    LeaderInquireClient leaderInquireClient = LeaderInquireClient
-        .getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
-            Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ELECTION_PATH));
+    MasterInquireClient masterInquireClient = MasterInquireClient.getClient(
+        Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
+        Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH), zkLeaderPath);
     try {
-      String temp = leaderInquireClient.getMasterAddress();
+      String temp = masterInquireClient.getLeaderAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * @return InetSocketAddress the list of all master addresses from zookeeper
+   */
+  public static List<InetSocketAddress> getMasterAddressesFromZK() {
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ELECTION_PATH));
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_LEADER_PATH));
+    MasterInquireClient masterInquireClient = MasterInquireClient.getClient(
+        Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
+        Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+        Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+    List<String> addresses = masterInquireClient.getMasterAddresses();
+    if (addresses == null) {
+      throw new RuntimeException(String.format("Failed to get the master addresses from zookeeper, "
+          + "zookeeper address: %s", Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS)));
+    }
+    List<InetSocketAddress> ret = new ArrayList<>(addresses.size());
+    try {
+      for (String address : addresses) {
+        ret.add(NetworkAddressUtils.parseInetSocketAddress(address));
+      }
+      return ret;
+    } catch (IOException e) {
       throw Throwables.propagate(e);
     }
   }

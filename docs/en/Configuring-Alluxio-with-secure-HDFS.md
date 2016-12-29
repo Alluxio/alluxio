@@ -6,8 +6,8 @@ group: Under Store
 priority: 3
 ---
 
-This guide
-describes how to configure Alluxio with [secure HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)
+This guide describes how to configure Alluxio with
+[secure HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)
 as the under storage system. Alluxio supports secure HDFS as the under filesystem, with
 [Kerberos](http://web.mit.edu/kerberos/) authentication.
 
@@ -93,6 +93,14 @@ details about setting configuration parameters can be found in
 # Running Alluxio Locally with secure HDFS
 
 Before this step, please make sure your HDFS cluster is running and the directory mounted to Alluxio exists.
+
+Please `kinit` on the Alluxio nodes with the corresponding master/worker principal and keytab file
+to provide a Kerberos ticket cache. A known limitation is that the Kerberos TGT may expire after the max renewal lifetime. You can work around this by renewing the TGT periodically. Otherwise you may see the following error when starting Alluxio service:
+
+```
+javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
+```
+
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 {% include Common-Commands/start-alluxio.md %}
@@ -106,7 +114,7 @@ Next, you can run a simple example program:
 
 After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
 to verify the files and directories created by Alluxio exist. For this test, you should see
-files named like: `/default_tests_files/BasicFile_STORE_SYNC_PERSIST`
+files named like: `/default_tests_files/Basic_CACHE_THROUGH`
 
 You can stop Alluxio any time by running:
 

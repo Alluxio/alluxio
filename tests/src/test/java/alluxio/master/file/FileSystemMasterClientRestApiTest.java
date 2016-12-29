@@ -21,6 +21,7 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.wire.FileInfo;
+import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,7 +50,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Before
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getMaster().getWebLocalPort();
+    mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX;
     mFileSystemMaster = mResource.get().getMaster().getInternalMaster().getFileSystemMaster();
   }
@@ -252,6 +253,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     params.put("path", uri.toString());
     params.put("pinned", "true");
     params.put("ttl", "100000");
+    params.put("ttlAction", TtlAction.DELETE.toString());
     params.put("persisted", "true");
     params.put("recursive", "false");
 
@@ -263,6 +265,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     Assert.assertEquals(uri.toString(), fileInfo.getPath());
     Assert.assertTrue(fileInfo.isPinned());
     Assert.assertEquals(100000, fileInfo.getTtl());
+    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
     Assert.assertTrue(fileInfo.isPersisted());
   }
 

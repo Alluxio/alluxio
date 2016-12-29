@@ -1,4 +1,6 @@
 **/alluxio-site.properties
+**/nb-configuration*.xml
+**/nbproject/
 *.iml
 *.pyc
 *.swo

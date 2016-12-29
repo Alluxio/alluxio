@@ -10,11 +10,13 @@
     See the NOTICE file distributed with this work for information regarding copyright ownership.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>1.3.1-SNAPSHOT</version>
+  <version>1.4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -140,26 +142,28 @@
   <properties>
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
     <aws.amazonaws.version>1.11.7</aws.amazonaws.version>
+    <build.path>build</build.path>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
     <findbugs.path>build/findbugs</findbugs.path>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
+    <gmetric4j.version>1.0.7</gmetric4j.version>
     <hadoop.version>2.2.0</hadoop.version>
+    <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
+    <jackson.version>1.9.7</jackson.version>
     <java.version>1.7</java.version>
     <jersey.version>2.22</jersey.version>
     <jetty.version>9.2.16.v20160414</jetty.version>
     <junit.version>4.12</junit.version>
     <libthrift.version>0.9.3</libthrift.version>
     <license.header.path>build/license/</license.header.path>
-    <build.path>build</build.path>
     <log4j.version>1.2.17</log4j.version>
     <metrics.version>3.1.2</metrics.version>
     <powermock.version>1.6.1</powermock.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
-    <test.output.redirect>true</test.output.redirect>
-    <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
+    <test.output.redirect>true</test.output.redirect>
   </properties>
 
   <modules>
@@ -191,6 +195,11 @@
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
         <version>1.10</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
+        <version>4.1.6.Final</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>
@@ -366,12 +375,16 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.14</version>
+          <version>2.19.1</version>
           <configuration>
             <argLine>-Djava.net.preferIPv4Stack=true -XX:MaxPermSize=512M</argLine>
+            <forkCount>2</forkCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
-            <!-- Alphabetical order on even hours, reverse-alphabetical on odd hours  -->
-            <runOrder>hourly</runOrder>
+            <reuseForks>false</reuseForks>
+            <runOrder>alphabetical</runOrder>
+            <systemPropertyVariables>
+              <alluxio.test.mode>true</alluxio.test.mode>
+            </systemPropertyVariables>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>
@@ -561,12 +574,10 @@
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
             <exclude>conf/alluxio-site.properties</exclude>
-            <exclude>conf/workers</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
-            <exclude>**/src/main/assembly/*</exclude>
             <exclude>**/.checkstyle</exclude>
-            <exclude>**/*.log</exclude>
+            <exclude>**/src/main/assembly/*</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>docs/**/*</exclude>

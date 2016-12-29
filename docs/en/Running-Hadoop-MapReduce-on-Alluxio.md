@@ -76,8 +76,7 @@ Below are instructions for the 2 main alternatives:
 
 1.**Using the -libjars command line option.**
 You can run a job by using the `-libjars` command line option when using `hadoop jar ...`,
-specifying
-`/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
+specifying `{{site.ALLUXIO_CLIENT_JAR_PATH}}`
 as the argument. This will place the jar in the Hadoop DistributedCache, making it available to all
 the nodes. For example, the following command adds the Alluxio client jar to the `-libjars` option:
 

@@ -24,7 +24,7 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The file block descriptor.
+ * The file block information.
  */
 @PublicApi
 @NotThreadSafe
@@ -43,7 +43,7 @@ public final class FileBlockInfo implements Serializable {
   /**
    * Creates a new instance of {@link FileBlockInfo} from a thrift representation.
    *
-   * @param fileBlockInfo the thrift representation of a file block descriptor
+   * @param fileBlockInfo the thrift representation of a file block information
    */
   protected FileBlockInfo(alluxio.thrift.FileBlockInfo fileBlockInfo) {
     mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
@@ -81,7 +81,7 @@ public final class FileBlockInfo implements Serializable {
 
   /**
    * @param blockInfo the block info to use
-   * @return the file block descriptor
+   * @return the file block information
    */
   public FileBlockInfo setBlockInfo(BlockInfo blockInfo) {
     Preconditions.checkNotNull(blockInfo);
@@ -91,7 +91,7 @@ public final class FileBlockInfo implements Serializable {
 
   /**
    * @param offset the offset to use
-   * @return the file block descriptor
+   * @return the file block information
    */
   public FileBlockInfo setOffset(long offset) {
     mOffset = offset;
@@ -100,7 +100,7 @@ public final class FileBlockInfo implements Serializable {
 
   /**
    * @param ufsLocations the UFS locations to use
-   * @return the file block descriptor
+   * @return the file block information
    */
   public FileBlockInfo setUfsLocations(List<String> ufsLocations) {
     Preconditions.checkNotNull(ufsLocations);
@@ -109,7 +109,7 @@ public final class FileBlockInfo implements Serializable {
   }
 
   /**
-   * @return thrift representation of the file block descriptor
+   * @return thrift representation of the file block information
    */
   protected alluxio.thrift.FileBlockInfo toThrift() {
     List<alluxio.thrift.WorkerNetAddress> ufsLocations = new ArrayList<>();

@@ -32,7 +32,7 @@ import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.AsyncJournalWriter;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalProtoUtils;
@@ -44,9 +44,9 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
+import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
@@ -72,7 +72,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -158,43 +157,31 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostWorkerDetectionService;
 
-  /** The next worker id to use. This state must be journaled. */
-  private final AtomicLong mNextWorkerId = new AtomicLong(1);
-
   /** The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private long mJournaledNextContainerId = 0;
 
   /**
-   * @param baseDirectory the base journal directory
-   * @return the journal directory for this master
-   */
-  public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_NAME);
-  }
-
-  /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param journal the journal to use for tracking master operations
+   * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public BlockMaster(Journal journal) {
-    super(journal, new SystemClock(), ExecutorServiceFactories
+  public BlockMaster(JournalFactory journalFactory) {
+    this(journalFactory, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
-
-    Metrics.registerGauges(this);
   }
 
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param journal the journal to use for tracking master operations
+   * @param journalFactory the factory for the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
-   * @param executorServiceFactory a factory for creating the executor service to use for
-   *        running maintenance threads
+   * @param executorServiceFactory a factory for creating the executor service to use for running
+   *        maintenance threads
    */
-  public BlockMaster(Journal journal, Clock clock, ExecutorServiceFactory executorServiceFactory) {
-    super(journal, clock, executorServiceFactory);
+  public BlockMaster(JournalFactory journalFactory, Clock clock,
+      ExecutorServiceFactory executorServiceFactory) {
+    super(journalFactory.get(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
     Metrics.registerGauges(this);
   }
 
@@ -624,8 +611,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     }
 
     // Generate a new worker id.
-    long workerId = mNextWorkerId.getAndIncrement();
-    mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
+    long workerId = IdUtils.getRandomNonNegativeLong();
+    while (!mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
+      workerId = IdUtils.getRandomNonNegativeLong();
+    }
 
     LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
     return workerId;
@@ -853,6 +842,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     public static final String CAPACITY_TOTAL = "CapacityTotal";
     public static final String CAPACITY_USED = "CapacityUsed";
     public static final String CAPACITY_FREE = "CapacityFree";
+    public static final String WORKERS = "Workers";
 
     private static void registerGauges(final BlockMaster master) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_TOTAL),
@@ -879,7 +869,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName("Workers"),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(WORKERS),
           new Gauge<Integer>() {
             @Override
             public Integer getValue() {

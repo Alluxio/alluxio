@@ -12,12 +12,14 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.ReadOnlyJournal;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.JournalFactory;
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Function;
 
 import java.io.IOException;
 
@@ -25,10 +27,9 @@ public class MasterTestUtils {
   public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    Journal blockJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(masterJournal));
-    Journal fsJournal = new ReadWriteJournal(FileSystemMaster.getJournalDirectory(masterJournal));
-    BlockMaster blockMaster = new BlockMaster(blockJournal);
-    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, fsJournal);
+    JournalFactory journalFactory = new JournalFactory.ReadWrite(masterJournal);
+    BlockMaster blockMaster = new BlockMaster(journalFactory);
+    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, journalFactory);
     blockMaster.start(true);
     fsMaster.start(true);
     return fsMaster;
@@ -37,12 +38,26 @@ public class MasterTestUtils {
   public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    Journal blockJournal = new ReadOnlyJournal(BlockMaster.getJournalDirectory(masterJournal));
-    Journal fsJournal = new ReadOnlyJournal(FileSystemMaster.getJournalDirectory(masterJournal));
-    BlockMaster blockMaster = new BlockMaster(blockJournal);
-    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, fsJournal);
+    JournalFactory journalFactory = new JournalFactory.ReadWrite(masterJournal);
+    BlockMaster blockMaster = new BlockMaster(journalFactory);
+    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, journalFactory);
     blockMaster.start(false);
     fsMaster.start(false);
     return fsMaster;
+  }
+
+  /**
+   * Waits for the startup consistency check to complete with a limit of 1 minute.
+   *
+   * @param master the file system master which is starting up
+   */
+  public static void waitForStartupConsistencyCheck(final FileSystemMaster master) {
+    CommonUtils.waitFor("Startup consistency check completion", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void aVoid) {
+        return master.getStartupConsistencyCheck().getStatus()
+            == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE;
+      }
+    }, Constants.MINUTE_MS);
   }
 }

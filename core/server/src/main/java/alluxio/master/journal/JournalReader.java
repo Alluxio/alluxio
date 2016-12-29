@@ -55,8 +55,8 @@ public class JournalReader {
    * @param journal the handle to the journal
    */
   JournalReader(Journal journal) {
-    mJournal = Preconditions.checkNotNull(journal);
-    mUfs = UnderFileSystem.get(mJournal.getDirectory());
+    mJournal = Preconditions.checkNotNull(journal, "journal");
+    mUfs = UnderFileSystem.Factory.get(mJournal.getDirectory());
     mCheckpointPath = mJournal.getCheckpointFilePath();
   }
 
@@ -105,7 +105,7 @@ public class JournalReader {
       throw new IOException("Checkpoint file has been updated. This reader is no longer valid.");
     }
     String currentLogPath = mJournal.getCompletedLogFilePath(mCurrentLogNumber);
-    if (!mUfs.exists(currentLogPath)) {
+    if (!mUfs.isFile(currentLogPath)) {
       LOG.debug("Journal log file: {} does not exist yet.", currentLogPath);
       return null;
     }
@@ -124,7 +124,7 @@ public class JournalReader {
    * @throws IOException if the checkpoint does not exist
    */
   public long getCheckpointLastModifiedTimeMs() throws IOException {
-    if (!mUfs.exists(mCheckpointPath)) {
+    if (!mUfs.isFile(mCheckpointPath)) {
       throw new IOException("Checkpoint file " + mCheckpointPath + " does not exist.");
     }
     mCheckpointLastModifiedTime = mUfs.getModificationTimeMs(mCheckpointPath);

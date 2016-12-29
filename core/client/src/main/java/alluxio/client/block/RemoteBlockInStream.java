@@ -12,7 +12,9 @@
 package alluxio.client.block;
 
 import alluxio.client.RemoteBlockReader;
-import alluxio.exception.ExceptionMessage;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.InStreamOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
@@ -44,8 +46,10 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
 
   /** Client to communicate with the remote worker. */
   private final BlockWorkerClient mBlockWorkerClient;
-  /** The block store context which provides block worker clients. */
-  private final BlockStoreContext mContext;
+  /** The file system context which provides block worker clients. */
+  private final FileSystemContext mContext;
+  /** {@link RemoteBlockReader} for this instance. */
+  private RemoteBlockReader mReader;
 
   /**
    * Creates a new remote block input stream.
@@ -53,11 +57,12 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @param blockId the block id
    * @param blockSize the block size
    * @param workerNetAddress the worker address
-   * @param context the block store context to use for acquiring worker and master clients
+   * @param context the file system context to use for acquiring worker and master clients
+   * @param options the instream options
    * @throws IOException if the block is not available on the remote worker
    */
   public RemoteBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress,
-      BlockStoreContext context) throws IOException {
+      FileSystemContext context, InStreamOptions options) throws IOException {
     super(blockId, blockSize);
     mWorkerNetAddress = workerNetAddress;
     mWorkerInetSocketAddress =
@@ -67,12 +72,12 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     mCloser = Closer.create();
 
     try {
-      mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(workerNetAddress));
+      mBlockWorkerClient = mCloser.register(mContext.createBlockWorkerClient(workerNetAddress));
       LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
-      if (result == null) {
-        throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
-      }
       mLockId = result.getLockId();
+    } catch (AlluxioException e) {
+      mCloser.close();
+      throw new IOException(e);
     } catch (IOException e) {
       mCloser.close();
       throw e;
@@ -96,6 +101,8 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     }
     try {
       mBlockWorkerClient.unlockBlock(mBlockId);
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is
     } finally {
       mClosed = true;
       mCloser.close();
@@ -145,15 +152,17 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     // read up to the end of the block.
     int toRead = (int) Math.min(len, remaining());
     int bytesLeft = toRead;
+
+    if (mReader == null) {
+      mReader = mCloser.register(RemoteBlockReader.Factory.create(mContext));
+    }
+
     while (bytesLeft > 0) {
-      // TODO(calvin): Fix needing to recreate reader each time.
-      try (RemoteBlockReader reader = RemoteBlockReader.Factory.create()) {
-        ByteBuffer data = reader.readRemoteBlock(mWorkerInetSocketAddress, mBlockId, getPosition(),
-            bytesLeft, mLockId, mBlockWorkerClient.getSessionId());
-        int bytesRead = data.remaining();
-        data.get(b, off, bytesRead);
-        bytesLeft -= bytesRead;
-      }
+      ByteBuffer data = mReader.readRemoteBlock(mWorkerInetSocketAddress, mBlockId, getPosition(),
+          bytesLeft, mLockId, mBlockWorkerClient.getSessionId());
+      int bytesRead = data.remaining();
+      data.get(b, off, bytesRead);
+      bytesLeft -= bytesRead;
     }
 
     return toRead;

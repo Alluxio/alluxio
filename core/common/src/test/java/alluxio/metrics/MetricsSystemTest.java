@@ -21,7 +21,7 @@ import java.util.Properties;
 /**
  * Unit tests for {@link MetricsSystem}.
  */
-public class MetricsSystemTest {
+public final class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
   private static Counter sCounter =
       MetricsSystem.METRIC_REGISTRY.counter(MetricsSystem.getMasterMetricName("counter"));

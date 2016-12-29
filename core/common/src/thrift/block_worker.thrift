@@ -8,12 +8,20 @@ struct LockBlockResult {
   2: string blockPath
 }
 
+enum TWriteTier {
+  Highest = 1,
+  SecondHighest = 2,
+  Lowest = 3,
+}
+
 service BlockWorkerClientService extends common.AlluxioService {
 
   /**
    * Accesses a block given the block id.
    */
-  void accessBlock( /** the id of the block being accessed */ 1: i64 blockId)
+  void accessBlock(
+    /** the id of the block being accessed */ 1: i64 blockId,
+    )
     throws (1: exception.AlluxioTException e)
 
   /**
@@ -21,16 +29,20 @@ service BlockWorkerClientService extends common.AlluxioService {
    * folder to data folder, and update the space usage information related. then update the block
    * information to master.
    */
-  void cacheBlock( /** the id of the current session */ 1: i64 sessionId,
-      /** the id of the block being accessed */ 2: i64 blockId)
+  void cacheBlock(
+    /** the id of the current session */ 1: i64 sessionId,
+    /** the id of the block being accessed */ 2: i64 blockId,
+    )
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Used to cancel a block which is being written. worker will delete the temporary block file and
    * the location and space information related, then reclaim space allocated to the block.
    */
-  void cancelBlock( /** the id of the current session */ 1: i64 sessionId,
-      /** the id of the block being accessed */ 2: i64 blockId)
+  void cancelBlock(
+    /** the id of the current session */ 1: i64 sessionId,
+    /** the id of the block being accessed */ 2: i64 blockId,
+    )
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
@@ -38,8 +50,10 @@ service BlockWorkerClientService extends common.AlluxioService {
    * the block's file along with the internal lock id of locked block will be returned. If the block's file
    * is not found, FileDoesNotExistException will be thrown.
    */
-  LockBlockResult lockBlock( /** the id of the block being accessed */ 1: i64 blockId,
-      /** the id of the current session */ 2: i64 sessionId)
+  LockBlockResult lockBlock(
+    /** the id of the block being accessed */ 1: i64 blockId,
+    /** the id of the current session */ 2: i64 sessionId,
+    )
     throws (1: exception.AlluxioTException e)
 
   /**
@@ -47,7 +61,17 @@ service BlockWorkerClientService extends common.AlluxioService {
    * storage layers in Alluxio's space. return true if the block is successfully promoted, false
    * otherwise.
    */
-  bool promoteBlock( /** the id of the block being accessed */ 1: i64 blockId)
+  bool promoteBlock(
+    /** the id of the block being accessed */ 1: i64 blockId,
+    )
+    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+
+  /**
+   * Used to remove a block from an Alluxio worker.
+   **/
+  void removeBlock(
+    /** the id of the block being removed */ 1: i64 blockId,
+    )
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
@@ -57,34 +81,42 @@ service BlockWorkerClientService extends common.AlluxioService {
    * storage OutOfSpaceException will be thrown, if the file is already being written by the session,
    * FileAlreadyExistsException will be thrown.
    */
-  string requestBlockLocation( /** the id of the current session */ 1: i64 sessionId,
-      /** the id of the block being accessed */ 2: i64 blockId,
-      /** initial number of bytes requested */ 3: i64 initialBytes)
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+  string requestBlockLocation(
+    /** the id of the current session */ 1: i64 sessionId,
+    /** the id of the block being accessed */ 2: i64 blockId,
+    /** initial number of bytes requested */ 3: i64 initialBytes,
+    /** the target tier to write to */ 4: TWriteTier writeTier,
+    )
 
   /**
    * Used to request space for some block file. return true if the worker successfully allocates
    * space for the block on block’s location, false if there is no enough space, if there is no
    * information of the block on worker, FileDoesNotExistException will be thrown.
    */
-  bool requestSpace( /** the id of the current session */ 1: i64 sessionId,
-      /** the id of the block being accessed */ 2: i64 blockId,
-      /** the number of bytes requested */ 3: i64 requestBytes)
+  bool requestSpace(
+    /** the id of the current session */ 1: i64 sessionId,
+    /** the id of the block being accessed */ 2: i64 blockId,
+    /** the number of bytes requested */ 3: i64 requestBytes,
+    )
     throws (1: exception.AlluxioTException e)
 
   /**
    * Local session send heartbeat to local worker to keep its temporary folder.
    */
-  void sessionHeartbeat( /** the id of the current session */ 1: i64 sessionId,
-      /** deprecated since 1.3.0 and will be removed in 2.0 */ 2: list<i64> metrics)
-       throws (1: exception.AlluxioTException e)
+  void sessionHeartbeat(
+    /** the id of the current session */ 1: i64 sessionId,
+    /** deprecated since 1.3.0 and will be removed in 2.0 */ 2: list<i64> metrics,
+    )
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
    * block file. return true if successfully unlock the block, return false if the block is not
    * found or failed to delete the block.
    */
-  bool unlockBlock( /** the id of the block being accessed */ 1: i64 blockId,
-      /** the id of the current session */ 2: i64 sessionId)
+  bool unlockBlock(
+    /** the id of the block being accessed */ 1: i64 blockId,
+    /** the id of the current session */ 2: i64 sessionId,
+    )
     throws (1: exception.AlluxioTException e)
 }

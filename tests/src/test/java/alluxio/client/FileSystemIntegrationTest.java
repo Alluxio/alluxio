@@ -187,7 +187,7 @@ public final class FileSystemIntegrationTest {
    * @param alternateUfsRoot the root of the alternate Ufs
    */
   private void destroyAlternateUfs(String alternateUfsRoot) throws Exception {
-    UnderFileSystemUtils.deleteDir(alternateUfsRoot);
+    UnderFileSystemUtils.deleteDirIfExists(alternateUfsRoot);
   }
 
   @Test

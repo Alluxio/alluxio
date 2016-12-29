@@ -15,6 +15,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,10 +48,10 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
    * @return the address of the worker to write to
    */
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     if (!mInitialized) {
-      mWorkerInfoList = workerInfoList;
+      mWorkerInfoList = Lists.newArrayList(workerInfoList);
       Collections.shuffle(mWorkerInfoList);
       mIndex = 0;
       mInitialized = true;
@@ -73,7 +74,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
    * @param address the address to look for
    * @return the worker info in the list that matches the host name, null if not found
    */
-  private BlockWorkerInfo findBlockWorkerInfo(List<BlockWorkerInfo> workerInfoList,
+  private BlockWorkerInfo findBlockWorkerInfo(Iterable<BlockWorkerInfo> workerInfoList,
       WorkerNetAddress address) {
     for (BlockWorkerInfo info : workerInfoList) {
       if (info.getNetAddress().equals(address)) {

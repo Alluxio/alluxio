@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
@@ -46,6 +47,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final boolean PACKET_STREAMING_ENABLED =
+      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
 
   private long mCurrentPosition;
   private Path mHdfsPath;
@@ -67,19 +70,21 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * Constructs a new stream for reading a file from HDFS.
    *
+   * @param context the file system context
    * @param uri the Alluxio file URI
    * @param conf Hadoop configuration
    * @param bufferSize the buffer size
    * @param stats filesystem statistics
    * @throws IOException if the underlying file does not exist or its stream cannot be created
    */
-  public HdfsFileInputStream(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf,
-      int bufferSize, org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
+  public HdfsFileInputStream(FileSystemContext context, AlluxioURI uri,
+      org.apache.hadoop.conf.Configuration conf, int bufferSize,
+      org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
     LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, conf, bufferSize, stats);
     long bufferBytes = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
-    FileSystem fs = FileSystem.Factory.get();
+    FileSystem fs = FileSystem.Factory.get(context);
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
     mStatistics = stats;
@@ -208,11 +213,60 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   @Override
-  public synchronized int read(long position, byte[] buffer, int offset, int length)
-      throws IOException {
+  public int read(long position, byte[] buffer, int offset, int length) throws IOException {
     if (mClosed) {
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
+
+    if (PACKET_STREAMING_ENABLED) {
+      return readWithPacketStreaming(position, buffer, offset, length);
+    } else {
+      return readWithoutPacketStreaming(position, buffer, offset, length);
+    }
+  }
+
+  /**
+   * Reads upto the specified number of bytes, from a given position within a file, and return the
+   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
+   * This is used if packet streaming is enabled.
+   *
+   * @param position the start position to read from the stream
+   * @param buffer the buffer to hold the data read
+   * @param offset the offset in the buffer
+   * @param length the number of bytes to read from the file
+   * @return the number of bytes read or -1 if EOF is reached
+   * @throws IOException if it fails to read
+   */
+  private int readWithPacketStreaming(long position, byte[] buffer, int offset,
+      int length) throws IOException {
+    int bytesRead = -1;
+
+    if (mAlluxioFileInputStream != null) {
+      bytesRead = mAlluxioFileInputStream.positionedRead(position, buffer, offset, length);
+    } else {
+      getHdfsInputStream();
+      bytesRead = mHdfsInputStream.read(position, buffer, offset, length);
+    }
+    if (mStatistics != null && bytesRead != -1) {
+      mStatistics.incrementBytesRead(bytesRead);
+    }
+    return bytesRead;
+  }
+
+  /**
+   * Reads upto the specified number of bytes, from a given position within a file, and return the
+   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
+   * This is used if packet streaming is not enabled.
+   *
+   * @param position the start position to read from the stream
+   * @param buffer the buffer to hold the data read
+   * @param offset the offset in the buffer
+   * @param length the number of bytes to read from the file
+   * @return the number of bytes read or -1 if EOF is reached
+   * @throws IOException if it fails to read
+   */
+  private synchronized int readWithoutPacketStreaming(long position, byte[] buffer, int offset,
+      int length) throws IOException {
     int ret = -1;
     long oldPos = getPos();
     if ((position < 0) || (position >= mFileInfo.getLength())) {

@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ClientContext;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -44,7 +43,7 @@ import java.util.List;
 * Unit test for functionality in {@link BaseFileSystem}.
 */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, ClientContext.class})
+@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class})
 public final class BaseFileSystemTest {
 
   private static final RuntimeException EXCEPTION = new RuntimeException("test exception");
@@ -89,7 +88,9 @@ public final class BaseFileSystemTest {
   public void createFile() throws Exception {
     Mockito.doNothing().when(mFileSystemMasterClient)
         .createFile(Mockito.any(AlluxioURI.class), Mockito.any(CreateFileOptions.class));
+    URIStatus status = new URIStatus(new FileInfo());
     AlluxioURI file = new AlluxioURI("/file");
+    Mockito.when(mFileSystemMasterClient.getStatus(file)).thenReturn(status);
     CreateFileOptions options = CreateFileOptions.defaults();
     FileOutStream out = mFileSystem.createFile(file, options);
     Mockito.verify(mFileSystemMasterClient).createFile(file, options);
@@ -337,7 +338,6 @@ public final class BaseFileSystemTest {
   @Test
   public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    URIStatus status = new URIStatus(new FileInfo());
     Mockito.when(mFileSystemMasterClient.getStatus(file)).thenThrow(EXCEPTION);
     OpenFileOptions openOptions = OpenFileOptions.defaults();
     try {

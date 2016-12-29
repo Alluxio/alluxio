@@ -18,6 +18,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -34,6 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 // TODO(calvin): See if common logic in this class and buffered block out stream can be abstracted
 @NotThreadSafe
 public final class UnderFileSystemFileOutStream extends OutputStream {
+  private final FileSystemContext mContext;
   /** Java heap buffer to buffer writes before flushing them to the worker. */
   private final ByteBuffer mBuffer;
   /** Writer to the worker, currently only implemented through Netty. */
@@ -42,7 +44,8 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
   private final InetSocketAddress mAddress;
   /** Worker file id referencing the file to write to. */
   private final long mUfsFileId;
-
+  /** Used to manage closeable resources. */
+  private final Closer mCloser;
   /** If the stream is closed, this can only go from false to true. */
   private boolean mClosed;
   /** Number of bytes flushed to the worker. */
@@ -54,6 +57,8 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
    * Factory for creating an {@link UnderFileSystemFileOutStream}.
    */
   public static class Factory {
+    private static final boolean PACKET_STREAMING_ENABLED =
+        Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
     private static Factory sInstance;
 
     /**
@@ -69,29 +74,41 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
     protected Factory() {} // prevent external instantiation.
 
     /**
+     * @param context the file system context
      * @param address the address of an Alluxio worker
      * @param ufsFileId the file ID of the ufs fild to write to
      * @return a new {@link UnderFileSystemFileOutStream}
+     * @throws IOException if it fails to create the out stream
      */
-    public OutputStream create(InetSocketAddress address, long ufsFileId) {
-      return new UnderFileSystemFileOutStream(address, ufsFileId);
+    public OutputStream create(FileSystemContext context, InetSocketAddress address, long ufsFileId)
+        throws IOException {
+      if (PACKET_STREAMING_ENABLED) {
+        return new alluxio.client.block.stream.UnderFileSystemFileOutStream(context, address,
+            ufsFileId);
+      } else {
+        return new UnderFileSystemFileOutStream(context, address, ufsFileId);
+      }
     }
   }
 
   /**
    * Constructor for a under file system file output stream.
    *
+   * @param context the file system context
    * @param address address of the worker
    * @param ufsFileId the worker specific file id
    */
-  private UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
+  private UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
+      long ufsFileId) {
+    mContext = context;
     mBuffer = allocateBuffer();
     mAddress = address;
     mUfsFileId = ufsFileId;
-    mWriter = UnderFileSystemFileWriter.Factory.create();
     mFlushedBytes = 0;
     mWrittenBytes = 0;
     mClosed = false;
+    mCloser = Closer.create();
+    mWriter = mCloser.register(UnderFileSystemFileWriter.Factory.create(mContext));
   }
 
   @Override
@@ -99,10 +116,16 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
     if (mClosed) {
       return;
     }
-    if (mFlushedBytes < mWrittenBytes) {
-      flush();
+    try {
+      if (mFlushedBytes < mWrittenBytes) {
+        flush();
+      }
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is
+    } finally {
+      mClosed = true;
+      mCloser.close();
     }
-    mClosed = true;
   }
 
   @Override

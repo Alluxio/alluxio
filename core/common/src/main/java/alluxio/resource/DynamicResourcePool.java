@@ -17,16 +17,16 @@ import alluxio.clock.SystemClock;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -55,11 +55,10 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param <T> the resource type
    */
   protected class ResourceInternal<T> {
-    // A unique Id used to distinguish the objects.
-    private int mIdentity = System.identityHashCode(this);
-
+    /** The resource. */
     private T mResource;
 
+    /** The last access time in ms. */
     private long mLastAccessTimeMs;
 
     /**
@@ -91,10 +90,19 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * Options to initialize a Dynamic resource pool.
    */
   public static final class Options {
+    /** The max capacity. */
     private int mMaxCapacity = 1024;
+
+    /** The min capacity. */
     private int mMinCapacity = 1;
+
+    /** The initial delay. */
     private long mInitialDelayMs = 100;
+
+    /** The gc interval. */
     private long mGcIntervalMs = 120 * Constants.SECOND_MS;
+
+    /** The gc executor. */
     private ScheduledExecutorService mGcExecutor;
 
     /**
@@ -194,31 +202,28 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
   private final ReentrantLock mLock = new ReentrantLock();
   private final Condition mNotEmpty = mLock.newCondition();
+
+  /** The max capacity. */
   private final int mMaxCapacity;
+
+  /** The min capacity. */
   private final int mMinCapacity;
 
-  // Tracks the resources that are available ordered by lastAccessTime (the first one is
+  // Tracks the resources that are available ordered by lastAccessTime (the head is
   // the most recently used resource).
+  // These are the resources that acquire() will take.
+  // This is always a subset of the other data structure mResources.
   @GuardedBy("mLock")
-  private TreeSet<ResourceInternal<T>> mResourceAvailable =
-      new TreeSet<>(new Comparator<ResourceInternal<T>>() {
-        @Override
-        public int compare(ResourceInternal<T> c1, ResourceInternal<T> c2) {
-          if (c1 == c2) {
-            return 0;
-          }
-          if (c1.mLastAccessTimeMs == c2.mLastAccessTimeMs) {
-            return c1.mIdentity - c2.mIdentity;
-          }
-          return (int) (c2.mLastAccessTimeMs - c1.mLastAccessTimeMs);
-        }
-      });
+  private final Deque<ResourceInternal<T>> mAvailableResources;
 
   // Tracks all the resources that are not closed.
-  @GuardedBy("mLock")
-  private HashMap<T, ResourceInternal<T>> mResources = new HashMap<>(32);
+  // put/delete operations are guarded by "mLock" so that we can control its size to be within
+  // a [min, max] range. mLock is reused for simplicity. A separate lock can be used if we see
+  // any performance overhead.
+  private final ConcurrentHashMapV8<T, ResourceInternal<T>> mResources =
+      new ConcurrentHashMapV8<>(32);
 
-  // Thread to scan mResourceAvailable to close those resources that are old.
+  // Thread to scan mAvailableResources to close those resources that are old.
   private ScheduledExecutorService mExecutor;
   private ScheduledFuture<?> mGcFuture;
 
@@ -230,10 +235,11 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param options the options
    */
   public DynamicResourcePool(Options options) {
-    mExecutor = Preconditions.checkNotNull(options.getGcExecutor());
+    mExecutor = Preconditions.checkNotNull(options.getGcExecutor(), "executor");
 
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
+    mAvailableResources = new ArrayDeque<>(Math.min(mMaxCapacity, 32));
 
     mGcFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
       @Override
@@ -246,7 +252,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
             return;
           }
           int currentSize = mResources.size();
-          Iterator<ResourceInternal<T>> iterator = mResourceAvailable.iterator();
+          Iterator<ResourceInternal<T>> iterator = mAvailableResources.iterator();
           while (iterator.hasNext()) {
             ResourceInternal<T> next = iterator.next();
             if (shouldGc(next)) {
@@ -347,20 +353,25 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   /**
    * Releases the resource to the pool. It expects the resource to be released was acquired from
    * this pool.
+   * {@link DynamicResourcePool#release(Object)} and {@link DynamicResourcePool#acquire()} must be
+   * paired. Do not release the resource acquired multiple times. The behavior is undefined if
+   * that happens.
    *
    * @param resource the resource to release
    */
   @Override
   public void release(T resource) {
+    // We don't need to acquire mLock here because the resource is guaranteed not to be removed
+    // if it is not available (i.e. not in mAvailableResources list).
+    if (!mResources.containsKey(resource)) {
+      throw new IllegalArgumentException(
+          "Resource " + resource.toString() + " was not acquired from this resource pool.");
+    }
+    ResourceInternal<T> resourceInternal = mResources.get(resource);
+    resourceInternal.setLastAccessTimeMs(mClock.millis());
     try {
       mLock.lock();
-      if (!mResources.containsKey(resource)) {
-        throw new IllegalArgumentException(
-            "Resource " + resource.toString() + " was not acquired from this resource pool.");
-      }
-      ResourceInternal<T> resourceInternal = mResources.get(resource);
-      resourceInternal.setLastAccessTimeMs(mClock.millis());
-      mResourceAvailable.add(resourceInternal);
+      mAvailableResources.addFirst(resourceInternal);
       mNotEmpty.signal();
     } finally {
       mLock.unlock();
@@ -374,14 +385,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   public void close() {
     try {
       mLock.lock();
-      if (mResourceAvailable.size() != mResources.size()) {
+      if (mAvailableResources.size() != mResources.size()) {
         LOG.warn("{} resources are not released when closing the resource pool.",
-            mResources.size() - mResourceAvailable.size());
+            mResources.size() - mAvailableResources.size());
       }
-      for (ResourceInternal<T> resourceInternal : mResourceAvailable) {
+      for (ResourceInternal<T> resourceInternal : mAvailableResources) {
         closeResourceSync(resourceInternal.mResource);
       }
-      mResourceAvailable.clear();
+      mAvailableResources.clear();
     } finally {
       mLock.unlock();
     }
@@ -390,26 +401,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
   @Override
   public int size() {
-    try {
-      mLock.lock();
-      return mResources.size();
-    } finally {
-      mLock.unlock();
-    }
+    return mResources.size();
   }
 
   /**
    * @return true if the pool is full
    */
   private boolean isFull() {
-    boolean full = false;
-    try {
-      mLock.lock();
-      full = mResources.size() >= mMaxCapacity;
-    } finally {
-      mLock.unlock();
-    }
-    return full;
+    return mResources.size() >= mMaxCapacity;
   }
 
   /**
@@ -447,22 +446,20 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   }
 
   /**
-   * @return the most recently used resource
+   * @return the most recently used resource and null if there are no free resources
    */
   private ResourceInternal<T> poll() {
-    ResourceInternal<T> resource;
     try {
       mLock.lock();
-      resource = mResourceAvailable.pollFirst();
+      return mAvailableResources.pollFirst();
     } finally {
       mLock.unlock();
     }
-    return resource;
   }
 
   /**
    * Check whether the resource is healthy. If not retry. When this called, the resource
-   * is not in mResourceAvailable.
+   * is not in mAvailableResources.
    *
    * @param resource the resource to check
    * @param endTimeMs the end time to wait till

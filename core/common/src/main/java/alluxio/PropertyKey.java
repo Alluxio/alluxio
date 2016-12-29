@@ -14,27 +14,31 @@ package alluxio;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Configurations properties constants. Please check and update Configuration-Settings.md file when
  * you change or add Alluxio configuration properties.
  */
+@ThreadSafe
 public enum PropertyKey {
-  CONF_DIR(Name.CONF_DIR, "${alluxio.home}/conf"),
+  CONF_DIR(Name.CONF_DIR, String.format("${%s}/conf", Name.HOME)),
   DEBUG(Name.DEBUG, false),
   HOME(Name.HOME, "/opt/alluxio"),
   KEY_VALUE_ENABLED(Name.KEY_VALUE_ENABLED, false),
   KEY_VALUE_PARTITION_SIZE_BYTES_MAX(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, "512MB"),
   LOGGER_TYPE(Name.LOGGER_TYPE, "Console"),
-  LOGS_DIR(Name.LOGS_DIR, "${alluxio.work.dir}/logs"),
-  METRICS_CONF_FILE(Name.METRICS_CONF_FILE, "${alluxio.conf.dir}/metrics.properties"),
+  LOGS_DIR(Name.LOGS_DIR, String.format("${%s}/logs", Name.WORK_DIR)),
+  METRICS_CONF_FILE(Name.METRICS_CONF_FILE,
+      String.format("${%s}/metrics.properties", Name.CONF_DIR)),
   NETWORK_HOST_RESOLUTION_TIMEOUT_MS(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 5000),
   NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB"),
   SITE_CONF_DIR(Name.SITE_CONF_DIR, "${user.home}/.alluxio/,/etc/alluxio/"),
   TEST_MODE(Name.TEST_MODE, false),
   VERSION(Name.VERSION, ProjectConstants.VERSION),
-  WEB_RESOURCES(Name.WEB_RESOURCES, "${alluxio.home}/core/server/src/main/webapp"),
+  WEB_RESOURCES(Name.WEB_RESOURCES, String.format("${%s}/core/server/src/main/webapp", Name.HOME)),
   WEB_THREADS(Name.WEB_THREADS, 1),
-  WORK_DIR(Name.WORK_DIR, "${alluxio.home}"),
+  WORK_DIR(Name.WORK_DIR, String.format("${%s}", Name.HOME)),
   ZOOKEEPER_ADDRESS(Name.ZOOKEEPER_ADDRESS, null),
   ZOOKEEPER_ELECTION_PATH(Name.ZOOKEEPER_ELECTION_PATH, "/election"),
   ZOOKEEPER_ENABLED(Name.ZOOKEEPER_ENABLED, false),
@@ -44,7 +48,7 @@ public enum PropertyKey {
   //
   // UFS related properties
   //
-  UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, "${alluxio.work.dir}/underFSStorage"),
+  UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR)),
   UNDERFS_ALLOW_SET_OWNER_FAILURE(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE, false),
   UNDERFS_LISTING_LENGTH(Name.UNDERFS_LISTING_LENGTH, 1000),
   UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ""),
@@ -54,9 +58,10 @@ public enum PropertyKey {
   UNDERFS_GLUSTERFS_MR_DIR(Name.UNDERFS_GLUSTERFS_MR_DIR, "glusterfs:///mapred/system"),
   UNDERFS_GLUSTERFS_VOLUMES(Name.UNDERFS_GLUSTERFS_VOLUMES, null),
   UNDERFS_HDFS_CONFIGURATION(Name.UNDERFS_HDFS_CONFIGURATION,
-      "${alluxio.conf.dir}/core-site.xml"),
+      String.format("${%s}/core-site.xml", Name.CONF_DIR)),
   UNDERFS_HDFS_IMPL(Name.UNDERFS_HDFS_IMPL, "org.apache.hadoop.hdfs.DistributedFileSystem"),
   UNDERFS_HDFS_PREFIXES(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///"),
+  UNDERFS_HDFS_REMOTE(Name.UNDERFS_HDFS_REMOTE, false),
   UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY,
       false),
   UNDERFS_OSS_CONNECT_MAX(Name.UNDERFS_OSS_CONNECT_MAX, 1024),
@@ -64,7 +69,7 @@ public enum PropertyKey {
   UNDERFS_OSS_CONNECT_TTL(Name.UNDERFS_OSS_CONNECT_TTL, -1),
   UNDERFS_OSS_SOCKET_TIMEOUT(Name.UNDERFS_OSS_SOCKET_TIMEOUT, 50000),
   UNDERFS_S3_ADMIN_THREADS_MAX(Name.UNDERFS_S3_ADMIN_THREADS_MAX, 20),
-  UNDERFS_S3_DISABLE_DNS_BUCKETS(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS, null),
+  UNDERFS_S3_DISABLE_DNS_BUCKETS(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS, false),
   UNDERFS_S3_ENDPOINT(Name.UNDERFS_S3_ENDPOINT, null),
   UNDERFS_S3_ENDPOINT_HTTP_PORT(Name.UNDERFS_S3_ENDPOINT_HTTP_PORT, null),
   UNDERFS_S3_ENDPOINT_HTTPS_PORT(Name.UNDERFS_S3_ENDPOINT_HTTPS_PORT, null),
@@ -75,7 +80,7 @@ public enum PropertyKey {
   UNDERFS_S3_THREADS_MAX(Name.UNDERFS_S3_THREADS_MAX, 22),
   UNDERFS_S3_UPLOAD_THREADS_MAX(Name.UNDERFS_S3_UPLOAD_THREADS_MAX, 2),
   UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, 60000),
-  UNDERFS_S3A_DIRECT_WRITES_ENABLED(Name.UNDERFS_S3A_DIRECT_WRITES_ENABLED, "true"),
+  UNDERFS_S3A_INHERIT_ACL(Name.UNDERFS_S3A_INHERIT_ACL, true),
   UNDERFS_S3A_SECURE_HTTP_ENABLED(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED, false),
   UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED,
       false),
@@ -115,7 +120,7 @@ public enum PropertyKey {
   MASTER_HEARTBEAT_INTERVAL_MS(Name.MASTER_HEARTBEAT_INTERVAL_MS, 1000),
   MASTER_HOSTNAME(Name.MASTER_HOSTNAME, null),
   MASTER_JOURNAL_FLUSH_BATCH_TIME_MS(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5),
-  MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, "${alluxio.work.dir}/journal"),
+  MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, String.format("${%s}/journal", Name.WORK_DIR)),
   MASTER_JOURNAL_FORMATTER_CLASS(Name.MASTER_JOURNAL_FORMATTER_CLASS,
       "alluxio.master.journal.ProtoBufJournalFormatter"),
   MASTER_JOURNAL_LOG_SIZE_BYTES_MAX(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10MB"),
@@ -128,10 +133,11 @@ public enum PropertyKey {
   MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, 300000),
   MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, 300000),
   MASTER_LINEAGE_RECOMPUTE_LOG_PATH(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH,
-      "${alluxio.logs.dir}/recompute.log"),
+      String.format("${%s}/recompute.log", Name.LOGS_DIR)),
   MASTER_PRINCIPAL(Name.MASTER_PRINCIPAL, null),
   MASTER_RETRY(Name.MASTER_RETRY, 29),
   MASTER_RPC_PORT(Name.MASTER_RPC_PORT, 19998),
+  MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, true),
   MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS, "MEM"),
   MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS, "SSD"),
   MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS, "HDD"),
@@ -168,6 +174,7 @@ public enum PropertyKey {
   WORKER_FILE_PERSIST_POOL_SIZE(Name.WORKER_FILE_PERSIST_POOL_SIZE, 64),
   WORKER_FILE_PERSIST_RATE_LIMIT(Name.WORKER_FILE_PERSIST_RATE_LIMIT, "2GB"),
   WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED(Name.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, false),
+  WORKER_FILE_BUFFER_SIZE(Name.WORKER_FILE_BUFFER_SIZE, "1MB"),
   WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS, 1000),
   WORKER_HOSTNAME(Name.WORKER_HOSTNAME, null),
   WORKER_KEYTAB_FILE(Name.WORKER_KEYTAB_FILE, null),
@@ -183,9 +190,25 @@ public enum PropertyKey {
   WORKER_NETWORK_NETTY_WATERMARK_HIGH(Name.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "32KB"),
   WORKER_NETWORK_NETTY_WATERMARK_LOW(Name.WORKER_NETWORK_NETTY_WATERMARK_LOW, "8KB"),
   WORKER_NETWORK_NETTY_WORKER_THREADS(Name.WORKER_NETWORK_NETTY_WORKER_THREADS, 0),
+  WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS(
+      Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS, 16),
+  WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS(
+      Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16),
+  WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES(
+      Name.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"),
+  WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 128),
+  WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX, 128),
+  WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX, 128),
+  WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX(
+      Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 128),
+
   WORKER_PRINCIPAL(Name.WORKER_PRINCIPAL, null),
   WORKER_RPC_PORT(Name.WORKER_RPC_PORT, 29998),
   WORKER_SESSION_TIMEOUT_MS(Name.WORKER_SESSION_TIMEOUT_MS, 60000),
+  WORKER_TIERED_STORE_BLOCK_LOCK_READERS(Name.WORKER_TIERED_STORE_BLOCK_LOCK_READERS, 1000),
   WORKER_TIERED_STORE_BLOCK_LOCKS(Name.WORKER_TIERED_STORE_BLOCK_LOCKS, 1000),
   WORKER_TIERED_STORE_LEVEL0_ALIAS(Name.WORKER_TIERED_STORE_LEVEL0_ALIAS, "MEM"),
   WORKER_TIERED_STORE_LEVEL0_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, "/mnt/ramdisk"),
@@ -203,17 +226,28 @@ public enum PropertyKey {
   WORKER_TIERED_STORE_LEVELS(Name.WORKER_TIERED_STORE_LEVELS, 1),
   WORKER_TIERED_STORE_RESERVER_ENABLED(Name.WORKER_TIERED_STORE_RESERVER_ENABLED, false),
   WORKER_TIERED_STORE_RESERVER_INTERVAL_MS(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, 1000),
+  WORKER_TIERED_STORE_RETRY(Name.WORKER_TIERED_STORE_RETRY, 3),
   WORKER_WEB_BIND_HOST(Name.WORKER_WEB_BIND_HOST, "0.0.0.0"),
   WORKER_WEB_HOSTNAME(Name.WORKER_WEB_HOSTNAME, null),
   WORKER_WEB_PORT(Name.WORKER_WEB_PORT, 30000),
+
+  //
+  // Proxy related properties
+  //
+  PROXY_STREAM_CACHE_TIMEOUT_MS(Name.PROXY_STREAM_CACHE_TIMEOUT_MS, 3600000),
+  PROXY_WEB_BIND_HOST(Name.PROXY_WEB_BIND_HOST, "0.0.0.0"),
+  PROXY_WEB_HOSTNAME(Name.PROXY_WEB_HOSTNAME, null),
+  PROXY_WEB_PORT(Name.PROXY_WEB_PORT, 39999),
 
   //
   // User related properties
   //
   USER_BLOCK_MASTER_CLIENT_THREADS(Name.USER_BLOCK_MASTER_CLIENT_THREADS, 10),
   USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "8MB"),
+  // Deprecated. It will be removed in 2.0.0.
   USER_BLOCK_REMOTE_READER_CLASS(Name.USER_BLOCK_REMOTE_READER_CLASS,
       "alluxio.client.netty.NettyRemoteBlockReader"),
+  // Deprecated. It will be removed in 2.0.0.
   USER_BLOCK_REMOTE_WRITER_CLASS(Name.USER_BLOCK_REMOTE_WRITER_CLASS,
       "alluxio.client.netty.NettyRemoteBlockWriter"),
   USER_BLOCK_SIZE_BYTES_DEFAULT(Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "512MB"),
@@ -236,6 +270,7 @@ public enum PropertyKey {
   USER_FILE_WRITE_LOCATION_POLICY(Name.USER_FILE_WRITE_LOCATION_POLICY,
       "alluxio.client.file.policy.LocalFirstPolicy"),
   USER_FILE_WRITE_TYPE_DEFAULT(Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE"),
+  USER_FILE_WRITE_TIER_DEFAULT(Name.USER_FILE_WRITE_TIER_DEFAULT, "HIGHEST"),
   USER_HEARTBEAT_INTERVAL_MS(Name.USER_HEARTBEAT_INTERVAL_MS, 1000),
   USER_LINEAGE_ENABLED(Name.USER_LINEAGE_ENABLED, false),
   USER_LINEAGE_MASTER_CLIENT_THREADS(Name.USER_LINEAGE_MASTER_CLIENT_THREADS, 10),
@@ -246,15 +281,27 @@ public enum PropertyKey {
   USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS(
       Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS),
   USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED(Name.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED, false),
+  USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES,
+      "64KB"),
+  USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS,
+      16),
+  USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS,
+      16),
+  USER_NETWORK_NETTY_READER_CANCEL_ENABLED(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true),
   USER_UFS_DELEGATION_ENABLED(Name.USER_UFS_DELEGATION_ENABLED, true),
   USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES,
       "8MB"),
   USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES,
       "2MB"),
+  // Deprecated. It will be removed in 2.0.0.
   USER_UFS_FILE_READER_CLASS(Name.USER_UFS_FILE_READER_CLASS,
       "alluxio.client.netty.NettyUnderFileSystemFileReader"),
+  // Deprecated. It will be removed in 2.0.0.
   USER_UFS_FILE_WRITER_CLASS(Name.USER_UFS_FILE_WRITER_CLASS,
       "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
+  USER_LOCAL_READER_PACKET_SIZE_BYTES(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES, "64KB"),
+  USER_LOCAL_WRITER_PACKET_SIZE_BYTES(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB"),
+  USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, false),
 
   //
   // FUSE integration related properties
@@ -297,8 +344,8 @@ public enum PropertyKey {
   INTEGRATION_MASTER_RESOURCE_CPU(Name.INTEGRATION_MASTER_RESOURCE_CPU, 1),
   INTEGRATION_MASTER_RESOURCE_MEM(Name.INTEGRATION_MASTER_RESOURCE_MEM, "1024MB"),
   INTEGRATION_MESOS_ALLUXIO_JAR_URL(Name.INTEGRATION_MESOS_ALLUXIO_JAR_URL,
-      "http://downloads.alluxio.org/downloads/files/${alluxio.version}/"
-      + "alluxio-${alluxio.version}-bin.tar.gz"),
+      String.format("http://downloads.alluxio.org/downloads/files/${%s}/"
+      + "alluxio-${%s}-bin.tar.gz", Name.VERSION, Name.VERSION)),
   INTEGRATION_MESOS_ALLUXIO_MASTER_NAME(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME,
       "AlluxioMaster"),
   INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT, 1),
@@ -320,6 +367,7 @@ public enum PropertyKey {
    * A nested class to hold named string constants for their corresponding enum values.
    * Used for setting configuration in integration tests.
    */
+  @ThreadSafe
   public static final class Name {
     public static final String CONF_DIR = "alluxio.conf.dir";
     public static final String DEBUG = "alluxio.debug";
@@ -388,6 +436,7 @@ public enum PropertyKey {
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
+    public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
@@ -395,10 +444,9 @@ public enum PropertyKey {
         "alluxio.underfs.oss.connection.timeout.ms";
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout.ms";
+    public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout.ms";
-    public static final String UNDERFS_S3A_DIRECT_WRITES_ENABLED =
-        "alluxio.underfs.s3a.direct.writes.enabled";
     public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
         "alluxio.underfs.s3a.secure.http.enabled";
     public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
@@ -479,6 +527,8 @@ public enum PropertyKey {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
+    public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
+        "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
@@ -528,6 +578,7 @@ public enum PropertyKey {
         "alluxio.worker.file.persist.rate.limit";
     public static final String WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
         "alluxio.worker.file.persist.rate.limit.enabled";
+    public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
@@ -553,9 +604,25 @@ public enum PropertyKey {
         "alluxio.worker.network.netty.watermark.low";
     public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.worker.network.netty.worker.threads";
+    public static final String WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+        "alluxio.worker.network.netty.writer.buffer.size.packets";
+    public static final String WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+        "alluxio.worker.network.netty.reader.buffer.size.packets";
+    public static final String WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
+        "alluxio.worker.network.netty.reader.packet.size.bytes";
+    public static final String WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
+        "alluxio.worker.network.netty.block.reader.threads.max";
+    public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.block.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
+        "alluxio.worker.network.netty.file.reader.threads.max";
+    public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.file.writer.threads.max";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
+    public static final String WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
+         "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
         "alluxio.worker.tieredstore.block.locks";
     public static final String WORKER_TIERED_STORE_LEVEL0_ALIAS =
@@ -587,9 +654,19 @@ public enum PropertyKey {
         "alluxio.worker.tieredstore.reserver.enabled";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval.ms";
+    public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
+
+    //
+    // Proxy related properties
+    //
+    public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
+        "alluxio.proxy.stream.cache.timeout.ms";
+    public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
+    public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
+    public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
 
     //
     // User related properties
@@ -631,6 +708,8 @@ public enum PropertyKey {
     public static final String USER_FILE_WRITE_LOCATION_POLICY =
         "alluxio.user.file.write.location.policy.class";
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
+    public static final String USER_FILE_WRITE_TIER_DEFAULT =
+        "alluxio.user.file.write.tier.default";
     public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval.ms";
     public static final String USER_LINEAGE_ENABLED = "alluxio.user.lineage.enabled";
     public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
@@ -646,6 +725,14 @@ public enum PropertyKey {
         "alluxio.user.network.netty.channel.pool.gc.threshold.ms";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
         "alluxio.user.network.netty.channel.pool.disabled";
+    public static final String USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
+        "alluxio.user.network.netty.writer.packet.size.bytes";
+    public static final String USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+        "alluxio.user.network.netty.writer.buffer.size.packets";
+    public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+        "alluxio.user.network.netty.reader.buffer.size.packets";
+    public static final String USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
+        "alluxio.user.network.netty.reader.cancel.enabled";
     public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
@@ -655,6 +742,12 @@ public enum PropertyKey {
         "alluxio.user.ufs.file.reader.class";
     public static final String USER_UFS_FILE_WRITER_CLASS =
         "alluxio.user.ufs.file.writer.class";
+    public static final String USER_LOCAL_READER_PACKET_SIZE_BYTES =
+        "alluxio.user.local.reader.packet.size.bytes";
+    public static final String USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
+        "alluxio.user.local.writer.packet.size.bytes";
+    public static final String USER_PACKET_STREAMING_ENABLED =
+        "alluxio.user.packet.streaming.enabled";
 
     //
     // FUSE integration related properties

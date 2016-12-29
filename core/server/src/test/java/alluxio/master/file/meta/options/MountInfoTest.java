@@ -20,7 +20,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link MountInfo}.
  */
-public class MountInfoTest {
+public final class MountInfoTest {
   /**
    * Tests getting fields of {@link MountInfo}.
    */

@@ -42,7 +42,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     super.before();
 
     mUfsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    mUfs = UnderFileSystem.get(mUfsRoot);
+    mUfs = UnderFileSystem.Factory.get(mUfsRoot);
   }
 
   @Test
@@ -87,7 +87,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     CommonUtils.sleepMs(1);
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(filePath);
-    Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
+    Assert.assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
     short fileMode = (short) status.getMode();
     short parentMode = (short) mFileSystem.getStatus(filePath.getParent()).getMode();

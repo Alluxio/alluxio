@@ -1,5 +1,9 @@
 cat:
   将Alluxio中的一个文件内容打印在控制台中
+checkConsistency:
+  检查Alluxio与底层存储系统的元数据一致性
+checksum:
+  计算一个文件的md5校验码
 chgrp:
   修改Alluxio中的文件或文件夹的所属组
 chmod:
@@ -13,6 +17,8 @@ copyToLocal:
   将"remote path"指定的Alluxio中的文件复制到本地文件系统中
 count:
   输出"path"中所有名称匹配一个给定前缀的文件及文件夹的总数
+cp:
+  在Alluxio文件系统中复制一个文件或目录
 du:
   输出一个指定的文件或文件夹的大小
 fileInfo:

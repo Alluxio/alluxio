@@ -376,3 +376,4 @@ Different frameworks and applications work with Alluxio.
 * [Apache Hadoop MapReduce with Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html)
 * [Apache Flink with Alluxio](Running-Flink-on-Alluxio.html)
 * [Apache Zeppelin with Alluxio](Accessing-Alluxio-from-Zeppelin.html)
+* [Apache HBase with Alluxio](Running-HBase-on-Alluxio.html)

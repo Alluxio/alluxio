@@ -16,14 +16,15 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.client.WriteTier;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.ThriftIOException;
+import alluxio.thrift.TWriteTier;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
@@ -52,8 +53,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
  * server.
  *
- * Since {@link alluxio.thrift.BlockWorkerClientService.Client} is not thread safe, this class
- * has to guarantee thread safety.
+ * Note: Every client instance is associated with a session which is usually created for each block
+ * stream. So be careful when reusing this client for multiple blocks.
  */
 @ThreadSafe
 public final class RetryHandlingBlockWorkerClient
@@ -64,7 +65,10 @@ public final class RetryHandlingBlockWorkerClient
       ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
   private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
-
+  private final BlockWorkerThriftClientPool mClientPool;
+  private final BlockWorkerThriftClientPool mClientHeartbeatPool;
+  private static final TWriteTier WRITE_TIER = WriteTier.toThrift(
+      alluxio.Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT, WriteTier.class));
   // Tracks the number of active heartbeat close requests.
   private static final AtomicInteger NUM_ACTIVE_SESSIONS = new AtomicInteger(0);
 
@@ -77,19 +81,26 @@ public final class RetryHandlingBlockWorkerClient
   private final ScheduledFuture<?> mHeartbeat;
 
   /**
-   * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session Id is
+   * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session ID is
    * required when using this client. For example, if you only call RPCs like promote, a session
-   * Id is not required.
+   * ID is not required.
    *
+   * @param clientPool the block worker client pool
+   * @param clientHeartbeatPool the block worker client heartbeat pool
    * @param workerNetAddress to worker's location
-   * @param sessionId the id of the session
+   * @param sessionId the ID of the session
    * @throws IOException if it fails to register the session with the worker specified
    */
-  public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress, final Long sessionId)
+  public RetryHandlingBlockWorkerClient(
+      BlockWorkerThriftClientPool clientPool,
+      BlockWorkerThriftClientPool clientHeartbeatPool,
+      WorkerNetAddress workerNetAddress, final Long sessionId)
       throws IOException {
+    mClientPool = clientPool;
+    mClientHeartbeatPool = clientHeartbeatPool;
     mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
 
-    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
+    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
     if (sessionId != null) {
@@ -124,12 +135,16 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public BlockWorkerClientService.Client acquireClient() throws IOException {
-    return BlockStoreContext.acquireBlockWorkerThriftClient(mRpcAddress);
+    try {
+      return mClientPool.acquire();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   @Override
   public void releaseClient(BlockWorkerClientService.Client client) {
-    BlockStoreContext.releaseBlockWorkerThriftClient(mRpcAddress, client);
+    mClientPool.release(client);
   }
 
   @Override
@@ -197,25 +212,16 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
-  public LockBlockResult lockBlock(final long blockId) throws IOException {
-    // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
-    try {
-      return retryRPC(
-          new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService
-              .Client>() {
-            @Override
-            public LockBlockResult call(BlockWorkerClientService.Client client)
-                throws AlluxioTException, TException {
-              return ThriftUtils.fromThrift(client.lockBlock(blockId, getSessionId()));
-            }
-          });
-    } catch (AlluxioException e) {
-      if (e instanceof FileDoesNotExistException) {
-        return null;
-      } else {
-        throw new IOException(e);
-      }
-    }
+  public LockBlockResult lockBlock(final long blockId) throws IOException, AlluxioException {
+    return retryRPC(
+        new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService
+            .Client>() {
+          @Override
+          public LockBlockResult call(BlockWorkerClientService.Client client)
+              throws AlluxioTException, TException {
+            return ThriftUtils.fromThrift(client.lockBlock(blockId, getSessionId()));
+          }
+        });
   }
 
   @Override
@@ -231,6 +237,18 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
+  public void removeBlock(final long blockId) throws IOException, AlluxioException {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
+      @Override
+      public Void call(BlockWorkerClientService.Client client)
+          throws AlluxioTException, TException {
+        client.removeBlock(blockId);
+        return null;
+      }
+    });
+  }
+
+  @Override
   public String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
     try {
@@ -239,7 +257,7 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public String call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
-              return client.requestBlockLocation(getSessionId(), blockId, initialBytes);
+              return client.requestBlockLocation(getSessionId(), blockId, initialBytes, WRITE_TIER);
             }
           });
     } catch (WorkerOutOfSpaceException e) {
@@ -289,8 +307,7 @@ public final class RetryHandlingBlockWorkerClient
    */
   @Override
   public void sessionHeartbeat() throws IOException, InterruptedException {
-    BlockWorkerClientService.Client client =
-        BlockStoreContext.acquireBlockWorkerThriftClientHeartbeat(mRpcAddress);
+    BlockWorkerClientService.Client client = mClientHeartbeatPool.acquire();
     try {
       client.sessionHeartbeat(getSessionId(), null);
     } catch (AlluxioTException e) {
@@ -301,7 +318,7 @@ public final class RetryHandlingBlockWorkerClient
       client.getOutputProtocol().getTransport().close();
       throw new IOException(e);
     } finally {
-      BlockStoreContext.releaseBlockWorkerThriftClientHeartbeat(mRpcAddress, client);
+      mClientHeartbeatPool.release(client);
     }
     Metrics.BLOCK_WORKER_HEATBEATS.inc();
   }

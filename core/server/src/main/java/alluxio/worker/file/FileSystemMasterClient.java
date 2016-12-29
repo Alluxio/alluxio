@@ -51,7 +51,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @param masterAddress the master address
    */
   public FileSystemMasterClient(InetSocketAddress masterAddress) {
-    super(masterAddress);
+    super(null, masterAddress);
   }
 
   @Override

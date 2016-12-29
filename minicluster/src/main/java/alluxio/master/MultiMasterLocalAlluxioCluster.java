@@ -16,10 +16,12 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.CommonUtils;
 import alluxio.worker.AlluxioWorkerService;
 
+import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import org.apache.curator.test.TestingServer;
 
@@ -74,7 +76,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @return the URI of the master
    */
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRPCLocalPort();
+    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRpcLocalPort();
   }
 
   @Override
@@ -101,17 +103,17 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   /**
-   * Iterates over the masters in the order of master creation, kill the first standby master.
+   * Iterates over the masters in the order of master creation, stops the first standby master.
    *
-   * @return true if a standby master is successfully killed, otherwise, false
+   * @return true if a standby master is successfully stopped, otherwise, false
    */
-  public boolean killStandby() {
+  public boolean stopStandby() {
     for (int k = 0; k < mNumOfMasters; k++) {
       if (!mMasters.get(k).isServing()) {
         try {
-          LOG.info("master {} is a standby. killing it...", k);
-          mMasters.get(k).kill();
-          LOG.info("master {} killed.", k);
+          LOG.info("master {} is a standby. stopping it...", k);
+          mMasters.get(k).stop();
+          LOG.info("master {} stopped.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -123,17 +125,17 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   /**
-   * Iterates over the masters in the order of master creation, kill the leader master.
+   * Iterates over the masters in the order of master creation, stops the leader master.
    *
-   * @return true if the leader master is successfully killed, false otherwise
+   * @return true if the leader master is successfully stopped, false otherwise
    */
-  public boolean killLeader() {
+  public boolean stopLeader() {
     for (int k = 0; k < mNumOfMasters; k++) {
       if (mMasters.get(k).isServing()) {
         try {
-          LOG.info("master {} is the leader. killing it...", k);
-          mMasters.get(k).kill();
-          LOG.info("master {} killed.", k);
+          LOG.info("master {} is the leader. stopping it...", k);
+          mMasters.get(k).stop();
+          LOG.info("master {} stopped.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -144,27 +146,42 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     return false;
   }
 
-  private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+  /**
+   * Waits for a new master to start until a timeout occurs.
+   *
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   */
+  public void waitForNewMaster(int timeoutMs) {
+    CommonUtils.waitFor("the new leader master to start", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        return getLeaderIndex() != -1;
+      }
+    }, timeoutMs);
+  }
 
-    if (ufs.exists(path) && !ufs.delete(path, true)) {
+  private void deleteDir(String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
+
+    if (ufs.isDirectory(path)
+        && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
     }
   }
 
   private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
 
-    if (ufs.exists(path)) {
-      ufs.delete(path, true);
+    if (ufs.isDirectory(path)) {
+      ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
     }
-    if (!ufs.mkdirs(path, true)) {
+    if (!ufs.mkdirs(path)) {
       throw new IOException("Failed to make folder: " + path);
     }
   }
 
   @Override
-  protected void startWorkers() throws IOException, ConnectionFailedException {
+  protected void startWorkers() throws Exception {
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
     runWorkers();
   }
@@ -204,19 +221,25 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     // Use first master port
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getMaster().getRpcLocalPort()));
   }
 
   @Override
   public void stopFS() throws Exception {
-    for (AlluxioWorkerService worker : mWorkers) {
-      worker.stop();
-    }
+    stopWorkers();
     for (int k = 0; k < mNumOfMasters; k++) {
       // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
-      mMasters.get(k).kill();
+      mMasters.get(k).stop();
+
     }
     LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
     mCuratorServer.stop();
+  }
+
+  @Override
+  public void stopWorkers() throws Exception {
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
   }
 }

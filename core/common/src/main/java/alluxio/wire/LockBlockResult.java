@@ -77,7 +77,7 @@ public final class LockBlockResult implements Serializable {
   }
 
   /**
-   * @return thrift representation of the block descriptor
+   * @return thrift representation of the lock block operation result
    */
   protected alluxio.thrift.LockBlockResult toThrift() {
     return new alluxio.thrift.LockBlockResult(mLockId, mBlockPath);

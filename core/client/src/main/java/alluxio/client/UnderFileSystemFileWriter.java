@@ -11,11 +11,8 @@
 
 package alluxio.client;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.util.CommonUtils;
-
-import com.google.common.base.Throwables;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.netty.NettyUnderFileSystemFileWriter;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,14 +35,8 @@ public interface UnderFileSystemFileWriter extends Closeable {
      *
      * @return a new instance of {@link UnderFileSystemFileWriter}
      */
-    public static UnderFileSystemFileWriter create() {
-      try {
-        return CommonUtils.createNewClassInstance(
-            Configuration.<UnderFileSystemFileWriter>getClass(
-                PropertyKey.USER_UFS_FILE_WRITER_CLASS), null, null);
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
-      }
+    public static UnderFileSystemFileWriter create(FileSystemContext context) {
+      return new NettyUnderFileSystemFileWriter(context);
     }
   }
 

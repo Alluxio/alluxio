@@ -16,9 +16,10 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
-import alluxio.master.AlluxioMaster;
-import alluxio.web.MasterUIWebServer;
+import alluxio.master.AlluxioMasterService;
+import alluxio.web.MasterWebServer;
 import alluxio.wire.LineageInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -39,10 +40,13 @@ import javax.ws.rs.core.Response;
 
 /**
  * This class is a REST handler for lineage master requests.
+ *
+ * @deprecated since version 1.4 and will be removed in version 2.0
  */
 @NotThreadSafe
 @Path(LineageMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
+@Deprecated
 public final class LineageMasterClientRestServiceHandler {
   public static final String SERVICE_PREFIX = "master/lineage";
   public static final String SERVICE_NAME = "service_name";
@@ -62,9 +66,8 @@ public final class LineageMasterClientRestServiceHandler {
    */
   public LineageMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    AlluxioMaster master =
-        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
-    mLineageMaster = master.getLineageMaster();
+    mLineageMaster = ((AlluxioMasterService) context
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).getLineageMaster();
   }
 
   /**
@@ -176,13 +179,15 @@ public final class LineageMasterClientRestServiceHandler {
    * @param path the file path
    * @param blockSizeBytes the file block size (in bytes)
    * @param ttl the file time-to-live (in seconds)
+   * @param ttlAction action to take after TTL is expired
    * @return the response object
    */
   @POST
   @Path(REINITIALIZE_FILE)
   @ReturnType("java.lang.Long")
   public Response reinitializeFile(@QueryParam("path") final String path,
-      @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl) {
+      @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl,
+      @QueryParam("ttlAction") final TtlAction ttlAction) {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
@@ -190,7 +195,7 @@ public final class LineageMasterClientRestServiceHandler {
         Preconditions
             .checkNotNull(blockSizeBytes, "required 'blockSizeBytes' parameter is missing");
         Preconditions.checkNotNull(ttl, "required 'ttl' parameter is missing");
-        return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
+        return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl, ttlAction);
       }
     });
   }

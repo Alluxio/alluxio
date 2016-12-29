@@ -13,7 +13,7 @@ package alluxio.client.netty;
 
 import alluxio.Constants;
 import alluxio.client.UnderFileSystemFileWriter;
-import alluxio.client.block.BlockStoreContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCErrorResponse;
@@ -25,7 +25,6 @@ import alluxio.network.protocol.databuffer.DataByteArrayChannel;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Throwables;
-import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
@@ -33,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -48,26 +46,31 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Netty bootstrap for the connection. */
-  private final Callable<Bootstrap> mClientBootstrap;
+  private final FileSystemContext mContext;
 
   /**
    * Constructor for a Netty based writer to an under file system file on a worker.
+   * @param context the file system context
    */
-  public NettyUnderFileSystemFileWriter() {
-    mClientBootstrap = NettyClient.bootstrapBuilder();
+  public NettyUnderFileSystemFileWriter(FileSystemContext context) {
+    mContext = context;
   }
 
   @Override
   public void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] source,
       int offset, int length) throws IOException {
-    SingleResponseListener listener = null;
     Channel channel = null;
+    ClientHandler clientHandler = null;
     Metrics.NETTY_UFS_WRITE_OPS.inc();
     try {
-      channel = BlockStoreContext.acquireNettyChannel(address, mClientBootstrap);
-      listener = new SingleResponseListener();
-      channel.pipeline().get(ClientHandler.class).addListener(listener);
+      channel = mContext.acquireNettyChannel(address);
+      if (!(channel.pipeline().last() instanceof ClientHandler)) {
+        channel.pipeline().addLast(new ClientHandler());
+      }
+      clientHandler = (ClientHandler) channel.pipeline().last();
+      SingleResponseListener listener = new SingleResponseListener();
+      clientHandler.addListener(listener);
+
       ChannelFuture channelFuture = channel.writeAndFlush(
           new RPCFileWriteRequest(ufsFileId, fileOffset, length,
               new DataByteArrayChannel(source, offset, length))).sync();
@@ -109,11 +112,11 @@ public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFile
       }
       throw new IOException(e);
     } finally {
-      if (channel != null && listener != null && channel.isActive()) {
-        channel.pipeline().get(ClientHandler.class).removeListener(listener);
+      if (clientHandler != null) {
+        clientHandler.removeListeners();
       }
       if (channel != null) {
-        BlockStoreContext.releaseNettyChannel(address, channel);
+        mContext.releaseNettyChannel(address, channel);
       }
     }
   }
