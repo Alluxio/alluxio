@@ -48,12 +48,7 @@ public final class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    LOG.error("Error in decoding message. Possible Client/DataServer version incompatibility: "
-        + cause.getMessage());
-    // Propagate this to other handlers.
-    // TODO(peis): We should propagate the error type to the downstreaming handlers so that
-    // we can correctly return the RPC error types to the client (if caused on server) or notify
-    // the App with enough error information.
-    super.exceptionCaught(ctx, cause);
+    LOG.error("Error in decoding message.", cause);
+    ctx.close();
   }
 }

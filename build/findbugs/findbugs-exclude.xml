@@ -5,6 +5,7 @@
       <Package name="org.apache.thrift"/>
       <Package name="alluxio.thrift"/>
       <Package name="alluxio.proto.journal.*"/>
+      <Package name="alluxio.proto.dataserver.*"/>
     </Or>
   </Match>
 

@@ -6,8 +6,8 @@ group: Under Store
 priority: 0
 ---
 
-This guide describes how to configure Alluxio with [Google Cloud Storage (GCS)](https://cloud.google.com/storage/) as the
-under storage system.
+This guide describes how to configure Alluxio with
+[Google Cloud Storage (GCS)](https://cloud.google.com/storage/) as the under storage system.
 
 # Initial Setup
 
@@ -16,11 +16,13 @@ First, the Alluxio binaries must be on your machine. You can either
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 Then, if you haven't already done so, create your configuration file with `bootstrapConf` command.
-For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be
+set to `localhost`
 
 {% include Configuring-Alluxio-with-GCS/bootstrapConf.md %}
  
-Alternatively, you can also create the configuration file from the template and set the contents manually. 
+Alternatively, you can also create the configuration file from the template and set the contents
+manually.
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -30,18 +32,19 @@ should also note the directory you want to use in that bucket, either by creatin
 the bucket, or using an existing one. For the purposes of this guide, the GCS bucket name is called
 `GCS_BUCKET`, and the directory in that bucket is called `GCS_DIRECTORY`.
 
-If you are new to Google Cloud Storage, please read the GCS [documentations](https://cloud.google.com/storage/docs/overview) first.
+If you are new to GCS, please read its
+[documentations](https://cloud.google.com/storage/docs/overview).
 
 # Configuring Alluxio
 
-You need to configure Alluxio to use GCS as its under storage system.
-The first modification is to specify an **existing** GCS
-bucket and directory as the under storage system by modifying `conf/alluxio-site.properties`
-to include:
+You need to configure Alluxio to use GCS as its under storage system. The first modification is to
+specify an **existing** GCS bucket and directory as the under storage system by modifying
+`conf/alluxio-site.properties` to include:
 
 {% include Configuring-Alluxio-with-GCS/underfs-address.md %}
 
-Next, you need to specify the Google credentials for GCS access. In `conf/alluxio-site.properties`, add:
+Next, you need to specify the Google credentials for GCS access. In `conf/alluxio-site.properties`,
+add:
 
 {% include Configuring-Alluxio-with-GCS/google.md %}
 
@@ -68,18 +71,20 @@ dependency to your application with:
 {% include Configuring-Alluxio-with-GCS/dependency.md %}
 
 ## Configuring Distributed Applications Runtime
-When I/O is delegated to Alluxio workers (i.e., Alluxio configuration `alluxio.user.ufs.operation.delegation` is true, 
-which is false by default since Alluxio 1.1), you do not have to do any thing special for your applications.
-Otherwise, since you are using an Alluxio client that is running separately from the Alluxio Master and Workers (in
-a separate JVM), then you need to make sure that your Google credentials are provided to the
-application JVM processes as well. There are different ways to do this. The first approach is to add them as command line
-options when starting your client JVM process. For example:
+
+When I/O is delegated to Alluxio workers (i.e., Alluxio configuration
+`alluxio.user.ufs.operation.delegation` is true,  which is false by default since Alluxio 1.1), you
+do not have to do any thing special for your applications. Otherwise, since you are using an Alluxio
+client that is running separately from the Alluxio Master and Workers (in a separate JVM), then you
+need to make sure that your Google credentials are provided to the application JVM processes as
+well. There are different ways to do this. The first approach is to add them as command line options
+when starting your client JVM process. For example:
 
 {% include Configuring-Alluxio-with-GCS/java-bash.md %}
 
-Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting credentials) to the classpath
-of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or append the path of this site properties file to
-the classpath.
+Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting
+credentials) to the classpath of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or
+append the path of this site properties file to the classpath.
 
 # Running Alluxio Locally with GCS 
 
@@ -105,24 +110,36 @@ To stop Alluxio, you can run:
 
 # GCS Access Control
 
-If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object storage.
+If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object
+storage.
 
-The GCS credentials specified in Alluxio config represents a GCS user. GCS service backend checks the user permission to the bucket and the object for access control.
-If the given GCS user does not have the right access permission to the specified bucket, a permission denied error will be thrown.
-When Alluxio security is enabled, Alluxio loads the bucket ACL to Alluxio permission on the first time when the metadata is loaded to Alluxio namespace.
+The GCS credentials specified in Alluxio config represents a GCS user. GCS service backend checks
+the user permission to the bucket and the object for access control. If the given GCS user does not
+have the right access permission to the specified bucket, a permission denied error will be thrown.
+When Alluxio security is enabled, Alluxio loads the bucket ACL to Alluxio permission on the first
+time when the metadata is loaded to Alluxio namespace.
 
 ### Mapping from GCS user to Alluxio file owner
-By default, Alluxio tries to extract the GCS user id from the credentials. Optionally, `alluxio.underfs.gcs.owner.id.to.username.mapping` can be used to
-specify a preset gcs owner id to Alluxio username static mapping in the format "id1=user1;id2=user2".
-The Google Cloud Storage IDs can be found at the console [address](https://console.cloud.google.com/storage/settings). Please use the "Owners" one.
+
+By default, Alluxio tries to extract the GCS user id from the credentials. Optionally,
+`alluxio.underfs.gcs.owner.id.to.username.mapping` can be used to specify a preset gcs owner id to
+Alluxio username static mapping in the format "id1=user1;id2=user2". The Google Cloud Storage IDs
+can be found at the console [address](https://console.cloud.google.com/storage/settings). Please use
+the "Owners" one.
 
 ### Mapping from GCS ACL to Alluxio permission
-Alluxio checks the GCS bucket READ/WRITE ACL to determine the owner's permission mode to a Alluxio file. For example, if the GCS user has read-only access to the
-underlying bucket, the mounted directory and files would have 0500 mode. If the GCS user has full access to the underlying bucket, the mounted directory
-and files would have 0700 mode.
+
+Alluxio checks the GCS bucket READ/WRITE ACL to determine the owner's permission mode to a Alluxio
+file. For example, if the GCS user has read-only access to the underlying bucket, the mounted
+directory and files would have 0500 mode. If the GCS user has full access to the underlying bucket,
+the mounted directory and files would have 0700 mode.
 
 ### Mount point sharing
-If you want to share the GCS mount point with other users in Alluxio namespace, you can enable `alluxio.underfs.object.store.mount.shared.publicly`.
+
+If you want to share the GCS mount point with other users in Alluxio namespace, you can enable
+`alluxio.underfs.object.store.mount.shared.publicly`.
 
 ### Permission change
-In addition, chown/chgrp/chmod to Alluxio directories and files do NOT propagate to the underlying GCS buckets nor objects.
+
+In addition, chown/chgrp/chmod to Alluxio directories and files do NOT propagate to the underlying
+GCS buckets nor objects.

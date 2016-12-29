@@ -18,11 +18,13 @@ First, the Alluxio binaries must be on your machine. You can either
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 Then, if you haven't already done so, create your configuration file with `bootstrapConf` command.
-For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be
+set to `localhost`
 
 {% include Configuring-Alluxio-with-S3/bootstrapConf.md %}
 
-Alternatively, you can also create the configuration file from the template and set the contents manually.
+Alternatively, you can also create the configuration file from the template and set the contents
+manually.
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -35,8 +37,8 @@ the bucket, or using an existing one. For the purposes of this guide, the S3 buc
 
 You need to configure Alluxio to use S3 as its under storage system by modifying
 `conf/alluxio-site.properties`. The first modification is to specify an **existing** S3
-bucket and directory as the under storage system. You specify it by modifying `conf/alluxio-site.properties`
-to include:
+bucket and directory as the under storage system. You specify it by modifying
+`conf/alluxio-site.properties` to include:
 
 {% include Configuring-Alluxio-with-S3/underfs-address-s3n.md %}
 
@@ -86,11 +88,12 @@ of the `conf/alluxio-site.properties` file by adding:
 
 {% include Configuring-Alluxio-with-S3/jets3t.md %}
 
-With `<DISABLE_DNS>` replaced with `false` (the default), a request directed at the bucket named "mybucket"
-will be sent to the host name "mybucket.s3.amazonaws.com". With `<DISABLE_DNS>` replaced with `true`,
-JetS3t will specify bucket names in the request path of the HTTP message rather than the Host header,
-for example: "http://s3.amazonaws.com/mybucket". Without this parameter set, the system will default
-to `false`. See http://www.jets3t.org/toolkit/configuration.html for further details.
+With `<DISABLE_DNS>` replaced with `false` (the default), a request directed at the bucket named
+"mybucket" will be sent to the host name "mybucket.s3.amazonaws.com". With `<DISABLE_DNS>` replaced
+with `true`, JetS3t will specify bucket names in the request path of the HTTP message rather than
+the Host header, for example: "http://s3.amazonaws.com/mybucket". Without this parameter set, the
+system will default to `false`. See http://www.jets3t.org/toolkit/configuration.html for further
+details.
 
 After these changes, Alluxio should be configured to work with S3 as its under storage system, and
 you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
@@ -117,9 +120,9 @@ dependency to your application with:
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
 
-Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting credentials) to the classpath
-of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or append the path to this site properties file to
-the classpath.
+Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting
+credentials) to the classpath of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or
+append the path to this site properties file to the classpath.
 
 ## Avoiding Conflicting Client Dependencies
 
@@ -140,8 +143,8 @@ when Alluxio is configured to use S3 as its under storage system.
 However, there is also an option to use a different implementation to communicate with S3; the S3
 client provided by Hadoop. In order to disable the Alluxio S3 client (and enable the Hadoop S3
 client), additional modifications to your application must be made. When including the
-`alluxio-core-client` module in your application, the `alluxio-underfs-s3` should be excluded to disable
-the native client, and to use the Hadoop S3 client:
+`alluxio-core-client` module in your application, the `alluxio-underfs-s3` should be excluded to
+disable the native client, and to use the Hadoop S3 client:
 
 {% include Configuring-Alluxio-with-S3/hadoop-s3-dependency.md %}
 
@@ -157,26 +160,30 @@ please refer to [MvnRepository](http://mvnrepository.com/).
 
 ## Using a non-Amazon service provider
 
-To use an S3 service provider other than "s3.amazonaws.com", modify `conf/alluxio-site.properties` to include:
+To use an S3 service provider other than "s3.amazonaws.com", modify `conf/alluxio-site.properties`
+to include:
 
 {% include Configuring-Alluxio-with-S3/non-amazon.md %}
 
 For these parameters, replace `<S3_ENDPOINT>` with the host name of your S3 service. Only use this
 parameter if you are using a provider other than `s3.amazonaws.com`.
 
-Replace `<USE_HTTPS>` with `true` or `false`. If `true` (using HTTPS), also replace `<HTTPS_PORT>`, with
-the HTTPS port for the provider and remove the `alluxio.underfs.s3.endpoint.http.port` parameter. If
-you replace `<USE_HTTPS>` with `false` (using HTTP) also replace `<HTTP_PORT>` with the HTTP port for
-the provider, and remove the `alluxio.underfs.s3.endpoint.https.port` parameter. If the HTTP or HTTPS
-port values are left unset, `<HTTP_PORT>` defaults to port 80, and `<HTTPS_PORT>` defaults to port 443.
+Replace `<USE_HTTPS>` with `true` or `false`. If `true` (using HTTPS), also replace `<HTTPS_PORT>`,
+with the HTTPS port for the provider and remove the `alluxio.underfs.s3.endpoint.http.port`
+parameter. If you replace `<USE_HTTPS>` with `false` (using HTTP) also replace `<HTTP_PORT>` with
+the HTTP port for the provider, and remove the `alluxio.underfs.s3.endpoint.https.port` parameter.
+If the HTTP or HTTPS port values are left unset, `<HTTP_PORT>` defaults to port 80, and
+`<HTTPS_PORT>` defaults to port 443.
 
 ## Configuring Distributed Applications Runtime
-When I/O is delegated to Alluxio workers (i.e., Alluxio configuration `alluxio.user.ufs.operation.delegation` is true,
-which is false by default since Alluxio 1.1), you do not have to do any thing special for your applications.
-Otherwise since you are using an Alluxio client that is running separately from the Alluxio Master and Workers (in
-a separate JVM), then you need to make sure that your AWS credentials are provided to the
-application JVM processes as well. The easiest way to do this is to add them as command line options
-when starting your client JVM process. For example:
+
+When I/O is delegated to Alluxio workers (i.e., Alluxio configuration
+`alluxio.user.ufs.operation.delegation` is true, which is false by default since Alluxio 1.1), you
+do not have to do any thing special for your applications. Otherwise since you are using an Alluxio
+client that is running separately from the Alluxio Master and Workers (in a separate JVM), then you
+need to make sure that your AWS credentials are provided to the application JVM processes as well.
+The easiest way to do this is to add them as command line options when starting your client JVM
+process. For example:
 
 {% include Configuring-Alluxio-with-S3/java-bash.md %}
 
@@ -204,25 +211,36 @@ To stop Alluxio, you can run:
 
 # S3 Access Control
 
-If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object storage.
+If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object
+storage.
 
-The S3 credentials specified in Alluxio config represents a S3 user. S3 service backend checks the user permission to the bucket and the object for access control.
-If the given S3 user does not have the right access permission to the specified bucket, a permission denied error will be thrown.
-When Alluxio security is enabled, Alluxio loads the bucket ACL to Alluxio permission on the first time when the metadata is loaded to Alluxio namespace.
+The S3 credentials specified in Alluxio config represents a S3 user. S3 service backend checks the
+user permission to the bucket and the object for access control. If the given S3 user does not have
+the right access permission to the specified bucket, a permission denied error will be thrown. When
+Alluxio security is enabled, Alluxio loads the bucket ACL to Alluxio permission on the first time
+when the metadata is loaded to Alluxio namespace.
 
 ### Mapping from S3 user to Alluxio file owner
-By default, Alluxio tries to extract the S3 user display name from the S3 credential. Optionally, `alluxio.underfs.s3.owner.id.to.username.mapping` can be used to
-specify a preset S3 canonical id to Alluxio username static mapping, in the format "id1=user1;id2=user2". 
-The AWS S3 canonical ID can be found at the console [address](https://console.aws.amazon.com/iam/home?#security_credential).
+
+By default, Alluxio tries to extract the S3 user display name from the S3 credential. Optionally,
+`alluxio.underfs.s3.owner.id.to.username.mapping` can be used to specify a preset S3 canonical id to
+Alluxio username static mapping, in the format "id1=user1;id2=user2".  The AWS S3 canonical ID can
+be found at the console [address](https://console.aws.amazon.com/iam/home?#security_credential).
 Please expand the "Account Identifiers" tab and refer to "Canonical User ID".
 
 ### Mapping from S3 ACL to Alluxio permission
-Alluxio checks the S3 bucket READ/WRITE ACL to determine the owner's permission mode to a Alluxio file. For example, if the S3 user has read-only access to the
-underlying bucket, the mounted directory and files would have 0500 mode. If the S3 user has full access to the underlying bucket, the mounted directory
-and files would have 0700 mode.
+
+Alluxio checks the S3 bucket READ/WRITE ACL to determine the owner's permission mode to a Alluxio
+file. For example, if the S3 user has read-only access to the underlying bucket, the mounted
+directory and files would have 0500 mode. If the S3 user has full access to the underlying bucket,
+the mounted directory and files would have 0700 mode.
 
 ### Mount point sharing
-If you want to share the S3 mount point with other users in Alluxio namespace, you can enable `alluxio.underfs.object.store.mount.shared.publicly`.
+
+If you want to share the S3 mount point with other users in Alluxio namespace, you can enable
+`alluxio.underfs.object.store.mount.shared.publicly`.
 
 ### Permission change
-In addition, chown/chgrp/chmod to Alluxio directories and files do NOT propagate to the underlying S3 buckets nor objects.
+
+In addition, chown/chgrp/chmod to Alluxio directories and files do NOT propagate to the underlying
+S3 buckets nor objects.

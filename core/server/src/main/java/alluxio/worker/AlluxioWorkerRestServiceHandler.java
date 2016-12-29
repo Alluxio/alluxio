@@ -123,7 +123,7 @@ public final class AlluxioWorkerRestServiceHandler {
    * @summary get the configuration map, the keys are ordered alphabetically.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_CONFIGURATION)
@@ -142,7 +142,7 @@ public final class AlluxioWorkerRestServiceHandler {
    * @summary get the address of the worker
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_RPC_ADDRESS)
@@ -161,7 +161,7 @@ public final class AlluxioWorkerRestServiceHandler {
    * @summary get the total capacity of the worker in bytes
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_CAPACITY_BYTES)
@@ -180,7 +180,7 @@ public final class AlluxioWorkerRestServiceHandler {
    * @summary get the used bytes of the worker
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_USED_BYTES)
@@ -200,7 +200,7 @@ public final class AlluxioWorkerRestServiceHandler {
    *    are in the order from tier aliases with smaller ordinals to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_CAPACITY_BYTES_ON_TIERS)
@@ -224,7 +224,7 @@ public final class AlluxioWorkerRestServiceHandler {
    *    order from tier aliases with smaller ordinals to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_USED_BYTES_ON_TIERS)
@@ -247,7 +247,7 @@ public final class AlluxioWorkerRestServiceHandler {
    * @summary get the mapping from tier alias to the paths of the directories in the tier
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_DIRECTORY_PATHS_ON_TIERS)
@@ -266,7 +266,7 @@ public final class AlluxioWorkerRestServiceHandler {
    * @summary get the version of the worker
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_VERSION)
@@ -285,7 +285,7 @@ public final class AlluxioWorkerRestServiceHandler {
    * @summary get the start time of the worker in milliseconds
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_START_TIME_MS)
@@ -304,7 +304,7 @@ public final class AlluxioWorkerRestServiceHandler {
    * @summary get the uptime of the worker in milliseconds
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_UPTIME_MS)
@@ -323,7 +323,7 @@ public final class AlluxioWorkerRestServiceHandler {
    * @summary get the worker metrics
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo()
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_METRICS)
