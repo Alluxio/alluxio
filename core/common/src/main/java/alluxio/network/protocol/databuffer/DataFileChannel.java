@@ -68,12 +68,12 @@ public final class DataFileChannel implements DataBuffer {
 
   @Override
   public void readBytes(byte[] dst, int dstIndex, int length) {
-    throw new RuntimeException("DataFileChannel#readBytes is not implemented.");
+    throw new UnsupportedOperationException("DataFileChannel#readBytes is not implemented.");
   }
 
   @Override
   public int readableBytes() {
-    throw new RuntimeException("DataFileChannel#readableBytes is not implemented.");
+    throw new UnsupportedOperationException("DataFileChannel#readableBytes is not implemented.");
   }
 
   @Override
