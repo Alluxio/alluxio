@@ -68,7 +68,6 @@ public final class Format {
    * Formats the Alluxio file system.
    *
    * @param args either {@code MASTER} or {@code WORKER}
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   public static void main(String[] args) {
     if (args.length != 1) {
@@ -84,6 +83,12 @@ public final class Format {
     System.exit(0);
   }
 
+  /**
+   * Formats the Alluxio file system.
+   *
+   * @param mode either {@code MASTER} or {@code WORKER}
+   * @throws IOException if a non-Alluxio related exception occurs
+   */
   public static void format(String mode) throws IOException {
     if ("MASTER".equalsIgnoreCase(mode)) {
       String masterJournal =
