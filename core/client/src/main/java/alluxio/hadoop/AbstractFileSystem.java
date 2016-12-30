@@ -655,6 +655,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       // If the destination is an existing folder, try to move the src into the folder
       if (dstStatus != null && dstStatus.isFolder()) {
         dstPath = dstPath.join(srcPath.getName());
+      } else {
+        LOG.error("Failed to rename {} to {}", src, dst);
+        return false;
       }
       try {
         mFileSystem.rename(srcPath, dstPath);
