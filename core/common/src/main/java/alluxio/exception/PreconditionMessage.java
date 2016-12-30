@@ -63,8 +63,6 @@ public enum PreconditionMessage {
   REMOTE_CLIENT_BUT_LOCAL_HOSTNAME(
       "Acquire Remote Worker Client cannot not be called with local hostname"),
   S3_BUCKET_MUST_BE_SET("The %s system property must be set to use the S3UnderStorageCluster"),
-  TTL_ONLY_FOR_FILE("TTL can only be set for files"),
-  TTL_FILE_SHOULD_LESS_THAN_PARENT_DIRECTORY("The value of TTL should less than parent directory"),
   URI_HOST_NULL("URI hostname must not be null"),
   URI_PORT_NULL("URI port must not be null"),
   URI_KEY_VALUE_STORE_NULL("URI of key-value store must not be null"),
