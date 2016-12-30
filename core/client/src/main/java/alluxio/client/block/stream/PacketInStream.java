@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.PreconditionMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -106,7 +107,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
       return -1;
     }
     Preconditions.checkState(bytesRead == 1);
-    return (int) mSingleByte[0];
+    return BufferUtils.byteToInt(mSingleByte[0]);
   }
 
   @Override

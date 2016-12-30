@@ -79,7 +79,7 @@ public final class LocalFilePacketReader implements PacketReader {
     /**
      * Creates an instance of {@link Factory}.
      *
-     * @param path the local file block reader
+     * @param path the file patht
      */
     public Factory(String path) {
       mPath = path;
