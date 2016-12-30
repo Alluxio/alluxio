@@ -34,9 +34,6 @@ public interface PacketReader extends Closeable {
    */
   long pos();
 
-  @Override
-  void close();
-
   /**
    * The factory interface to create {@link PacketReader}s.
    */
