@@ -16,8 +16,8 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
-import alluxio.underfs.UnderFileStatus;
 import alluxio.ServerUtils;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.UnderFileSystemUtils;
@@ -70,23 +70,33 @@ public final class Format {
    * @param args either {@code MASTER} or {@code WORKER}
    * @throws IOException if a non-Alluxio related exception occurs
    */
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) {
     if (args.length != 1) {
       LOG.info(USAGE);
       System.exit(-1);
     }
+    try {
+      format(args[0]);
+    } catch (Exception e) {
+      LOG.error("Failed to format", e);
+      System.exit(-1);
+    }
+    System.exit(0);
+  }
 
-    if ("MASTER".equalsIgnoreCase(args[0])) {
+  public static void format(String mode) throws IOException {
+    if ("MASTER".equalsIgnoreCase(mode)) {
       String masterJournal =
           Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
       if (!formatFolder("JOURNAL_FOLDER", masterJournal)) {
-        System.exit(-1);
+        throw new RuntimeException("Failed to format root journal folder");
       }
 
       for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
-        if (!formatFolder(masterServiceName + "_JOURNAL_FOLDER",
+        String folderName = masterServiceName + "_JOURNAL_FOLDER";
+        if (!formatFolder(folderName,
             PathUtils.concatPath(masterJournal, masterServiceName))) {
-          System.exit(-1);
+          throw new RuntimeException(String.format("Failed to format %s", folderName));
         }
       }
 
@@ -94,7 +104,7 @@ public final class Format {
       // present under the folder.
       UnderFileSystemUtils.touch(PathUtils
           .concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis()));
-    } else if ("WORKER".equalsIgnoreCase(args[0])) {
+    } else if ("WORKER".equalsIgnoreCase(mode)) {
       String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
       int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
       for (int level = 0; level < storageLevels; level++) {
@@ -107,16 +117,16 @@ public final class Format {
           UnderFileSystem ufs = UnderFileSystem.Factory.get(dirWorkerDataFolder);
           if (ufs.isDirectory(dirWorkerDataFolder)) {
             if (!formatFolder(name, dirWorkerDataFolder)) {
-              System.exit(-1);
+              throw new RuntimeException(String.format("Failed to format worker data folder %s",
+                  dirWorkerDataFolder));
             }
           }
         }
       }
     } else {
       LOG.info(USAGE);
-      System.exit(-1);
+      throw new RuntimeException(String.format("Unrecognized format mode: %s", mode));
     }
-    System.exit(0);
   }
 
   private Format() {}  // prevent instantiation
