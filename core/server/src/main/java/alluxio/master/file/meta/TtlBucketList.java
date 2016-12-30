@@ -70,8 +70,8 @@ public final class TtlBucketList {
   /**
    * Inserts an {@link Inode} to the appropriate bucket where its ttl end time lies in the
    * bucket's interval, if no appropriate bucket exists, a new bucket will be created to contain
-   * this inode, if ttl value is {@link Constants#NO_TTL}, the inode won't be inserted to any buckets
-   * and nothing will happen.
+   * this inode, if ttl value is {@link Constants#NO_TTL}, the inode won't be inserted to any
+   * buckets and nothing will happen.
    *
    * @param inode the inode to be inserted
    */
