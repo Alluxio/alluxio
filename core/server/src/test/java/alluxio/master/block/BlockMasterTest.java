@@ -41,7 +41,6 @@ import org.junit.rules.TemporaryFolder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -137,7 +136,7 @@ public class BlockMasterTest {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
 
     // Make sure the worker is detected as lost.
-    Set<WorkerInfo> info = mMaster.getLostWorkersInfo();
+    List<WorkerInfo> info = mMaster.getLostWorkersInfoList();
     Assert.assertEquals(worker1, Iterables.getOnlyElement(info).getId());
   }
 
@@ -167,7 +166,7 @@ public class BlockMasterTest {
 
     // Check that there are no longer any lost workers and there is a live worker.
     Assert.assertEquals(1, mMaster.getWorkerCount());
-    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
+    Assert.assertEquals(0, mMaster.getLostWorkersInfoList().size());
   }
 
   @Test

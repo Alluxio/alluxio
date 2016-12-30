@@ -22,6 +22,7 @@ import java.util.Map;
 public class AlluxioMasterInfo {
   private Capacity mCapacity;
   private Map<String, String> mConfiguration;
+  private List<WorkerInfo> mLostWorkers;
   private Map<String, Long> mMetrics;
   private Map<String, MountPointInfo> mMountPoints;
   private String mRpcAddress;
@@ -50,6 +51,13 @@ public class AlluxioMasterInfo {
    */
   public Map<String, String> getConfiguration() {
     return mConfiguration;
+  }
+
+  /**
+   * @return the list of lost workers
+   */
+  public List<WorkerInfo> getLostWorkers() {
+    return mLostWorkers;
   }
 
   /**
@@ -137,6 +145,15 @@ public class AlluxioMasterInfo {
    */
   public AlluxioMasterInfo setConfiguration(Map<String, String> configuration) {
     mConfiguration = configuration;
+    return this;
+  }
+
+  /**
+   * @param lostWorkers the list of lost workers to use
+   * @return the Alluxio master information
+   */
+  public AlluxioMasterInfo setLostWorkers(List<WorkerInfo> lostWorkers) {
+    mLostWorkers = lostWorkers;
     return this;
   }
 
@@ -241,6 +258,7 @@ public class AlluxioMasterInfo {
     AlluxioMasterInfo that = (AlluxioMasterInfo) o;
     return Objects.equal(mCapacity, that.mCapacity)
         && Objects.equal(mConfiguration, that.mConfiguration)
+        && Objects.equal(mLostWorkers, that.mLostWorkers)
         && Objects.equal(mMetrics, that.mMetrics)
         && Objects.equal(mMountPoints, that.mMountPoints)
         && Objects.equal(mRpcAddress, that.mRpcAddress)
@@ -256,9 +274,9 @@ public class AlluxioMasterInfo {
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mCapacity, mConfiguration, mMetrics, mMountPoints, mRpcAddress, mStartTimeMs,
-            mStartupConsistencyCheck, mTierCapacity, mUfsCapacity, mUptimeMs, mVersion,
-            mWorkers);
+        .hashCode(mCapacity, mConfiguration, mLostWorkers, mMetrics, mMountPoints, mRpcAddress,
+            mStartTimeMs, mStartupConsistencyCheck, mTierCapacity, mUfsCapacity, mUptimeMs,
+            mVersion, mWorkers);
   }
 
   @Override
@@ -266,6 +284,7 @@ public class AlluxioMasterInfo {
     return Objects.toStringHelper(this)
         .add("capacity", mCapacity)
         .add("configuration", mConfiguration)
+        .add("lost workers", mLostWorkers)
         .add("metrics", mMetrics)
         .add("mount points", mMountPoints)
         .add("rpc address", mRpcAddress)
@@ -275,6 +294,7 @@ public class AlluxioMasterInfo {
         .add("ufs capacity", mUfsCapacity)
         .add("uptime", mUptimeMs)
         .add("version", mVersion)
-        .add("workers", mWorkers).toString();
+        .add("workers", mWorkers)
+        .toString();
   }
 }
