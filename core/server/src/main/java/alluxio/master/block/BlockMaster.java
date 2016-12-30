@@ -310,8 +310,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    *
    * @return a set of worker info
    */
-  public Set<WorkerInfo> getLostWorkersInfo() {
-    Set<WorkerInfo> ret = new HashSet<>(mLostWorkers.size());
+  public List<WorkerInfo> getLostWorkersInfoList() {
+    List<WorkerInfo> ret = new ArrayList<>(mLostWorkers.size());
     for (MasterWorkerInfo worker : mLostWorkers) {
       synchronized (worker) {
         ret.add(worker.generateClientWorkerInfo());

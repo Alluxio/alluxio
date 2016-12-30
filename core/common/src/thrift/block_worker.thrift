@@ -87,6 +87,7 @@ service BlockWorkerClientService extends common.AlluxioService {
     /** initial number of bytes requested */ 3: i64 initialBytes,
     /** the target tier to write to */ 4: TWriteTier writeTier,
     )
+    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Used to request space for some block file. return true if the worker successfully allocates
