@@ -104,16 +104,13 @@ public final class NettyClient {
    * @return {@link ChannelType} to use
    */
   private static ChannelType getChannelType() {
-    boolean epollModeSupported = true;
-    try {
-      EpollChannelConfig.class.getField("EPOLL_MODE");
-    } catch (NoSuchFieldException e) {
-      LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final.");
-      epollModeSupported = false;
-    }
-
-    if (PACKET_STREAMING_ENABLED && !epollModeSupported) {
-      return ChannelType.NIO;
+    if (PACKET_STREAMING_ENABLED) {
+      try {
+        EpollChannelConfig.class.getField("EPOLL_MODE");
+      } catch (NoSuchFieldException e) {
+        LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final.");
+        return ChannelType.NIO;
+      }
     }
     return Configuration.getEnum(PropertyKey.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
   }
