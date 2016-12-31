@@ -37,8 +37,15 @@ public final class NettyClient {
   /**  Share both the encoder and decoder with all the client pipelines. */
   private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
+  private static final boolean PACKET_STREAMING_ENABLED =
+      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
 
-  private static final ChannelType CHANNEL_TYPE =
+  /**
+   * Packet streaming requires {@link io.netty.channel.epoll.EpollMode} to be set to
+   * LEVEL_TRIGGERED which is not supported in netty versions < 4.0.26.Final. Without shading
+   * netty in alluxio, we cannot use epoll.
+   */
+  private static final ChannelType CHANNEL_TYPE = PACKET_STREAMING_ENABLED ? ChannelType.NIO :
       Configuration.getEnum(PropertyKey.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
   private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
       .getClientChannelClass(CHANNEL_TYPE);
