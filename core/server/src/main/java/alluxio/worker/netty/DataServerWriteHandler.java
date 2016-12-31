@@ -205,8 +205,10 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
             reset();
           }
         });
-    channel.config().setAutoRead(true);
-    channel.read();
+    if (!channel.config().isAutoRead()) {
+      channel.config().setAutoRead(true);
+      channel.read();
+    }
   }
 
   private void reset() throws IOException {
