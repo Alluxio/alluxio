@@ -7,7 +7,7 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- */
+ */vv
 
 package alluxio.worker.block;
 
@@ -99,7 +99,7 @@ public final class TieredBlockStore implements BlockStore {
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
 
   /** ReadLock provided by {@link #mMetadataLock} to guard metadata read operations. */
-  private final Lock mMetadataReadLock = mMetadataLock.readLock();
+  private final Lock mMetadataLock = mMetadataLock.readLock();
 
   /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
@@ -135,7 +135,7 @@ public final class TieredBlockStore implements BlockStore {
   public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
     boolean hasBlock;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       hasBlock = mMetaManager.hasBlockMeta(blockId);
     }
     if (hasBlock) {
@@ -161,7 +161,7 @@ public final class TieredBlockStore implements BlockStore {
     // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
     // block lock here since no sharing
     // TODO(bin): Handle the case where multiple writers compete for the same block.
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
       return new LocalFileBlockWriter(tempBlockMeta.getPath());
     }
@@ -171,7 +171,7 @@ public final class TieredBlockStore implements BlockStore {
   public BlockReader getBlockReader(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
     mLockManager.validateLock(sessionId, blockId, lockId);
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
       return new LocalFileBlockReader(blockMeta.getPath());
     }
@@ -203,7 +203,7 @@ public final class TieredBlockStore implements BlockStore {
   // TODO(bin): Make this method to return a snapshot.
   @Override
   public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       return mMetaManager.getBlockMeta(blockId);
     }
   }
@@ -212,7 +212,7 @@ public final class TieredBlockStore implements BlockStore {
   public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException {
     mLockManager.validateLock(sessionId, blockId, lockId);
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       return mMetaManager.getBlockMeta(blockId);
     }
   }
@@ -307,7 +307,7 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     boolean hasBlock;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       hasBlock = mMetaManager.hasBlockMeta(blockId);
     }
     if (!hasBlock) {
@@ -334,7 +334,7 @@ public final class TieredBlockStore implements BlockStore {
 
     // Collect a list of temp blocks the given session owns and abort all of them with best effort
     List<TempBlockMeta> tempBlocksToRemove;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       tempBlocksToRemove = mMetaManager.getSessionTempBlocks(sessionId);
     }
     for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
@@ -349,7 +349,7 @@ public final class TieredBlockStore implements BlockStore {
 
   @Override
   public boolean hasBlockMeta(long blockId) {
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       return mMetaManager.hasBlockMeta(blockId);
     }
   }
@@ -357,7 +357,7 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
     BlockStoreMeta storeMeta;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       storeMeta = mMetaManager.getBlockStoreMeta();
     }
     return storeMeta;
@@ -366,7 +366,7 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public BlockStoreMeta getBlockStoreMetaFull() {
     BlockStoreMeta storeMeta;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       storeMeta = mMetaManager.getBlockStoreMetaFull();
     }
     return storeMeta;
@@ -434,7 +434,7 @@ public final class TieredBlockStore implements BlockStore {
     try {
       String path;
       TempBlockMeta tempBlockMeta;
-      try (LockResource r = new LockResource(mMetadataReadLock)) {
+      try (LockResource r = new LockResource(mMetadataLock)) {
         checkTempBlockOwnedBySession(sessionId, blockId);
         tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
         path = tempBlockMeta.getPath();
@@ -476,7 +476,7 @@ public final class TieredBlockStore implements BlockStore {
       String srcPath;
       String dstPath;
       TempBlockMeta tempBlockMeta;
-      try (LockResource r = new LockResource(mMetadataReadLock)) {
+      try (LockResource r = new LockResource(mMetadataLock)) {
         checkTempBlockOwnedBySession(sessionId, blockId);
         tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
         srcPath = tempBlockMeta.getPath();
@@ -587,7 +587,7 @@ public final class TieredBlockStore implements BlockStore {
   private void freeSpaceInternal(long sessionId, long availableBytes, BlockStoreLocation location)
       throws WorkerOutOfSpaceException, IOException {
     EvictionPlan plan;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    try (LockResource r = new LockResource(mMetadataLock)) {
       plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView());
       // Absent plan means failed to evict enough space.
       if (plan == null) {
@@ -700,7 +700,7 @@ public final class TieredBlockStore implements BlockStore {
       BlockStoreLocation srcLocation;
       BlockStoreLocation dstLocation;
 
-      try (LockResource r = new LockResource(mMetadataReadLock)) {
+      try (LockResource r = new LockResource(mMetadataLock)) {
         if (mMetaManager.hasTempBlockMeta(blockId)) {
           throw new InvalidWorkerStateException(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK, blockId);
         }
@@ -769,7 +769,7 @@ public final class TieredBlockStore implements BlockStore {
     try {
       String filePath;
       BlockMeta blockMeta;
-      try (LockResource r = new LockResource(mMetadataReadLock)) {
+      try (LockResource r = new LockResource(mMetadataLock)) {
         if (mMetaManager.hasTempBlockMeta(blockId)) {
           throw new InvalidWorkerStateException(ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK, blockId);
         }
