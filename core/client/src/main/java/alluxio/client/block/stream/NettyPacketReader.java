@@ -362,8 +362,10 @@ public final class NettyPacketReader implements PacketReader {
    * Resumes the underlying packet reader.
    */
   private void resume() {
-    mChannel.config().setAutoRead(true);
-    mChannel.read();
+    if (!mChannel.config().isAutoRead()) {
+      mChannel.config().setAutoRead(true);
+      mChannel.read();
+    }
   }
 
   /**
