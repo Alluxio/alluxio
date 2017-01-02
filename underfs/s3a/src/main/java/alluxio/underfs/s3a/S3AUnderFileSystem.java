@@ -19,6 +19,7 @@ import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
@@ -50,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -136,6 +138,20 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       clientConf.setProxyPort(Configuration.getInt(PropertyKey.UNDERFS_S3_PROXY_PORT));
     }
 
+    int numAdminThreads = Configuration.getInt(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX);
+    int numTransferThreads = Configuration.getInt(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX);
+    int numThreads = Configuration.getInt(PropertyKey.UNDERFS_S3_THREADS_MAX);
+    if (numThreads < numAdminThreads + numTransferThreads) {
+      LOG.warn("Configured s3 max threads: {} is less than # admin threads: {} plus transfer "
+          + "threads {}. Using admin threads + transfer threads as max threads instead.");
+      numThreads = numAdminThreads + numTransferThreads;
+    }
+    clientConf.setMaxConnections(numThreads);
+
+    // Set client request timeout for all requests since multipart copy is used, and copy parts can
+    // only be set with the client configuration.
+    clientConf.setRequestTimeout(Configuration.getInt(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
+
     AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
     // Set a custom endpoint.
     if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
@@ -147,7 +163,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       amazonS3Client.setS3ClientOptions(clientOptions);
     }
 
-    TransferManager transferManager = new TransferManager(amazonS3Client);
+    ExecutorService service = ExecutorServiceFactories.fixedThreadPoolExecutorServiceFactory(
+        "alluxio-s3-transfer-manager-worker", numTransferThreads).create();
+
+    TransferManager transferManager = new TransferManager(amazonS3Client, service);
 
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);

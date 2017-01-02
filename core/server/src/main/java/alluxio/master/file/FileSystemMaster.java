@@ -1893,7 +1893,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (!dstParentInode.addChild(srcInode)) {
       // On failure, revert changes and throw exception.
       srcInode.setName(srcName);
-      srcInode.setParentId(dstParentInode.getId());
+      srcInode.setParentId(srcParentInode.getId());
       throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
     }
 

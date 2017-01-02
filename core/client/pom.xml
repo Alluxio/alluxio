@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.4.0-RC2</version>
   </parent>
   <artifactId>alluxio-core-client</artifactId>
   <packaging>jar</packaging>
@@ -35,6 +35,10 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
@@ -239,11 +243,50 @@
           </execution>
         </executions>
       </plugin>
+      <!--In the uber client jar, both proto and thrift are shaded to avoid version conflicts due to external-->
+      <!--dependencies introduced by external applications. The protobuf dependency is shaded in the public client-->
+      <!--jar rather than in the uber client jar, this is because it is also depended by other libraries included in-->
+      <!--the uber jar, thus shading protobuf during the uber jar packaging will over-shade references of protobuf.-->
+      <!--Ideally, the thrift dependency should also be shaded in the public jar in the same way as shading protobuf,-->
+      <!--however, this will break compilation due to existing signatures referencing thrift shared among modules.-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.2</version>
         <executions>
+          <execution>
+            <id>shade-proto</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>com.google.protobuf:protobuf-java</include>
+                  <include>org.alluxio:alluxio-core-common</include>
+                </includes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+                  <pattern>com.google.protobuf</pattern>
+                  <shadedPattern>shaded.alluxio.com.google.protobuf</shadedPattern>
+                </relocation>
+              </relocations>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
           <execution>
             <id>uber-jar</id>
             <phase>package</phase>
@@ -252,11 +295,13 @@
             </goals>
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <artifactSet>
+                <excludes>
+                  <exclude>com.google.protobuf:protobuf-java</exclude>
+                  <exclude>org.alluxio:alluxio-core-common</exclude>
+                </excludes>
+              </artifactSet>
               <relocations>
-                <relocation>
-                  <pattern>com.google.protobuf</pattern>
-                  <shadedPattern>shaded.alluxio.com.google.protobuf</shadedPattern>
-                </relocation>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
                   <shadedPattern>shaded.alluxio.org.apache.thrift</shadedPattern>
