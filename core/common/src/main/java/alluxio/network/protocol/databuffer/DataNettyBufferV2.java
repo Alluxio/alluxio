@@ -52,6 +52,16 @@ public final class DataNettyBufferV2 implements DataBuffer {
     throw new RuntimeException("DataNettyBufferV2::getReadOnlyByteBuffer is not supported.");
   }
 
+  @Override
+  public void readBytes(byte[] dst, int dstIndex, int length) {
+    mNettyBuf.readBytes(dst, dstIndex, length);
+  }
+
+  @Override
+  public int readableBytes() {
+    return mNettyBuf.readableBytes();
+  }
+
   /**
    * Release the Netty ByteBuf.
    */

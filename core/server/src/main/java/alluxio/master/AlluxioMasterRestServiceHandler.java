@@ -126,6 +126,7 @@ public final class AlluxioMasterRestServiceHandler {
             new AlluxioMasterInfo()
                 .setCapacity(getCapacityInternal())
                 .setConfiguration(getConfigurationInternal(rawConfig))
+                .setLostWorkers(mBlockMaster.getLostWorkersInfoList())
                 .setMetrics(getMetricsInternal())
                 .setMountPoints(getMountPointsInternal())
                 .setRpcAddress(mMaster.getRpcAddress().toString())

@@ -105,6 +105,12 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getLostWorkers() throws Exception {
+    List<WorkerInfo> lostWorkersInfo = getInfo(NO_PARAMS).getLostWorkers();
+    Assert.assertEquals(0, lostWorkersInfo.size());
+  }
+
+  @Test
   public void getMetrics() throws Exception {
     Assert.assertEquals(Long.valueOf(0), getInfo(NO_PARAMS).getMetrics()
         .get("master.CompleteFileOps"));

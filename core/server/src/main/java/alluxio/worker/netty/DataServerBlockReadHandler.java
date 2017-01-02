@@ -66,6 +66,7 @@ public final class DataServerBlockReadHandler extends DataServerReadHandler {
 
       mStart = request.getOffset();
       mEnd = mStart + request.getLength();
+      ((FileChannel) mBlockReader.getChannel()).position(mStart);
     }
 
     @Override
@@ -117,9 +118,10 @@ public final class DataServerBlockReadHandler extends DataServerReadHandler {
       case MAPPED:
         ByteBuf buf = channel.alloc().buffer(len, len);
         try {
+          FileChannel fileChannel = (FileChannel) blockReader.getChannel();
+          Preconditions.checkState(fileChannel.position() == offset);
           while (buf.writableBytes() > 0
-              && buf.writeBytes((FileChannel) blockReader.getChannel(), buf.writableBytes())
-              != -1) {
+              && buf.writeBytes(fileChannel, buf.writableBytes()) != -1) {
           }
           return new DataNettyBufferV2(buf);
         } catch (Throwable e) {

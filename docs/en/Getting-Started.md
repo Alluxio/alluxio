@@ -25,7 +25,7 @@ your AWS account information will be labeled with **[Bonus]**.
 For the following quick start guide, you will need:
 
 * Mac OS X or Linux
-* Java 7 or newer
+* [Java 7 or newer](Java-Setup.html)
 * **[Bonus]** AWS account and keys
 
 ### Setup SSH (Mac OS X)
