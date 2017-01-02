@@ -38,7 +38,6 @@ import java.util.Iterator;
  * <li><tt>f:</tt> - float, summ</li>
  * <li><tt>l:</tt> - long, summ</li>
  * </ul>
- *
  */
 public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, Text, Text, Text> {
   static final String VALUE_TYPE_LONG = "l:";
@@ -48,6 +47,9 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
 
   protected String mHostname;
 
+  /**
+   * Constructor for {@link AccumulatingReducer}.
+   */
   public AccumulatingReducer() {
     try {
       mHostname = java.net.InetAddress.getLocalHost().getHostName();
