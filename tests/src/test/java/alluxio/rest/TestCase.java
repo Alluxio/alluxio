@@ -102,6 +102,13 @@ public final class TestCase {
             + "?" + sb.toString());
   }
 
+  /**
+   * Get the String from the inputStream of HttpURLConnection by BufferedReader
+   *
+   * @param connection the HttpURLConnection
+   * @return the String from the InputStream of HttpURLConnection
+   * @throws Exception
+   */
   public String getResponse(HttpURLConnection connection) throws Exception {
     StringBuilder sb = new StringBuilder();
     BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
