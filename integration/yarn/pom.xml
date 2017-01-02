@@ -18,7 +18,11 @@
   <parent>
     <artifactId>alluxio-integration</artifactId>
     <groupId>org.alluxio</groupId>
+<<<<<<< HEAD
     <version>1.4.0-RC1-PS</version>
+=======
+    <version>1.4.0-RC2</version>
+>>>>>>> upstream/branch-1.4
   </parent>
   <name>Alluxio Integration - YARN</name>
   <artifactId>alluxio-integration-yarn</artifactId>

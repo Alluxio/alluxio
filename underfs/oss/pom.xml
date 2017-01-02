@@ -15,7 +15,11 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
+<<<<<<< HEAD
     <version>1.4.0-RC1-PS</version>
+=======
+    <version>1.4.0-RC2</version>
+>>>>>>> upstream/branch-1.4
   </parent>
   <artifactId>alluxio-underfs-oss</artifactId>
   <name>Alluxio Under File System - Aliyun OSS</name>
