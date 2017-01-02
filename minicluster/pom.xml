@@ -14,11 +14,7 @@
   <parent>
     <artifactId>alluxio-parent</artifactId>
     <groupId>org.alluxio</groupId>
-<<<<<<< HEAD
-    <version>1.4.0-RC1-PS</version>
-=======
-    <version>1.4.0-RC2</version>
->>>>>>> upstream/branch-1.4
+    <version>1.4.0-RC2-PS</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
