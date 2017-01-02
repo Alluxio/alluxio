@@ -92,6 +92,13 @@ public final class TestCase {
     return mMethod;
   }
 
+  /**
+   * Create the URL which is concatenated by the mHostname, mPort, REST_API_PREFIX, mEndpoint and
+   * the entry of mParameters.
+   *
+   * @return the URL which is created
+   * @throws Exception
+   */
   public URL createURL() throws Exception {
     StringBuilder sb = new StringBuilder();
     for (Map.Entry<String, String> parameter : mParameters.entrySet()) {
