@@ -26,7 +26,6 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollChannelConfig;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollMode;
 import io.netty.channel.socket.SocketChannel;
@@ -106,8 +105,8 @@ public final class NettyClient {
   private static ChannelType getChannelType() {
     if (PACKET_STREAMING_ENABLED) {
       try {
-        EpollChannelConfig.class.getField("EPOLL_MODE");
-      } catch (NoSuchFieldException e) {
+        EpollChannelOption.class.getField("EPOLL_MODE");
+      } catch (Throwable e) {
         LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final.");
         return ChannelType.NIO;
       }
