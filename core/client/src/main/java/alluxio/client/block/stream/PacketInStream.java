@@ -16,12 +16,11 @@ import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.PreconditionMessage;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
-import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.base.Preconditions;
-import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,10 +40,12 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   /** The size in bytes of the block. */
   private final long mLength;
 
+  private final byte[] mSingleByte = new byte[1];
+
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
   /** The current packet. */
-  private ByteBuf mCurrentPacket;
+  private DataBuffer mCurrentPacket;
 
   private PacketReader mPacketReader;
   private PacketReader.Factory mPacketReaderFactory;
@@ -63,8 +64,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
    */
   public static PacketInStream createLocalPacketInstream(String path, long id, long length)
       throws IOException {
-    LocalFileBlockReader localFileBlockReader = new LocalFileBlockReader(path);
-    return new PacketInStream(new LocalFilePacketReader.Factory(localFileBlockReader), id, length);
+    return new PacketInStream(new LocalFilePacketReader.Factory(path), id, length);
   }
 
   /**
@@ -102,19 +102,12 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
 
   @Override
   public int read() throws IOException {
-    checkIfClosed();
-
-    readPacket();
-    if (mCurrentPacket == null) {
-      mEOF = true;
-    }
-    if (mEOF) {
-      close();
+    int bytesRead = read(mSingleByte);
+    if (bytesRead == -1) {
       return -1;
     }
-
-    mPos++;
-    return BufferUtils.byteToInt(mCurrentPacket.readByte());
+    Preconditions.checkState(bytesRead == 1);
+    return BufferUtils.byteToInt(mSingleByte[0]);
   }
 
   @Override
@@ -137,7 +130,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
       mEOF = true;
     }
     if (mEOF) {
-      close();
+      closePacketReader();
       return -1;
     }
     int toRead = Math.min(len, mCurrentPacket.readableBytes());
@@ -160,20 +153,20 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
       // We try to read len bytes instead of returning after reading one packet because
       // it is not free to create/close a PacketReader.
       while (len > 0) {
-        ByteBuf buf = null;
+        DataBuffer dataBuffer = null;
         try {
-          buf = reader.readPacket();
-          if (buf == null) {
+          dataBuffer = reader.readPacket();
+          if (dataBuffer == null) {
             break;
           }
-          Preconditions.checkState(buf.readableBytes() <= len);
-          int toRead = buf.readableBytes();
-          buf.readBytes(b, off, toRead);
+          Preconditions.checkState(dataBuffer.readableBytes() <= len);
+          int toRead = dataBuffer.readableBytes();
+          dataBuffer.readBytes(b, off, toRead);
           len -= toRead;
           off += toRead;
         } finally {
-          if (buf != null) {
-            buf.release();
+          if (dataBuffer != null) {
+            dataBuffer.release();
           }
         }
       }
@@ -222,7 +215,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     closePacketReader();
     mClosed = true;
   }
@@ -238,7 +231,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
     }
 
     if (mCurrentPacket != null && mCurrentPacket.readableBytes() == 0) {
-      destroyPacket(mCurrentPacket);
+      mCurrentPacket.release();
       mCurrentPacket = null;
     }
     if (mCurrentPacket == null) {
@@ -249,25 +242,15 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   /**
    * Close the current packet reader.
    */
-  private void closePacketReader() {
-    destroyPacket(mCurrentPacket);
-    mCurrentPacket = null;
-
+  private void closePacketReader() throws IOException {
+    if (mCurrentPacket != null) {
+      mCurrentPacket.release();
+      mCurrentPacket = null;
+    }
     if (mPacketReader != null) {
       mPacketReader.close();
     }
     mPacketReader = null;
-  }
-
-  /**
-   * Destroys a packet.
-   *
-   * @param packet the packet
-   */
-  private void destroyPacket(ByteBuf packet) {
-    if (packet != null) {
-      packet.release();
-    }
   }
 
   /**

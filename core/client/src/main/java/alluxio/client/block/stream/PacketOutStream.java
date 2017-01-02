@@ -254,7 +254,8 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
       if (mCurrentPacket.writableBytes() == 0 || lastPacket) {
         try {
           for (PacketWriter packetWriter : mPacketWriters) {
-            packetWriter.writePacket(mCurrentPacket.asReadOnly().retainedDuplicate());
+            mCurrentPacket.retain();
+            packetWriter.writePacket(mCurrentPacket.duplicate());
           }
         } finally {
           // We increment the refcount explicitly for every packet writer. So we need to release

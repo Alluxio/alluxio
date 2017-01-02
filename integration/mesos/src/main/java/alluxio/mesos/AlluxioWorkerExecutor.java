@@ -75,8 +75,7 @@ public class AlluxioWorkerExecutor implements Executor {
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
 
-          // TODO(jiri): Consider handling Format.main() failures gracefully.
-          Format.main(new String[] {"worker"});
+          Format.format("worker");
           AlluxioWorker.main(new String[] {});
 
           status =
