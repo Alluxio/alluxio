@@ -60,10 +60,10 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
   }
 
   /**
-   * This method accumulates values based on their type
+   * This method accumulates values based on their type.
    *
-   * @param key the type of values.
-   * @param values the values to accumulates.
+   * @param key the type of values
+   * @param values the values to accumulates
    * @param output collect the result of accumulating
    * @param reporter to report progress and update status information
    * @throws IOException
