@@ -644,13 +644,17 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     AlluxioURI dstPath = new AlluxioURI(HadoopUtils.getPathWithoutScheme(dst));
     try {
       mFileSystem.rename(srcPath, dstPath);
+    } catch (FileDoesNotExistException e) {
+      LOG.error("Failed to rename {} to {}", src, dst);
+      return false;
     } catch (AlluxioException e) {
       ensureExists(srcPath);
       URIStatus dstStatus;
       try {
         dstStatus = mFileSystem.getStatus(dstPath);
       } catch (IOException | AlluxioException e2) {
-        dstStatus = null;
+        LOG.error("Failed to rename {} to {}", src, dst);
+        return false;
       }
       // If the destination is an existing folder, try to move the src into the folder
       if (dstStatus != null && dstStatus.isFolder()) {
