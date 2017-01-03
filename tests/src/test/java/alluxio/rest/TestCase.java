@@ -92,6 +92,10 @@ public final class TestCase {
     return mMethod;
   }
 
+  /**
+   * @return The URL which is created
+   * @throws Exception
+   */
   public URL createURL() throws Exception {
     StringBuilder sb = new StringBuilder();
     for (Map.Entry<String, String> parameter : mParameters.entrySet()) {
