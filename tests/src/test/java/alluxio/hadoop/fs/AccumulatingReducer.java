@@ -59,6 +59,15 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
     LOG.info("Starting AccumulatingReducer on " + mHostname);
   }
 
+  /**
+   * This method accumulates values based on their type
+   *
+   * @param key the type of values.
+   * @param values the values to accumulates.
+   * @param output collect the pair output
+   * @param reporter to report progress and update status information
+   * @throws IOException
+   */
   public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output,
       Reporter reporter) throws IOException {
     String field = key.toString();
