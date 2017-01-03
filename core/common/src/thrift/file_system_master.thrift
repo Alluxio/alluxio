@@ -15,6 +15,8 @@ struct CreateDirectoryTOptions {
   2: optional bool recursive
   3: optional bool allowExists
   4: optional i16 mode
+  5: optional i64 ttl
+  6: optional common.TTtlAction ttlAction
 }
 
 struct CreateFileTOptions {

@@ -848,8 +848,6 @@ public final class FileSystemMasterTest {
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(1, fileInfo.getTtl());
 
-    // Set ttl for a directory, raise IllegalArgumentException.
-    mThrown.expect(IllegalArgumentException.class);
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(1));
   }
 

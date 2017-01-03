@@ -17,6 +17,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
@@ -36,6 +37,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private boolean mDeleted;
   protected final boolean mDirectory;
   protected final long mId;
+  protected long mTtl;
+  protected TtlAction mTtlAction;
   private long mLastModificationTimeMs;
   private String mName;
   private long mParentId;
@@ -54,6 +57,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mDirectory = isDirectory;
     mGroup = "";
     mId = id;
+    mTtl = Constants.NO_TTL;
+    mTtlAction = TtlAction.DELETE;
     mLastModificationTimeMs = mCreationTimeMs;
     mName = null;
     mParentId = InodeTree.NO_PARENT;
@@ -83,6 +88,20 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public long getId() {
     return mId;
+  }
+
+  /**
+   * @return the ttl of the file
+   */
+  public long getTtl() {
+    return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlAction}
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
   }
 
   /**
@@ -230,6 +249,24 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T setParentId(long parentId) {
     mParentId = parentId;
+    return getThis();
+  }
+
+  /**
+   * @param ttl the TTL to use, in milliseconds
+   * @return the updated object
+   */
+  public T setTtl(long ttl) {
+    mTtl = ttl;
+    return getThis();
+  }
+
+  /**
+   * @param ttlAction the {@link TtlAction} to use
+   * @return the updated options object
+   */
+  public T setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
     return getThis();
   }
 
@@ -434,6 +471,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   protected Objects.ToStringHelper toStringHelper() {
     return Objects.toStringHelper(this).add("id", mId).add("name", mName).add("parentId", mParentId)
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
+        .add("ttl", mTtl).add("mTtlAction", mTtlAction)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
         .add("lastModificationTimeMs", mLastModificationTimeMs).add("owner", mOwner)
         .add("group", mGroup).add("permission", mMode);
