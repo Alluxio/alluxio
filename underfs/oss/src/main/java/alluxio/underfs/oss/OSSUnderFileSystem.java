@@ -286,8 +286,7 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     try {
       return new OSSInputStream(mBucketName, key, mClient, options.getOffset());
     } catch (ServiceException e) {
-      LOG.error("Failed to open file: {}", key, e);
-      return null;
+      throw new IOException(e.getMessage());
     }
   }
 }
