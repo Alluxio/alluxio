@@ -116,18 +116,9 @@ Alluxio allows a client to select a tier preference when writing blocks to a loc
 this policy preference exists only for local workers, not remote workers; remote workers will write
 blocks to the highest tier.
 
-
-Below is a table of the expected behaviors of the different `WriteTier` options:
-<table class="table table-striped">
-<tr><th>Write Tier</th><th>Behavior</th>
-</tr>
-{% for writetier in site.data.table.WriteTier %}
-<tr>
-  <td>{{writetier.writetier}}</td>
-  <td>{{site.data.table.en.WriteTier.[writetier.writetier]}}</td>
-</tr>
-{% endfor %}
-</table>
+By default, data is written to the top tier. Users can modify the default setting through the
+`alluxio.user.file.write.tier.default` [configuration](Configuration-Settings.html) property or
+override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
 
 ### Accessing an existing file in Alluxio
 
