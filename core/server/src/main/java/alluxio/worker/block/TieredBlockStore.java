@@ -864,4 +864,18 @@ public final class TieredBlockStore implements BlockStore {
       return mDstLocation;
     }
   }
+
+  /**
+   * Interprets a tier index given the number of tiers.
+   *
+   * @param index the tier index to interpret
+   * @param numTiers the number of tiers
+   * @return a valid tier index
+   */
+  public static int interpretTier(int index, int numTiers) {
+    if (index >= 0) {
+      return Math.min(index, numTiers - 1);
+    }
+    return Math.max(numTiers + index, 0);
+  }
 }

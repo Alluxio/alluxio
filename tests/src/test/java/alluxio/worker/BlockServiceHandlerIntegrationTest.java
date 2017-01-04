@@ -30,7 +30,6 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockId;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.TWriteTier;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -93,7 +92,7 @@ public class BlockServiceHandlerIntegrationTest {
   public void cacheBlock() throws Exception {
     mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
-    final TWriteTier writeTier = TWriteTier.Highest;
+    final int writeTier = Constants.FIRST_TIER_INDEX;
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
     // Construct the block ids for the file.
@@ -123,7 +122,7 @@ public class BlockServiceHandlerIntegrationTest {
   public void cancelBlock() throws Exception {
     mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
-    final TWriteTier writeTier = TWriteTier.Highest;
+    final int writeTier = Constants.FIRST_TIER_INDEX;
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
@@ -235,7 +234,7 @@ public class BlockServiceHandlerIntegrationTest {
     final int chunkSize = (int) WORKER_CAPACITY_BYTES / 10;
 
     /* only a single tier, so SecondHighest still refers to the memory tier */
-    final TWriteTier writeTier = TWriteTier.SecondHighest;
+    final int writeTier = Constants.SECOND_TIER_INDEX;
 
     mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId1, chunkSize, writeTier);
     boolean result = mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, chunkSize);
@@ -278,7 +277,7 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId2 = 23456L;
 
     /* only a single tier, so lowest still refers to the memory tier */
-    final TWriteTier writeTier = TWriteTier.Lowest;
+    final int writeTier = Constants.LAST_TIER_INDEX;
 
     String filePath1 =
         mBlockWorkerServiceHandler.requestBlockLocation(userId1, blockId1, chunkSize, writeTier);
