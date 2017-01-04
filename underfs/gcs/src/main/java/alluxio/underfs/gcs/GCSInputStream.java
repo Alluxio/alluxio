@@ -56,11 +56,7 @@ public final class GCSInputStream extends InputStream {
    */
   GCSInputStream(String bucketName, String key, GoogleStorageService client)
       throws ServiceException {
-    mBucketName = bucketName;
-    mKey = key;
-    mClient = client;
-    mObject = mClient.getObject(mBucketName, mKey);
-    mInputStream = new BufferedInputStream(mObject.getDataInputStream());
+    this(bucketName, key, client, 0L);
   }
 
   /**
@@ -78,7 +74,11 @@ public final class GCSInputStream extends InputStream {
     mKey = key;
     mClient = client;
     mPos = pos;
-    mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
+    if (mPos > 0) {
+      mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
+    } else {
+      mObject = mClient.getObject(mBucketName, mKey);
+    }
     mInputStream = new BufferedInputStream(mObject.getDataInputStream());
   }
 

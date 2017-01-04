@@ -312,8 +312,7 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     try {
       return new GCSInputStream(mBucketName, key, mClient, options.getOffset());
     } catch (ServiceException e) {
-      LOG.error("Failed to open file: {}", key, e);
-      return null;
+      throw new IOException(e.getMessage());
     }
   }
 

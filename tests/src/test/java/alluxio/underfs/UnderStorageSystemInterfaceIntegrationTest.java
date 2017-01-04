@@ -138,6 +138,23 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests that no bytes are read from an empty file.
+   */
+  @Test
+  public void createOpenEmpty() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    createEmptyFile(testFile);
+    byte[] buf = new byte[0];
+    int bytesRead = mUfs.open(testFile).read(buf);
+    // TODO(adit): Consider making the return value uniform across UFSs
+    if (mUfs instanceof LocalUnderFileSystem) {
+      Assert.assertTrue(bytesRead == -1);
+    } else {
+      Assert.assertTrue(bytesRead == 0);
+    }
+  }
+
+  /**
    * Tests {@link UnderFileSystem#open(String, OpenOptions)} for a multi-block file.
    */
   @Test
