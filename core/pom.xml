@@ -26,6 +26,7 @@
     <module>common</module>
     <module>client</module>
     <module>server</module>
+    <module>protobuf</module>
   </modules>
 
   <properties>
