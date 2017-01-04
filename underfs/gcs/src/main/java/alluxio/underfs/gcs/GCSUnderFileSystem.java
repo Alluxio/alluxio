@@ -46,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * GCS FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
-public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
+public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
