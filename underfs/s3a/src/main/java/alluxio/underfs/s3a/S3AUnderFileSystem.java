@@ -409,6 +409,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected InputStream openObject(String key, OpenOptions options) throws IOException {
-    return new S3AInputStream(mBucketName, key, mClient, options.getOffset());
+    try {
+      return new S3AInputStream(mBucketName, key, mClient, options.getOffset());
+    } catch (AmazonClientException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 }
