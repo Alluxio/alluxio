@@ -65,8 +65,6 @@ public final class RetryHandlingBlockWorkerClient
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
   private final BlockWorkerThriftClientPool mClientPool;
   private final BlockWorkerThriftClientPool mClientHeartbeatPool;
-  private static final int WRITE_TIER =
-      alluxio.Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
   // Tracks the number of active heartbeat close requests.
   private static final AtomicInteger NUM_ACTIVE_SESSIONS = new AtomicInteger(0);
 
@@ -247,7 +245,7 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
-  public String requestBlockLocation(final long blockId, final long initialBytes)
+  public String requestBlockLocation(final long blockId, final long initialBytes, final int writeTier)
       throws IOException {
     try {
       return retryRPC(
@@ -255,7 +253,7 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public String call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
-              return client.requestBlockLocation(getSessionId(), blockId, initialBytes, WRITE_TIER);
+              return client.requestBlockLocation(getSessionId(), blockId, initialBytes, writeTier);
             }
           });
     } catch (WorkerOutOfSpaceException e) {

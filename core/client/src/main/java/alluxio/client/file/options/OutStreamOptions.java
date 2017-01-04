@@ -41,6 +41,7 @@ public final class OutStreamOptions {
   private long mTtl;
   private TtlAction mTtlAction;
   private FileWriteLocationPolicy mLocationPolicy;
+  private int mWriteTier;
   private WriteType mWriteType;
   private Permission mPermission;
   private String mUfsPath;
@@ -64,6 +65,7 @@ public final class OutStreamOptions {
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+    mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mPermission = Permission.defaults();
     try {
@@ -134,6 +136,13 @@ public final class OutStreamOptions {
   /**
    * @return the write type
    */
+  public int getWriteTier() {
+    return mWriteTier;
+  }
+
+  /**
+   * @return the write type
+   */
   public WriteType getWriteType() {
     return mWriteType;
   }
@@ -177,6 +186,17 @@ public final class OutStreamOptions {
    */
   public OutStreamOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
     mLocationPolicy = locationPolicy;
+    return this;
+  }
+
+  /**
+   * Sets the write tier.
+   *
+   * @param writeTier the write tier to use for this operation
+   * @return the updated options object
+   */
+  public OutStreamOptions setWriteTier(int writeTier) {
+    mWriteTier = writeTier;
     return this;
   }
 
@@ -239,6 +259,7 @@ public final class OutStreamOptions {
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && mWriteTier == that.mWriteTier
         && Objects.equal(mWriteType, that.mWriteType)
         && Objects.equal(mUfsPath, that.mUfsPath)
         && Objects.equal(mPermission, that.mPermission);
@@ -250,6 +271,7 @@ public final class OutStreamOptions {
         mTtl,
         mTtlAction,
         mLocationPolicy,
+        mWriteTier,
         mWriteType,
         mUfsPath,
         mPermission);
@@ -260,8 +282,9 @@ public final class OutStreamOptions {
     return Objects.toStringHelper(this)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("ttl", mTtl)
-        .add("mTtlAction", mTtlAction)
+        .add("ttlAction", mTtlAction)
         .add("locationPolicy", mLocationPolicy)
+        .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
         .add("permission", mPermission)
         .add("ufsPath", mUfsPath)
