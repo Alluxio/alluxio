@@ -2266,9 +2266,15 @@ public final class FileSystemMaster extends AbstractMaster {
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     try {
+      if (!ufs.exists(ufsUri.toString())) {
+        // uri does not exist in ufs
+        InodeDirectory inode = (InodeDirectory) inodePath.getInode();
+        inode.setDirectChildrenLoaded(true);
+        return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+      }
       if (ufs.isFile(ufsUri.toString())) {
         return loadFileMetadataAndJournal(inodePath, resolution, options);
-      } else if (ufs.isDirectory(ufsUri.toString())) {
+      } else {
         long counter = loadDirectoryMetadataAndJournal(inodePath, options);
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
@@ -2289,11 +2295,6 @@ public final class FileSystemMaster extends AbstractMaster {
           inode.setDirectChildrenLoaded(true);
         }
         return counter;
-      } else {
-        // uri does not exist in ufs
-        InodeDirectory inode = (InodeDirectory) inodePath.getInode();
-        inode.setDirectChildrenLoaded(true);
-        return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
       }
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
