@@ -116,18 +116,12 @@ Alluxio allows a client to select a tier preference when writing blocks to a loc
 this policy preference exists only for local workers, not remote workers; remote workers will write
 blocks to the highest tier.
 
-
-Below is a table of the expected behaviors of the different `WriteTier` options:
-<table class="table table-striped">
-<tr><th>Write Tier</th><th>Behavior</th>
-</tr>
-{% for writetier in site.data.table.WriteTier %}
-<tr>
-  <td>{{writetier.writetier}}</td>
-  <td>{{site.data.table.en.WriteTier.[writetier.writetier]}}</td>
-</tr>
-{% endfor %}
-</table>
+The target tier is specified as an integer index. Non-negative indices identify tiers starting from
+top going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the
+provided non-negative index "overflows" (it is greater than the number of tiers), it identifies the
+last tier. Negative indices identify tiers starting from the bottom going up (-1 identifies the last
+tier, -2 identifies the second to last tier, and so on). If the provided negative index "overflows"
+(its absolute value is greater than the number of tiers), it identifies the first tier.
 
 ### Accessing an existing file in Alluxio
 
