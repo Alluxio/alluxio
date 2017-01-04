@@ -38,7 +38,7 @@ public class MessageSavingHandler extends SimpleChannelInboundHandler<RPCMessage
   }
 
   /**
-   * This is blocking.
+   * Returns the received message.This is blocking.
    *
    * @return the received message
    */
