@@ -16,16 +16,18 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.InvalidPathException;
 
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Displays the file's all blocks info.
+ * Displays the path's info.
+ * If path is a directory, it displays the directory's info and all direct children's info.
+ * If path is a file, it displays the file's all blocks info.
  */
 @ThreadSafe
 public final class FileInfoCommand extends WithWildCardPathCommand {
@@ -41,19 +43,38 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
     return "fileInfo";
   }
 
-  @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    URIStatus status = mFileSystem.getStatus(path);
-
-    if (status.isFolder()) {
-      throw new InvalidPathException(path + " is a directory path so does not have file blocks.");
-    }
-
+  /**
+   * @param status the URIStatus to be print
+   * @throws IOException if an I/O error occurs
+   */
+  public void printFileInfo(URIStatus status) throws IOException {
     System.out.println(status);
     System.out.println("Containing the following blocks: ");
     AlluxioBlockStore blockStore = AlluxioBlockStore.create();
     for (long blockId : status.getBlockIds()) {
       System.out.println(blockStore.getInfo(blockId));
+    }
+  }
+
+  @Override
+  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
+    if (status.isFolder()) {
+      List<URIStatus> childrens = mFileSystem.listStatus(path);
+      System.out.println(path + " is a directory and have " + childrens.size() + " child");
+      System.out.println("The directory's information as following: ");
+      System.out.println(status);
+      if (childrens.size() > 0) {
+        System.out.println("The childrens' information as following: ");
+        for (int i = 0; i < childrens.size(); i++) {
+          System.out.println("");
+          System.out.println("child " + (i + 1) + ": ");
+          printFileInfo(childrens.get(i));
+        }
+      }
+    } else {
+      System.out.println(path + " is a file and the information as following: ");
+      printFileInfo(status);
     }
   }
 
@@ -64,6 +85,6 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Displays all block info for the specified file.";
+    return "Displays info for the specified path both file and directory.";
   }
 }
