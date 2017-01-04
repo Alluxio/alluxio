@@ -26,9 +26,11 @@ Alluxio一般不在开发机上运行,这使得Alluxio的调试变得困难,我�
 使用java远程调试技术可以简单、不修改源码的方式，进行源码级调试。你需要增加jvm 远程调试参数，启动调试服务。增加远程调试参数的方法有很多，比较方便的一种方法是，在需要调试的节点上，修改`alluxio-env.sh`，增加如下配置属性。
 
 ```properties
-ALLUXIO_MASTER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6600 $ALLUXIO_MASTER_JVM_OPTS"
+ALLUXIO_MASTER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6600 $ALLUXIO_JAVA_OPTS"
 
-ALLUXIO_WORKER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6601 $ALLUXIO_WORKER_JVM_OPTS"
+ALLUXIO_WORKER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6601 $ALLUXIO_JAVA_OPTS"
+
+ALLUXIO_PROXY_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6602 $ALLUXIO_JAVA_OPTS"
 ```
 
 这样启动该节点上的master或者worker后，使用eclipse或intellij idea等java开发环境，新建java远程调试配置，设置调试主机名和端口号，然后启动调试连接。如果你设置了断点并且到达了断点处，开发环境会进入调试模式，可以读写当前现场的变量、调用栈、线程列表、表达式评估，也可以执行单步进入、单步跳过、恢复执行、挂起等调试控制。掌握这个技术使得日后的定位问题事半功倍，也会对调试过的代码上下文印象深刻。
