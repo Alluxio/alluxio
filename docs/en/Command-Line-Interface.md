@@ -184,9 +184,9 @@ which folders are taking up the most space.
 {% include Command-Line-Interface/du.md %}
 
 ## fileInfo
-The `fileInfo` command dumps the FileInfo representation of a file to the console. It is primarily
-intended to assist powerusers in debugging their system. Generally viewing the file info in the UI
-will be much easier to understand.
+The `fileInfo` command dumps the FileInfo representation of a file or a directory to the console.
+It is primarily intended to assist powerusers in debugging their system. Generally viewing the file
+info in the UI will be much easier to understand.
 
 For example, `fileInfo` can be used to debug the block locations of a file. This is useful when
 trying to achieve locality for compute workloads.
