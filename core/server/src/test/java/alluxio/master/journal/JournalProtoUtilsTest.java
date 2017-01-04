@@ -14,9 +14,9 @@ package alluxio.master.journal;
 import alluxio.exception.ExceptionMessage;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.shaded.protobuf.Message;
-import alluxio.shaded.protobuf.UnknownFieldSet;
-import alluxio.shaded.protobuf.UnknownFieldSet.Field;
+import alluxio.shaded.com.google.protobuf.Message;
+import alluxio.shaded.com.google.protobuf.UnknownFieldSet;
+import alluxio.shaded.com.google.protobuf.UnknownFieldSet.Field;
 
 import org.junit.Assert;
 import org.junit.Test;

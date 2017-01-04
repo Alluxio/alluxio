@@ -14,7 +14,7 @@ package alluxio.mesos;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.shaded.protobuf.ByteString;
+import alluxio.shaded.com.google.protobuf.ByteString;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;

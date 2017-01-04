@@ -15,8 +15,8 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.shaded.protobuf.InvalidProtocolBufferException;
-import alluxio.shaded.protobuf.MessageLite;
+import alluxio.shaded.com.google.protobuf.InvalidProtocolBufferException;
+import alluxio.shaded.com.google.protobuf.MessageLite;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;

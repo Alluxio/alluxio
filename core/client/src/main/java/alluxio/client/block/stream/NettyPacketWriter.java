@@ -21,7 +21,7 @@ import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.shaded.protobuf.MessageLite;
+import alluxio.shaded.com.google.protobuf.MessageLite;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;

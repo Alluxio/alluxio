@@ -40,7 +40,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.shaded.protobuf.Message;
+import alluxio.shaded.com.google.protobuf.Message;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;

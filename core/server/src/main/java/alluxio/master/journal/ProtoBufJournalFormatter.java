@@ -13,7 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.Constants;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.shaded.protobuf.CodedInputStream;
+import alluxio.shaded.com.google.protobuf.CodedInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
