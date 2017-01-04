@@ -33,6 +33,20 @@ public abstract class StorageTierAssoc {
   private final ImmutableBiMap<String, Integer> mAliasToOrdinal;
 
   /**
+   * Interprets a tier index given the number of tiers.
+   *
+   * @param index the tier index to interpret
+   * @param numTiers the number of tiers
+   * @return a valid tier index
+   */
+  static int interpretIndex(int index, int numTiers) {
+    if (index >= 0) {
+      return Math.min(index, numTiers - 1);
+    }
+    return Math.max(numTiers + index, 0);
+  }
+
+  /**
    * Constructs a new instance using the given {@link Configuration} object. The mapping cannot be
    * modified after creation.
    *
@@ -68,7 +82,7 @@ public abstract class StorageTierAssoc {
    * @return the storage tier alias matching the given ordinal
    */
   public String getAlias(int ordinal) {
-    return mAliasToOrdinal.inverse().get(ordinal);
+    return mAliasToOrdinal.inverse().get(interpretIndex(ordinal, mAliasToOrdinal.size()));
   }
 
   /**

@@ -208,9 +208,8 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
     return RpcUtils.call(new RpcCallableThrowsIOException<String>() {
       @Override
       public String call() throws AlluxioException, IOException {
-        int level = TieredBlockStore.interpretTier(writeTier, mStorageTierAssoc.size());
         return mWorker
-            .createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(level), initialBytes);
+            .createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(writeTier), initialBytes);
       }
     });
   }

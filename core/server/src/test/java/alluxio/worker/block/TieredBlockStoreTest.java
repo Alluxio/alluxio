@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.Constants;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -582,30 +581,5 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.removeBlock(SESSION_ID1, BLOCK_ID1);
-  }
-
-  @Test
-  public void interpretTier() throws Exception {
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(0, 1));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(1, 1));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(2, 1));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(-1, 1));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(-2, 1));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(-3, 1));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(Constants.FIRST_TIER_INDEX, 1));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(Constants.SECOND_TIER_INDEX, 1));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(Constants.LAST_TIER_INDEX, 1));
-
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(0, 10));
-    Assert.assertEquals(8, TieredBlockStore.interpretTier(8, 10));
-    Assert.assertEquals(9, TieredBlockStore.interpretTier(9, 10));
-    Assert.assertEquals(9, TieredBlockStore.interpretTier(10, 10));
-    Assert.assertEquals(9, TieredBlockStore.interpretTier(-1, 10));
-    Assert.assertEquals(1, TieredBlockStore.interpretTier(-9, 10));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(-10, 10));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(-11, 10));
-    Assert.assertEquals(0, TieredBlockStore.interpretTier(Constants.FIRST_TIER_INDEX, 10));
-    Assert.assertEquals(1, TieredBlockStore.interpretTier(Constants.SECOND_TIER_INDEX, 10));
-    Assert.assertEquals(9, TieredBlockStore.interpretTier(Constants.LAST_TIER_INDEX, 10));
   }
 }

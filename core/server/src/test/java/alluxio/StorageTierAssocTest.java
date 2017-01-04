@@ -84,4 +84,29 @@ public class StorageTierAssocTest {
     Assert.assertEquals(orderedAliases, masterAssoc.getOrderedStorageAliases());
     Assert.assertEquals(orderedAliases, workerAssoc.getOrderedStorageAliases());
   }
+
+  @Test
+  public void interpretTier() throws Exception {
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(0, 1));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(1, 1));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(2, 1));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(-1, 1));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(-2, 1));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(-3, 1));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(Constants.FIRST_TIER_INDEX, 1));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(Constants.SECOND_TIER_INDEX, 1));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(Constants.LAST_TIER_INDEX, 1));
+
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(0, 10));
+    Assert.assertEquals(8, StorageTierAssoc.interpretIndex(8, 10));
+    Assert.assertEquals(9, StorageTierAssoc.interpretIndex(9, 10));
+    Assert.assertEquals(9, StorageTierAssoc.interpretIndex(10, 10));
+    Assert.assertEquals(9, StorageTierAssoc.interpretIndex(-1, 10));
+    Assert.assertEquals(1, StorageTierAssoc.interpretIndex(-9, 10));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(-10, 10));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(-11, 10));
+    Assert.assertEquals(0, StorageTierAssoc.interpretIndex(Constants.FIRST_TIER_INDEX, 10));
+    Assert.assertEquals(1, StorageTierAssoc.interpretIndex(Constants.SECOND_TIER_INDEX, 10));
+    Assert.assertEquals(9, StorageTierAssoc.interpretIndex(Constants.LAST_TIER_INDEX, 10));
+  }
 }

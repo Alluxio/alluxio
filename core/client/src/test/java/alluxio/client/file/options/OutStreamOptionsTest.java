@@ -106,6 +106,6 @@ public class OutStreamOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(OutStreamOptions.class, "mPermission");
+    CommonTestUtils.testEquals(OutStreamOptions.class);
   }
 }

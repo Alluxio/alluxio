@@ -134,7 +134,7 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the write type
+   * @return the write tier
    */
   public int getWriteTier() {
     return mWriteTier;
