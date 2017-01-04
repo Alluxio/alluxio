@@ -142,9 +142,9 @@ public final class Constants {
   public static final short INVALID_MODE = -1;
 
   // Specific tier write
-  public static final int FIRST_TIER_INDEX = 0;
-  public static final int SECOND_TIER_INDEX = 1;
-  public static final int LAST_TIER_INDEX = -1;
+  public static final int FIRST_TIER = 0;
+  public static final int SECOND_TIER = 1;
+  public static final int LAST_TIER = -1;
 
   private Constants() {} // prevent instantiation
 }

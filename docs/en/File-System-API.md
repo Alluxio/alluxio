@@ -116,7 +116,7 @@ Alluxio allows a client to select a tier preference when writing blocks to a loc
 this policy preference exists only for local workers, not remote workers; remote workers will write
 blocks to the highest tier.
 
-By default, data is written to the top tier. Users can configure the default setting through the
+By default, data is written to the top tier. Users can modify the default setting through the
 `alluxio.user.file.write.tier.default` [configuration](Configuration-Settings.html) property or
 override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
 

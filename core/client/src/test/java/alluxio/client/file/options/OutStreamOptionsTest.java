@@ -55,7 +55,7 @@ public class OutStreamOptionsTest {
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
-    Configuration.set(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT, Constants.LAST_TIER_INDEX);
+    Configuration.set(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT, Constants.LAST_TIER);
 
     OutStreamOptions options = OutStreamOptions.defaults();
 
@@ -68,7 +68,7 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertEquals(WriteType.CACHE_THROUGH, options.getWriteType());
-    Assert.assertEquals(Constants.LAST_TIER_INDEX, options.getWriteTier());
+    Assert.assertEquals(Constants.LAST_TIER, options.getWriteTier());
     ConfigurationTestUtils.resetConfiguration();
   }
 
