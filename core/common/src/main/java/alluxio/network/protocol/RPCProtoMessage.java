@@ -15,13 +15,13 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.shaded.com.google.protobuf.InvalidProtocolBufferException;
+import alluxio.shaded.com.google.protobuf.MessageLite;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.primitives.Ints;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 
 import java.util.Arrays;

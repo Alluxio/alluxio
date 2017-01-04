@@ -33,6 +33,8 @@ import alluxio.proto.journal.KeyValue.CreateStoreEntry;
 import alluxio.proto.journal.KeyValue.DeleteStoreEntry;
 import alluxio.proto.journal.KeyValue.MergeStoreEntry;
 import alluxio.proto.journal.KeyValue.RenameStoreEntry;
+import alluxio.shaded.com.google.protobuf.ByteString;
+import alluxio.shaded.com.google.protobuf.Message;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.IdUtils;
@@ -41,8 +43,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Message;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

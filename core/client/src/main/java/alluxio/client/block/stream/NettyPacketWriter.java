@@ -21,10 +21,10 @@ import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.shaded.com.google.protobuf.MessageLite;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;

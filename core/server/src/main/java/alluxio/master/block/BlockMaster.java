@@ -40,6 +40,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.shaded.com.google.protobuf.Message;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
@@ -54,7 +55,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableSet;
-import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.apache.thrift.TProcessor;
