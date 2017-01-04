@@ -100,7 +100,7 @@ public interface BlockWorkerClient extends Closeable {
    *
    * @param blockId the ID of the block
    * @param initialBytes the initial size bytes allocated for the block
-   * @param tier the index of the target tier
+   * @param tier the target tier
    * @return the temporary path of the block
    * @throws IOException if a non-Alluxio exception occurs
    */

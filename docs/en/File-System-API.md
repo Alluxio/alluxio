@@ -116,12 +116,9 @@ Alluxio allows a client to select a tier preference when writing blocks to a loc
 this policy preference exists only for local workers, not remote workers; remote workers will write
 blocks to the highest tier.
 
-The target tier is specified as an integer index. Non-negative indices identify tiers starting from
-top going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the
-provided non-negative index "overflows" (it is greater than the number of tiers), it identifies the
-last tier. Negative indices identify tiers starting from the bottom going up (-1 identifies the last
-tier, -2 identifies the second to last tier, and so on). If the provided negative index "overflows"
-(its absolute value is greater than the number of tiers), it identifies the first tier.
+By default, data is written to the top tier. Users can configure the default setting through the
+`alluxio.user.file.write.tier.default` [configuration](Configuration-Settings.html) property or
+override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
 
 ### Accessing an existing file in Alluxio
 
