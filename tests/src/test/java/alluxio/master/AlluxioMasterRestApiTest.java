@@ -169,7 +169,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   public void getUfsCapacity() throws Exception {
     Capacity ufsCapacity = getInfo(NO_PARAMS).getUfsCapacity();
     if (CommonUtils.isUfsObjectStorage(mFileSystemMaster.getUfsAddress())) {
-      // Object storage ufs capability is always invalid.
+      // Object storage ufs capacity is always invalid.
       Assert.assertEquals(-1, ufsCapacity.getTotal());
     } else {
       Assert.assertTrue(ufsCapacity.getTotal() > 0);
