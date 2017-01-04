@@ -48,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * S3 FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
-public final class S3UnderFileSystem extends ObjectUnderFileSystem {
+public class S3UnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */

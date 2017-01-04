@@ -43,7 +43,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Aliyun OSS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
+public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
