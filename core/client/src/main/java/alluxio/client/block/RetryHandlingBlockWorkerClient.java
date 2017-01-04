@@ -245,8 +245,8 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
-  public String requestBlockLocation(final long blockId, final long initialBytes, final int writeTier)
-      throws IOException {
+  public String requestBlockLocation(final long blockId, final long initialBytes,
+      final int writeTier) throws IOException {
     try {
       return retryRPC(
           new RpcCallableThrowsAlluxioTException<String, BlockWorkerClientService.Client>() {
