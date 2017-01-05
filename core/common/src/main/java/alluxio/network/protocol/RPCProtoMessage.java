@@ -187,7 +187,10 @@ public final class RPCProtoMessage extends RPCMessage {
     Protocol.Status status = Protocol.Status.newBuilder().setCode(code).setMessage(message).build();
     if (e != null) {
       Protocol.Exception.Builder builder = Protocol.Exception.newBuilder();
-      builder.setClassName(e.getClass().getCanonicalName());
+      String className = e.getClass().getCanonicalName();
+      if (className != null) {
+        builder.setClassName(className);
+      }
       if (e.getMessage() != null) {
         builder.setMessage(e.getMessage());
       }
