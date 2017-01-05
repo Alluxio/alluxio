@@ -349,6 +349,8 @@
                 <!-- Change "container/folder" to contain the testing container  -->
                 <!-- Keep the structure in form container/folder -->
                 <containerKey>swift://container/folder</containerKey>
+                <!-- Increase the buffer time of journal writes to speed up tests -->
+                <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
               </systemPropertyVariables>
             </configuration>
           </plugin>
