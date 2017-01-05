@@ -93,6 +93,7 @@ import java.util.regex.Pattern;
 public final class FileSystemMasterTest {
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
+  private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
   private static final AlluxioURI ROOT_URI = new AlluxioURI("/");
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
@@ -745,6 +746,32 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Tests that an exception is thrown when trying to get information about a Directory after
+   * it has been deleted because of a TTL of 0.
+   */
+  @Test
+  public void setTtlForDirectoryWithNoTtl() throws Exception {
+    CreateDirectoryOptions createDirectoryOptions =
+            CreateDirectoryOptions.defaults().setRecursive(true);
+    mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
+    mFileSystemMaster.createDirectory(NESTED_DIR_URI, createDirectoryOptions);
+    CreateFileOptions createFileOptions =
+            CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, createFileOptions);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    // Since no TTL is set, the file should not be deleted.
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getFileId());
+    // Set ttl
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(0));
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    // TTL is set to 0, the file and directory should have been deleted during last TTL check.
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystemMaster.getFileInfo(NESTED_URI);
+    mFileSystemMaster.getFileInfo(NESTED_DIR_URI);
+    mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
+  }
+
+  /**
    * Tests that an exception is thrown when trying to get information about a file after it has been
    * deleted after the TTL has been set to 0.
    */
@@ -780,6 +807,30 @@ public final class FileSystemMasterTest {
     Command heartBeat =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat);
+    Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+  }
+
+  /**
+   * Tests that file information is still present after it has been freed after the parent
+   * directory's TTL has been set to 0.
+   */
+  @Test
+  public void setTtlForDirectoryWithFreeOperationTest() throws Exception {
+    CreateDirectoryOptions createDirectoryOptions =
+            CreateDirectoryOptions.defaults().setRecursive(true);
+    mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
+    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+    Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+    // Set ttl & operation
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    options.setTtl(0);
+    options.setTtlAction(TtlAction.FREE);
+    mFileSystemMaster.setAttribute(NESTED_URI, options);
+    Command heartBeat =
+            mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
+                    ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
