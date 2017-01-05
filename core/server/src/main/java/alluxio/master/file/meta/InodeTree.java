@@ -30,9 +30,6 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalProtoUtils;
-import alluxio.proto.journal.File.InodeDirectoryEntry;
-import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
@@ -43,7 +40,6 @@ import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.protobuf.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -844,13 +840,11 @@ public class InodeTree implements JournalCheckpointStreamable {
    * @throws AccessControlException when owner of mRoot is not the owner of root journal entry
    */
   public void addInodeFromJournal(JournalEntry entry) throws AccessControlException {
-    Message innerEntry = JournalProtoUtils.unwrap(entry);
-    if (innerEntry instanceof InodeFileEntry) {
-      InodeFile file = InodeFile.fromJournalEntry((InodeFileEntry) innerEntry);
+    if (entry.hasInodeFile()) {
+      InodeFile file = InodeFile.fromJournalEntry(entry.getInodeFile());
       addInodeFromJournalInternal(file);
-    } else if (innerEntry instanceof InodeDirectoryEntry) {
-      InodeDirectory directory = InodeDirectory.fromJournalEntry((InodeDirectoryEntry) innerEntry);
-
+    } else if (entry.hasInodeDirectory()) {
+      InodeDirectory directory = InodeDirectory.fromJournalEntry(entry.getInodeDirectory());
       if (directory.getName().equals(ROOT_INODE_NAME)) {
         // This is the root inode. Clear all the state, and set the root.
         // For backwards-compatibility:
