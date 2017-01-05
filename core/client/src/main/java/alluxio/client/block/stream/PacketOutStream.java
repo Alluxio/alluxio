@@ -52,12 +52,13 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param client the block worker client
    * @param id the ID
    * @param length the block or file length
+   * @param tier the target tier
    * @return the {@link PacketOutStream} created
    * @throws IOException if it fails to create the object
    */
   public static PacketOutStream createLocalPacketOutStream(BlockWorkerClient client,
-      long id, long length) throws IOException {
-    PacketWriter packetWriter = LocalFilePacketWriter.create(client, id);
+      long id, long length, int tier) throws IOException {
+    PacketWriter packetWriter = LocalFilePacketWriter.create(client, id, tier);
     return new PacketOutStream(packetWriter, length);
   }
 
@@ -88,19 +89,20 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param clients a list of block worker clients
    * @param id the ID (block ID or UFS file ID)
    * @param length the block or file length
+   * @param tier the target tier
    * @param type the request type (either block write or UFS file write)
    * @return the {@link PacketOutStream} created
    * @throws IOException if it fails to create the object
    */
   public static PacketOutStream createReplicatedPacketOutStream(FileSystemContext context,
-      List<BlockWorkerClient> clients, long id, long length,
+      List<BlockWorkerClient> clients, long id, long length, int tier,
       Protocol.RequestType type) throws IOException {
     String localHost = NetworkAddressUtils.getLocalHostName();
 
     List<PacketWriter> packetWriters = new ArrayList<>();
     for (BlockWorkerClient client : clients) {
       if (client.getWorkerNetAddress().getHost().equals(localHost)) {
-        packetWriters.add(LocalFilePacketWriter.create(client, id));
+        packetWriters.add(LocalFilePacketWriter.create(client, id, tier));
       } else {
         packetWriters.add(new NettyPacketWriter(context, client.getDataServerAddress(), id, length,
             client.getSessionId(), type));

@@ -35,7 +35,6 @@ import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalProtoUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -54,7 +53,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableSet;
-import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.apache.thrift.TProcessor;
@@ -209,14 +207,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    Message innerEntry = JournalProtoUtils.unwrap(entry);
     // TODO(gene): A better way to process entries besides a huge switch?
-    if (innerEntry instanceof BlockContainerIdGeneratorEntry) {
-      mJournaledNextContainerId =
-          ((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId();
+    if (entry.hasBlockContainerIdGenerator()) {
+      mJournaledNextContainerId = (entry.getBlockContainerIdGenerator()).getNextContainerId();
       mBlockContainerIdGenerator.setNextContainerId((mJournaledNextContainerId));
-    } else if (innerEntry instanceof BlockInfoEntry) {
-      BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
+    } else if (entry.hasBlockInfo()) {
+      BlockInfoEntry blockInfoEntry = entry.getBlockInfo();
       if (mBlocks.containsKey(blockInfoEntry.getBlockId())) {
         // Update the existing block info.
         MasterBlockInfo blockInfo = mBlocks.get(blockInfoEntry.getBlockId());

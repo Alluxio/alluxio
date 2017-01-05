@@ -44,10 +44,10 @@ MapR-FS. Here are some values of `hadoop.version` for different MapR distributio
 
 # Configuring Alluxio for MapR-FS
 
-Once you have compiled Alluxio with the appropriate `hadoop.version` for your MapR distribution, you have to configure
-Alluxio to recognize the MapR-FS scheme and URIs. Alluxio can use the HDFS client to access MapR-FS. In order to enable
-the HDFS client to access MapR-FS URIs, you have to add the URI prefix `maprfs:///` to the configuration variable
-`alluxio.underfs.hdfs.prefixes`.
+Once you have compiled Alluxio with the appropriate `hadoop.version` for your MapR distribution, you may have to configure
+Alluxio to recognize the MapR-FS scheme and URIs. Alluxio uses the HDFS client to access MapR-FS, and by default is already
+configured to do so. However, if the configuration has been changed, you can enable the HDFS client to access MapR-FS URIs
+by adding the URI prefix `maprfs:///` to the configuration variable `alluxio.underfs.hdfs.prefixes` like below:
 
 ```
 alluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///

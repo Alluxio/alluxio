@@ -1,6 +1,0 @@
-HIGHEST:
-  Write a block to the highest tier. This is the default.
-SECOND_HIGHEST:
-  Write a block to the second-highest tier, or the top tier if only one tier exists.
-LOWEST:
-  Write a block to the lowest tier. 
