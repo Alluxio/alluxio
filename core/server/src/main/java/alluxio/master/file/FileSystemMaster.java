@@ -305,19 +305,15 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (entry.hasInodeFile()) {
-      try {
-        mInodeTree.addInodeFromJournal(entry);
-        // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
-        InodeFileEntry inodeFileEntry = entry.getInodeFile();
-        if (inodeFileEntry.hasTtl()) {
-          mTtlBuckets.insert(InodeFile.fromJournalEntry(inodeFileEntry));
-        }
-      } catch (AccessControlException e) {
-        throw new RuntimeException(e);
+      mInodeTree.addInodeFileFromJournal(entry.getInodeFile());
+      // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
+      InodeFileEntry inodeFileEntry = entry.getInodeFile();
+      if (inodeFileEntry.hasTtl()) {
+        mTtlBuckets.insert(InodeFile.fromJournalEntry(inodeFileEntry));
       }
     } else if (entry.hasInodeDirectory()) {
       try {
-        mInodeTree.addInodeFromJournal(entry);
+        mInodeTree.addInodeDirectoryFromJournal(entry.getInodeDirectory());
       } catch (AccessControlException e) {
         throw new RuntimeException(e);
       }
