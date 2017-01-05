@@ -288,7 +288,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
           writeBuf(buf, mPosToWrite);
         } catch (Exception e) {
           mPacketWriterActive = false;
-          mCtx.fireExceptionCaught(e);
+          exceptionCaught(mCtx, e);
           break;
         } finally {
           buf.release();
