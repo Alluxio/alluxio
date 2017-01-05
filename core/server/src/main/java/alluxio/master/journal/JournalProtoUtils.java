@@ -13,7 +13,8 @@ package alluxio.master.journal;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.shaded.com.google.protobuf.Message;
+
+import com.google.protobuf.Message;
 
 import javax.annotation.concurrent.ThreadSafe;
 

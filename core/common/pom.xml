@@ -37,6 +37,10 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+    <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
       <version>2.6</version>
@@ -106,12 +110,6 @@
       <groupId>info.ganglia.gmetric4j</groupId>
       <artifactId>gmetric4j</artifactId>
       <version>${gmetric4j.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-protobuf</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <!-- Test Dependencies -->
