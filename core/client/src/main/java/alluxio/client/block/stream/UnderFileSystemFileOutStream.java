@@ -39,7 +39,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
       long ufsFileId) throws IOException {
     super(PacketOutStream
-        .createNettyPacketOutStream(context, address, -1, ufsFileId, Long.MAX_VALUE,
+        .createNettyPacketOutStream(context, address, -1, ufsFileId, Long.MAX_VALUE, -1,
             Protocol.RequestType.UFS_FILE));
     mOutStream = (PacketOutStream) out;
   }
