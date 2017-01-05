@@ -30,66 +30,80 @@ public final class JournalProtoUtils {
    * @return the specific entry wrapped within the given {@link JournalEntry}
    */
   public static Message unwrap(JournalEntry entry) {
-    switch (entry.getEntryCase()) {
-      case ADD_MOUNT_POINT:
-        return entry.getAddMountPoint();
-      case BLOCK_CONTAINER_ID_GENERATOR:
-        return entry.getBlockContainerIdGenerator();
-      case BLOCK_INFO:
-        return entry.getBlockInfo();
-      case COMPLETE_FILE:
-        return entry.getCompleteFile();
-      case DELETE_FILE:
-        return entry.getDeleteFile();
-      case DELETE_LINEAGE:
-        return entry.getDeleteLineage();
-      case DELETE_MOUNT_POINT:
-        return entry.getDeleteMountPoint();
-      case INODE_DIRECTORY:
-        return entry.getInodeDirectory();
-      case INODE_DIRECTORY_ID_GENERATOR:
-        return entry.getInodeDirectoryIdGenerator();
-      case INODE_FILE:
-        return entry.getInodeFile();
-      case INODE_LAST_MODIFICATION_TIME:
-        return entry.getInodeLastModificationTime();
-      case LINEAGE:
-        return entry.getLineage();
-      case LINEAGE_ID_GENERATOR:
-        return entry.getLineageIdGenerator();
-      case PERSIST_DIRECTORY:
-        return entry.getPersistDirectory();
-      case ASYNC_PERSIST_REQUEST:
-        return entry.getAsyncPersistRequest();
-      case REINITIALIZE_FILE:
-        return entry.getReinitializeFile();
-      case RENAME:
-        return entry.getRename();
-      case SET_ATTRIBUTE:
-        return entry.getSetAttribute();
-      case CREATE_STORE:
-        return entry.getCreateStore();
-      case COMPLETE_PARTITION:
-        return entry.getCompletePartition();
-      case COMPLETE_STORE:
-        return entry.getCompleteStore();
-      case DELETE_STORE:
-        return entry.getDeleteStore();
-      case RENAME_STORE:
-        return entry.getRenameStore();
-      case MERGE_STORE:
-        return entry.getMergeStore();
-      case ENTRY_NOT_SET:
-        // This could mean that the field was never set, or it was set with a different version of
-        // this message. Given the history of the JournalEntry protobuf message, the keys of the
-        // unknown fields should be enough to figure out which version of JournalEntry is needed to
-        // understand this journal.
-        throw new RuntimeException(
-            ExceptionMessage.NO_ENTRY_TYPE.getMessage(entry.getUnknownFields().asMap().keySet()));
-      default:
-        throw new IllegalStateException(
-            ExceptionMessage.UNKNOWN_JOURNAL_ENTRY_TYPE.getMessage(entry.getEntryCase()));
+    if (entry.hasAddMountPoint()) {
+      return entry.getAddMountPoint();
     }
+    if (entry.hasAsyncPersistRequest()) {
+      return entry.getAsyncPersistRequest();
+    }
+    if (entry.hasBlockContainerIdGenerator()) {
+      return entry.getBlockContainerIdGenerator();
+    }
+    if (entry.hasBlockInfo()) {
+      return entry.getBlockInfo();
+    }
+    if (entry.hasCompleteFile()) {
+      return entry.getCompleteFile();
+    }
+    if (entry.hasDeleteFile()) {
+      return entry.getDeleteFile();
+    }
+    if (entry.hasDeleteLineage()) {
+      return entry.getDeleteLineage();
+    }
+    if (entry.hasDeleteMountPoint()) {
+      return entry.getDeleteMountPoint();
+    }
+    if (entry.hasInodeDirectory()) {
+      return entry.getInodeDirectory();
+    }
+    if (entry.hasInodeDirectoryIdGenerator()) {
+      return entry.getInodeDirectoryIdGenerator();
+    }
+    if (entry.hasInodeFile()) {
+      return entry.getInodeFile();
+    }
+    if (entry.hasInodeLastModificationTime()) {
+      return entry.getInodeLastModificationTime();
+    }
+    if (entry.hasLineage()) {
+      return entry.getLineage();
+    }
+    if (entry.hasLineageIdGenerator()) {
+      return entry.getLineageIdGenerator();
+    }
+    if (entry.hasPersistDirectory()) {
+      return entry.getPersistDirectory();
+    }
+    if (entry.hasReinitializeFile()) {
+      return entry.getReinitializeFile();
+    }
+    if (entry.hasRename()) {
+      return entry.getRename();
+    }
+    if (entry.hasSetAttribute()) {
+      return entry.getSetAttribute();
+    }
+    if (entry.hasCompleteStore()) {
+      return entry.getCreateStore();
+    }
+    if (entry.hasCompletePartition()) {
+      return entry.getCompletePartition();
+    }
+    if (entry.hasCompleteStore()) {
+      return entry.getCompleteStore();
+    }
+    if (entry.hasDeleteMountPoint()) {
+      return entry.getDeleteStore();
+    }
+    if (entry.hasRenameStore()) {
+      return entry.getRenameStore();
+    }
+    if (entry.hasMergeStore()) {
+      return entry.getMergeStore();
+    }
+    throw new IllegalStateException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY
+        .getMessage(entry.getUnknownFields().asMap().keySet().toString()));
   }
 
   private JournalProtoUtils() {} // not for instantiation

@@ -53,7 +53,8 @@ public final class JournalProtoUtilsTest {
       JournalProtoUtils.unwrap(unknownEntry);
       Assert.fail("format() should fail when no messages is set");
     } catch (RuntimeException e) {
-      Assert.assertEquals(ExceptionMessage.NO_ENTRY_TYPE.getMessage("[46264]"), e.getMessage());
+      Assert.assertEquals(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage("[46264]"),
+          e.getMessage());
     }
   }
 }
