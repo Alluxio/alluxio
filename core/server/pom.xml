@@ -35,19 +35,14 @@
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
     </dependency>
-    <!-- alluxio-core-common should come before alluxio-core-client as alluxio-core-client shade some dependencies
-    such as protobuf. We want to use the unshaded ones in alluxio-core-server.
-    TODO(peis, jiri): Do not depend on alluxio-core-client in alluxio-core-server to avoid depending on
-    alluxio-core-common twice.
-    -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-common</artifactId>
+      <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client</artifactId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
