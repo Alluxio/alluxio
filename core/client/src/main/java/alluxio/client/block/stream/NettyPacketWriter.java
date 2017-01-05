@@ -175,17 +175,12 @@ public final class NettyPacketWriter implements PacketWriter {
       mLock.unlock();
     }
 
-    mChannel.eventLoop().submit(new Runnable() {
-      @Override
-      public void run() {
-        Protocol.WriteRequest writeRequest =
-            Protocol.WriteRequest.newBuilder().setId(mId).setOffset(offset).setSessionId(mSessionId)
-                .setType(mRequestType).build();
-        DataBuffer dataBuffer = new DataNettyBufferV2(buf);
-        mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, dataBuffer))
-            .addListener(new WriteListener(offset + len));
-      }
-    });
+    Protocol.WriteRequest writeRequest =
+        Protocol.WriteRequest.newBuilder().setId(mId).setOffset(offset).setSessionId(mSessionId)
+            .setType(mRequestType).build();
+    DataBuffer dataBuffer = new DataNettyBufferV2(buf);
+    mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, dataBuffer))
+        .addListener(new WriteListener(offset + len));
   }
 
   @Override
@@ -302,16 +297,11 @@ public final class NettyPacketWriter implements PacketWriter {
       mLock.unlock();
     }
     // Write the last packet.
-    mChannel.eventLoop().submit(new Runnable() {
-      @Override
-      public void run() {
-        Protocol.WriteRequest writeRequest =
-            Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
-                .setType(mRequestType).build();
-        mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, null))
-            .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-      }
-    });
+    Protocol.WriteRequest writeRequest =
+        Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
+            .setType(mRequestType).build();
+    mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, null))
+        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
   @Override
