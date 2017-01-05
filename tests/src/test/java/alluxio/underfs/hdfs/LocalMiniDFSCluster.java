@@ -159,6 +159,9 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     file.delete();
   }
 
+  /**
+   * @return {@link #mDfsClient}
+   */
   public DistributedFileSystem getDFSClient() {
     return mDfsClient;
   }
