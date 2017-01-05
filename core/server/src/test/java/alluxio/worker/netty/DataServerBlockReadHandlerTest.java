@@ -14,16 +14,14 @@ package alluxio.worker.netty;
 import alluxio.Constants;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.io.LocalFileBlockWriter;
+import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.LocalFileBlockReader;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,21 +34,21 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Random;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockWorker.class})
-public final class DataServerBlockWriteHandlerTest {
+public final class DataServerBlockReadHandlerTest {
   private final Random mRandom = new Random();
   private final long mBlockId = 1L;
 
   private BlockWorker mBlockWorker;
-  private BlockWriter mBlockWriter;
+  private BlockReader mBlockReader;
   private String mFile;
   private long mChecksum;
+  private EmbeddedChannel mChannel;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -58,28 +56,21 @@ public final class DataServerBlockWriteHandlerTest {
   @Before
   public void before() throws Exception {
     mBlockWorker = PowerMockito.mock(BlockWorker.class);
-    PowerMockito.doNothing().when(mBlockWorker)
-        .createBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(),
-            Mockito.anyLong());
-    PowerMockito.doNothing().when(mBlockWorker)
-        .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
-    mFile = mTestFolder.newFile().getPath();
-    mBlockWriter = new LocalFileBlockWriter(mFile);
-    PowerMockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
-        .thenReturn(mBlockWriter);
-    mChecksum = 0;
+    PowerMockito.doNothing().when(mBlockWorker).accessBlock(Mockito.anyLong(), Mockito.anyLong());
+    mChannel = new EmbeddedChannel(
+        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
+            FileTransferType.MAPPED));
   }
 
   @Test
-  public void writeEmptyFile() throws Exception {
-    final EmbeddedChannel channel = new EmbeddedChannel(
-        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
-   channel.writeInbound(buildWriteRequest(0, 0));
-
-    Object writeResponse = waitForResponse(channel);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
+  public void readEmptyFile() throws Exception {
+    populateInputFile(1);
+    mChannel.writeInbound(buildReadRequest(0, 1));
+    mChannel.runPendingTasks();
+    checkAllReadResponses();
   }
 
+  /*
   @Test
   public void writeNonEmptyFile() throws Exception {
     final EmbeddedChannel channel = new EmbeddedChannel(
@@ -123,57 +114,70 @@ public final class DataServerBlockWriteHandlerTest {
     waitForChannelClose(channel);
     Assert.assertTrue(!channel.isOpen());
   }
+  */
 
-  private RPCProtoMessage buildWriteRequest(long offset, int len) {
-    Protocol.WriteRequest writeRequest =
-        Protocol.WriteRequest.newBuilder().setId(mBlockId).setOffset(offset).setSessionId(1L)
-            .setType(Protocol.RequestType.ALLUXIO_BLOCK).build();
-    DataBuffer buffer = null;
-    if (len > 0) {
-      ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len);
-      for (int i = 0; i < len; i++) {
-        byte value = (byte) (mRandom.nextInt() % Byte.MAX_VALUE);
-        buf.writeByte(value);
-        mChecksum += BufferUtils.byteToInt(value);
+  private void populateInputFile(long length) throws Exception {
+    File file = mTestFolder.newFile();
+    if (length > 0) {
+      FileOutputStream fileOutputStream = new FileOutputStream(file);
+      while (length > 0) {
+        byte[] buffer = new byte[(int) Math.min(length, Constants.MB)];
+        mRandom.nextBytes(buffer);
+        for (int i = 0; i < buffer.length; i++) {
+          mChecksum += BufferUtils.byteToInt(buffer[i]);
+        }
+        fileOutputStream.write(buffer);
+        length -= buffer.length;
       }
-      buffer = new DataNettyBufferV2(buf);
+      fileOutputStream.close();
     }
-    return new RPCProtoMessage(writeRequest, buffer);
+
+    mFile = file.getPath();
+    mBlockReader = new LocalFileBlockReader(mFile);
+    PowerMockito
+        .when(mBlockWorker.readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong()))
+        .thenReturn(mBlockReader);
   }
 
-  private void checkWriteResponse(Object writeResponse, Protocol.Status.Code codeExpected) {
-    Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
-
-    Object response = ((RPCProtoMessage) writeResponse).getMessage();
-    Assert.assertTrue(response instanceof Protocol.Response);
-    Assert.assertEquals(codeExpected, ((Protocol.Response) response).getStatus().getCode());
+  private RPCProtoMessage buildReadRequest(long offset, long len) {
+    Protocol.ReadRequest readRequest =
+        Protocol.ReadRequest.newBuilder().setId(mBlockId).setOffset(offset).setSessionId(1L)
+            .setLength(len).setLockId(1L).setType(Protocol.RequestType.ALLUXIO_BLOCK).build();
+    return new RPCProtoMessage(readRequest, null);
   }
 
-  private void checkFileContent(long size) throws IOException {
-    RandomAccessFile file = new RandomAccessFile(mFile, "r");
+  private void checkAllReadResponses() {
+    int timeRemaining = Constants.MINUTE_MS;
+    boolean EOF = false;
     long checksumActual = 0;
-    long sizeActual = 0;
-    try {
-      while (true) {
-        checksumActual += BufferUtils.byteToInt(file.readByte());
-        sizeActual++;
+    while (!EOF && timeRemaining > 0) {
+      Object readResponse = null;
+      while (readResponse == null && timeRemaining > 0) {
+        readResponse = mChannel.readOutbound();
+        CommonUtils.sleepMs(10);
+        timeRemaining -= 10;
       }
-    } catch (EOFException e) {
-      // expected.
+      DataBuffer buffer = checkReadResponse(readResponse, Protocol.Status.Code.OK);
+      EOF = buffer == null;
+      if (buffer != null) {
+        ByteBuf buf = (ByteBuf) buffer.getNettyOutput();
+        while (buf.readableBytes() > 0) {
+          checksumActual += BufferUtils.byteToInt(buf.readByte());
+        }
+        buf.release();
+      }
     }
     Assert.assertEquals(mChecksum, checksumActual);
-    Assert.assertEquals(size, sizeActual);
+    Assert.assertTrue(EOF);
   }
 
-  private Object waitForResponse(EmbeddedChannel channel) {
-    Object writeResponse = null;
-    int timeRemaining = Constants.MINUTE_MS;
-    while (writeResponse == null && timeRemaining > 0) {
-      writeResponse = channel.readOutbound();
-      CommonUtils.sleepMs(10);
-      timeRemaining -= 10;
-    }
-    return writeResponse;
+  private DataBuffer checkReadResponse(Object readResponse, Protocol.Status.Code codeExpected) {
+    Assert.assertTrue(readResponse instanceof RPCProtoMessage);
+
+    Object response = ((RPCProtoMessage) readResponse).getMessage();
+    Assert.assertTrue(response instanceof Protocol.Response);
+    Assert.assertEquals(codeExpected, ((Protocol.Response) response).getStatus().getCode());
+    return ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
   }
 
   private void waitForChannelClose(EmbeddedChannel channel) {
