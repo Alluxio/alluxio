@@ -1682,7 +1682,14 @@ public final class FileSystemMaster extends AbstractMaster {
       CreateDirectoryOptions options) throws InvalidPathException, FileAlreadyExistsException,
       IOException, AccessControlException, FileDoesNotExistException {
     try {
-      return mInodeTree.createPath(inodePath, options);
+      InodeTree.CreatePathResult createResult = mInodeTree.createPath(inodePath, options);
+      InodeDirectory inodeDirectory = (InodeDirectory)inodePath.getInode();
+      // If inodeDirectory's ttl not equals Constants.NO_TTL, it should insert into mTtlBuckets
+      if (createResult.getCreated().size()>0) {
+        mTtlBuckets.insert(inodeDirectory);
+      }
+
+      return createResult;
     } catch (BlockInfoException e) {
       // Since we are creating a directory, the block size is ignored, no such exception should
       // happen.
@@ -1702,12 +1709,12 @@ public final class FileSystemMaster extends AbstractMaster {
     long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     for (Inode<?> inode : createResult.getModified()) {
       InodeLastModificationTimeEntry inodeLastModificationTime =
-          InodeLastModificationTimeEntry.newBuilder()
-          .setId(inode.getId())
-          .setLastModificationTimeMs(inode.getLastModificationTimeMs())
-          .build();
+              InodeLastModificationTimeEntry.newBuilder()
+                      .setId(inode.getId())
+                      .setLastModificationTimeMs(inode.getLastModificationTimeMs())
+                      .build();
       counter = appendJournalEntry(JournalEntry.newBuilder()
-          .setInodeLastModificationTime(inodeLastModificationTime).build());
+              .setInodeLastModificationTime(inodeLastModificationTime).build());
     }
     boolean createdDir = false;
     for (Inode<?> inode : createResult.getCreated()) {
@@ -1722,10 +1729,10 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     for (Inode<?> inode : createResult.getPersisted()) {
       PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
-          .setId(inode.getId())
-          .build();
+              .setId(inode.getId())
+              .build();
       counter = appendJournalEntry(
-          JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+              JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
     }
     return counter;
   }
