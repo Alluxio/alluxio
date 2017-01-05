@@ -77,12 +77,7 @@ public final class DataServerUFSFileWriteHandlerTest {
   @Test
   public void writeEmptyFile() throws Exception {
    mEmbeddedChannel.writeInbound(buildWriteRequest(0, 0));
-
-    Object writeResponse = null;
-    while (writeResponse == null) {
-      writeResponse = mEmbeddedChannel.readOutbound();
-      CommonUtils.sleepMs(10);
-    }
+    Object writeResponse = waitForResponse();
     checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
   }
 
