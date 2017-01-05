@@ -132,15 +132,19 @@ public final class Constants {
    */
   public static final int THRIFT_STOP_TIMEOUT_SECONDS = 60;
 
-  // ttl related
+  // Time-to-live
   public static final long NO_TTL = -1;
 
   // Security
-  // Security related constant value
   public static final int DEFAULT_FILE_SYSTEM_UMASK = 0022;
   public static final short DEFAULT_FILE_SYSTEM_MODE = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   public static final short INVALID_MODE = -1;
+
+  // Specific tier write
+  public static final int FIRST_TIER = 0;
+  public static final int SECOND_TIER = 1;
+  public static final int LAST_TIER = -1;
 
   private Constants() {} // prevent instantiation
 }

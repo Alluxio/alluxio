@@ -657,7 +657,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Internal function to open an input stream to an object.
    *
    * @param key the key to open
-   * @return true if successful, false if an exception is thrown
+   * @return an {@link InputStream} to read from key
+   * @throws IOException if a non-Alluxio error occurs
    */
   protected abstract InputStream openObject(String key, OpenOptions options) throws IOException;
 
