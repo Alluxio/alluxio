@@ -14,10 +14,10 @@ package alluxio.master.journal;
 import alluxio.exception.ExceptionMessage;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.shaded.com.google.protobuf.Message;
-import alluxio.shaded.com.google.protobuf.UnknownFieldSet;
-import alluxio.shaded.com.google.protobuf.UnknownFieldSet.Field;
 
+import com.google.protobuf.Message;
+import com.google.protobuf.UnknownFieldSet;
+import com.google.protobuf.UnknownFieldSet.Field;
 import org.junit.Assert;
 import org.junit.Test;
 /**
