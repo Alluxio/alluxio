@@ -43,7 +43,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Aliyun OSS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
+public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
@@ -286,8 +286,7 @@ public final class OSSUnderFileSystem extends ObjectUnderFileSystem {
     try {
       return new OSSInputStream(mBucketName, key, mClient, options.getOffset());
     } catch (ServiceException e) {
-      LOG.error("Failed to open file: {}", key, e);
-      return null;
+      throw new IOException(e.getMessage());
     }
   }
 }
