@@ -734,7 +734,7 @@ public final class FileSystemMasterTest {
   public void createDirectoryWithTtl() throws Exception {
     CreateDirectoryOptions directoryOptions =
             CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
-    mFileSystemMaster.createDirectory(NESTED_DIR_URI,directoryOptions);
+    mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryOptions);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(NESTED_DIR_URI);
@@ -823,7 +823,6 @@ public final class FileSystemMasterTest {
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(NESTED_URI);
   }
-
 
   /**
    * Tests that file information is still present after it has been freed after the TTL has been set

@@ -1683,9 +1683,9 @@ public final class FileSystemMaster extends AbstractMaster {
       IOException, AccessControlException, FileDoesNotExistException {
     try {
       InodeTree.CreatePathResult createResult = mInodeTree.createPath(inodePath, options);
-      InodeDirectory inodeDirectory = (InodeDirectory)inodePath.getInode();
+      InodeDirectory inodeDirectory = (InodeDirectory) inodePath.getInode();
       // If inodeDirectory's ttl not equals Constants.NO_TTL, it should insert into mTtlBuckets
-      if (createResult.getCreated().size()>0) {
+      if (createResult.getCreated().size() > 0) {
         mTtlBuckets.insert(inodeDirectory);
       }
 
