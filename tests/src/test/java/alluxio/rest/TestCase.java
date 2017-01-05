@@ -92,6 +92,10 @@ public final class TestCase {
     return mMethod;
   }
 
+  /**
+   * @return The URL which is created
+   * @throws Exception
+   */
   public URL createURL() throws Exception {
     StringBuilder sb = new StringBuilder();
     for (Map.Entry<String, String> parameter : mParameters.entrySet()) {
@@ -102,6 +106,11 @@ public final class TestCase {
             + "?" + sb.toString());
   }
 
+  /**
+   * @param connection the HttpURLConnection
+   * @return the String from the InputStream of HttpURLConnection
+   * @throws Exception
+   */
   public String getResponse(HttpURLConnection connection) throws Exception {
     StringBuilder sb = new StringBuilder();
     BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));

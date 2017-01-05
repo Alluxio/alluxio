@@ -848,8 +848,6 @@ public final class FileSystemMasterTest {
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(1, fileInfo.getTtl());
 
-    // Set ttl for a directory, raise IllegalArgumentException.
-    mThrown.expect(IllegalArgumentException.class);
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(1));
   }
 
@@ -1409,6 +1407,72 @@ public final class FileSystemMasterTest {
     }
     // One renamed file should exist, and 9 original source files
     Assert.assertEquals(numThreads, files.size());
+    Assert.assertEquals(1, renamedFiles.size());
+    Assert.assertEquals(numThreads - 1, originalFiles.size());
+  }
+
+  /**
+   * Tests renaming files concurrently to the same destination from different sources will
+   * succeed only once.
+   */
+  @Test
+  public void sameDstDifferentSrcConcurrentRename() throws Exception {
+    int numThreads = 10;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    AlluxioURI dir1 = new AlluxioURI("/dir1");
+    AlluxioURI dir2 = new AlluxioURI("/dir2");
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
+    for (int i = 0; i < numThreads; i++) {
+      if (i % 2 == 0) {
+        srcs[i] = dir1.join("file1_" + i);
+      } else {
+        srcs[i] = dir2.join("file2_" + i);
+      }
+      mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
+      dsts[i] = new AlluxioURI("/renamed");
+    }
+
+    int errors = concurrentRename(srcs, dsts);
+
+    // We should get an error for all but 1 rename.
+    Assert.assertEquals(numThreads - 1, errors);
+
+    List<FileInfo> files =
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
+    // Store file names in a set to ensure the names are all unique.
+    Set<String> renamedFiles = new HashSet<>();
+    for (FileInfo file : files) {
+      if (file.getName().startsWith("renamed")) {
+        renamedFiles.add(file.getName());
+      }
+    }
+
+    Set<String> originalFiles = new HashSet<>();
+
+    List<FileInfo> dir1Files = mFileSystemMaster.listStatus(dir1, ListStatusOptions.defaults());
+    for (FileInfo file : dir1Files) {
+      if (file.getName().startsWith("file1_")) {
+        originalFiles.add(file.getName());
+      } else {
+        // Should not have any other types of files
+        Assert.fail();
+      }
+    }
+
+    List<FileInfo> dir2Files = mFileSystemMaster.listStatus(dir2, ListStatusOptions.defaults());
+    for (FileInfo file : dir2Files) {
+      if (file.getName().startsWith("file2_")) {
+        originalFiles.add(file.getName());
+      } else {
+        // Should not have any other types of files
+        Assert.fail();
+      }
+    }
+
+    // One renamed file should exist, and numThreads - 1 original source files
+    Assert.assertEquals(numThreads, renamedFiles.size() + originalFiles.size());
     Assert.assertEquals(1, renamedFiles.size());
     Assert.assertEquals(numThreads - 1, originalFiles.size());
   }

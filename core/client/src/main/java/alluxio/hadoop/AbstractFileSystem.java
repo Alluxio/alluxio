@@ -111,7 +111,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
       throws IOException {
-    LOG.info("append({}, {}, {})", path, bufferSize, progress);
+    LOG.debug("append({}, {}, {})", path, bufferSize, progress);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
@@ -151,7 +151,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public FSDataOutputStream create(Path path, FsPermission permission, boolean overwrite,
       int bufferSize, short replication, long blockSize, Progressable progress) throws IOException {
-    LOG.info("create({}, {}, {}, {}, {}, {}, {})", path, permission, overwrite, bufferSize,
+    LOG.debug("create({}, {}, {}, {}, {}, {}, {})", path, permission, overwrite, bufferSize,
         replication, blockSize, progress);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
@@ -239,7 +239,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   @Override
   public boolean delete(Path path, boolean recursive) throws IOException {
-    LOG.info("delete({}, {})", path, recursive);
+    LOG.debug("delete({}, {})", path, recursive);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
@@ -310,7 +310,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   @Override
   public FileStatus getFileStatus(Path path) throws IOException {
-    LOG.info("getFileStatus({})", path);
+    LOG.debug("getFileStatus({})", path);
 
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
@@ -345,7 +345,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public void setOwner(Path path, final String username, final String groupname)
       throws IOException {
-    LOG.info("setOwner({},{},{})", path, username, groupname);
+    LOG.debug("setOwner({},{},{})", path, username, groupname);
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     SetAttributeOptions options = SetAttributeOptions.defaults();
     boolean ownerOrGroupChanged = false;
@@ -375,7 +375,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   @Override
   public void setPermission(Path path, FsPermission permission) throws IOException {
-    LOG.info("setMode({},{})", path, permission.toString());
+    LOG.debug("setMode({},{})", path, permission.toString());
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     SetAttributeOptions options =
         SetAttributeOptions.defaults().setMode(new Mode(permission.toShort())).setRecursive(false);
@@ -405,7 +405,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public Path getWorkingDirectory() {
-    LOG.info("getWorkingDirectory: {}", mWorkingDir);
+    LOG.debug("getWorkingDirectory: {}", mWorkingDir);
     return mWorkingDir;
   }
 
@@ -426,7 +426,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
 
     super.initialize(uri, conf);
-    LOG.info("initialize({}, {}). Connecting to Alluxio", uri, conf);
+    LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addS3Credentials(conf);
     HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
@@ -437,25 +437,22 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     boolean masterAddIsSameAsDefault = checkMasterAddress();
 
-    if (sInitialized) {
-      if (!masterAddIsSameAsDefault) {
-        throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
-            .getMessage(mUri.getHost() + ":" + mUri.getPort(),
-                FileSystemContext.INSTANCE.getMasterAddress()));
-      }
+    if (sInitialized && masterAddIsSameAsDefault) {
       updateFileSystemAndContext();
       return;
     }
     synchronized (INIT_LOCK) {
       // If someone has initialized the object since the last check, return
       if (sInitialized) {
-        if (!masterAddIsSameAsDefault) {
-          throw new IOException(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+        if (masterAddIsSameAsDefault) {
+          updateFileSystemAndContext();
+          return;
+        } else {
+          LOG.warn(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
               .getMessage(mUri.getHost() + ":" + mUri.getPort(),
                   FileSystemContext.INSTANCE.getMasterAddress()));
+          sInitialized = false;
         }
-        updateFileSystemAndContext();
-        return;
       }
 
       initializeInternal(uri, conf);
@@ -535,9 +532,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private Subject getHadoopSubject() {
     try {
       UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
-      String username = ugi.getUserName();
+      String username = ugi.getShortUserName();
       if (username != null && !username.isEmpty()) {
-        User user = new User(ugi.getUserName());
+        User user = new User(ugi.getShortUserName());
         HashSet<Principal> principals = new HashSet<>();
         principals.add(user);
         return new Subject(false, principals, new HashSet<>(), new HashSet<>());
@@ -559,7 +556,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public FileStatus[] listStatus(Path path) throws IOException {
-    LOG.info("listStatus({})", path);
+    LOG.debug("listStatus({})", path);
 
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
@@ -597,7 +594,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   @Override
   public boolean mkdirs(Path path, FsPermission permission) throws IOException {
-    LOG.info("mkdirs({}, {})", path, permission);
+    LOG.debug("mkdirs({}, {})", path, permission);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
@@ -623,7 +620,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   @Override
   public FSDataInputStream open(Path path, int bufferSize) throws IOException {
-    LOG.info("open({}, {})", path, bufferSize);
+    LOG.debug("open({}, {})", path, bufferSize);
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
@@ -635,7 +632,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public boolean rename(Path src, Path dst) throws IOException {
-    LOG.info("rename({}, {})", src, dst);
+    LOG.debug("rename({}, {})", src, dst);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
@@ -664,7 +661,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public void setWorkingDirectory(Path path) {
-    LOG.info("setWorkingDirectory({})", path);
+    LOG.debug("setWorkingDirectory({})", path);
     if (path.isAbsolute()) {
       mWorkingDir = path;
     } else {

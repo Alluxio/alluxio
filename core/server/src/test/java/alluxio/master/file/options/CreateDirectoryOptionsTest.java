@@ -16,6 +16,8 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Permission;
+import alluxio.Constants;
+import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,6 +46,8 @@ public class CreateDirectoryOptionsTest {
     Assert.assertEquals(false, options.isAllowExists());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
+    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
+    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -59,6 +63,7 @@ public class CreateDirectoryOptionsTest {
     Permission permission = Permission.defaults();
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
+    long ttl = random.nextLong();
 
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults()
         .setAllowExists(allowExists)
@@ -66,7 +71,9 @@ public class CreateDirectoryOptionsTest {
         .setOperationTimeMs(operationTimeMs)
         .setPersisted(persisted)
         .setPermission(permission)
-        .setRecursive(recursive);
+        .setRecursive(recursive)
+        .setTtl(ttl)
+        .setTtlAction(TtlAction.FREE);
 
     Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(mountPoint, options.isMountPoint());
@@ -74,6 +81,8 @@ public class CreateDirectoryOptionsTest {
     Assert.assertEquals(permission, options.getPermission());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
+    Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
   }
 
   @Test

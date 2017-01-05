@@ -187,6 +187,11 @@
         <version>14.0.1</version>
       </dependency>
       <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>2.6.1</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>3.4</version>
@@ -199,7 +204,7 @@
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
-        <version>4.1.6.Final</version>
+        <version>4.0.29.Final</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>

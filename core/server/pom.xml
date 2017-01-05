@@ -32,6 +32,10 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
@@ -211,7 +215,7 @@
             <html>
               <intro>${project.basedir}/src/main/resources/intro.html</intro>
               <title>Alluxio ${project.version} REST API</title>
-              <baseUrl>http://host:port/v1/api</baseUrl>
+              <baseUrl>http://host:port/api/v1</baseUrl>
             </html>
           </output>
           <restModel>

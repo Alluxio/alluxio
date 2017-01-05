@@ -43,6 +43,7 @@ public class AlluxioMasterInfoTest {
   private void checkEquality(AlluxioMasterInfo a, AlluxioMasterInfo b) {
     Assert.assertEquals(a.getCapacity(), b.getCapacity());
     Assert.assertEquals(a.getConfiguration(), b.getConfiguration());
+    Assert.assertEquals(a.getLostWorkers(), b.getLostWorkers());
     Assert.assertEquals(a.getMetrics(), b.getMetrics());
     Assert.assertEquals(a.getRpcAddress(), b.getRpcAddress());
     Assert.assertEquals(a.getStartTimeMs(), b.getStartTimeMs());
@@ -65,6 +66,11 @@ public class AlluxioMasterInfoTest {
     for (int i = 0; i < numConfiguration; i++) {
       configuration.put(CommonUtils.randomAlphaNumString(random.nextInt(10)),
           CommonUtils.randomAlphaNumString(random.nextInt(10)));
+    }
+    List<WorkerInfo> lostWorkers = new ArrayList<>();
+    long numLostWorkers = random.nextInt(10);
+    for (int i = 0; i < numLostWorkers; i++) {
+      lostWorkers.add(WorkerInfoTest.createRandom());
     }
     Map<String, Long> metrics = new HashMap<>();
     long numMetrics = random.nextInt(10);
@@ -98,6 +104,7 @@ public class AlluxioMasterInfoTest {
 
     result.setCapacity(capacity);
     result.setConfiguration(configuration);
+    result.setLostWorkers(lostWorkers);
     result.setMetrics(metrics);
     result.setRpcAddress(rpcAddress);
     result.setStartTimeMs(startTimeMs);

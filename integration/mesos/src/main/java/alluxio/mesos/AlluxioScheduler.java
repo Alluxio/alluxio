@@ -288,7 +288,10 @@ public class AlluxioScheduler implements Scheduler {
     // installed at PropertyKey.HOME.
     if (installAlluxioFromUrl()) {
       commands.add("rm *.tar.gz");
-      commands.add("mv alluxio* alluxio");
+      // Handle the case where the root directory is named "alluxio" as well as the case where the
+      // root directory is named alluxio-$VERSION.
+      commands.add("mv alluxio* alluxio_tmp");
+      commands.add("mv alluxio_tmp alluxio");
     }
     String home = installAlluxioFromUrl() ? "alluxio" : Configuration.get(PropertyKey.HOME);
     commands

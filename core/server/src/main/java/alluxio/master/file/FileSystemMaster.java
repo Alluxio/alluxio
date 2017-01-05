@@ -1893,7 +1893,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (!dstParentInode.addChild(srcInode)) {
       // On failure, revert changes and throw exception.
       srcInode.setName(srcName);
-      srcInode.setParentId(dstParentInode.getId());
+      srcInode.setParentId(srcParentInode.getId());
       throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
     }
 
@@ -2903,17 +2903,14 @@ public final class FileSystemMaster extends AbstractMaster {
       inode.setLastModificationTimeMs(opTimeMs);
     }
     if (options.getTtl() != null) {
-      Preconditions.checkArgument(inode.isFile(), PreconditionMessage.TTL_ONLY_FOR_FILE);
       long ttl = options.getTtl();
-      InodeFile file = (InodeFile) inode;
-      if (file.getTtl() != ttl) {
-        mTtlBuckets.remove(file);
-        file.setTtl(ttl);
-        mTtlBuckets.insert(file);
-        file.setLastModificationTimeMs(opTimeMs);
-        file.setTtlAction(options.getTtlAction());
+      if (inode.getTtl() != ttl) {
+        mTtlBuckets.remove(inode);
+        inode.setTtl(ttl);
+        mTtlBuckets.insert(inode);
+        inode.setLastModificationTimeMs(opTimeMs);
+        inode.setTtlAction(options.getTtlAction());
       }
-
     }
     if (options.getPersisted() != null) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
@@ -3034,37 +3031,40 @@ public final class FileSystemMaster extends AbstractMaster {
     public void heartbeat() {
       Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
       for (TtlBucket bucket : expiredBuckets) {
-        for (InodeFile file : bucket.getFiles()) {
+        for (Inode inode : bucket.getInodes()) {
           AlluxioURI path = null;
           try (LockedInodePath inodePath = mInodeTree
-              .lockFullInodePath(file.getId(), InodeTree.LockMode.READ)) {
+              .lockFullInodePath(inode.getId(), InodeTree.LockMode.READ)) {
             path = inodePath.getUri();
           } catch (Exception e) {
-            LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
+            LOG.error("Exception trying to clean up {} for ttl check: {}", inode.toString(),
                 e.toString());
           }
           if (path != null) {
             try {
-              TtlAction ttlAction = file.getTtlAction();
-              LOG.debug("File {} is expired. Performing action {}", file.getName(), ttlAction);
+              TtlAction ttlAction = inode.getTtlAction();
+              LOG.debug("File {} is expired. Performing action {}", inode.getName(), ttlAction);
               switch (ttlAction) {
                 case FREE:
                   free(path, false);
                   // Reset state
-                  file.setTtl(Constants.NO_TTL);
-                  file.setTtlAction(TtlAction.DELETE);
-                  mTtlBuckets.remove(file);
+                  inode.setTtl(Constants.NO_TTL);
+                  inode.setTtlAction(TtlAction.DELETE);
+                  mTtlBuckets.remove(inode);
                   break;
                 case DELETE:// Default if not set is DELETE
                   // public delete method will lock the path, and check WRITE permission required at
                   // parent of file
+                  if (inode.isDirectory()) {
+                    delete(path, true);
+                  }
                   delete(path, false);
                   break;
                 default:
                   LOG.error("Unknown TtlAction.");
               }
             } catch (Exception e) {
-              LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
+              LOG.error("Exception trying to clean up {} for ttl check: {}", inode.toString(),
                   e.toString());
             }
           }
