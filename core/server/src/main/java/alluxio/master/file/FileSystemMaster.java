@@ -65,15 +65,12 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalProtoUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
 import alluxio.proto.journal.File.DeleteFileEntry;
 import alluxio.proto.journal.File.DeleteMountPointEntry;
-import alluxio.proto.journal.File.InodeDirectoryEntry;
-import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
 import alluxio.proto.journal.File.PersistDirectoryEntry;
@@ -113,7 +110,6 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
@@ -308,26 +304,21 @@ public final class FileSystemMaster extends AbstractMaster {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    Message innerEntry = JournalProtoUtils.unwrap(entry);
-    if (innerEntry instanceof InodeFileEntry) {
+    if (entry.hasInodeFile()) {
+      mInodeTree.addInodeFileFromJournal(entry.getInodeFile());
+      // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
+      InodeFileEntry inodeFileEntry = entry.getInodeFile();
+      if (inodeFileEntry.hasTtl()) {
+        mTtlBuckets.insert(InodeFile.fromJournalEntry(inodeFileEntry));
+      }
+    } else if (entry.hasInodeDirectory()) {
       try {
-        mInodeTree.addInodeFromJournal(entry);
-        // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
-        InodeFileEntry inodeFileEntry = (InodeFileEntry) innerEntry;
-        if (inodeFileEntry.hasTtl()) {
-          mTtlBuckets.insert(InodeFile.fromJournalEntry(inodeFileEntry));
-        }
+        mInodeTree.addInodeDirectoryFromJournal(entry.getInodeDirectory());
       } catch (AccessControlException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof InodeDirectoryEntry) {
-      try {
-        mInodeTree.addInodeFromJournal(entry);
-      } catch (AccessControlException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (innerEntry instanceof InodeLastModificationTimeEntry) {
-      InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) innerEntry;
+    } else if (entry.hasInodeLastModificationTime()) {
+      InodeLastModificationTimeEntry modTimeEntry = entry.getInodeLastModificationTime();
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(modTimeEntry.getId(),
           InodeTree.LockMode.WRITE)) {
         inodePath.getInode().setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs(),
@@ -335,49 +326,49 @@ public final class FileSystemMaster extends AbstractMaster {
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof PersistDirectoryEntry) {
-      PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) innerEntry;
+    } else if (entry.hasPersistDirectory()) {
+      PersistDirectoryEntry typedEntry = entry.getPersistDirectory();
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(typedEntry.getId(),
           InodeTree.LockMode.WRITE)) {
         inodePath.getInode().setPersistenceState(PersistenceState.PERSISTED);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof CompleteFileEntry) {
+    } else if (entry.hasCompleteFile()) {
       try {
-        completeFileFromEntry((CompleteFileEntry) innerEntry);
+        completeFileFromEntry(entry.getCompleteFile());
       } catch (InvalidPathException | InvalidFileSizeException | FileAlreadyCompletedException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof SetAttributeEntry) {
+    } else if (entry.hasSetAttribute()) {
       try {
-        setAttributeFromEntry((SetAttributeEntry) innerEntry);
+        setAttributeFromEntry(entry.getSetAttribute());
       } catch (AccessControlException | FileDoesNotExistException | InvalidPathException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof DeleteFileEntry) {
-      deleteFromEntry((DeleteFileEntry) innerEntry);
-    } else if (innerEntry instanceof RenameEntry) {
-      renameFromEntry((RenameEntry) innerEntry);
-    } else if (innerEntry instanceof InodeDirectoryIdGeneratorEntry) {
-      mDirectoryIdGenerator.initFromJournalEntry((InodeDirectoryIdGeneratorEntry) innerEntry);
-    } else if (innerEntry instanceof ReinitializeFileEntry) {
-      resetBlockFileFromEntry((ReinitializeFileEntry) innerEntry);
-    } else if (innerEntry instanceof AddMountPointEntry) {
+    } else if (entry.hasDeleteFile()) {
+      deleteFromEntry(entry.getDeleteFile());
+    } else if (entry.hasRename()) {
+      renameFromEntry(entry.getRename());
+    } else if (entry.hasInodeDirectoryIdGenerator()) {
+      mDirectoryIdGenerator.initFromJournalEntry(entry.getInodeDirectoryIdGenerator());
+    } else if (entry.hasReinitializeFile()) {
+      resetBlockFileFromEntry(entry.getReinitializeFile());
+    } else if (entry.hasAddMountPoint()) {
       try {
-        mountFromEntry((AddMountPointEntry) innerEntry);
+        mountFromEntry(entry.getAddMountPoint());
       } catch (FileAlreadyExistsException | InvalidPathException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof DeleteMountPointEntry) {
+    } else if (entry.hasDeleteMountPoint()) {
       try {
-        unmountFromEntry((DeleteMountPointEntry) innerEntry);
+        unmountFromEntry(entry.getDeleteMountPoint());
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof AsyncPersistRequestEntry) {
+    } else if (entry.hasAsyncPersistRequest()) {
       try {
-        long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
+        long fileId = (entry.getAsyncPersistRequest()).getFileId();
         try (LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
           scheduleAsyncPersistenceInternal(inodePath);
@@ -390,7 +381,7 @@ public final class FileSystemMaster extends AbstractMaster {
         LOG.error(e.getMessage());
       }
     } else {
-      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
   }
 

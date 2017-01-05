@@ -535,8 +535,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#addInodeFromJournal(alluxio.proto.journal.Journal.JournalEntry)}
-   * method.
+   * Tests the {@link InodeTree#addInodeFileFromJournal} and
+   * {@link InodeTree#addInodeDirectoryFromJournal} methods.
    */
   @Test
   public void addInodeFromJournal() throws Exception {
@@ -550,7 +550,7 @@ public final class InodeTreeTest {
     Inode<?> file1 = test1.getChild("file1");
 
     // reset the tree
-    mTree.addInodeFromJournal(root.toJournalEntry());
+    mTree.addInodeDirectoryFromJournal(root.toJournalEntry().getInodeDirectory());
 
     // re-init the root since the tree was reset above
     mTree.getRoot();
@@ -563,19 +563,19 @@ public final class InodeTreeTest {
         Assert.assertEquals(0, lockList.getInodes().size());
       }
 
-      mTree.addInodeFromJournal(nested.toJournalEntry());
+      mTree.addInodeDirectoryFromJournal(nested.toJournalEntry().getInodeDirectory());
       verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested"));
 
-      mTree.addInodeFromJournal(test.toJournalEntry());
+      mTree.addInodeDirectoryFromJournal(test.toJournalEntry().getInodeDirectory());
       verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test"));
 
-      mTree.addInodeFromJournal(test1.toJournalEntry());
+      mTree.addInodeDirectoryFromJournal(test1.toJournalEntry().getInodeDirectory());
       verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test", "test1"));
 
-      mTree.addInodeFromJournal(file.toJournalEntry());
+      mTree.addInodeFileFromJournal(file.toJournalEntry().getInodeFile());
       verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test", "test1", "file"));
 
-      mTree.addInodeFromJournal(file1.toJournalEntry());
+      mTree.addInodeFileFromJournal(file1.toJournalEntry().getInodeFile());
       verifyChildrenNames(mTree, inodePath,
           Sets.newHashSet("nested", "test", "test1", "file", "file1"));
     }
