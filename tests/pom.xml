@@ -265,8 +265,8 @@
                 <aws.accessKeyId>myAccessKey</aws.accessKeyId>
                 <!-- Change "mySecretKey" to your secret key for this test if using s3a -->
                 <aws.secretKey>mySecretKey</aws.secretKey>
-                <!-- Change "s3n://my-bucket/alluxio-test" to the name of your S3 bucket & dir -->
-                <s3Bucket>s3n://my-bucket/alluxio-test</s3Bucket>
+                <!-- Change "s3a://my-bucket/alluxio-test" to the name of your S3 bucket & dir -->
+                <s3Bucket>s3a://my-bucket/alluxio-test</s3Bucket>
                 <!-- Increase the buffer time of journal writes to speed up tests -->
                 <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
               </systemPropertyVariables>
