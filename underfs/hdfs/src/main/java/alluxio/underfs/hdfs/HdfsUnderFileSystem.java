@@ -175,6 +175,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public boolean exists(String path) throws IOException {
+    return mFileSystem.exists(new Path(path));
+  }
+
+  @Override
   public long getBlockSizeByte(String path) throws IOException {
     Path tPath = new Path(path);
     if (!mFileSystem.exists(tPath)) {

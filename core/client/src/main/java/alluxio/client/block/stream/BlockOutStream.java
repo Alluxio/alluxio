@@ -63,8 +63,8 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
-      PacketOutStream outStream =
-          PacketOutStream.createLocalPacketOutStream(client, blockId, blockSize);
+      PacketOutStream outStream = PacketOutStream
+          .createLocalPacketOutStream(client, blockId, blockSize, options.getWriteTier());
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (IOException e) {

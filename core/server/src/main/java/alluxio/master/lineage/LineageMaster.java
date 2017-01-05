@@ -34,7 +34,6 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalProtoUtils;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
 import alluxio.master.lineage.checkpoint.CheckpointSchedulingExecutor;
 import alluxio.master.lineage.meta.Lineage;
@@ -45,8 +44,6 @@ import alluxio.master.lineage.recompute.RecomputeExecutor;
 import alluxio.master.lineage.recompute.RecomputePlanner;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
-import alluxio.proto.journal.Lineage.LineageEntry;
-import alluxio.proto.journal.Lineage.LineageIdGeneratorEntry;
 import alluxio.thrift.LineageMasterClientService;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -56,7 +53,6 @@ import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.Message;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,15 +121,14 @@ public final class LineageMaster extends AbstractMaster {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    Message innerEntry = JournalProtoUtils.unwrap(entry);
-    if (innerEntry instanceof LineageEntry) {
-      mLineageStore.addLineageFromJournal((LineageEntry) innerEntry);
-    } else if (innerEntry instanceof LineageIdGeneratorEntry) {
-      mLineageIdGenerator.initFromJournalEntry((LineageIdGeneratorEntry) innerEntry);
-    } else if (innerEntry instanceof DeleteLineageEntry) {
-      deleteLineageFromEntry((DeleteLineageEntry) innerEntry);
+    if (entry.hasLineage()) {
+      mLineageStore.addLineageFromJournal(entry.getLineage());
+    } else if (entry.hasLineageIdGenerator()) {
+      mLineageIdGenerator.initFromJournalEntry(entry.getLineageIdGenerator());
+    } else if (entry.hasDeleteLineage()) {
+      deleteLineageFromEntry(entry.getDeleteLineage());
     } else {
-      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
   }
 

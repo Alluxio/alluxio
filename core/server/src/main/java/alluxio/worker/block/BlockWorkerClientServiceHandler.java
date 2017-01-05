@@ -25,7 +25,6 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.LockBlockResult;
-import alluxio.thrift.TWriteTier;
 import alluxio.thrift.ThriftIOException;
 
 import org.slf4j.Logger;
@@ -188,33 +187,6 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   /**
-   * Convert a relative policy such as HIGHEST or LOWEST into a tier id.
-   *
-   * @param tWriteTier the relative policy used for block allocation
-   * @return the tier level to use for allocation
-   */
-  private int getLevelFromPolicy(final TWriteTier tWriteTier) {
-    if (tWriteTier == null) {
-      return 0;
-    }
-
-    switch (tWriteTier) {
-      case Highest:
-        return 0;
-      case SecondHighest:
-        if (mStorageTierAssoc.size() == 1) {
-          /* With only one tier, use it */
-          return 0;
-        }
-        return 1;
-      case Lowest:
-        return mStorageTierAssoc.size() - 1;
-      default:
-        return 0;
-    }
-  }
-
-  /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
    * storage directory which fits the initial block size by some allocation strategy. If there is
    * not enough space on Alluxio storage {@link alluxio.exception.WorkerOutOfSpaceException} will be
@@ -231,14 +203,13 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    */
   @Override
   public String requestBlockLocation(final long sessionId, final long blockId,
-      final long initialBytes, final TWriteTier writeTier)
+      final long initialBytes, final int writeTier)
       throws AlluxioTException, ThriftIOException {
     return RpcUtils.call(new RpcCallableThrowsIOException<String>() {
       @Override
       public String call() throws AlluxioException, IOException {
-        int level = getLevelFromPolicy(writeTier);
-        return mWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(level),
-            initialBytes);
+        return mWorker
+            .createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(writeTier), initialBytes);
       }
     });
   }

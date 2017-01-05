@@ -20,6 +20,8 @@ perform basic tasks with the data in Alluxio. During this guide, you will:
 you will be able to perform additional tasks in this guide. Sections of the guide which require
 your AWS account information will be labeled with **[Bonus]**.
 
+**Note** This guide is meant for you to quickly start interacting with an Alluxio system. Alluxio performs best in a distributed environment for big data workloads. Both of these qualities are difficult to incorporate in a local environment. If you are interested in running a larger scale example which highlights the performance benefits of Alluxio, try out the instructions in either of these two whitepapers: [Accelerating on-demand data analytics with Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio), [Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/resources/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
+
 ## Prerequisites
 
 For the following quick start guide, you will need:

@@ -186,10 +186,15 @@ public final class RPCProtoMessage extends RPCMessage {
       Throwable e, DataBuffer data) {
     Protocol.Status status = Protocol.Status.newBuilder().setCode(code).setMessage(message).build();
     if (e != null) {
-      Protocol.Exception exception =
-          Protocol.Exception.newBuilder().setClassName(e.getClass().getCanonicalName())
-              .setMessage(e.getMessage()).build();
-      status = status.toBuilder().setCause(exception).build();
+      Protocol.Exception.Builder builder = Protocol.Exception.newBuilder();
+      String className = e.getClass().getCanonicalName();
+      if (className != null) {
+        builder.setClassName(className);
+      }
+      if (e.getMessage() != null) {
+        builder.setMessage(e.getMessage());
+      }
+      status = status.toBuilder().setCause(builder.build()).build();
     }
     Protocol.Response response = Protocol.Response.newBuilder().setStatus(status).build();
     return new RPCProtoMessage(response, data);
