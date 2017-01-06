@@ -6,7 +6,7 @@ group: Under Store
 priority: 3
 ---
 
-该指南介绍如何配置Alluxio以使用[HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)作为底层文件系统。
+该指南给出了使用说明以配置[HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)作为Alluxio的底层文件系统。
 
 # 初始步骤
 
