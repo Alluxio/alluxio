@@ -401,22 +401,12 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
         if (packet == null) {
           // This can happen if the requested read length is greater than the actual length of the
           // block or file starting from the given offset.
-          mChannel.eventLoop().submit(new Runnable() {
-            @Override
-            public void run() {
-              replySuccess(mChannel);
-            }
-          });
+          replySuccess(mChannel);
           break;
         }
 
-        final RPCProtoMessage response = RPCProtoMessage.createOkResponse(packet);
-        mChannel.eventLoop().submit(new Runnable() {
-          @Override
-          public void run() {
-            mChannel.writeAndFlush(response).addListener(new WriteListener(start + packetSize));
-          }
-        });
+        RPCProtoMessage response = RPCProtoMessage.createOkResponse(packet);
+        mChannel.writeAndFlush(response).addListener(new WriteListener(start + packetSize));
       }
     }
   }

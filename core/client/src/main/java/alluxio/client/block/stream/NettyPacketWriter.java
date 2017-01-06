@@ -73,6 +73,7 @@ public final class NettyPacketWriter implements PacketWriter {
   private final InetSocketAddress mAddress;
   private final long mId;
   private final long mSessionId;
+  private final int mTier;
   private final Protocol.RequestType mRequestType;
   private final long mLength;
 
@@ -109,17 +110,19 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param id the block ID or UFS file ID
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param sessionId the session ID
+   * @param tier the target tier
    * @param type the request type (block or UFS file)
    * @throws IOException it fails to acquire a netty channel
    */
   public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long id,
-      long length, long sessionId, Protocol.RequestType type) throws IOException {
+      long length, long sessionId, int tier, Protocol.RequestType type) throws IOException {
     mContext = context;
     mAddress = address;
     mSessionId = sessionId;
     mId = id;
     mRequestType = type;
     mLength = length;
+    mTier = tier;
     mChannel = context.acquireNettyChannel(address);
 
     ChannelPipeline pipeline = mChannel.pipeline();
@@ -175,17 +178,12 @@ public final class NettyPacketWriter implements PacketWriter {
       mLock.unlock();
     }
 
-    mChannel.eventLoop().submit(new Runnable() {
-      @Override
-      public void run() {
-        Protocol.WriteRequest writeRequest =
-            Protocol.WriteRequest.newBuilder().setId(mId).setOffset(offset).setSessionId(mSessionId)
-                .setType(mRequestType).build();
-        DataBuffer dataBuffer = new DataNettyBufferV2(buf);
-        mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, dataBuffer))
-            .addListener(new WriteListener(offset + len));
-      }
-    });
+    Protocol.WriteRequest writeRequest =
+        Protocol.WriteRequest.newBuilder().setId(mId).setOffset(offset).setSessionId(mSessionId)
+            .setTier(mTier).setType(mRequestType).build();
+    DataBuffer dataBuffer = new DataNettyBufferV2(buf);
+    mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, dataBuffer))
+        .addListener(new WriteListener(offset + len));
   }
 
   @Override
@@ -302,16 +300,11 @@ public final class NettyPacketWriter implements PacketWriter {
       mLock.unlock();
     }
     // Write the last packet.
-    mChannel.eventLoop().submit(new Runnable() {
-      @Override
-      public void run() {
-        Protocol.WriteRequest writeRequest =
-            Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
-                .setType(mRequestType).build();
-        mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, null))
-            .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-      }
-    });
+    Protocol.WriteRequest writeRequest =
+        Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
+            .setTier(mTier).setType(mRequestType).build();
+    mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, null))
+        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
   @Override
