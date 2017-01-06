@@ -16,6 +16,33 @@
 <%@ page import="static java.net.URLEncoder.encode" %>
 
 <jsp:include page="header-scripts.jsp" />
+
+<script>
+    var currentDir = "<%= request.getAttribute("currentPath").toString()%>";
+    function getInputPath() {
+        var path = $.trim($("#pathInput").val());
+        return path;
+    }
+
+    function changeDir() {
+        var path = getInputPath();
+        path = encodeURI(path);
+        window.location.href="./browse?path="+path;
+    }
+
+    $(document).ready(function () {
+        $("#pathInput").val(currentDir);
+        $("#goBtn").click(changeDir);
+        $("#pathInput").keydown(function (e) {
+            if(e.keyCode==13){
+                changeDir();
+            }
+        });
+        if(base != "./browse") {
+            $("#pathNav").hide();
+        }
+    });
+</script>
 <div class="container-fluid">
   <jsp:include page="/header" />
 
@@ -37,6 +64,10 @@
                 <li class="active"><a href="./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>"><%= escapeHtml(((UIFileInfo) request.getAttribute("currentDirectory")).getName()) %></a></li>
               <% } %>
             </ul>
+          </div>
+          <div id="pathNav">
+            <input type="text" id="pathInput" style="width: 80%;height:30px;margin-top: 15px;"/>
+            <button class="btn" id="goBtn" style="height:30px;"> Go</button>
           </div>
         </div>
         <table class="table table-condensed">
