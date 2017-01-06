@@ -18,6 +18,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,7 +27,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays the path's info.
- * If path is a directory, it displays the directory's info and all direct children's info.
+ * If path is a directory and with -l args, it displays the directory's
+ * info and all direct children's info.
  * If path is a file, it displays the file's all blocks info.
  */
 @ThreadSafe
@@ -43,11 +45,17 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
     return "fileInfo";
   }
 
+  @Override
+  protected Options getOptions() {
+    return new Options()
+        .addOption(LIST_ALL_CHILDREN_OPTION);
+  }
+
   /**
    * @param status the URIStatus to be print
    * @throws IOException if an I/O error occurs
    */
-  public void printFileInfo(URIStatus status) throws IOException {
+  private void printFileInfo(URIStatus status) throws IOException {
     System.out.println(status);
     System.out.println("Containing the following blocks: ");
     AlluxioBlockStore blockStore = AlluxioBlockStore.create();
@@ -56,10 +64,18 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
     }
   }
 
-  @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  /**
+   * Displays information for all the path with specified args.
+   *
+   * @param path The {@link AlluxioURI} path as the input of the command
+   * @param listAllChildren Whether list all children of a directory
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
+   */
+  private void fileInfo(AlluxioURI path, boolean listAllChildren) throws AlluxioException,
+      IOException {
     URIStatus status = mFileSystem.getStatus(path);
-    if (status.isFolder()) {
+    if (status.isFolder() && listAllChildren) {
       List<URIStatus> childrens = mFileSystem.listStatus(path);
       System.out.println(path + " is a directory and have " + childrens.size() + " child");
       System.out.println("The directory's information as following: ");
@@ -73,18 +89,29 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
         }
       }
     } else {
-      System.out.println(path + " is a file and the information as following: ");
-      printFileInfo(status);
+      if (status.isFolder()) {
+        System.out.println(path + " is a directory and the information as following: ");
+        System.out.println(status);
+      } else {
+        System.out.println(path + " is a file and the information as following: ");
+        printFileInfo(status);
+      }
     }
   }
 
   @Override
+  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    fileInfo(path, cl.hasOption("l"));
+  }
+
+  @Override
   public String getUsage() {
-    return "fileInfo <path>";
+    return "fileInfo [-l] <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Displays info for the specified path both file and directory.";
+    return "Displays info for the specified path both file and directory."
+        + " Specify -l to display directory's all children info.";
   }
 }
