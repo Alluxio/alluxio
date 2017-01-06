@@ -70,15 +70,16 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param sessionId the session ID
    * @param id the ID (block ID or UFS file ID)
    * @param length the block or file length
+   * @param tier the target tier
    * @param type the request type (either block write or UFS file write)
    * @return the {@link PacketOutStream} created
    * @throws IOException if it fails to create the object
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      InetSocketAddress address, long sessionId, long id, long length, Protocol.RequestType type)
-      throws IOException {
+      InetSocketAddress address, long sessionId, long id, long length, int tier,
+      Protocol.RequestType type) throws IOException {
     NettyPacketWriter packetWriter =
-        new NettyPacketWriter(context, address, id, length, sessionId, type);
+        new NettyPacketWriter(context, address, id, length, sessionId, tier, type);
     return new PacketOutStream(packetWriter, length);
   }
 
@@ -105,7 +106,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
         packetWriters.add(LocalFilePacketWriter.create(client, id, tier));
       } else {
         packetWriters.add(new NettyPacketWriter(context, client.getDataServerAddress(), id, length,
-            client.getSessionId(), type));
+            client.getSessionId(), tier, type));
       }
     }
     return new PacketOutStream(packetWriters, length);

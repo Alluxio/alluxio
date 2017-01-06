@@ -26,6 +26,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UnderFileSystemFileOutStream extends FilterOutputStream {
+  private static final int TIER_UNUSED = -1;
+
   private final PacketOutStream mOutStream;
 
   /**
@@ -39,7 +41,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
       long ufsFileId) throws IOException {
     super(PacketOutStream
-        .createNettyPacketOutStream(context, address, -1, ufsFileId, Long.MAX_VALUE,
+        .createNettyPacketOutStream(context, address, -1, ufsFileId, Long.MAX_VALUE, TIER_UNUSED,
             Protocol.RequestType.UFS_FILE));
     mOutStream = (PacketOutStream) out;
   }

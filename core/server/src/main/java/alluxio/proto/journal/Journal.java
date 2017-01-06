@@ -361,7 +361,13 @@ public final class Journal {
    * Protobuf type {@code alluxio.proto.journal.JournalEntry}
    *
    * <pre>
-   * Wraps around all types of Alluxio journal messages.
+   * Wraps around all types of Alluxio journal entries.
+   *
+   * NOTE: Exactly one of the *Entry entries is expected to be set. Ideally we would use the 'oneof'
+   * protobuf syntax to enforce this. However, 'oneof' is only available since protobuf version
+   * 2.6.0 and adding this depedency would conflict with the version of protobuf used by Hadoop 2.x
+   * and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
+   *
    * next available id: 29
    * </pre>
    */
@@ -1619,7 +1625,13 @@ public final class Journal {
      * Protobuf type {@code alluxio.proto.journal.JournalEntry}
      *
      * <pre>
-     * Wraps around all types of Alluxio journal messages.
+     * Wraps around all types of Alluxio journal entries.
+     *
+     * NOTE: Exactly one of the *Entry entries is expected to be set. Ideally we would use the 'oneof'
+     * protobuf syntax to enforce this. However, 'oneof' is only available since protobuf version
+     * 2.6.0 and adding this depedency would conflict with the version of protobuf used by Hadoop 2.x
+     * and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
+     *
      * next available id: 29
      * </pre>
      */
