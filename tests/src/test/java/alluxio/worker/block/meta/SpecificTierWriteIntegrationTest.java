@@ -75,6 +75,15 @@ public class SpecificTierWriteIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
+  /**
+   * Write a file into a specified tier, and then verifies the expected bytes on each tier.
+   *
+   * @param writeTier the specific tier to write the file to
+   * @param memBytes the expected number of bytes used in the MEM tier
+   * @param ssdBytes the expected number of bytes used in the SSD tier
+   * @param hddBytes the expected number of bytes used in the HDD tier
+   * @throws Exception when an error occurs
+   */
   private void writeFileAndCheckUsage(int writeTier, long memBytes, long ssdBytes, long hddBytes)
       throws Exception {
     FileOutStream os = mFileSystem.createFile(
@@ -97,7 +106,6 @@ public class SpecificTierWriteIntegrationTest {
     Assert.assertEquals("MEM tier usage", memBytes, bytesOnTiers.get("MEM").longValue());
     Assert.assertEquals("SSD tier usage", ssdBytes, bytesOnTiers.get("SSD").longValue());
     Assert.assertEquals("HDD tier usage", hddBytes, bytesOnTiers.get("HDD").longValue());
-
   }
 
   private void deleteAllFiles() throws Exception {
@@ -163,7 +171,6 @@ public class SpecificTierWriteIntegrationTest {
 
   @Test
   public void bottomTierWriteWithEviction() throws Exception {
-    writeFileAndCheckUsage(2, 0, 0, FILE_SIZE);
     writeFileAndCheckUsage(2, 0, 0, FILE_SIZE);
     writeFileAndCheckUsage(2, 0, 0, FILE_SIZE);
   }
