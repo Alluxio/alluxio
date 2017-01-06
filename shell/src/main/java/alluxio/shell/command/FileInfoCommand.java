@@ -65,7 +65,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   }
 
   /**
-   * Displays information for all the path with specified args.
+   * Displays information for the path with specified args.
    *
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param listAllChildren Whether list all children of a directory

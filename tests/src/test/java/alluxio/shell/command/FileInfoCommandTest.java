@@ -42,8 +42,8 @@ public final class FileInfoCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(res1.contains(testDir + "/foo"));
     Assert.assertTrue(res1.contains(testDir + "/bar"));
     Assert.assertTrue(res1.contains(testDir + "/foobar4"));
-    Assert.assertTrue(res1.contains(testDir + "/foo/foobar1"));
-    Assert.assertTrue(res1.contains(testDir + "/bar/foobar3"));
+    Assert.assertFalse(res1.contains(testDir + "/foo/foobar1"));
+    Assert.assertFalse(res1.contains(testDir + "/bar/foobar3"));
 
     mFsShell.run("fileInfo", testDir + "/*/foo*");
     String res2 = mOutput.toString();
