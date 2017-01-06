@@ -21,12 +21,11 @@ import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.LocalFileBlockReader;
+import alluxio.worker.file.FileSystemWorker;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.embedded.EmbeddedChannel;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,20 +38,22 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockWorker.class})
-public final class DataServerBlockReadHandlerTest {
+@PrepareForTest({FileSystemWorker.class})
+public final class DataServerUFSFileReadHandlerTest {
   private static final long PACKET_SIZE =
       Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
   private final Random mRandom = new Random();
   private final long mBlockId = 1L;
 
-  private BlockWorker mBlockWorker;
-  private BlockReader mBlockReader;
+  private FileSystemWorker mFileSystemWorker;
+  private InputStream mInputStream;
   private String mFile;
   private long mChecksum;
   private EmbeddedChannel mChannel;
@@ -62,11 +63,14 @@ public final class DataServerBlockReadHandlerTest {
 
   @Before
   public void before() throws Exception {
-    mBlockWorker = PowerMockito.mock(BlockWorker.class);
-    PowerMockito.doNothing().when(mBlockWorker).accessBlock(Mockito.anyLong(), Mockito.anyLong());
+    mFileSystemWorker = PowerMockito.mock(FileSystemWorker.class);
     mChannel = new EmbeddedChannel(
-        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
-            FileTransferType.MAPPED));
+        new DataServerUFSFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR, mFileSystemWorker));
+  }
+
+  @After
+  public void after() throws Exception {
+    mInputStream.close();
   }
 
   @Test
@@ -101,26 +105,6 @@ public final class DataServerBlockReadHandlerTest {
   }
 
   @Test
-  public void transferType() throws Exception {
-    mChannel = new EmbeddedChannel(
-        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
-            FileTransferType.TRANSFER));
-
-    long fileSize = PACKET_SIZE * 2;
-    populateInputFile(fileSize, 0, fileSize - 1);
-
-    BlockReader blockReader = PowerMockito.spy(mBlockReader);
-    // Do not call close here so that we can check result. It will be closed explicitly.
-    PowerMockito.doNothing().when(blockReader).close();
-    PowerMockito
-        .when(mBlockWorker.readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong()))
-        .thenReturn(blockReader);
-    mChannel.writeInbound(buildReadRequest(0, fileSize));
-    checkAllReadResponses();
-    mBlockReader.close();
-  }
-
-  @Test
   public void readEmptyFile() throws Exception {
     populateInputFile(0, 0, 0);
     mChannel.writeInbound(buildReadRequest(0, 0));
@@ -132,33 +116,37 @@ public final class DataServerBlockReadHandlerTest {
 
   @Test
   public void cancelRequest() throws Exception {
-    long fileSize = PACKET_SIZE * 10 + 1;
+    long fileSize = PACKET_SIZE * 30 + 1;
     populateInputFile(fileSize, 0, fileSize - 1);
     RPCProtoMessage readRequest = buildReadRequest(0, fileSize);
     Protocol.ReadRequest request = (Protocol.ReadRequest) readRequest.getMessage();
     RPCProtoMessage cancelRequest =
         new RPCProtoMessage(request.toBuilder().setCancel(true).build(), null);
     mChannel.writeInbound(readRequest);
+    mChannel.runPendingTasks();
     mChannel.writeInbound(cancelRequest);
 
     // Make sure we can still get EOF after cancelling though the read request is not necessarily
     // fulfilled.
     long timeRemaining = Constants.MINUTE_MS;
+    boolean EOF = false;
     while (timeRemaining > 0) {
       Object response = waitForOneResponse();
-      checkReadResponse(response, Protocol.Status.Code.OK);
-      if (((RPCProtoMessage) response).getPayloadDataBuffer() == null) {
+      if (checkReadResponse(response, Protocol.Status.Code.OK) == null) {
+        EOF = true;
         break;
       }
       CommonUtils.sleepMs(10);
+      timeRemaining -= 10;
     }
+    Assert.assertTrue(EOF);
   }
 
   @Test
   public void readFailure() throws Exception {
     long fileSize = PACKET_SIZE * 10 + 1;
     populateInputFile(0, 0, fileSize - 1);
-    mBlockReader.close();
+    mInputStream.close();
     mChannel.writeInbound(buildReadRequest(0, fileSize));
     Object response = waitForOneResponse();
     checkReadResponse(response, Protocol.Status.Code.INTERNAL);
@@ -196,10 +184,10 @@ public final class DataServerBlockReadHandlerTest {
     }
 
     mFile = file.getPath();
-    mBlockReader = new LocalFileBlockReader(mFile);
-    PowerMockito
-        .when(mBlockWorker.readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong()))
-        .thenReturn(mBlockReader);
+    mInputStream = new FileInputStream(mFile);
+    mInputStream.skip(start);
+    PowerMockito.when(mFileSystemWorker.getUfsInputStream(Mockito.anyLong(), Mockito.anyLong()))
+        .thenReturn(mInputStream);
   }
 
   /**
@@ -211,8 +199,8 @@ public final class DataServerBlockReadHandlerTest {
    */
   private RPCProtoMessage buildReadRequest(long offset, long len) {
     Protocol.ReadRequest readRequest =
-        Protocol.ReadRequest.newBuilder().setId(mBlockId).setOffset(offset)
-            .setLength(len).setLockId(1L).setType(Protocol.RequestType.ALLUXIO_BLOCK).build();
+        Protocol.ReadRequest.newBuilder().setId(mBlockId).setOffset(offset).setSessionId(1L)
+            .setLength(len).setLockId(1L).setType(Protocol.RequestType.UFS_FILE).build();
     return new RPCProtoMessage(readRequest, null);
   }
 
