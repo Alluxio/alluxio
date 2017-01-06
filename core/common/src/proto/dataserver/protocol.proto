@@ -66,7 +66,9 @@ message WriteRequest {
   optional int64 id = 2;
   optional int64 offset = 3;
 
+  // These are only applicable for block write.
   optional int64 session_id = 4;
+  optional int32 tier = 5;
 }
 
 // The response.

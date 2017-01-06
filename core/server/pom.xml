@@ -35,14 +35,15 @@
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
     </dependency>
+    <!-- TODO(jiri): Do not depend on alluxio-core-client in alluxio-core-server. -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-common</artifactId>
+      <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client</artifactId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
