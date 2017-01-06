@@ -27,6 +27,7 @@ import alluxio.worker.block.io.LocalFileBlockReader;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.util.ResourceLeakDetector;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -62,6 +63,7 @@ public final class DataServerBlockReadHandlerTest {
 
   @Before
   public void before() throws Exception {
+    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED);
     mBlockWorker = PowerMockito.mock(BlockWorker.class);
     PowerMockito.doNothing().when(mBlockWorker).accessBlock(Mockito.anyLong(), Mockito.anyLong());
     mChannel = new EmbeddedChannel(
@@ -143,15 +145,20 @@ public final class DataServerBlockReadHandlerTest {
 
     // Make sure we can still get EOF after cancelling though the read request is not necessarily
     // fulfilled.
-    long timeRemaining = Constants.MINUTE_MS;
-    while (timeRemaining > 0) {
+    boolean EOF = false;
+    long maxIterations = 100;
+    while (maxIterations > 0) {
       Object response = waitForOneResponse();
-      checkReadResponse(response, Protocol.Status.Code.OK);
-      if (((RPCProtoMessage) response).getPayloadDataBuffer() == null) {
+      DataBuffer buffer = checkReadResponse(response, Protocol.Status.Code.OK);
+      if (buffer == null) {
+        EOF = true;
         break;
       }
-      CommonUtils.sleepMs(10);
+      buffer.release();
+      maxIterations--;
+      Assert.assertTrue(mChannel.isOpen());
     }
+    Assert.assertTrue(EOF);
   }
 
   @Test
