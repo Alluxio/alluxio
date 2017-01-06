@@ -323,6 +323,12 @@ public final class FileSystemMaster extends AbstractMaster {
     } else if (innerEntry instanceof InodeDirectoryEntry) {
       try {
         mInodeTree.addInodeFromJournal(entry);
+        // Add the directory to TTL buckets, the insert automatically rejects directory
+        // w/ Constants.NO_TTL
+        InodeDirectoryEntry inodeDirectoryEntry = (InodeDirectoryEntry) innerEntry;
+        if (inodeDirectoryEntry.hasTtl()) {
+          mTtlBuckets.insert(InodeDirectory.fromJournalEntry(inodeDirectoryEntry));
+        }
       } catch (AccessControlException e) {
         throw new RuntimeException(e);
       }
@@ -1709,12 +1715,12 @@ public final class FileSystemMaster extends AbstractMaster {
     long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     for (Inode<?> inode : createResult.getModified()) {
       InodeLastModificationTimeEntry inodeLastModificationTime =
-              InodeLastModificationTimeEntry.newBuilder()
-                      .setId(inode.getId())
-                      .setLastModificationTimeMs(inode.getLastModificationTimeMs())
-                      .build();
+          InodeLastModificationTimeEntry.newBuilder()
+          .setId(inode.getId())
+          .setLastModificationTimeMs(inode.getLastModificationTimeMs())
+          .build();
       counter = appendJournalEntry(JournalEntry.newBuilder()
-              .setInodeLastModificationTime(inodeLastModificationTime).build());
+          .setInodeLastModificationTime(inodeLastModificationTime).build());
     }
     boolean createdDir = false;
     for (Inode<?> inode : createResult.getCreated()) {
@@ -1729,10 +1735,10 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     for (Inode<?> inode : createResult.getPersisted()) {
       PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
-              .setId(inode.getId())
-              .build();
+          .setId(inode.getId())
+          .build();
       counter = appendJournalEntry(
-              JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+          JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
     }
     return counter;
   }
