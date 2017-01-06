@@ -25,7 +25,9 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
+import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.util.ResourceLeakDetector;
 import org.junit.Assert;
@@ -55,7 +57,6 @@ public final class DataServerBlockReadHandlerTest {
   private BlockWorker mBlockWorker;
   private BlockReader mBlockReader;
   private String mFile;
-  private long mChecksum;
   private EmbeddedChannel mChannel;
 
   @Rule
@@ -73,33 +74,33 @@ public final class DataServerBlockReadHandlerTest {
 
   @Test
   public void readFullFile() throws Exception {
-    populateInputFile(PACKET_SIZE * 10, 0, PACKET_SIZE * 10 - 1);
+    long checksumExpected = populateInputFile(PACKET_SIZE * 10, 0, PACKET_SIZE * 10 - 1);
     mChannel.writeInbound(buildReadRequest(0, PACKET_SIZE * 10));
-    checkAllReadResponses();
+    checkAllReadResponses(checksumExpected);
   }
 
   @Test
   public void readPartialFile() throws Exception {
     long start = 3;
     long end = PACKET_SIZE * 10 - 99;
-    populateInputFile(PACKET_SIZE * 10, start, end);
+    long checksumExpected = populateInputFile(PACKET_SIZE * 10, start, end);
     mChannel.writeInbound(buildReadRequest(start, end + 1 - start));
-    checkAllReadResponses();
+    checkAllReadResponses(checksumExpected);
   }
 
   @Test
   public void reuseChannel() throws Exception {
     long fileSize = PACKET_SIZE * 5;
-    populateInputFile(fileSize, 0, fileSize - 1);
+    long checksumExpected = populateInputFile(fileSize, 0, fileSize - 1);
     mChannel.writeInbound(buildReadRequest(0, fileSize));
-    checkAllReadResponses();
+    checkAllReadResponses(checksumExpected);
 
     fileSize = fileSize / 2 + 1;
     long start = 3;
     long end = fileSize - 1;
-    populateInputFile(fileSize, start, end);
+    checksumExpected = populateInputFile(fileSize, start, end);
     mChannel.writeInbound(buildReadRequest(start, end - start + 1));
-    checkAllReadResponses();
+    checkAllReadResponses(checksumExpected);
   }
 
   @Test
@@ -109,7 +110,7 @@ public final class DataServerBlockReadHandlerTest {
             FileTransferType.TRANSFER));
 
     long fileSize = PACKET_SIZE * 2;
-    populateInputFile(fileSize, 0, fileSize - 1);
+    long checksumExpected = populateInputFile(fileSize, 0, fileSize - 1);
 
     BlockReader blockReader = PowerMockito.spy(mBlockReader);
     // Do not call close here so that we can check result. It will be closed explicitly.
@@ -118,18 +119,19 @@ public final class DataServerBlockReadHandlerTest {
         .when(mBlockWorker.readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong()))
         .thenReturn(blockReader);
     mChannel.writeInbound(buildReadRequest(0, fileSize));
-    checkAllReadResponses();
+    checkAllReadResponses(checksumExpected);
     mBlockReader.close();
   }
 
   @Test
   public void readEmptyFile() throws Exception {
+    mChannel = new EmbeddedChannelNoException(
+        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
+            FileTransferType.MAPPED));
     populateInputFile(0, 0, 0);
     mChannel.writeInbound(buildReadRequest(0, 0));
     Object response = waitForOneResponse();
     checkReadResponse(response, Protocol.Status.Code.INVALID_ARGUMENT);
-    waitForChannelClose();
-    Assert.assertTrue(!mChannel.isOpen());
   }
 
   @Test
@@ -163,14 +165,15 @@ public final class DataServerBlockReadHandlerTest {
 
   @Test
   public void readFailure() throws Exception {
+    mChannel = new EmbeddedChannelNoException(
+        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
+            FileTransferType.MAPPED));
     long fileSize = PACKET_SIZE * 10 + 1;
     populateInputFile(0, 0, fileSize - 1);
     mBlockReader.close();
     mChannel.writeInbound(buildReadRequest(0, fileSize));
     Object response = waitForOneResponse();
     checkReadResponse(response, Protocol.Status.Code.INTERNAL);
-    waitForChannelClose();
-    Assert.assertTrue(!mChannel.isOpen());
   }
 
   /**
@@ -180,9 +183,10 @@ public final class DataServerBlockReadHandlerTest {
    * @param start the start position to compute the checksum
    * @param end the last position to compute the checksum
    * @throws Exception if it fails to populate the input file
+   * @return the checksum
    */
-  private void populateInputFile(long length, long start, long end) throws Exception {
-    mChecksum = 0;
+  private long populateInputFile(long length, long start, long end) throws Exception {
+    long checksum = 0;
     File file = mTestFolder.newFile();
     long pos = 0;
     if (length > 0) {
@@ -192,7 +196,7 @@ public final class DataServerBlockReadHandlerTest {
         mRandom.nextBytes(buffer);
         for (int i = 0; i < buffer.length; i++) {
           if (pos >= start && pos <= end) {
-            mChecksum += BufferUtils.byteToInt(buffer[i]);
+            checksum += BufferUtils.byteToInt(buffer[i]);
           }
           pos++;
         }
@@ -207,6 +211,7 @@ public final class DataServerBlockReadHandlerTest {
     PowerMockito
         .when(mBlockWorker.readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong()))
         .thenReturn(mBlockReader);
+    return checksum;
   }
 
   /**
@@ -226,7 +231,7 @@ public final class DataServerBlockReadHandlerTest {
   /**
    * Checks all the read responses.
    */
-  private void checkAllReadResponses() {
+  private void checkAllReadResponses(long checksumExpected) {
     int timeRemaining = Constants.MINUTE_MS;
     boolean eof = false;
     long checksumActual = 0;
@@ -257,7 +262,7 @@ public final class DataServerBlockReadHandlerTest {
         }
       }
     }
-    Assert.assertEquals(mChecksum, checksumActual);
+    Assert.assertEquals(checksumExpected, checksumActual);
     Assert.assertTrue(eof);
   }
 
@@ -283,22 +288,28 @@ public final class DataServerBlockReadHandlerTest {
    * @return the read response
    */
   private Object waitForOneResponse() {
-    Object writeResponse = null;
-    int timeRemaining = Constants.MINUTE_MS;
-    while (writeResponse == null && timeRemaining > 0) {
-      writeResponse = mChannel.readOutbound();
-      CommonUtils.sleepMs(10);
-      timeRemaining -= 10;
-    }
-    return writeResponse;
+    return CommonUtils.waitFor("", new Function<Void, Object>() {
+      @Override
+      public Object apply(Void v) {
+        return mChannel.readOutbound();
+      }
+    }, Constants.MINUTE_MS);
   }
 
   /**
-   * Waits for the channel to close.
+   * A special version of {@link EmbeddedChannel} that doesn't fail on exception so that we can
+   * still check result after the channel is closed.
    */
-  private void waitForChannelClose() {
-    int timeRemaining = Constants.MINUTE_MS;
-    while (timeRemaining > 0 && mChannel.isOpen()) {
+  private class EmbeddedChannelNoException extends EmbeddedChannel {
+    /**
+     * @param handlers the handlers
+     */
+    public EmbeddedChannelNoException(ChannelHandler... handlers) {
+      super(handlers);
+    }
+
+    @Override
+    public void checkException() {
     }
   }
 }

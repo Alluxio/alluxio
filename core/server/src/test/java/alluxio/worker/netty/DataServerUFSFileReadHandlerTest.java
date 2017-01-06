@@ -13,6 +13,7 @@ package alluxio.worker.netty;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.EmbeddedChannelNoException;
 import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -22,6 +23,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.file.FileSystemWorker;
 
+import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.util.ResourceLeakDetector;
@@ -104,12 +106,12 @@ public final class DataServerUFSFileReadHandlerTest {
 
   @Test
   public void readEmptyFile() throws Exception {
+    mChannel = new EmbeddedChannelNoException(
+        new DataServerUFSFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR, mFileSystemWorker));
     populateInputFile(0, 0, 0);
     mChannel.writeInbound(buildReadRequest(0, 0));
     Object response = waitForOneResponse();
     checkReadResponse(response, Protocol.Status.Code.INVALID_ARGUMENT);
-    waitForChannelClose();
-    Assert.assertTrue(!mChannel.isOpen());
   }
 
   @Test
@@ -143,14 +145,14 @@ public final class DataServerUFSFileReadHandlerTest {
 
   @Test
   public void readFailure() throws Exception {
+    mChannel = new EmbeddedChannelNoException(
+        new DataServerUFSFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR, mFileSystemWorker));
     long fileSize = PACKET_SIZE * 10 + 1;
     populateInputFile(0, 0, fileSize - 1);
     mInputStream.close();
     mChannel.writeInbound(buildReadRequest(0, fileSize));
     Object response = waitForOneResponse();
     checkReadResponse(response, Protocol.Status.Code.INTERNAL);
-    waitForChannelClose();
-    Assert.assertTrue(!mChannel.isOpen());
   }
 
   /**
@@ -254,22 +256,11 @@ public final class DataServerUFSFileReadHandlerTest {
    * @return the read response
    */
   private Object waitForOneResponse() {
-    Object writeResponse = null;
-    int timeRemaining = Constants.MINUTE_MS;
-    while (writeResponse == null && timeRemaining > 0) {
-      writeResponse = mChannel.readOutbound();
-      CommonUtils.sleepMs(10);
-      timeRemaining -= 10;
-    }
-    return writeResponse;
-  }
-
-  /**
-   * Waits for the channel to close.
-   */
-  private void waitForChannelClose() {
-    int timeRemaining = Constants.MINUTE_MS;
-    while (timeRemaining > 0 && mChannel.isOpen()) {
-    }
+    return CommonUtils.waitFor("", new Function<Void, Object>() {
+      @Override
+      public Object apply(Void v) {
+        return mChannel.readOutbound();
+      }
+    }, Constants.MINUTE_MS);
   }
 }

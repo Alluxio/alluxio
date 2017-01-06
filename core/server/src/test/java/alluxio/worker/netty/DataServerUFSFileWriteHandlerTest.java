@@ -22,6 +22,7 @@ import alluxio.worker.file.FileSystemWorker;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
 import org.junit.Assert;
@@ -83,6 +84,9 @@ public final class DataServerUFSFileWriteHandlerTest {
 
   @Test
   public void writeNonEmptyFile() throws Exception {
+    mEmbeddedChannel = new EmbeddedChannelNoException(
+        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
+
     long len = 0;
     for (int i = 0; i < 128; i++) {
       mEmbeddedChannel.writeInbound(buildWriteRequest(len, 1024));
@@ -98,23 +102,23 @@ public final class DataServerUFSFileWriteHandlerTest {
 
   @Test
   public void writeInvalidOffset() throws Exception {
+    mEmbeddedChannel = new EmbeddedChannelNoException(
+        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
     mEmbeddedChannel.writeInbound(buildWriteRequest(0, 1024));
     mEmbeddedChannel.writeInbound(buildWriteRequest(1025, 1024));
     Object writeResponse = waitForResponse();
     checkWriteResponse(writeResponse, Protocol.Status.Code.INVALID_ARGUMENT);
-    waitForChannelClose();
-    Assert.assertTrue(!mEmbeddedChannel.isOpen());
   }
 
   @Test
   public void writeFailure() throws Exception {
+    mEmbeddedChannel = new EmbeddedChannelNoException(
+        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
     mEmbeddedChannel.writeInbound(buildWriteRequest(0, 1024));
     mOutputStream.close();
     mEmbeddedChannel.writeInbound(buildWriteRequest(1024, 1024));
     Object writeResponse = waitForResponse();
     checkWriteResponse(writeResponse, Protocol.Status.Code.INTERNAL);
-    waitForChannelClose();
-    Assert.assertTrue(!mEmbeddedChannel.isOpen());
   }
   /**
    * Builds the write request.
@@ -193,11 +197,19 @@ public final class DataServerUFSFileWriteHandlerTest {
   }
 
   /**
-   * Waits for the channel to be closed.
+   * A special version of {@link EmbeddedChannel} that doesn't fail on exception so that we can
+   * still check result after the channel is closed.
    */
-  private void waitForChannelClose() {
-    int timeRemaining = Constants.MINUTE_MS;
-    while (timeRemaining > 0 && mEmbeddedChannel.isOpen()) {
+  private class EmbeddedChannelNoException extends EmbeddedChannel {
+    /**
+     * @param handlers the handlers
+     */
+    public EmbeddedChannelNoException(ChannelHandler... handlers) {
+      super(handlers);
+    }
+
+    @Override
+    public void checkException() {
     }
   }
 }
