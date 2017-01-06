@@ -12,6 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.Constants;
+import alluxio.EmbeddedChannelNoException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
@@ -22,6 +23,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
+import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -36,7 +38,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Random;
@@ -99,29 +100,26 @@ public final class DataServerBlockWriteHandlerTest {
 
   @Test
   public void writeInvalidOffset() throws Exception {
-    final EmbeddedChannel channel = new EmbeddedChannel(
+    final EmbeddedChannel channel = new EmbeddedChannelNoException(
         new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
     channel.writeInbound(buildWriteRequest(0, 1024));
     channel.writeInbound(buildWriteRequest(1025, 1024));
     Object writeResponse = waitForResponse(channel);
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
     checkWriteResponse(writeResponse, Protocol.Status.Code.INVALID_ARGUMENT);
-    waitForChannelClose(channel);
-    Assert.assertTrue(!channel.isOpen());
   }
 
   @Test
   public void writeFailure() throws Exception {
-    final EmbeddedChannel channel = new EmbeddedChannel(
+    EmbeddedChannel channel = new EmbeddedChannelNoException(
         new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
+
     channel.writeInbound(buildWriteRequest(0, 1024));
     mBlockWriter.close();
     channel.writeInbound(buildWriteRequest(1024, 1024));
     Object writeResponse = waitForResponse(channel);
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
     checkWriteResponse(writeResponse, Protocol.Status.Code.INTERNAL);
-    waitForChannelClose(channel);
-    Assert.assertTrue(!channel.isOpen());
   }
 
   /**
@@ -172,14 +170,17 @@ public final class DataServerBlockWriteHandlerTest {
     RandomAccessFile file = new RandomAccessFile(mFile, "r");
     long checksumActual = 0;
     long sizeActual = 0;
-    try {
-      while (true) {
-        checksumActual += BufferUtils.byteToInt(file.readByte());
+
+    byte[] buffer = new byte[(int) Math.min(Constants.KB, size)];
+    int bytesRead;
+    do {
+      bytesRead = file.read(buffer);
+      for (int i = 0; i < bytesRead; i++) {
+        checksumActual += BufferUtils.byteToInt(buffer[i]);
         sizeActual++;
       }
-    } catch (EOFException e) {
-      // expected.
-    }
+    } while (bytesRead >= 0);
+
     Assert.assertEquals(mChecksum, checksumActual);
     Assert.assertEquals(size, sizeActual);
   }
@@ -190,25 +191,12 @@ public final class DataServerBlockWriteHandlerTest {
    * @param channel the channel
    * @return the response
    */
-  private Object waitForResponse(EmbeddedChannel channel) {
-    Object writeResponse = null;
-    int timeRemaining = Constants.MINUTE_MS;
-    while (writeResponse == null && timeRemaining > 0) {
-      writeResponse = channel.readOutbound();
-      CommonUtils.sleepMs(10);
-      timeRemaining -= 10;
-    }
-    return writeResponse;
-  }
-
-  /**
-   * Waits for the channel to be closed.
-   *
-   * @param channel the channel
-   */
-  private void waitForChannelClose(EmbeddedChannel channel) {
-    int timeRemaining = Constants.MINUTE_MS;
-    while (timeRemaining > 0 && channel.isOpen()) {
-    }
+  private Object waitForResponse(final EmbeddedChannel channel) {
+    return CommonUtils.waitFor("", new Function<Void, Object>() {
+      @Override
+      public Object apply(Void v) {
+        return channel.readOutbound();
+      }
+    }, Constants.MINUTE_MS);
   }
 }

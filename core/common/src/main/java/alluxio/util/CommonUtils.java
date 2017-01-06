@@ -225,7 +225,33 @@ public final class CommonUtils {
   }
 
   /**
+<<<<<<< bbe32b6e8ad96cd2d8d8dc515341de4620bad389
    * Waits for a condition to be satisfied.
+=======
+   * Waits for an operation to return a non-null value with a specified timeout.
+   *
+   * @param description the description of this operation
+   * @param operation the operation
+   * @param timeoutMs the timeout
+   * @param <T> the type of the return value
+   * @return the return value, null if it times out
+   */
+  public static <T> T waitFor(String description, Function<Void, T> operation, long timeoutMs) {
+    T t = null;
+    long startTime = System.currentTimeMillis();
+    while (System.currentTimeMillis() < startTime + timeoutMs) {
+      t = operation.apply(null);
+      if (t != null) {
+        break;
+      }
+      CommonUtils.sleepMs(20);
+    }
+    return t;
+  }
+
+  /**
+   * Waits for a condition to be satisfied until a timeout occurs.
+>>>>>>> Fix tests
    *
    * @param description a description of what causes condition to evaluation to true
    * @param condition the condition to wait on
