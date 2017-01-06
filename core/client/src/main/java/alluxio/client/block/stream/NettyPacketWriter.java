@@ -178,26 +178,12 @@ public final class NettyPacketWriter implements PacketWriter {
       mLock.unlock();
     }
 
-<<<<<<< 32a2b3ae03da81cb85de4b943a5c51bf86a9214a
     Protocol.WriteRequest writeRequest =
         Protocol.WriteRequest.newBuilder().setId(mId).setOffset(offset).setSessionId(mSessionId)
-            .setType(mRequestType).build();
+            .setTier(mTier).setType(mRequestType).build();
     DataBuffer dataBuffer = new DataNettyBufferV2(buf);
     mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, dataBuffer))
         .addListener(new WriteListener(offset + len));
-=======
-    mChannel.eventLoop().submit(new Runnable() {
-      @Override
-      public void run() {
-        Protocol.WriteRequest writeRequest =
-            Protocol.WriteRequest.newBuilder().setId(mId).setOffset(offset).setSessionId(mSessionId)
-                .setTier(mTier).setType(mRequestType).build();
-        DataBuffer dataBuffer = new DataNettyBufferV2(buf);
-        mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, dataBuffer))
-            .addListener(new WriteListener(offset + len));
-      }
-    });
->>>>>>> Support tier in remote packet streaming
   }
 
   @Override
