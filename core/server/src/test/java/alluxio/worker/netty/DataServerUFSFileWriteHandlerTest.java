@@ -76,7 +76,7 @@ public final class DataServerUFSFileWriteHandlerTest {
 
   @Test
   public void writeEmptyFile() throws Exception {
-   mEmbeddedChannel.writeInbound(buildWriteRequest(0, 0));
+    mEmbeddedChannel.writeInbound(buildWriteRequest(0, 0));
     Object writeResponse = waitForResponse();
     checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
   }
@@ -116,7 +116,13 @@ public final class DataServerUFSFileWriteHandlerTest {
     waitForChannelClose();
     Assert.assertTrue(!mEmbeddedChannel.isOpen());
   }
-
+  /**
+   * Builds the write request.
+   *
+   * @param offset the offset
+   * @param len the length of the block
+   * @return the write request
+   */
   private RPCProtoMessage buildWriteRequest(long offset, int len) {
     Protocol.WriteRequest writeRequest =
         Protocol.WriteRequest.newBuilder().setId(mBlockId).setOffset(offset).setSessionId(-1L)
@@ -134,6 +140,12 @@ public final class DataServerUFSFileWriteHandlerTest {
     return new RPCProtoMessage(writeRequest, buffer);
   }
 
+  /**
+   * Checks the given write response is expected and matches the given error code.
+   *
+   * @param writeResponse the write response
+   * @param codeExpected the expected error code
+   */
   private void checkWriteResponse(Object writeResponse, Protocol.Status.Code codeExpected) {
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
 
@@ -142,6 +154,12 @@ public final class DataServerUFSFileWriteHandlerTest {
     Assert.assertEquals(codeExpected, ((Protocol.Response) response).getStatus().getCode());
   }
 
+  /**
+   * Checks the file content matches expectation (file length and file checksum).
+   *
+   * @param size the file size in bytes
+   * @throws IOException if it fails to check the file content
+   */
   private void checkFileContent(long size) throws IOException {
     RandomAccessFile file = new RandomAccessFile(mFile, "r");
     long checksumActual = 0;
@@ -158,6 +176,11 @@ public final class DataServerUFSFileWriteHandlerTest {
     Assert.assertEquals(size, sizeActual);
   }
 
+  /**
+   * Waits for a response.
+   *
+   * @return the response
+   */
   private Object waitForResponse() {
     Object writeResponse = null;
     int timeRemaining = Constants.MINUTE_MS;
@@ -169,8 +192,12 @@ public final class DataServerUFSFileWriteHandlerTest {
     return writeResponse;
   }
 
+  /**
+   * Waits for the channel to be closed.
+   */
   private void waitForChannelClose() {
     int timeRemaining = Constants.MINUTE_MS;
-    while (timeRemaining > 0 && mEmbeddedChannel.isOpen()) {}
+    while (timeRemaining > 0 && mEmbeddedChannel.isOpen()) {
+    }
   }
 }

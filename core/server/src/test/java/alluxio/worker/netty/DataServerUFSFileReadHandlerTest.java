@@ -123,22 +123,22 @@ public final class DataServerUFSFileReadHandlerTest {
     mChannel.writeInbound(readRequest);
     mChannel.writeInbound(cancelRequest);
 
-    // Make sure we can still get EOF after cancelling though the read request is not necessarily
+    // Make sure we can still get eof after cancelling though the read request is not necessarily
     // fulfilled.
-    boolean EOF = false;
+    boolean eof = false;
     long maxIterations = 100;
     while (maxIterations > 0) {
       Object response = waitForOneResponse();
       DataBuffer buffer = checkReadResponse(response, Protocol.Status.Code.OK);
       if (buffer == null) {
-        EOF = true;
+        eof = true;
         break;
       }
       buffer.release();
       maxIterations--;
       Assert.assertTrue(mChannel.isOpen());
     }
-    Assert.assertTrue(EOF);
+    Assert.assertTrue(eof);
   }
 
   @Test
@@ -208,9 +208,9 @@ public final class DataServerUFSFileReadHandlerTest {
    */
   private void checkAllReadResponses() {
     int timeRemaining = Constants.MINUTE_MS;
-    boolean EOF = false;
+    boolean eof = false;
     long checksumActual = 0;
-    while (!EOF && timeRemaining > 0) {
+    while (!eof && timeRemaining > 0) {
       Object readResponse = null;
       while (readResponse == null && timeRemaining > 0) {
         readResponse = mChannel.readOutbound();
@@ -218,7 +218,7 @@ public final class DataServerUFSFileReadHandlerTest {
         timeRemaining -= 10;
       }
       DataBuffer buffer = checkReadResponse(readResponse, Protocol.Status.Code.OK);
-      EOF = buffer == null;
+      eof = buffer == null;
       if (buffer != null) {
         Assert.assertTrue(buffer instanceof DataNettyBufferV2);
         ByteBuf buf = (ByteBuf) buffer.getNettyOutput();
@@ -229,7 +229,7 @@ public final class DataServerUFSFileReadHandlerTest {
       }
     }
     Assert.assertEquals(mChecksum, checksumActual);
-    Assert.assertTrue(EOF);
+    Assert.assertTrue(eof);
   }
 
   /**

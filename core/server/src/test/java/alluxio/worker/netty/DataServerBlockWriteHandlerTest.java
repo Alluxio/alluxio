@@ -74,7 +74,7 @@ public final class DataServerBlockWriteHandlerTest {
   public void writeEmptyFile() throws Exception {
     final EmbeddedChannel channel = new EmbeddedChannel(
         new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
-   channel.writeInbound(buildWriteRequest(0, 0));
+    channel.writeInbound(buildWriteRequest(0, 0));
 
     Object writeResponse = waitForResponse(channel);
     checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
@@ -124,6 +124,13 @@ public final class DataServerBlockWriteHandlerTest {
     Assert.assertTrue(!channel.isOpen());
   }
 
+  /**
+   * Builds the write request.
+   *
+   * @param offset the offset
+   * @param len the length of the block
+   * @return the write request
+   */
   private RPCProtoMessage buildWriteRequest(long offset, int len) {
     Protocol.WriteRequest writeRequest =
         Protocol.WriteRequest.newBuilder().setId(mBlockId).setOffset(offset).setSessionId(1L)
@@ -141,6 +148,12 @@ public final class DataServerBlockWriteHandlerTest {
     return new RPCProtoMessage(writeRequest, buffer);
   }
 
+  /**
+   * Checks the given write response is expected and matches the given error code.
+   *
+   * @param writeResponse the write response
+   * @param codeExpected the expected error code
+   */
   private void checkWriteResponse(Object writeResponse, Protocol.Status.Code codeExpected) {
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
 
@@ -149,6 +162,12 @@ public final class DataServerBlockWriteHandlerTest {
     Assert.assertEquals(codeExpected, ((Protocol.Response) response).getStatus().getCode());
   }
 
+  /**
+   * Checks the file content matches expectation (file length and file checksum).
+   *
+   * @param size the file size in bytes
+   * @throws IOException if it fails to check the file content
+   */
   private void checkFileContent(long size) throws IOException {
     RandomAccessFile file = new RandomAccessFile(mFile, "r");
     long checksumActual = 0;
@@ -165,6 +184,12 @@ public final class DataServerBlockWriteHandlerTest {
     Assert.assertEquals(size, sizeActual);
   }
 
+  /**
+   * Waits for a response.
+   *
+   * @param channel the channel
+   * @return the response
+   */
   private Object waitForResponse(EmbeddedChannel channel) {
     Object writeResponse = null;
     int timeRemaining = Constants.MINUTE_MS;
@@ -176,8 +201,14 @@ public final class DataServerBlockWriteHandlerTest {
     return writeResponse;
   }
 
+  /**
+   * Waits for the channel to be closed.
+   *
+   * @param channel the channel
+   */
   private void waitForChannelClose(EmbeddedChannel channel) {
     int timeRemaining = Constants.MINUTE_MS;
-    while (timeRemaining > 0 && channel.isOpen()) {}
+    while (timeRemaining > 0 && channel.isOpen()) {
+    }
   }
 }
