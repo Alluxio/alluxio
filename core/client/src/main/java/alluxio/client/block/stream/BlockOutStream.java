@@ -93,7 +93,7 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
 
       PacketOutStream outStream = PacketOutStream
           .createNettyPacketOutStream(context, client.getDataServerAddress(), client.getSessionId(),
-              blockId, blockSize, Protocol.RequestType.ALLUXIO_BLOCK);
+              blockId, blockSize, options.getWriteTier(), Protocol.RequestType.ALLUXIO_BLOCK);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (IOException e) {

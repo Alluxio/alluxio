@@ -2881,12 +2881,30 @@ public final class Protocol {
     // optional int64 session_id = 4;
     /**
      * <code>optional int64 session_id = 4;</code>
+     *
+     * <pre>
+     * These are only applicable for block write.
+     * </pre>
      */
     boolean hasSessionId();
     /**
      * <code>optional int64 session_id = 4;</code>
+     *
+     * <pre>
+     * These are only applicable for block write.
+     * </pre>
      */
     long getSessionId();
+
+    // optional int32 tier = 5;
+    /**
+     * <code>optional int32 tier = 5;</code>
+     */
+    boolean hasTier();
+    /**
+     * <code>optional int32 tier = 5;</code>
+     */
+    int getTier();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.WriteRequest}
@@ -2967,6 +2985,11 @@ public final class Protocol {
             case 32: {
               bitField0_ |= 0x00000008;
               sessionId_ = input.readInt64();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              tier_ = input.readInt32();
               break;
             }
           }
@@ -3070,15 +3093,39 @@ public final class Protocol {
     private long sessionId_;
     /**
      * <code>optional int64 session_id = 4;</code>
+     *
+     * <pre>
+     * These are only applicable for block write.
+     * </pre>
      */
     public boolean hasSessionId() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
      * <code>optional int64 session_id = 4;</code>
+     *
+     * <pre>
+     * These are only applicable for block write.
+     * </pre>
      */
     public long getSessionId() {
       return sessionId_;
+    }
+
+    // optional int32 tier = 5;
+    public static final int TIER_FIELD_NUMBER = 5;
+    private int tier_;
+    /**
+     * <code>optional int32 tier = 5;</code>
+     */
+    public boolean hasTier() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional int32 tier = 5;</code>
+     */
+    public int getTier() {
+      return tier_;
     }
 
     private void initFields() {
@@ -3086,6 +3133,7 @@ public final class Protocol {
       id_ = 0L;
       offset_ = 0L;
       sessionId_ = 0L;
+      tier_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3111,6 +3159,9 @@ public final class Protocol {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt64(4, sessionId_);
       }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeInt32(5, tier_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -3135,6 +3186,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, sessionId_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(5, tier_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3264,6 +3319,8 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000004);
         sessionId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000008);
+        tier_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -3308,6 +3365,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000008;
         }
         result.sessionId_ = sessionId_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.tier_ = tier_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3335,6 +3396,9 @@ public final class Protocol {
         }
         if (other.hasSessionId()) {
           setSessionId(other.getSessionId());
+        }
+        if (other.hasTier()) {
+          setTier(other.getTier());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -3485,18 +3549,30 @@ public final class Protocol {
       private long sessionId_ ;
       /**
        * <code>optional int64 session_id = 4;</code>
+       *
+       * <pre>
+       * These are only applicable for block write.
+       * </pre>
        */
       public boolean hasSessionId() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
        * <code>optional int64 session_id = 4;</code>
+       *
+       * <pre>
+       * These are only applicable for block write.
+       * </pre>
        */
       public long getSessionId() {
         return sessionId_;
       }
       /**
        * <code>optional int64 session_id = 4;</code>
+       *
+       * <pre>
+       * These are only applicable for block write.
+       * </pre>
        */
       public Builder setSessionId(long value) {
         bitField0_ |= 0x00000008;
@@ -3506,10 +3582,47 @@ public final class Protocol {
       }
       /**
        * <code>optional int64 session_id = 4;</code>
+       *
+       * <pre>
+       * These are only applicable for block write.
+       * </pre>
        */
       public Builder clearSessionId() {
         bitField0_ = (bitField0_ & ~0x00000008);
         sessionId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int32 tier = 5;
+      private int tier_ ;
+      /**
+       * <code>optional int32 tier = 5;</code>
+       */
+      public boolean hasTier() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional int32 tier = 5;</code>
+       */
+      public int getTier() {
+        return tier_;
+      }
+      /**
+       * <code>optional int32 tier = 5;</code>
+       */
+      public Builder setTier(int value) {
+        bitField0_ |= 0x00000010;
+        tier_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 tier = 5;</code>
+       */
+      public Builder clearTier() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        tier_ = 0;
         onChanged();
         return this;
       }
@@ -5007,17 +5120,18 @@ public final class Protocol {
       "\030\001 \001(\0162%.alluxio.proto.dataserver.Reques" +
       "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
       "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
-      "(\003\022\022\n\nsession_id\030\007 \001(\003\"s\n\014WriteRequest\0223" +
-      "\n\004type\030\001 \001(\0162%.alluxio.proto.dataserver." +
-      "RequestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022",
-      "\022\n\nsession_id\030\004 \001(\003\"<\n\010Response\0220\n\006statu" +
-      "s\030\001 \001(\0132 .alluxio.proto.dataserver.Statu" +
-      "s\"\020\n\016VersionRequest\"\205\001\n\017VersionResponse\022" +
-      "@\n\007version\030\001 \001(\0162+.alluxio.proto.dataser" +
-      "ver.DataServerVersion:\002V1\0220\n\006status\030\002 \001(" +
-      "\0132 .alluxio.proto.dataserver.Status*.\n\013R" +
-      "equestType\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FIL" +
-      "E\020\001*#\n\021DataServerVersion\022\006\n\002V0\020\000\022\006\n\002V1\020\001"
+      "(\003\022\022\n\nsession_id\030\007 \001(\003\"\201\001\n\014WriteRequest\022" +
+      "3\n\004type\030\001 \001(\0162%.alluxio.proto.dataserver" +
+      ".RequestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003",
+      "\022\022\n\nsession_id\030\004 \001(\003\022\014\n\004tier\030\005 \001(\005\"<\n\010Re" +
+      "sponse\0220\n\006status\030\001 \001(\0132 .alluxio.proto.d" +
+      "ataserver.Status\"\020\n\016VersionRequest\"\205\001\n\017V" +
+      "ersionResponse\022@\n\007version\030\001 \001(\0162+.alluxi" +
+      "o.proto.dataserver.DataServerVersion:\002V1" +
+      "\0220\n\006status\030\002 \001(\0132 .alluxio.proto.dataser" +
+      "ver.Status*.\n\013RequestType\022\021\n\rALLUXIO_BLO" +
+      "CK\020\000\022\014\n\010UFS_FILE\020\001*#\n\021DataServerVersion\022" +
+      "\006\n\002V0\020\000\022\006\n\002V1\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5047,7 +5161,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", });
+              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", });
           internal_static_alluxio_proto_dataserver_Response_descriptor =
             getDescriptor().getMessageTypes().get(4);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
