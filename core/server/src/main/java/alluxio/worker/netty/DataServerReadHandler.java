@@ -74,7 +74,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   private long mPosToWrite = -1;
 
   /** Makes sure we send EOF only once. */
-  private AtomicBoolean mEOFSent = new AtomicBoolean(false);
+  private final AtomicBoolean mEOFSent = new AtomicBoolean(false);
 
   /**
    * This is only updated in the channel event loop thread when a read request starts or cancelled.
@@ -211,9 +211,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
-   * Writes an error block read response to the channel and closes the channel after that.
-   *
-   * @param channel the channel
+   * Writes an error read response to the channel and closes the channel after that.
    */
   private void replyError(Channel channel, Protocol.Status.Code code, String message, Throwable e) {
     channel.writeAndFlush(RPCProtoMessage.createResponse(code, message, e, null))
@@ -221,9 +219,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
-   * Writes a success block read response to the channel.
-   *
-   * @param channel the channel
+   * Writes a success read response to the channel.
    */
   private void replySuccess(Channel channel) {
     if (mEOFSent.compareAndSet(false, true)) {
@@ -241,7 +237,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    * Returns true if the block read request is valid.
    *
    * @param request the block read request
-   * @return true if the block read request is valid
+   * @return the error message (empty string indicates success)
    */
   private String validateReadRequest(Protocol.ReadRequest request) {
     if (request.getId() < 0) {
