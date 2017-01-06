@@ -5,22 +5,12 @@ kramdown:
   syntax_highlighter: rouge
 
 # These allow the documentation to be updated with new releases of Alluxio.
-<<<<<<< HEAD
-ALLUXIO_RELEASED_VERSION: 1.4.0-RC2-PS
+ALLUXIO_RELEASED_VERSION: 1.4.0-RC3-PS
 # For example, "master" for the master branch, and 1.1 for 1.1.x releases and release candidates.
-ALLUXIO_MASTER_VERSION_SHORT: 1.4.0-RC2-PS
-
+ALLUXIO_MASTER_VERSION_SHORT: 1.4.0-RC3-PS
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro defined above.
 # Otherwise the macro name remains in the output.
-ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-1.4.0-RC2-PS-jar-with-dependencies.jar
-=======
-ALLUXIO_RELEASED_VERSION: 1.4.0-RC3
-# For example, "master" for the master branch, and 1.1 for 1.1.x releases and release candidates.
-ALLUXIO_MASTER_VERSION_SHORT: 1.4.0-RC3
-# We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro defined above.
-# Otherwise the macro name remains in the output.
-ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-1.4.0-RC3-jar-with-dependencies.jar
->>>>>>> upstream/branch-1.4
+ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-1.4.0-RC3-PS-jar-with-dependencies.jar
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
