@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -71,6 +72,9 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   /** The next pos to write to the channel. */
   @GuardedBy("mLock")
   private long mPosToWrite = -1;
+
+  /** Makes sure we send EOF only once. */
+  private AtomicBoolean mEOFSent = new AtomicBoolean(false);
 
   /**
    * This is only updated in the channel event loop thread when a read request starts or cancelled.
@@ -137,6 +141,11 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
         mLock.lock();
         try {
           mRequest.mCancelled = mPosToQueue;
+          if (remainingToWrite() <= 0) {
+            // This can only happen when everything before mPosToQueue has been sent to the client.
+            // This is not a common event.
+            replySuccess(ctx.channel());
+          }
         } finally {
           mLock.unlock();
         }
@@ -217,13 +226,15 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    * @param channel the channel
    */
   private void replySuccess(Channel channel) {
-    channel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
-        .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE, new ChannelFutureListener() {
-          @Override
-          public void operationComplete(ChannelFuture future) throws Exception {
-            reset();
-          }
-        });
+    if (mEOFSent.compareAndSet(false, true)) {
+      channel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
+          .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE, new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+              reset();
+            }
+          });
+    }
   }
 
   /**
@@ -233,7 +244,13 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    * @return true if the block read request is valid
    */
   private String validateReadRequest(Protocol.ReadRequest request) {
+    if (request.getId() < 0) {
+      return String.format("Invalid blockId (%d) in read request.", request.getId());
+    }
     if (mRequest == null) {
+      if (request.getOffset() < 0 || request.getLength() <= 0) {
+        return String.format("Invalid read bounds in read request %s.", request.toString());
+      }
       return "";
     }
 
@@ -265,6 +282,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     } finally {
       mLock.unlock();
     }
+    mEOFSent.set(false);
   }
 
   /**
@@ -320,7 +338,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     public void operationComplete(ChannelFuture future) {
       if (!future.isSuccess()) {
         LOG.error("Failed to send packet.", future.cause());
-        future.channel().pipeline().fireExceptionCaught(future.cause());
+        future.channel().close();
         return;
       }
 
@@ -395,7 +413,8 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
         try {
           packet = getDataBuffer(mChannel, start, packetSize);
         } catch (Exception e) {
-          mChannel.pipeline().fireExceptionCaught(e);
+          LOG.error("Failed to read data.", e);
+          replyError(mChannel, Protocol.Status.Code.INTERNAL, "", e);
           break;
         }
         if (packet == null) {
