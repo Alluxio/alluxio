@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
@@ -25,6 +24,7 @@ import alluxio.worker.file.FileSystemWorker;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.util.ResourceLeakDetector;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,18 +34,15 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.Random;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemWorker.class})
 public final class DataServerUFSFileReadHandlerTest {
   private static final long PACKET_SIZE =
       Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
@@ -63,6 +60,7 @@ public final class DataServerUFSFileReadHandlerTest {
 
   @Before
   public void before() throws Exception {
+    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED);
     mFileSystemWorker = PowerMockito.mock(FileSystemWorker.class);
     mChannel = new EmbeddedChannel(
         new DataServerUFSFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR, mFileSystemWorker));
@@ -116,28 +114,29 @@ public final class DataServerUFSFileReadHandlerTest {
 
   @Test
   public void cancelRequest() throws Exception {
-    long fileSize = PACKET_SIZE * 30 + 1;
+    long fileSize = PACKET_SIZE * 10 + 1;
     populateInputFile(fileSize, 0, fileSize - 1);
     RPCProtoMessage readRequest = buildReadRequest(0, fileSize);
     Protocol.ReadRequest request = (Protocol.ReadRequest) readRequest.getMessage();
     RPCProtoMessage cancelRequest =
         new RPCProtoMessage(request.toBuilder().setCancel(true).build(), null);
     mChannel.writeInbound(readRequest);
-    mChannel.runPendingTasks();
     mChannel.writeInbound(cancelRequest);
 
     // Make sure we can still get EOF after cancelling though the read request is not necessarily
     // fulfilled.
-    long timeRemaining = Constants.MINUTE_MS;
     boolean EOF = false;
-    while (timeRemaining > 0) {
+    long maxIterations = 100;
+    while (maxIterations > 0) {
       Object response = waitForOneResponse();
-      if (checkReadResponse(response, Protocol.Status.Code.OK) == null) {
+      DataBuffer buffer = checkReadResponse(response, Protocol.Status.Code.OK);
+      if (buffer == null) {
         EOF = true;
         break;
       }
-      CommonUtils.sleepMs(10);
-      timeRemaining -= 10;
+      buffer.release();
+      maxIterations--;
+      Assert.assertTrue(mChannel.isOpen());
     }
     Assert.assertTrue(EOF);
   }
@@ -221,21 +220,12 @@ public final class DataServerUFSFileReadHandlerTest {
       DataBuffer buffer = checkReadResponse(readResponse, Protocol.Status.Code.OK);
       EOF = buffer == null;
       if (buffer != null) {
-        if (buffer instanceof DataNettyBufferV2) {
-          ByteBuf buf = (ByteBuf) buffer.getNettyOutput();
-          while (buf.readableBytes() > 0) {
-            checksumActual += BufferUtils.byteToInt(buf.readByte());
-          }
-          buf.release();
-        } else {
-          Assert.assertTrue(buffer instanceof DataFileChannel);
-          ByteBuffer buf = buffer.getReadOnlyByteBuffer();
-          byte[] array = new byte[buf.remaining()];
-          buf.get(array);
-          for (int i = 0; i < array.length; i++) {
-            checksumActual += BufferUtils.byteToInt(array[i]);
-          }
+        Assert.assertTrue(buffer instanceof DataNettyBufferV2);
+        ByteBuf buf = (ByteBuf) buffer.getNettyOutput();
+        while (buf.readableBytes() > 0) {
+          checksumActual += BufferUtils.byteToInt(buf.readByte());
         }
+        buf.release();
       }
     }
     Assert.assertEquals(mChecksum, checksumActual);
