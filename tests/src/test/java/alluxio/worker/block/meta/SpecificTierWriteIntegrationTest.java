@@ -76,7 +76,7 @@ public class SpecificTierWriteIntegrationTest {
   }
 
   /**
-   * Write a file into a specified tier, and then verifies the expected bytes on each tier.
+   * Writes a file into a specified tier, and then verifies the expected bytes on each tier.
    *
    * @param writeTier the specific tier to write the file to
    * @param memBytes the expected number of bytes used in the MEM tier
