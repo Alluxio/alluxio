@@ -20,7 +20,7 @@ priority: 0
 为了接下来的快速上手指南，你需要:
 
 * Mac OS X或Linux
-* Java 7或更新版本
+* [Java 7或更新版本](Java-Setup.html)
 * **[奖励]** AWS账户和秘钥
 
 ### 安装SSH(Mac OS X)
