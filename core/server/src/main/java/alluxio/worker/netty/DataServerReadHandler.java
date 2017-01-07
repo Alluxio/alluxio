@@ -79,6 +79,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   /**
    * This is only updated in the channel event loop thread when a read request starts or cancelled.
    * No need to be locked.
+   * When it is accessed outside of the event loop thread, make sure it is not null.
    */
   protected volatile ReadRequestInternal mRequest = null;
 
@@ -185,7 +186,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
-   * Requires to hold mLock when calling this.
+   * Requires to hold mLock when calling this. This is only called in the event loop thread.
    *
    * @return true if we should restart the packet reader
    */
@@ -199,7 +200,8 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    * @return the number of bytes remaining to push to the netty queue. Return 0 if it is cancelled
    */
   private long remainingToQueue() {
-    return mRequest.end() - mPosToQueue;
+    ReadRequestInternal request = mRequest;
+    return request == null ? 0 : request.end() - mPosToQueue;
   }
 
   /**
@@ -208,7 +210,8 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    * @return the number of bytes remaining to flush. Return 0 if it is cancelled
    */
   private long remainingToWrite() {
-    return mRequest.end() - mPosToWrite;
+    ReadRequestInternal request = mRequest;
+    return request == null ? 0 : mRequest.end() - mPosToWrite;
   }
 
   /**
