@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.client.WriteTier;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -24,7 +23,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.ThriftIOException;
-import alluxio.thrift.TWriteTier;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
@@ -67,8 +65,6 @@ public final class RetryHandlingBlockWorkerClient
       ThreadFactoryUtils.build("block-worker-heartbeat-cancel-%d", true));
   private final BlockWorkerThriftClientPool mClientPool;
   private final BlockWorkerThriftClientPool mClientHeartbeatPool;
-  private static final TWriteTier WRITE_TIER = WriteTier.toThrift(
-      alluxio.Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT, WriteTier.class));
   // Tracks the number of active heartbeat close requests.
   private static final AtomicInteger NUM_ACTIVE_SESSIONS = new AtomicInteger(0);
 
@@ -249,15 +245,15 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
-  public String requestBlockLocation(final long blockId, final long initialBytes)
-      throws IOException {
+  public String requestBlockLocation(final long blockId, final long initialBytes,
+      final int writeTier) throws IOException {
     try {
       return retryRPC(
           new RpcCallableThrowsAlluxioTException<String, BlockWorkerClientService.Client>() {
             @Override
             public String call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
-              return client.requestBlockLocation(getSessionId(), blockId, initialBytes, WRITE_TIER);
+              return client.requestBlockLocation(getSessionId(), blockId, initialBytes, writeTier);
             }
           });
     } catch (WorkerOutOfSpaceException e) {

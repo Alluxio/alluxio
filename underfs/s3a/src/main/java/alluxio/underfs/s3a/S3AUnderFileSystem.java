@@ -412,8 +412,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     try {
       return new S3AInputStream(mBucketName, key, mClient, options.getOffset());
     } catch (AmazonClientException e) {
-      LOG.error("Failed to open file: {}", key, e);
-      return null;
+      throw new IOException(e.getMessage());
     }
   }
 }

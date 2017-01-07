@@ -55,17 +55,20 @@ public class OutStreamOptionsTest {
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
+    Configuration.set(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT, Constants.LAST_TIER);
 
     OutStreamOptions options = OutStreamOptions.defaults();
 
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertEquals(alluxioType, options.getAlluxioStorageType());
-    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
-    Assert.assertEquals(ufsType, options.getUnderStorageType());
+    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     Assert.assertEquals(Permission.defaults().applyFileUMask().setOwnerFromLoginModule(),
         options.getPermission());
+    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
+    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
+    Assert.assertEquals(ufsType, options.getUnderStorageType());
+    Assert.assertEquals(WriteType.CACHE_THROUGH, options.getWriteType());
+    Assert.assertEquals(Constants.LAST_TIER, options.getWriteTier());
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -76,26 +79,29 @@ public class OutStreamOptionsTest {
   public void fields() {
     Random random = new Random();
     long blockSize = random.nextLong();
-    FileWriteLocationPolicy policy = new RoundRobinPolicy();
-    long ttl = random.nextLong();
-    WriteType writeType = WriteType.NONE;
     Permission perm = Permission.defaults();
+    FileWriteLocationPolicy locationPolicy = new RoundRobinPolicy();
+    long ttl = random.nextLong();
+    int writeTier = random.nextInt();
+    WriteType writeType = WriteType.NONE;
 
     OutStreamOptions options = OutStreamOptions.defaults();
     options.setBlockSizeBytes(blockSize);
-    options.setLocationPolicy(policy);
+    options.setLocationPolicy(locationPolicy);
+    options.setPermission(perm);
     options.setTtl(ttl);
     options.setTtlAction(TtlAction.FREE);
+    options.setWriteTier(writeTier);
     options.setWriteType(writeType);
-    options.setPermission(perm);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(policy, options.getLocationPolicy());
+    Assert.assertEquals(locationPolicy, options.getLocationPolicy());
+    Assert.assertEquals(perm, options.getPermission());
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
+    Assert.assertEquals(writeTier, options.getWriteTier());
     Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
-    Assert.assertEquals(perm, options.getPermission());
   }
 
   @Test

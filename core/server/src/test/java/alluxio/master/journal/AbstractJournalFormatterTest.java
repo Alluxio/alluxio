@@ -64,7 +64,7 @@ import java.util.List;
 
 /**
  * Base class for testing different {@link JournalFormatter}'s serialization/deserialization
- * correctness of each entry type defined in {@link JournalEntry.EntryCase}.
+ * correctness of each entry type defined in {@link JournalEntry}.
  * <p>
  * To test an implementation of {@link JournalFormatter}, extend this class and override method
  * {@link #getFormatter()}.
@@ -336,8 +336,7 @@ public abstract class AbstractJournalFormatterTest {
    */
   @Test
   public void checkEntriesNumber() {
-    // Subtract one to exclude ENTRY_NOT_SET
-    Assert.assertEquals(JournalEntry.EntryCase.values().length - 1, ENTRIES_LIST.size());
+    Assert.assertEquals(JournalEntry.getDescriptor().getFields().size() - 1, ENTRIES_LIST.size());
   }
 
   /**

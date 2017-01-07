@@ -184,7 +184,7 @@ if [[ ( "${PROVIDER}" == "aws" ) || ( "${PROVIDER}" == "google" ) ]]; then
   main_master=$(cat $ANSIBLE_INFO_FILE | grep 'AlluxioMaster ' | cut -d' ' -f2 | cut -d'=' -f2)
 else
   masters=$(cat files/hosts | grep Master | cut -d' ' -f1)
-  main_master=$(cat files/hosts | grep 'AlluxioMaster ' | cut -d' ' -f1)
+  main_master=$(cat files/hosts | grep 'AlluxioMaster$' | cut -d' ' -f1)
 fi
 masters=($(echo $masters | tr '\n' ' ' | tr -d '\r'))
 
