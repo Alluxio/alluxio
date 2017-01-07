@@ -93,6 +93,12 @@ Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.
 
 对存在的文件和目录进行的所有操作都需要用户指定`AlluxioURI`。利用`AlluxioURI`，用户可以使用`FileSystem`的方法来访问资源。
 
+### Write Tier
+
+Alluxio允许客户端在向本地worker写入数据块时选择偏好的存储层。目前这种策略偏好只存在于本地worker，不支持远程workers; 远程worker会将数据块写到最高存储层。
+
+默认情况下，数据写入顶层。 用户可以通过修改`alluxio.user.file.write.tier.default` [configuration](Configuration-Settings.html)属性改变默认设置，或通过`FileSystem#createFile(AlluxioURI)`的API调用选项覆盖默认设置。
+
 ### 读数据
 
 `AlluxioURI`可被用于执行Alluxio FileSystem的操作，例如：修改文件元数据，如ttl或pin状态，或者通过获取一个输入流来读取文件。
