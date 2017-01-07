@@ -167,7 +167,6 @@ public class JournalShutdownIntegrationTest {
     return cluster;
   }
 
-
   /**
    * Starts a file-creating thread and runs it for some time, at least until it has created one
    * file.
