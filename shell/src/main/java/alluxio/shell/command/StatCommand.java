@@ -29,11 +29,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * If path is a file, it displays the file's all blocks info.
  */
 @ThreadSafe
-public final class FileInfoCommand extends WithWildCardPathCommand {
+public final class StatCommand extends WithWildCardPathCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public FileInfoCommand(FileSystem fs) {
+  public StatCommand(FileSystem fs) {
     super(fs);
   }
 

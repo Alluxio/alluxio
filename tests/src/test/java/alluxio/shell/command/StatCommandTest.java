@@ -22,12 +22,12 @@ import org.junit.Test;
 import java.io.IOException;
 
 /**
- * Tests for fileInfo command.
+ * Tests for stat command.
  */
-public final class FileInfoCommandTest extends AbstractAlluxioShellTest {
+public final class StatCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void fileInfoNotExist() throws IOException {
-    int ret = mFsShell.run("fileInfo", "/NotExistFile");
+    int ret = mFsShell.run("stat", "/NotExistFile");
     Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
         mOutput.toString());
     Assert.assertEquals(-1, ret);
@@ -37,7 +37,7 @@ public final class FileInfoCommandTest extends AbstractAlluxioShellTest {
   public void fileInfoWildCard() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
-    mFsShell.run("fileInfo", testDir + "/*");
+    mFsShell.run("stat", testDir + "/*");
     String res1 = mOutput.toString();
     Assert.assertTrue(res1.contains(testDir + "/foo"));
     Assert.assertTrue(res1.contains(testDir + "/bar"));
@@ -45,7 +45,7 @@ public final class FileInfoCommandTest extends AbstractAlluxioShellTest {
     Assert.assertFalse(res1.contains(testDir + "/foo/foobar1"));
     Assert.assertFalse(res1.contains(testDir + "/bar/foobar3"));
 
-    mFsShell.run("fileInfo", testDir + "/*/foo*");
+    mFsShell.run("stat", testDir + "/*/foo*");
     String res2 = mOutput.toString();
     res2 = res2.replace(res1, "");
     Assert.assertTrue(res2.contains(testDir + "/foo/foobar1"));
