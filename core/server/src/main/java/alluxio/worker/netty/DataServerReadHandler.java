@@ -245,8 +245,10 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
       return String.format("Invalid blockId (%d) in read request.", request.getId());
     }
     if (mRequest == null) {
-      if (request.getOffset() < 0 || request.getLength() <= 0) {
-        return String.format("Invalid read bounds in read request %s.", request.toString());
+      if (!request.getCancel()) {
+        if (request.getOffset() < 0 || request.getLength() <= 0) {
+          return String.format("Invalid read bounds in read request %s.", request.toString());
+        }
       }
       return "";
     }
