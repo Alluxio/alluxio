@@ -51,7 +51,9 @@ public class JournalShutdownIntegrationTest {
   private static final long SHUTDOWN_TIME_MS = 15 * Constants.SECOND_MS;
   private static final String TEST_FILE_DIR = "/files/";
   private static final int TEST_NUM_MASTERS = 3;
-  private static final long TEST_TIME_MS = Constants.SECOND_MS;
+  // Period of time to run the file-creating client before shutting down the cluster. This must be
+  // long enough to guarantee that at least one file is created before the cluster is shut down.
+  private static final long TEST_TIME_MS = 3 * Constants.SECOND_MS;
 
   private ClientThread mCreateFileThread;
   /** Executor for running client threads. */
