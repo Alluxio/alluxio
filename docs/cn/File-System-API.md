@@ -97,7 +97,7 @@ Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.
 
 Alluxio允许客户端在向本地worker写入数据块时选择偏好的存储层。目前这种策略偏好只存在于本地worker，不支持远程workers; 远程worker会将数据块写到最高存储层。
 
-默认情况下，数据写入顶层。 用户可以通过修改`alluxio.user.file.write.tier.default` [configuration](Configuration-Settings.html)属性改变默认设置，或通过`FileSystem#createFile(AlluxioURI)`的API调用选项覆盖默认设置。
+默认情况下，数据写入顶层。 用户可以通过修改`alluxio.user.file.write.tier.default` [配置文件](Configuration-Settings.html)属性改变默认设置，或通过`FileSystem#createFile(AlluxioURI)`的API调用选项覆盖默认设置。
 
 ### 读数据
 
