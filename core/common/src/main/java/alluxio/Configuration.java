@@ -454,14 +454,4 @@ public final class Configuration {
     }
     return valid;
   }
-
-  /**
-   * @return whether the configuration describes how to find the master host, either through
-   *         explicit configuration or through zookeeper
-   */
-  public static boolean masterHostConfigured() {
-    boolean usingZk =
-        getBoolean(PropertyKey.ZOOKEEPER_ENABLED) && containsKey(PropertyKey.ZOOKEEPER_ADDRESS);
-    return containsKey(PropertyKey.MASTER_HOSTNAME) || usingZk;
-  }
 }

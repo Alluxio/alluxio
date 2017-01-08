@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.shell.command.ShellCommand;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
@@ -58,12 +59,12 @@ public final class AlluxioShell implements Closeable {
   public static void main(String[] argv) throws IOException {
     int ret;
 
-    if (!Configuration.masterHostConfigured()) {
+    if (!ConfigurationUtils.masterHostConfigured()) {
       System.out.println(String.format(
           "Cannot run alluxio shell; master hostname is not "
-              + "configured. Please either configure %s in alluxio-site.properties, or configure the "
+              + "configured. Please either configure %s in %s, or configure the "
               + "shell to look up the master address via Zookeeper",
-          PropertyKey.MASTER_HOSTNAME.toString()));
+          PropertyKey.MASTER_HOSTNAME.toString(), Configuration.SITE_PROPERTIES));
       System.exit(1);
     }
 
