@@ -45,6 +45,7 @@ import java.util.Random;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockWorker.class})
 public final class DataServerBlockWriteHandlerTest {
+  private static final int PACKET_SIZE = 1024;
   private final Random mRandom = new Random();
   private final long mBlockId = 1L;
 
@@ -52,6 +53,8 @@ public final class DataServerBlockWriteHandlerTest {
   private BlockWriter mBlockWriter;
   private String mFile;
   private long mChecksum;
+  private EmbeddedChannel mChannel;
+  private EmbeddedChannel mChannelNoException;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -69,55 +72,51 @@ public final class DataServerBlockWriteHandlerTest {
     PowerMockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
         .thenReturn(mBlockWriter);
     mChecksum = 0;
+
+    mChannel = new EmbeddedChannel(
+        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
+    mChannelNoException = new EmbeddedChannelNoException(
+        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
   }
 
   @Test
   public void writeEmptyFile() throws Exception {
-    final EmbeddedChannel channel = new EmbeddedChannel(
-        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
-    channel.writeInbound(buildWriteRequest(0, 0));
+    mChannel.writeInbound(buildWriteRequest(0, 0));
 
-    Object writeResponse = waitForResponse(channel);
+    Object writeResponse = waitForResponse(mChannel);
     checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
   }
 
   @Test
   public void writeNonEmptyFile() throws Exception {
-    final EmbeddedChannel channel = new EmbeddedChannel(
-        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
     long len = 0;
     for (int i = 0; i < 128; i++) {
-      channel.writeInbound(buildWriteRequest(len, 1024));
-      len += 1024;
+      mChannel.writeInbound(buildWriteRequest(len, PACKET_SIZE));
+      len += PACKET_SIZE;
     }
     // EOF.
-    channel.writeInbound(buildWriteRequest(len, 0));
+    mChannel.writeInbound(buildWriteRequest(len, 0));
 
-    Object writeResponse = waitForResponse(channel);
+    Object writeResponse = waitForResponse(mChannel);
     checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
     checkFileContent(len);
   }
 
   @Test
   public void writeInvalidOffset() throws Exception {
-    final EmbeddedChannel channel = new EmbeddedChannelNoException(
-        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
-    channel.writeInbound(buildWriteRequest(0, 1024));
-    channel.writeInbound(buildWriteRequest(1025, 1024));
-    Object writeResponse = waitForResponse(channel);
+    mChannelNoException.writeInbound(buildWriteRequest(0, PACKET_SIZE));
+    mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE + 1, PACKET_SIZE));
+    Object writeResponse = waitForResponse(mChannelNoException);
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
     checkWriteResponse(writeResponse, Protocol.Status.Code.INVALID_ARGUMENT);
   }
 
   @Test
   public void writeFailure() throws Exception {
-    EmbeddedChannel channel = new EmbeddedChannelNoException(
-        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
-
-    channel.writeInbound(buildWriteRequest(0, 1024));
+    mChannelNoException.writeInbound(buildWriteRequest(0, PACKET_SIZE));
     mBlockWriter.close();
-    channel.writeInbound(buildWriteRequest(1024, 1024));
-    Object writeResponse = waitForResponse(channel);
+    mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE, PACKET_SIZE));
+    Object writeResponse = waitForResponse(mChannelNoException);
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
     checkWriteResponse(writeResponse, Protocol.Status.Code.INTERNAL);
   }
@@ -188,7 +187,6 @@ public final class DataServerBlockWriteHandlerTest {
   /**
    * Waits for a response.
    *
-   * @param channel the channel
    * @return the response
    */
   private Object waitForResponse(final EmbeddedChannel channel) {

@@ -13,6 +13,7 @@ package alluxio.worker.netty;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.EmbeddedChannelNoException;
 import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -27,7 +28,6 @@ import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.util.ResourceLeakDetector;
 import org.junit.Assert;
@@ -232,15 +232,13 @@ public final class DataServerBlockReadHandlerTest {
    * Checks all the read responses.
    */
   private void checkAllReadResponses(long checksumExpected) {
-    int timeRemaining = Constants.MINUTE_MS;
     boolean eof = false;
     long checksumActual = 0;
-    while (!eof && timeRemaining > 0) {
-      Object readResponse = null;
-      while (readResponse == null && timeRemaining > 0) {
-        readResponse = mChannel.readOutbound();
-        CommonUtils.sleepMs(10);
-        timeRemaining -= 10;
+    while (!eof) {
+      Object readResponse = waitForOneResponse();
+      if (readResponse == null) {
+        Assert.fail();
+        break;
       }
       DataBuffer buffer = checkReadResponse(readResponse, Protocol.Status.Code.OK);
       eof = buffer == null;
@@ -294,22 +292,5 @@ public final class DataServerBlockReadHandlerTest {
         return mChannel.readOutbound();
       }
     }, Constants.MINUTE_MS);
-  }
-
-  /**
-   * A special version of {@link EmbeddedChannel} that doesn't fail on exception so that we can
-   * still check result after the channel is closed.
-   */
-  private class EmbeddedChannelNoException extends EmbeddedChannel {
-    /**
-     * @param handlers the handlers
-     */
-    public EmbeddedChannelNoException(ChannelHandler... handlers) {
-      super(handlers);
-    }
-
-    @Override
-    public void checkException() {
-    }
   }
 }
