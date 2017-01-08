@@ -32,7 +32,7 @@ public class InStreamOptionsTest {
    * Tests that building an {@link InStreamOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     InStreamOptions options = InStreamOptions.defaults();
     Assert.assertEquals(AlluxioStorageType.PROMOTE, options.getAlluxioStorageType());
     Assert.assertEquals(Constants.MB, options.getSeekBufferSizeBytes());
