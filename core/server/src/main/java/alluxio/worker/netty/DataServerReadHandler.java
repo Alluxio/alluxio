@@ -177,41 +177,37 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return true if there are too many packets in-flight
    */
+  @GuardedBy("mLock")
   private boolean tooManyPendingPackets() {
     return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * PACKET_SIZE;
   }
 
   /**
-   * Requires to hold mLock when calling this. This is only called in the event loop thread.
-   *
    * @return true if we should restart the packet reader
    */
+  @GuardedBy("mLock")
   private boolean shouldRestartPacketReader() {
     return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.end();
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return the number of bytes remaining to push to the netty queue. Return 0 if it is cancelled
    */
+  @GuardedBy("mLock")
   private long remainingToQueue() {
     ReadRequestInternal request = mRequest;
     return request == null ? 0 : request.end() - mPosToQueue;
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return the number of bytes remaining to flush. Return 0 if it is cancelled
    */
+  @GuardedBy("mLock")
   private long remainingToWrite() {
     ReadRequestInternal request = mRequest;
-    return request == null ? 0 : mRequest.end() - mPosToWrite;
+    return request == null ? 0 : request.end() - mPosToWrite;
   }
 
   /**
