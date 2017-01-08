@@ -79,7 +79,9 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   /**
    * This is only updated in the channel event loop thread when a read request starts or cancelled.
    * No need to be locked.
-   * When it is accessed outside of the event loop thread, make sure it is not null.
+   * When it is accessed outside of the event loop thread, make sure it is not null. For now, all
+   * netty channel handlers are executed in the event loop. The packet reader is not executed in
+   * the event loop thread.
    */
   protected volatile ReadRequestInternal mRequest = null;
 
@@ -197,6 +199,9 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    */
   @GuardedBy("mLock")
   private long remainingToQueue() {
+    // mRequest is not guarded by mLock and is volatile. It can be reset because of cancel before
+    // the packet reader is done. We need to make a copy here to make sure the packet reader
+    // thread is not killed due to null pointer exception.
     ReadRequestInternal request = mRequest;
     return (request == null || mPosToQueue == -1) ? 0 : request.end() - mPosToQueue;
   }
@@ -206,6 +211,9 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    */
   @GuardedBy("mLock")
   private long remainingToWrite() {
+    // mRequest is not guarded by mLock and is volatile. It can be reset because of cancel before
+    // the packet reader is done. We need to make a copy here to make sure the packet reader
+    // thread is not killed due to null pointer exception.
     ReadRequestInternal request = mRequest;
     return (request == null || mPosToWrite == -1) ? 0 : request.end() - mPosToWrite;
   }
