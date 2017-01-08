@@ -66,7 +66,7 @@ import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
-import alluxio.proto.journal.File;
+import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
@@ -316,7 +316,7 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         // Add the directory to TTL buckets, the insert automatically rejects directory
         // w/ Constants.NO_TTL
-        File.InodeDirectoryEntry inodeDirectoryEntry = entry.getInodeDirectory();
+        InodeDirectoryEntry inodeDirectoryEntry = entry.getInodeDirectory();
         if (inodeDirectoryEntry.hasTtl()) {
           mTtlBuckets.insert(InodeDirectory.fromJournalEntry(inodeDirectoryEntry));
         }

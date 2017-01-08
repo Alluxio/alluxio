@@ -733,7 +733,7 @@ public final class FileSystemMasterTest {
   @Test
   public void createDirectoryWithTtl() throws Exception {
     CreateDirectoryOptions directoryOptions =
-            CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
     mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryOptions);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     mThrown.expect(FileDoesNotExistException.class);
