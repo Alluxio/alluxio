@@ -201,7 +201,7 @@ info in the UI will be much easier to understand.
 For example, `stat` can be used to debug the block locations of a file. This is useful when
 trying to achieve locality for compute workloads.
 
-{% include Command-Line-Interface/fileInfo.md %}
+{% include Command-Line-Interface/stat.md %}
 
 ## free
 The `free` command sends a request to the master to evict all blocks of a file from the Alluxio

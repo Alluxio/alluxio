@@ -69,12 +69,6 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .hasArg(false)
           .desc("list directories as plain files")
           .build();
-  protected static final Option LIST_ALL_CHILDREN_OPTION =
-      Option.builder("l")
-          .required(false)
-          .hasArg(false)
-          .desc("list all children of the directory")
-          .build();
 
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;
