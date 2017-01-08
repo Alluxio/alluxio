@@ -11,56 +11,37 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Constants;
 import alluxio.EmbeddedChannelNoException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.file.FileSystemWorker;
 
-import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.EOFException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.util.Random;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemWorker.class})
-public final class DataServerUFSFileWriteHandlerTest {
-  private static final int PACKET_SIZE = 1024;
+public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
-  private final long mBlockId = 1L;
 
   private FileSystemWorker mFileSystemWorker;
   private OutputStream mOutputStream;
-  private String mFile;
-  private long mChecksum;
-  private EmbeddedChannel mChannel;
-  private EmbeddedChannel mChannelNoException;
-
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
@@ -72,46 +53,13 @@ public final class DataServerUFSFileWriteHandlerTest {
     mChecksum = 0;
     mChannel = new EmbeddedChannel(
         new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
-    mChannelNoException = new alluxio.EmbeddedChannelNoException(
+    mChannelNoException = new EmbeddedChannelNoException(
         new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
   }
 
   @After
   public void after() throws Exception {
     mOutputStream.close();
-  }
-
-  @Test
-  public void writeEmptyFile() throws Exception {
-    mChannel.writeInbound(buildWriteRequest(0, 0));
-    Object writeResponse = waitForResponse(mChannel);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
-  }
-
-  @Test
-  public void writeNonEmptyFile() throws Exception {
-    mChannel = new EmbeddedChannelNoException(
-        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
-
-    long len = 0;
-    for (int i = 0; i < 128; i++) {
-      mChannel.writeInbound(buildWriteRequest(len, PACKET_SIZE));
-      len += PACKET_SIZE;
-    }
-    // EOF.
-    mChannel.writeInbound(buildWriteRequest(len, 0));
-
-    Object writeResponse = waitForResponse(mChannel);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
-    checkFileContent(len);
-  }
-
-  @Test
-  public void writeInvalidOffset() throws Exception {
-    mChannelNoException.writeInbound(buildWriteRequest(0, PACKET_SIZE));
-    mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE + 1, PACKET_SIZE));
-    Object writeResponse = waitForResponse(mChannelNoException);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.INVALID_ARGUMENT);
   }
 
   @Test
@@ -122,16 +70,11 @@ public final class DataServerUFSFileWriteHandlerTest {
     Object writeResponse = waitForResponse(mChannelNoException);
     checkWriteResponse(writeResponse, Protocol.Status.Code.INTERNAL);
   }
-  /**
-   * Builds the write request.
-   *
-   * @param offset the offset
-   * @param len the length of the block
-   * @return the write request
-   */
-  private RPCProtoMessage buildWriteRequest(long offset, int len) {
+
+  @Override
+  protected RPCProtoMessage buildWriteRequest(long offset, int len) {
     Protocol.WriteRequest writeRequest =
-        Protocol.WriteRequest.newBuilder().setId(mBlockId).setOffset(offset).setSessionId(-1L)
+        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset)
             .setType(Protocol.RequestType.UFS_FILE).build();
     DataBuffer buffer = null;
     if (len > 0) {
@@ -144,58 +87,5 @@ public final class DataServerUFSFileWriteHandlerTest {
       buffer = new DataNettyBufferV2(buf);
     }
     return new RPCProtoMessage(writeRequest, buffer);
-  }
-
-  /**
-   * Checks the given write response is expected and matches the given error code.
-   *
-   * @param writeResponse the write response
-   * @param codeExpected the expected error code
-   */
-  private void checkWriteResponse(Object writeResponse, Protocol.Status.Code codeExpected) {
-    Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
-
-    Object response = ((RPCProtoMessage) writeResponse).getMessage();
-    Assert.assertTrue(response instanceof Protocol.Response);
-    Assert.assertEquals(codeExpected, ((Protocol.Response) response).getStatus().getCode());
-  }
-
-  /**
-   * Checks the file content matches expectation (file length and file checksum).
-   *
-   * @param size the file size in bytes
-   * @throws IOException if it fails to check the file content
-   */
-  private void checkFileContent(long size) throws IOException {
-    RandomAccessFile file = new RandomAccessFile(mFile, "r");
-    long checksumActual = 0;
-    long sizeActual = 0;
-
-    byte[] buffer = new byte[(int) Math.min(Constants.KB, size)];
-    int bytesRead;
-    do {
-      bytesRead = file.read(buffer);
-      for (int i = 0; i < bytesRead; i++) {
-        checksumActual += BufferUtils.byteToInt(buffer[i]);
-        sizeActual++;
-      }
-    } while (bytesRead >= 0);
-
-    Assert.assertEquals(mChecksum, checksumActual);
-    Assert.assertEquals(size, sizeActual);
-  }
-
-  /**
-   * Waits for a response.
-   *
-   * @return the response
-   */
-  private Object waitForResponse(final EmbeddedChannel channel) {
-    return CommonUtils.waitFor("", new Function<Void, Object>() {
-      @Override
-      public Object apply(Void v) {
-        return channel.readOutbound();
-      }
-    }, Constants.MINUTE_MS);
   }
 }
