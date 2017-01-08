@@ -12,6 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.Constants;
+import alluxio.EmbeddedChannelNoException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
@@ -20,6 +21,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.file.FileSystemWorker;
 
+import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelHandler;
@@ -46,6 +48,7 @@ import java.util.Random;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemWorker.class})
 public final class DataServerUFSFileWriteHandlerTest {
+  private static final int PACKET_SIZE = 1024;
   private final Random mRandom = new Random();
   private final long mBlockId = 1L;
 
@@ -53,7 +56,8 @@ public final class DataServerUFSFileWriteHandlerTest {
   private OutputStream mOutputStream;
   private String mFile;
   private long mChecksum;
-  private EmbeddedChannel mEmbeddedChannel;
+  private EmbeddedChannel mChannel;
+  private EmbeddedChannel mChannelNoException;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -66,7 +70,9 @@ public final class DataServerUFSFileWriteHandlerTest {
     PowerMockito.when(mFileSystemWorker.getUfsOutputStream(Mockito.anyLong()))
         .thenReturn(mOutputStream);
     mChecksum = 0;
-    mEmbeddedChannel = new EmbeddedChannel(
+    mChannel = new EmbeddedChannel(
+        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
+    mChannelNoException = new alluxio.EmbeddedChannelNoException(
         new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
   }
 
@@ -77,47 +83,43 @@ public final class DataServerUFSFileWriteHandlerTest {
 
   @Test
   public void writeEmptyFile() throws Exception {
-    mEmbeddedChannel.writeInbound(buildWriteRequest(0, 0));
-    Object writeResponse = waitForResponse();
+    mChannel.writeInbound(buildWriteRequest(0, 0));
+    Object writeResponse = waitForResponse(mChannel);
     checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
   }
 
   @Test
   public void writeNonEmptyFile() throws Exception {
-    mEmbeddedChannel = new EmbeddedChannelNoException(
+    mChannel = new EmbeddedChannelNoException(
         new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
 
     long len = 0;
     for (int i = 0; i < 128; i++) {
-      mEmbeddedChannel.writeInbound(buildWriteRequest(len, 1024));
-      len += 1024;
+      mChannel.writeInbound(buildWriteRequest(len, PACKET_SIZE));
+      len += PACKET_SIZE;
     }
     // EOF.
-    mEmbeddedChannel.writeInbound(buildWriteRequest(len, 0));
+    mChannel.writeInbound(buildWriteRequest(len, 0));
 
-    Object writeResponse = waitForResponse();
+    Object writeResponse = waitForResponse(mChannel);
     checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
     checkFileContent(len);
   }
 
   @Test
   public void writeInvalidOffset() throws Exception {
-    mEmbeddedChannel = new EmbeddedChannelNoException(
-        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
-    mEmbeddedChannel.writeInbound(buildWriteRequest(0, 1024));
-    mEmbeddedChannel.writeInbound(buildWriteRequest(1025, 1024));
-    Object writeResponse = waitForResponse();
+    mChannelNoException.writeInbound(buildWriteRequest(0, PACKET_SIZE));
+    mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE + 1, PACKET_SIZE));
+    Object writeResponse = waitForResponse(mChannelNoException);
     checkWriteResponse(writeResponse, Protocol.Status.Code.INVALID_ARGUMENT);
   }
 
   @Test
   public void writeFailure() throws Exception {
-    mEmbeddedChannel = new EmbeddedChannelNoException(
-        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
-    mEmbeddedChannel.writeInbound(buildWriteRequest(0, 1024));
+    mChannelNoException.writeInbound(buildWriteRequest(0, PACKET_SIZE));
     mOutputStream.close();
-    mEmbeddedChannel.writeInbound(buildWriteRequest(1024, 1024));
-    Object writeResponse = waitForResponse();
+    mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE, PACKET_SIZE));
+    Object writeResponse = waitForResponse(mChannelNoException);
     checkWriteResponse(writeResponse, Protocol.Status.Code.INTERNAL);
   }
   /**
@@ -168,14 +170,17 @@ public final class DataServerUFSFileWriteHandlerTest {
     RandomAccessFile file = new RandomAccessFile(mFile, "r");
     long checksumActual = 0;
     long sizeActual = 0;
-    try {
-      while (true) {
-        checksumActual += BufferUtils.byteToInt(file.readByte());
+
+    byte[] buffer = new byte[(int) Math.min(Constants.KB, size)];
+    int bytesRead;
+    do {
+      bytesRead = file.read(buffer);
+      for (int i = 0; i < bytesRead; i++) {
+        checksumActual += BufferUtils.byteToInt(buffer[i]);
         sizeActual++;
       }
-    } catch (EOFException e) {
-      // expected.
-    }
+    } while (bytesRead >= 0);
+
     Assert.assertEquals(mChecksum, checksumActual);
     Assert.assertEquals(size, sizeActual);
   }
@@ -185,31 +190,12 @@ public final class DataServerUFSFileWriteHandlerTest {
    *
    * @return the response
    */
-  private Object waitForResponse() {
-    Object writeResponse = null;
-    int timeRemaining = Constants.MINUTE_MS;
-    while (writeResponse == null && timeRemaining > 0) {
-      writeResponse = mEmbeddedChannel.readOutbound();
-      CommonUtils.sleepMs(10);
-      timeRemaining -= 10;
-    }
-    return writeResponse;
-  }
-
-  /**
-   * A special version of {@link EmbeddedChannel} that doesn't fail on exception so that we can
-   * still check result after the channel is closed.
-   */
-  private class EmbeddedChannelNoException extends EmbeddedChannel {
-    /**
-     * @param handlers the handlers
-     */
-    public EmbeddedChannelNoException(ChannelHandler... handlers) {
-      super(handlers);
-    }
-
-    @Override
-    public void checkException() {
-    }
+  private Object waitForResponse(final EmbeddedChannel channel) {
+    return CommonUtils.waitFor("", new Function<Void, Object>() {
+      @Override
+      public Object apply(Void v) {
+        return channel.readOutbound();
+      }
+    }, Constants.MINUTE_MS);
   }
 }

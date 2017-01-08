@@ -209,15 +209,13 @@ public final class DataServerUFSFileReadHandlerTest {
    * Checks all the read responses.
    */
   private void checkAllReadResponses() {
-    int timeRemaining = Constants.MINUTE_MS;
     boolean eof = false;
     long checksumActual = 0;
-    while (!eof && timeRemaining > 0) {
-      Object readResponse = null;
-      while (readResponse == null && timeRemaining > 0) {
-        readResponse = mChannel.readOutbound();
-        CommonUtils.sleepMs(10);
-        timeRemaining -= 10;
+    while (!eof) {
+      Object readResponse = waitForOneResponse();
+      if (readResponse == null) {
+        Assert.fail();
+        break;
       }
       DataBuffer buffer = checkReadResponse(readResponse, Protocol.Status.Code.OK);
       eof = buffer == null;
