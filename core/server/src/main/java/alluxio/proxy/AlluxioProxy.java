@@ -48,9 +48,11 @@ public final class AlluxioProxy implements Server {
     }
 
     if (!Configuration.masterHostConfigured()) {
-      System.out.println(String.format("Cannot start proxy; master hostname is not configured. " +
-          "Please either configure %s in alluxio-site.properties, or configure the proxy to " +
-          "look up the master address via Zookeeper", PropertyKey.MASTER_HOSTNAME.toString()));
+      System.out.println(String.format(
+          "Cannot start proxy; master hostname is not configured. "
+              + "Please either configure %s in alluxio-site.properties, or configure the proxy to "
+              + "look up the master address via Zookeeper",
+          PropertyKey.MASTER_HOSTNAME.toString()));
       System.exit(1);
     }
 

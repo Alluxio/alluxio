@@ -59,9 +59,10 @@ public final class AlluxioShell implements Closeable {
     int ret;
 
     if (!Configuration.masterHostConfigured()) {
-      System.out.println(String.format("Cannot run alluxio shell; master hostname is not " +
-          "configured. Please either configure %s in alluxio-site.properties, or configure the " +
-          "shell to look up the master address via Zookeeper",
+      System.out.println(String.format(
+          "Cannot run alluxio shell; master hostname is not "
+              + "configured. Please either configure %s in alluxio-site.properties, or configure the "
+              + "shell to look up the master address via Zookeeper",
           PropertyKey.MASTER_HOSTNAME.toString()));
       System.exit(1);
     }
