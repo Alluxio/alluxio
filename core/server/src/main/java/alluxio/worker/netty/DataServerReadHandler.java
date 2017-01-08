@@ -198,7 +198,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   @GuardedBy("mLock")
   private long remainingToQueue() {
     ReadRequestInternal request = mRequest;
-    return request == null ? 0 : request.end() - mPosToQueue;
+    return (request == null || mPosToQueue == -1) ? 0 : request.end() - mPosToQueue;
   }
 
   /**
@@ -207,7 +207,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   @GuardedBy("mLock")
   private long remainingToWrite() {
     ReadRequestInternal request = mRequest;
-    return request == null ? 0 : request.end() - mPosToWrite;
+    return (request == null || mPosToWrite == -1) ? 0 : request.end() - mPosToWrite;
   }
 
   /**
