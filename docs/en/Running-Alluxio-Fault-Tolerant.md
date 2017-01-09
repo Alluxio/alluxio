@@ -117,7 +117,7 @@ until the current master dies.
 ### Worker Configuration
 
 As long as the config parameters above are correctly set, the worker will be able to consult with
-ZooKeeper, and find the current leader master to connect to. Therefore, the Alluxio master hostname
+ZooKeeper, and find the current leader master to connect to. Therefore, `alluxio.master.hostname`
 does not have to be set for the workers.
 
 > Note: When running Alluxio in fault tolerant mode, it is possible that the default worker
