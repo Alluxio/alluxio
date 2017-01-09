@@ -66,14 +66,10 @@
                 <li class="active"><a href="./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>"><%= escapeHtml(((UIFileInfo) request.getAttribute("currentDirectory")).getName()) %></a></li>
               <% } %>
             </ul>
-            <div id="pathNav" class="input-append pull-right" style="margin: 5px; margin-right: 45px;">
+            <div id="pathNav" class="input-append pull-right" style="margin: 5px; margin-right: 45px;width:600px;">
               <input class="span12" id="pathInput" type="text" placeholder="Navigate to a directory">
               <button class="btn" type="button">Go</button>
             </div>
-          </div>
-          <div id="pathNav">
-            <input type="text" id="pathInput" style="width: 80%;height:30px;margin-top: 15px;"/>
-            <button class="btn" id="goBtn" style="height:30px;"> Go</button>
           </div>
         </div>
         <table class="table table-condensed">
