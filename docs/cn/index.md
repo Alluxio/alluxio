@@ -13,7 +13,7 @@ Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](h
 去哪儿网基于Alluxio进行[实时数据分析](http://www.alluxio.com/2016/07/qunar-performs-real-time-data-analytics-up-to-300x-faster-with-alluxio/)。
 除性能外，Alluxio为新型大数据应用作用于传统存储系统的数据建立了桥梁。
 用户可以以
-[standalone cluster mode](Running-Alluxio-on-a-Cluster.html),在例如
+[独立集群模式](Running-Alluxio-on-a-Cluster.html),在例如
 [Amazon EC2](Running-Alluxio-on-EC2.html),
 [Google Compute Engine](Running-Alluxio-on-GCE.html)运行Alluxio, 或者用
 [Apache Mesos](Running-Alluxio-on-Mesos.html)或
