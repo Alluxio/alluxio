@@ -448,10 +448,6 @@ public final class Configuration {
       Preconditions.checkState(containsKey(PropertyKey.ZOOKEEPER_ADDRESS),
           PreconditionMessage.ERR_ZK_ADDRESS_NOT_SET.toString(),
           PropertyKey.ZOOKEEPER_ADDRESS.toString());
-      if (containsKey(PropertyKey.MASTER_HOSTNAME)) {
-        LOG.warn("Zookeeper is enabled but {} is also configured. {} will be ignored.",
-            PropertyKey.MASTER_HOSTNAME.toString(), PropertyKey.MASTER_HOSTNAME.toString());
-      }
     }
     if (containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
       LOG.warn("{} is configured, but {} is set to false", PropertyKey.ZOOKEEPER_ADDRESS.toString(),
