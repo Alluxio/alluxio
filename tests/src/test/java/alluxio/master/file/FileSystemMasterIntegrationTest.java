@@ -619,7 +619,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   @Test
-  public void concurrentCreateDeleteTest() throws Exception {
+  public void concurrentCreateDelete() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
     AlluxioURI directory = new AlluxioURI("/dir");
     AlluxioURI[] files = new AlluxioURI[10];
