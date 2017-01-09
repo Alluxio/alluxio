@@ -128,25 +128,9 @@ public final class Configuration {
           (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
       set(PropertyKey.MASTER_ADDRESS, masterAddress);
     }
-    checkUserFileBufferBytes();
-
-    // Make sure the user hasn't set worker ports when there may be multiple workers per host
-    int maxWorkersPerHost = getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
-    if (maxWorkersPerHost > 1) {
-      String message = "%s cannot be specified when allowing multiple workers per host with "
-          + PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX.toString() + "=" + maxWorkersPerHost;
-      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_DATA_PORT.toString()) == null,
-          String.format(message, PropertyKey.WORKER_DATA_PORT));
-      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_RPC_PORT.toString()) == null,
-          String.format(message, PropertyKey.WORKER_RPC_PORT));
-      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_WEB_PORT.toString()) == null,
-          String.format(message, PropertyKey.WORKER_WEB_PORT));
-      set(PropertyKey.WORKER_DATA_PORT, "0");
-      set(PropertyKey.WORKER_RPC_PORT, "0");
-      set(PropertyKey.WORKER_WEB_PORT, "0");
-    }
 
     Preconditions.checkState(validate());
+    checkConfigurationValues();
   }
 
   /**
@@ -422,6 +406,26 @@ public final class Configuration {
   }
 
   /**
+   * Checks that the user hasn't set worker ports when there may be multiple workers per host.
+   */
+  private static void checkWorkerPorts() {
+    int maxWorkersPerHost = getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
+    if (maxWorkersPerHost > 1) {
+      String message = "%s cannot be specified when allowing multiple workers per host with "
+          + PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX.toString() + "=" + maxWorkersPerHost;
+      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_DATA_PORT.toString()) == null,
+          String.format(message, PropertyKey.WORKER_DATA_PORT));
+      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_RPC_PORT.toString()) == null,
+          String.format(message, PropertyKey.WORKER_RPC_PORT));
+      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_WEB_PORT.toString()) == null,
+          String.format(message, PropertyKey.WORKER_WEB_PORT));
+      set(PropertyKey.WORKER_DATA_PORT, "0");
+      set(PropertyKey.WORKER_RPC_PORT, "0");
+      set(PropertyKey.WORKER_WEB_PORT, "0");
+    }
+  }
+
+  /**
    * {@link PropertyKey#USER_FILE_BUFFER_BYTES} should not bigger than {@link Integer#MAX_VALUE}
    * bytes.
    *
@@ -436,7 +440,33 @@ public final class Configuration {
         PreconditionMessage.INVALID_USER_FILE_BUFFER_BYTES.toString(), usrFileBufferBytes);
   }
 
-  private Configuration() {} // prevent instantiation
+  /**
+   * Validates Zookeeper-related configuration and prints warnings for possible sources of error.
+   */
+  private static void checkZkConfiguration() {
+    if (getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      Preconditions.checkState(containsKey(PropertyKey.ZOOKEEPER_ADDRESS),
+          PreconditionMessage.ERR_ZK_ADDRESS_NOT_SET.toString(),
+          PropertyKey.ZOOKEEPER_ADDRESS.toString());
+      if (containsKey(PropertyKey.MASTER_HOSTNAME)) {
+        LOG.warn("Zookeeper is enabled but {} is also configured. {} will be ignored.",
+            PropertyKey.MASTER_HOSTNAME.toString(), PropertyKey.MASTER_HOSTNAME.toString());
+      }
+    }
+    if (containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
+      LOG.warn("{} is configured, but {} is set to false", PropertyKey.ZOOKEEPER_ADDRESS.toString(),
+          PropertyKey.ZOOKEEPER_ENABLED.toString());
+    }
+  }
+
+  /**
+   * Checks that the configuration values are reasonable.
+   */
+  private static void checkConfigurationValues() {
+    checkWorkerPorts();
+    checkUserFileBufferBytes();
+    checkZkConfiguration();
+  }
 
   /**
    * Validates the configurations.
@@ -454,4 +484,6 @@ public final class Configuration {
     }
     return valid;
   }
+
+  private Configuration() {} // prevent instantiation
 }
