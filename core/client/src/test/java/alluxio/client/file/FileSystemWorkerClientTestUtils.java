@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
 import org.powermock.reflect.Whitebox;
@@ -36,6 +37,6 @@ public class FileSystemWorkerClientTestUtils {
                 Whitebox.getInternalState(FileSystemWorkerClient.class, "NUM_ACTIVE_SESSIONS");
             return numActiveSessions.intValue() == 0;
           }
-        }, Constants.MINUTE_MS);
+        }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
   }
 }

@@ -31,6 +31,7 @@ import alluxio.job.JobConf;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.wire.LineageInfo;
 
 import com.google.common.base.Function;
@@ -173,7 +174,7 @@ public class LineageMasterIntegrationTest {
           throw Throwables.propagate(e);
         }
       }
-    }, 100 * Constants.SECOND_MS);
+    }, WaitForOptions.defaults().setTimeout(100 * Constants.SECOND_MS));
   }
 
   /**

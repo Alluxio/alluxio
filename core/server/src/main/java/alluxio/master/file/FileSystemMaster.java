@@ -93,8 +93,8 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
@@ -406,7 +406,7 @@ public final class FileSystemMaster extends AbstractMaster {
       String defaultUFS = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
-            MountOptions.defaults().setShared(CommonUtils.isUfsObjectStorage(defaultUFS)
+            MountOptions.defaults().setShared(UnderFileSystemUtils.isObjectStorage(defaultUFS)
                 && Configuration.getBoolean(
                     PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)));
       } catch (FileAlreadyExistsException | InvalidPathException e) {
@@ -2928,7 +2928,7 @@ public final class FileSystemMaster extends AbstractMaster {
       } else {
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsUri = resolution.getUri().toString();
-        if (CommonUtils.isUfsObjectStorage(ufsUri)) {
+        if (UnderFileSystemUtils.isObjectStorage(ufsUri)) {
           LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. "
               + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
         } else {

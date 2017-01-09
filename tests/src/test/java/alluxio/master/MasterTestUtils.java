@@ -18,6 +18,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalFactory;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
 
@@ -58,6 +59,6 @@ public class MasterTestUtils {
         return master.getStartupConsistencyCheck().getStatus()
             == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE;
       }
-    }, Constants.MINUTE_MS);
+    }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
   }
 }

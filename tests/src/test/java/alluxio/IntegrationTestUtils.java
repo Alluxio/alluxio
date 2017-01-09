@@ -15,6 +15,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
 
@@ -62,7 +63,7 @@ public final class IntegrationTestUtils {
             throw Throwables.propagate(e);
           }
         }
-      }, timeoutMs);
+      }, WaitForOptions.defaults().setTimeout(timeoutMs));
     }
   }
 
@@ -88,7 +89,7 @@ public final class IntegrationTestUtils {
           List<Long> blocksToRemove = Whitebox.getInternalState(reporter, "mRemovedBlocks");
           return blocksToRemove.containsAll(Arrays.asList(blockIds));
         }
-      }, 100 * Constants.SECOND_MS);
+      }, WaitForOptions.defaults().setTimeout(100 * Constants.SECOND_MS));
 
       // Execute 2nd heartbeat from worker.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
