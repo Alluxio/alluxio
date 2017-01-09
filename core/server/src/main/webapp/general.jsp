@@ -131,7 +131,7 @@
                 <th>Path List </th>
               </thead>
               <tbody>
-                <% List array = (java.util.List) request.getAttribute("inconsistentPathItems");
+                <% List array = (List) request.getAttribute("inconsistentPathItems");
                    for (int i = 0; i < array.size(); i++) { %>
                   <tr>
                     <th><font color="red"><%= array.get(i) %></font></th>
