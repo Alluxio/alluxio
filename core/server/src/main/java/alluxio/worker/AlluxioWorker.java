@@ -44,10 +44,11 @@ public final class AlluxioWorker {
 
     if (!ConfigurationUtils.masterHostConfigured()) {
       System.out.println(String.format(
-          "Cannot start worker; master hostname is not configured. "
-              + "Please either configure %s in %s, or configure the worker to "
-              + "look up the master address via Zookeeper",
-          PropertyKey.MASTER_HOSTNAME.toString(), Configuration.SITE_PROPERTIES));
+          "Cannot run alluxio worker; master hostname is not "
+              + "configured. Please modify %s to either set %s or configure zookeeper with "
+              + "%s=true and %s=[zookeeper master address] ",
+          Configuration.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
+          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
       System.exit(1);
     }
 
