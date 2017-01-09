@@ -195,6 +195,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("consistencyCheckStatus", check.getStatus());
     if (check.getStatus() == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE) {
       request.setAttribute("inconsistentPaths", check.getInconsistentUris().size());
+      request.setAttribute("inconsistentPathItems", check.getInconsistentUris());
     } else {
       request.setAttribute("inconsistentPaths", 0);
     }
