@@ -73,15 +73,6 @@ public abstract class DataServerWriteHandlerTest {
   }
 
   /**
-   * Builds the write request.
-   *
-   * @param offset the offset
-   * @param len the length of the block
-   * @return the write request
-   */
-  abstract protected RPCProtoMessage buildWriteRequest(long offset, int len);
-
-  /**
    * Checks the given write response is expected and matches the given error code.
    *
    * @param writeResponse the write response
@@ -133,4 +124,13 @@ public abstract class DataServerWriteHandlerTest {
       }
     }, Constants.MINUTE_MS);
   }
+
+  /**
+   * Builds the write request.
+   *
+   * @param offset the offset
+   * @param len the length of the block
+   * @return the write request
+   */
+  protected abstract RPCProtoMessage buildWriteRequest(long offset, int len);
 }

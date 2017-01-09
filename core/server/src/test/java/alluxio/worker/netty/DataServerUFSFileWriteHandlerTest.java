@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.FileOutputStream;
@@ -36,7 +35,6 @@ import java.io.OutputStream;
 import java.util.Random;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemWorker.class})
 public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
 
