@@ -767,11 +767,11 @@ public final class FileSystemMasterTest {
   @Test
   public void setTtlForDirectoryWithNoTtl() throws Exception {
     CreateDirectoryOptions createDirectoryOptions =
-            CreateDirectoryOptions.defaults().setRecursive(true);
+        CreateDirectoryOptions.defaults().setRecursive(true);
     mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
     mFileSystemMaster.createDirectory(NESTED_DIR_URI, createDirectoryOptions);
     CreateFileOptions createFileOptions =
-            CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, createFileOptions);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since no TTL is set, the file should not be deleted.
@@ -813,7 +813,7 @@ public final class FileSystemMasterTest {
   @Test
   public void setSmallerTtlForDirectoryWithTtl() throws Exception {
     CreateDirectoryOptions createDirectoryOptions =
-            CreateDirectoryOptions.defaults().setRecursive(true).setTtl(Constants.HOUR_MS);
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(Constants.HOUR_MS);
     mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     Assert.assertTrue(mFileSystemMaster.getFileInfo(NESTED_URI).getName() != null);
@@ -852,7 +852,7 @@ public final class FileSystemMasterTest {
   @Test
   public void setTtlForDirectoryWithFreeOperationTest() throws Exception {
     CreateDirectoryOptions createDirectoryOptions =
-            CreateDirectoryOptions.defaults().setRecursive(true);
+        CreateDirectoryOptions.defaults().setRecursive(true);
     mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -862,8 +862,8 @@ public final class FileSystemMasterTest {
     options.setTtlAction(TtlAction.FREE);
     mFileSystemMaster.setAttribute(NESTED_URI, options);
     Command heartbeat =
-            mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-                    ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
+            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -892,10 +892,10 @@ public final class FileSystemMasterTest {
   @Test
   public void setLargerTtlForDirectoryWithTtl() throws Exception {
     CreateDirectoryOptions createDirectoryOptions =
-            CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
     mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
     mFileSystemMaster.setAttribute(NESTED_URI,
-            SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
+        SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 1 hour, the directory should not be deleted during last TTL check.
     Assert.assertEquals(NESTED_URI.getName(), mFileSystemMaster.getFileInfo(NESTED_URI).getName());
@@ -924,12 +924,12 @@ public final class FileSystemMasterTest {
   @Test
   public void setNoTtlForDirectoryWithTtl() throws Exception {
     CreateDirectoryOptions createDirectoryOptions =
-            CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
     mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster.setAttribute(NESTED_URI,
-            SetAttributeOptions.defaults().setTtl(Constants.NO_TTL));
+        SetAttributeOptions.defaults().setTtl(Constants.NO_TTL));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     Assert.assertEquals(NESTED_URI.getName(), mFileSystemMaster.getFileInfo(NESTED_URI).getName());
   }
