@@ -7,12 +7,17 @@ group: Home
 Alluxio（之前名为Tachyon）是世界上第一个以内存为中心的虚拟的分布式存储系统。它统一了数据访问的方式，为上层计算框架和底层存储系统构建了桥梁。
 应用只需要连接Alluxio即可访问存储在底层任意存储系统中的数据。此外，Alluxio的以内存为中心的架构使得数据的访问速度能比现有常规方案快几个数量级。
 
-在大数据生态系统中，Alluxio介于计算框架(如Apache Spark，Apache MapReduce，Apache Flink)和现有的存储系统（如Amazon S3，OpenStack Swift，GlusterFS，HDFS， Ceph，OSS）之间。
+在大数据生态系统中，Alluxio介于计算框架(如Apache Spark，Apache MapReduce，Apache HBase，Apache Hive，Apache Flink)和现有的存储系统（如Amazon S3，OpenStack Swift，GlusterFS，HDFS，MaprFS，Ceph，NFS，OSS）之间。
 Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](https://www.baidu.com)采用Alluxio使他们数据分析流水线的吞吐量提升了[30倍](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf)。
 巴克莱银行使用Alluxio将他们的作业分析的耗时从[小时级降到秒级](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon)。
 去哪儿网基于Alluxio进行[实时数据分析](http://www.alluxio.com/2016/07/qunar-performs-real-time-data-analytics-up-to-300x-faster-with-alluxio/)。
 除性能外，Alluxio为新型大数据应用作用于传统存储系统的数据建立了桥梁。
-用户可以以独立集群方式(如Amazon EC2)运行Alluxio，也可以从Apache Mesos或Apache YARN上启动Alluxio。
+用户可以以
+[standalone cluster mode](Running-Alluxio-on-a-Cluster.html),在例如
+[Amazon EC2](Running-Alluxio-on-EC2.html),
+[Google Compute Engine](Running-Alluxio-on-GCE.html)运行Alluxio, 或者用
+[Apache Mesos](Running-Alluxio-on-Mesos.html)或
+[Apache Yarn](Running-Alluxio-on-EC2-Yarn.html)安装Alluxio.
 
 Alluxio与Hadoop是兼容的。现有的数据分析应用，如Spark和MapReduce程序，可以不修改代码直接在Alluxio上运行。Alluxio是一个已在多家公司部署的开源项目([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE))。
 Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以来，已有超过100个组织机构的
@@ -48,8 +53,8 @@ InputStream和OutputStream的接口和对内存映射I/O的高效支持。我们
 另外，Alluxio提供兼容Hadoop的文件系统接口，Hadoop MapReduce和Spark可以使用Alluxio代替HDFS。
 
 * **可插拔的底层存储** 在容错方面，Alluxio备份内存数据到底层存储系统。Alluxio提供了通用接口以简化插入
-不同的底层存储系统。目前我们支持Amazon S3，OpenStack Swift，Apache HDFS，GlusterFS以及单节点本地文件系
-统，后续也会支持很多其它的文件系统。
+不同的底层存储系统。目前我们支持Amazon S3，Google Cloud Storage，OpenStack Swift，GlusterFS，
+HDFS，MaprFS，Ceph，NFS，Alibaba OSS，以及单节点本地文件系统，后续也会支持很多其它的文件系统。
 
 * **[层次化存储](Tiered-Storage-on-Alluxio.html)** 通过分层存储，Alluxio不仅可以管理内存，也可以管理SSD
 和HDD,能够让更大的数据集存储在Alluxio上。数据在不同层之间自动被管理，保证热数据在更快的存储层上。自定义策
