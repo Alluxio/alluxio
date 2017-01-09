@@ -27,7 +27,6 @@ import alluxio.underfs.oss.OSSUnderFileSystem;
 import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.underfs.swift.SwiftUnderFileSystem;
-import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 

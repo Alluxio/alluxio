@@ -13,7 +13,10 @@ package alluxio.util;
 
 import com.google.common.base.Objects;
 
-public class WaitForOptions {
+/**
+ * Options for the {@link CommonUtils#waitFor} method.
+ */
+public final class WaitForOptions {
   static final int DEFAULT_INTERVAL = 20;
   static final int NEVER = -1;
 
