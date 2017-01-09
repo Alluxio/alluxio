@@ -13,7 +13,6 @@
 <%@ page import="java.util.*" %>
 <%@ page import="alluxio.web.*" %>
 
-
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -129,17 +128,15 @@
           <div class="accordion-inner">
             <table class="table table-hover table-condensed">
               <thead>
-              <th>Path List </th>
+                <th>Path List </th>
               </thead>
               <tbody>
-              <%
-                java.util.List array = (java.util.List) request.getAttribute("inconsistentPathItems");
-                for (int i = 0; i < array.size(); i++) {
-              %>
-              <tr>
-                <th><font color="red"><%= array.get(i) %></font></th>
-              </tr>
-              <% }%>
+                <% List array = (java.util.List) request.getAttribute("inconsistentPathItems");
+                   for (int i = 0; i < array.size(); i++) { %>
+                  <tr>
+                    <th><font color="red"><%= array.get(i) %></font></th>
+                  </tr>
+                <% }%>
               </tbody>
             </table>
           </div>
