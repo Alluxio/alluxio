@@ -253,24 +253,24 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
       return;
     }
 
-    if (mCurrentPacket.readableBytes() > 0) {
-      if (mCurrentPacket.writableBytes() == 0 || lastPacket) {
-        try {
+    if (mCurrentPacket.writableBytes() == 0 || lastPacket) {
+      try {
+        if (mCurrentPacket.readableBytes() > 0) {
           for (PacketWriter packetWriter : mPacketWriters) {
             mCurrentPacket.retain();
             packetWriter.writePacket(mCurrentPacket.duplicate());
           }
-        } finally {
-          // We increment the refcount explicitly for every packet writer. So we need to release
-          // here.
-          mCurrentPacket.release();
         }
-        mCurrentPacket = null;
+      } finally {
+        // If the packet has bytes to read, we increment its refcount explicitly for every packet
+        // writer. So we need to release here. If the packet has not bytes to read, then it has
+        // to be the last packet. It needs to be released as well.
+        mCurrentPacket.release();
       }
-      if (!lastPacket) {
-        mCurrentPacket = allocateBuffer();
-      }
-      return;
+      mCurrentPacket = null;
+    }
+    if (!lastPacket) {
+      mCurrentPacket = allocateBuffer();
     }
   }
 
