@@ -37,7 +37,7 @@ if [[ -z "${ALLUXIO_SYSTEM_INSTALLATION}" ]]; then
 fi
 
 if [[ -z "$(which java)" ]]; then
-  echo "Cannot find $(java) command"
+  echo "Cannot find the 'java' command."
   exit 1
 fi
 
