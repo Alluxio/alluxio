@@ -19,6 +19,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Function;
@@ -85,7 +86,7 @@ public final class NettyPacketReaderTest {
 
   @Test(timeout = 1000 * 60)
   public void readFullFile() throws Exception {
-    long length = PACKET_SIZE * 5 + PACKET_SIZE / 3;
+    long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
     try (PacketReader reader = create(0, length)) {
       Future<Long> checksum = sendReadResponses(mChannel, length, 0, length - 1);
 
@@ -97,7 +98,7 @@ public final class NettyPacketReaderTest {
 
   @Test(timeout = 1000 * 60)
   public void readPartialFile() throws Exception {
-    long length = PACKET_SIZE * 16 + PACKET_SIZE / 3;
+    long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
     long offset = 10;
     long checksumStart = 100;
     long bytesToRead = length / 3;
@@ -109,6 +110,23 @@ public final class NettyPacketReaderTest {
       Assert.assertEquals(checksum.get().longValue(), checksumActual);
     }
     validateReadRequestSent(mChannel, offset, length, false);
+    validateReadRequestSent(mChannel, 0, 0, true);
+  }
+
+  @Test(timeout = 1000 * 60)
+  public void fileLengthUnknown() throws Exception {
+    long lengthActual = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
+    long checksumStart = 100;
+    long bytesToRead = lengthActual / 3;
+
+    try (PacketReader reader = create(0, Long.MAX_VALUE)) {
+      Future<Long> checksum =
+          sendReadResponses(mChannel, lengthActual, checksumStart, bytesToRead - 1);
+
+      long checksumActual = checkPackets(reader, checksumStart, bytesToRead);
+      Assert.assertEquals(checksum.get().longValue(), checksumActual);
+    }
+    validateReadRequestSent(mChannel, 0, Long.MAX_VALUE, false);
     validateReadRequestSent(mChannel, 0, 0, true);
   }
 
@@ -175,12 +193,12 @@ public final class NettyPacketReaderTest {
    */
   private void validateReadRequestSent(final EmbeddedChannel channel, long offset, long length,
       boolean cancel) {
-    Object request = CommonUtils.waitFor("", new Function<Void, Object>() {
+    Object request = CommonUtils.waitForResult("read request", new Function<Void, Object>() {
       @Override
       public Object apply(Void v) {
         return channel.readOutbound();
       }
-    }, Constants.MINUTE_MS);
+    }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
 
     Assert.assertTrue(request != null);
     Assert.assertTrue(request instanceof RPCProtoMessage);

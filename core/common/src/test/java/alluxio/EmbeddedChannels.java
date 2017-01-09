@@ -14,11 +14,10 @@ package alluxio;
 import com.google.common.base.Throwables;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelOutboundBuffer;
 import io.netty.channel.embedded.EmbeddedChannel;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Queue;
 
 /**
  * Special versions of {@link EmbeddedChannel}.
@@ -26,6 +25,10 @@ import java.util.Queue;
 public final class EmbeddedChannels {
   private EmbeddedChannels() {}  // prevent instantiation
 
+  /**
+   * A customized {@link EmbeddedChannel} that supports empty constructor and supports thread safe
+   * read/write outbound messages from/to this channel.
+   */
   public static final class EmbeddedChannelEmptyCtor extends EmbeddedChannel {
     public EmbeddedChannelEmptyCtor() {
       // Invoke the parent ctor with a dummy handler.
@@ -39,13 +42,17 @@ public final class EmbeddedChannels {
       pipeline().addLast(new LastInboundHandler());
     }
 
-    private Queue<Object> getInboundMessages() {
-      try {
-        Field field = getClass().getField("inboundMessages");
-        field.setAccessible(true);
-        return (Queue<Object>) field.get(this);
-      } catch (NoSuchFieldException | IllegalAccessException e) {
-        throw Throwables.propagate(e);
+    @Override
+    protected void doWrite(ChannelOutboundBuffer in) throws Exception {
+      synchronized (this) {
+        super.doWrite(in);
+      }
+    }
+
+    @Override
+    public Object readOutbound() {
+      synchronized (this) {
+        return super.readOutbound();
       }
     }
 
@@ -62,7 +69,7 @@ public final class EmbeddedChannels {
     private final class LastInboundHandler extends ChannelInboundHandlerAdapter {
       @Override
       public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        getInboundMessages().add(msg);
+        inboundMessages().add(msg);
       }
 
       @Override
