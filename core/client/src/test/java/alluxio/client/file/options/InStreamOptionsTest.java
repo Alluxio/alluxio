@@ -13,13 +13,13 @@ package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
-import alluxio.client.util.ClientTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -69,7 +69,7 @@ public class InStreamOptionsTest {
       Assert.assertEquals(ReadType.NO_CACHE.getAlluxioStorageType(),
           options.getAlluxioStorageType());
     } finally {
-      ClientTestUtils.resetClient();
+      ConfigurationTestUtils.resetConfiguration();
     }
   }
 
