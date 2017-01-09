@@ -117,12 +117,13 @@ public abstract class DataServerWriteHandlerTest {
    * @return the response
    */
   protected Object waitForResponse(final EmbeddedChannel channel) {
-    return CommonUtils.waitFor("", new Function<Void, Object>() {
-      @Override
-      public Object apply(Void v) {
-        return channel.readOutbound();
-      }
-    }, Constants.MINUTE_MS);
+    return CommonUtils
+        .waitFor("Response from the channel.", new Function<Void, Object>() {
+          @Override
+          public Object apply(Void v) {
+            return channel.readOutbound();
+          }
+        }, Constants.MINUTE_MS);
   }
 
   /**

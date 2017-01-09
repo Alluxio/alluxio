@@ -246,6 +246,9 @@ public final class CommonUtils {
       }
       CommonUtils.sleepMs(20);
     }
+    if (t == null) {
+      throw new RuntimeException("Timed out waiting for " + description);
+    }
     return t;
   }
 

@@ -208,7 +208,7 @@ public abstract class DataServerReadHandlerTest {
    * @return the read response
    */
   protected Object waitForOneResponse(final EmbeddedChannel channel) {
-    return CommonUtils.waitFor("", new Function<Void, Object>() {
+    return CommonUtils.waitFor("Response from the channel", new Function<Void, Object>() {
       @Override
       public Object apply(Void v) {
         return channel.readOutbound();
