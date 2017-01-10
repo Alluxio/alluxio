@@ -68,7 +68,7 @@
             </ul>
             <div id="pathNav" class="input-append pull-right" style="margin: 5px; margin-right: 45px;width:600px;">
               <input class="span12" id="pathInput" type="text" placeholder="Navigate to a directory">
-              <button class="btn" type="button">Go</button>
+              <button class="btn" id="goBtn" type="button">Go</button>
             </div>
           </div>
         </div>
