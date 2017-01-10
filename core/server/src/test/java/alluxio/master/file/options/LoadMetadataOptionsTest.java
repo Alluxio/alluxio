@@ -17,6 +17,8 @@ import alluxio.underfs.UnderFileStatus;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Random;
+
 /**
  * Tests for the {@link LoadMetadataOptions} class.
  */
@@ -31,14 +33,17 @@ public class LoadMetadataOptionsTest {
 
   @Test
   public void fields() {
+    Random random = new Random();
+    boolean isCreateAncestors = random.nextBoolean();
+    boolean isLoadDirectChildren = random.nextBoolean();
+    boolean isDirectory = random.nextBoolean();
     LoadMetadataOptions options = LoadMetadataOptions.defaults();
-    options.setCreateAncestors(true);
-    Assert.assertEquals(false, options.isLoadDirectChildren());
-    options.setLoadDirectChildren(true);
-    options.setUnderFileStatus(new UnderFileStatus("dummy", true));
-    Assert.assertEquals(true, options.isCreateAncestors());
-    Assert.assertEquals(true, options.isLoadDirectChildren());
-    Assert.assertEquals(true, options.getUnderFileStatus().isDirectory());
+    options.setCreateAncestors(isCreateAncestors);
+    options.setLoadDirectChildren(isLoadDirectChildren);
+    options.setUnderFileStatus(new UnderFileStatus("dummy", isDirectory));
+    Assert.assertEquals(isCreateAncestors, options.isCreateAncestors());
+    Assert.assertEquals(isLoadDirectChildren, options.isLoadDirectChildren());
+    Assert.assertEquals(isDirectory, options.getUnderFileStatus().isDirectory());
   }
 
   @Test
