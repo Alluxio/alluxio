@@ -54,10 +54,10 @@ public final class NettyPacketWriterTest {
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4,
       ThreadFactoryUtils.build("test-executor-%d", true));
 
-  private final Random mRandom = new Random();
-  private final long mBlockId = 1L;
-  private final long mSessionId = 2L;
-  private final int mTier = 0;
+  private static final Random RANDOM = new Random();
+  private static final long BLOCK_ID = 1L;
+  private static final long SESSION_ID = 2L;
+  private static final int TIER = 0;
 
   private FileSystemContext mContext;
   private InetSocketAddress mAddress;
@@ -148,7 +148,7 @@ public final class NettyPacketWriterTest {
    */
   private PacketWriter create(long length) throws Exception {
     PacketWriter writer =
-        new NettyPacketWriter(mContext, mAddress, mBlockId, length, mSessionId, mTier,
+        new NettyPacketWriter(mContext, mAddress, BLOCK_ID, length, SESSION_ID, TIER,
             Protocol.RequestType.ALLUXIO_BLOCK);
     mChannel.finishChannelCreation();
     return writer;
@@ -176,7 +176,7 @@ public final class NettyPacketWriterTest {
           while (remaining > 0) {
             int bytesToWrite = (int) Math.min(remaining, PACKET_SIZE);
             byte[] data = new byte[bytesToWrite];
-            mRandom.nextBytes(data);
+            RANDOM.nextBytes(data);
             ByteBuf buf = Unpooled.wrappedBuffer(data);
             try {
               writer.writePacket(buf);
@@ -221,7 +221,7 @@ public final class NettyPacketWriterTest {
           long pos = 0;
           while (true) {
             RPCProtoMessage request = (RPCProtoMessage) CommonUtils
-                .waitForResult("request", new Function<Void, Object>() {
+                .waitForResult("wrtie request", new Function<Void, Object>() {
                   @Override
                   public Object apply(Void v) {
                     return channel.readOutbound();
@@ -266,7 +266,7 @@ public final class NettyPacketWriterTest {
    * @param offset the offset
    */
   private void validateWriteRequest(Protocol.WriteRequest request, long offset) {
-    Assert.assertEquals(mBlockId, request.getId());
+    Assert.assertEquals(BLOCK_ID, request.getId());
     Assert.assertEquals(offset, request.getOffset());
   }
 }

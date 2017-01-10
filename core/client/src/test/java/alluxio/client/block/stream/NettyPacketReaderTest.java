@@ -48,10 +48,10 @@ public final class NettyPacketReaderTest {
   private static final int PACKET_SIZE = 1024;
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4);
 
-  private final Random mRandom = new Random();
-  private final long mBlockId = 1L;
-  private final long mSessionId = 2L;
-  private final long mLockId = 3L;
+  private static final Random RANDOM = new Random();
+  private static final long BLOCK_ID = 1L;
+  private static final long SESSION_ID = 2L;
+  private static final long LOCK_ID = 3L;
 
   private FileSystemContext mContext;
   private InetSocketAddress mAddress;
@@ -62,7 +62,7 @@ public final class NettyPacketReaderTest {
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = PowerMockito.mock(InetSocketAddress.class);
-    mFactory = new NettyPacketReader.Factory(mContext, mAddress, mBlockId, mLockId, mSessionId,
+    mFactory = new NettyPacketReader.Factory(mContext, mAddress, BLOCK_ID, LOCK_ID, SESSION_ID,
         Protocol.RequestType.ALLUXIO_BLOCK);
 
     mChannel = new EmbeddedChannels.EmbeddedChannelEmptyCtor();
@@ -205,7 +205,7 @@ public final class NettyPacketReaderTest {
     Assert.assertEquals(null, ((RPCProtoMessage) request).getPayloadDataBuffer());
     Protocol.ReadRequest readRequest =
         (Protocol.ReadRequest) ((RPCProtoMessage) request).getMessage();
-    Assert.assertEquals(mBlockId, readRequest.getId());
+    Assert.assertEquals(BLOCK_ID, readRequest.getId());
     Assert.assertEquals(offset, readRequest.getOffset());
     Assert.assertEquals(length, readRequest.getLength());
     Assert.assertEquals(cancel, readRequest.getCancel());
@@ -232,7 +232,7 @@ public final class NettyPacketReaderTest {
         while (remaining > 0) {
           int bytesToSend = (int) Math.min(remaining, PACKET_SIZE);
           byte[] data = new byte[bytesToSend];
-          mRandom.nextBytes(data);
+          RANDOM.nextBytes(data);
           ByteBuf buf = Unpooled.wrappedBuffer(data);
           RPCProtoMessage message = RPCProtoMessage.createOkResponse(new DataNettyBufferV2(buf));
           channel.writeInbound(message);
