@@ -20,7 +20,7 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 
 * ConsoleSink: 输出控制台的度量值。
 * CsvSink: 每隔一段时间将度量指标信息导出到CSV文件中。
-* JmxSink: 查看JMX控制台中寄存器的度量信息。
+* JmxSink: 查看JMX控制台中注册的度量信息。
 * GraphiteSink: 给Graphite服务器发送度量信息。
 * MetricsServlet: 添加Web UI中的servlet，作为JSON数据来为度量指标数据服务。
 * GangliaSink: 向Ganglia监控进程发送度量信息。
