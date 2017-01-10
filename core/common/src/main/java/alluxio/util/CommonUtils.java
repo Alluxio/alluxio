@@ -225,36 +225,7 @@ public final class CommonUtils {
   }
 
   /**
-<<<<<<< bbe32b6e8ad96cd2d8d8dc515341de4620bad389
    * Waits for a condition to be satisfied.
-=======
-   * Waits for an operation to return a non-null value with a specified timeout.
-   *
-   * @param description the description of this operation
-   * @param operation the operation
-   * @param timeoutMs the timeout
-   * @param <T> the type of the return value
-   * @return the return value, null if it times out
-   */
-  public static <T> T waitFor(String description, Function<Void, T> operation, long timeoutMs) {
-    T t = null;
-    long startTime = System.currentTimeMillis();
-    while (System.currentTimeMillis() < startTime + timeoutMs) {
-      t = operation.apply(null);
-      if (t != null) {
-        break;
-      }
-      CommonUtils.sleepMs(20);
-    }
-    if (t == null) {
-      throw new RuntimeException("Timed out waiting for " + description);
-    }
-    return t;
-  }
-
-  /**
-   * Waits for a condition to be satisfied until a timeout occurs.
->>>>>>> Fix tests
    *
    * @param description a description of what causes condition to evaluation to true
    * @param condition the condition to wait on
@@ -271,6 +242,30 @@ public final class CommonUtils {
       }
       CommonUtils.sleepMs(interval);
     }
+  }
+
+  /**
+   * Waits for an operation to return a non-null value with a specified timeout.
+   *
+   * @param description the description of this operation
+   * @param operation the operation
+   * @param options the options to use
+   * @param <T> the type of the return value
+   * @return the return value, null if it times out
+   */
+  public static <T> T waitForResult(String description, Function<Void, T> operation,
+      WaitForOptions options) {
+    T t;
+    long start = System.currentTimeMillis();
+    int interval = options.getInterval();
+    int timeout = options.getTimeout();
+    while ((t = operation.apply(null)) == null) {
+      if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
+        throw new RuntimeException("Timed out waiting for " + description);
+      }
+      CommonUtils.sleepMs(interval);
+    }
+    return t;
   }
 
   /**

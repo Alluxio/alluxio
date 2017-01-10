@@ -20,6 +20,7 @@ import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Function;
@@ -208,12 +209,12 @@ public abstract class DataServerReadHandlerTest {
    * @return the read response
    */
   protected Object waitForOneResponse(final EmbeddedChannel channel) {
-    return CommonUtils.waitFor("Response from the channel", new Function<Void, Object>() {
+    return CommonUtils.waitForResult("response from the channel", new Function<Void, Object>() {
       @Override
       public Object apply(Void v) {
         return channel.readOutbound();
       }
-    }, Constants.MINUTE_MS);
+    }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
   }
 
   /**

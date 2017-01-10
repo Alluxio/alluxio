@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Function;
@@ -118,12 +119,12 @@ public abstract class DataServerWriteHandlerTest {
    */
   protected Object waitForResponse(final EmbeddedChannel channel) {
     return CommonUtils
-        .waitFor("Response from the channel.", new Function<Void, Object>() {
+        .waitForResult("response from the channel.", new Function<Void, Object>() {
           @Override
           public Object apply(Void v) {
             return channel.readOutbound();
           }
-        }, Constants.MINUTE_MS);
+        }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
   }
 
   /**
