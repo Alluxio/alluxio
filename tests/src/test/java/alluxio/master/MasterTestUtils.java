@@ -25,6 +25,13 @@ import com.google.common.base.Function;
 import java.io.IOException;
 
 public class MasterTestUtils {
+
+  /**
+   * Creates a new {@link FileSystemMaster} from journal.
+   *
+   * @return a new FileSystemMaster
+   * @throws IOException
+   */
   public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
