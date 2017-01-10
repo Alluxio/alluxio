@@ -471,7 +471,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   protected Objects.ToStringHelper toStringHelper() {
     return Objects.toStringHelper(this).add("id", mId).add("name", mName).add("parentId", mParentId)
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
-        .add("ttl", mTtl).add("mTtlAction", mTtlAction)
+        .add("ttl", mTtl).add("ttlAction", mTtlAction)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
         .add("lastModificationTimeMs", mLastModificationTimeMs).add("owner", mOwner)
         .add("group", mGroup).add("permission", mMode);

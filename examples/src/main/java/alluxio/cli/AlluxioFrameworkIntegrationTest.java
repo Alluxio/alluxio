@@ -22,6 +22,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -119,7 +120,7 @@ public final class AlluxioFrameworkIntegrationTest {
                   throw Throwables.propagate(e);
                 }
               }
-            }, 15 * Constants.MINUTE_MS);
+            }, WaitForOptions.defaults().setTimeout(15 * Constants.MINUTE_MS));
       }
       LOG.info("Worker registered");
       basicAlluxioTests();

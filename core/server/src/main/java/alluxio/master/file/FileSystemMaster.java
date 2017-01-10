@@ -66,6 +66,7 @@ import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
@@ -93,8 +94,8 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
@@ -313,6 +314,12 @@ public final class FileSystemMaster extends AbstractMaster {
       }
     } else if (entry.hasInodeDirectory()) {
       try {
+        // Add the directory to TTL buckets, the insert automatically rejects directory
+        // w/ Constants.NO_TTL
+        InodeDirectoryEntry inodeDirectoryEntry = entry.getInodeDirectory();
+        if (inodeDirectoryEntry.hasTtl()) {
+          mTtlBuckets.insert(InodeDirectory.fromJournalEntry(inodeDirectoryEntry));
+        }
         mInodeTree.addInodeDirectoryFromJournal(entry.getInodeDirectory());
       } catch (AccessControlException e) {
         throw new RuntimeException(e);
@@ -406,7 +413,7 @@ public final class FileSystemMaster extends AbstractMaster {
       String defaultUFS = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
-            MountOptions.defaults().setShared(CommonUtils.isUfsObjectStorage(defaultUFS)
+            MountOptions.defaults().setShared(UnderFileSystemUtils.isObjectStorage(defaultUFS)
                 && Configuration.getBoolean(
                     PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)));
       } catch (FileAlreadyExistsException | InvalidPathException e) {
@@ -1673,7 +1680,14 @@ public final class FileSystemMaster extends AbstractMaster {
       CreateDirectoryOptions options) throws InvalidPathException, FileAlreadyExistsException,
       IOException, AccessControlException, FileDoesNotExistException {
     try {
-      return mInodeTree.createPath(inodePath, options);
+      InodeTree.CreatePathResult createResult = mInodeTree.createPath(inodePath, options);
+      InodeDirectory inodeDirectory = (InodeDirectory) inodePath.getInode();
+      // If inodeDirectory's ttl not equals Constants.NO_TTL, it should insert into mTtlBuckets
+      if (createResult.getCreated().size() > 0) {
+        mTtlBuckets.insert(inodeDirectory);
+      }
+
+      return createResult;
     } catch (BlockInfoException e) {
       // Since we are creating a directory, the block size is ignored, no such exception should
       // happen.
@@ -2928,7 +2942,7 @@ public final class FileSystemMaster extends AbstractMaster {
       } else {
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsUri = resolution.getUri().toString();
-        if (CommonUtils.isUfsObjectStorage(ufsUri)) {
+        if (UnderFileSystemUtils.isObjectStorage(ufsUri)) {
           LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. "
               + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
         } else {
@@ -3038,7 +3052,7 @@ public final class FileSystemMaster extends AbstractMaster {
               LOG.debug("File {} is expired. Performing action {}", inode.getName(), ttlAction);
               switch (ttlAction) {
                 case FREE:
-                  free(path, false);
+                  free(path, true);
                   // Reset state
                   inode.setTtl(Constants.NO_TTL);
                   inode.setTtlAction(TtlAction.DELETE);

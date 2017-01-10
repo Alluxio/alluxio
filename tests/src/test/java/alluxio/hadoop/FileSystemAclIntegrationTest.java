@@ -27,7 +27,7 @@ import alluxio.underfs.oss.OSSUnderFileSystem;
 import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.underfs.swift.SwiftUnderFileSystem;
-import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;
@@ -564,7 +564,7 @@ public final class FileSystemAclIntegrationTest {
 
   @Test
   public void objectStoreSetOwner() throws Exception {
-    Assume.assumeTrue(CommonUtils.isUfsObjectStorage(sUfsRoot));
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(sUfsRoot));
 
     Path fileA = new Path("/objectfileA");
     final String newOwner = "new-user1";

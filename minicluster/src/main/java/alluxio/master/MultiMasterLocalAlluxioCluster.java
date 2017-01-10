@@ -19,6 +19,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.worker.AlluxioWorkerService;
 
 import com.google.common.base.Function;
@@ -157,7 +158,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       public Boolean apply(Void input) {
         return getLeaderIndex() != -1;
       }
-    }, timeoutMs);
+    }, WaitForOptions.defaults().setTimeout(timeoutMs));
   }
 
   private void deleteDir(String path) throws IOException {
