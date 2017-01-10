@@ -63,7 +63,5 @@ public final class StatCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(res1.contains(testDir + "/foo") && res1.contains("is a directory path."));
     Assert.assertTrue(res1.contains(testDir + "/bar") && res1.contains("is a directory path."));
     Assert.assertTrue(res1.contains(testDir + "/foobar4") && res1.contains("is a file path."));
-    Assert.assertFalse(res1.contains(testDir + "/foo/foobar1") || res1.contains("is a file path."));
-    Assert.assertFalse(res1.contains(testDir + "/bar/foobar3") || res1.contains("is a file path."));
   }
 }
