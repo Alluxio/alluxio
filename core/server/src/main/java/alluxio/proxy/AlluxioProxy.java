@@ -103,8 +103,10 @@ public final class AlluxioProxy implements Server {
 
   @Override
   public void stop() throws Exception {
-    mWebServer.stop();
-    mWebServer = null;
+    if (mWebServer != null) {
+      mWebServer.stop();
+      mWebServer = null;
+    }
   }
 
   /**
