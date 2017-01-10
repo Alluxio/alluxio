@@ -2257,13 +2257,19 @@ public final class FileSystemMaster extends AbstractMaster {
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     try {
-      if (!ufs.exists(ufsUri.toString())) {
+      if (options.getUnderFileStatus() == null && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
         inode.setDirectChildrenLoaded(true);
         return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
       }
-      if (ufs.isFile(ufsUri.toString())) {
+      boolean isFile;
+      if (options.getUnderFileStatus() != null) {
+        isFile = options.getUnderFileStatus().isFile();
+      } else {
+        isFile = ufs.isFile(ufsUri.toString());
+      }
+      if (isFile) {
         return loadFileMetadataAndJournal(inodePath, resolution, options);
       } else {
         long counter = loadDirectoryMetadataAndJournal(inodePath, options);
@@ -2271,9 +2277,6 @@ public final class FileSystemMaster extends AbstractMaster {
 
         if (options.isLoadDirectChildren()) {
           UnderFileStatus[] files = ufs.listStatus(ufsUri.toString());
-          LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults();
-          loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
-
           for (UnderFileStatus file : files) {
             if (PathUtils.isTemporaryFileName(file.getName())
                 || inode.getChild(file.getName()) != null) {
@@ -2281,6 +2284,8 @@ public final class FileSystemMaster extends AbstractMaster {
             }
             TempInodePathForChild tempInodePath =
                 new TempInodePathForChild(inodePath, file.getName());
+            LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults()
+                .setLoadDirectChildren(false).setCreateAncestors(false).setUnderFileStatus(file);
             counter = loadMetadataAndJournal(tempInodePath, loadMetadataOptions);
           }
           inode.setDirectChildrenLoaded(true);
