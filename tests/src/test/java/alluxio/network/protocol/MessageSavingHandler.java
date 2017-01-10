@@ -37,7 +37,11 @@ public class MessageSavingHandler extends SimpleChannelInboundHandler<RPCMessage
     mMessageAvailable.release();
   }
 
-  // Returns the received message. This is blocking.
+  /**
+   * Returns the received message.This is blocking.
+   *
+   * @return the received message
+   */
   public RPCMessage getMessage() {
     try {
       if (!mMessageAvailable.tryAcquire(1, 1, TimeUnit.SECONDS)) {
@@ -49,6 +53,9 @@ public class MessageSavingHandler extends SimpleChannelInboundHandler<RPCMessage
     return mMessage;
   }
 
+  /**
+   * Resets the MessageSavingHandler.
+   */
   public void reset() {
     mMessage = null;
     mMessageAvailable = new Semaphore(0);

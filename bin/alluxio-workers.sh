@@ -34,19 +34,14 @@ ALLUXIO_LOG_DIR="${BIN}/../logs"
 mkdir -p "${ALLUXIO_LOG_DIR}"
 ALLUXIO_TASK_LOG="${ALLUXIO_LOG_DIR}/task.log"
 
-if [[ "$3" == "alluxio.worker.AlluxioWorker" ]]; then
-  WORKER_ACTION_TYPE="WORKERS"
-else
-  WORKER_ACTION_TYPE="MASTER"
-fi
+echo "Executing the following command on all worker nodes: $@" >> ${ALLUXIO_TASK_LOG}
 
 for worker in $(echo ${HOSTLIST}); do
-  echo "$(date +"%F %H:%M:%S,$(date +"%s%N" | cut -c 11- | cut -c 1-3)")
-   INFO ${WORKER_ACTION_TYPE}  Connecting to ${worker} as ${USER}..." >> ${ALLUXIO_TASK_LOG}
+  echo "[${worker}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
   nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker} ${LAUNCHER} \
-   $"${@// /\\ }" >> ${ALLUXIO_TASK_LOG} 2>&1&
+   $"${@// /\\ }" 2>&1 | while read line; do echo "[${worker}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
 done
 
-echo "Waiting for ${WORKER_ACTION_TYPE} tasks to finish..."
+echo "Waiting for tasks to finish..."
 wait
-echo "All ${WORKER_ACTION_TYPE} tasks finished, please analyze the log at ${ALLUXIO_TASK_LOG}."
+echo "All tasks finished, please analyze the log at ${ALLUXIO_TASK_LOG}."

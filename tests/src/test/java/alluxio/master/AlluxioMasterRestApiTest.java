@@ -14,13 +14,17 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,9 +43,11 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link AlluxioMasterRestServiceHandler}.
  */
 public final class AlluxioMasterRestApiTest extends RestApiTest {
+  private FileSystemMaster mFileSystemMaster;
 
   @Before
   public void before() {
+    mFileSystemMaster = mResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
@@ -100,9 +106,28 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getLostWorkers() throws Exception {
+    List<WorkerInfo> lostWorkersInfo = getInfo(NO_PARAMS).getLostWorkers();
+    Assert.assertEquals(0, lostWorkersInfo.size());
+  }
+
+  @Test
   public void getMetrics() throws Exception {
     Assert.assertEquals(Long.valueOf(0), getInfo(NO_PARAMS).getMetrics()
         .get("master.CompleteFileOps"));
+  }
+
+  @Test
+  public void getMountPoints() throws Exception {
+    Map<String, MountInfo> mountTable = mFileSystemMaster.getMountTable();
+    Map<String, MountPointInfo> mountPoints = getInfo(NO_PARAMS).getMountPoints();
+    Assert.assertEquals(mountTable.size(), mountPoints.size());
+    for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
+      Assert.assertTrue(mountPoints.containsKey(mountPoint.getKey()));
+      String expectedUri = mountPoints.get(mountPoint.getKey()).getUfsUri();
+      String returnedUri = mountPoint.getValue().getUfsUri().toString();
+      Assert.assertEquals(expectedUri, returnedUri);
+    }
   }
 
   @Test
@@ -114,6 +139,17 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getStartTimeMs() throws Exception {
     Assert.assertTrue(getInfo(NO_PARAMS).getStartTimeMs() > 0);
+  }
+
+  @Test
+  public void getStartupConsistencyCheckStatus() throws Exception {
+    MasterTestUtils.waitForStartupConsistencyCheck(mFileSystemMaster);
+    alluxio.wire.StartupConsistencyCheck status = getInfo(NO_PARAMS)
+        .getStartupConsistencyCheck();
+    Assert.assertEquals(
+        FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
+        status.getStatus());
+    Assert.assertEquals(0, status.getInconsistentUris().size());
   }
 
   @Test
@@ -132,7 +168,12 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getUfsCapacity() throws Exception {
     Capacity ufsCapacity = getInfo(NO_PARAMS).getUfsCapacity();
-    Assert.assertTrue(ufsCapacity.getTotal() > 0);
+    if (CommonUtils.isUfsObjectStorage(mFileSystemMaster.getUfsAddress())) {
+      // Object storage ufs capacity is always invalid.
+      Assert.assertEquals(-1, ufsCapacity.getTotal());
+    } else {
+      Assert.assertTrue(ufsCapacity.getTotal() > 0);
+    }
   }
 
   @Test

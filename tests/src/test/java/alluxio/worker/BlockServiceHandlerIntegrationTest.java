@@ -45,6 +45,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
@@ -76,7 +77,7 @@ public class BlockServiceHandlerIntegrationTest {
     mBlockWorkerServiceHandler =
         mLocalAlluxioClusterResource.get().getWorker().getBlockWorker().getWorkerServiceHandler();
 
-    mBlockMasterClient = new RetryHandlingBlockMasterClient(
+    mBlockMasterClient = new RetryHandlingBlockMasterClient(null,
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
             mLocalAlluxioClusterResource.get().getMasterRpcPort()));
   }
@@ -91,14 +92,15 @@ public class BlockServiceHandlerIntegrationTest {
   public void cacheBlock() throws Exception {
     mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
+    final int writeTier = Constants.FIRST_TIER;
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
     // Construct the block ids for the file.
     final long blockId0 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
     final long blockId1 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 1);
 
-    String filename =
-        mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId0, blockSize);
+    String filename = mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId0,
+        blockSize, writeTier);
     createBlockFile(filename, blockSize);
     mBlockWorkerServiceHandler.cacheBlock(SESSION_ID, blockId0);
 
@@ -120,12 +122,13 @@ public class BlockServiceHandlerIntegrationTest {
   public void cancelBlock() throws Exception {
     mFileSystem.createFile(new AlluxioURI("/testFile")).close();
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
+    final int writeTier = Constants.FIRST_TIER;
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 
     String filename =
-        mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId, blockSize);
+        mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId, blockSize, writeTier);
     createBlockFile(filename, blockSize);
     mBlockWorkerServiceHandler.cancelBlock(SESSION_ID, blockId);
 
@@ -160,7 +163,8 @@ public class BlockServiceHandlerIntegrationTest {
 
     UnderFileSystem ufs = UnderFileSystem.Factory.get(localPath);
     byte[] data = new byte[blockSize];
-    int bytesRead = ufs.open(localPath).read(data);
+    InputStream in = ufs.open(localPath);
+    int bytesRead = in.read(data);
 
     // The data in the local file should equal the data we wrote earlier
     Assert.assertEquals(blockSize, bytesRead);
@@ -229,7 +233,10 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId2 = 12346L;
     final int chunkSize = (int) WORKER_CAPACITY_BYTES / 10;
 
-    mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId1, chunkSize);
+    /* only a single tier, so SecondHighest still refers to the memory tier */
+    final int writeTier = Constants.SECOND_TIER;
+
+    mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId1, chunkSize, writeTier);
     boolean result = mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, chunkSize);
 
     // Initial request and first additional request should succeed
@@ -253,7 +260,7 @@ public class BlockServiceHandlerIntegrationTest {
     Exception exception = null;
     try {
       mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2,
-          WORKER_CAPACITY_BYTES + 1);
+          WORKER_CAPACITY_BYTES + 1, writeTier);
     } catch (AlluxioTException e) {
       exception = e;
     }
@@ -269,10 +276,13 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId1 = 12345L;
     final long blockId2 = 23456L;
 
+    /* only a single tier, so lowest still refers to the memory tier */
+    final int writeTier = Constants.LAST_TIER;
+
     String filePath1 =
-        mBlockWorkerServiceHandler.requestBlockLocation(userId1, blockId1, chunkSize);
+        mBlockWorkerServiceHandler.requestBlockLocation(userId1, blockId1, chunkSize, writeTier);
     String filePath2 =
-        mBlockWorkerServiceHandler.requestBlockLocation(userId2, blockId2, chunkSize);
+        mBlockWorkerServiceHandler.requestBlockLocation(userId2, blockId2, chunkSize, writeTier);
 
     // Initial requests should succeed
     Assert.assertTrue(filePath1 != null);

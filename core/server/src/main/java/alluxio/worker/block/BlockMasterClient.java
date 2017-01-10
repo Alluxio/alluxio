@@ -49,7 +49,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param masterAddress the master address
    */
   public BlockMasterClient(InetSocketAddress masterAddress) {
-    super(masterAddress);
+    super(null, masterAddress);
   }
 
   @Override

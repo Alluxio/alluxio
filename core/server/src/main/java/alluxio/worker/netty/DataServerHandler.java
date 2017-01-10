@@ -18,6 +18,7 @@ import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCFileReadRequest;
 import alluxio.network.protocol.RPCFileWriteRequest;
 import alluxio.network.protocol.RPCMessage;
+import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.worker.AlluxioWorkerService;
@@ -81,9 +82,14 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
         mUnderFileSystemHandler.handleFileWriteRequest(ctx, (RPCFileWriteRequest) msg);
         break;
       case RPC_ERROR_RESPONSE:
-        // TODO(peis): Fix this, we should not assert here.
         assert msg instanceof RPCErrorResponse;
         LOG.error("Received an error response from the client: " + msg.toString());
+        break;
+      case RPC_READ_REQUEST:
+      case RPC_WRITE_REQUEST:
+      case RPC_RESPONSE:
+        assert msg instanceof RPCProtoMessage;
+        ctx.fireChannelRead(msg);
         break;
       default:
         RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);

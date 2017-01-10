@@ -21,7 +21,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A list of non-empty {@link TtlBucket}s sorted by ttl interval start time of each bucket.
  * <p>
- * Two adjacent buckets may not have adjacent intervals since there may be no files with ttl value
+ * Two adjacent buckets may not have adjacent intervals since there may be no inodes with ttl value
  * in the skipped intervals.
  */
 @ThreadSafe
@@ -40,26 +40,26 @@ public final class TtlBucketList {
   }
 
   /**
-   * Gets the bucket in the list that contains the file.
+   * Gets the bucket in the list that contains the inode.
    *
-   * @param file the file to be contained
-   * @return the bucket containing the file, or null if no such bucket exists
+   * @param inode the inode to be contained
+   * @return the bucket containing the inode, or null if no such bucket exists
    */
-  private TtlBucket getBucketContaining(InodeFile file) {
-    if (file.getTtl() == Constants.NO_TTL) {
-      // no bucket will contain a file with NO_TTL.
+  private TtlBucket getBucketContaining(Inode<?> inode) {
+    if (inode.getTtl() == Constants.NO_TTL) {
+      // no bucket will contain a inode with NO_TTL.
       return null;
     }
 
-    long ttlEndTimeMs = file.getCreationTimeMs() + file.getTtl();
-    // Gets the last bucket with interval start time less than or equal to the file's life end
+    long ttlEndTimeMs = inode.getCreationTimeMs() + inode.getTtl();
+    // Gets the last bucket with interval start time less than or equal to the inode's life end
     // time.
     TtlBucket bucket = mBucketList.floor(new TtlBucket(ttlEndTimeMs));
     if (bucket == null || bucket.getTtlIntervalEndTimeMs() < ttlEndTimeMs
         || (bucket.getTtlIntervalEndTimeMs() == ttlEndTimeMs
             && TtlBucket.getTtlIntervalMs() != 0)) {
       // 1. There is no bucket in the list, or
-      // 2. All buckets' interval start time is larger than the file's life end time, or
+      // 2. All buckets' interval start time is larger than the inode's life end time, or
       // 3. No bucket actually contains ttlEndTimeMs in its interval.
       return null;
     }
@@ -68,22 +68,22 @@ public final class TtlBucketList {
   }
 
   /**
-   * Inserts an {@link InodeFile} to the appropriate bucket where its ttl end time lies in the
+   * Inserts an {@link Inode} to the appropriate bucket where its ttl end time lies in the
    * bucket's interval, if no appropriate bucket exists, a new bucket will be created to contain
-   * this file, if ttl value is {@link Constants#NO_TTL}, the file won't be inserted to any buckets
-   * and nothing will happen.
+   * this inode, if ttl value is {@link Constants#NO_TTL}, the inode won't be inserted to any
+   * buckets and nothing will happen.
    *
-   * @param file the file to be inserted
+   * @param inode the inode to be inserted
    */
-  public void insert(InodeFile file) {
-    if (file.getTtl() == Constants.NO_TTL) {
+  public void insert(Inode<?> inode) {
+    if (inode.getTtl() == Constants.NO_TTL) {
       return;
     }
 
-    TtlBucket bucket = getBucketContaining(file);
+    TtlBucket bucket = getBucketContaining(inode);
     if (bucket == null) {
-      long ttlEndTimeMs = file.getCreationTimeMs() + file.getTtl();
-      // No bucket contains the file, so a new bucket should be added with an appropriate interval
+      long ttlEndTimeMs = inode.getCreationTimeMs() + inode.getTtl();
+      // No bucket contains the inode, so a new bucket should be added with an appropriate interval
       // start. Assume the list of buckets have continuous intervals, and the first interval starts
       // at 0, then ttlEndTimeMs should be in number (ttlEndTimeMs / interval) interval, so the
       // start time of this interval should be (ttlEndTimeMs / interval) * interval.
@@ -91,24 +91,24 @@ public final class TtlBucketList {
       bucket = new TtlBucket(interval == 0 ? ttlEndTimeMs : ttlEndTimeMs / interval * interval);
       mBucketList.add(bucket);
     }
-    bucket.addFile(file);
+    bucket.addInode(inode);
   }
 
   /**
-   * Removes a file from the bucket containing it if the file is in one of the buckets, otherwise,
+   * Removes a inode from the bucket containing it if the inode is in one of the buckets, otherwise,
    * do nothing.
    *
    * <p>
-   * Assume that no file in the buckets has ttl value that equals {@link Constants#NO_TTL}.
-   * If a file with valid ttl value is inserted to the buckets and its ttl value is going to be set
-   * to {@link Constants#NO_TTL} later, be sure to remove the file from the buckets first.
+   * Assume that no inode in the buckets has ttl value that equals {@link Constants#NO_TTL}.
+   * If a inode with valid ttl value is inserted to the buckets and its ttl value is going to be set
+   * to {@link Constants#NO_TTL} later, be sure to remove the inode from the buckets first.
    *
-   * @param file the file to be removed
+   * @param inode the inode to be removed
    */
-  public void remove(InodeFile file) {
-    TtlBucket bucket = getBucketContaining(file);
+  public void remove(Inode<?> inode) {
+    TtlBucket bucket = getBucketContaining(inode);
     if (bucket != null) {
-      bucket.removeFile(file);
+      bucket.removeInode(inode);
     }
   }
 

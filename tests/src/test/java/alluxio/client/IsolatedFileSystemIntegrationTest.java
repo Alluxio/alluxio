@@ -73,7 +73,7 @@ public class IsolatedFileSystemIntegrationTest {
       files.add(new AlluxioURI(uniqPath + k));
     }
     for (int k = 0; k < numOfFiles; k++) {
-      Assert.assertTrue(mFileSystem.getStatus(files.get(k)).getInMemoryPercentage() == 100);
+      Assert.assertEquals(100, mFileSystem.getStatus(files.get(k)).getInMemoryPercentage());
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));

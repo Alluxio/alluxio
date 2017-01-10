@@ -43,15 +43,15 @@ public class MountPointInfoTest {
 
   public static MountPointInfo createRandom() {
     Random random = new Random();
-    String ufsUri = CommonUtils.randomString(random.nextInt(10));
-    String ufsType = CommonUtils.randomString(random.nextInt(10));
+    String ufsUri = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    String ufsType = CommonUtils.randomAlphaNumString(random.nextInt(10));
     long ufsCapacityBytes = random.nextLong();
     long ufsUsedBytes = random.nextLong();
     boolean readOnly = random.nextBoolean();
     Map<String, String> properties = new HashMap<>();
     for (int i = 0, n = random.nextInt(10) + 1; i < n; i++) {
-      properties.put(CommonUtils.randomString(random.nextInt(5)), CommonUtils.randomString(
-          random.nextInt(5)));
+      properties.put(CommonUtils.randomAlphaNumString(random.nextInt(5)),
+          CommonUtils.randomAlphaNumString(random.nextInt(5)));
     }
 
     MountPointInfo result = new MountPointInfo();

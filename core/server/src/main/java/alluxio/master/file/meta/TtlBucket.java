@@ -22,7 +22,7 @@ import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A bucket with all files whose ttl value lies in the bucket's time interval. The bucket's time
+ * A bucket with all inodes whose ttl value lies in the bucket's time interval. The bucket's time
  * interval starts at a certain time and lasts for
  * {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
  */
@@ -36,8 +36,8 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * value is the same as the configuration of {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
    */
   private long mTtlIntervalStartTimeMs;
-  /** A set of InodeFiles whose ttl value is in the range of this bucket's interval. */
-  private Set<InodeFile> mFiles;
+  /** A set of Inode whose ttl value is in the range of this bucket's interval. */
+  private Set<Inode<?>> mInodes;
 
   /**
    * Creates a new instance of {@link TtlBucket}.
@@ -46,7 +46,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mFiles = new HashSet<>();
+    mInodes = new HashSet<>();
   }
 
   /**
@@ -72,29 +72,29 @@ public final class TtlBucket implements Comparable<TtlBucket> {
   }
 
   /**
-   * @return the set of all files in the bucket backed by the internal set, changes made to the
+   * @return the set of all inodes in the bucket backed by the internal set, changes made to the
    *         returned set will be shown in the internal set, and vice versa
    */
-  public Set<InodeFile> getFiles() {
-    return mFiles;
+  public Set<Inode<?>> getInodes() {
+    return mInodes;
   }
 
   /**
-   * Adds a file to the bucket.
+   * Adds a inode to the bucket.
    *
-   * @param file the file to be added
+   * @param inode the inode to be added
    */
-  public void addFile(InodeFile file) {
-    mFiles.add(file);
+  public void addInode(Inode<?> inode) {
+    mInodes.add(inode);
   }
 
   /**
-   * Removes a file from the bucket.
+   * Removes a inode from the bucket.
    *
-   * @param file the file to be removed
+   * @param inode the inode to be removed
    */
-  public void removeFile(InodeFile file) {
-    mFiles.remove(file);
+  public void removeInode(Inode<?> inode) {
+    mInodes.remove(inode);
   }
 
   /**

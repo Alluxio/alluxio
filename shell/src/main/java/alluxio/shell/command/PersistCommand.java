@@ -93,8 +93,8 @@ public final class PersistCommand extends AbstractShellCommand {
     } else if (status.isPersisted()) {
       System.out.println(filePath + " is already persisted");
     } else {
-      long size = FileSystemUtils.persistFile(mFileSystem, filePath, status);
-      System.out.println("persisted file " + filePath + " with size " + size);
+      FileSystemUtils.persistFile(mFileSystem, filePath);
+      System.out.println("persisted file " + filePath + " with size " + status.getLength());
     }
   }
 

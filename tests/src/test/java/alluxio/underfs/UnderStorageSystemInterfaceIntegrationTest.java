@@ -16,15 +16,21 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.Seekable;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.underfs.hdfs.HdfsUnderFileSystem;
+import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
@@ -34,10 +40,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.List;
 
 public final class UnderStorageSystemInterfaceIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
@@ -48,9 +57,16 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
 
+  /**
+   * The exception expected to be thrown.
+   */
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
+
   @Before
   public final void before() throws Exception {
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
     mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.Factory.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
   }
@@ -61,6 +77,19 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests if file creation is atomic.
+   */
+  @Test
+  public void createAtomic() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    OutputStream stream = mUfs.create(testFile);
+    stream.write(TEST_BYTES);
+    Assert.assertFalse(mUfs.isFile(testFile));
+    stream.close();
+    Assert.assertTrue(mUfs.isFile(testFile));
+  }
+
+  /**
    * Tests that an empty file can be created.
    */
   @Test
@@ -68,6 +97,32 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
     Assert.assertTrue(mUfs.isFile(testFile));
+  }
+
+  /**
+   * Tests that create with parent creation option off throws an Exception.
+   */
+  @Test
+  public void createNoParent() throws IOException {
+    // Run the test only for local UFS. Other UFSs succeed if no parents are present
+    if (mUfs instanceof LocalUnderFileSystem) {
+      mThrown.expect(IOException.class);
+      String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
+      OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(false));
+      o.close();
+      Assert.assertFalse(mUfs.exists(testFile));
+    }
+  }
+
+  /**
+   * Tests that create with parent creation option on succeeds.
+   */
+  @Test
+  public void createParent() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
+    OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(true));
+    o.close();
+    Assert.assertTrue(mUfs.exists(testFile));
   }
 
   /**
@@ -84,15 +139,103 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
-   * Tests if file creation is atomic.
+   * Tests that no bytes are read from an empty file.
    */
   @Test
-  public void createAtomic() throws IOException {
+  public void createOpenEmpty() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
-    OutputStream stream = mUfs.create(testFile);
-    stream.write(TEST_BYTES);
-    Assert.assertFalse(mUfs.isFile(testFile));
-    stream.close();
+    createEmptyFile(testFile);
+    byte[] buf = new byte[0];
+    int bytesRead = mUfs.open(testFile).read(buf);
+    // TODO(adit): Consider making the return value uniform across UFSs
+    if (mUfs instanceof HdfsUnderFileSystem) {
+      Assert.assertTrue(bytesRead == -1);
+    } else {
+      Assert.assertTrue(bytesRead == 0);
+    }
+  }
+
+  /**
+   * Tests {@link UnderFileSystem#open(String, OpenOptions)} for a multi-block file.
+   */
+  @Test
+  public void createOpenAtPosition() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    prepareMultiBlockFile(testFile);
+    int[] offsets = {0, 256, 511, 512, 513, 768, 1024, 1025};
+    for (int offset : offsets) {
+      InputStream inputStream = mUfs.open(testFile, OpenOptions.defaults().setOffset(offset));
+      Assert.assertEquals(TEST_BYTES[offset % TEST_BYTES.length], inputStream.read());
+      inputStream.close();
+    }
+  }
+
+  /**
+   * Tests that a multi-block file can be created and validates the data written to it.
+   */
+  @Test
+  public void createOpenLarge() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    int numCopies = prepareMultiBlockFile(testFile);
+    InputStream inputStream = mUfs.open(testFile);
+    byte[] buf = new byte[numCopies * TEST_BYTES.length];
+    int offset = 0;
+    int noReadCount = 0;
+    while (offset < buf.length && noReadCount < 3) {
+      int bytesRead = inputStream.read(buf, offset, buf.length - offset);
+      if (bytesRead != -1) {
+        noReadCount = 0;
+        for (int i = 0; i < bytesRead; ++i) {
+          Assert.assertEquals(TEST_BYTES[(offset + i) % TEST_BYTES.length], buf[offset + i]);
+        }
+        offset += bytesRead;
+      } else {
+        ++noReadCount;
+      }
+    }
+    Assert.assertTrue(noReadCount < 3);
+  }
+
+  /**
+   * Tests seek.
+   */
+  @Test
+  public void createOpenSeek() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    OutputStream outputStream = mUfs.create(testFile);
+    int numBytes = 10;
+    for (int i = 0; i < numBytes; ++i) {
+      outputStream.write(i);
+    }
+    outputStream.close();
+    InputStream inputStream = mUfs.open(testFile);
+    for (int i = 0; i < numBytes; ++i) {
+      ((Seekable) inputStream).seek(i);
+      int readValue = inputStream.read();
+      Assert.assertEquals(i, readValue);
+    }
+    inputStream.close();
+  }
+
+  /**
+   * Tests seek when new position is going back in the opened stream.
+   */
+  @Test
+  public void createOpenSeekReverse() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    OutputStream outputStream = mUfs.create(testFile);
+    int numBytes = 10;
+    for (int i = 0; i < numBytes; ++i) {
+      outputStream.write(i);
+    }
+    outputStream.close();
+    InputStream inputStream = mUfs.open(testFile);
+    for (int i = numBytes - 1; i >= 0; --i) {
+      ((Seekable) inputStream).seek(i);
+      int readValue = inputStream.read();
+      Assert.assertEquals(i, readValue);
+    }
+    inputStream.close();
   }
 
   /**
@@ -261,6 +404,27 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests if listStatus returns an empty array for an empty directory.
+   */
+  @Test
+  public void listStatusEmpty() throws IOException {
+    String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
+    mUfs.mkdirs(testDir);
+    UnderFileStatus[] res = mUfs.listStatus(testDir);
+    Assert.assertEquals(0, res.length);
+  }
+
+  /**
+   * Tests if listStatus returns null for a file.
+   */
+  @Test
+  public void listStatusFile() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    createEmptyFile(testFile);
+    Assert.assertTrue(mUfs.listStatus(testFile) == null);
+  }
+
+  /**
    * Tests if list correctly returns file or folder names for a large directory.
    */
   @Test
@@ -345,6 +509,54 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests load metadata on list.
+   */
+  @Test
+  public void loadMetadata() throws Exception {
+    String dirName = "loadMetaDataRoot";
+
+    String rootDir = PathUtils.concatPath(mUnderfsAddress, dirName);
+    mUfs.mkdirs(rootDir);
+
+    String rootFile1 = PathUtils.concatPath(rootDir, "file1");
+    createEmptyFile(rootFile1);
+
+    String rootFile2 = PathUtils.concatPath(rootDir, "file2");
+    createEmptyFile(rootFile2);
+
+    AlluxioURI rootAlluxioURI = new AlluxioURI("/" + dirName);
+    FileSystem client = mLocalAlluxioClusterResource.get().getClient();
+    client.listStatus(rootAlluxioURI,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+
+    try {
+      client.createDirectory(rootAlluxioURI, CreateDirectoryOptions.defaults());
+      Assert.fail("create is expected to fail with FileAlreadyExistsException");
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(rootAlluxioURI), e.getMessage());
+    }
+
+    AlluxioURI file1URI = rootAlluxioURI.join("file1");
+    try {
+      client.createFile(file1URI, CreateFileOptions.defaults()).close();
+      Assert.fail("create is expected to fail with FileAlreadyExistsException");
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(file1URI), e.getMessage());
+    }
+
+    AlluxioURI file2URI = rootAlluxioURI.join("file2");
+    try {
+      client.createFile(file2URI, CreateFileOptions.defaults()).close();
+      Assert.fail("create is expected to fail with FileAlreadyExistsException");
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(file2URI), e.getMessage());
+    }
+  }
+
+  /**
    * Tests {@link UnderFileSystem#mkdirs(String)} correctly creates a directory.
    * Tests {@link UnderFileSystem#mkdirs(String, MkdirsOptions)} correctly makes parent directories
    * if createParent is specified.
@@ -368,6 +580,146 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(mUfs.isDirectory(testDir2));
     Assert.assertTrue(mUfs.isDirectory(testDir3));
     Assert.assertTrue(mUfs.isDirectory(testDirDeep));
+  }
+
+  /**
+   * Tests if @{@link UnderFileSystem#isDirectory(String)} infers pseudo-directories from common
+   * prefixes for an object store.
+   */
+  @Test
+  public void objectCommonPrefixesIsDirectory() throws IOException {
+    if (!(mUfs instanceof ObjectUnderFileSystem)) {
+      // Only run test for an object store
+      return;
+    }
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectStorePreConfig config = prepareObjectStore(ufs);
+
+    String baseDirectoryPath = config.getBaseDirectoryPath();
+    Assert.assertTrue(mUfs.isDirectory(baseDirectoryPath));
+
+    for (String subDirName : config.getSubDirectoryNames()) {
+      String subDirPath = PathUtils.concatPath(baseDirectoryPath, subDirName);
+      Assert.assertTrue(mUfs.isDirectory(subDirPath));
+    }
+  }
+
+  /**
+   * Tests if a non-recursive listStatus infers pseudo-directories from common prefixes for an
+   * object store.
+   */
+  @Test
+  public void objectCommonPrefixesListStatusNonRecursive() throws IOException {
+    if (!(mUfs instanceof ObjectUnderFileSystem)) {
+      // Only run test for an object store
+      return;
+    }
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectStorePreConfig config = prepareObjectStore(ufs);
+
+    String baseDirectoryPath = config.getBaseDirectoryPath();
+    UnderFileStatus[] results = mUfs.listStatus(baseDirectoryPath);
+    Assert.assertEquals(config.getSubDirectoryNames().length + config.getFileNames().length,
+        results.length);
+    // Check for direct children files
+    for (String fileName : config.getFileNames()) {
+      int foundIndex = -1;
+      for (int i = 0; i < results.length; ++i) {
+        if (results[i].getName().equals(fileName)) {
+          foundIndex = i;
+        }
+      }
+      Assert.assertTrue(foundIndex >= 0);
+      Assert.assertTrue(results[foundIndex].isFile());
+    }
+    // Check if pseudo-directories were inferred
+    for (String subDirName : config.getSubDirectoryNames()) {
+      int foundIndex = -1;
+      for (int i = 0; i < results.length; ++i) {
+        if (results[i].getName().equals(subDirName)) {
+          foundIndex = i;
+        }
+      }
+      Assert.assertTrue(foundIndex >= 0);
+      Assert.assertTrue(results[foundIndex].isDirectory());
+    }
+  }
+
+  /**
+   * Tests if a recursive listStatus infers pseudo-directories from common prefixes for an object
+   * store.
+   */
+  @Test
+  public void objectCommonPrefixesListStatusRecursive() throws IOException {
+    if (!(mUfs instanceof ObjectUnderFileSystem)) {
+      // Only run test for an object store
+      return;
+    }
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectStorePreConfig config = prepareObjectStore(ufs);
+
+    String baseDirectoryPath = config.getBaseDirectoryPath();
+    UnderFileStatus[] results =
+        mUfs.listStatus(baseDirectoryPath, ListOptions.defaults().setRecursive(true));
+    String[] fileNames = config.getFileNames();
+    String[] subDirNames = config.getSubDirectoryNames();
+    Assert.assertEquals(
+        subDirNames.length + fileNames.length + subDirNames.length * fileNames.length,
+        results.length);
+    // Check for direct children files
+    for (String fileName : fileNames) {
+      int foundIndex = -1;
+      for (int i = 0; i < results.length; ++i) {
+        if (results[i].getName().equals(fileName)) {
+          foundIndex = i;
+        }
+      }
+      Assert.assertTrue(foundIndex >= 0);
+      Assert.assertTrue(results[foundIndex].isFile());
+    }
+    for (String subDirName : subDirNames) {
+      // Check if pseudo-directories were inferred
+      int dirIndex = -1;
+      for (int i = 0; i < results.length; ++i) {
+        if (results[i].getName().equals(subDirName)) {
+          dirIndex = i;
+        }
+      }
+      Assert.assertTrue(dirIndex >= 0);
+      Assert.assertTrue(results[dirIndex].isDirectory());
+      // Check for indirect children
+      for (String fileName : config.getFileNames()) {
+        int fileIndex = -1;
+        for (int i = 0; i < results.length; ++i) {
+          if (results[i].getName().equals(String.format("%s/%s", subDirName, fileName))) {
+            fileIndex = i;
+          }
+        }
+        Assert.assertTrue(fileIndex >= 0);
+        Assert.assertTrue(results[fileIndex].isFile());
+      }
+    }
+  }
+
+  /**
+   * Tests load metadata on list with an object store having pre-populated pseudo-directories.
+   */
+  @Test
+  public void objectLoadMetadata() throws Exception {
+    if (!(mUfs instanceof ObjectUnderFileSystem)) {
+      // Only run test for an object store
+      return;
+    }
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectStorePreConfig config = prepareObjectStore(ufs);
+    String baseDirectoryName = config.getBaseDirectoryPath()
+        .substring(PathUtils.normalizePath(mUnderfsAddress, "/").length());
+    AlluxioURI rootAlluxioURI = new AlluxioURI(PathUtils.concatPath("/", baseDirectoryName));
+    FileSystem client = mLocalAlluxioClusterResource.get().getClient();
+    List<URIStatus> results = client.listStatus(rootAlluxioURI,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+    Assert.assertEquals(config.getSubDirectoryNames().length + config.getFileNames().length,
+        results.size());
   }
 
   /**
@@ -434,54 +786,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(mUfs.isFile(testDirDstNestedChild));
   }
 
-  /**
-   * Tests load metadata on list.
-   */
-  @Test
-  public void loadMetadata() throws Exception {
-    String dirName = "loadMetaDataRoot";
-
-    String rootDir = PathUtils.concatPath(mUnderfsAddress, dirName);
-    mUfs.mkdirs(rootDir);
-
-    String rootFile1 = PathUtils.concatPath(rootDir, "file1");
-    createEmptyFile(rootFile1);
-
-    String rootFile2 = PathUtils.concatPath(rootDir, "file2");
-    createEmptyFile(rootFile2);
-
-    AlluxioURI rootAlluxioURI = new AlluxioURI("/" + dirName);
-    FileSystem client = mLocalAlluxioClusterResource.get().getClient();
-    client.listStatus(rootAlluxioURI,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
-
-    try {
-      client.createDirectory(rootAlluxioURI, CreateDirectoryOptions.defaults());
-      Assert.fail("create is expected to fail with FileAlreadyExistsException");
-    } catch (FileAlreadyExistsException e) {
-      Assert.assertEquals(
-          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(rootAlluxioURI), e.getMessage());
-    }
-
-    AlluxioURI file1URI = rootAlluxioURI.join("file1");
-    try {
-      client.createFile(file1URI, CreateFileOptions.defaults()).close();
-      Assert.fail("create is expected to fail with FileAlreadyExistsException");
-    } catch (FileAlreadyExistsException e) {
-      Assert.assertEquals(
-          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(file1URI), e.getMessage());
-    }
-
-    AlluxioURI file2URI = rootAlluxioURI.join("file2");
-    try {
-      client.createFile(file2URI, CreateFileOptions.defaults()).close();
-      Assert.fail("create is expected to fail with FileAlreadyExistsException");
-    } catch (FileAlreadyExistsException e) {
-      Assert.assertEquals(
-          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(file2URI), e.getMessage());
-    }
-  }
-
   private void createEmptyFile(String path) throws IOException {
     OutputStream o = mUfs.create(path);
     o.close();
@@ -540,6 +844,84 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
     public String[] getChildren() {
       return mChildren;
+    }
+  }
+
+  /**
+   * Prepare a multi-block file by making copies of TEST_BYTES.
+   *
+   * @param testFile path of file to create
+   * @return the number of copies of TEST_BYTES made
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  private int prepareMultiBlockFile(String testFile) throws IOException {
+    OutputStream outputStream = mUfs.create(testFile);
+    // Write multiple blocks of data
+    int numBlocks = 3;
+    // Test block size is small enough for 'int'
+    int blockSize = (int) Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    int numCopies = numBlocks * blockSize / TEST_BYTES.length;
+    for (int i = 0; i < numCopies; ++i) {
+      outputStream.write(TEST_BYTES);
+    }
+    outputStream.close();
+    return numCopies;
+  }
+
+  /**
+   * Prepare an object store for testing by creating a set of files and directories directly (not
+   * through Alluxio). No breadcrumbs are created for directories.
+   *
+   * @param ufs the {@link ObjectUnderFileSystem} to test
+   * @throws IOException if a non-Alluxio error occurs
+   * @return configuration for the pre-populated objects
+   */
+  private ObjectStorePreConfig prepareObjectStore(ObjectUnderFileSystem ufs) throws IOException {
+    // Base directory for list status
+    String baseDirectoryName = "base";
+    String baseDirectoryPath = PathUtils.concatPath(mUnderfsAddress, baseDirectoryName);
+    String baseDirectoryKey =
+        baseDirectoryPath.substring(PathUtils.normalizePath(ufs.getRootKey(), "/").length());
+    // Pseudo-directories to be inferred
+    String[] subDirectories = {"a", "b", "c"};
+    // Every directory (base and pseudo) has these files
+    String[] childrenFiles = {"sample1.jpg", "sample2.jpg", "sample3.jpg"};
+    // Populate children of base directory
+    for (String child : childrenFiles) {
+      ufs.createEmptyObject(String.format("%s/%s", baseDirectoryKey, child));
+    }
+    // Populate children of sub-directories
+    for (String subdir : subDirectories) {
+      for (String child : childrenFiles) {
+        ufs.createEmptyObject(String.format("%s/%s/%s", baseDirectoryKey, subdir, child));
+      }
+    }
+    return new ObjectStorePreConfig(baseDirectoryPath, childrenFiles, subDirectories);
+  }
+
+  // Test configuration for pre-populating an object store
+  private class ObjectStorePreConfig {
+    private String mBaseDirectoryPath;
+    private String[] mSubDirectoryNames;
+    private String[] mFileNames;
+
+    ObjectStorePreConfig(String baseDirectoryKey, String[] childrenFiles,
+        String[] subDirectories) {
+      mBaseDirectoryPath = baseDirectoryKey;
+      mFileNames = childrenFiles;
+      mSubDirectoryNames = subDirectories;
+    }
+
+    public String getBaseDirectoryPath() {
+      return mBaseDirectoryPath;
+    }
+
+    public String[] getFileNames() {
+      return mFileNames;
+    }
+
+    public String[] getSubDirectoryNames() {
+      return mSubDirectoryNames;
     }
   }
 }

@@ -35,7 +35,6 @@ import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalProtoUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -44,6 +43,7 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
+import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.wire.BlockInfo;
@@ -53,7 +53,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableSet;
-import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.apache.thrift.TProcessor;
@@ -71,7 +70,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -157,9 +155,6 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostWorkerDetectionService;
 
-  /** The next worker id to use. This state must be journaled. */
-  private final AtomicLong mNextWorkerId = new AtomicLong(1);
-
   /** The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private long mJournaledNextContainerId = 0;
@@ -212,14 +207,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    Message innerEntry = JournalProtoUtils.unwrap(entry);
     // TODO(gene): A better way to process entries besides a huge switch?
-    if (innerEntry instanceof BlockContainerIdGeneratorEntry) {
-      mJournaledNextContainerId =
-          ((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId();
+    if (entry.hasBlockContainerIdGenerator()) {
+      mJournaledNextContainerId = (entry.getBlockContainerIdGenerator()).getNextContainerId();
       mBlockContainerIdGenerator.setNextContainerId((mJournaledNextContainerId));
-    } else if (innerEntry instanceof BlockInfoEntry) {
-      BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
+    } else if (entry.hasBlockInfo()) {
+      BlockInfoEntry blockInfoEntry = entry.getBlockInfo();
       if (mBlocks.containsKey(blockInfoEntry.getBlockId())) {
         // Update the existing block info.
         MasterBlockInfo blockInfo = mBlocks.get(blockInfoEntry.getBlockId());
@@ -313,8 +306,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    *
    * @return a set of worker info
    */
-  public Set<WorkerInfo> getLostWorkersInfo() {
-    Set<WorkerInfo> ret = new HashSet<>(mLostWorkers.size());
+  public List<WorkerInfo> getLostWorkersInfoList() {
+    List<WorkerInfo> ret = new ArrayList<>(mLostWorkers.size());
     for (MasterWorkerInfo worker : mLostWorkers) {
       synchronized (worker) {
         ret.add(worker.generateClientWorkerInfo());
@@ -614,8 +607,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     }
 
     // Generate a new worker id.
-    long workerId = mNextWorkerId.getAndIncrement();
-    mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
+    long workerId = IdUtils.getRandomNonNegativeLong();
+    while (!mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
+      workerId = IdUtils.getRandomNonNegativeLong();
+    }
 
     LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
     return workerId;

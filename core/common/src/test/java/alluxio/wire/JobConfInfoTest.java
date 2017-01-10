@@ -46,7 +46,7 @@ public class JobConfInfoTest {
     JobConfInfo result = new JobConfInfo();
     Random random = new Random();
 
-    String outputFile = CommonUtils.randomString(random.nextInt(10));
+    String outputFile = CommonUtils.randomAlphaNumString(random.nextInt(10));
 
     result.setOutputFile(outputFile);
 

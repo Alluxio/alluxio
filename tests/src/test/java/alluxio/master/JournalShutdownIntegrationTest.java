@@ -19,9 +19,9 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
-import alluxio.client.block.BlockStoreContextTestUtils;
 import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
@@ -67,12 +67,13 @@ public class JournalShutdownIntegrationTest {
     ConfigurationTestUtils.resetConfiguration();
     RetryHandlingBlockWorkerClientTestUtils.reset();
     FileSystemWorkerClientTestUtils.reset();
-    BlockStoreContextTestUtils.resetPool();
+    FileSystemContext.INSTANCE.reset();
   }
 
   @Before
   public final void before() throws Exception {
     mExecutorsForClient = Executors.newFixedThreadPool(1);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
   }
 
   @Test
@@ -94,7 +95,7 @@ public class JournalShutdownIntegrationTest {
     CommonUtils.sleepMs(TEST_TIME_MS);
     cluster.stopWorkers();
     // Crash the master
-    cluster.getMaster().kill();
+    cluster.getMaster().stop();
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
@@ -105,13 +106,14 @@ public class JournalShutdownIntegrationTest {
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
+    // Run the test client thread for some time.
+    CommonUtils.sleepMs(TEST_TIME_MS);
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
-      CommonUtils.sleepMs(TEST_TIME_MS);
-      Assert.assertTrue(cluster.killLeader());
+      cluster.waitForNewMaster(60 * Constants.SECOND_MS);
+      Assert.assertTrue(cluster.stopLeader());
     }
     cluster.stopFS();
-    CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
     // clean up

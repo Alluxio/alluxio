@@ -21,73 +21,90 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 /**
- * Integration tests for {@link alluxio.client.file.FileOutStream}.
+ * Integration tests for {@link alluxio.client.file.FileOutStream}, parameterized by the write
+ * types.
  */
+@RunWith(Parameterized.class)
 public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
   // TODO(binfan): Run tests with local writes enabled and disabled.
+
+  @Parameters
+  public static Object[] data() {
+    return new Object[] {
+        WriteType.ASYNC_THROUGH,
+        WriteType.CACHE_THROUGH,
+        WriteType.MUST_CACHE,
+        WriteType.THROUGH,
+    };
+  }
+
+  @Parameter
+  public WriteType mWriteType;
+
   /**
    * Tests {@link FileOutStream#write(int)}.
    */
   @Test
-  public void writeTest1() throws Exception {
+  public void writeBytes() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
-        writeTest1Util(new AlluxioURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
+    for (int len = MIN_LEN; len <= MAX_LEN; len += DELTA) {
+      CreateFileOptions op = CreateFileOptions.defaults().setWriteType(mWriteType);
+      AlluxioURI filePath =
+          new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
+      writeIncreasingBytesToFile(filePath, len, op);
+      if (mWriteType.getAlluxioStorageType().isStore()) {
+        checkFileInAlluxio(filePath, len);
+      }
+      if (mWriteType.getUnderStorageType().isSyncPersist()) {
+        checkFileInUnderStorage(filePath, len);
       }
     }
-  }
-
-  private void writeTest1Util(AlluxioURI filePath, int len, CreateFileOptions op) throws Exception {
-    FileOutStream os = mFileSystem.createFile(filePath, op);
-    for (int k = 0; k < len; k++) {
-      os.write((byte) k);
-    }
-    os.close();
-    checkWrite(filePath, op.getWriteType().getUnderStorageType(), len, len);
   }
 
   /**
    * Tests {@link FileOutStream#write(byte[])}.
    */
   @Test
-  public void writeTest2() throws Exception {
+  public void writeByteArray() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
-        writeTest2Util(new AlluxioURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
+    for (int len = MIN_LEN; len <= MAX_LEN; len += DELTA) {
+      CreateFileOptions op = CreateFileOptions.defaults().setWriteType(mWriteType);
+      AlluxioURI filePath =
+          new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
+      writeIncreasingByteArrayToFile(filePath, len, op);
+      if (mWriteType.getAlluxioStorageType().isStore()) {
+        checkFileInAlluxio(filePath, len);
+      }
+      if (mWriteType.getUnderStorageType().isSyncPersist()) {
+        checkFileInUnderStorage(filePath, len);
       }
     }
-  }
-
-  private void writeTest2Util(AlluxioURI filePath, int len, CreateFileOptions op) throws Exception {
-    FileOutStream os = mFileSystem.createFile(filePath, op);
-    os.write(BufferUtils.getIncreasingByteArray(len));
-    os.close();
-    checkWrite(filePath, op.getWriteType().getUnderStorageType(), len, len);
   }
 
   /**
    * Tests {@link FileOutStream#write(byte[], int, int)}.
    */
   @Test
-  public void writeTest3() throws Exception {
+  public void writeTwoByteArrays() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
-        writeTest3Util(new AlluxioURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
+    for (int len = MIN_LEN; len <= MAX_LEN; len += DELTA) {
+      CreateFileOptions op = CreateFileOptions.defaults().setWriteType(mWriteType);
+      AlluxioURI filePath =
+          new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
+      writeTwoIncreasingByteArraysToFile(filePath, len, op);
+      if (mWriteType.getAlluxioStorageType().isStore()) {
+        checkFileInAlluxio(filePath, len);
+      }
+      if (mWriteType.getUnderStorageType().isSyncPersist()) {
+        checkFileInUnderStorage(filePath, len);
       }
     }
-  }
-
-  private void writeTest3Util(AlluxioURI filePath, int len, CreateFileOptions op) throws Exception {
-    FileOutStream os = mFileSystem.createFile(filePath, op);
-    os.write(BufferUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);
-    os.write(BufferUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);
-    os.close();
-    checkWrite(filePath, op.getWriteType().getUnderStorageType(), len, len / 2 * 2);
   }
 
   /**
@@ -97,13 +114,18 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void writeSpecifyLocal() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
-    FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)
-            .setLocationPolicy(new LocalFirstPolicy()));
-    os.write((byte) 0);
-    os.write((byte) 1);
-    os.close();
-    checkWrite(filePath, UnderStorageType.SYNC_PERSIST, length, length);
+    try (FileOutStream os = mFileSystem.createFile(filePath,
+        CreateFileOptions.defaults().setWriteType(mWriteType)
+            .setLocationPolicy(new LocalFirstPolicy()))) {
+      os.write((byte) 0);
+      os.write((byte) 1);
+    }
+    if (mWriteType.getAlluxioStorageType().isStore()) {
+      checkFileInAlluxio(filePath, length);
+    }
+    if (mWriteType.getUnderStorageType().isSyncPersist()) {
+      checkFileInUnderStorage(filePath, length);
+    }
   }
 
   /**
@@ -114,13 +136,18 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void longWrite() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
-    FileOutStream os = mFileSystem.createFile(filePath,
-            CreateFileOptions.defaults().setWriteType(WriteType.THROUGH));
-    os.write((byte) 0);
-    Thread.sleep(Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
-    os.write((byte) 1);
-    os.close();
-    checkWrite(filePath, UnderStorageType.SYNC_PERSIST, length, length);
+    try (FileOutStream os =
+        mFileSystem.createFile(filePath, CreateFileOptions.defaults().setWriteType(mWriteType))) {
+      os.write((byte) 0);
+      Thread.sleep(Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
+      os.write((byte) 1);
+    }
+    if (mWriteType.getAlluxioStorageType().isStore()) {
+      checkFileInAlluxio(filePath, length);
+    }
+    if (mWriteType.getUnderStorageType().isSyncPersist()) {
+      checkFileInUnderStorage(filePath, length);
+    }
   }
 
   /**
@@ -131,19 +158,20 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   @Test
   public void outOfOrderWrite() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = mFileSystem.createFile(filePath,
-            CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE));
-
-    // Write something small, so it is written into the buffer, and not directly to the file.
-    os.write((byte) 0);
-
     // A length greater than 0.5 * BUFFER_BYTES and less than BUFFER_BYTES.
     int length = (BUFFER_BYTES * 3) / 4;
-
-    // Write a large amount of data (larger than BUFFER_BYTES/2, but will not overflow the buffer.
-    os.write(BufferUtils.getIncreasingByteArray(1, length));
-    os.close();
-
-    checkWrite(filePath, UnderStorageType.NO_PERSIST, length + 1, length + 1);
+    try (FileOutStream os =
+        mFileSystem.createFile(filePath, CreateFileOptions.defaults().setWriteType(mWriteType))) {
+      // Write something small, so it is written into the buffer, and not directly to the file.
+      os.write((byte) 0);
+      // Write a large amount of data (larger than BUFFER_BYTES/2, but will not overflow the buffer.
+      os.write(BufferUtils.getIncreasingByteArray(1, length));
+    }
+    if (mWriteType.getAlluxioStorageType().isStore()) {
+      checkFileInAlluxio(filePath, length + 1);
+    }
+    if (mWriteType.getUnderStorageType().isSyncPersist()) {
+      checkFileInUnderStorage(filePath, length + 1);
+    }
   }
 }

@@ -110,6 +110,16 @@ Users can simply override the default policy class in the [configuration file](C
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your workload by implementing interface `alluxio.client.file.policyFileWriteLocationPolicy`. Note that a default policy must have an empty constructor. And to use ASYNC_THROUGH write
 type, all the blocks of a file must be written to the same worker.
 
+### Write Tier
+
+Alluxio allows a client to select a tier preference when writing blocks to a local worker. Currently
+this policy preference exists only for local workers, not remote workers; remote workers will write
+blocks to the highest tier.
+
+By default, data is written to the top tier. Users can modify the default setting through the
+`alluxio.user.file.write.tier.default` [configuration](Configuration-Settings.html) property or
+override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
+
 ### Accessing an existing file in Alluxio
 
 All operations on existing files or directories require the user to specify the `AlluxioURI`.

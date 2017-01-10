@@ -280,33 +280,6 @@ public final class BufferUtils {
   }
 
   /**
-   * Gets a {@link ByteBuffer} containing an increasing sequence of integers starting at zero.
-   *
-   * @param len the target length of the sequence
-   * @return ByteBuffer containing an increasing sequence of integers
-   */
-  public static ByteBuffer getIncreasingIntBuffer(int len) {
-    return getIncreasingIntBuffer(0, len);
-  }
-
-  /**
-   * Gets a {@link ByteBuffer} containing an increasing sequence of integers starting at the given
-   * value.
-   *
-   * @param start the starting value to use
-   * @param len the target length of the sequence
-   * @return ByteBuffer containing an increasing sequence of integers
-   */
-  public static ByteBuffer getIncreasingIntBuffer(int start, int len) {
-    ByteBuffer ret = ByteBuffer.allocate(len * 4);
-    for (int k = 0; k < len; k++) {
-      ret.putInt(start + k);
-    }
-    ret.flip();
-    return ret;
-  }
-
-  /**
    * Writes buffer to the given file path.
    *
    * @param path file path to write the data

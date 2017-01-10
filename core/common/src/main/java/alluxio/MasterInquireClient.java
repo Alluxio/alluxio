@@ -14,9 +14,11 @@ package alluxio;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,11 +81,24 @@ public final class MasterInquireClient {
    * @return the address of the current leader master
    */
   public synchronized String getLeaderAddress() {
+    long startTime = System.currentTimeMillis();
     int tried = 0;
     try {
+      CuratorZookeeperClient curatorClient = mClient.getZookeeperClient();
+      // #blockUntilConnectedOrTimedOut() will block for at least 1 second, even if the client is
+      // connected within a few milliseconds. We improve the latency here by first waiting on the
+      // connection status explicitly.
+      for (int i = 0; i < 50; i++) {
+        if (curatorClient.isConnected()) {
+          break;
+        }
+        CommonUtils.sleepMs(20);
+      }
+      curatorClient.blockUntilConnectedOrTimedOut();
       while (tried < mMaxTry) {
-        if (mClient.checkExists().forPath(mLeaderPath) != null) {
-          List<String> masters = mClient.getChildren().forPath(mLeaderPath);
+        ZooKeeper zookeeper = curatorClient.getZooKeeper();
+        if (zookeeper.exists(mLeaderPath, false) != null) {
+          List<String> masters = zookeeper.getChildren(mLeaderPath, null);
           LOG.info("Master addresses: {}", masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
@@ -93,8 +108,7 @@ public final class MasterInquireClient {
             long maxTime = 0;
             String leader = "";
             for (String master : masters) {
-              Stat stat = mClient.checkExists().forPath(
-                  PathUtils.concatPath(mLeaderPath, master));
+              Stat stat = zookeeper.exists(PathUtils.concatPath(mLeaderPath, master), null);
               if (stat != null && stat.getCtime() > maxTime) {
                 maxTime = stat.getCtime();
                 leader = master;
@@ -111,6 +125,8 @@ public final class MasterInquireClient {
     } catch (Exception e) {
       LOG.error("Error getting the leader master address from zookeeper. Zookeeper address: {}",
           mZookeeperAddress, e);
+    } finally {
+      LOG.debug("Finished getLeaderAddress() in {}ms", System.currentTimeMillis() - startTime);
     }
 
     return null;

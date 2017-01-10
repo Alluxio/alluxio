@@ -45,7 +45,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     CommonUtils.sleepMs(1);
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(filePath);
-    Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
+    Assert.assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
 
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);
@@ -53,7 +53,8 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
-    checkWrite(filePath, UnderStorageType.ASYNC_PERSIST, length, length);
+    checkFileInAlluxio(filePath, length);
+    checkFileInUnderStorage(filePath, length);
   }
 
   @Test
@@ -72,6 +73,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
-    checkWrite(filePath, UnderStorageType.ASYNC_PERSIST, 0, 0);
+    checkFileInAlluxio(filePath, 0);
+    checkFileInUnderStorage(filePath, 0);
   }
 }

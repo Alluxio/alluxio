@@ -20,6 +20,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * A fixed pool of FileSystemMasterClient instances.
@@ -28,28 +29,34 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
   private final InetSocketAddress mMasterAddress;
   private final Queue<FileSystemMasterClient> mClientList;
+  private final Subject mSubject;
 
   /**
    * Creates a new file system master client pool.
    *
+   * @param subject the parent subject
    * @param masterAddress the master address
    */
-  public FileSystemMasterClientPool(InetSocketAddress masterAddress) {
+  public FileSystemMasterClientPool(Subject subject, InetSocketAddress masterAddress) {
     super(Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
     mMasterAddress = masterAddress;
     mClientList = new ConcurrentLinkedQueue<>();
+    mSubject = subject;
   }
 
   /**
    * Creates a new file system master client pool.
    *
+   * @param subject the parent subject
    * @param masterAddress the master address
    * @param clientThreads the number of client threads to use
    */
-  public FileSystemMasterClientPool(InetSocketAddress masterAddress, int clientThreads) {
+  public FileSystemMasterClientPool(Subject subject, InetSocketAddress masterAddress,
+      int clientThreads) {
     super(clientThreads);
     mMasterAddress = masterAddress;
     mClientList = new ConcurrentLinkedQueue<>();
+    mSubject = subject;
   }
 
   @Override
@@ -62,7 +69,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
 
   @Override
   protected FileSystemMasterClient createNewResource() {
-    FileSystemMasterClient client = new FileSystemMasterClient(mMasterAddress);
+    FileSystemMasterClient client = new FileSystemMasterClient(mSubject, mMasterAddress);
     mClientList.add(client);
     return client;
   }

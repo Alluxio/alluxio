@@ -22,9 +22,12 @@ import java.util.Map;
 public class AlluxioMasterInfo {
   private Capacity mCapacity;
   private Map<String, String> mConfiguration;
+  private List<WorkerInfo> mLostWorkers;
   private Map<String, Long> mMetrics;
+  private Map<String, MountPointInfo> mMountPoints;
   private String mRpcAddress;
   private long mStartTimeMs;
+  private StartupConsistencyCheck mStartupConsistencyCheck;
   private Map<String, Capacity> mTierCapacity;
   private Capacity mUfsCapacity;
   private long mUptimeMs;
@@ -51,10 +54,24 @@ public class AlluxioMasterInfo {
   }
 
   /**
+   * @return the list of lost workers
+   */
+  public List<WorkerInfo> getLostWorkers() {
+    return mLostWorkers;
+  }
+
+  /**
    * @return the metrics
    */
   public Map<String, Long> getMetrics() {
     return mMetrics;
+  }
+
+  /**
+   * @return the mount points
+   */
+  public Map<String, MountPointInfo> getMountPoints() {
+    return mMountPoints;
   }
 
   /**
@@ -69,6 +86,13 @@ public class AlluxioMasterInfo {
    */
   public long getStartTimeMs() {
     return mStartTimeMs;
+  }
+
+  /**
+   * @return the startup consistency check's status
+   */
+  public StartupConsistencyCheck getStartupConsistencyCheck() {
+    return mStartupConsistencyCheck;
   }
 
   /**
@@ -125,11 +149,29 @@ public class AlluxioMasterInfo {
   }
 
   /**
+   * @param lostWorkers the list of lost workers to use
+   * @return the Alluxio master information
+   */
+  public AlluxioMasterInfo setLostWorkers(List<WorkerInfo> lostWorkers) {
+    mLostWorkers = lostWorkers;
+    return this;
+  }
+
+  /**
    * @param metrics the metrics to use
    * @return the Alluxio master information
    */
   public AlluxioMasterInfo setMetrics(Map<String, Long> metrics) {
     mMetrics = metrics;
+    return this;
+  }
+
+  /**
+   * @param mountPoints the mount points to use
+   * @return the Alluxio master information
+   */
+  public AlluxioMasterInfo setMountPoints(Map<String, MountPointInfo> mountPoints) {
+    mMountPoints = mountPoints;
     return this;
   }
 
@@ -148,6 +190,15 @@ public class AlluxioMasterInfo {
    */
   public AlluxioMasterInfo setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
+    return this;
+  }
+
+  /**
+   * @param check the consistency check
+   * @return the Alluxio master information
+   */
+  public AlluxioMasterInfo setStartupConsistencyCheck(StartupConsistencyCheck check) {
+    mStartupConsistencyCheck = check;
     return this;
   }
 
@@ -207,9 +258,12 @@ public class AlluxioMasterInfo {
     AlluxioMasterInfo that = (AlluxioMasterInfo) o;
     return Objects.equal(mCapacity, that.mCapacity)
         && Objects.equal(mConfiguration, that.mConfiguration)
+        && Objects.equal(mLostWorkers, that.mLostWorkers)
         && Objects.equal(mMetrics, that.mMetrics)
+        && Objects.equal(mMountPoints, that.mMountPoints)
         && Objects.equal(mRpcAddress, that.mRpcAddress)
         && mStartTimeMs == that.mStartTimeMs
+        && Objects.equal(mStartupConsistencyCheck, that.mStartupConsistencyCheck)
         && Objects.equal(mTierCapacity, that.mTierCapacity)
         && Objects.equal(mUfsCapacity, that.mUfsCapacity)
         && mUptimeMs == that.mUptimeMs
@@ -220,8 +274,9 @@ public class AlluxioMasterInfo {
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mCapacity, mConfiguration, mMetrics, mRpcAddress, mStartTimeMs, mTierCapacity,
-            mUfsCapacity, mUptimeMs, mVersion, mWorkers);
+        .hashCode(mCapacity, mConfiguration, mLostWorkers, mMetrics, mMountPoints, mRpcAddress,
+            mStartTimeMs, mStartupConsistencyCheck, mTierCapacity, mUfsCapacity, mUptimeMs,
+            mVersion, mWorkers);
   }
 
   @Override
@@ -229,13 +284,17 @@ public class AlluxioMasterInfo {
     return Objects.toStringHelper(this)
         .add("capacity", mCapacity)
         .add("configuration", mConfiguration)
+        .add("lost workers", mLostWorkers)
         .add("metrics", mMetrics)
+        .add("mount points", mMountPoints)
         .add("rpc address", mRpcAddress)
         .add("start time", mStartTimeMs)
+        .add("startup consistency check", mStartupConsistencyCheck)
         .add("tier capacity", mTierCapacity)
         .add("ufs capacity", mUfsCapacity)
         .add("uptime", mUptimeMs)
         .add("version", mVersion)
-        .add("workers", mWorkers).toString();
+        .add("workers", mWorkers)
+        .toString();
   }
 }

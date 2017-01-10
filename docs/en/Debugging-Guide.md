@@ -23,6 +23,22 @@ Workers, when you ran into any issues. If you do not understand the error messag
 try to search them in the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
 in case the problem has been discussed before.
 
+## Alluxio remote debug
+
+Usually, Alluxio does not run on the development environment, which makes it difficult to debug Alluxio. We locate problem's method is 'log-build-deploy-scanlog', the efficiency of the problem localization is low and need to modify the code and trigger new deployment, which is not allowed in some time.
+
+Java remote debugging technology can make it simple to debug Alluxio in source level without modify any source. You need to append the JVM remote debugging parameters and then start debugging server. There are several ways to append the remote debugging parameters, the most convenient way is to modify the `alluxio-env.sh`, add the following configuration properties.
+
+```properties
+ALLUXIO_MASTER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6600 $ALLUXIO_JAVA_OPTS"
+
+ALLUXIO_WORKER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6601 $ALLUXIO_JAVA_OPTS"
+
+ALLUXIO_PROXY_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6602 $ALLUXIO_JAVA_OPTS"
+```
+
+After start the master or worker, use eclipse or IntelliJ idea and other Java ide, new a java remote configuration, set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide will enter debug mode，you can read and write the current context's variables, call stack, thread list, expression evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend' and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
+
 ## Setup FAQ
 
 #### Q: I'm new to Alluxio and getting started. I failed to set up Alluxio on my local machine. What shall I do?

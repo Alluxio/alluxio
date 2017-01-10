@@ -42,6 +42,7 @@ public enum PreconditionMessage {
   ERR_SEEK_NEGATIVE("Seek position is negative: %s"),
   ERR_SEEK_PAST_END_OF_BLOCK("Seek position past end of block: %s"),
   ERR_SEEK_PAST_END_OF_FILE("Seek position past end of file: %s"),
+  ERR_SEEK_PAST_END_OF_REGION("Seek position past the end of the read region (block or file)."),
   ERR_SET_STATE_UNPERSIST("Cannot set the state of a file to not-persisted"),
   ERR_TIER_QUOTA_BLANK("Tier capacity configuration should not be blank"),
   ERR_UFS_MANAGER_OPERATION_INVALID_SESSION("Attempted to %s ufs file with invalid session id."),
@@ -63,7 +64,6 @@ public enum PreconditionMessage {
   REMOTE_CLIENT_BUT_LOCAL_HOSTNAME(
       "Acquire Remote Worker Client cannot not be called with local hostname"),
   S3_BUCKET_MUST_BE_SET("The %s system property must be set to use the S3UnderStorageCluster"),
-  TTL_ONLY_FOR_FILE("TTL can only be set for files"),
   URI_HOST_NULL("URI hostname must not be null"),
   URI_PORT_NULL("URI port must not be null"),
   URI_KEY_VALUE_STORE_NULL("URI of key-value store must not be null"),

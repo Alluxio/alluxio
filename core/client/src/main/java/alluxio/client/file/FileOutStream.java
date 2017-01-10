@@ -18,8 +18,10 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
+import alluxio.client.BoundedStream;
+import alluxio.client.Cancelable;
 import alluxio.client.UnderStorageType;
-import alluxio.client.block.BufferedBlockOutStream;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
@@ -67,6 +69,7 @@ public class FileOutStream extends AbstractOutStream {
   private final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
+  private final AlluxioBlockStore mBlockStore;
   private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
@@ -82,20 +85,22 @@ public class FileOutStream extends AbstractOutStream {
   private boolean mCanceled;
   private boolean mClosed;
   private boolean mShouldCacheCurrentBlock;
-  private BufferedBlockOutStream mCurrentBlockOutStream;
-  private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
+  private OutputStream mCurrentBlockOutStream;
+  private List<OutputStream> mPreviousBlockOutStreams;
 
   protected final AlluxioURI mUri;
 
   /**
    * Creates a new file output stream.
    *
+   * @param context the file system context
    * @param path the file path
    * @param options the client options
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
-    this(path, options, FileSystemContext.INSTANCE, UnderFileSystemFileOutStream.Factory.get());
+  public FileOutStream(FileSystemContext context, AlluxioURI path, OutStreamOptions options)
+      throws IOException {
+    this(path, options, context, UnderFileSystemFileOutStream.Factory.get());
   }
 
   /**
@@ -116,6 +121,7 @@ public class FileOutStream extends AbstractOutStream {
     mUnderStorageType = options.getUnderStorageType();
     mOptions = options;
     mContext = context;
+    mBlockStore = AlluxioBlockStore.create(mContext);
     mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
@@ -132,15 +138,17 @@ public class FileOutStream extends AbstractOutStream {
       } else {
         mUfsPath = options.getUfsPath();
         if (mUfsDelegation) {
-          mFileSystemWorkerClient = mCloser.register(mContext.createWorkerClient());
+          mFileSystemWorkerClient = mCloser.register(mContext.createFileSystemWorkerClient());
           Permission perm = options.getPermission();
           mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
               CreateUfsFileOptions.defaults().setPermission(perm));
           mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
-              .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
+              .create(mContext, mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
         } else {
           UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
           // TODO(jiri): Implement collection of temporary files left behind by dead clients.
+          // Parent directory creation in ufs is not required as FileSystemMaster will create any
+          // required directories as part of inode creation if sync persist = true
           CreateOptions createOptions =
               CreateOptions.defaults().setPermission(options.getPermission());
           mUnderStorageOutputStream = mCloser.register(ufs.create(mUfsPath, createOptions));
@@ -200,11 +208,11 @@ public class FileOutStream extends AbstractOutStream {
 
       if (mAlluxioStorageType.isStore()) {
         if (mCanceled) {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.cancel();
+          for (OutputStream bos : mPreviousBlockOutStreams) {
+            outStreamCancel(bos);
           }
         } else {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
+          for (OutputStream bos : mPreviousBlockOutStreams) {
             bos.close();
           }
         }
@@ -243,7 +251,7 @@ public class FileOutStream extends AbstractOutStream {
   public void write(int b) throws IOException {
     if (mShouldCacheCurrentBlock) {
       try {
-        if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
+        if (mCurrentBlockOutStream == null || outStreamRemaining() == 0) {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
@@ -276,10 +284,10 @@ public class FileOutStream extends AbstractOutStream {
         int tLen = len;
         int tOff = off;
         while (tLen > 0) {
-          if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
+          if (mCurrentBlockOutStream == null || outStreamRemaining() == 0) {
             getNextBlock();
           }
-          long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
+          long currentBlockLeftBytes = outStreamRemaining();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             tLen = 0;
@@ -303,14 +311,14 @@ public class FileOutStream extends AbstractOutStream {
 
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
-      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0,
-          PreconditionMessage.ERR_BLOCK_REMAINING);
+      Preconditions.checkState(outStreamRemaining() <= 0, PreconditionMessage.ERR_BLOCK_REMAINING);
+      mCurrentBlockOutStream.flush();
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
     if (mAlluxioStorageType.isStore()) {
       mCurrentBlockOutStream =
-          mContext.getAlluxioBlockStore().getOutStream(getNextBlockId(), mBlockSize, mOptions);
+          mBlockStore.getOutStream(getNextBlockId(), mBlockSize, mOptions);
       mShouldCacheCurrentBlock = true;
     }
   }
@@ -325,14 +333,14 @@ public class FileOutStream extends AbstractOutStream {
   }
 
   private void handleCacheWriteException(IOException e) throws IOException {
+    LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (!mUnderStorageType.isSyncPersist()) {
       throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
     }
 
-    LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
-      mCurrentBlockOutStream.cancel();
+      outStreamCancel(mCurrentBlockOutStream);
     }
   }
 
@@ -348,6 +356,24 @@ public class FileOutStream extends AbstractOutStream {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
+  }
+
+  /**
+   * @return the remaining bytes in the out stream
+   */
+  private long outStreamRemaining() {
+    assert mCurrentBlockOutStream instanceof BoundedStream;
+    return ((BoundedStream) mCurrentBlockOutStream).remaining();
+  }
+
+  /**
+   * Cancels the out stream.
+   *
+   * @throws IOException if it fails to cancel the out stream
+   */
+  private void outStreamCancel(OutputStream outputStream) throws IOException {
+    assert outputStream instanceof Cancelable;
+    ((Cancelable) outputStream).cancel();
   }
 
   /**

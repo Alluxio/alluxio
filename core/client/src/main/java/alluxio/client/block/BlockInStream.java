@@ -12,7 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.client.BoundedStream;
-import alluxio.client.Seekable;
+import alluxio.Seekable;
 
 import java.io.InputStream;
 

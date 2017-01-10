@@ -239,7 +239,8 @@ public interface UnderFileSystem {
   void connectFromWorker(String hostname) throws IOException;
 
   /**
-   * Creates a file in the under file system with the indicated name.
+   * Creates a file in the under file system with the indicated name. Parents directories will be
+   * created recursively.
    *
    * @param path the file name
    * @return A {@code OutputStream} object
@@ -488,7 +489,7 @@ public interface UnderFileSystem {
   boolean mkdirs(String path, MkdirsOptions options) throws IOException;
 
   /**
-   * Opens an {@link InputStream} at the indicated path.
+   * Opens an {@link UnderFileInputStream} at the indicated path.
    *
    * @param path the file name
    * @return The {@code InputStream} object
@@ -497,7 +498,7 @@ public interface UnderFileSystem {
   InputStream open(String path) throws IOException;
 
   /**
-   * Opens an {@link InputStream} at the indicated path.
+   * Opens an {@link UnderFileInputStream} at the indicated path.
    *
    * @param path the file name
    * @param options to open input stream

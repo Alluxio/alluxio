@@ -24,6 +24,13 @@ alluxio.user.file.buffer.bytes:
   The size of the file buffer to use for file system reads/writes.
 alluxio.user.file.master.client.threads:
   The number of threads used by a file master client to talk to the file master.
+alluxio.user.file.readtype.default:
+  Default read type when creating Alluxio files.
+  Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage,
+  write data into highest tier of local Alluxio if data needs to be read from under storage),
+  `CACHE` (write data into highest tier of local Alluxio if data needs to be read from under
+  storage), `NO_CACHE` (no data interaction with Alluxio, if the read is from Alluxio data
+  migration or eviction will not occur).
 alluxio.user.file.waitcompleted.poll.ms:
   The time interval to poll a file for its completion status when using waitCompleted.
 alluxio.user.file.worker.client.threads:
@@ -33,13 +40,13 @@ alluxio.user.file.write.location.policy.class:
 alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes:
   The portion of space reserved in worker when user use the LocalFirstAvoidEvictionPolicy class
   as file write location policy, default 0 MB.
-alluxio.user.file.readtype.default:
-  Default read type when creating Alluxio files.
-  Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage,
-  write data into highest tier of local Alluxio if data needs to be read from under storage),
-  `CACHE` (write data into highest tier of local Alluxio if data needs to be read from under
-  storage), `NO_CACHE` (no data interaction with Alluxio, if the read is from Alluxio data
-  migration or eviction will not occur).
+alluxio.user.file.write.tier.default:
+  The default tier for choosing a where to write a block. Valid option is any integer. Non-negative
+  values identify tiers starting from top going down (0 identifies the first tier, 1 identifies the
+  second tier, and so on). If the provided value is greater than the number of tiers, it identifies
+  the last tier. Negative values identify tiers starting from the bottom going up (-1 identifies the
+  last tier, -2 identifies the second to last tier, and so on). If the absolute value of the
+  provided value is greater than the number of tiers, it identifies the first tier.
 alluxio.user.file.writetype.default:
   Default write type when creating Alluxio files.
   Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio),
@@ -88,3 +95,6 @@ alluxio.user.ufs.file.writer.class:
   Selects networking stack to run the client with for writing to under file system through a
   worker's data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileWriter`
   (remote write using netty) is valid.
+alluxio.user.packet.streaming.enabled:
+  If set to true, the packet streaming data transfer protocol is used. Packet streaming is an experimental feature. It
+  provides a more efficient data transfer mechanism.

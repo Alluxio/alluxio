@@ -17,23 +17,25 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ClientContext;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -49,6 +51,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.security.auth.Subject;
 
 /**
  * Unit tests for {@link AbstractFileSystem}.
@@ -67,12 +71,20 @@ import java.util.List;
 public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private FileSystemContext mMockFileSystemContext;
+  private FileSystemContext mMockFileSystemContextCustomized;
+  private FileSystemMasterClient mMockFileSystemMasterClient;
+
+  @Rule
+  public ExpectedException mExpectedException = ExpectedException.none();
+
   /**
    * Sets up the configuration before a test runs.
    */
   @Before
   public void before() throws Exception {
-    mockUserGroupInformation();
+    mockFileSystemContextAndMasterClient();
+    mockUserGroupInformation("");
 
     if (HadoopClientTestUtils.isHadoop1x()) {
       LOG.debug("Running Alluxio FS tests against hadoop 1x");
@@ -133,19 +145,13 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void resetContext() throws Exception {
-    FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", fileSystemContext);
-
     // Change to otherhost:410
     URI uri = URI.create(Constants.HEADER + "otherhost:410/");
-    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+    org.apache.hadoop.fs.FileSystem fileSystem =
+        org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
     // Make sure all contexts are using the new address
     InetSocketAddress newAddress = new InetSocketAddress("otherhost", 410);
-    Assert.assertEquals(newAddress, ClientContext.getMasterAddress());
-    Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(BlockStoreContext.get(),
-        "mBlockMasterClientPool", "mMasterAddress"));
-    Mockito.verify(fileSystemContext).reset();
     Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(LineageContext.INSTANCE,
         "mLineageMasterClientPool", "mMasterAddress"));
   }
@@ -156,17 +162,15 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void concurrentInitialize() throws Exception {
-    FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", fileSystemContext);
-
     List<Thread> threads = new ArrayList<>();
     final org.apache.hadoop.conf.Configuration conf = getConf();
+    Mockito.when(mMockFileSystemContext.getMasterAddress())
+        .thenReturn(new InetSocketAddress("randomhost", 410));
     for (int i = 0; i < 100; i++) {
-      final int id = i;
       Thread t = new Thread(new Runnable() {
         @Override
         public void run() {
-          URI uri = URI.create(Constants.HEADER + "randomhost" + id + ":410/");
+          URI uri = URI.create(Constants.HEADER + "randomhost:410/");
           try {
             org.apache.hadoop.fs.FileSystem.get(uri, conf);
           } catch (IOException e) {
@@ -182,7 +186,51 @@ public class AbstractFileSystemTest {
     for (Thread t : threads) {
       t.join();
     }
-    Mockito.verify(fileSystemContext).reset();
+  }
+
+  /**
+   * Tests that failing to connect to Alluxio master causes initialization failure.
+   */
+  @Test
+  public void initializeFailToConnect() throws Exception {
+    Mockito.doThrow(ConnectionFailedException.class)
+        .when(mMockFileSystemMasterClient).connect();
+
+    mExpectedException.expect(IOException.class);
+    mExpectedException.expectCause(IsInstanceOf.any(ConnectionFailedException.class));
+
+    URI uri = URI.create(Constants.HEADER + "randomhost:400/");
+    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+    // The above code should throw an exception.
+    Assert.fail("Initialization should throw an exception.");
+  }
+
+  /**
+   * Tests that after initialization, reinitialize with a different URI should fail.
+   */
+  @Test
+  public void reinitializeWithDifferentURI() throws Exception {
+    final org.apache.hadoop.conf.Configuration conf = getConf();
+    String originalURI = "host1:1";
+    URI uri = URI.create(Constants.HEADER + originalURI);
+    org.apache.hadoop.fs.FileSystem.get(uri, conf);
+
+    Mockito.when(mMockFileSystemContext.getMasterAddress())
+        .thenReturn(new InetSocketAddress("host1", 1));
+
+    String[] newURIs = new String[]{"host2:1", "host1:2", "host2:2"};
+    for (String newURI : newURIs) {
+      // mExpectedException.expect(IOException.class);
+      // mExpectedException.expectMessage(ExceptionMessage.DIFFERENT_MASTER_ADDRESS
+      //    .getMessage(newURI, originalURI));
+
+      uri = URI.create(Constants.HEADER + newURI);
+      org.apache.hadoop.fs.FileSystem.get(uri, conf);
+
+      // The above code should not throw an exception.
+      // TODO(cc): Remove or bring this check back.
+      // Assert.fail("Initialization should throw an exception.");
+    }
   }
 
   /**
@@ -210,8 +258,6 @@ public class AbstractFileSystemTest {
     Mockito.when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
-    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
-    alluxioHadoopFs.initialize(uri, getConf());
 
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
@@ -233,11 +279,29 @@ public class AbstractFileSystemTest {
     Mockito.when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(new URIStatus(fileInfo));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
-    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
-    alluxioHadoopFs.initialize(uri, getConf());
 
     FileStatus fileStatus = alluxioHadoopFs.getFileStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo, fileStatus);
+  }
+
+  @Test
+  public void initializeWithCustomizedUgi() throws Exception {
+    mockUserGroupInformation("testuser");
+
+    final org.apache.hadoop.conf.Configuration conf = getConf();
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    // FileSystem.get would have thrown an exception if the initialization failed.
+  }
+
+  @Test
+  public void initializeWithFullPrincipalUgi() throws Exception {
+    mockUserGroupInformation("testuser@ALLUXIO.COM");
+
+    final org.apache.hadoop.conf.Configuration conf = getConf();
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    // FileSystem.get would have thrown an exception if the initialization failed.
   }
 
   private org.apache.hadoop.conf.Configuration getConf() throws Exception {
@@ -248,11 +312,30 @@ public class AbstractFileSystemTest {
     return conf;
   }
 
-  private void mockUserGroupInformation() throws IOException {
+  private void mockFileSystemContextAndMasterClient() throws Exception {
+    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystemContextCustomized = PowerMockito.mock(FileSystemContext.class);
+    PowerMockito.mockStatic(FileSystemContext.class);
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mMockFileSystemContext);
+    PowerMockito.when(FileSystemContext.create(Mockito.any(Subject.class)))
+        .thenReturn(mMockFileSystemContextCustomized);
+    mMockFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
+    Mockito.when(mMockFileSystemContext.acquireMasterClient())
+        .thenReturn(mMockFileSystemMasterClient);
+    Mockito.when(mMockFileSystemContextCustomized.acquireMasterClient())
+        .thenReturn(mMockFileSystemMasterClient);
+    Mockito.doNothing().when(mMockFileSystemMasterClient).connect();
+    Mockito.when(mMockFileSystemContext.getMasterAddress())
+        .thenReturn(new InetSocketAddress("defaultHost", 1));
+  }
+
+  private void mockUserGroupInformation(String username) throws IOException {
     // need to mock out since FileSystem.get calls UGI, which some times has issues on some systems
     PowerMockito.mockStatic(UserGroupInformation.class);
     final UserGroupInformation ugi = Mockito.mock(UserGroupInformation.class);
     Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
+    Mockito.when(ugi.getUserName()).thenReturn(username);
+    Mockito.when(ugi.getShortUserName()).thenReturn(username.split("@")[0]);
   }
 
   private void assertFileInfoEqualsFileStatus(FileInfo info, FileStatus status) {
