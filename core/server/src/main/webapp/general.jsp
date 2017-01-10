@@ -121,14 +121,14 @@
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
-            <h4>Inconsistent Files</h4>
+            <h4>Inconsistent Files Details</h4>
           </a>
         </div>
         <div id="data4" class="accordion-body collapse in">
           <div class="accordion-inner">
             <table class="table table-hover table-condensed">
               <thead>
-                <th>Path List </th>
+                <th> <font color="red">On Startup, <%= request.getAttribute("inconsistentPaths") %> inconsistent files were fount. The following files may be corrupted: </font></th>
               </thead>
               <tbody>
                 <% List array = (List) request.getAttribute("inconsistentPathItems");
