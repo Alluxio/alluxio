@@ -2252,18 +2252,47 @@ public final class FileSystemMaster extends AbstractMaster {
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException,
       AccessControlException, IOException {
+    return loadMetadataAndJournalInternal(inodePath, options, LoadMetadataStatus.UNKNOWN);
+  }
+
+  /**
+   * Internal implementation for
+   * {@link #loadMetadataAndJournal(LockedInodePath, LoadMetadataOptions)}.
+   *
+   * @param inodePath the path for which metadata should be loaded
+   * @param options the load metadata options
+   * @param loadMetadataStatus status of path in UFS if known
+   * @return the flush counter for journaling
+   * @throws InvalidPathException if invalid path is encountered
+   * @throws FileDoesNotExistException if there is no UFS path
+   * @throws BlockInfoException if an invalid block size is encountered
+   * @throws FileAlreadyCompletedException if the file is already completed
+   * @throws InvalidFileSizeException if invalid file size is encountered
+   * @throws AccessControlException if permission checking fails
+   * @throws IOException if an I/O error occurs
+   */
+  private long loadMetadataAndJournalInternal(LockedInodePath inodePath,
+      LoadMetadataOptions options, LoadMetadataStatus loadMetadataStatus)
+      throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
+      FileAlreadyCompletedException, InvalidFileSizeException, AccessControlException, IOException {
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     try {
-      if (!ufs.exists(ufsUri.toString())) {
+      if (loadMetadataStatus == LoadMetadataStatus.UNKNOWN && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
         inode.setDirectChildrenLoaded(true);
         return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
       }
-      if (ufs.isFile(ufsUri.toString())) {
+      boolean isFile;
+      if (loadMetadataStatus != LoadMetadataStatus.UNKNOWN) {
+        isFile = loadMetadataStatus == LoadMetadataStatus.FILE;
+      } else {
+        isFile = ufs.isFile(ufsUri.toString());
+      }
+      if (isFile) {
         return loadFileMetadataAndJournal(inodePath, resolution, options);
       } else {
         long counter = loadDirectoryMetadataAndJournal(inodePath, options);
@@ -2279,9 +2308,11 @@ public final class FileSystemMaster extends AbstractMaster {
                 || inode.getChild(file.getName()) != null) {
               continue;
             }
+            LoadMetadataStatus ufsStatus =
+                file.isFile() ? LoadMetadataStatus.FILE : LoadMetadataStatus.DIRECTORY;
             TempInodePathForChild tempInodePath =
                 new TempInodePathForChild(inodePath, file.getName());
-            counter = loadMetadataAndJournal(tempInodePath, loadMetadataOptions);
+            counter = loadMetadataAndJournalInternal(tempInodePath, loadMetadataOptions, ufsStatus);
           }
           inode.setDirectChildrenLoaded(true);
         }
@@ -2291,6 +2322,13 @@ public final class FileSystemMaster extends AbstractMaster {
       LOG.error(ExceptionUtils.getStackTrace(e));
       throw e;
     }
+  }
+
+  /**
+   * Status of UFS path for which loading metadata.
+   */
+  public enum LoadMetadataStatus {
+    UNKNOWN, FILE, DIRECTORY
   }
 
   /**
