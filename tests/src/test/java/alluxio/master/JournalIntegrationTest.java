@@ -43,6 +43,7 @@ import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -502,7 +503,7 @@ public class JournalIntegrationTest {
             return false;
           }
         }
-      }, 60 * Constants.SECOND_MS);
+      }, WaitForOptions.defaults().setTimeout(60 * Constants.SECOND_MS));
     } finally {
       fsMaster.stop();
     }
