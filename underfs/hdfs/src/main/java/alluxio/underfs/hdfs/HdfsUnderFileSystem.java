@@ -430,8 +430,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public void setOwner(String path, String user, String group) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
-      LOG.debug("Changing file '{}' user from: {} to {}, group from: {} to {}", fileStatus.getPath(),
-          fileStatus.getOwner(), user, fileStatus.getGroup(), group);
+      LOG.debug("Changing file '{}' user from: {} to {}, group from: {} to {}",
+          fileStatus.getPath(), fileStatus.getOwner(), user, fileStatus.getGroup(), group);
       mFileSystem.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
       LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group, e);
