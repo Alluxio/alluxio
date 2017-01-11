@@ -11,8 +11,12 @@
 
 package alluxio.underfs.oss;
 
+import alluxio.underfs.MultiRangeObjectInputStream;
+
 import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
+import com.aliyun.oss.model.ObjectMetadata;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -25,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * buffer.
  */
 @NotThreadSafe
-public class OSSInputStream extends InputStream {
+public class OSSInputStream extends MultiRangeObjectInputStream {
 
   /** Bucket name of the Alluxio OSS bucket. */
   private final String mBucketName;
@@ -36,11 +40,8 @@ public class OSSInputStream extends InputStream {
   /** The OSS client for OSS operations. */
   private final OSSClient mOssClient;
 
-  /** The storage object that will be updated on each large skip. */
-  private final OSSObject mObject;
-
-  /** The underlying input stream. */
-  private final BufferedInputStream mInputStream;
+  /** The size of the object in bytes. */
+  private final long mContentLength;
 
   /**
    * Creates a new instance of {@link OSSInputStream}.
@@ -51,33 +52,34 @@ public class OSSInputStream extends InputStream {
    * @throws IOException if an I/O error occurs
    */
   OSSInputStream(String bucketName, String key, OSSClient client) throws IOException {
+    this(bucketName, key, client, 0L);
+  }
+
+  /**
+   * Creates a new instance of {@link OSSInputStream}.
+   *
+   * @param bucketName the name of the bucket
+   * @param key the key of the file
+   * @param client the client for OSS
+   * @param position the position to begin reading from
+   * @throws IOException if an I/O error occurs
+   */
+  OSSInputStream(String bucketName, String key, OSSClient client, long position)
+      throws IOException {
     mBucketName = bucketName;
     mKey = key;
     mOssClient = client;
-    mObject = mOssClient.getObject(mBucketName, mKey);
-    mInputStream = new BufferedInputStream(mObject.getObjectContent());
+    mPos = position;
+    ObjectMetadata meta = mOssClient.getObjectMetadata(mBucketName, key);
+    mContentLength = meta == null ? 0 : meta.getContentLength();
   }
 
   @Override
-  public void close() throws IOException {
-    mInputStream.close();
-  }
-
-  @Override
-  public int read() throws IOException {
-    return mInputStream.read();
-  }
-
-  @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    return mInputStream.read(b, off, len);
-  }
-
-  @Override
-  public long skip(long n) throws IOException {
-    // TODO(luoli523) currently, the oss sdk doesn't support get the oss Object in a
-    // special position of the stream. It will support this feature in the future.
-    // Now we just read n bytes and discard to skip.
-    return super.skip(n);
+  protected InputStream createStream(long startPos, long endPos) throws IOException {
+    GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
+    // OSS returns entire object if we read past the end
+    req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
+    OSSObject ossObject = mOssClient.getObject(req);
+    return new BufferedInputStream(ossObject.getObjectContent());
   }
 }

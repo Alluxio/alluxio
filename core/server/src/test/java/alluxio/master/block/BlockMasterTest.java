@@ -16,8 +16,7 @@ import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.util.ThreadFactoryUtils;
@@ -42,7 +41,6 @@ import org.junit.rules.TemporaryFolder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -79,11 +77,12 @@ public class BlockMasterTest {
    */
   @Before
   public void before() throws Exception {
-    Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
+    JournalFactory journalFactory =
+        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mMaster = new BlockMaster(blockJournal, mClock,
+    mMaster = new BlockMaster(journalFactory, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mMaster.start(true);
   }
@@ -137,7 +136,7 @@ public class BlockMasterTest {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
 
     // Make sure the worker is detected as lost.
-    Set<WorkerInfo> info = mMaster.getLostWorkersInfo();
+    List<WorkerInfo> info = mMaster.getLostWorkersInfoList();
     Assert.assertEquals(worker1, Iterables.getOnlyElement(info).getId());
   }
 
@@ -167,7 +166,7 @@ public class BlockMasterTest {
 
     // Check that there are no longer any lost workers and there is a live worker.
     Assert.assertEquals(1, mMaster.getWorkerCount());
-    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
+    Assert.assertEquals(0, mMaster.getLostWorkersInfoList().size());
   }
 
   @Test
@@ -252,11 +251,6 @@ public class BlockMasterTest {
   public void stopTerminatesExecutorService() throws Exception {
     mMaster.stop();
     Assert.assertTrue(mExecutorService.isTerminated());
-  }
-
-  @Test
-  public void getJournalDirectory() {
-    Assert.assertEquals("/base/BlockMaster", BlockMaster.getJournalDirectory("/base"));
   }
 
   @Test

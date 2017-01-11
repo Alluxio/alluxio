@@ -23,7 +23,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 
@@ -44,8 +43,6 @@ public final class InodeFile extends Inode<InodeFile> {
   private boolean mCacheable;
   private boolean mCompleted;
   private long mLength;
-  private long mTtl;
-  private TtlAction mTtlAction;
 
   /**
    * Creates a new instance of {@link InodeFile}.
@@ -60,8 +57,6 @@ public final class InodeFile extends Inode<InodeFile> {
     mCacheable = false;
     mCompleted = false;
     mLength = 0;
-    mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.DELETE;
   }
 
   @Override
@@ -218,24 +213,6 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
-   * @param ttl the TTL to use, in milliseconds
-   * @return the updated object
-   */
-  public InodeFile setTtl(long ttl) {
-    mTtl = ttl;
-    return getThis();
-  }
-
-  /**
-   * @param ttlAction the {@link TtlAction} to use
-   * @return the updated options object
-   */
-  public InodeFile setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
-    return getThis();
-  }
-
-  /**
    * Completes the file. Cannot set the length if the file is already completed. However, an unknown
    * file size, {@link Constants#UNKNOWN_SIZE}, is valid. Cannot complete an already complete file,
    * unless the completed length was previously {@link Constants#UNKNOWN_SIZE}.
@@ -276,9 +253,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("cacheable", mCacheable)
         .add("completed", mCompleted)
-        .add("length", mLength)
-        .add("ttl", mTtl)
-        .add("ttlAction", mTtlAction).toString();
+        .add("length", mLength).toString();
   }
 
   /**
@@ -298,7 +273,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setCacheable(entry.getCacheable())
         .setCompleted(entry.getCompleted())
         .setCreationTimeMs(entry.getCreationTimeMs())
-        .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+        .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
         .setLength(entry.getLength())
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
@@ -358,20 +333,6 @@ public final class InodeFile extends Inode<InodeFile> {
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction())).build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
-  }
-
-  /**
-   * @return the ttl of the file
-   */
-  public long getTtl() {
-    return mTtl;
-  }
-
-  /**
-   * @return the {@link TtlAction}
-   */
-  public TtlAction getTtlAction() {
-    return mTtlAction;
   }
 
 }

@@ -16,7 +16,6 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -61,9 +60,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** File to set customized properties for Alluxio server (both master and worker) and client. */
-  private static final String SITE_PROPERTIES = "alluxio-site.properties";
-
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution. */
@@ -72,26 +68,20 @@ public final class Configuration {
   private static final ConcurrentHashMapV8<String, String> PROPERTIES =
       new ConcurrentHashMapV8<>();
 
+  /** File to set customized properties for Alluxio server (both master and worker) and client. */
+  public static final String SITE_PROPERTIES = "alluxio-site.properties";
+
   static {
     defaultInit();
   }
 
   /**
-   * The default configuration.
-   */
-  public static void defaultInit() {
-    init(SITE_PROPERTIES);
-  }
-
-  /**
-   * Initializes the {@link Configuration} class with Alluxio configuration properties.
+   * Initializes the default {@link Configuration}.
    *
    * The order of preference is (1) system properties, (2) properties in the specified file, (3)
    * default property values.
-   *
-   * @param sitePropertiesFile path to a file containing site-wide Alluxio properties
    */
-  public static void init(String sitePropertiesFile) {
+  public static void defaultInit() {
     // Load default
     Properties defaultProps = new Properties();
     for (PropertyKey key : PropertyKey.values()) {
@@ -101,25 +91,10 @@ public final class Configuration {
       }
     }
     // Override runtime default
-    defaultProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(),
-        NetworkAddressUtils.getLocalHostName(250));
     defaultProps.setProperty(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL.toString(),
         String.valueOf(ChannelType.defaultType()));
     defaultProps.setProperty(PropertyKey.USER_NETWORK_NETTY_CHANNEL.toString(),
         String.valueOf(ChannelType.defaultType()));
-
-    String confPaths;
-    // If site conf is overwritten in system properties, overwrite the default setting
-    if (System.getProperty(PropertyKey.SITE_CONF_DIR.toString()) != null) {
-      confPaths = System.getProperty(PropertyKey.SITE_CONF_DIR.toString());
-    } else {
-      confPaths = defaultProps.getProperty(PropertyKey.SITE_CONF_DIR.toString());
-    }
-    String[] confPathList = confPaths.split(",");
-
-    // Load site specific properties file
-    Properties siteProps = ConfigurationUtils
-        .searchPropertiesFile(sitePropertiesFile, confPathList);
 
     // Load system properties
     Properties systemProps = new Properties();
@@ -128,17 +103,31 @@ public final class Configuration {
     // Now lets combine, order matters here
     PROPERTIES.clear();
     merge(defaultProps);
-    if (siteProps != null) {
-      merge(siteProps);
-    }
     merge(systemProps);
 
-    String masterHostname = get(PropertyKey.MASTER_HOSTNAME);
-    String masterPort = get(PropertyKey.MASTER_RPC_PORT);
-    boolean useZk = Boolean.parseBoolean(get(PropertyKey.ZOOKEEPER_ENABLED));
-    String masterAddress =
-        (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-    set(PropertyKey.MASTER_ADDRESS, masterAddress);
+    // Load site specific properties file if not in test mode. Note that we decide whether in test
+    // mode by default properties and system properties (via getBoolean). If it is not in test mode
+    // the PROPERTIES will be updated again.
+    if (!getBoolean(PropertyKey.TEST_MODE)) {
+      String confPaths = get(PropertyKey.SITE_CONF_DIR);
+      String[] confPathList = confPaths.split(",");
+      Properties siteProps = ConfigurationUtils.searchPropertiesFile(SITE_PROPERTIES, confPathList);
+      // Update site properties and system properties in order
+      if (siteProps != null) {
+        merge(siteProps);
+        merge(systemProps);
+      }
+    }
+
+    // TODO(andrew): get rid of the MASTER_ADDRESS property key
+    if (containsKey(PropertyKey.MASTER_HOSTNAME)) {
+      String masterHostname = get(PropertyKey.MASTER_HOSTNAME);
+      String masterPort = get(PropertyKey.MASTER_RPC_PORT);
+      boolean useZk = Boolean.parseBoolean(get(PropertyKey.ZOOKEEPER_ENABLED));
+      String masterAddress =
+          (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
+      set(PropertyKey.MASTER_ADDRESS, masterAddress);
+    }
     checkUserFileBufferBytes();
 
     // Make sure the user hasn't set worker ports when there may be multiple workers per host
@@ -156,6 +145,8 @@ public final class Configuration {
       set(PropertyKey.WORKER_RPC_PORT, "0");
       set(PropertyKey.WORKER_WEB_PORT, "0");
     }
+
+    Preconditions.checkState(validate());
   }
 
   /**
@@ -446,4 +437,21 @@ public final class Configuration {
   }
 
   private Configuration() {} // prevent instantiation
+
+  /**
+   * Validates the configurations.
+   *
+   * @return true if the validation succeeds, false otherwise
+   */
+  public static boolean validate() {
+    boolean valid = true;
+    for (Map.Entry<String, String> entry : toMap().entrySet()) {
+      String propertyName = entry.getKey();
+      if (!PropertyKey.isValid(propertyName)) {
+        LOG.error("Unsupported property " + propertyName);
+        valid = false;
+      }
+    }
+    return valid;
+  }
 }

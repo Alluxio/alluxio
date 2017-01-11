@@ -32,9 +32,8 @@ import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalProtoUtils;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
 import alluxio.master.lineage.checkpoint.CheckpointSchedulingExecutor;
 import alluxio.master.lineage.meta.Lineage;
@@ -45,19 +44,15 @@ import alluxio.master.lineage.recompute.RecomputeExecutor;
 import alluxio.master.lineage.recompute.RecomputePlanner;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
-import alluxio.proto.journal.Lineage.LineageEntry;
-import alluxio.proto.journal.Lineage.LineageIdGeneratorEntry;
 import alluxio.thrift.LineageMasterClientService;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.Message;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,21 +78,13 @@ public final class LineageMaster extends AbstractMaster {
   private final LineageIdGenerator mLineageIdGenerator;
 
   /**
-   * @param baseDirectory the base journal directory
-   * @return the journal directory for this master
-   */
-  public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_NAME);
-  }
-
-  /**
    * Creates a new instance of {@link LineageMaster}.
    *
    * @param fileSystemMaster the file system master
-   * @param journal the journal
+   * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    this(fileSystemMaster, journal, ExecutorServiceFactories
+  public LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory) {
+    this(fileSystemMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
 
@@ -105,13 +92,14 @@ public final class LineageMaster extends AbstractMaster {
    * Creates a new instance of {@link LineageMaster}.
    *
    * @param fileSystemMaster the file system master
-   * @param journal the journal
-   * @param executorServiceFactory a factory for creating the executor service to use for
-   *        running maintenance threads
+   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param executorServiceFactory a factory for creating the executor service to use for running
+   *        maintenance threads
    */
-  public LineageMaster(FileSystemMaster fileSystemMaster,
-      Journal journal, ExecutorServiceFactory executorServiceFactory) {
-    super(journal, new SystemClock(), executorServiceFactory);
+  public LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
+      ExecutorServiceFactory executorServiceFactory) {
+    super(journalFactory.get(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
+        executorServiceFactory);
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();
@@ -133,15 +121,14 @@ public final class LineageMaster extends AbstractMaster {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    Message innerEntry = JournalProtoUtils.unwrap(entry);
-    if (innerEntry instanceof LineageEntry) {
-      mLineageStore.addLineageFromJournal((LineageEntry) innerEntry);
-    } else if (innerEntry instanceof LineageIdGeneratorEntry) {
-      mLineageIdGenerator.initFromJournalEntry((LineageIdGeneratorEntry) innerEntry);
-    } else if (innerEntry instanceof DeleteLineageEntry) {
-      deleteLineageFromEntry((DeleteLineageEntry) innerEntry);
+    if (entry.hasLineage()) {
+      mLineageStore.addLineageFromJournal(entry.getLineage());
+    } else if (entry.hasLineageIdGenerator()) {
+      mLineageIdGenerator.initFromJournalEntry(entry.getLineageIdGenerator());
+    } else if (entry.hasDeleteLineage()) {
+      deleteLineageFromEntry(entry.getDeleteLineage());
     } else {
-      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
   }
 

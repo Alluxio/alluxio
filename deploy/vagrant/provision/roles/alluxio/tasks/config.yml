@@ -35,6 +35,8 @@
 
 - name: set usezookeeper and zookeeper address if number of masters is larger than 1
   script: zookeeper.sh
+  environment:
+    ALLUXIO_VERSION_LESSTHAN_0_8: "{{ alluxio_version_lessthan_0_8 }}"
   when: alluxio_masters > 1
 
 - name: set journal folder as a shared folder in underfs for fault tolerance

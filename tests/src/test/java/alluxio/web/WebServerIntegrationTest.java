@@ -49,7 +49,8 @@ public class WebServerIntegrationTest {
       throws IOException {
     int port;
     if (serviceType == ServiceType.MASTER_WEB) {
-      port = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getWebLocalPort();
+      port = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getWebAddress()
+          .getPort();
     } else {
       port = mLocalAlluxioClusterResource.get().getWorker().getWebLocalPort();
     }

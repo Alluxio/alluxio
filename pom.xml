@@ -142,27 +142,29 @@
   <properties>
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
     <aws.amazonaws.version>1.11.7</aws.amazonaws.version>
+    <build.path>build</build.path>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
     <findbugs.path>build/findbugs</findbugs.path>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
+    <gmetric4j.version>1.0.7</gmetric4j.version>
     <hadoop.version>2.2.0</hadoop.version>
+    <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
+    <jackson.version>1.9.7</jackson.version>
     <java.version>1.7</java.version>
     <jersey.version>2.22</jersey.version>
     <jetty.version>9.2.16.v20160414</jetty.version>
     <junit.version>4.12</junit.version>
     <libthrift.version>0.9.3</libthrift.version>
     <license.header.path>build/license/</license.header.path>
-    <build.path>build</build.path>
     <log4j.version>1.2.17</log4j.version>
     <metrics.version>3.1.2</metrics.version>
-    <gmetric4j.version>1.0.7</gmetric4j.version>
     <powermock.version>1.6.1</powermock.version>
+    <protobuf.version>2.5.0</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
-    <test.output.redirect>true</test.output.redirect>
-    <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
+    <test.output.redirect>true</test.output.redirect>
   </properties>
 
   <modules>
@@ -186,6 +188,11 @@
         <version>14.0.1</version>
       </dependency>
       <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>${protobuf.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>3.4</version>
@@ -194,6 +201,11 @@
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
         <version>1.10</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
+        <version>4.0.29.Final</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>
@@ -391,6 +403,9 @@
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
             <runOrder>alphabetical</runOrder>
+            <systemPropertyVariables>
+              <alluxio.test.mode>true</alluxio.test.mode>
+            </systemPropertyVariables>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>

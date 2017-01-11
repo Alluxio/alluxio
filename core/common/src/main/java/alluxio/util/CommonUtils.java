@@ -105,7 +105,7 @@ public final class CommonUtils {
    * @param length the length
    * @return a random string
    */
-  public static String randomString(int length) {
+  public static String randomAlphaNumString(int length) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < length; i++) {
       sb.append(ALPHANUM.charAt(RANDOM.nextInt(ALPHANUM.length())));
@@ -215,31 +215,32 @@ public final class CommonUtils {
   }
 
   /**
-   * Waits for a condition to be satisfied until a timeout occurs.
-   *
-   * @param description a description of what causes condition to evaluation to true
-   * @param condition the condition to wait on
-   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
-   */
-  public static void waitFor(String description, Function<Void, Boolean> condition, int timeoutMs) {
-    long start = System.currentTimeMillis();
-    while (!condition.apply(null)) {
-      if (System.currentTimeMillis() - start > timeoutMs) {
-        throw new RuntimeException("Timed out waiting for " + description);
-      }
-      CommonUtils.sleepMs(20);
-    }
-  }
-
-  /**
-   * Waits indefinitely for a condition to be satisfied.
+   * Waits for a condition to be satisfied.
    *
    * @param description a description of what causes condition to evaluation to true
    * @param condition the condition to wait on
    */
   public static void waitFor(String description, Function<Void, Boolean> condition) {
+    waitFor(description, condition, WaitForOptions.defaults());
+  }
+
+  /**
+   * Waits for a condition to be satisfied.
+   *
+   * @param description a description of what causes condition to evaluation to true
+   * @param condition the condition to wait on
+   * @param options the options to use
+   */
+  public static void waitFor(String description, Function<Void, Boolean> condition,
+      WaitForOptions options) {
+    long start = System.currentTimeMillis();
+    int interval = options.getInterval();
+    int timeout = options.getTimeout();
     while (!condition.apply(null)) {
-      CommonUtils.sleepMs(20);
+      if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
+        throw new RuntimeException("Timed out waiting for " + description);
+      }
+      CommonUtils.sleepMs(interval);
     }
   }
 
@@ -299,20 +300,6 @@ public final class CommonUtils {
   }
 
   /**
-   * Returns whether the given ufs address indicates a object storage ufs.
-   * @param ufsAddress the ufs address
-   * @return true if the under file system is a object storage; false otherwise
-   */
-  public static boolean isUfsObjectStorage(String ufsAddress) {
-    return ufsAddress.startsWith(Constants.HEADER_S3)
-        || ufsAddress.startsWith(Constants.HEADER_S3N)
-        || ufsAddress.startsWith(Constants.HEADER_S3A)
-        || ufsAddress.startsWith(Constants.HEADER_GCS)
-        || ufsAddress.startsWith(Constants.HEADER_SWIFT)
-        || ufsAddress.startsWith(Constants.HEADER_OSS);
-  }
-
-  /**
    * Gets the value with a given key from a static key/value mapping in string format. E.g. with
    * mapping "id1=user1;id2=user2", it returns "user1" with key "id1". It returns null if the given
    * key does not exist in the mapping.
@@ -328,6 +315,19 @@ public final class CommonUtils {
         .withKeyValueSeparator("=")
         .split(mapping);
     return m.get(key);
+  }
+
+  /**
+   * Gets the root cause of an exception.
+   *
+   * @param e the exception
+   * @return the root cause
+   */
+  public static Throwable getRootCause(Throwable e) {
+    while (e.getCause() != null) {
+      e = e.getCause();
+    }
+    return e;
   }
 
   private CommonUtils() {} // prevent instantiation

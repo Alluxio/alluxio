@@ -53,7 +53,7 @@ public class GlusterFSUnderFileSystemFactoryTest {
     Assume.assumeTrue(!StringUtils.isEmpty(mMount));
     Assume.assumeTrue(!StringUtils.isEmpty(mVolume));
 
-    UnderFileSystem gfs = UnderFileSystem.get("glusterfs:///");
+    UnderFileSystem gfs = UnderFileSystem.Factory.get("glusterfs:///");
     Assert.assertNotNull(gfs.create("alluxio_test"));
   }
 

@@ -12,6 +12,7 @@
 package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.options.DeleteOptions;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -38,7 +39,6 @@ public class S3AUnderFileSystemTest {
   private static final String DST = "dst";
 
   private static final String BUCKET_NAME = "bucket";
-  private static final String BUCKET_PREFIX = "prefix";
   private static final short BUCKET_MODE = 0;
   private static final String ACCOUNT_OWNER = "account owner";
 
@@ -50,7 +50,7 @@ public class S3AUnderFileSystemTest {
     mClient = Mockito.mock(AmazonS3Client.class);
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER, mManager);
+        BUCKET_MODE, ACCOUNT_OWNER, mManager);
   }
 
   /**
@@ -61,7 +61,8 @@ public class S3AUnderFileSystemTest {
     Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
-    boolean result = mS3UnderFileSystem.delete(PATH, false);
+    boolean result = mS3UnderFileSystem.deleteDirectory(PATH,
+        DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(result);
   }
 
@@ -73,19 +74,20 @@ public class S3AUnderFileSystemTest {
     Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
-    boolean result = mS3UnderFileSystem.delete(PATH, true);
+    boolean result = mS3UnderFileSystem.deleteDirectory(PATH,
+        DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(result);
   }
 
   /**
-   * Test case for {@link S3AUnderFileSystem#rename(String, String)}.
+   * Test case for {@link S3AUnderFileSystem#renameFile(String, String)}.
    */
   @Test
   public void renameOnAmazonClientException() throws IOException {
     Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
-    boolean result = mS3UnderFileSystem.rename(SRC, DST);
+    boolean result = mS3UnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
 }

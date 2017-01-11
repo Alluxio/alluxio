@@ -14,6 +14,7 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.LoginUser;
+import alluxio.security.User;
 
 import org.apache.thrift.transport.TSaslClientTransport;
 import org.apache.thrift.transport.TSaslServerTransport;
@@ -24,8 +25,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.Security;
 import java.util.HashMap;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 import javax.security.sasl.SaslException;
 
 /**
@@ -55,6 +58,24 @@ public final class PlainSaslTransportProvider implements TransportProvider {
     return getClientTransport(username, password, serverAddress);
   }
 
+  @Override
+  public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
+      throws IOException {
+    String username = null;
+    String password = "noPassword";
+
+    if (subject != null) {
+      Set<User> user = subject.getPrincipals(User.class);
+      if (user != null && !user.isEmpty()) {
+        username = user.iterator().next().getName();
+      }
+    }
+    if (username == null || username.isEmpty()) {
+      username = LoginUser.get().getName();
+    }
+    return getClientTransport(username, password, serverAddress);
+  }
+
   // TODO(binfan): make this private and use whitebox to access this method in test
   /**
    * Gets a PLAIN mechanism transport for client side.
@@ -76,6 +97,14 @@ public final class PlainSaslTransportProvider implements TransportProvider {
 
   @Override
   public TTransportFactory getServerTransportFactory() throws SaslException {
+    return getServerTransportFactory(new Runnable() {
+      @Override
+      public void run() {}
+    });
+  }
+
+  @Override
+  public TTransportFactory getServerTransportFactory(Runnable runnable) throws SaslException {
     AuthType authType =
         Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();
@@ -83,7 +112,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
         AuthenticationProvider.Factory.create(authType);
     saslFactory
         .addServerDefinition(PlainSaslServerProvider.MECHANISM, null, null,
-            new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider));
+            new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider, runnable));
     return saslFactory;
   }
 }

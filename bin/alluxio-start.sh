@@ -16,19 +16,22 @@ if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
 BIN=$(cd "$( dirname "$0" )"; pwd)
-echo $BIN
+
 #start up alluxio
 
 USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
 Where ACTION is one of:
-  all [MOPT]     \tStart master and all workers.
-  local [MOPT]   \tStart a master and worker locally.
+  all [MOPT]     \tStart master and all proxies and workers.
+  local [MOPT]   \tStart a master, proxy, and worker locally.
   master         \tStart the master on this node.
+  proxy          \tStart the proxy on this node.
+  proxies        \tStart proxies on worker nodes.
   safe           \tScript will run continuously and start the master if it's not running.
   worker [MOPT]  \tStart a worker on this node.
   workers [MOPT] \tStart workers on worker nodes.
   restart_worker \tRestart a failed worker on this node.
   restart_workers\tRestart any failed workers on worker nodes.
+
 MOPT (Mount Option) is one of:
   Mount    \tMount the configured RamFS. Notice: this will format the existing RamFS.
   SudoMount\tMount the configured RamFS using sudo.
@@ -78,7 +81,7 @@ is_ram_folder_mounted() {
 }
 
 check_mount_mode() {
-  case "$1" in
+  case $1 in
     Mount);;
     SudoMount);;
     NoMount)
@@ -135,11 +138,6 @@ stop() {
 
 
 start_master() {
-  MASTER_ADDRESS=${ALLUXIO_MASTER_HOSTNAME}
-  if [[ -z ${ALLUXIO_MASTER_HOSTNAME} ]]; then
-    MASTER_ADDRESS=localhost
-  fi
-
   if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
     ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
   fi
@@ -148,10 +146,21 @@ start_master() {
     ${LAUNCHER} ${BIN}/alluxio format
   fi
 
-  echo "Starting master @ ${MASTER_ADDRESS}. Logging to ${ALLUXIO_LOGS_DIR}"
+  echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
   (nohup ${JAVA} -cp ${CLASSPATH} \
    ${ALLUXIO_MASTER_JAVA_OPTS} \
    alluxio.master.AlluxioMaster > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
+}
+
+start_proxy() {
+  if [[ -z ${ALLUXIO_PROXY_JAVA_OPTS} ]]; then
+    ALLUXIO_PROXY_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+  fi
+
+  echo "Starting proxy @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
+  (nohup ${JAVA} -cp ${CLASSPATH} \
+   ${ALLUXIO_PROXY_JAVA_OPTS} \
+   alluxio.proxy.AlluxioProxy > ${ALLUXIO_LOGS_DIR}/proxy.out 2>&1) &
 }
 
 start_worker() {
@@ -183,6 +192,18 @@ restart_worker() {
      ${ALLUXIO_WORKER_JAVA_OPTS} \
      alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
   fi
+}
+
+restart_workers() {
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "restart_worker"
+}
+
+start_proxies() {
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "proxy"
+}
+
+start_workers() {
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" $1
 }
 
 run_safe() {
@@ -259,39 +280,47 @@ main() {
   case "${ACTION}" in
     all)
       if [[ "${killonstart}" != "no" ]]; then
-        stop ${BIN}
+        stop
       fi
       start_master "${FORMAT}"
+      start_proxy
       sleep 2
-
-      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}"
+      start_workers "${MOPT}"
+      start_proxies
       ;;
     local)
       if [[ "${killonstart}" != "no" ]]; then
-        stop ${BIN}
+        stop
         sleep 1
       fi
       start_master "${FORMAT}"
       sleep 2
       start_worker "${MOPT}"
+      start_proxy
       ;;
     master)
       start_master "${FORMAT}"
       ;;
-    worker)
-      start_worker "${MOPT}"
+    proxy)
+      start_proxy
       ;;
-    safe)
-      run_safe
-      ;;
-    workers)
-      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}"
+    proxies)
+      start_proxies
       ;;
     restart_worker)
       restart_worker
       ;;
     restart_workers)
-      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" restart_worker
+      restart_workers
+      ;;
+    safe)
+      run_safe
+      ;;
+    worker)
+      start_worker "${MOPT}"
+      ;;
+    workers)
+      start_workers "${MOPT}"
       ;;
     *)
     echo "Error: Invalid ACTION: ${ACTION}" >&2

@@ -42,7 +42,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * @param masterAddress the master address
    */
   public KeyValueMasterClient(InetSocketAddress masterAddress) {
-    super(masterAddress);
+    super(null, masterAddress);
   }
 
   @Override

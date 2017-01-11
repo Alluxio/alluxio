@@ -11,15 +11,13 @@
 
 package alluxio.client.file.options;
 
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.exception.PreconditionMessage;
+import alluxio.security.authorization.Mode;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -33,10 +31,11 @@ public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
+  // SetAttribute for persist will be deprecated in Alluxio 1.4 release.
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
-  private Short mMode;
+  private Mode mMode;
   private boolean mRecursive;
 
   /**
@@ -53,30 +52,15 @@ public final class SetAttributeOptions {
     mPersisted = null;
     mOwner = null;
     mGroup = null;
-    mMode = Constants.INVALID_MODE;
+    mMode = null;
     mRecursive = false;
-  }
-
-  /**
-   * @return true if the pinned flag is set, otherwise false
-   */
-  public boolean hasPinned() {
-    return mPinned != null;
   }
 
   /**
    * @return the pinned flag value; it specifies whether the object should be kept in memory
    */
-  public boolean getPinned() {
-    Preconditions.checkState(hasPinned(), PreconditionMessage.MUST_SET_PINNED);
+  public Boolean getPinned() {
     return mPinned;
-  }
-
-  /**
-   * @return true if the TTL value is set, otherwise false
-   */
-  public boolean hasTtl() {
-    return mTtl != null;
   }
 
   /**
@@ -84,8 +68,7 @@ public final class SetAttributeOptions {
    *         created file should be kept around before it is automatically deleted, irrespective of
    *         whether the file is pinned
    */
-  public long getTtl() {
-    Preconditions.checkState(hasTtl(), PreconditionMessage.MUST_SET_TTL);
+  public Long getTtl() {
     return mTtl;
   }
 
@@ -97,63 +80,33 @@ public final class SetAttributeOptions {
   }
 
   /**
-   * @return true if the persisted value is set, otherwise false
-   */
-  public boolean hasPersisted() {
-    return mPersisted != null;
-  }
-
-  /**
+   * @deprecated the persisted attribute is deprecated since version 1.4 and will be removed in 2.0
    * @return the persisted value of the file; it denotes whether the file has been persisted to the
    *         under file system or not.
    */
-  public boolean getPersisted() {
-    Preconditions.checkState(hasPersisted(), PreconditionMessage.MUST_SET_PERSISTED);
+  @Deprecated
+  public Boolean getPersisted() {
     return mPersisted;
-  }
-
-  /**
-   * @return true if the owner value is set, otherwise false
-   */
-  public boolean hasOwner() {
-    return mOwner != null;
   }
 
   /**
    * @return the owner
    */
   public String getOwner() {
-    Preconditions.checkState(hasOwner(), PreconditionMessage.MUST_SET_OWNER);
     return mOwner;
-  }
-
-  /**
-   * @return true if the group value is set, otherwise false
-   */
-  public boolean hasGroup() {
-    return mGroup != null;
   }
 
   /**
    * @return the group
    */
   public String getGroup() {
-    Preconditions.checkState(hasGroup(), PreconditionMessage.MUST_SET_GROUP);
     return mGroup;
-  }
-
-  /**
-   * @return true if the mode value is set, otherwise false
-   */
-  public boolean hasMode() {
-    return mMode != Constants.INVALID_MODE;
   }
 
   /**
    * @return the mode
    */
-  public short getMode() {
-    Preconditions.checkState(hasMode(), PreconditionMessage.MUST_SET_MODE);
+  public Mode getMode() {
     return mMode;
   }
 
@@ -196,10 +149,12 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @deprecated the persisted attribute is deprecated since version 1.4 and will be removed in 2.0
    * @param persisted the persisted flag value to use; it specifies whether the file has been
    *        persisted in the under file system or not.
    * @return the updated options object
    */
+  @Deprecated
   public SetAttributeOptions setPersisted(boolean persisted) {
     mPersisted = persisted;
     return this;
@@ -235,7 +190,7 @@ public final class SetAttributeOptions {
    * @param mode to be set as the mode of a path
    * @return the updated options object
    */
-  public SetAttributeOptions setMode(short mode) {
+  public SetAttributeOptions setMode(Mode mode) {
     mMode = mode;
     return this;
   }
@@ -273,8 +228,8 @@ public final class SetAttributeOptions {
     if (mGroup != null) {
       options.setGroup(mGroup);
     }
-    if (mMode != Constants.INVALID_MODE) {
-      options.setMode(mMode);
+    if (mMode != null) {
+      options.setMode(mMode.toShort());
     }
     options.setRecursive(mRecursive);
     return options;

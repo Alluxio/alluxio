@@ -20,7 +20,9 @@ import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.underfs.UnderFileSystem;
@@ -80,9 +82,17 @@ public class BlockWorkerTest {
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mSessions = PowerMockito.mock(Sessions.class);
 
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2");
+
+    Configuration.set(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(1),
+        String.valueOf(Constants.GB));
     Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
         mFolder.newFolder().getAbsolutePath());
     Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
+
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS, "HDD");
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH,
+        mFolder.newFolder().getAbsolutePath());
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClient, mFileSystemMasterClient, mSessions,
         mBlockStore, new AtomicReference<>(10L));
@@ -191,6 +201,29 @@ public class BlockWorkerTest {
     long initialBytes = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
+    BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
+    StorageDir storageDir = Mockito.mock(StorageDir.class);
+    TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
+
+    when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
+        .thenReturn(meta);
+    when(storageDir.getDirPath()).thenReturn("/tmp");
+    assertEquals(
+        PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
+            String.format("%x-%x", sessionId, blockId)),
+        mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
+  }
+
+  /**
+   * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method with a tier
+   * other than MEM.
+   */
+  @Test
+  public void createBlockLowerTier() throws Exception {
+    long blockId = mRandom.nextLong();
+    long initialBytes = mRandom.nextLong();
+    long sessionId = mRandom.nextLong();
+    String tierAlias = "HDD";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);

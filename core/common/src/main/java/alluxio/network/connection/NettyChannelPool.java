@@ -90,10 +90,10 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
     try {
       ChannelFuture channelFuture = bs.connect().sync();
       if (channelFuture.isSuccess()) {
-        LOG.info("Created netty channel to with netty boostrap {}.", mBootstrap);
+        LOG.info("Created netty channel with netty bootstrap {}.", mBootstrap);
         return channelFuture.channel();
       } else {
-        LOG.error("Failed to create netty channel with netty boostrap {} and error {}.",
+        LOG.error("Failed to create netty channel with netty bootstrap {} and error {}.",
             mBootstrap, channelFuture.cause().getMessage());
         throw new IOException(channelFuture.cause());
       }

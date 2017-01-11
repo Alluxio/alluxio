@@ -38,7 +38,6 @@ import java.util.Iterator;
  * <li><tt>f:</tt> - float, summ</li>
  * <li><tt>l:</tt> - long, summ</li>
  * </ul>
- *
  */
 public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, Text, Text, Text> {
   static final String VALUE_TYPE_LONG = "l:";
@@ -48,6 +47,9 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
 
   protected String mHostname;
 
+  /**
+   * Constructor for {@link AccumulatingReducer}.
+   */
   public AccumulatingReducer() {
     try {
       mHostname = java.net.InetAddress.getLocalHost().getHostName();
@@ -57,6 +59,15 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
     LOG.info("Starting AccumulatingReducer on " + mHostname);
   }
 
+  /**
+   * This method accumulates values based on their type.
+   *
+   * @param key the type of values
+   * @param values the values to accumulates
+   * @param output collect the result of accumulating
+   * @param reporter to report progress and update status information
+   * @throws IOException
+   */
   public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output,
       Reporter reporter) throws IOException {
     String field = key.toString();

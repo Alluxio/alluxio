@@ -12,6 +12,7 @@
 package alluxio.underfs.gcs;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.options.DeleteOptions;
 
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
@@ -35,7 +36,6 @@ public class GCSUnderFileSystemTest {
   private static final String DST = "dst";
 
   private static final String BUCKET_NAME = "bucket";
-  private static final String BUCKET_PREFIX = "prefix";
   private static final short BUCKET_MODE = 0;
   private static final String ACCOUNT_OWNER = "account owner";
 
@@ -47,11 +47,11 @@ public class GCSUnderFileSystemTest {
     mClient = Mockito.mock(GoogleStorageService.class);
 
     mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""),
-        mClient, BUCKET_NAME, BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER);
+        mClient, BUCKET_NAME, BUCKET_MODE, ACCOUNT_OWNER);
   }
 
   /**
-   * Test case for {@link GCSUnderFileSystem#delete(String, boolean)}.
+   * Test case for {@link GCSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException, ServiceException {
@@ -59,12 +59,13 @@ public class GCSUnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mGCSUnderFileSystem.delete(PATH, false);
+    boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
+        DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(result);
   }
 
   /**
-   * Test case for {@link GCSUnderFileSystem#delete(String, boolean)}.
+   * Test case for {@link GCSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException, ServiceException {
@@ -72,12 +73,13 @@ public class GCSUnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mGCSUnderFileSystem.delete(PATH, true);
+    boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
+        DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(result);
   }
 
   /**
-   * Test case for {@link GCSUnderFileSystem#rename(String, String)}.
+   * Test case for {@link GCSUnderFileSystem#renameFile(String, String)}.
    */
   @Test
   public void renameOnServiceException() throws IOException, ServiceException {
@@ -85,7 +87,7 @@ public class GCSUnderFileSystemTest {
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
-    boolean result = mGCSUnderFileSystem.rename(SRC, DST);
+    boolean result = mGCSUnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
 }

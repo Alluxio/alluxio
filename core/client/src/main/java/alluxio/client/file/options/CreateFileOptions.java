@@ -25,6 +25,7 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
@@ -42,6 +43,7 @@ public final class CreateFileOptions {
   private long mTtl;
   private TtlAction mTtlAction;
   private Mode mMode; // null if creating the file using system default mode
+  private int mWriteTier;
   private WriteType mWriteType;
 
   /**
@@ -61,6 +63,7 @@ public final class CreateFileOptions {
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+    mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
@@ -75,17 +78,18 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @return the location policy for writes to Alluxio storage
+   * @return the location policy used when storing data to Alluxio
    */
+  @JsonIgnore
   public FileWriteLocationPolicy getLocationPolicy() {
     return mLocationPolicy;
   }
 
   /**
-   * @return the Alluxio storage type
+   * @return the location policy class used when storing data to Alluxio
    */
-  public AlluxioStorageType getAlluxioStorageType() {
-    return mWriteType.getAlluxioStorageType();
+  public String getLocationPolicyClass() {
+    return mLocationPolicy.getClass().getCanonicalName();
   }
 
   /**
@@ -111,10 +115,17 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @return the under storage type
+   * @return the write tier
    */
-  public UnderStorageType getUnderStorageType() {
-    return mWriteType.getUnderStorageType();
+  public int getWriteTier() {
+    return mWriteTier;
+  }
+
+  /**
+   * @return the write type
+   */
+  public WriteType getWriteType() {
+    return mWriteType;
   }
 
   /**
@@ -137,8 +148,25 @@ public final class CreateFileOptions {
    * @param locationPolicy the location policy to use
    * @return the updated options object
    */
+  @JsonIgnore
   public CreateFileOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
     mLocationPolicy = locationPolicy;
+    return this;
+  }
+
+  /**
+   * @param className the location policy class to use when storing data to Alluxio
+   * @return the updated options object
+   */
+  public CreateFileOptions setLocationPolicyClass(String className) {
+    try {
+      @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
+          (Class<FileWriteLocationPolicy>) Class.forName(className);
+      mLocationPolicy = CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
+      return this;
+    } catch (Exception e) {
+      Throwables.propagate(e);
+    }
     return this;
   }
 
@@ -181,6 +209,15 @@ public final class CreateFileOptions {
   }
 
   /**
+   * @param writeTier the write tier to use for this operation
+   * @return the updated options object
+   */
+  public CreateFileOptions setWriteTier(int writeTier) {
+    mWriteTier = writeTier;
+    return this;
+  }
+
+  /**
    * @param writeType the {@link WriteType} to use for this operation. This will override both the
    *        {@link AlluxioStorageType} and {@link UnderStorageType}.
    * @return the updated options object
@@ -200,6 +237,7 @@ public final class CreateFileOptions {
         .setMode(mMode)
         .setTtl(mTtl)
         .setTtlAction(mTtlAction)
+        .setWriteTier(mWriteTier)
         .setWriteType(mWriteType);
   }
 
@@ -218,13 +256,14 @@ public final class CreateFileOptions {
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
+        && mWriteTier == that.mWriteTier
         && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl,
-        mTtlAction, mWriteType);
+        mTtlAction, mWriteTier, mWriteType);
   }
 
   @Override
@@ -236,6 +275,7 @@ public final class CreateFileOptions {
         .add("mode", mMode)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)
+        .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
         .toString();
   }

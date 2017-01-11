@@ -51,7 +51,7 @@ priority: 1
 [如何从Cloudera上加入第三方库](http://blog.cloudera.com/blog/2011/01/how-to-include-third-party-libraries-in-your-map-reduce-job/)这篇文档介绍了分发Jar包的多种方式。文档中建议通过使用命令行的`-libjars`选项，使用分布式缓存来分发Alluxio客户端Jar包。另一种分发客户端Jar包的方式就是手动将其分发到Hadoop节点上。下面就是这两种主流方法的介绍：
 
 1.**使用-libjars命令行选项**
-你可以在使用`hadoop jar ...`的时候加入-libjars命令行选项，指定`/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`为参数。这条命令会把该Jar包放到Hadoop的DistributedCache中，使所有节点都可以访问到。例如，下面的命令就是将Alluxio客户端Jar包添加到`-libjars`选项中。
+你可以在使用`hadoop jar ...`的时候加入-libjars命令行选项，指定`{{site.ALLUXIO_CLIENT_JAR_PATH}}`为参数。这条命令会把该Jar包放到Hadoop的DistributedCache中，使所有节点都可以访问到。例如，下面的命令就是将Alluxio客户端Jar包添加到`-libjars`选项中。
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/add-jar-libjars.md %}
 

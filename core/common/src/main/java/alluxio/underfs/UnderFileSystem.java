@@ -12,28 +12,21 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.io.PathUtils;
+import alluxio.underfs.options.OpenOptions;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -43,36 +36,136 @@ import javax.annotation.concurrent.ThreadSafe;
  * can be a valid under layer file system
  */
 @ThreadSafe
-public abstract class UnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  /** The UFS {@link AlluxioURI} used to create this {@link UnderFileSystem}. */
-  protected final AlluxioURI mUri;
-
-  /** A map of property names to values. */
-  protected HashMap<String, String> mProperties = new HashMap<>();
+// TODO(adit); API calls should use a URI instead of a String wherever appropriate
+public interface UnderFileSystem {
 
   /**
-   * This variable indicates whether the underFS actually provides storage. Most UnderFS should
-   * provide storage, but a dummyFS for example does not.
+   * The factory for the {@link UnderFileSystem}.
    */
-  private boolean mProvidesStorage = true;
+  class Factory {
+    private static final Cache UFS_CACHE = new Cache();
 
-  /** Maximum length for a single listing query. */
-  private static final int MAX_LISTING_LENGTH = 1000;
+    private Factory() {} // prevent instantiation
 
-  /** Length of each list request. */
-  protected static final int LISTING_LENGTH =
-      Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > MAX_LISTING_LENGTH
-          ? MAX_LISTING_LENGTH : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
+    /**
+     * A class used to cache UnderFileSystems.
+     */
+    @ThreadSafe
+    private static final class Cache {
+      /**
+       * Maps from {@link Key} to {@link UnderFileSystem} instances.
+       */
+      private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
+          new ConcurrentHashMap<>();
 
-  private static final Cache UFS_CACHE = new Cache();
+      private Cache() {}
+
+      /**
+       * Gets a UFS instance from the cache if exists. Otherwise, creates a new instance and adds
+       * that to the cache.
+       *
+       * @param path the ufs path
+       * @param ufsConf the ufs configuration
+       * @return the UFS instance
+       */
+      UnderFileSystem get(String path, Object ufsConf) {
+        Key key = new Key(new AlluxioURI(path));
+        UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
+        if (cachedFs != null) {
+          return cachedFs;
+        }
+        UnderFileSystem fs = UnderFileSystemRegistry.create(path, ufsConf);
+        cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
+        if (cachedFs == null) {
+          return fs;
+        }
+        try {
+          fs.close();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+        return cachedFs;
+      }
+
+      void clear() {
+        mUnderFileSystemMap.clear();
+      }
+    }
+
+    /**
+     * The key of the UFS cache.
+     */
+    private static class Key {
+      private final String mScheme;
+      private final String mAuthority;
+
+      Key(AlluxioURI uri) {
+        mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
+        mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hashCode(mScheme, mAuthority);
+      }
+
+      @Override
+      public boolean equals(Object object) {
+        if (object == this) {
+          return true;
+        }
+
+        if (!(object instanceof Key)) {
+          return false;
+        }
+
+        Key that = (Key) object;
+        return Objects.equal(mScheme, that.mScheme)
+            && Objects.equal(mAuthority, that.mAuthority);
+      }
+
+      @Override
+      public String toString() {
+        return mScheme + "://" + mAuthority;
+      }
+    }
+
+    /**
+     * Clears the under file system cache.
+     */
+    public static void clearCache() {
+      UFS_CACHE.clear();
+    }
+
+    /**
+     * Gets the UnderFileSystem instance according to its schema.
+     *
+     * @param path the file path storing over the ufs
+     * @return instance of the under layer file system
+     */
+    public static UnderFileSystem get(String path) {
+      return get(path, null);
+    }
+
+    /**
+     * Gets the UnderFileSystem instance according to its scheme and configuration.
+     *
+     * @param path the file path storing over the ufs
+     * @param ufsConf the configuration object for ufs only
+     * @return instance of the under layer file system
+     */
+    public static UnderFileSystem get(String path, Object ufsConf) {
+      Preconditions.checkArgument(path != null, "path may not be null");
+
+      return UFS_CACHE.get(path, ufsConf);
+    }
+  }
 
   /**
    * The different types of space indicate the total space, the free space and the space used in the
    * under file system.
    */
-  public enum SpaceType {
+  enum SpaceType {
 
     /**
      * Indicates the storage capacity of the under file system.
@@ -105,133 +198,11 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * A class used to cache UnderFileSystems.
-   */
-  @ThreadSafe
-  private static class Cache {
-    /**
-     * Maps from {@link Key} to {@link UnderFileSystem} instances.
-     */
-    private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
-        new ConcurrentHashMap<>();
-
-    Cache() {}
-
-    /**
-     * Gets a UFS instance from the cache if exists. Otherwise, creates a new instance and adds
-     * that to the cache.
-     *
-     * @param path the ufs path
-     * @param ufsConf the ufs configuration
-     * @return the UFS instance
-     */
-    UnderFileSystem get(String path, Object ufsConf) {
-      Key key = new Key(new AlluxioURI(path));
-      UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
-      if (cachedFs != null) {
-        return cachedFs;
-      }
-      UnderFileSystem fs = UnderFileSystemRegistry.create(path, ufsConf);
-      cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
-      if (cachedFs == null) {
-        return fs;
-      }
-      try {
-        fs.close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      return cachedFs;
-    }
-  }
-
-  /**
-   * The key of the UFS cache.
-   */
-  private static class Key {
-    private final String mScheme;
-    private final String mAuthority;
-
-    Key(AlluxioURI uri) {
-      mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
-      mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(mScheme, mAuthority);
-    }
-
-    @Override
-    public boolean equals(Object object) {
-      if (object == this) {
-        return true;
-      }
-
-      if (!(object instanceof Key)) {
-        return false;
-      }
-
-      Key that = (Key) object;
-      return Objects.equal(mScheme, that.mScheme)
-          && Objects.equal(mAuthority, that.mAuthority);
-    }
-
-    @Override
-    public String toString() {
-      return mScheme + "://" + mAuthority;
-    }
-  }
-  /**
-   * Gets the UnderFileSystem instance according to its schema.
+   * Closes this under file system.
    *
-   * @param path the file path storing over the ufs
-   * @return instance of the under layer file system
+   * @throws IOException if a non-Alluxio error occurs
    */
-  public static UnderFileSystem get(String path) {
-    return get(path, null);
-  }
-
-  /**
-   * Gets the UnderFileSystem instance according to its scheme and configuration.
-   *
-   * @param path the file path storing over the ufs
-   * @param ufsConf the configuration object for ufs only
-   * @return instance of the under layer file system
-   */
-  public static UnderFileSystem get(String path, Object ufsConf) {
-    Preconditions.checkArgument(path != null, "path may not be null");
-
-    return UFS_CACHE.get(path, ufsConf);
-  }
-
-  /**
-   * Returns the name of the under filesystem implementation.
-   *
-   * The name should be lowercase and not include any spaces, e.g. "hdfs", "s3".
-   *
-   * @return name of the under filesystem implementation
-   */
-  public abstract String getUnderFSType();
-
-  /**
-   * Checks whether the underFS provides storage.
-   *
-   * @return true if the under filesystem provides storage, false otherwise
-   */
-  public boolean providesStorage() {
-    return mProvidesStorage;
-  }
-
-  /**
-   * Constructs an {@link UnderFileSystem}.
-   *
-   * @param uri the {@link AlluxioURI} used to create this ufs
-   */
-  protected UnderFileSystem(AlluxioURI uri) {
-    Preconditions.checkNotNull(uri);
-    mUri = uri;
-  }
+  void close() throws IOException;
 
   /**
    * Configures and updates the properties. For instance, this method can add new properties or
@@ -241,9 +212,7 @@ public abstract class UnderFileSystem {
    * additional functionality.
    * @throws IOException if an error occurs during configuration
    */
-  public void configureProperties() throws IOException {
-    // Default implementation does not update any properties.
-  }
+  void configureProperties() throws IOException;
 
   /**
    * Takes any necessary actions required to establish a connection to the under file system from
@@ -255,7 +224,7 @@ public abstract class UnderFileSystem {
    * @param hostname the host that wants to connect to the under file system
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void connectFromMaster(String hostname) throws IOException;
+  void connectFromMaster(String hostname) throws IOException;
 
   /**
    * Takes any necessary actions required to establish a connection to the under file system from
@@ -267,54 +236,67 @@ public abstract class UnderFileSystem {
    * @param hostname the host that wants to connect to the under file system
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void connectFromWorker(String hostname) throws IOException;
+  void connectFromWorker(String hostname) throws IOException;
 
   /**
-   * Closes this under file system.
-   *
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public abstract void close() throws IOException;
-
-  /**
-   * Creates a file in the under file system with the indicated name.
+   * Creates a file in the under file system with the indicated name. Parents directories will be
+   * created recursively.
    *
    * @param path the file name
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path) throws IOException;
+  OutputStream create(String path) throws IOException;
 
   /**
-   * Creates a file in the under file system with the specified
-   * {@link CreateOptions}.
+   * Creates a file in the under file system with the specified {@link CreateOptions}.
+   * Implementations should make sure that the path under creation appears in listings only
+   * after a successful close and that contents are written in its entirety or not at all.
    *
    * @param path the file name
    * @param options the options for create
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path, CreateOptions options)
-      throws IOException;
+  OutputStream create(String path, CreateOptions options) throws IOException;
 
   /**
-   * Deletes a file or folder from the under file system with the indicated name.
+   * Deletes a directory from the under file system with the indicated name non-recursively. A
+   * non-recursive delete is successful only if the directory is empty.
    *
-   * @param path the file or folder name
-   * @param recursive the boolean indicates whether we delete folder and its children
-   * @return true if succeed, false otherwise
+   * @param path of the directory to delete
+   * @return true if directory was found and deleted, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean delete(String path, boolean recursive) throws IOException;
+  boolean deleteDirectory(String path) throws IOException;
 
   /**
-   * Checks if a file or folder exists in under file system.
+   * Deletes a directory from the under file system with the indicated name.
    *
-   * @param path the file name
-   * @return true if succeed, false otherwise
+   * @param path of the directory to delete
+   * @param options for directory delete semantics
+   * @return true if directory was found and deleted, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean exists(String path) throws IOException;
+  boolean deleteDirectory(String path, DeleteOptions options) throws IOException;
+
+  /**
+   * Deletes a file from the under file system with the indicated name.
+   *
+   * @param path of the file to delete
+   * @return true if file was found and deleted, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  boolean deleteFile(String path) throws IOException;
+
+  /**
+   * Checks if a file or directory exists in under file system.
+   *
+   * @param path the absolute path
+   * @return true if the path exists, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  boolean exists(String path) throws IOException;
 
   /**
    * Gets the block size of a file in under file system, in bytes.
@@ -323,14 +305,14 @@ public abstract class UnderFileSystem {
    * @return the block size in bytes
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract long getBlockSizeByte(String path) throws IOException;
+  long getBlockSizeByte(String path) throws IOException;
 
   /**
    * Gets the configuration object for UnderFileSystem.
    *
    * @return configuration object used for concrete ufs instance
    */
-  public abstract Object getConf();
+  Object getConf();
 
   /**
    * Gets the list of locations of the indicated path.
@@ -339,17 +321,17 @@ public abstract class UnderFileSystem {
    * @return The list of locations
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract List<String> getFileLocations(String path) throws IOException;
+  List<String> getFileLocations(String path) throws IOException;
 
   /**
-   * Gets the list of locations of the indicated path given its offset.
+   * Gets the list of locations of the indicated path given options.
    *
    * @param path the file name
-   * @param offset the offset in bytes
+   * @param options method options
    * @return The list of locations
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract List<String> getFileLocations(String path, long offset) throws IOException;
+  List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
    * Gets the file size in bytes.
@@ -358,23 +340,49 @@ public abstract class UnderFileSystem {
    * @return the file size in bytes
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract long getFileSize(String path) throws IOException;
+  long getFileSize(String path) throws IOException;
+
+  /**
+   * Gets the group of the given path. An empty implementation should be provided if not supported.
+   *
+   * @param path the path of the file
+   * @return the group of the file
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  String getGroup(String path) throws IOException;
+
+  /**
+   * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
+   * be provided if not supported.
+   *
+   * @param path the path of the file
+   * @return the mode of the file
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  short getMode(String path) throws IOException;
 
   /**
    * Gets the UTC time of when the indicated path was modified recently in ms.
    *
-   * @param path the file or folder name
+   * @param path the file name
    * @return modification time in milliseconds
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract long getModificationTimeMs(String path) throws IOException;
+  long getModificationTimeMs(String path) throws IOException;
+
+  /**
+   * Gets the owner of the given path. An empty implementation should be provided if not supported.
+   *
+   * @param path the path of the file
+   * @return the owner of the file
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  String getOwner(String path) throws IOException;
 
   /**
    * @return the property map for this {@link UnderFileSystem}
    */
-  public Map<String, String> getProperties() {
-    return Collections.unmodifiableMap(mProperties);
-  }
+  Map<String, String> getProperties();
 
   /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space
@@ -385,24 +393,42 @@ public abstract class UnderFileSystem {
    * @return The space in bytes
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract long getSpace(String path, SpaceType type) throws IOException;
+  long getSpace(String path, SpaceType type) throws IOException;
 
   /**
-   * Checks if the indicated path is a file or not.
+   * Returns the name of the under filesystem implementation.
    *
-   * @param path the path name
-   * @return true if this is a file, false otherwise
+   * The name should be lowercase and not include any spaces, e.g. "hdfs", "s3".
+   *
+   * @return name of the under filesystem implementation
+   */
+  String getUnderFSType();
+
+  /**
+   * Checks if a directory exists in under file system.
+   *
+   * @param path the absolute directory path
+   * @return true if the path exists and is a directory, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean isFile(String path) throws IOException;
+  boolean isDirectory(String path) throws IOException;
 
   /**
-   * Returns an array of strings naming the files and directories in the directory denoted by this
+   * Checks if a file exists in under file system.
+   *
+   * @param path the absolute file path
+   * @return true if the path exists and is a file, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  boolean isFile(String path) throws IOException;
+
+  /**
+   * Returns an array of statuses of the files and directories in the directory denoted by this
    * abstract pathname.
    *
    * <p>
    * If this abstract pathname does not denote a directory, then this method returns {@code null}.
-   * Otherwise an array of strings is returned, one for each file or directory in the directory.
+   * Otherwise an array of statuses is returned, one for each file or directory in the directory.
    * Names denoting the directory itself and the directory's parent directory are not included in
    * the result. Each string is a file name rather than a complete path.
    *
@@ -411,73 +437,45 @@ public abstract class UnderFileSystem {
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
    *
    * @param path the abstract pathname to list
-   * @return An array of strings naming the files and directories in the directory denoted by this
-   *         abstract pathname. The array will be empty if the directory is empty. Returns
+   * @return An array with the statuses of the files and directories in the directory denoted by
+   *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract String[] list(String path) throws IOException;
+  UnderFileStatus[] listStatus(String path) throws IOException;
 
   /**
-   * Returns an array of strings naming the files and directories in the directory denoted by this
-   * abstract pathname, and all of its subdirectories.
+   * Returns an array of statuses of the files and directories in the directory denoted by this
+   * abstract pathname, with options.
    *
    * <p>
    * If this abstract pathname does not denote a directory, then this method returns {@code null}.
-   * Otherwise an array of strings is returned, one for each file or directory in the directory and
-   * its subdirectories. Names denoting the directory itself and the directory's parent directory
-   * are not included in the result. Each string is a path relative to the given directory.
+   * Otherwise an array of statuses is returned, one for each file or directory. Names denoting the
+   * directory itself and the directory's parent directory are not included in the result. Each
+   * string is a path relative to the given directory.
    *
    * <p>
    * There is no guarantee that the name strings in the resulting array will appear in any specific
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
    *
    * @param path the abstract pathname to list
-   * @return An array of strings naming the files and directories in the directory denoted by this
-   *         abstract pathname and its subdirectories. The array will be empty if the directory is
-   *         empty. Returns {@code null} if this abstract pathname does not denote a directory.
+   * @param options for list directory
+   * @return An array of statuses naming the files and directories in the directory denoted by this
+   *         abstract pathname. The array will be empty if the directory is empty. Returns
+   *         {@code null} if this abstract pathname does not denote a directory.
    * @throws IOException if a non-Alluxio error occurs
    */
-  public String[] listRecursive(String path) throws IOException {
-    // Clean the path by creating a URI and turning it back to a string
-    AlluxioURI uri = new AlluxioURI(path);
-    path = uri.toString();
-    List<String> returnPaths = new ArrayList<>();
-    Queue<String> pathsToProcess = new ArrayDeque<>();
-    // We call list initially, so we can return null if the path doesn't denote a directory
-    String[] subpaths = list(path);
-    if (subpaths == null) {
-      return null;
-    } else {
-      for (String subp : subpaths) {
-        pathsToProcess.add(PathUtils.concatPath(path, subp));
-      }
-    }
-    while (!pathsToProcess.isEmpty()) {
-      String p = pathsToProcess.remove();
-      returnPaths.add(p.substring(path.length() + 1));
-      // Add all of its subpaths
-      subpaths = list(p);
-      if (subpaths != null) {
-        for (String subp : subpaths) {
-          pathsToProcess.add(PathUtils.concatPath(p, subp));
-        }
-      }
-    }
-    return returnPaths.toArray(new String[returnPaths.size()]);
-  }
+  UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
-   * returns false.
+   * returns false. The method creates any necessary but nonexistent parent directories.
    *
    * @param path the folder to create
-   * @param createParent if true, the method creates any necessary but nonexistent parent
-   *        directories. Otherwise, the method does not create nonexistent parent directories
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
+  boolean mkdirs(String path) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname, with specified
@@ -488,27 +486,46 @@ public abstract class UnderFileSystem {
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean mkdirs(String path, MkdirsOptions options)
-    throws IOException;
+  boolean mkdirs(String path, MkdirsOptions options) throws IOException;
 
   /**
-   * Opens an {@link InputStream} at the indicated path.
+   * Opens an {@link UnderFileInputStream} at the indicated path.
    *
    * @param path the file name
    * @return The {@code InputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract InputStream open(String path) throws IOException;
+  InputStream open(String path) throws IOException;
 
   /**
-   * Renames a file or folder from {@code src} to {@code dst} in under file system.
+   * Opens an {@link UnderFileInputStream} at the indicated path.
    *
-   * @param src the source file or folder name
-   * @param dst the destination file or folder name
+   * @param path the file name
+   * @param options to open input stream
+   * @return The {@code InputStream} object
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  InputStream open(String path, OpenOptions options) throws IOException;
+
+  /**
+   * Renames a directory from {@code src} to {@code dst} in under file system.
+   *
+   * @param src the source directory path
+   * @param dst the destination directory path
    * @return true if succeed, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean rename(String src, String dst) throws IOException;
+  boolean renameDirectory(String src, String dst) throws IOException;
+
+  /**
+   * Renames a file from {@code src} to {@code dst} in under file system.
+   *
+   * @param src the source file path
+   * @param dst the destination file path
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  boolean renameFile(String src, String dst) throws IOException;
 
   /**
    * Returns an {@link AlluxioURI} representation for the {@link UnderFileSystem} given a base
@@ -521,10 +538,7 @@ public abstract class UnderFileSystem {
    * @param alluxioPath the path in Alluxio from the given base
    * @return the UFS {@link AlluxioURI} representing the Alluxio path
    */
-  public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
-    return new AlluxioURI(ufsBaseUri.getScheme(), ufsBaseUri.getAuthority(),
-        PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath), ufsBaseUri.getQueryMap());
-  }
+  AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath);
 
   /**
    * Sets the configuration object for UnderFileSystem. The conf object is understood by the
@@ -532,7 +546,7 @@ public abstract class UnderFileSystem {
    *
    * @param conf the configuration object accepted by ufs
    */
-  public abstract void setConf(Object conf);
+  void setConf(Object conf);
 
   /**
    * Sets the user and group of the given path. An empty implementation should be provided if
@@ -543,17 +557,14 @@ public abstract class UnderFileSystem {
    * @param group the new group to set, unchanged if null
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void setOwner(String path, String owner, String group) throws IOException;
+  void setOwner(String path, String owner, String group) throws IOException;
 
   /**
    * Sets the properties for this {@link UnderFileSystem}.
    *
    * @param properties a {@link Map} of property names to values
    */
-  public void setProperties(Map<String, String> properties) {
-    mProperties.clear();
-    mProperties.putAll(properties);
-  }
+  void setProperties(Map<String, String> properties);
 
   /**
    * Changes posix file mode.
@@ -562,42 +573,12 @@ public abstract class UnderFileSystem {
    * @param mode the mode to set in short format, e.g. 0777
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void setMode(String path, short mode) throws IOException;
-
-  /**
-   * Gets the owner of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the owner of the file
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public abstract String getOwner(String path) throws IOException;
-
-  /**
-   * Gets the group of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the group of the file
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public abstract String getGroup(String path) throws IOException;
-
-  /**
-   * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
-   * be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the mode of the file
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public abstract short getMode(String path) throws IOException;
+  void setMode(String path, short mode) throws IOException;
 
   /**
    * Whether this type of UFS supports flush.
    *
    * @return true if this type of UFS supports flush, false otherwise
    */
-  public boolean supportsFlush() {
-    return true;
-  }
+  boolean supportsFlush();
 }

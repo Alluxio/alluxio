@@ -23,7 +23,7 @@ what it can and cannot do for you.
 
 * Linux kernel 2.6.9 or newer
 * JDK 1.8 or newer
-* libfuse 2.9.3 or newer
+* [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer
   (2.8.3 has been reported to also work - with some warnings)
 
 # Building
@@ -76,7 +76,7 @@ Alluxio-FUSE is based on the standard java alluxio-core-client to perform its op
 want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you
 would for any other client application.
 
-One possibility, for example, is to edit `$ALLUXIO_HOME/bin/alluxio-fuse.sh` and add your
+One possibility, for example, is to edit `$ALLUXIO_HOME/integration/fuse/bin/alluxio-fuse.sh` and add your
 specific alluxio client options in the `ALLUXIO_JAVA_OPTS` variable.
 
 # Operational assumptions and status

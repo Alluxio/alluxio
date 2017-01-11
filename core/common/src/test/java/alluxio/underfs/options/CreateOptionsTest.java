@@ -38,7 +38,7 @@ public final class CreateOptionsTest {
    */
   @Test
   public void defaults() throws IOException {
-    CreateOptions options = new CreateOptions();
+    CreateOptions options = CreateOptions.defaults();
 
     Permission expectedPs = Permission.defaults().applyFileUMask();
 
@@ -61,7 +61,7 @@ public final class CreateOptionsTest {
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
 
-    CreateOptions options = new CreateOptions();
+    CreateOptions options = CreateOptions.defaults();
 
     Permission expectedPs = Permission.defaults().applyFileUMask();
 
@@ -79,7 +79,7 @@ public final class CreateOptionsTest {
   public void fields() {
     Permission perm = Permission.defaults();
 
-    CreateOptions options = new CreateOptions();
+    CreateOptions options = CreateOptions.defaults();
     options.setPermission(perm);
 
     Assert.assertEquals(perm, options.getPermission());

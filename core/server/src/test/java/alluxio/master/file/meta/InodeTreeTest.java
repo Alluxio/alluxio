@@ -25,9 +25,8 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authorization.Permission;
 import alluxio.util.CommonUtils;
 
@@ -76,9 +75,10 @@ public final class InodeTreeTest {
    */
   @Before
   public void before() throws Exception {
-    Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
+    JournalFactory journalFactory =
+        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
 
-    BlockMaster blockMaster = new BlockMaster(blockJournal);
+    BlockMaster blockMaster = new BlockMaster(journalFactory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
@@ -217,9 +217,12 @@ public final class InodeTreeTest {
     // sleep to ensure a different last modification time
     CommonUtils.sleepMs(10);
 
+    // Need to use updated options to set the correct last mod time.
+    CreateDirectoryOptions dirOptions =
+        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION).setRecursive(true);
+
     // create nested directory
-    InodeTree.CreatePathResult createResult =
-        createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
+    InodeTree.CreatePathResult createResult = createPath(mTree, NESTED_URI, dirOptions);
     List<Inode<?>> modified = createResult.getModified();
     List<Inode<?>> created = createResult.getCreated();
 
@@ -238,7 +241,7 @@ public final class InodeTreeTest {
 
     // creating the directory path again results in no new inodes.
     try {
-      createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
+      createPath(mTree, NESTED_URI, dirOptions);
       Assert.assertTrue("createPath should throw FileAlreadyExistsException", false);
     } catch (FileAlreadyExistsException e) {
       Assert.assertEquals(e.getMessage(),
@@ -532,8 +535,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#addInodeFromJournal(alluxio.proto.journal.Journal.JournalEntry)}
-   * method.
+   * Tests the {@link InodeTree#addInodeFileFromJournal} and
+   * {@link InodeTree#addInodeDirectoryFromJournal} methods.
    */
   @Test
   public void addInodeFromJournal() throws Exception {
@@ -547,7 +550,7 @@ public final class InodeTreeTest {
     Inode<?> file1 = test1.getChild("file1");
 
     // reset the tree
-    mTree.addInodeFromJournal(root.toJournalEntry());
+    mTree.addInodeDirectoryFromJournal(root.toJournalEntry().getInodeDirectory());
 
     // re-init the root since the tree was reset above
     mTree.getRoot();
@@ -560,19 +563,19 @@ public final class InodeTreeTest {
         Assert.assertEquals(0, lockList.getInodes().size());
       }
 
-      mTree.addInodeFromJournal(nested.toJournalEntry());
+      mTree.addInodeDirectoryFromJournal(nested.toJournalEntry().getInodeDirectory());
       verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested"));
 
-      mTree.addInodeFromJournal(test.toJournalEntry());
+      mTree.addInodeDirectoryFromJournal(test.toJournalEntry().getInodeDirectory());
       verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test"));
 
-      mTree.addInodeFromJournal(test1.toJournalEntry());
+      mTree.addInodeDirectoryFromJournal(test1.toJournalEntry().getInodeDirectory());
       verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test", "test1"));
 
-      mTree.addInodeFromJournal(file.toJournalEntry());
+      mTree.addInodeFileFromJournal(file.toJournalEntry().getInodeFile());
       verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test", "test1", "file"));
 
-      mTree.addInodeFromJournal(file1.toJournalEntry());
+      mTree.addInodeFileFromJournal(file1.toJournalEntry().getInodeFile());
       verifyChildrenNames(mTree, inodePath,
           Sets.newHashSet("nested", "test", "test1", "file", "file1"));
     }

@@ -58,14 +58,14 @@ public final class TtlBucketListTest {
     return buckets;
   }
 
-  private void assertExpired(List<TtlBucket> expiredBuckets, int bucketIndex, InodeFile... files) {
+  private void assertExpired(List<TtlBucket> expiredBuckets, int bucketIndex, InodeFile... inodes) {
     TtlBucket bucket = expiredBuckets.get(bucketIndex);
-    Assert.assertEquals(files.length, bucket.getFiles().size());
-    Assert.assertTrue(bucket.getFiles().containsAll(Lists.newArrayList(files)));
+    Assert.assertEquals(inodes.length, bucket.getInodes().size());
+    Assert.assertTrue(bucket.getInodes().containsAll(Lists.newArrayList(inodes)));
   }
 
   /**
-   * Tests the {@link TtlBucketList#insert(InodeFile)} method.
+   * Tests the {@link TtlBucketList#insert(Inode)} method.
    */
   @Test
   public void insert() {
@@ -93,7 +93,7 @@ public final class TtlBucketListTest {
   }
 
   /**
-   * Tests the {@link TtlBucketList#remove(InodeFile)} method.
+   * Tests the {@link TtlBucketList#remove(Inode)} method.
    */
   @Test
   public void remove() {

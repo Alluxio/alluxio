@@ -12,16 +12,39 @@
 package alluxio.worker;
 
 import alluxio.Server;
+import alluxio.master.AlluxioMasterService;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
 
 import java.net.InetSocketAddress;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A worker in the Alluxio system.
  */
 public interface AlluxioWorkerService extends Server {
+  /**
+   * Factory for creating {@link AlluxioMasterService}.
+   */
+  @ThreadSafe
+  final class Factory {
+    /**
+     * @return a new instance of {@link AlluxioWorkerService}
+     */
+    public static AlluxioWorkerService create() {
+      return new DefaultAlluxioWorker();
+    }
+
+    private Factory() {} // prevent instantiation
+  }
+
+  /**
+   * @return the connect information for this worker
+   */
+  WorkerNetAddress getAddress();
+
   /**
    * @return the block worker for this Alluxio worker
    */
@@ -41,6 +64,11 @@ public interface AlluxioWorkerService extends Server {
    * @return the file system worker for this Alluxio worker
    */
   FileSystemWorker getFileSystemWorker();
+
+  /**
+   * @return this worker's rpc address
+   */
+  InetSocketAddress getRpcAddress();
 
   /**
    * @return the start time of the worker in milliseconds
@@ -63,17 +91,7 @@ public interface AlluxioWorkerService extends Server {
   int getWebLocalPort();
 
   /**
-   * @return this worker's rpc address
-   */
-  InetSocketAddress getRpcAddress();
-
-  /**
    * Waits until the worker is ready to server requests.
    */
   void waitForReady();
-
-  /**
-   * @return the connect information for this worker
-   */
-  WorkerNetAddress getAddress();
 }

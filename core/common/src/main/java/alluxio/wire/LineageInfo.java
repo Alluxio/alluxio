@@ -23,7 +23,7 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The lineage descriptor.
+ * The lineage information.
  */
 @PublicApi
 @NotThreadSafe
@@ -46,7 +46,7 @@ public final class LineageInfo implements Serializable {
   /**
    * Creates a new instance of {@link LineageInfo} from a thrift representation.
    *
-   * @param lineageInfo the thrift representation of a lineage descriptor
+   * @param lineageInfo the thrift representation of a lineage information
    */
   protected LineageInfo(alluxio.thrift.LineageInfo lineageInfo) {
     mId = lineageInfo.getId();
@@ -109,7 +109,7 @@ public final class LineageInfo implements Serializable {
 
   /**
    * @param id the lineage id to use
-   * @return the lineage descriptor
+   * @return the lineage information
    */
   public LineageInfo setId(long id) {
     mId = id;
@@ -118,7 +118,7 @@ public final class LineageInfo implements Serializable {
 
   /**
    * @param inputFiles the input files to use
-   * @return the lineage descriptor
+   * @return the lineage information
    */
   public LineageInfo setInputFiles(List<String> inputFiles) {
     Preconditions.checkNotNull(inputFiles);
@@ -128,7 +128,7 @@ public final class LineageInfo implements Serializable {
 
   /**
    * @param outputFiles the output files to use
-   * @return the lineage descriptor
+   * @return the lineage information
    */
   public LineageInfo setOutputFiles(List<String> outputFiles) {
     Preconditions.checkNotNull(outputFiles);
@@ -138,7 +138,7 @@ public final class LineageInfo implements Serializable {
 
   /**
    * @param job the command-line job to use
-   * @return the lineage descriptor
+   * @return the lineage information
    */
   public LineageInfo setJob(CommandLineJobInfo job) {
     Preconditions.checkNotNull(job);
@@ -148,7 +148,7 @@ public final class LineageInfo implements Serializable {
 
   /**
    * @param creationTimeMs the creation time (in milliseconds) to use
-   * @return the lineage descriptor
+   * @return the lineage information
    */
   public LineageInfo setCreationTimeMs(long creationTimeMs) {
     mCreationTimeMs = creationTimeMs;
@@ -157,7 +157,7 @@ public final class LineageInfo implements Serializable {
 
   /**
    * @param parents the lineage parents
-   * @return the lineage descriptor
+   * @return the lineage information
    */
   public LineageInfo setParents(List<Long> parents) {
     Preconditions.checkNotNull(parents);
@@ -167,7 +167,7 @@ public final class LineageInfo implements Serializable {
 
   /**
    * @param children the lineage children
-   * @return the lineage descriptor
+   * @return the lineage information
    */
   public LineageInfo setChildren(List<Long> children) {
     Preconditions.checkNotNull(children);
@@ -176,7 +176,7 @@ public final class LineageInfo implements Serializable {
   }
 
   /**
-   * @return thrift representation of the lineage descriptor
+   * @return thrift representation of the lineage information
    */
   protected alluxio.thrift.LineageInfo toThrift() {
     return new alluxio.thrift.LineageInfo(mId, mInputFiles, mOutputFiles, mJob.toThrift(),

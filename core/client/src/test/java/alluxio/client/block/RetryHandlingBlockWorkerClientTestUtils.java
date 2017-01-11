@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
 import org.powermock.reflect.Whitebox;
@@ -37,6 +38,6 @@ public class RetryHandlingBlockWorkerClientTestUtils {
                     "NUM_ACTIVE_SESSIONS");
             return numActiveHeartbeats.intValue() == 0;
           }
-        }, Constants.MINUTE_MS);
+        }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
   }
 }

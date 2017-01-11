@@ -11,24 +11,26 @@
 
 package alluxio.worker;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.util.ConfigurationUtils;
+import alluxio.ServerUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * Class for running an Alluxio worker.
+ * Entry point for the Alluxio worker.
  */
+@ThreadSafe
 public final class AlluxioWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Starts the Alluxio worker.
-   *
-   * A block worker will be started and the Alluxio worker will continue to run until the block
-   * worker thread exits.
    *
    * @param args command line arguments, should be empty
    */
@@ -39,26 +41,15 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
 
-    // validate the configuration
-    if (!ConfigurationUtils.validateConf()) {
-      LOG.error("Invalid configuration found");
-      System.exit(-1);
+    if (!Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
+      System.out.println("Cannot start worker; master hostname is not configured. Please set "
+          + PropertyKey.MASTER_HOSTNAME.toString() + " in alluxio-site.properties.");
+      System.exit(1);
     }
 
-    AlluxioWorkerService worker = new DefaultAlluxioWorker();
-    try {
-      worker.start();
-    } catch (Exception e) {
-      LOG.error("Uncaught exception while running Alluxio worker, stopping it and exiting.", e);
-      try {
-        worker.stop();
-      } catch (Exception e2) {
-        // continue to exit
-        LOG.error("Uncaught exception while stopping Alluxio worker, simply exiting.", e2);
-      }
-      System.exit(-1);
-    }
+    AlluxioWorkerService worker = AlluxioWorkerService.Factory.create();
+    ServerUtils.run(worker, "Alluxio worker");
   }
 
-  private AlluxioWorker() {} // Not intended for instantiation
+  private AlluxioWorker() {} // prevent instantiation
 }

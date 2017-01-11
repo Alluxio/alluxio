@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The mount point descriptor.
+ * The mount point information.
  */
 public class MountPointInfo implements Serializable {
   private static final long serialVersionUID = -2912330427506888886L;
@@ -93,7 +93,7 @@ public class MountPointInfo implements Serializable {
 
   /**
    * @param uri the uri of the under filesystem to use
-   * @return the mount point descriptor
+   * @return the mount point information
    */
   public MountPointInfo setUfsUri(String uri) {
     mUfsUri = uri;
@@ -102,7 +102,7 @@ public class MountPointInfo implements Serializable {
 
   /**
    * @param type the type of the under filesystem to use
-   * @return the mount point descriptor
+   * @return the mount point information
    */
   public MountPointInfo setUfsType(String type) {
     mUfsType = type;
@@ -111,7 +111,7 @@ public class MountPointInfo implements Serializable {
 
   /**
    * @param capacity the capacity of the under filesystem to use
-   * @return the mount point descriptor
+   * @return the mount point information
    */
   public MountPointInfo setUfsCapacityBytes(long capacity) {
     mUfsCapacityBytes = capacity;
@@ -120,7 +120,7 @@ public class MountPointInfo implements Serializable {
 
   /**
    * @param usedBytes the used bytes of the under filesystem to use
-   * @return the mount point descriptor
+   * @return the mount point information
    */
   public MountPointInfo setUfsUsedBytes(long usedBytes) {
     mUfsUsedBytes = usedBytes;
@@ -129,7 +129,7 @@ public class MountPointInfo implements Serializable {
 
   /**
    * @param readOnly the indicator of whether the mount point is read-only to use
-   * @return the mount point descriptor
+   * @return the mount point information
    */
   public MountPointInfo setReadOnly(boolean readOnly) {
     mReadOnly = readOnly;
@@ -138,7 +138,7 @@ public class MountPointInfo implements Serializable {
 
   /**
    * @param properties the mount point properties to use
-   * @return the mount point descriptor
+   * @return the mount point information
    */
   public MountPointInfo setProperties(Map<String, String> properties) {
     mProperties = new HashMap<>(properties);
@@ -147,7 +147,7 @@ public class MountPointInfo implements Serializable {
 
   /**
    * @param shared the indicator of whether the mount point is shared with all Alluxio users
-   * @return the mount point descriptor
+   * @return the mount point information
    */
   public MountPointInfo setShared(boolean shared) {
     mShared = shared;
@@ -161,7 +161,7 @@ public class MountPointInfo implements Serializable {
    */
   public void setUfsInfo(String ufsUri) {
     mUfsUri = ufsUri;
-    UnderFileSystem ufs = UnderFileSystem.get(mUfsUri);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsUri);
     mUfsType = ufs.getUnderFSType();
     try {
       mUfsCapacityBytes = ufs.getSpace(mUfsUri, UnderFileSystem.SpaceType.SPACE_TOTAL);

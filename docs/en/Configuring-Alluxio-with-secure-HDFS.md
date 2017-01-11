@@ -6,8 +6,8 @@ group: Under Store
 priority: 3
 ---
 
-This guide
-describes how to configure Alluxio with [secure HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)
+This guide describes how to configure Alluxio with
+[secure HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)
 as the under storage system. Alluxio supports secure HDFS as the under filesystem, with
 [Kerberos](http://web.mit.edu/kerberos/) authentication.
 
@@ -114,7 +114,7 @@ Next, you can run a simple example program:
 
 After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
 to verify the files and directories created by Alluxio exist. For this test, you should see
-files named like: `/default_tests_files/BasicFile_STORE_SYNC_PERSIST`
+files named like: `/default_tests_files/Basic_CACHE_THROUGH`
 
 You can stop Alluxio any time by running:
 

@@ -11,17 +11,16 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.Constants;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
+import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -183,8 +182,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setCacheable(false);
     ret.setPersisted(isPersisted());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
-    ret.setTtl(Constants.NO_TTL);
-    ret.setTtlAction(TtlAction.DELETE);
+    ret.setTtl(mTtl);
+    ret.setTtlAction(mTtlAction);
     ret.setOwner(getOwner());
     ret.setGroup(getGroup());
     ret.setMode(getMode());
@@ -213,9 +212,11 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
-        .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+        .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
         .setPermission(permission)
         .setMountPoint(entry.getMountPoint())
+        .setTtl(entry.getTtl())
+        .setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()))
         .setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
   }
 
@@ -237,6 +238,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
+        .setTtl(directoryOptions.getTtl())
+        .setTtlAction(directoryOptions.getTtlAction())
         .setPermission(permission)
         .setMountPoint(directoryOptions.isMountPoint());
   }
@@ -252,6 +255,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setPinned(isPinned())
         .setLastModificationTimeMs(getLastModificationTimeMs())
         .setMountPoint(isMountPoint())
+        .setTtl(getTtl())
+        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .setOwner(getOwner()).setGroup(getGroup()).setMode(getMode())
         .build();

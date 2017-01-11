@@ -11,7 +11,7 @@
 
 package alluxio.network.protocol;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.util.io.BufferUtils;
@@ -102,7 +102,7 @@ public class RPCMessageIntegrationTest {
 
     InetSocketAddress address =
         new InetSocketAddress(NetworkAddressUtils.getLocalHostName(100),
-            Constants.DEFAULT_MASTER_PORT);
+            Integer.parseInt(PropertyKey.MASTER_RPC_PORT.getDefaultValue()));
     ChannelFuture cf = bootstrap.bind(address).syncUninterruptibly();
     sLocalAddress = cf.channel().localAddress();
 

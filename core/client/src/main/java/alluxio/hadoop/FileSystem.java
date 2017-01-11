@@ -25,12 +25,21 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class FileSystem extends AbstractFileSystem {
-
   /**
    * Constructs a new {@link FileSystem}.
    */
   public FileSystem() {
     super();
+  }
+
+  /**
+   * Constructs a new {@link FileSystem} instance with a
+   * specified {@link alluxio.client.file.FileSystem} handler for tests.
+   *
+   * @param fileSystem handler to file system
+   */
+  public FileSystem(alluxio.client.file.FileSystem fileSystem) {
+    super(fileSystem);
   }
 
   @Override

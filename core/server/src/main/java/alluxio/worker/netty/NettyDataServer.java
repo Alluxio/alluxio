@@ -27,6 +27,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.EpollChannelOption;
+import io.netty.channel.epoll.EpollMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +59,7 @@ public final class NettyDataServer implements DataServer {
    */
   public NettyDataServer(final InetSocketAddress address, final AlluxioWorkerService worker) {
     mDataServerHandler = new DataServerHandler(Preconditions.checkNotNull(worker));
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(mDataServerHandler));
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(worker, mDataServerHandler));
 
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
@@ -177,6 +179,9 @@ public final class NettyDataServer implements DataServer {
     final Class<? extends ServerChannel> socketChannelClass =
         NettyUtils.getServerChannelClass(type);
     boot.group(bossGroup, workerGroup).channel(socketChannelClass);
+    if (type == ChannelType.EPOLL) {
+      boot.childOption(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);
+    }
 
     return boot;
   }

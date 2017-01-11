@@ -19,7 +19,7 @@ import java.io.Serializable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The worker descriptor.
+ * The worker information.
  */
 @NotThreadSafe
 public final class WorkerInfo implements Serializable {
@@ -41,7 +41,7 @@ public final class WorkerInfo implements Serializable {
   /**
    * Creates a new instance of {@link WorkerInfo} from a thrift representation.
    *
-   * @param workerInfo the thrift representation of a worker descriptor
+   * @param workerInfo the thrift representation of a worker information
    */
   protected WorkerInfo(alluxio.thrift.WorkerInfo workerInfo) {
     mId = workerInfo.getId();
@@ -104,7 +104,7 @@ public final class WorkerInfo implements Serializable {
 
   /**
    * @param id the worker id to use
-   * @return the worker descriptor
+   * @return the worker information
    */
   public WorkerInfo setId(long id) {
     mId = id;
@@ -113,7 +113,7 @@ public final class WorkerInfo implements Serializable {
 
   /**
    * @param address the worker address to use
-   * @return the worker descriptor
+   * @return the worker information
    */
   public WorkerInfo setAddress(WorkerNetAddress address) {
     Preconditions.checkNotNull(address);
@@ -123,7 +123,7 @@ public final class WorkerInfo implements Serializable {
 
   /**
    * @param lastContactSec the worker last contact (in seconds) to use
-   * @return the worker descriptor
+   * @return the worker information
    */
   public WorkerInfo setLastContactSec(int lastContactSec) {
     mLastContactSec = lastContactSec;
@@ -132,7 +132,7 @@ public final class WorkerInfo implements Serializable {
 
   /**
    * @param state the worker state to use
-   * @return the worker descriptor
+   * @return the worker information
    */
   public WorkerInfo setState(String state) {
     Preconditions.checkNotNull(state);
@@ -142,7 +142,7 @@ public final class WorkerInfo implements Serializable {
 
   /**
    * @param capacityBytes the worker total capacity (in bytes) to use
-   * @return the worker descriptor
+   * @return the worker information
    */
   public WorkerInfo setCapacityBytes(long capacityBytes) {
     mCapacityBytes = capacityBytes;
@@ -151,7 +151,7 @@ public final class WorkerInfo implements Serializable {
 
   /**
    * @param usedBytes the worker used capacity (in bytes) to use
-   * @return the worker descriptor
+   * @return the worker information
    */
   public WorkerInfo setUsedBytes(long usedBytes) {
     mUsedBytes = usedBytes;
@@ -160,7 +160,7 @@ public final class WorkerInfo implements Serializable {
 
   /**
    * @param startTimeMs the worker start time (in milliseconds) to use
-   * @return the worker descriptor
+   * @return the worker information
    */
   public WorkerInfo setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
@@ -168,7 +168,7 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
-   * @return thrift representation of the worker descriptor
+   * @return thrift representation of the worker information
    */
   protected alluxio.thrift.WorkerInfo toThrift() {
     return new alluxio.thrift.WorkerInfo(mId, mAddress.toThrift(), mLastContactSec, mState,

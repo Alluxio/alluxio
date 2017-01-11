@@ -12,28 +12,35 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.security.authorization.Mode;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Random;
 
 /**
  * Tests for the {@link SetAttributeOptions} class.
  */
+@RunWith(PowerMockRunner.class)
+// Need to mock Mode to use CommonTestUtils#testEquals.
+@PrepareForTest(Mode.class)
 public class SetAttributeOptionsTest {
   @Test
   public void defaults() {
     SetAttributeOptions options = SetAttributeOptions.defaults();
-    Assert.assertFalse(options.hasPersisted());
-    Assert.assertFalse(options.hasPinned());
-    Assert.assertFalse(options.hasTtl());
+    Assert.assertNull(options.getPersisted());
+    Assert.assertNull(options.getPinned());
+    Assert.assertNull(options.getTtl());
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
-    Assert.assertFalse(options.hasOwner());
-    Assert.assertFalse(options.hasGroup());
-    Assert.assertFalse(options.hasMode());
+    Assert.assertNull(options.getOwner());
+    Assert.assertNull(options.getGroup());
+    Assert.assertNull(options.getMode());
     Assert.assertFalse(options.isRecursive());
   }
 
@@ -51,7 +58,7 @@ public class SetAttributeOptionsTest {
     String owner = new String(bytes);
     random.nextBytes(bytes);
     String group = new String(bytes);
-    short permission = (short) random.nextInt();
+    Mode mode = new Mode((short) random.nextInt());
     boolean recursive = random.nextBoolean();
 
     SetAttributeOptions options = SetAttributeOptions.defaults();
@@ -61,22 +68,16 @@ public class SetAttributeOptionsTest {
     options.setTtlAction(TtlAction.FREE);
     options.setOwner(owner);
     options.setGroup(group);
-    options.setMode(permission);
+    options.setMode(mode);
     options.setRecursive(recursive);
 
-    Assert.assertTrue(options.hasPersisted());
     Assert.assertEquals(persisted, options.getPersisted());
-    Assert.assertTrue(options.hasPinned());
     Assert.assertEquals(pinned, options.getPinned());
-    Assert.assertTrue(options.hasTtl());
-    Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(ttl, options.getTtl().longValue());
     Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
-    Assert.assertTrue(options.hasOwner());
     Assert.assertEquals(owner, options.getOwner());
-    Assert.assertTrue(options.hasGroup());
     Assert.assertEquals(group, options.getGroup());
-    Assert.assertTrue(options.hasMode());
-    Assert.assertEquals(permission, options.getMode());
+    Assert.assertEquals(mode, options.getMode());
     Assert.assertEquals(recursive, options.isRecursive());
   }
 

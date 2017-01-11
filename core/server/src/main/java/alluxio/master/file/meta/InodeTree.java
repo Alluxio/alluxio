@@ -30,10 +30,8 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalProtoUtils;
-import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
@@ -43,7 +41,6 @@ import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.protobuf.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +59,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
-public final class InodeTree implements JournalCheckpointStreamable {
+public class InodeTree implements JournalCheckpointStreamable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
 
@@ -565,7 +562,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
               currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
       // Lock the newly created inode before subsequent operations, and add it to the lock group.
-      lockList.lockWrite(dir);
+      lockList.lockWriteAndCheckNameAndParent(dir, currentInodeDirectory, pathComponents[k]);
 
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
@@ -585,7 +582,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     Inode<?> lastInode = currentInodeDirectory.getChild(name);
     if (lastInode != null) {
       // Lock the last inode before subsequent operations, and add it to the lock group.
-      lockList.lockWrite(lastInode);
+      lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
 
       if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
           .isPersisted() && options.isPersisted()) {
@@ -605,7 +602,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
             currentInodeDirectory.getId(), name, directoryOptions);
         // Lock the created inode before subsequent operations, and add it to the lock group.
-        lockList.lockWrite(lastInode);
+        lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
         if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
         }
@@ -615,7 +612,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
             currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
         // Lock the created inode before subsequent operations, and add it to the lock group.
-        lockList.lockWrite(lastInode);
+        lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());
@@ -638,9 +635,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
       String ufsUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
       Permission permission = new Permission(inode.getOwner(), inode.getGroup(), inode.getMode());
-      MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(false)
+      MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
           .setPermission(permission);
-      if (ufs.exists(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
+      if (ufs.isDirectory(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
         inode.setPersistenceState(PersistenceState.PERSISTED);
       }
     }
@@ -695,9 +692,19 @@ public final class InodeTree implements JournalCheckpointStreamable {
       LockMode lockMode, InodeLockList inodeGroup) {
     for (Inode<?> child : inodeDirectory.getChildren()) {
       if (lockMode == LockMode.READ) {
-        inodeGroup.lockRead(child);
+        try {
+          inodeGroup.lockReadAndCheckParent(child, inodeDirectory);
+        } catch (InvalidPathException e) {
+          // Inode is no longer a child, continue.
+          continue;
+        }
       } else {
-        inodeGroup.lockWrite(child);
+        try {
+          inodeGroup.lockWriteAndCheckParent(child, inodeDirectory);
+        } catch (InvalidPathException e) {
+          // Inode is no longer a child, continue.
+          continue;
+        }
       }
       if (child.isDirectory()) {
         lockDescendantsInternal((InodeDirectory) child, lockMode, inodeGroup);
@@ -766,7 +773,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
       // inode is a directory. Set the pinned state for all children.
       TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
       for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-        child.lockWrite();
+        try {
+          child.lockWriteAndCheckParent(inode);
+        } catch (InvalidPathException e) {
+          // Inode is no longer a child of the directory, continue.
+          continue;
+        }
         try {
           tempInodePath.setDescendant(child, getPath(child));
           setPinned(tempInodePath, pinned, opTimeMs);
@@ -822,47 +834,49 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * Adds the inode represented by the entry parameter into the inode tree. If the inode entry
+   * Adds the file represented by the entry parameter into the inode tree.
+   *
+   * @param entry the journal entry representing an inode
+   */
+  public void addInodeFileFromJournal(InodeFileEntry entry) {
+    InodeFile file = InodeFile.fromJournalEntry(entry);
+    addInodeFromJournalInternal(file);
+  }
+
+  /**
+   * Adds the directory represented by the entry parameter into the inode tree. If the inode entry
    * represents the root inode, the tree is "reset", and all state is cleared.
    *
    * @param entry the journal entry representing an inode
    * @throws AccessControlException when owner of mRoot is not the owner of root journal entry
    */
-  public void addInodeFromJournal(JournalEntry entry) throws AccessControlException {
-    Message innerEntry = JournalProtoUtils.unwrap(entry);
-    if (innerEntry instanceof InodeFileEntry) {
-      InodeFile file = InodeFile.fromJournalEntry((InodeFileEntry) innerEntry);
-      addInodeFromJournalInternal(file);
-    } else if (innerEntry instanceof InodeDirectoryEntry) {
-      InodeDirectory directory = InodeDirectory.fromJournalEntry((InodeDirectoryEntry) innerEntry);
-
-      if (directory.getName().equals(ROOT_INODE_NAME)) {
-        // This is the root inode. Clear all the state, and set the root.
-        // For backwards-compatibility:
-        // Empty owner in journal entry indicates that previous journal has no security. In this
-        // case, the journal is allowed to be applied to the new inode with security turned on.
-        if (SecurityUtils.isSecurityEnabled() && mRoot != null && !directory.getOwner().isEmpty()
-            && !mRoot.getOwner().equals(directory.getOwner())) {
-          // user is not the owner of journal root entry
-          throw new AccessControlException(
-              ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
-        }
-        mInodes.clear();
-        mPinnedInodeFileIds.clear();
-        mRoot = directory;
-        // If journal entry has no security enabled, change the replayed inode permission to be 0777
-        // for backwards-compatibility.
-        if (SecurityUtils.isSecurityEnabled() && mRoot != null && mRoot.getOwner().isEmpty()
-            && mRoot.getGroup().isEmpty()) {
-          mRoot.setPermission(Constants.DEFAULT_FILE_SYSTEM_MODE);
-        }
-        mCachedInode = mRoot;
-        mInodes.add(mRoot);
-      } else {
-        addInodeFromJournalInternal(directory);
+  public void addInodeDirectoryFromJournal(InodeDirectoryEntry entry)
+      throws AccessControlException {
+    InodeDirectory directory = InodeDirectory.fromJournalEntry(entry);
+    if (directory.getName().equals(ROOT_INODE_NAME)) {
+      // This is the root inode. Clear all the state, and set the root.
+      // For backwards-compatibility:
+      // Empty owner in journal entry indicates that previous journal has no security. In this
+      // case, the journal is allowed to be applied to the new inode with security turned on.
+      if (SecurityUtils.isSecurityEnabled() && mRoot != null && !directory.getOwner().isEmpty()
+          && !mRoot.getOwner().equals(directory.getOwner())) {
+        // user is not the owner of journal root entry
+        throw new AccessControlException(
+            ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
       }
+      mInodes.clear();
+      mPinnedInodeFileIds.clear();
+      mRoot = directory;
+      // If journal entry has no security enabled, change the replayed inode permission to be 0777
+      // for backwards-compatibility.
+      if (SecurityUtils.isSecurityEnabled() && mRoot != null && mRoot.getOwner().isEmpty() && mRoot
+          .getGroup().isEmpty()) {
+        mRoot.setPermission(Constants.DEFAULT_FILE_SYSTEM_MODE);
+      }
+      mCachedInode = mRoot;
+      mInodes.add(mRoot);
     } else {
-      LOG.error("Unexpected InodeEntry journal entry: {}", entry);
+      addInodeFromJournalInternal(directory);
     }
   }
 
@@ -1029,7 +1043,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
           // lock can be acquired. As a consequence, we need to recheck if the child we are
           // looking for has not been created in the meantime.
           lockList.unlockLast();
-          lockList.lockWrite(current);
+          if (inodes.size() == 1) {
+            lockList.lockWrite(current);
+          } else {
+            lockList.lockWriteAndCheckNameAndParent(current, inodes.get(inodes.size() - 2),
+                pathComponents[(i - 1)]);
+          }
           Inode<?> recheckNext = ((InodeDirectory) current).getChild(pathComponents[i]);
           if (recheckNext != null) {
             // When releasing the lock and reacquiring the lock, another thread inserted the node we
@@ -1048,9 +1067,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
       // Lock the existing next inode before proceeding.
       if (getLockModeForComponent(i, pathComponents.length, lockMode, lockHints)
           == LockMode.READ) {
-        lockList.lockRead(next);
+        lockList.lockReadAndCheckNameAndParent(next, current, pathComponents[i]);
       } else {
-        lockList.lockWrite(next);
+        lockList.lockWriteAndCheckNameAndParent(next, current, pathComponents[i]);
       }
       if (next.isFile()) {
         // The inode can't have any children. If this is the last path component, we're good.

@@ -17,6 +17,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -36,10 +37,10 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -54,6 +55,7 @@ import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -73,12 +75,17 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -86,6 +93,7 @@ import java.util.concurrent.Executors;
 public final class FileSystemMasterTest {
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
+  private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
   private static final AlluxioURI ROOT_URI = new AlluxioURI("/");
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
@@ -134,17 +142,19 @@ public final class FileSystemMasterTest {
     LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
+    // Set umask "000" to make default directory permission 0777 and default file permission 0666.
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
     Configuration.set(PropertyKey.UNDERFS_ADDRESS, mUnderFS);
-    Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
-    mBlockMaster = new BlockMaster(blockJournal);
+    JournalFactory journalFactory =
+        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
+    mBlockMaster = new BlockMaster(journalFactory);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal,
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
 
     mBlockMaster.start(true);
@@ -196,11 +206,11 @@ public final class FileSystemMasterTest {
     mBlockMaster.getBlockInfo(blockId);
 
     // Update the heartbeat of removedBlockId received from worker 1
-    Command heartBeat1 =
+    Command heartbeat1 =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
-    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat1);
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat1);
     Assert.assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
 
     // verify the file is deleted
@@ -268,7 +278,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#getPersistenceState(AlluxioURI)} method.
+   * Tests the {@link FileSystemMaster#getPersistenceState(long)} method.
    */
   @Test
   public void getPersistenceState() throws Exception {
@@ -716,6 +726,21 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Tests that an exception is in the
+   * {@link FileSystemMaster#createDirectory(AlluxioURI, CreateDirectoryOptions)} with a TTL
+   * set in the {@link CreateDirectoryOptions} after the TTL check was done once.
+   */
+  @Test
+  public void createDirectoryWithTtl() throws Exception {
+    CreateDirectoryOptions directoryOptions =
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
+    mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryOptions);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystemMaster.getFileInfo(NESTED_DIR_URI);
+  }
+
+  /**
    * Tests that an exception is thrown when trying to get information about a file after it has been
    * deleted because of a TTL of 0.
    */
@@ -733,6 +758,32 @@ public final class FileSystemMasterTest {
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
+  }
+
+  /**
+   * Tests that an exception is thrown when trying to get information about a Directory after
+   * it has been deleted because of a TTL of 0.
+   */
+  @Test
+  public void setTtlForDirectoryWithNoTtl() throws Exception {
+    CreateDirectoryOptions createDirectoryOptions =
+        CreateDirectoryOptions.defaults().setRecursive(true);
+    mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
+    mFileSystemMaster.createDirectory(NESTED_DIR_URI, createDirectoryOptions);
+    CreateFileOptions createFileOptions =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, createFileOptions);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    // Since no TTL is set, the file should not be deleted.
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getFileId());
+    // Set ttl
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(0));
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    // TTL is set to 0, the file and directory should have been deleted during last TTL check.
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystemMaster.getFileInfo(NESTED_URI);
+    mFileSystemMaster.getFileInfo(NESTED_DIR_URI);
+    mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
   }
 
   /**
@@ -756,6 +807,24 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Tests that an exception is thrown when trying to get information about a Directory after
+   * it has been deleted after the TTL has been set to 0.
+   */
+  @Test
+  public void setSmallerTtlForDirectoryWithTtl() throws Exception {
+    CreateDirectoryOptions createDirectoryOptions =
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(Constants.HOUR_MS);
+    mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    Assert.assertTrue(mFileSystemMaster.getFileInfo(NESTED_URI).getName() != null);
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(0));
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    // TTL is reset to 0, the file should have been deleted during last TTL check.
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystemMaster.getFileInfo(NESTED_URI);
+  }
+
+  /**
    * Tests that file information is still present after it has been freed after the TTL has been set
    * to 0.
    */
@@ -768,11 +837,35 @@ public final class FileSystemMasterTest {
     options.setTtl(0);
     options.setTtlAction(TtlAction.FREE);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, options);
-    Command heartBeat =
+    Command heartbeat =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
-    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat);
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+  }
+
+  /**
+   * Tests that file information is still present after it has been freed after the parent
+   * directory's TTL has been set to 0.
+   */
+  @Test
+  public void setTtlForDirectoryWithFreeOperationTest() throws Exception {
+    CreateDirectoryOptions createDirectoryOptions =
+        CreateDirectoryOptions.defaults().setRecursive(true);
+    mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
+    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+    Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+    // Set ttl & operation
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    options.setTtl(0);
+    options.setTtlAction(TtlAction.FREE);
+    mFileSystemMaster.setAttribute(NESTED_URI, options);
+    Command heartbeat =
+        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
+            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -794,6 +887,21 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Tests that a directory has not been deleted after the TTL has been reset to a valid value.
+   */
+  @Test
+  public void setLargerTtlForDirectoryWithTtl() throws Exception {
+    CreateDirectoryOptions createDirectoryOptions =
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
+    mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    // TTL is reset to 1 hour, the directory should not be deleted during last TTL check.
+    Assert.assertEquals(NESTED_URI.getName(), mFileSystemMaster.getFileInfo(NESTED_URI).getName());
+  }
+
+  /**
    * Tests that the original TTL is removed after setting it to {@link Constants#NO_TTL} for a file.
    */
   @Test
@@ -807,6 +915,23 @@ public final class FileSystemMasterTest {
         SetAttributeOptions.defaults().setTtl(Constants.NO_TTL));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
+  }
+
+  /**
+   * Tests that the original TTL is removed after setting it to {@link Constants#NO_TTL} for
+   * a directory.
+   */
+  @Test
+  public void setNoTtlForDirectoryWithTtl() throws Exception {
+    CreateDirectoryOptions createDirectoryOptions =
+        CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
+    mFileSystemMaster.createDirectory(NESTED_URI, createDirectoryOptions);
+    // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
+    // deleted during next TTL check.
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        SetAttributeOptions.defaults().setTtl(Constants.NO_TTL));
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    Assert.assertEquals(NESTED_URI.getName(), mFileSystemMaster.getFileInfo(NESTED_URI).getName());
   }
 
   /**
@@ -839,19 +964,17 @@ public final class FileSystemMasterTest {
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(1, fileInfo.getTtl());
 
-    // Set ttl for a directory, raise IllegalArgumentException.
-    mThrown.expect(IllegalArgumentException.class);
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(1));
   }
 
   /**
-   * Tests the permission bits are 0755 for directories and 0644 for files by default.
+   * Tests the permission bits are 0777 for directories and 0666 for files with UMASK 000.
    */
   @Test
   public void permission() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
-    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
-    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
+    Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
+    Assert.assertEquals(0666, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
   }
 
   /**
@@ -977,11 +1100,11 @@ public final class FileSystemMasterTest {
     // free the file
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
     // Update the heartbeat of removedBlockId received from worker 1
-    Command heartBeat2 =
+    Command heartbeat2 =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
-    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat2);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -996,11 +1119,11 @@ public final class FileSystemMasterTest {
     // free the dir
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), true));
     // Update the heartbeat of removedBlockId received from worker 1
-    Command heartBeat3 =
+    Command heartbeat3 =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
-    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat3);
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat3);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1224,5 +1347,440 @@ public final class FileSystemMasterTest {
     CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(Constants.KB);
     mFileSystemMaster.completeFile(uri, options);
     return blockId;
+  }
+
+  /**
+   * Uses the integer suffix of a path to determine order. Paths without integer suffixes will be
+   * ordered last.
+   */
+  private class IntegerSuffixedPathComparator implements Comparator<FileInfo> {
+    @Override
+    public int compare(FileInfo o1, FileInfo o2) {
+      return extractIntegerSuffix(o1.getName()) - extractIntegerSuffix(o2.getName());
+    }
+
+    private int extractIntegerSuffix(String name) {
+      Pattern p = Pattern.compile("\\D*(\\d+$)");
+      Matcher m = p.matcher(name);
+      if (m.matches()) {
+        return Integer.parseInt(m.group(1));
+      } else {
+        return Integer.MAX_VALUE;
+      }
+    }
+  }
+
+  /**
+   * Tests concurrent renames within the root do not block on each other.
+   */
+  @Test
+  public void rootConcurrentRename() throws Exception {
+    final int numThreads = 100;
+    AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    AlluxioURI[] dsts = new AlluxioURI[numThreads];
+
+    for (int i = 0; i < numThreads; i++) {
+      srcs[i] = new AlluxioURI("/file" + i);
+      mFileSystemMaster.createFile(srcs[i], sNestedFileOptions);
+      dsts[i] = new AlluxioURI("/renamed" + i);
+    }
+
+    int errors = concurrentRename(srcs, dsts);
+
+    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    List<FileInfo> files =
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
+    Collections.sort(files, new IntegerSuffixedPathComparator());
+    for (int i = 0; i < numThreads; i++) {
+      Assert.assertEquals(dsts[i].getName(), files.get(i).getName());
+    }
+    Assert.assertEquals(numThreads, files.size());
+  }
+
+  /**
+   * Tests concurrent renames within a folder do not block on each other.
+   */
+  @Test
+  public void folderConcurrentRename() throws Exception {
+    final int numThreads = 100;
+    AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    AlluxioURI[] dsts = new AlluxioURI[numThreads];
+
+    AlluxioURI dir = new AlluxioURI("/dir");
+
+    mFileSystemMaster.createDirectory(dir, CreateDirectoryOptions.defaults());
+
+    for (int i = 0; i < numThreads; i++) {
+      srcs[i] = dir.join("/file" + i);
+      mFileSystemMaster.createFile(srcs[i], sNestedFileOptions);
+      dsts[i] = dir.join("/renamed" + i);
+    }
+    int errors = concurrentRename(srcs, dsts);
+
+    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    List<FileInfo> files =
+        mFileSystemMaster.listStatus(dir, ListStatusOptions.defaults());
+    Collections.sort(files, new IntegerSuffixedPathComparator());
+    for (int i = 0; i < numThreads; i++) {
+      Assert.assertEquals(dsts[i].getName(), files.get(i).getName());
+    }
+    Assert.assertEquals(numThreads, files.size());
+  }
+
+  /**
+   * Tests that many threads concurrently renaming the same file will only succeed once.
+   */
+  @Test
+  public void sameFileConcurrentRename() throws Exception {
+    int numThreads = 10;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    for (int i = 0; i < numThreads; i++) {
+      srcs[i] = new AlluxioURI("/file");
+      dsts[i] = new AlluxioURI("/renamed" + i);
+    }
+
+    // Create the one source file
+    mFileSystemMaster.createFile(srcs[0], CreateFileOptions.defaults());
+
+    int errors = concurrentRename(srcs, dsts);
+
+    // We should get an error for all but 1 rename
+    Assert.assertEquals(numThreads - 1, errors);
+
+    List<FileInfo> files =
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
+
+    // Only one renamed file should exist
+    Assert.assertEquals(1, files.size());
+    Assert.assertTrue(files.get(0).getName().startsWith("renamed"));
+  }
+
+  /**
+   * Tests that many threads concurrently renaming the same directory will only succeed once.
+   */
+  @Test
+  public void sameDirConcurrentRename() throws Exception {
+    int numThreads = 10;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    for (int i = 0; i < numThreads; i++) {
+      srcs[i] = new AlluxioURI("/dir");
+      dsts[i] = new AlluxioURI("/renamed" + i);
+    }
+
+    // Create the one source directory
+    mFileSystemMaster.createDirectory(srcs[0], CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createFile(new AlluxioURI("/dir/file"), CreateFileOptions.defaults());
+
+    int errors = concurrentRename(srcs, dsts);
+
+    // We should get an error for all but 1 rename
+    Assert.assertEquals(numThreads - 1, errors);
+    // Only one renamed dir should exist
+    List<FileInfo> existingDirs =
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
+    Assert.assertEquals(1, existingDirs.size());
+    Assert.assertTrue(existingDirs.get(0).getName().startsWith("renamed"));
+    // The directory should contain the file
+    List<FileInfo> dirChildren =
+        mFileSystemMaster.listStatus(new AlluxioURI(existingDirs.get(0).getPath()),
+            ListStatusOptions.defaults());
+    Assert.assertEquals(1, dirChildren.size());
+  }
+
+  /**
+   * Tests renaming files concurrently to the same destination will only succeed once.
+   */
+  @Test
+  public void sameDstConcurrentRename() throws Exception {
+    int numThreads = 10;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    for (int i = 0; i < numThreads; i++) {
+      srcs[i] = new AlluxioURI("/file" + i);
+      mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
+      dsts[i] = new AlluxioURI("/renamed");
+    }
+
+    int errors = concurrentRename(srcs, dsts);
+
+    // We should get an error for all but 1 rename.
+    Assert.assertEquals(numThreads - 1, errors);
+
+    List<FileInfo> files =
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
+    // Store file names in a set to ensure the names are all unique.
+    Set<String> renamedFiles = new HashSet<>();
+    Set<String> originalFiles = new HashSet<>();
+    for (FileInfo file : files) {
+      if (file.getName().startsWith("renamed")) {
+        renamedFiles.add(file.getName());
+      }
+      if (file.getName().startsWith("file")) {
+        originalFiles.add(file.getName());
+      }
+    }
+    // One renamed file should exist, and 9 original source files
+    Assert.assertEquals(numThreads, files.size());
+    Assert.assertEquals(1, renamedFiles.size());
+    Assert.assertEquals(numThreads - 1, originalFiles.size());
+  }
+
+  /**
+   * Tests renaming files concurrently to the same destination from different sources will
+   * succeed only once.
+   */
+  @Test
+  public void sameDstDifferentSrcConcurrentRename() throws Exception {
+    int numThreads = 10;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    AlluxioURI dir1 = new AlluxioURI("/dir1");
+    AlluxioURI dir2 = new AlluxioURI("/dir2");
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
+    for (int i = 0; i < numThreads; i++) {
+      if (i % 2 == 0) {
+        srcs[i] = dir1.join("file1_" + i);
+      } else {
+        srcs[i] = dir2.join("file2_" + i);
+      }
+      mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
+      dsts[i] = new AlluxioURI("/renamed");
+    }
+
+    int errors = concurrentRename(srcs, dsts);
+
+    // We should get an error for all but 1 rename.
+    Assert.assertEquals(numThreads - 1, errors);
+
+    List<FileInfo> files =
+        mFileSystemMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
+    // Store file names in a set to ensure the names are all unique.
+    Set<String> renamedFiles = new HashSet<>();
+    for (FileInfo file : files) {
+      if (file.getName().startsWith("renamed")) {
+        renamedFiles.add(file.getName());
+      }
+    }
+
+    Set<String> originalFiles = new HashSet<>();
+
+    List<FileInfo> dir1Files = mFileSystemMaster.listStatus(dir1, ListStatusOptions.defaults());
+    for (FileInfo file : dir1Files) {
+      if (file.getName().startsWith("file1_")) {
+        originalFiles.add(file.getName());
+      } else {
+        // Should not have any other types of files
+        Assert.fail();
+      }
+    }
+
+    List<FileInfo> dir2Files = mFileSystemMaster.listStatus(dir2, ListStatusOptions.defaults());
+    for (FileInfo file : dir2Files) {
+      if (file.getName().startsWith("file2_")) {
+        originalFiles.add(file.getName());
+      } else {
+        // Should not have any other types of files
+        Assert.fail();
+      }
+    }
+
+    // One renamed file should exist, and numThreads - 1 original source files
+    Assert.assertEquals(numThreads, renamedFiles.size() + originalFiles.size());
+    Assert.assertEquals(1, renamedFiles.size());
+    Assert.assertEquals(numThreads - 1, originalFiles.size());
+  }
+
+  /**
+   * Tests renaming files concurrently from one directory to another succeeds.
+   */
+  @Test
+  public void twoDirConcurrentRename() throws Exception {
+    int numThreads = 10;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    AlluxioURI dir1 = new AlluxioURI("/dir1");
+    AlluxioURI dir2 = new AlluxioURI("/dir2");
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
+    for (int i = 0; i < numThreads; i++) {
+      srcs[i] = dir1.join("file" + i);
+      mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
+      dsts[i] = dir2.join("renamed" + i);
+    }
+
+    int errors = concurrentRename(srcs, dsts);
+
+    // We should get no errors
+    Assert.assertEquals(0, errors);
+
+    List<FileInfo> dir1Files =
+        mFileSystemMaster.listStatus(dir1, ListStatusOptions.defaults());
+    List<FileInfo> dir2Files =
+        mFileSystemMaster.listStatus(dir2, ListStatusOptions.defaults());
+
+    Assert.assertEquals(0, dir1Files.size());
+    Assert.assertEquals(numThreads, dir2Files.size());
+
+    Collections.sort(dir2Files, new IntegerSuffixedPathComparator());
+    for (int i = 0; i < numThreads; i++) {
+      Assert.assertEquals(dsts[i].getName(), dir2Files.get(i).getName());
+    }
+  }
+
+  /**
+   * Tests renaming files concurrently from and to two directories succeeds.
+   */
+  @Test
+  public void acrossDirConcurrentRename() throws Exception {
+    int numThreads = 20;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    AlluxioURI dir1 = new AlluxioURI("/dir1");
+    AlluxioURI dir2 = new AlluxioURI("/dir2");
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
+    for (int i = 0; i < numThreads; i++) {
+      // Dir1 has even files, dir2 has odd files.
+      if (i % 2 == 0) {
+        srcs[i] = dir1.join("file" + i);
+        dsts[i] = dir2.join("renamed" + i);
+      } else {
+        srcs[i] = dir2.join("file" + i);
+        dsts[i] = dir1.join("renamed" + i);
+      }
+      mFileSystemMaster.createFile(srcs[i], CreateFileOptions.defaults());
+    }
+
+    int errors = concurrentRename(srcs, dsts);
+
+    // We should get no errors.
+    Assert.assertEquals(0, errors);
+
+    List<FileInfo> dir1Files =
+        mFileSystemMaster.listStatus(dir1, ListStatusOptions.defaults());
+    List<FileInfo> dir2Files =
+        mFileSystemMaster.listStatus(dir2, ListStatusOptions.defaults());
+
+    Assert.assertEquals(numThreads / 2, dir1Files.size());
+    Assert.assertEquals(numThreads / 2, dir2Files.size());
+
+    Collections.sort(dir1Files, new IntegerSuffixedPathComparator());
+    for (int i = 1; i < numThreads; i += 2) {
+      Assert.assertEquals(dsts[i].getName(), dir1Files.get(i / 2).getName());
+    }
+
+    Collections.sort(dir2Files, new IntegerSuffixedPathComparator());
+    for (int i = 0; i < numThreads; i += 2) {
+      Assert.assertEquals(dsts[i].getName(), dir2Files.get(i / 2).getName());
+    }
+  }
+
+  /**
+   * Helper for renaming a list of paths concurrently. Assumes the srcs are already created and
+   * dsts do not exist.
+   *
+   * @param src list of source paths
+   * @param dst list of destination paths
+   * @return how many errors occurred
+   */
+  private int concurrentRename(final AlluxioURI[] src, final AlluxioURI[] dst)
+      throws Exception {
+    final int numFiles = src.length;
+    final CyclicBarrier barrier = new CyclicBarrier(numFiles);
+    List<Thread> threads = new ArrayList<>(numFiles);
+    // If there are exceptions, we will store them here.
+    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
+    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread th, Throwable ex) {
+        errors.add(ex);
+      }
+    };
+    for (int i = 0; i < numFiles; i++) {
+      final int iteration = i;
+      Thread t = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AuthenticatedClientUser.set(TEST_USER);
+            barrier.await();
+            mFileSystemMaster.rename(src[iteration], dst[iteration]);
+          } catch (Exception e) {
+            Throwables.propagate(e);
+          }
+        }
+      });
+      t.setUncaughtExceptionHandler(exceptionHandler);
+      threads.add(t);
+    }
+    Collections.shuffle(threads);
+    for (Thread t : threads) {
+      t.start();
+    }
+    for (Thread t : threads) {
+      t.join();
+    }
+    return errors.size();
+  }
+
+  /**
+   * Tests that getFileInfo (read operation) either returns the correct file info or fails if it
+   * has been renamed while the operation was waiting for the file lock.
+   */
+  @Test
+  public void consistentGetFileInfo() throws Exception {
+    final int iterations = 100;
+    final AlluxioURI file = new AlluxioURI("/file");
+    final AlluxioURI dst = new AlluxioURI("/dst");
+    final CyclicBarrier barrier = new CyclicBarrier(2);
+    // If there are exceptions, we will store them here.
+    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
+    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread th, Throwable ex) {
+        errors.add(ex);
+      }
+    };
+    for (int i = 0; i < iterations; i++) {
+      mFileSystemMaster.createFile(file, sNestedFileOptions);
+      Thread renamer = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AuthenticatedClientUser.set(TEST_USER);
+            barrier.await();
+            mFileSystemMaster.rename(file, dst);
+            mFileSystemMaster.delete(dst, true);
+          } catch (Exception e) {
+            Assert.fail(e.getMessage());
+          }
+        }
+      });
+      renamer.setUncaughtExceptionHandler(exceptionHandler);
+      Thread reader = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AuthenticatedClientUser.set(TEST_USER);
+            barrier.await();
+            FileInfo info = mFileSystemMaster.getFileInfo(file);
+            // If the file info is successfully obtained, then the path should match
+            Assert.assertEquals(file.getName(), info.getName());
+          } catch (InvalidPathException | FileDoesNotExistException e) {
+            // InvalidPathException - if the file is renamed while the thread waits for the lock.
+            // FileDoesNotExistException - if the file is fully renamed before the getFileInfo call.
+          } catch (Exception e) {
+            Assert.fail(e.getMessage());
+          }
+        }
+      });
+      reader.setUncaughtExceptionHandler(exceptionHandler);
+      renamer.start();
+      reader.start();
+      renamer.join();
+      reader.join();
+      Assert.assertTrue("Errors detected: " + errors, errors.isEmpty());
+    }
   }
 }

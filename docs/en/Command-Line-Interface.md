@@ -135,8 +135,8 @@ For example, `chown` can be used as a quick way to change the owner of file:
 ## copyFromLocal
 The `copyFromLocal` command copies the contents of a file in your local file system into Alluxio.
 If the node you run the command from has an Alluxio worker, the data will be available on that
-worker. Otherwise, the data will be placed in a random remote node running an Alluxio worker. If a
-directory is specified, the directory and all its contents will be uploaded recursively.
+worker. Otherwise, the data will be copied to a random remote node running an Alluxio worker. If a
+directory is specified, the directory and all its contents will be copied recursively.
 
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for
 processing:
@@ -353,14 +353,16 @@ For example, `rm` can be used to remove temporary files which are no longer need
 {% include Command-Line-Interface/rm2.md %}
 
 ## setTtl
-The `setTtl` command sets the time-to-live of a file, in milliseconds. Action parameter will
-indicate the action to perform once the current time is greater than the TTL + creation time of the file.
-Action `delete` (default) will delete file from both Alluxio and the under storage system, whereas action
-`free` will just free the file from Alluxio.
+The `setTtl` command sets the time-to-live of a file or a directory, in milliseconds. If set ttl
+to a directory, all the children inside that directory will set too. So a directory's TTL expires,
+all the children inside that directory will also expire. Action parameter will indicate the action
+to perform once the current time is greater than the TTL + creation time of the file.
+Action `delete` (default) will delete file or directory from both Alluxio and the under storage system,
+whereas action `free` will just free the file from Alluxio.
 
 For example, `setTtl` with action `delete` can be used to clean up files the administrator knows are
-unnecessary after a period of time, or can be used to just remove the contents from Alluxio to make room
-for more space in Alluxio.
+unnecessary after a period of time, or with action 'free' just remove the contents from Alluxio to
+make room for more space in Alluxio.
 
 {% include Command-Line-Interface/setTtl.md %}
 

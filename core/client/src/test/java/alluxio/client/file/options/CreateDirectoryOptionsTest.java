@@ -13,10 +13,12 @@ package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,7 +43,9 @@ public class CreateDirectoryOptionsTest {
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
     Assert.assertFalse(options.isAllowExists());
     Assert.assertFalse(options.isRecursive());
-    Assert.assertEquals(mDefaultWriteType.getUnderStorageType(), options.getUnderStorageType());
+    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
+    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
+    Assert.assertEquals(mDefaultWriteType, options.getWriteType());
   }
 
   /**
@@ -53,18 +57,23 @@ public class CreateDirectoryOptionsTest {
     boolean allowExists = random.nextBoolean();
     boolean recursive = random.nextBoolean();
     Mode mode = new Mode((short) 0123);
+    long ttl = random.nextLong();
     WriteType writeType = WriteType.NONE;
 
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
     options.setAllowExists(allowExists);
     options.setMode(mode);
+    options.setTtl(ttl);
+    options.setTtlAction(TtlAction.FREE);
     options.setRecursive(recursive);
     options.setWriteType(writeType);
 
     Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(mode, options.getMode());
     Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
+    Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
+    Assert.assertEquals(writeType, options.getWriteType());
   }
 
   /**
@@ -89,6 +98,8 @@ public class CreateDirectoryOptionsTest {
     Assert.assertEquals(recursive, thriftOptions.isRecursive());
     Assert.assertEquals(writeType.getUnderStorageType().isSyncPersist(),
         thriftOptions.isPersisted());
+    Assert.assertEquals(Constants.NO_TTL, thriftOptions.getTtl());
+    Assert.assertEquals(alluxio.thrift.TTtlAction.Delete, thriftOptions.getTtlAction());
     Assert.assertEquals(mode.toShort(), thriftOptions.getMode());
   }
 

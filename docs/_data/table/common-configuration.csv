@@ -16,7 +16,8 @@ alluxio.underfs.glusterfs.impl,org.apache.hadoop.fs.glusterfs.&#8203;GlusterFile
 alluxio.underfs.glusterfs.mapred.&#8203;system.dir,glusterfs:///mapred/system
 alluxio.underfs.hdfs.configuration,${alluxio.conf.dir}/core-site.xml
 alluxio.underfs.hdfs.impl,org.apache.hadoop.hdfs.&#8203;DistributedFileSystem
-alluxio.underfs.hdfs.prefixes,"hdfs://,glusterfs:///"
+alluxio.underfs.hdfs.prefixes,"hdfs://,glusterfs:///,maprfs:///"
+alluxio.underfs.hdfs.remote,false
 alluxio.underfs.listing.length,1000
 alluxio.underfs.object.store.mount.shared.publicly,false
 alluxio.underfs.s3.owner.id.to.username.mapping,No default
@@ -24,12 +25,12 @@ alluxio.underfs.s3.endpoint,No default
 alluxio.underfs.s3.proxy.host,No default
 alluxio.underfs.s3.proxy.https.only,true
 alluxio.underfs.s3.proxy.port,No default
-alluxio.underfs.s3.threads.max,22
+alluxio.underfs.s3.threads.max,40
 alluxio.underfs.s3.admin.threads.max,20
-alluxio.underfs.s3.upload.threads.max,2
+alluxio.underfs.s3.upload.threads.max,20
 alluxio.underfs.s3.disable.dns.buckets,false
 alluxio.underfs.s3a.consistency.timeout.ms,60000
-alluxio.underfs.s3a.direct.writes.enabled,true
+alluxio.underfs.s3a.request.timeout.ms,60000
 alluxio.underfs.s3a.secure.http.enabled,false
 alluxio.underfs.s3a.server.side.encryption.enabled,false
 alluxio.underfs.s3a.socket.timeout.ms,50000

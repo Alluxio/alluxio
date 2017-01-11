@@ -19,7 +19,6 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +103,13 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (AlluxioTException e) {
-        throw Throwables.propagate(AlluxioException.fromThrift(e));
+        AlluxioException ae = AlluxioException.fromThrift(e);
+        try {
+          processException(client, ae);
+        } catch (AlluxioException ee) {
+          throw new IOException(ee);
+        }
+        exception = new TException(ae);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         closeClient(client);
@@ -140,7 +145,9 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
       try {
         return rpc.call(client);
       } catch (AlluxioTException e) {
-        throw AlluxioException.fromThrift(e);
+        AlluxioException ae = AlluxioException.fromThrift(e);
+        processException(client, ae);
+        exception = new TException(ae);
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -155,6 +162,17 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
     LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
     Preconditions.checkNotNull(exception);
     throw new IOException(exception);
+  }
+
+  /**
+   * Do some processing based on the exception.
+   *
+   * @param client the client
+   * @param e the exception
+   * @throws E if the exception is not suppressed
+   */
+  protected <E extends Exception> void processException(C client, E e) throws E {
+    throw e;
   }
 
   /**

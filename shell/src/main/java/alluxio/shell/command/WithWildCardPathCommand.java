@@ -47,7 +47,8 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
    * @param cl the parsed command line object including options
    * @throws IOException if the command fails
    */
-  abstract void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException;
+  protected abstract void runCommand(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException;
 
   @Override
   protected int getNumOfArgs() {

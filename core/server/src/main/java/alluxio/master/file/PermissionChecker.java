@@ -20,7 +20,6 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
-import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -36,6 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Base class to provide permission check logic.
  */
+// TODO(peis): Migrate this class to a set of static functions.
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class PermissionChecker {
   /** The file system inode structure. */
@@ -87,7 +87,7 @@ public final class PermissionChecker {
     List<Inode<?>> inodeList = inodePath.getInodeList();
 
     // collects user and groups
-    String user = getClientUser();
+    String user = AuthenticatedClientUser.getClientUser();
     List<String> groups = getGroups(user);
 
     // remove the last element if all components of the path exist, since we only check the parent.
@@ -116,10 +116,33 @@ public final class PermissionChecker {
     List<Inode<?>> inodeList = inodePath.getInodeList();
 
     // collects user and groups
-    String user = getClientUser();
+    String user = AuthenticatedClientUser.getClientUser();
     List<String> groups = getGroups(user);
 
     checkInodeList(user, groups, bits, inodePath.getUri().getPath(), inodeList, false);
+  }
+
+  /**
+   * Gets the permission to access inodePath for the current client user.
+   *
+   * @param inodePath the inode path
+   * @return the permission
+   */
+  public Mode.Bits getPermission(LockedInodePath inodePath) {
+    if (!mPermissionCheckEnabled) {
+      return Mode.Bits.NONE;
+    }
+    // collects inodes info on the path
+    List<Inode<?>> inodeList = inodePath.getInodeList();
+
+    // collects user and groups
+    try {
+      String user = AuthenticatedClientUser.getClientUser();
+      List<String> groups = getGroups(user);
+      return getPermissionInternal(user, groups, inodePath.getUri().getPath(), inodeList);
+    } catch (AccessControlException e) {
+      return Mode.Bits.NONE;
+    }
   }
 
   /**
@@ -149,23 +172,6 @@ public final class PermissionChecker {
   }
 
   /**
-   * @return the client user
-   * @throws AccessControlException if the client user information cannot be accessed
-   */
-  private String getClientUser() throws AccessControlException {
-    try {
-      User authorizedUser = AuthenticatedClientUser.get();
-      if (authorizedUser == null) {
-        throw new AccessControlException(
-            ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
-      }
-      return authorizedUser.getName();
-    } catch (IOException e) {
-      throw new AccessControlException(e.getMessage());
-    }
-  }
-
-  /**
    * @param user the user to get groups for
    * @return the groups for the given user
    * @throws AccessControlException if the group service information cannot be accessed
@@ -192,7 +198,7 @@ public final class PermissionChecker {
     List<Inode<?>> inodeList = inodePath.getInodeList();
 
     // collects user and groups
-    String user = getClientUser();
+    String user = AuthenticatedClientUser.getClientUser();
     List<String> groups = getGroups(user);
 
     if (isPrivilegedUser(user, groups)) {
@@ -209,7 +215,7 @@ public final class PermissionChecker {
    */
   private void checkSuperUser() throws AccessControlException {
     // collects user and groups
-    String user = getClientUser();
+    String user = AuthenticatedClientUser.getClientUser();
     List<String> groups = getGroups(user);
     if (!isPrivilegedUser(user, groups)) {
       throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
@@ -268,7 +274,7 @@ public final class PermissionChecker {
    * @param path the path to check permission on
    * @throws AccessControlException if permission checking fails
    */
-  private void checkInode(String user, List<String> groups, Inode inode, Mode.Bits bits,
+  private void checkInode(String user, List<String> groups, Inode<?> inode, Mode.Bits bits,
       String path) throws AccessControlException {
     if (inode == null) {
       return;
@@ -292,17 +298,64 @@ public final class PermissionChecker {
         .getMessage(toExceptionMessage(user, bits, path, inode)));
   }
 
+  /**
+   * Gets the permission to access an inode path given a user and its groups.
+   *
+   * @param user the user
+   * @param groups the groups this user belongs to
+   * @param path the inode path
+   * @param inodeList the list of inodes in the path
+   * @return the permission
+   */
+  private Mode.Bits getPermissionInternal(String user, List<String> groups, String path,
+      List<Inode<?>> inodeList) {
+    int size = inodeList.size();
+    Preconditions
+        .checkArgument(size > 0, PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
+
+    // bypass checking permission for super user or super group of Alluxio file system.
+    if (isPrivilegedUser(user, groups)) {
+      return Mode.Bits.ALL;
+    }
+
+    // traverses from root to the parent dir to all inodes included by this path are executable
+    for (int i = 0; i < size - 1; i++) {
+      try {
+        checkInode(user, groups, inodeList.get(i), Mode.Bits.EXECUTE, path);
+      } catch (AccessControlException e) {
+        return Mode.Bits.NONE;
+      }
+    }
+
+    Inode inode = inodeList.get(inodeList.size() - 1);
+    if (inode == null) {
+      return Mode.Bits.NONE;
+    }
+
+    Mode.Bits mode = Mode.Bits.NONE;
+    short permission = inode.getMode();
+    if (user.equals(inode.getOwner())) {
+      mode = mode.or(Mode.extractOwnerBits(permission));
+    }
+    if (groups.contains(inode.getGroup())) {
+      mode = mode.or(Mode.extractGroupBits(permission));
+    }
+    mode = mode.or(Mode.extractOtherBits(permission));
+    return mode;
+  }
+
   private boolean isPrivilegedUser(String user, List<String> groups) {
     return user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup);
   }
 
-  private static String toExceptionMessage(String user, Mode.Bits bits, String path, Inode inode) {
+  private static String toExceptionMessage(String user, Mode.Bits bits, String path,
+      Inode<?> inode) {
     StringBuilder stringBuilder =
         new StringBuilder().append("user=").append(user).append(", ").append("access=").append(bits)
             .append(", ").append("path=").append(path).append(": ").append("failed at ")
             .append(inode.getName().equals("") ? "/" : inode.getName()).append(", inode owner=")
             .append(inode.getOwner()).append(", inode group=").append(inode.getGroup())
-            .append(", inode mode=").append(inode.getMode());
+            .append(", inode mode=").append(new Mode(inode.getMode()).toString());
     return stringBuilder.toString();
   }
 }

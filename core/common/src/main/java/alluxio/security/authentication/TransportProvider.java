@@ -20,6 +20,7 @@ import org.apache.thrift.transport.TTransportFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import javax.security.auth.Subject;
 import javax.security.sasl.SaslException;
 
 /**
@@ -77,6 +78,18 @@ public interface TransportProvider {
   TTransport getClientTransport(InetSocketAddress serverAddress) throws IOException;
 
   /**
+   * Similar as {@link TransportProvider#getClientTransport(InetSocketAddress)} but it also
+   * specifies the {@link Subject} explicitly.
+   *
+   * @param subject the subject, set to null if not present
+   * @param serverAddress the server address which clients will connect to
+   * @return a TTransport for client
+   * @throws IOException if building a TransportFactory fails or user login fails
+   */
+  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
+      throws IOException;
+
+  /**
    * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is
    * used as one argument to build a Thrift {@link org.apache.thrift.server.TServer}. If the auth
    * type is not supported or recognized, an {@link UnsupportedOperationException} is thrown.
@@ -85,4 +98,15 @@ public interface TransportProvider {
    * @throws SaslException if building a TransportFactory fails
    */
   TTransportFactory getServerTransportFactory() throws SaslException;
+
+  /**
+   * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is
+   * used as one argument to build a Thrift {@link org.apache.thrift.server.TServer}. If the auth
+   * type is not supported or recognized, an {@link UnsupportedOperationException} is thrown.
+   *
+   * @param runnable a closure runs after the transport is established
+   * @return a corresponding TTransportFactory
+   * @throws SaslException if building a TransportFactory fails
+   */
+  TTransportFactory getServerTransportFactory(Runnable runnable) throws SaslException;
 }

@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * A pool to manage Alluxio thrift clients.
@@ -62,6 +63,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   private final long mServiceVersion;
   private final InetSocketAddress mAddress;
   private final long mGcThresholdMs;
+  private final Subject mParentSubject;
 
   private static final int THRIFT_CLIENT_POOL_GC_THREADPOOL_SIZE = 5;
   private static final ScheduledExecutorService GC_EXECUTOR =
@@ -86,6 +88,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   /**
    * Creates a thrift client pool instance with a minimum capacity of 1.
    *
+   * @param subject the parent subject, set to null if not present
    * @param serviceName the service name (e.g. BlockWorkerClient)
    * @param serviceVersion the service version
    * @param address the server address
@@ -93,14 +96,15 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
    * @param gcThresholdMs when a channel is older than this threshold and the pool's capacity
    *        is above the minimum capacity (1), it is closed and removed from the pool.
    */
-  public ThriftClientPool(String serviceName, long serviceVersion, InetSocketAddress address,
-      int maxCapacity, long gcThresholdMs) {
+  public ThriftClientPool(Subject subject, String serviceName, long serviceVersion,
+      InetSocketAddress address, int maxCapacity, long gcThresholdMs) {
     super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
     mTransportProvider = TransportProvider.Factory.create();
     mServiceName = serviceName;
     mServiceVersion = serviceVersion;
     mAddress = address;
     mGcThresholdMs = gcThresholdMs;
+    mParentSubject = subject;
   }
 
   /**
@@ -135,7 +139,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
    */
   @Override
   protected T createNewResource() throws IOException {
-    TTransport transport = mTransportProvider.getClientTransport(mAddress);
+    TTransport transport = mTransportProvider.getClientTransport(mParentSubject, mAddress);
     TProtocol binaryProtocol = new TBinaryProtocol(transport);
     T client = createThriftClient(new TMultiplexedProtocol(binaryProtocol, mServiceName));
 
@@ -218,8 +222,9 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
       closeResource(client);
       // The master branch of Apache Thrift provides a dedicated exception type for this
       // (CORRUPTED_DATA).
-      if (FRAME_SIZE_NEGATIVE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()
-          || FRAME_SIZE_TOO_LARGE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
+      if (e.getMessage() != null && (
+          FRAME_SIZE_NEGATIVE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()
+              || FRAME_SIZE_TOO_LARGE_EXCEPTION_PATTERN.matcher(e.getMessage()).find())) {
         // See an error like "Frame size (67108864) larger than max length (16777216)!",
         // pointing to the helper page.
         String message = String.format("Failed to connect to %s @ %s: %s. " + "This exception "

@@ -63,6 +63,12 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .hasArg(false)
           .desc("force")
           .build();
+  protected static final Option LIST_DIR_AS_FILE_OPTION =
+      Option.builder("d")
+          .required(false)
+          .hasArg(false)
+          .desc("list directories as plain files")
+          .build();
 
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;
@@ -88,7 +94,7 @@ public abstract class AbstractShellCommand implements ShellCommand {
    *
    * @return the number of arguments
    */
-  abstract int getNumOfArgs();
+  protected abstract int getNumOfArgs();
 
   /**
    * Gets the supported Options of the command.

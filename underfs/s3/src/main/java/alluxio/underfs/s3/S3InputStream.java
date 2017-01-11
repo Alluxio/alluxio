@@ -56,11 +56,7 @@ public class S3InputStream extends InputStream {
    * @throws ServiceException if a service exception occurs
    */
   S3InputStream(String bucketName, String key, S3Service client) throws ServiceException {
-    mBucketName = bucketName;
-    mKey = key;
-    mClient = client;
-    mObject = mClient.getObject(mBucketName, mKey);
-    mInputStream = new BufferedInputStream(mObject.getDataInputStream());
+    this(bucketName, key, client, 0L);
   }
 
   /**
@@ -77,7 +73,12 @@ public class S3InputStream extends InputStream {
     mKey = key;
     mClient = client;
     mPos = pos;
-    mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
+    // For an empty file setting start pos = 0 will throw a ServiceException
+    if (mPos > 0) {
+      mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
+    } else {
+      mObject = mClient.getObject(mBucketName, mKey);
+    }
     mInputStream = new BufferedInputStream(mObject.getDataInputStream());
   }
 

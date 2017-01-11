@@ -12,6 +12,7 @@
 package alluxio.hadoop;
 
 import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.DelegateToFileSystem;
@@ -56,6 +57,6 @@ public class AlluxioFileSystem extends DelegateToFileSystem {
 
   @Override
   public int getUriDefaultPort() {
-    return Constants.DEFAULT_MASTER_PORT;
+    return Integer.parseInt(PropertyKey.MASTER_RPC_PORT.getDefaultValue());
   }
 }

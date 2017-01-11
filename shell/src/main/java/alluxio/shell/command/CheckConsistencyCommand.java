@@ -35,7 +35,7 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
   }
 
   @Override
-  int getNumOfArgs() {
+  protected int getNumOfArgs() {
     return 1;
   }
 

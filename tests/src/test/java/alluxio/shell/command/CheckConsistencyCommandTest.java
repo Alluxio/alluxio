@@ -16,6 +16,7 @@ import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,8 +46,8 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
         WriteType.CACHE_THROUGH, 20);
     String ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir")).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.get(ufsPath);
-    ufs.delete(ufsPath, true);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsPath);
+    ufs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(true));
     mFsShell.run("checkConsistency", "/testRoot");
     StringBuilder expected = new StringBuilder();
     expected.append("The following files are inconsistent:\n");

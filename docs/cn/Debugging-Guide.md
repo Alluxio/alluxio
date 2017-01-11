@@ -15,9 +15,25 @@ group: Resources
 ## Alluxio日志地址
 
 Alluxio运行过程中可产生master、worker和client日志，这些日志存储在`{ALLUXIO_HOME}/logs`文件夹中，日志名称分别为
-`master.log`,`master.out`, `worker.log`, `worker.out` 和`user.log`。
+`master.log`,`master.out`, `worker.log`, `worker.out` 和`user_${USER}.log`。
 
 master和worker日志对于理解Alluxio master节点和worker节点的运行过程是非常有帮助的，当Alluxio运行出现问题时，可以查阅日志发现问题产生原因。如果不清楚错误日志信息，可在[邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)查找，错误日志信息有可能之前已经讨论过。
+
+## Alluxio远程调试
+
+Alluxio一般不在开发机上运行,这使得Alluxio的调试变得困难,我们通常会用"增加日志-编译-部署运行-查看日志"的方法来定位问题,而这种定位问题的效率比较低而且需要修改代码从新部署,这在有些时候是不允许的。
+
+使用java远程调试技术可以简单、不修改源码的方式，进行源码级调试。你需要增加jvm 远程调试参数，启动调试服务。增加远程调试参数的方法有很多，比较方便的一种方法是，在需要调试的节点上，修改`alluxio-env.sh`，增加如下配置属性。
+
+```properties
+ALLUXIO_MASTER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6600 $ALLUXIO_JAVA_OPTS"
+
+ALLUXIO_WORKER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6601 $ALLUXIO_JAVA_OPTS"
+
+ALLUXIO_PROXY_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6602 $ALLUXIO_JAVA_OPTS"
+```
+
+这样启动该节点上的master或者worker后，使用eclipse或intellij idea等java开发环境，新建java远程调试配置，设置调试主机名和端口号，然后启动调试连接。如果你设置了断点并且到达了断点处，开发环境会进入调试模式，可以读写当前现场的变量、调用栈、线程列表、表达式评估，也可以执行单步进入、单步跳过、恢复执行、挂起等调试控制。掌握这个技术使得日后的定位问题事半功倍，也会对调试过的代码上下文印象深刻。
 
 ## Alluxio部署常见问题
 
@@ -51,7 +67,44 @@ master和worker日志对于理解Alluxio master节点和worker节点的运行过
 - 如果底层文件存储系统是S3，检查 `ufs.yml`文件中的S3 bucket名称是否为已存在的bucket的名称，不包括`s3://` 、`s3a://`或者`s3n://`前缀
 - 如果不能访问UI，检查安全组是否限制了端口19999
 
-## ALLuxio存储常见问题
+## ALLuxio使用常见问题
+
+#### 问题：出现“No FileSystem for scheme: alluxio”这种错误信息是什么原因？
+
+解决办法：当你的应用（例如MapReduce、Spark）尝试以HDFS兼容文件系统接口访问Alluxio，而又无法解析`alluxio://`模式时会产生该异常。要确保HDFS配置文件`core-site.xml`（默认在hadoop安装目录，如果为Spark自定义了该文件则在`spark/conf/`目录下）包含以下配置：
+
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
+```
+
+#### 问题：出现“java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found”这种错误信息是什么原因？
+
+解决办法：当你的应用（例如MapReduce、Spark）尝试以HDFS兼容文件系统接口访问Alluxio，并且`alluxio://`模式也已配置正确，但应用的classpath未包含Alluxio客户端jar包时会产生该异常。用户通常需要通过设置环境变量或者属性的方式将Alluxio客户端jar包添加到所有节点上的应用的classpath中，这取决于具体的计算框架。以下是一些示例：
+
+- 对于MapReduce应用，可以将客户端jar包添加到`$HADOOP_CLASSPATH`：
+
+```bash
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+```
+
+- 对于Spark应用，可以将客户端jar包添加到`$SPARK_CLASSPATH`：
+
+```bash
+$ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
+```
+
+除了上述方法，还可以将以下配置添加到`spark/conf/spark-defaults.conf`中：
+
+```bash
+spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
+spark.executor.extraClassPath
+{{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
 
 #### 问题: 出现类似如下的错误信息: "Frame size (67108864) larger than max length (16777216)",这种类型错误信息出现的原因是什么?
 
@@ -63,8 +116,11 @@ master和worker日志对于理解Alluxio master节点和worker节点的运行过
 Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用户身份验证(Security.html#authentication)的方法。
 如果客户端和服务器的这项配置属性不一致，这种错误将会发生。(例如，客户端的属性为默认值`NOSASL`,而服务器端设为`SIMPLE`)
 有关如何设定Alluxio的集群和应用的问题，用户请参照[Configuration-Settings](Configuration-Settings.html)
+- Spark调用Alluxio-1.3.0文件时报错，如果是直接下载编译好的alluxio文件进行安装的，一般会出现该错误。
+解决办法：需要Alluxio client需要在编译时指定Spark选项，具体参考[Running-Spark-on-Alluxio](Running-Spark-on-Alluxio.html)；
+编译好的依赖包也可以直接下载，下载地址：<a href="http://downloads.alluxio.org/downloads/files/1.3.0/alluxio-1.3.0-spark-client-jar-with-dependencies.jar"> 依赖包下载 </a>。
 
-####　向Alluxio拷贝数据或者写数据时出现如下问题 "Failed to cache: Not enough space to store block on worker",为什么？
+#### 问题: 向Alluxio拷贝数据或者写数据时出现如下问题 "Failed to cache: Not enough space to store block on worker",为什么？
 
 解决办法: 这种错误说明alluxio空间不足，无法完成用户写请求。
 

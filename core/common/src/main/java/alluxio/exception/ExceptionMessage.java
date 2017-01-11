@@ -25,6 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public enum ExceptionMessage {
   // general
+  INVALID_PREFIX("Parent path {0} is not a prefix of child {1}"),
   NOT_SUPPORTED("This method is not supported"),
   PATH_DOES_NOT_EXIST("Path {0} does not exist"),
   PATH_MUST_BE_FILE("Path {0} must be a file"),
@@ -32,8 +33,6 @@ public enum ExceptionMessage {
   PATH_INVALID("Path {0} is invalid"),
 
   // general block
-  BLOCK_NOT_LOCALLY_AVAILABLE("blockId {0,number,#} is not available on local machine"),
-  BLOCK_UNAVAILABLE("blockId {0,number,#} is not available in Alluxio"),
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
   NO_LOCAL_WORKER("Local address {0} requested but there is no local worker"),
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
@@ -99,9 +98,7 @@ public enum ExceptionMessage {
 
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
-  NO_ENTRY_TYPE("Could not find entry type for journal entry. Unrecognized fields: {0}"),
   UNEXPECTED_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
-  UNKNOWN_JOURNAL_ENTRY_TYPE("Unknown journal entry type: {0}"),
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
@@ -112,6 +109,7 @@ public enum ExceptionMessage {
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with URI {1} is not found"),
+  PARENT_CREATION_FAILED("Unable to create parent directories for path {0}"),
 
   // file system master
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
@@ -119,6 +117,7 @@ public enum ExceptionMessage {
   NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
   PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
   PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
+  PATH_INVALID_CONCURRENT_RENAME("Path is no longer valid, possibly due to a concurrent rename."),
   PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
   RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
@@ -152,6 +151,7 @@ public enum ExceptionMessage {
   UNKNOWN_LINEAGE_FILE_STATE("Unknown LineageFileState: {0}"),
 
   // client
+  DIFFERENT_MASTER_ADDRESS("Master address {0} is different from that in file system context {1}"),
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // configuration

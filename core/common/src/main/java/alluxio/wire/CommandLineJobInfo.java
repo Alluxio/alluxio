@@ -21,7 +21,7 @@ import java.io.Serializable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The lineage command-line job descriptor.
+ * The lineage command-line job information.
  */
 @PublicApi
 @NotThreadSafe
@@ -40,7 +40,7 @@ public final class CommandLineJobInfo implements Serializable {
   /**
    * Creates a new instance of {@link CommandLineJobInfo} from a thrift representation.
    *
-   * @param commandLineJobInfo the thrift representation of a lineage command-line job descriptor
+   * @param commandLineJobInfo the thrift representation of a lineage command-line job information
    */
   protected CommandLineJobInfo(alluxio.thrift.CommandLineJobInfo commandLineJobInfo) {
     mCommand = commandLineJobInfo.getCommand();
@@ -63,7 +63,7 @@ public final class CommandLineJobInfo implements Serializable {
 
   /**
    * @param command the command to use
-   * @return the lineage command-line job descriptor
+   * @return the lineage command-line job information
    */
   public CommandLineJobInfo setCommand(String command) {
     Preconditions.checkNotNull(command);
@@ -73,7 +73,7 @@ public final class CommandLineJobInfo implements Serializable {
 
   /**
    * @param conf the command configuration to use
-   * @return the lineage command-line job descriptor
+   * @return the lineage command-line job information
    */
   public CommandLineJobInfo setConf(JobConfInfo conf) {
     Preconditions.checkNotNull(conf);
@@ -82,7 +82,7 @@ public final class CommandLineJobInfo implements Serializable {
   }
 
   /**
-   * @return thrift representation of the lineage command-line job descriptor
+   * @return thrift representation of the lineage command-line job information
    */
   protected alluxio.thrift.CommandLineJobInfo toThrift() {
     return new alluxio.thrift.CommandLineJobInfo(mCommand, mConf.toThrift());

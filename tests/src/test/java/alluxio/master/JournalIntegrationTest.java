@@ -11,11 +11,15 @@
 
 package alluxio.master;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.UnderFileSystemSpy;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -33,10 +37,13 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -48,6 +55,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -98,8 +106,7 @@ public class JournalIntegrationTest {
     String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
     Journal journal = new ReadWriteJournal(
         PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
-    UnderFileSystem.get(journalFolder).delete(journal.getCurrentLogFilePath(),
-        true);
+    UnderFileSystem.Factory.get(journalFolder).deleteFile(journal.getCurrentLogFilePath());
   }
 
   private void addBlockTestUtil(URIStatus status)
@@ -138,8 +145,8 @@ public class JournalIntegrationTest {
       writer.getEntryOutputStream().flush();
       writer.getEntryOutputStream().flush();
       writer.getEntryOutputStream().flush();
-      String[] paths = UnderFileSystem.get(journalFolder)
-          .list(journal.getCompletedDirectory());
+      UnderFileStatus[] paths = UnderFileSystem.Factory.get(journalFolder)
+          .listStatus(journal.getCompletedDirectory());
       // Make sure no new empty files were created.
       Assert.assertTrue(paths == null || paths.length == 0);
     } finally {
@@ -154,7 +161,7 @@ public class JournalIntegrationTest {
   @Test
   public void loadMetadata() throws Exception {
     String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
     ufs.create(ufsRoot + "/xyz").close();
     mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
@@ -195,13 +202,15 @@ public class JournalIntegrationTest {
     }
     mLocalAlluxioCluster.stopFS();
 
-    String journalFolder =
-        FileSystemMaster.getJournalDirectory(mLocalAlluxioCluster.getMaster().getJournalFolder());
+    String journalFolder = PathUtils.concatPath(mLocalAlluxioCluster.getMaster().getJournalFolder(),
+        Constants.FILE_SYSTEM_MASTER_NAME);
     Journal journal = new ReadWriteJournal(journalFolder);
     String completedPath = journal.getCompletedDirectory();
-    Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length > 1);
+    Assert.assertTrue(
+        UnderFileSystem.Factory.get(completedPath).listStatus(completedPath).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length <= 1);
+    Assert.assertTrue(
+        UnderFileSystem.Factory.get(completedPath).listStatus(completedPath).length <= 1);
     multiEditLogTestUtil();
   }
 
@@ -250,6 +259,7 @@ public class JournalIntegrationTest {
 
   @Test
   public void emptyImage() throws Exception {
+    Assert.assertEquals(0, mFileSystem.listStatus(mRootUri).size());
     mLocalAlluxioCluster.stopFS();
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
@@ -493,7 +503,7 @@ public class JournalIntegrationTest {
             return false;
           }
         }
-      }, 30 * Constants.SECOND_MS);
+      }, WaitForOptions.defaults().setTimeout(60 * Constants.SECOND_MS));
     } finally {
       fsMaster.stop();
     }
@@ -577,7 +587,7 @@ public class JournalIntegrationTest {
 
     // TODO(chaomin): also setOwner and setGroup once there's a way to fake the owner/group in UFS.
     mFileSystem.setAttribute(filePath,
-        SetAttributeOptions.defaults().setMode((short) 0400).setRecursive(false));
+        SetAttributeOptions.defaults().setMode(new Mode((short) 0400)).setRecursive(false));
 
     URIStatus status = mFileSystem.getStatus(filePath);
 
@@ -586,6 +596,78 @@ public class JournalIntegrationTest {
     aclTestUtil(status, user);
     deleteFsMasterJournalLogs();
     aclTestUtil(status, user);
+  }
+
+  @Test
+  public void failDuringCheckpointRename() throws Exception {
+    AlluxioURI file = new AlluxioURI("/file");
+    mFileSystem.createFile(file).close();
+    // Restart the master once so that it creates a checkpoint file.
+    mLocalAlluxioCluster.stopFS();
+    createFsMasterFromJournal();
+    AlluxioURI journal = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
+    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journal)) {
+      doThrow(new RuntimeException("Failed to rename")).when(ufsSpy.get())
+          .renameFile(Mockito.contains("FileSystemMaster/checkpoint.data.tmp"), anyString());
+      try {
+        // Restart the master again, but with renaming the checkpoint file failing.
+        mLocalAlluxioCluster.stopFS();
+        createFsMasterFromJournal();
+        Assert.fail("Should have failed during rename");
+      } catch (RuntimeException e) {
+        Assert.assertEquals("Failed to rename", e.getMessage());
+      }
+    }
+    // We shouldn't lose track of the fact that the file is loaded into memory.
+    FileSystemMaster fsMaster = createFsMasterFromJournal();
+    Assert.assertTrue(fsMaster.getInMemoryFiles().contains(file));
+  }
+
+  @Test
+  public void failDuringCheckpointDelete() throws Exception {
+    AlluxioURI file = new AlluxioURI("/file");
+    mFileSystem.createFile(file).close();
+    // Restart the master once so that it creates a checkpoint file.
+    mLocalAlluxioCluster.stopFS();
+    createFsMasterFromJournal();
+    AlluxioURI journal = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
+    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journal)) {
+      doThrow(new RuntimeException("Failed to delete")).when(ufsSpy.get())
+          .deleteFile(Mockito.contains("FileSystemMaster/checkpoint.data"));
+      try {
+        // Restart the master again, but with deleting the checkpoint file failing.
+        mLocalAlluxioCluster.stopFS();
+        createFsMasterFromJournal();
+        Assert.fail("Should have failed during delete");
+      } catch (RuntimeException e) {
+        Assert.assertEquals("Failed to delete", e.getMessage());
+      }
+    }
+    // We shouldn't lose track of the fact that the file is loaded into memory.
+    FileSystemMaster fsMaster = createFsMasterFromJournal();
+    Assert.assertTrue(fsMaster.getInMemoryFiles().contains(file));
+  }
+
+  @Test
+  public void failWhileDeletingCompletedLogs() throws Exception {
+    AlluxioURI file = new AlluxioURI("/file");
+    mFileSystem.createFile(file).close();
+    AlluxioURI journal = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
+    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journal)) {
+      doThrow(new RuntimeException("Failed to delete completed log")).when(ufsSpy.get())
+          .deleteFile(Mockito.contains("FileSystemMaster/completed"));
+      try {
+        // Restart the master again, but with deleting the checkpoint file failing.
+        mLocalAlluxioCluster.stopFS();
+        createFsMasterFromJournal();
+        Assert.fail("Should have failed during delete");
+      } catch (RuntimeException e) {
+        Assert.assertEquals("Failed to delete completed log", e.getMessage());
+      }
+    }
+    // We shouldn't lose track of the fact that the file is loaded into memory.
+    FileSystemMaster fsMaster = createFsMasterFromJournal();
+    Assert.assertTrue(fsMaster.getInMemoryFiles().contains(file));
   }
 
   private void aclTestUtil(URIStatus status, String user) throws Exception {

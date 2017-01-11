@@ -14,6 +14,8 @@ package alluxio.client.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
@@ -50,23 +52,26 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
    * @param blockId the block id
    * @param blockSize the block size
    * @param workerNetAddress the address of the local worker
-   * @param blockStoreContext the block store context
+   * @param context the file system context
+   * @param options the options
    * @throws IOException if an I/O error occurs
    */
   public LocalBlockOutStream(long blockId,
       long blockSize,
       WorkerNetAddress workerNetAddress,
-      BlockStoreContext blockStoreContext) throws IOException {
-    super(blockId, blockSize, blockStoreContext);
+      FileSystemContext context,
+      OutStreamOptions options) throws IOException {
+    super(blockId, blockSize, context);
     if (!NetworkAddressUtils.getLocalHostName().equals(workerNetAddress.getHost())) {
       throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerNetAddress));
     }
 
     mCloser = Closer.create();
     try {
-      mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(workerNetAddress));
+      mBlockWorkerClient = mCloser.register(context.createBlockWorkerClient(workerNetAddress));
       long initialSize = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
-      String blockPath = mBlockWorkerClient.requestBlockLocation(mBlockId, initialSize);
+      String blockPath =
+          mBlockWorkerClient.requestBlockLocation(mBlockId, initialSize, options.getWriteTier());
       mReservedBytes += initialSize;
       mWriter = new LocalFileBlockWriter(blockPath);
       mCloser.register(mWriter);

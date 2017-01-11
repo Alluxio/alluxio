@@ -43,7 +43,7 @@ public final class LocalAlluxioMaster {
 
   private final String mJournalFolder;
 
-  private final AlluxioMaster mAlluxioMaster;
+  private final AlluxioMasterService mAlluxioMaster;
   private final Thread mMasterThread;
 
   private final Supplier<String> mClientSupplier = new Supplier<String>() {
@@ -57,7 +57,7 @@ public final class LocalAlluxioMaster {
   private LocalAlluxioMaster() throws IOException {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
     mJournalFolder = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    mAlluxioMaster = AlluxioMaster.Factory.create();
+    mAlluxioMaster = AlluxioMasterService.Factory.create();
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -83,7 +83,7 @@ public final class LocalAlluxioMaster {
    */
   public static LocalAlluxioMaster create() throws IOException {
     String workDirectory = uniquePath();
-    UnderFileSystemUtils.deleteDir(workDirectory);
+    UnderFileSystemUtils.deleteDirIfExists(workDirectory);
     UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
 
     Configuration.set(PropertyKey.WORK_DIR, workDirectory);
@@ -127,19 +127,11 @@ public final class LocalAlluxioMaster {
     clearClients();
 
     mAlluxioMaster.stop();
+    mMasterThread.interrupt();
 
     System.clearProperty("alluxio.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
 
-  }
-
-  /**
-   * Kills the master thread, by calling {@link Thread#interrupt()}.
-   *
-   * @throws Exception if master thread cannot be interrupted
-   */
-  public void kill() throws Exception {
-    mMasterThread.interrupt();
   }
 
   /**
@@ -155,13 +147,13 @@ public final class LocalAlluxioMaster {
    * @return the externally resolvable address of the master
    */
   public InetSocketAddress getAddress() {
-    return mAlluxioMaster.getMasterAddress();
+    return mAlluxioMaster.getRpcAddress();
   }
 
   /**
-   * @return the internal {@link AlluxioMaster}
+   * @return the internal {@link AlluxioMasterService}
    */
-  public AlluxioMaster getInternalMaster() {
+  public AlluxioMasterService getInternalMaster() {
     return mAlluxioMaster;
   }
 
@@ -170,15 +162,15 @@ public final class LocalAlluxioMaster {
    *
    * @return the RPC local port
    */
-  public int getRPCLocalPort() {
-    return mAlluxioMaster.getRPCLocalPort();
+  public int getRpcLocalPort() {
+    return mAlluxioMaster.getRpcAddress().getPort();
   }
 
   /**
    * @return the URI of the master
    */
   public String getUri() {
-    return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
+    return Constants.HEADER + mHostname + ":" + getRpcLocalPort();
   }
 
   /**
