@@ -18,33 +18,33 @@
 <jsp:include page="header-scripts.jsp" />
 
 <script>
-    var currentDir = "<%= request.getAttribute("currentPath").toString() %>";
-    function getInputPath() {
-        var path = $.trim($("#pathInput").val());
-        return path;
-    }
+  var currentDir = "<%= request.getAttribute("currentPath").toString() %>";
+  function getInputPath() {
+    var path = $.trim($("#pathInput").val());
+    return path;
+  }
 
-    function changeDir() {
-        var path = getInputPath();
-        path = encodeURI(path);
-        window.location.href = "./browse?path=" + path;
-    }
+  function changeDir() {
+    var path = getInputPath();
+    path = encodeURI(path);
+    window.location.href = "./browse?path=" + path;
+  }
 
-    $(document).ready(function () {
-        if (base !== "./browse") {
-            $("#pathNav").hide();
-        } else { 
-            // set currentDir as default value for #pathInput.
-            $("#pathInput").val(currentDir);
-            // when clicking #goBtn or enter the return key, change directory.
-            $("#goBtn").click(changeDir);
-            $("#pathInput").keydown(function (e) {
-                if (e.keyCode === 13) {
-                    changeDir();
-                }
-            });
+  $(document).ready(function () {
+    if (base !== "./browse") {
+      $("#pathNav").hide();
+    } else {
+      // set currentDir as default value for #pathInput.
+      $("#pathInput").val(currentDir);
+      // when clicking #goBtn or enter the return key, change directory.
+      $("#goBtn").click(changeDir);
+      $("#pathInput").keydown(function (e) {
+        if (e.keyCode === 13) {
+          changeDir();
         }
-    });
+      });
+    }
+  });
 </script>
 <div class="container-fluid">
   <jsp:include page="/header" />
