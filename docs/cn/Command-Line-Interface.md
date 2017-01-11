@@ -167,14 +167,6 @@ fs命令中的所有“路径”都应该以以下开头：
 
 {% include Command-Line-Interface/fileInfo.md %}
 
-## stat
-
-`stat`命令将一个文件或者文件夹的主要信息输出到控制台，这主要是为了让用户调试他们的系统。一般来说，在Web UI上查看文件信息要容易理解得多。
-
-使用举例：使用`stat`命令能够获取到一个文件的数据块的位置，这在获取计算任务中的数据局部性时非常有用。
-
-{% include Command-Line-Interface/stat.md %}
-
 ## free
 
 `free`命令请求Alluxio master将一个文件的所有数据块从Alluxio worker中剔除，如果命令参数为一个文件夹，那么会递归作用于其子文件和子文件夹。该请求不保证会立即产生效果，因为该文件的数据块可能正在被读取。`free`命令在被master接收后会立即返回。注意该命令不会删除底层文件系统中的任何数据，而只会影响存储在Alluxio中的数据。另外，该操作也不会影响元数据，这意味着如果运行`ls`命令，该文件仍然会被显示。
@@ -307,6 +299,14 @@ fs命令中的所有“路径”都应该以以下开头：
 使用举例：管理员在知道某些文件经过一段时间后便没用时，可以使用带有`delete`操作的`setTtl`命令来清理文件；如果仅仅希望为Alluxio释放更多的空间，可以使用带有`free`操作的`setTtl`命令来清理Alluxio中的文件内容。
 
 {% include Command-Line-Interface/setTtl.md %}
+
+## stat
+
+`stat`命令将一个文件或者文件夹的主要信息输出到控制台，这主要是为了让用户调试他们的系统。一般来说，在Web UI上查看文件信息要容易理解得多。
+
+使用举例：使用`stat`命令能够获取到一个文件的数据块的位置，这在获取计算任务中的数据局部性时非常有用。
+
+{% include Command-Line-Interface/stat.md %}
 
 ## tail
 
