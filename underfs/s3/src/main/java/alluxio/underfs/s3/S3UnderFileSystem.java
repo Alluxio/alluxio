@@ -267,6 +267,8 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
+    // In case key is root (empty string) do not normalize prefix
+    key = key.equals(PATH_SEPARATOR) ? "" : key;
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     StorageObjectsChunk chunk = getObjectListingChunk(key, delimiter, null);
     if (chunk != null) {

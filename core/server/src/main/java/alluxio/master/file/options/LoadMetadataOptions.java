@@ -11,6 +11,8 @@
 
 package alluxio.master.file.options;
 
+import alluxio.underfs.UnderFileStatus;
+
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -22,6 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LoadMetadataOptions {
   private boolean mCreateAncestors;
   private boolean mLoadDirectChildren;
+  private UnderFileStatus mUnderFileStatus;
 
   /**
    * @return the default {@link LoadMetadataOptions}
@@ -33,6 +36,14 @@ public final class LoadMetadataOptions {
   private LoadMetadataOptions() {
     mCreateAncestors = false;
     mLoadDirectChildren = false;
+    mUnderFileStatus = null;
+  }
+
+  /**
+   * @return null if unknown, else the status of UFS path for which loading metadata
+   */
+  public UnderFileStatus getUnderFileStatus() {
+    return mUnderFileStatus;
   }
 
   /**
@@ -75,6 +86,17 @@ public final class LoadMetadataOptions {
     return this;
   }
 
+  /**
+   * Sets the UFS status of path.
+   *
+   * @param status UFS status of path
+   * @return the updated object
+   */
+  public LoadMetadataOptions setUnderFileStatus(UnderFileStatus status) {
+    mUnderFileStatus = status;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -85,17 +107,19 @@ public final class LoadMetadataOptions {
     }
     LoadMetadataOptions that = (LoadMetadataOptions) o;
     return Objects.equal(mCreateAncestors, that.mCreateAncestors)
-        && Objects.equal(mLoadDirectChildren, that.mLoadDirectChildren);
+        && Objects.equal(mLoadDirectChildren, that.mLoadDirectChildren)
+        && Objects.equal(mUnderFileStatus, that.mUnderFileStatus);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCreateAncestors, mLoadDirectChildren);
+    return Objects.hashCode(mCreateAncestors, mLoadDirectChildren, mUnderFileStatus);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("createAncestors", mCreateAncestors)
-        .add("loadDirectChildren", mLoadDirectChildren).toString();
+        .add("loadDirectChildren", mLoadDirectChildren)
+        .add("underFileStatus", mUnderFileStatus).toString();
   }
 }

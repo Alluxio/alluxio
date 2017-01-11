@@ -79,6 +79,9 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   /**
    * This is only updated in the channel event loop thread when a read request starts or cancelled.
    * No need to be locked.
+   * When it is accessed outside of the event loop thread, make sure it is not null. For now, all
+   * netty channel handlers are executed in the event loop. The packet reader is not executed in
+   * the event loop thread.
    */
   protected volatile ReadRequestInternal mRequest = null;
 
@@ -176,39 +179,43 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return true if there are too many packets in-flight
    */
+  @GuardedBy("mLock")
   private boolean tooManyPendingPackets() {
     return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * PACKET_SIZE;
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return true if we should restart the packet reader
    */
+  @GuardedBy("mLock")
   private boolean shouldRestartPacketReader() {
     return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.end();
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return the number of bytes remaining to push to the netty queue. Return 0 if it is cancelled
    */
+  @GuardedBy("mLock")
   private long remainingToQueue() {
-    return mRequest.end() - mPosToQueue;
+    // mRequest is not guarded by mLock and is volatile. It can be reset because of cancel before
+    // the packet reader is done. We need to make a copy here to make sure the packet reader
+    // thread is not killed due to null pointer exception.
+    ReadRequestInternal request = mRequest;
+    return (request == null || mPosToQueue == -1) ? 0 : request.end() - mPosToQueue;
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return the number of bytes remaining to flush. Return 0 if it is cancelled
    */
+  @GuardedBy("mLock")
   private long remainingToWrite() {
-    return mRequest.end() - mPosToWrite;
+    // mRequest is not guarded by mLock and is volatile. It can be reset because of cancel before
+    // the packet reader is done. We need to make a copy here to make sure the packet reader
+    // thread is not killed due to null pointer exception.
+    ReadRequestInternal request = mRequest;
+    return (request == null || mPosToWrite == -1) ? 0 : request.end() - mPosToWrite;
   }
 
   /**
