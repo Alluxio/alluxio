@@ -18,7 +18,7 @@
 <jsp:include page="header-scripts.jsp" />
 
 <script>
-    var currentDir = "<%= request.getAttribute("currentPath").toString()%>";
+    var currentDir = "<%= request.getAttribute("currentPath").toString() %>";
     function getInputPath() {
         var path = $.trim($("#pathInput").val());
         return path;
@@ -27,18 +27,19 @@
     function changeDir() {
         var path = getInputPath();
         path = encodeURI(path);
-        window.location.href="./browse?path="+path;
+        window.location.href = "./browse?path=" + path;
     }
 
     $(document).ready(function () {
-        if(base != "./browse") {
+        if (base !== "./browse") {
             $("#pathNav").hide();
-        }else{ 
-            //bind the tag's event handler by given id. 
+        } else { 
+            // set currentDir as default value for #pathInput.
             $("#pathInput").val(currentDir);
+            // when clicking #goBtn or enter the return key, change directory.
             $("#goBtn").click(changeDir);
             $("#pathInput").keydown(function (e) {
-                if(e.keyCode==13){
+                if (e.keyCode === 13) {
                     changeDir();
                 }
             });
@@ -66,7 +67,7 @@
                 <li class="active"><a href="./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>"><%= escapeHtml(((UIFileInfo) request.getAttribute("currentDirectory")).getName()) %></a></li>
               <% } %>
             </ul>
-            <div id="pathNav" class="input-append pull-right" style="margin: 5px; margin-right: 45px;width:600px;">
+            <div id="pathNav" class="input-append pull-right" style="margin: 5px; margin-right: 45px;width:600px; ">
               <input class="span12" id="pathInput" type="text" placeholder="Navigate to a directory">
               <button class="btn" id="goBtn" type="button">Go</button>
             </div>
