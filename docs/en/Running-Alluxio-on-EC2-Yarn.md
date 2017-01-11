@@ -122,8 +122,8 @@ but it makes the build run significantly faster.
 
 To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
 worker), see [Configuration settings](Configuration-Settings.html). To ensure your configuration can be
-read by both the ApplicationMaster and Alluxio master/workers, put `alluxio-site.properties` under
-`~/.alluxio`, as well as the home folders any users that will launch an Alluxio client or server.
+read by both the ApplicationMaster and Alluxio master/workers, put `alluxio-site.properties` in
+`~/.alluxio` under the home folders for any users that will launch an Alluxio client or server.
 
 # Start Alluxio
 
