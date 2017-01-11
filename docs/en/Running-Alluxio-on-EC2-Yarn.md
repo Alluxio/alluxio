@@ -123,7 +123,7 @@ but it makes the build run significantly faster.
 To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
 worker), see [Configuration settings](Configuration-Settings.html). To ensure your configuration can be
 read by both the ApplicationMaster and Alluxio master/workers, put `alluxio-site.properties` under
-`~/.alluxio/` on each EC2 machine.
+`.alluxio` in the home folder of the user that the Alluxio masters/workers are running under on each EC2 machine.
 
 # Start Alluxio
 
