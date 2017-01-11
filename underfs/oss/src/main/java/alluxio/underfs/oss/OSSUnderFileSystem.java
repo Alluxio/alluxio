@@ -177,6 +177,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       throws IOException {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
+    // In case key is root (empty string) do not normalize prefix
+    key = key.equals(PATH_SEPARATOR) ? "" : key;
     ListObjectsRequest request = new ListObjectsRequest(mBucketName);
     request.setPrefix(key);
     request.setMaxKeys(getListingChunkLength());
