@@ -128,7 +128,7 @@
           <div class="accordion-inner">
             <table class="table table-hover table-condensed">
               <thead>
-                <th> <font color="red">On Startup, <%= request.getAttribute("inconsistentPaths") %> inconsistent files were fount. The following files may be corrupted: </font></th>
+                <th> <font color="red">On Startup, <%= request.getAttribute("inconsistentPaths") %> inconsistent files were found. This check is only checked once at startup, and you can restart the Alluxio Master for the latest information. <br/> The following files may be corrupted: </font></th>
               </thead>
               <tbody>
                 <% List array = (List) request.getAttribute("inconsistentPathItems");
