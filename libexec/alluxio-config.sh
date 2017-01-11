@@ -34,6 +34,8 @@ if [[ -z "${ALLUXIO_SYSTEM_INSTALLATION}" ]]; then
   VERSION=1.4.0-SNAPSHOT
   ALLUXIO_HOME=$(dirname $(dirname "${this}"))
   ALLUXIO_JARS="${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
+  ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
+  ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
 fi
 
 if [[ -z "$(which java)" ]]; then
