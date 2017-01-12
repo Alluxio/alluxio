@@ -13,6 +13,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="alluxio.web.*" %>
 
+
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -114,6 +115,40 @@
       </div>
     </div>
   </div>
+  <!--  show inconsistent path  -->
+  <% if ((Integer) request.getAttribute("inconsistentPaths") != 0) { %>
+  <div class="row-fluid">
+    <div class="accordion span14" id="accordion4">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+            <h4>Inconsistent Files</h4>
+          </a>
+        </div>
+        <div id="data4" class="accordion-body collapse in">
+          <div class="accordion-inner">
+            <table class="table table-hover table-condensed">
+              <thead>
+              <th>Path List </th>
+              </thead>
+              <tbody>
+              <%
+                java.util.List array = (java.util.List) request.getAttribute("inconsistentPathItems");
+                for (int i = 0; i < array.size(); i++) {
+              %>
+              <tr>
+                <th><font color="red"><%= array.get(i) %></font></th>
+              </tr>
+              <% }%>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
   <div class="row-fluid">
     <div class="accordion span14" id="accordion3">
       <div class="accordion-group">
