@@ -11,7 +11,7 @@
 
 package alluxio.worker.netty;
 
-import alluxio.EmbeddedChannelNoException;
+import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
@@ -47,7 +47,7 @@ public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHand
     mChecksum = 0;
     mChannel = new EmbeddedChannel(
         new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
-    mChannelNoException = new EmbeddedChannelNoException(
+    mChannelNoException = new EmbeddedNoExceptionChannel(
         new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
   }
 
@@ -56,6 +56,9 @@ public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHand
     mOutputStream.close();
   }
 
+  /**
+   * Tests write failure.
+   */
   @Test
   public void writeFailure() throws Exception {
     mChannelNoException.writeInbound(buildWriteRequest(0, PACKET_SIZE));

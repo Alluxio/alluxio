@@ -11,7 +11,7 @@
 
 package alluxio.worker.netty;
 
-import alluxio.EmbeddedChannelNoException;
+import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
@@ -53,10 +53,13 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
 
     mChannel = new EmbeddedChannel(
         new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
-    mChannelNoException = new EmbeddedChannelNoException(
+    mChannelNoException = new EmbeddedNoExceptionChannel(
         new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
   }
 
+  /**
+   * Tests write failure.
+   */
   @Test
   public void writeFailure() throws Exception {
     mChannelNoException.writeInbound(buildWriteRequest(0, PACKET_SIZE));

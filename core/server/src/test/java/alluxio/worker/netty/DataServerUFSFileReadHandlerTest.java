@@ -11,7 +11,7 @@
 
 package alluxio.worker.netty;
 
-import alluxio.EmbeddedChannelNoException;
+import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.file.FileSystemWorker;
@@ -36,7 +36,7 @@ public final class DataServerUFSFileReadHandlerTest extends DataServerReadHandle
     mFileSystemWorker = Mockito.mock(FileSystemWorker.class);
     mChannel = new EmbeddedChannel(
         new DataServerUFSFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR, mFileSystemWorker));
-    mChannelNoException = new EmbeddedChannelNoException(
+    mChannelNoException = new EmbeddedNoExceptionChannel(
         new DataServerUFSFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR, mFileSystemWorker));
   }
 
@@ -45,6 +45,9 @@ public final class DataServerUFSFileReadHandlerTest extends DataServerReadHandle
     mInputStream.close();
   }
 
+  /**
+   * Tests read failure.
+   */
   @Test
   public void readFailure() throws Exception {
     long fileSize = PACKET_SIZE * 10 + 1;

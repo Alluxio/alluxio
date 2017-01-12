@@ -11,7 +11,7 @@
 
 package alluxio.worker.netty;
 
-import alluxio.EmbeddedChannelNoException;
+import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.BlockWorker;
@@ -41,11 +41,14 @@ public final class DataServerBlockReadHandlerTest extends DataServerReadHandlerT
     mChannel = new EmbeddedChannel(
         new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
             FileTransferType.MAPPED));
-    mChannelNoException = new EmbeddedChannelNoException(
+    mChannelNoException = new EmbeddedNoExceptionChannel(
         new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
             FileTransferType.MAPPED));
   }
 
+  /**
+   * Tests the {@link FileTransferType#TRANSFER} type.
+   */
   @Test
   public void transferType() throws Exception {
     mChannel = new EmbeddedChannel(
@@ -66,6 +69,9 @@ public final class DataServerBlockReadHandlerTest extends DataServerReadHandlerT
     mBlockReader.close();
   }
 
+  /**
+   * Tests read failure.
+   */
   @Test
   public void readFailure() throws Exception {
     long fileSize = PACKET_SIZE * 10 + 1;

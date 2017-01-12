@@ -48,6 +48,9 @@ public abstract class DataServerReadHandlerTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Reads all bytes of a file.
+   */
   @Test
   public void readFullFile() throws Exception {
     long checksumExpected = populateInputFile(PACKET_SIZE * 10, 0, PACKET_SIZE * 10 - 1);
@@ -55,6 +58,9 @@ public abstract class DataServerReadHandlerTest {
     checkAllReadResponses(mChannel, checksumExpected);
   }
 
+  /**
+   * Reads a sub-region of a file.
+   */
   @Test
   public void readPartialFile() throws Exception {
     long start = 3;
@@ -64,6 +70,9 @@ public abstract class DataServerReadHandlerTest {
     checkAllReadResponses(mChannel, checksumExpected);
   }
 
+  /**
+   * Handles multiple read requests within a channel sequentially.
+   */
   @Test
   public void reuseChannel() throws Exception {
     long fileSize = PACKET_SIZE * 5;
@@ -79,6 +88,9 @@ public abstract class DataServerReadHandlerTest {
     checkAllReadResponses(mChannel, checksumExpected);
   }
 
+  /**
+   * Fails if the read request tries to read an empty file.
+   */
   @Test
   public void readEmptyFile() throws Exception {
     populateInputFile(0, 0, 0);
@@ -87,6 +99,9 @@ public abstract class DataServerReadHandlerTest {
     checkReadResponse(response, Protocol.Status.Code.INVALID_ARGUMENT);
   }
 
+  /**
+   * Cancels the read request immediately after the read request is sent.
+   */
   @Test
   public void cancelRequest() throws Exception {
     long fileSize = PACKET_SIZE * 10 + 1;

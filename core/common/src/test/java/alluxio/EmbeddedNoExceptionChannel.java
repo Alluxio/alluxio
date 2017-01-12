@@ -18,11 +18,11 @@ import io.netty.channel.embedded.EmbeddedChannel;
  * A special version of {@link EmbeddedChannel} that doesn't fail on exception so that we can
  * still check result after the channel is closed.
  */
-public final class EmbeddedChannelNoException extends EmbeddedChannel {
+public final class EmbeddedNoExceptionChannel extends EmbeddedChannel {
   /**
    * @param handlers the handlers
    */
-  public EmbeddedChannelNoException(ChannelHandler... handlers) {
+  public EmbeddedNoExceptionChannel(ChannelHandler... handlers) {
     super(handlers);
   }
 

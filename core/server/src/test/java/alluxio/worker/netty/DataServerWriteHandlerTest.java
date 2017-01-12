@@ -41,6 +41,9 @@ public abstract class DataServerWriteHandlerTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Writes an empty file.
+   */
   @Test
   public void writeEmptyFile() throws Exception {
     mChannel.writeInbound(buildWriteRequest(0, 0));
@@ -49,6 +52,9 @@ public abstract class DataServerWriteHandlerTest {
     checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
   }
 
+  /**
+   * Writes an non-empty file.
+   */
   @Test
   public void writeNonEmptyFile() throws Exception {
     long len = 0;
@@ -64,6 +70,9 @@ public abstract class DataServerWriteHandlerTest {
     checkFileContent(len);
   }
 
+  /**
+   * Fails if the write request contains an invalid offset.
+   */
   @Test
   public void writeInvalidOffset() throws Exception {
     mChannelNoException.writeInbound(buildWriteRequest(0, PACKET_SIZE));
