@@ -2085,13 +2085,14 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param path the path to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
    * @return true if the file was freed
+   * @throws FailedPreconditionException if the file or directory can not be freed
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
-   * @throws FailedPreconditionException if the file or directory can not be freed
    */
   public boolean free(AlluxioURI path, boolean recursive)
-      throws FailedPreconditionException, FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FailedPreconditionException, FileDoesNotExistException, InvalidPathException,
+      AccessControlException {
     Metrics.FREE_FILE_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
@@ -2694,6 +2695,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * Resets a file. It first free the whole file, and then reinitializes it.
    *
    * @param fileId the id of the file
+   * @throws FailedPreconditionException if the file or directory can not be freed
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid for the id of the file
