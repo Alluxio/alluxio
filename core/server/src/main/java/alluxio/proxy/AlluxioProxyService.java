@@ -9,10 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.proxy;
 
 import alluxio.Server;
+import alluxio.master.AlluxioMasterService;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.DefaultAlluxioWorker;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
 
@@ -21,53 +23,23 @@ import java.net.InetSocketAddress;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A worker in the Alluxio system.
+ * A proxy in the Alluxio system.
  */
-public interface AlluxioWorkerService extends Server {
+public interface AlluxioProxyService extends Server {
   /**
-   * Factory for creating {@link AlluxioWorkerService}.
+   * Factory for creating {@link AlluxioProxyService}.
    */
   @ThreadSafe
   final class Factory {
     /**
-     * @return a new instance of {@link AlluxioWorkerService}
+     * @return a new instance of {@link AlluxioProxyService}
      */
-    public static AlluxioWorkerService create() {
-      return new DefaultAlluxioWorker();
+    public static AlluxioProxyService create() {
+      return new DefaultAlluxioProxy();
     }
 
     private Factory() {} // prevent instantiation
   }
-
-  /**
-   * @return the connect information for this worker
-   */
-  WorkerNetAddress getAddress();
-
-  /**
-   * @return the block worker for this Alluxio worker
-   */
-  BlockWorker getBlockWorker();
-
-  /**
-   * @return the worker's data service bind host (used by unit test only)
-   */
-  String getDataBindHost();
-
-  /**
-   * @return the worker's data service port (used by unit test only)
-   */
-  int getDataLocalPort();
-
-  /**
-   * @return the file system worker for this Alluxio worker
-   */
-  FileSystemWorker getFileSystemWorker();
-
-  /**
-   * @return this worker's rpc address
-   */
-  InetSocketAddress getRpcAddress();
 
   /**
    * @return the start time of the worker in milliseconds
@@ -78,11 +50,6 @@ public interface AlluxioWorkerService extends Server {
    * @return the uptime of the worker in milliseconds
    */
   long getUptimeMs();
-
-  /**
-   * @return the worker web service bind host (used by unit test only)
-   */
-  String getWebBindHost();
 
   /**
    * @return the worker web service port (used by unit test only)

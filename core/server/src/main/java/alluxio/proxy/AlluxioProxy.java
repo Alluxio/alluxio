@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
+import alluxio.ServerUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -33,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Entry point for the Alluxio proxy program.
  */
 @NotThreadSafe
-public final class AlluxioProxy implements Server {
+public final class AlluxioProxy {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -58,66 +59,9 @@ public final class AlluxioProxy implements Server {
       System.exit(1);
     }
 
-    AlluxioProxy proxy = new AlluxioProxy();
-    try {
-      proxy.start();
-    } catch (Exception e) {
-      LOG.error("Uncaught exception while running Alluxio proxy, stopping it and exiting.", e);
-      try {
-        proxy.stop();
-      } catch (Exception e2) {
-        // continue to exit
-        LOG.error("Uncaught exception while stopping Alluxio proxy, simply exiting.", e2);
-      }
-      System.exit(-1);
-    }
+    AlluxioProxyService proxy = new DefaultAlluxioProxy();
+    ServerUtils.run(proxy, "Alluxio proxy");
   }
 
-  /** The web server. */
-  private WebServer mWebServer = null;
-
-  /**
-   * Creates an instance of {@link AlluxioProxy}.
-   */
-  public AlluxioProxy() {}
-
-  /**
-   * @return the actual port that the web service is listening on (used by unit test only)
-   */
-  public int getWebLocalPort() {
-    if (mWebServer != null) {
-      return mWebServer.getLocalPort();
-    }
-    return -1;
-  }
-
-  @Override
-  public void start() throws Exception {
-    mWebServer = new ProxyWebServer(ServiceType.PROXY_WEB.getServiceName(),
-        NetworkAddressUtils.getBindAddress(ServiceType.PROXY_WEB));
-    // reset proxy web port
-    Configuration.set(PropertyKey.PROXY_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
-    // start web server
-    mWebServer.start();
-  }
-
-  @Override
-  public void stop() throws Exception {
-    if (mWebServer != null) {
-      mWebServer.stop();
-      mWebServer = null;
-    }
-  }
-
-  /**
-   * Blocks until the proxy is ready to serve requests.
-   */
-  public void waitForReady() {
-    CommonUtils.waitFor("proxy web server", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return mWebServer != null && mWebServer.getServer().isRunning();
-      }
-    });
-  }
+  private AlluxioProxy() {} // prevent instantiation
 }
