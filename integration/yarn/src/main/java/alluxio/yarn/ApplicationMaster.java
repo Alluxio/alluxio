@@ -428,16 +428,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       int resCode = connection.getResponseCode();
       LOG.debug("Response code from master was: " + Integer.toString(resCode));
 
-      if (resCode == HttpURLConnection.HTTP_OK) {
-        connection.disconnect();
-        return true;
-      } else {
-        connection.disconnect();
-      }
+      connection.disconnect();
+      return resCode == HttpURLConnection.HTTP_OK;
     } catch (MalformedURLException e) {
       LOG.error("Malformed URL in attempt to check if master is running already", e);
     } catch (IOException e) {
-      LOG.debug("Unable to open connection to master in attempt to check if already running", e);
+      LOG.debug("No existing master found", e);
     }
 
     return false;
