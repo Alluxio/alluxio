@@ -23,13 +23,13 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FailedPreconditionException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -59,6 +59,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -2084,19 +2085,24 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param path the path to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
+   * @param forced if true, non-persisted files will be freed
    * @return true if the file was freed
-   * @throws FailedPreconditionException if the file or directory can not be freed
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
+   * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
-  public boolean free(AlluxioURI path, boolean recursive)
-      throws FailedPreconditionException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException {
+  public boolean free(AlluxioURI path, FreeOptions options)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnexpectedAlluxioException {
     Metrics.FREE_FILE_OPS.inc();
+    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-      return freeInternal(inodePath, recursive);
+      flushCounter = freeInternalAndJournal(inodePath, options);
+    } finally {
+      // finally runs after resources are closed (unlocked).
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -2105,15 +2111,18 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath inode of the path to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
+   * @param forced if true, non-persisted files will be freed
    * @return true if the file was freed
    */
-  private boolean freeInternal(LockedInodePath inodePath, boolean recursive)
-      throws FailedPreconditionException, FileDoesNotExistException {
+  private long freeInternalAndJournal(LockedInodePath inodePath, FreeOptions options)
+      throws FileDoesNotExistException, UnexpectedAlluxioException {
     Inode<?> inode = inodePath.getInode();
-    if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
+    if (inode.isDirectory() && !options.isRecursive()
+        && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
       // true
-      return false;
+      throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR
+          .getMessage(mInodeTree.getPath(inode)));
     }
 
     List<Inode<?>> freeInodes = new ArrayList<>();
@@ -2127,11 +2136,16 @@ public final class FileSystemMaster extends AbstractMaster {
         Inode<?> freeInode = freeInodes.get(i);
 
         if (freeInode.isFile()) {
-          // TODO(binfan): freeing non-persisted files is a no-op for now, we should figure out a
-          // better way to inform the client
           if (freeInode.getPersistenceState() != PersistenceState.PERSISTED) {
-            throw new FailedPreconditionException(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
+            throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
                 .getMessage(mInodeTree.getPath(freeInode)));
+          }
+          if (freeInode.isPinned()) {
+            if (!options.isForced()) {
+              throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
+                  .getMessage(mInodeTree.getPath(freeInode)));
+            }
+            setAttributeAndJournal(lockList, SetAttributeOptions.defaults().setPinned(false));
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
@@ -2695,22 +2709,22 @@ public final class FileSystemMaster extends AbstractMaster {
    * Resets a file. It first free the whole file, and then reinitializes it.
    *
    * @param fileId the id of the file
-   * @throws FailedPreconditionException if the file or directory can not be freed
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid for the id of the file
+   * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
   // Currently used by Lineage Master
   // TODO(binfan): Add permission checking for internal APIs
   public void resetFile(long fileId)
-      throws FailedPreconditionException, FileDoesNotExistException, InvalidPathException,
+      throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
       AccessControlException {
     // TODO(yupeng) check the file is not persisted
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
       // free the file first
       InodeFile inodeFile = inodePath.getInodeFile();
-      freeInternal(inodePath, false);
+      freeInternalAndJournal(inodePath, false, true);
       inodeFile.reset();
     }
   }
@@ -3070,7 +3084,7 @@ public final class FileSystemMaster extends AbstractMaster {
               LOG.debug("File {} is expired. Performing action {}", inode.getName(), ttlAction);
               switch (ttlAction) {
                 case FREE:
-                  free(path, true);
+                  free(path, false, true);
                   // Reset state
                   inode.setTtl(Constants.NO_TTL);
                   inode.setTtlAction(TtlAction.DELETE);

@@ -278,7 +278,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        mFileSystemMaster.free(new AlluxioURI(path), recursive);
+        mFileSystemMaster.free(new AlluxioURI(path), recursive, true);
         return null;
       }
     });

@@ -9,23 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.master.file.options;
 
-import alluxio.annotation.PublicApi;
 import alluxio.thrift.FreeTOptions;
+import alluxio.thrift.ListStatusTOptions;
+import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for freeing space.
+ * Method options for list status.
  */
-@PublicApi
 @NotThreadSafe
 public final class FreeOptions {
-  private boolean mForced;
   private boolean mRecursive;
+  private boolean mForced;
 
   /**
    * @return the default {@link FreeOptions}
@@ -37,6 +37,16 @@ public final class FreeOptions {
   private FreeOptions() {
     mForced = false;
     mRecursive = false;
+  }
+
+  /**
+   * Create an instance of {@link FreeOptions} from a {@link FreeTOptions}.
+   *
+   * @param options the thrift representation of free options
+   */
+  public FreeOptions(FreeTOptions options) {
+    mForced = options.isForced();
+    mRecursive = options.isRecursive();
   }
 
   /**
@@ -54,6 +64,7 @@ public final class FreeOptions {
   public boolean isRecursive() {
     return mRecursive;
   }
+
 
   /**
    * Sets the forced flag.
@@ -98,17 +109,9 @@ public final class FreeOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("forced", mForced).add("recursive", mRecursive)
+    return Objects.toStringHelper(this)
+        .add("forced", mForced)
+        .add("recursive", mRecursive)
         .toString();
-  }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public FreeTOptions toThrift() {
-    FreeTOptions options = new FreeTOptions();
-    options.setForced(mForced);
-    options.setRecursive(mRecursive);
-    return options;
   }
 }

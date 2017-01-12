@@ -33,6 +33,7 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
@@ -786,7 +787,7 @@ public class FileSystemMasterIntegrationTest {
     }
 
     private void doFree(AlluxioURI path) throws Exception {
-      mFsMaster.free(path, true);
+      mFsMaster.free(path, FreeOptions.defaults().setForced(true).setRecursive(true));
       Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 

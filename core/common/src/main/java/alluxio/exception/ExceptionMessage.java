@@ -112,7 +112,11 @@ public enum ExceptionMessage {
   PARENT_CREATION_FAILED("Unable to create parent directories for path {0}"),
 
   // file system master
-  CANNOT_FREE_NON_PERSISTED_FILE("Cannot free {0} because it is not persisted"),
+  CANNOT_FREE_NON_EMPTY_DIR("Cannot free directory {0} which is not empty, please set "
+      + "the \"recursive\" flag of free operation to be true"),
+  CANNOT_FREE_NON_PERSISTED_FILE("Cannot free file {0} which is not persisted"),
+  CANNOT_FREE_PINNED_FILE("Cannot free file {0} which is pinned. Please unpinned it first or"
+      + " set the \"force\" flag of free operation to be true"),
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
   INODE_DOES_NOT_EXIST_RETRIES("inodeId {0,number,#} does not exist; too many retries"),
   NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),

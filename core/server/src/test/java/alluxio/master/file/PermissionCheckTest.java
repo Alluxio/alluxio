@@ -742,7 +742,7 @@ public final class PermissionCheckTest {
 
   private void verifyFree(TestUser user, String path, boolean recursive) throws Exception {
     AuthenticatedClientUser.set(user.getUser());
-    mFileSystemMaster.free(new AlluxioURI(path), recursive);
+    mFileSystemMaster.free(new AlluxioURI(path), recursive, true);
   }
 
   @Test
