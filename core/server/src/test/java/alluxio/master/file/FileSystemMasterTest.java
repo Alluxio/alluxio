@@ -21,6 +21,7 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FailedPreconditionException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -1158,15 +1159,13 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free(AlluxioURI, boolean)} method.
+   * Tests {@link FileSystemMaster#free(AlluxioURI, boolean)} on persisted file
    */
   @Test
   public void free() throws Exception {
+    sNestedFileOptions.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-
-    // cannot free directory with recursive argument to false
-    Assert.assertFalse(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), false));
 
     // free the file
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
@@ -1177,6 +1176,20 @@ public final class FileSystemMasterTest {
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat2);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+    sNestedFileOptions.setPersisted(false);
+  }
+
+  /**
+   * Tests {@link FileSystemMaster#free(AlluxioURI, boolean)} on non-persisted file
+   */
+  @Test
+  public void freeNonPersistedFile() throws Exception {
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    // cannot free a non-persisted file
+    mThrown.expect(FailedPreconditionException.class);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
+        .getMessage(NESTED_FILE_URI.getPath()));
+    mFileSystemMaster.free(NESTED_FILE_URI, false);
   }
 
   /**
@@ -1184,8 +1197,12 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void freeDir() throws Exception {
+    sNestedFileOptions.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+
+    // cannot free directory with recursive argument to false
+    Assert.assertFalse(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), false));
 
     // free the dir
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), true));
@@ -1196,6 +1213,7 @@ public final class FileSystemMasterTest {
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat3);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+    sNestedFileOptions.setPersisted(false);
   }
 
   /**
