@@ -719,7 +719,6 @@ public final class FileSystemMasterTest {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
-
   }
 
   /**
@@ -731,12 +730,12 @@ public final class FileSystemMasterTest {
   public void ttlDirectoryDelete() throws Exception {
     CreateDirectoryOptions directoryOptions =
         CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
-    long fileId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryOptions);
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertEquals(fileInfo.getFileId(), fileId);
+    long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryOptions);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(dirId);
+    Assert.assertEquals(fileInfo.getFileId(), dirId);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     mThrown.expect(FileDoesNotExistException.class);
-    mFileSystemMaster.getFileInfo(fileId);
+    mFileSystemMaster.getFileInfo(dirId);
   }
 
   /**
@@ -746,18 +745,17 @@ public final class FileSystemMasterTest {
   public void ttlDirectoryDeleteReplay() throws Exception {
     CreateDirectoryOptions directoryOptions =
         CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0);
-    long fileId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryOptions);
+    long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryOptions);
 
     // Simulate restart.
     stopServices();
     startServices();
 
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertEquals(fileInfo.getFileId(), fileId);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(dirId);
+    Assert.assertEquals(fileInfo.getFileId(), dirId);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     mThrown.expect(FileDoesNotExistException.class);
-    mFileSystemMaster.getFileInfo(fileId);
-
+    mFileSystemMaster.getFileInfo(dirId);
   }
 
   /**
