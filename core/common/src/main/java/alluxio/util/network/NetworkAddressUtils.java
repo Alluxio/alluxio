@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterInquireClient;
 import alluxio.PropertyKey;
+import alluxio.exception.PreconditionMessage;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -586,9 +587,13 @@ public final class NetworkAddressUtils {
    * @return InetSocketAddress the active master address retrieved from zookeeper
    */
   public static InetSocketAddress getLeaderAddressFromZK(String zkLeaderPath) {
-    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
-    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ELECTION_PATH));
-    MasterInquireClient masterInquireClient = MasterInquireClient.getClient(
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS),
+        PreconditionMessage.ERR_ZK_ADDRESS_NOT_SET.toString(),
+        PropertyKey.ZOOKEEPER_ADDRESS.toString());
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+        PropertyKey.ZOOKEEPER_ELECTION_PATH.toString());
+    MasterInquireClient masterInquireClient =
+        MasterInquireClient.getClient(
         Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
         Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH), zkLeaderPath);
     try {

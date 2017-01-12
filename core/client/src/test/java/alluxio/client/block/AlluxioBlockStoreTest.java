@@ -218,7 +218,8 @@ public final class AlluxioBlockStoreTest {
   @Test
   public void getOutStreamLocal() throws Exception {
     File tmp = mTestFolder.newFile();
-    Mockito.when(mBlockWorkerClient.requestBlockLocation(Matchers.eq(BLOCK_ID), Matchers.anyLong()))
+    Mockito.when(mBlockWorkerClient
+        .requestBlockLocation(Matchers.eq(BLOCK_ID), Matchers.anyLong(), Matchers.anyInt()))
         .thenReturn(tmp.getAbsolutePath());
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)

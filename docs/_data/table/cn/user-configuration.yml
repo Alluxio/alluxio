@@ -28,6 +28,8 @@ alluxio.user.file.worker.client.threads:
   文件worker client从worker读取数据时使用的线程数目。
 alluxio.user.file.write.location.policy.class:
   选择worker进行写文件数据块时的默认定位机制。
+alluxio.user.file.write.tier.default:
+  数据块写入的默认存储层。可选值为整型数值。非负值代表从高层到底层的存储层（0代表第一层存储层，１代表第二层存储层，以此类推）。如果给定值大于存储层数量,这个数字代表最底层的存储层。负值代表从底层到高层的存储层（-1代表最底层存储层，-2代表次底层存储层，以此类推）如果给定值的绝对值大于存储层数量，这个数字代表最高层存储层。
 alluxio.user.file.readtype.default:
   创建Alluxio文件时的默认读类型。可选值为`CACHE_PROMOTE` (如果数据已经在Alluxio存储内，将其移动到最高存储层，如果数据需要从底层存储进行读取，将其写到本地Alluxio的最高存储层)、`CACHE` (如果数据需要从底层存储进行读取，将其写到本地Alluxio的最高存储层), `NO_CACHE` (数据不与Alluxio交互，如果是从Alluxio中进行读取，将不会发生数据块迁移或者剔除)。
 alluxio.user.file.writetype.default:

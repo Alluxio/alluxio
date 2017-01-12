@@ -43,6 +43,7 @@ public final class CreateFileOptions {
   private long mTtl;
   private TtlAction mTtlAction;
   private Mode mMode; // null if creating the file using system default mode
+  private int mWriteTier;
   private WriteType mWriteType;
 
   /**
@@ -62,6 +63,7 @@ public final class CreateFileOptions {
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+    mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
@@ -110,6 +112,13 @@ public final class CreateFileOptions {
    */
   public Mode getMode() {
     return mMode;
+  }
+
+  /**
+   * @return the write tier
+   */
+  public int getWriteTier() {
+    return mWriteTier;
   }
 
   /**
@@ -200,6 +209,15 @@ public final class CreateFileOptions {
   }
 
   /**
+   * @param writeTier the write tier to use for this operation
+   * @return the updated options object
+   */
+  public CreateFileOptions setWriteTier(int writeTier) {
+    mWriteTier = writeTier;
+    return this;
+  }
+
+  /**
    * @param writeType the {@link WriteType} to use for this operation. This will override both the
    *        {@link AlluxioStorageType} and {@link UnderStorageType}.
    * @return the updated options object
@@ -219,6 +237,7 @@ public final class CreateFileOptions {
         .setMode(mMode)
         .setTtl(mTtl)
         .setTtlAction(mTtlAction)
+        .setWriteTier(mWriteTier)
         .setWriteType(mWriteType);
   }
 
@@ -237,13 +256,14 @@ public final class CreateFileOptions {
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
+        && mWriteTier == that.mWriteTier
         && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl,
-        mTtlAction, mWriteType);
+        mTtlAction, mWriteTier, mWriteType);
   }
 
   @Override
@@ -255,6 +275,7 @@ public final class CreateFileOptions {
         .add("mode", mMode)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)
+        .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
         .toString();
   }

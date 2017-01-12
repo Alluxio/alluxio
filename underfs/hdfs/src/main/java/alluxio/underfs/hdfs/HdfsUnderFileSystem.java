@@ -175,6 +175,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public boolean exists(String path) throws IOException {
+    return mFileSystem.exists(new Path(path));
+  }
+
+  @Override
   public long getBlockSizeByte(String path) throws IOException {
     Path tPath = new Path(path);
     if (!mFileSystem.exists(tPath)) {
@@ -425,8 +430,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public void setOwner(String path, String user, String group) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
-      LOG.info("Changing file '{}' user from: {} to {}, group from: {} to {}", fileStatus.getPath(),
-          fileStatus.getOwner(), user, fileStatus.getGroup(), group);
+      LOG.debug("Changing file '{}' user from: {} to {}, group from: {} to {}",
+          fileStatus.getPath(), fileStatus.getOwner(), user, fileStatus.getGroup(), group);
       mFileSystem.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
       LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group, e);
@@ -445,7 +450,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public void setMode(String path, short mode) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
-      LOG.info("Changing file '{}' permissions from: {} to {}", fileStatus.getPath(),
+      LOG.debug("Changing file '{}' permissions from: {} to {}", fileStatus.getPath(),
           fileStatus.getPermission(), mode);
       mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {

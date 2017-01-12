@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -72,9 +73,15 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   @GuardedBy("mLock")
   private long mPosToWrite = -1;
 
+  /** Makes sure we send EOF only once. */
+  private final AtomicBoolean mEOFSent = new AtomicBoolean(false);
+
   /**
    * This is only updated in the channel event loop thread when a read request starts or cancelled.
    * No need to be locked.
+   * When it is accessed outside of the event loop thread, make sure it is not null. For now, all
+   * netty channel handlers are executed in the event loop. The packet reader is not executed in
+   * the event loop thread.
    */
   protected volatile ReadRequestInternal mRequest = null;
 
@@ -137,6 +144,11 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
         mLock.lock();
         try {
           mRequest.mCancelled = mPosToQueue;
+          if (remainingToWrite() <= 0) {
+            // This can only happen when everything before mPosToQueue has been sent to the client.
+            // This is not a common event.
+            replySuccess(ctx.channel());
+          }
         } finally {
           mLock.unlock();
         }
@@ -144,6 +156,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
       return;
     }
 
+    mEOFSent.set(false);
     initializeRequest(msg);
 
     mLock.lock();
@@ -166,45 +179,47 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return true if there are too many packets in-flight
    */
+  @GuardedBy("mLock")
   private boolean tooManyPendingPackets() {
     return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * PACKET_SIZE;
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return true if we should restart the packet reader
    */
+  @GuardedBy("mLock")
   private boolean shouldRestartPacketReader() {
     return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.end();
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return the number of bytes remaining to push to the netty queue. Return 0 if it is cancelled
    */
+  @GuardedBy("mLock")
   private long remainingToQueue() {
-    return mRequest.end() - mPosToQueue;
+    // mRequest is not guarded by mLock and is volatile. It can be reset because of cancel before
+    // the packet reader is done. We need to make a copy here to make sure the packet reader
+    // thread is not killed due to null pointer exception.
+    ReadRequestInternal request = mRequest;
+    return (request == null || mPosToQueue == -1) ? 0 : request.end() - mPosToQueue;
   }
 
   /**
-   * Requires to hold mLock when calling this.
-   *
    * @return the number of bytes remaining to flush. Return 0 if it is cancelled
    */
+  @GuardedBy("mLock")
   private long remainingToWrite() {
-    return mRequest.end() - mPosToWrite;
+    // mRequest is not guarded by mLock and is volatile. It can be reset because of cancel before
+    // the packet reader is done. We need to make a copy here to make sure the packet reader
+    // thread is not killed due to null pointer exception.
+    ReadRequestInternal request = mRequest;
+    return (request == null || mPosToWrite == -1) ? 0 : request.end() - mPosToWrite;
   }
 
   /**
-   * Writes an error block read response to the channel and closes the channel after that.
-   *
-   * @param channel the channel
+   * Writes an error read response to the channel and closes the channel after that.
    */
   private void replyError(Channel channel, Protocol.Status.Code code, String message, Throwable e) {
     channel.writeAndFlush(RPCProtoMessage.createResponse(code, message, e, null))
@@ -212,28 +227,36 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   }
 
   /**
-   * Writes a success block read response to the channel.
-   *
-   * @param channel the channel
+   * Writes a success read response to the channel.
    */
   private void replySuccess(Channel channel) {
-    channel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
-        .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE, new ChannelFutureListener() {
-          @Override
-          public void operationComplete(ChannelFuture future) throws Exception {
-            reset();
-          }
-        });
+    if (mEOFSent.compareAndSet(false, true)) {
+      channel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
+          .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE, new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+              reset();
+            }
+          });
+    }
   }
 
   /**
    * Returns true if the block read request is valid.
    *
    * @param request the block read request
-   * @return true if the block read request is valid
+   * @return the error message (empty string indicates success)
    */
   private String validateReadRequest(Protocol.ReadRequest request) {
+    if (request.getId() < 0) {
+      return String.format("Invalid blockId (%d) in read request.", request.getId());
+    }
     if (mRequest == null) {
+      if (!request.getCancel()) {
+        if (request.getOffset() < 0 || request.getLength() <= 0) {
+          return String.format("Invalid read bounds in read request %s.", request.toString());
+        }
+      }
       return "";
     }
 
@@ -320,7 +343,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     public void operationComplete(ChannelFuture future) {
       if (!future.isSuccess()) {
         LOG.error("Failed to send packet.", future.cause());
-        future.channel().pipeline().fireExceptionCaught(future.cause());
+        future.channel().close();
         return;
       }
 
@@ -395,28 +418,19 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
         try {
           packet = getDataBuffer(mChannel, start, packetSize);
         } catch (Exception e) {
-          mChannel.pipeline().fireExceptionCaught(e);
+          LOG.error("Failed to read data.", e);
+          replyError(mChannel, Protocol.Status.Code.INTERNAL, "", e);
           break;
         }
         if (packet == null) {
           // This can happen if the requested read length is greater than the actual length of the
           // block or file starting from the given offset.
-          mChannel.eventLoop().submit(new Runnable() {
-            @Override
-            public void run() {
-              replySuccess(mChannel);
-            }
-          });
+          replySuccess(mChannel);
           break;
         }
 
-        final RPCProtoMessage response = RPCProtoMessage.createOkResponse(packet);
-        mChannel.eventLoop().submit(new Runnable() {
-          @Override
-          public void run() {
-            mChannel.writeAndFlush(response).addListener(new WriteListener(start + packetSize));
-          }
-        });
+        RPCProtoMessage response = RPCProtoMessage.createOkResponse(packet);
+        mChannel.writeAndFlush(response).addListener(new WriteListener(start + packetSize));
       }
     }
   }

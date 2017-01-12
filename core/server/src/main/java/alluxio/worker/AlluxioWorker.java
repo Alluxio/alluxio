@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
+import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +42,13 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
 
-    if (!Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
-      System.out.println("Cannot start worker; master hostname is not configured. Please set "
-          + PropertyKey.MASTER_HOSTNAME.toString() + " in alluxio-site.properties.");
+    if (!ConfigurationUtils.masterHostConfigured()) {
+      System.out.println(String.format(
+          "Cannot run alluxio worker; master hostname is not "
+              + "configured. Please modify %s to either set %s or configure zookeeper with "
+              + "%s=true and %s=[comma-separated zookeeper master addresses]",
+          Configuration.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
+          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
       System.exit(1);
     }
 
