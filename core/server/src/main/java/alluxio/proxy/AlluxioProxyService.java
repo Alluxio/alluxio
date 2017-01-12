@@ -12,13 +12,6 @@
 package alluxio.proxy;
 
 import alluxio.Server;
-import alluxio.master.AlluxioMasterService;
-import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.DefaultAlluxioWorker;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.file.FileSystemWorker;
-
-import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
 

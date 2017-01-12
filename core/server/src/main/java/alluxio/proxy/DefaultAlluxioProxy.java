@@ -14,46 +14,15 @@ package alluxio.proxy;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
-import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.sink.MetricsServlet;
-import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.ProxyWebServer;
 import alluxio.web.WebServer;
-import alluxio.web.WorkerWebServer;
-import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.AlluxioWorkerService;
-import alluxio.worker.DataServer;
-import alluxio.worker.Worker;
-import alluxio.worker.WorkerFactory;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.DefaultBlockWorker;
-import alluxio.worker.file.DefaultFileSystemWorker;
-import alluxio.worker.file.FileSystemWorker;
 
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-import org.apache.thrift.TMultiplexedProcessor;
-import org.apache.thrift.TProcessor;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TTransportException;
-import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
