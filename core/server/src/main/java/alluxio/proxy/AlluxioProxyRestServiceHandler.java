@@ -18,6 +18,8 @@ import alluxio.RuntimeConstants;
 import alluxio.web.ProxyWebServer;
 import alluxio.wire.AlluxioProxyInfo;
 
+import com.qmino.miredot.annotations.ReturnType;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -70,6 +72,7 @@ public final class AlluxioProxyRestServiceHandler {
    */
   @GET
   @Path(GET_INFO)
+  @ReturnType("alluxio.wire.AlluxioProxyInfo")
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(new RestUtils.RestCallable<AlluxioProxyInfo>() {
