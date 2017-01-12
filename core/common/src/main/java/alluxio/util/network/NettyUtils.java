@@ -14,9 +14,13 @@ package alluxio.util.network;
 import alluxio.network.ChannelType;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.google.common.base.Preconditions;
+import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -65,9 +69,16 @@ public final class NettyUtils {
    * {@link ChannelType}.
    *
    * @param type Selector for which form of low-level IO we should use
-   * @return ServerSocketChannel matching the ChannelType
+   * @param type whether this is a domain socket server
+   * @return ServerSocketChannel matching the requirements
    */
-  public static Class<? extends ServerChannel> getServerChannelClass(ChannelType type) {
+  public static Class<? extends ServerChannel> getServerChannelClass(ChannelType type,
+      boolean isDomainSocket) {
+    if (isDomainSocket) {
+      Preconditions.checkState(type == ChannelType.EPOLL,
+          "Domain socket is used while the channel type is not epoll.");
+      return EpollServerDomainSocketChannel.class;
+    }
     switch (type) {
       case NIO:
         return NioServerSocketChannel.class;
@@ -82,9 +93,16 @@ public final class NettyUtils {
    * Returns the correct {@link SocketChannel} class based on {@link ChannelType}.
    *
    * @param type Selector for which form of low-level IO we should use
-   * @return SocketChannel matching the ChannelType
+   * @param isDomainSocket whether this is to connect to a domain socket server
+   * @return Channel matching the requirements
    */
-  public static Class<? extends SocketChannel> getClientChannelClass(ChannelType type) {
+  public static Class<? extends Channel> getClientChannelClass(ChannelType type,
+      boolean isDomainSocket) {
+    if (isDomainSocket) {
+      Preconditions.checkState(type == ChannelType.EPOLL,
+          "Domain socket is used while the channel type is not epoll.");
+      return EpollDomainSocketChannel.class;
+    }
     switch (type) {
       case NIO:
         return NioSocketChannel.class;

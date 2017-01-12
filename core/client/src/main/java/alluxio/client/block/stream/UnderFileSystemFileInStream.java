@@ -18,7 +18,7 @@ import alluxio.proto.dataserver.Protocol;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -39,7 +39,7 @@ public final class UnderFileSystemFileInStream extends FilterInputStream
    * @param ufsFileId the ufs file ID
    * @param length the length of file to read which can be set to LONG.MAX_VALUE if unknown
    */
-  public UnderFileSystemFileInStream(FileSystemContext context, InetSocketAddress address,
+  public UnderFileSystemFileInStream(FileSystemContext context, SocketAddress address,
       long ufsFileId, long length) {
     super(PacketInStream.createNettyPacketInStream(context, address, ufsFileId, -1, -1, length,
         Protocol.RequestType.UFS_FILE));
