@@ -25,16 +25,12 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Random;
 
-@RunWith(PowerMockRunner.class)
 public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
 
@@ -43,10 +39,10 @@ public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHand
 
   @Before
   public void before() throws Exception {
-    mFileSystemWorker = PowerMockito.mock(FileSystemWorker.class);
+    mFileSystemWorker = Mockito.mock(FileSystemWorker.class);
     mFile = mTestFolder.newFile().getPath();
     mOutputStream = new FileOutputStream(mFile);
-    PowerMockito.when(mFileSystemWorker.getUfsOutputStream(Mockito.anyLong()))
+    Mockito.when(mFileSystemWorker.getUfsOutputStream(Mockito.anyLong()))
         .thenReturn(mOutputStream);
     mChecksum = 0;
     mChannel = new EmbeddedChannel(

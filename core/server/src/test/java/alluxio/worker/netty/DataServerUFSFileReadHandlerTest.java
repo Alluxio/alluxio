@@ -21,15 +21,11 @@ import io.netty.util.ResourceLeakDetector;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-@RunWith(PowerMockRunner.class)
 public final class DataServerUFSFileReadHandlerTest extends DataServerReadHandlerTest {
   private FileSystemWorker mFileSystemWorker;
   private InputStream mInputStream;
@@ -37,7 +33,7 @@ public final class DataServerUFSFileReadHandlerTest extends DataServerReadHandle
   @Before
   public void before() throws Exception {
     ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED);
-    mFileSystemWorker = PowerMockito.mock(FileSystemWorker.class);
+    mFileSystemWorker = Mockito.mock(FileSystemWorker.class);
     mChannel = new EmbeddedChannel(
         new DataServerUFSFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR, mFileSystemWorker));
     mChannelNoException = new EmbeddedChannelNoException(
@@ -63,7 +59,7 @@ public final class DataServerUFSFileReadHandlerTest extends DataServerReadHandle
   protected void mockReader(long start) throws Exception {
     mInputStream = new FileInputStream(mFile);
     mInputStream.skip(start);
-    PowerMockito.when(mFileSystemWorker.getUfsInputStream(Mockito.anyLong(), Mockito.anyLong()))
+    Mockito.when(mFileSystemWorker.getUfsInputStream(Mockito.anyLong(), Mockito.anyLong()))
         .thenReturn(mInputStream);
   }
 

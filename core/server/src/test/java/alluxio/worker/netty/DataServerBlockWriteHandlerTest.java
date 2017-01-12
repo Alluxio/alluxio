@@ -27,16 +27,10 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Random;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockWorker.class})
 public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
 
@@ -45,15 +39,15 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
 
   @Before
   public void before() throws Exception {
-    mBlockWorker = PowerMockito.mock(BlockWorker.class);
-    PowerMockito.doNothing().when(mBlockWorker)
+    mBlockWorker = Mockito.mock(BlockWorker.class);
+    Mockito.doNothing().when(mBlockWorker)
         .createBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(),
             Mockito.anyLong());
-    PowerMockito.doNothing().when(mBlockWorker)
+    Mockito.doNothing().when(mBlockWorker)
         .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
     mFile = mTestFolder.newFile().getPath();
     mBlockWriter = new LocalFileBlockWriter(mFile);
-    PowerMockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
+    Mockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
         .thenReturn(mBlockWriter);
     mChecksum = 0;
 
