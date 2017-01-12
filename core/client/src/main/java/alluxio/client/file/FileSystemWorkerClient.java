@@ -73,6 +73,10 @@ public class FileSystemWorkerClient
 
   /** Address of the data server on the worker. */
   private final InetSocketAddress mWorkerDataServerAddress;
+  /** The worker network address. */
+  private final WorkerNetAddress mWorkerNetAddress;
+  private final boolean mIsLocal;
+
 
   private final ScheduledFuture<?> mHeartbeat;
 
@@ -94,6 +98,8 @@ public class FileSystemWorkerClient
     mClientHeartbeatPool = clientHeartbeatPool;
 
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
+    mWorkerNetAddress = workerNetAddress;
+    mIsLocal = mWorkerNetAddress.getHost().equals(NetworkAddressUtils.getLocalHostName());
     mSessionId = sessionId;
 
     // Register the session before any RPCs for this session start.
@@ -239,6 +245,20 @@ public class FileSystemWorkerClient
    */
   public InetSocketAddress getWorkerDataServerAddress() {
     return mWorkerDataServerAddress;
+  }
+
+  /**
+   * @return the worker network address
+   */
+  public WorkerNetAddress getWorkerNetAddress() {
+    return mWorkerNetAddress;
+  }
+
+  /**
+   * @return true if this is a local client.
+   */
+  public boolean isLocal() {
+    return mIsLocal;
   }
 
   /**

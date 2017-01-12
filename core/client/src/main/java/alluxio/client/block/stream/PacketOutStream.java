@@ -27,6 +27,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,7 +77,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @throws IOException if it fails to create the object
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      InetSocketAddress address, long sessionId, long id, long length, int tier,
+      SocketAddress address, long sessionId, long id, long length, int tier,
       Protocol.RequestType type) throws IOException {
     NettyPacketWriter packetWriter =
         new NettyPacketWriter(context, address, id, length, sessionId, tier, type);

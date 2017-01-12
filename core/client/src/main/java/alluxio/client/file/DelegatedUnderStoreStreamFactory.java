@@ -19,13 +19,16 @@ import alluxio.client.UnderFileSystemFileReader;
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.options.CloseUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
+import alluxio.client.netty.NettyClient;
 import alluxio.exception.AlluxioException;
 import alluxio.underfs.options.OpenOptions;
 
 import com.google.common.base.Preconditions;
+import io.netty.channel.unix.DomainSocketAddress;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketAddress;
 
 /**
  * Factory which creates input streams to a specified path in under storage. The streams are created
@@ -58,8 +61,15 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
   public InputStream create(FileSystemContext context, OpenOptions options) throws IOException {
     InputStream inputStream;
     if (PACKET_STREAMING_ENABLED) {
+      SocketAddress address;
+      if (mClient.isLocal() && NettyClient.isDomainSocketEnabled() && !mClient.getWorkerNetAddress()
+          .getDomainSocketPath().isEmpty()) {
+        address = new DomainSocketAddress(mClient.getWorkerNetAddress().getDomainSocketPath());
+      } else {
+        address = mClient.getWorkerDataServerAddress();
+      }
       inputStream = new alluxio.client.block.stream.UnderFileSystemFileInStream(context,
-          mClient.getWorkerDataServerAddress(), mFileId, options.getLength());
+          address, mFileId, options.getLength());
     } else {
       inputStream = new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mFileId,
           UnderFileSystemFileReader.Factory.create(context));

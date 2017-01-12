@@ -18,6 +18,7 @@ import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.network.ChannelType;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -32,6 +33,7 @@ import alluxio.worker.file.FileSystemWorker;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import io.netty.channel.unix.DomainSocketAddress;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -66,6 +68,9 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
   /** Server for data requests and responses. */
   private DataServer mDataServer;
+
+  /** If started (i.e. not null), this server is used to serve local data transfer. */
+  private DataServer mDomainSocketDataServer;
 
   /** A list of extra workers to launch based on service loader. */
   private List<Worker> mAdditionalWorkers;
@@ -136,6 +141,14 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       // Setup Data server
       mDataServer = DataServer.Factory
           .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
+
+      if (isDomainSocketEnabled()) {
+        String domainSocketPath =
+            Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
+        mDomainSocketDataServer =
+            DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);
+      }
     } catch (Exception e) {
       Throwables.propagate(e);
     }
@@ -153,12 +166,19 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
   @Override
   public String getDataBindHost() {
-    return mDataServer.getBindHost();
+    return ((InetSocketAddress) mDataServer.getBindAddress()).getHostString();
   }
 
   @Override
   public int getDataLocalPort() {
-    return mDataServer.getPort();
+    return ((InetSocketAddress) mDataServer.getBindAddress()).getPort();
+  }
+
+  public String getDataDomainSocketPath() {
+    if (mDomainSocketDataServer != null) {
+      return ((DomainSocketAddress) mDomainSocketDataServer.getBindAddress()).path();
+    }
+    return "";
   }
 
   @Override
@@ -245,6 +265,9 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
   private void stopServing() throws IOException {
     mDataServer.close();
+    if (mDomainSocketDataServer != null) {
+      mDomainSocketDataServer.close();
+    }
     mThriftServer.stop();
     mThriftServerSocket.close();
     try {
@@ -311,6 +334,15 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     }
   }
 
+  /**
+   * @return true if domain socket is enabled
+   */
+  private boolean isDomainSocketEnabled() {
+    return Configuration.getEnum(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.class)
+        == ChannelType.EPOLL && !Configuration
+        .get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS).isEmpty();
+  }
+
   @Override
   public void waitForReady() {
     while (true) {
@@ -328,7 +360,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     return new WorkerNetAddress()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
         .setRpcPort(mRpcAddress.getPort())
-        .setDataPort(mDataServer.getPort())
+        .setDataPort(getDataLocalPort())
+        .setDomainSocketPath(getDataDomainSocketPath())
         .setWebPort(mWebServer.getLocalPort());
   }
 }

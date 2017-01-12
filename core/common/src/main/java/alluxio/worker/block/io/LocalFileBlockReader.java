@@ -56,6 +56,10 @@ public final class LocalFileBlockReader implements BlockReader {
     return mFileSize;
   }
 
+  public String getFilePath() {
+    return mFilePath;
+  }
+
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkArgument(offset + length <= mFileSize,
