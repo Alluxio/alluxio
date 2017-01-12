@@ -245,6 +245,30 @@ public final class CommonUtils {
   }
 
   /**
+   * Waits for an operation to return a non-null value with a specified timeout.
+   *
+   * @param description the description of this operation
+   * @param operation the operation
+   * @param options the options to use
+   * @param <T> the type of the return value
+   * @return the return value, null if it times out
+   */
+  public static <T> T waitForResult(String description, Function<Void, T> operation,
+      WaitForOptions options) {
+    T t;
+    long start = System.currentTimeMillis();
+    int interval = options.getInterval();
+    int timeout = options.getTimeout();
+    while ((t = operation.apply(null)) == null) {
+      if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
+        throw new RuntimeException("Timed out waiting for " + description);
+      }
+      CommonUtils.sleepMs(interval);
+    }
+    return t;
+  }
+
+  /**
    * Gets the primary group name of a user.
    *
    * @param userName Alluxio user name
