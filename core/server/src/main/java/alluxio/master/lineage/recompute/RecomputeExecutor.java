@@ -13,6 +13,7 @@ package alluxio.master.lineage.recompute;
 
 import alluxio.Constants;
 import alluxio.exception.AccessControlException;
+import alluxio.exception.FailedPreconditionException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -107,6 +108,8 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
               mFileSystemMaster.getFileSystemMasterView())) {
             try {
               mFileSystemMaster.resetFile(fileId);
+            } catch (FailedPreconditionException e) {
+              LOG.error("the lost file {} can not be freed", fileId, e);
             } catch (FileDoesNotExistException e) {
               LOG.error("the lost file {} does not exist", fileId, e);
             } catch (InvalidPathException e) {

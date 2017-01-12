@@ -36,15 +36,36 @@ public final class FreeCommandTest extends AbstractAlluxioShellTest {
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Test
+  public void freeNonPersistedFile() throws IOException, AlluxioException {
+    String fileName = "/testFile";
+    FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
+    // freeing non persisted files is expected to fail
+    Assert.assertEquals(-1, mFsShell.run("free", fileName));
+    IntegrationTestUtils.waitForBlocksToBeFreed(mLocalAlluxioCluster.getWorker().getBlockWorker());
+    Assert.assertTrue(isInMemoryTest(fileName));
+  }
+
+  @Test
   public void free() throws IOException, AlluxioException {
     String fileName = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
     long blockId = mFileSystem.getStatus(new AlluxioURI(fileName)).getBlockIds().get(0);
-
-    mFsShell.run("free", fileName);
+    Assert.assertEquals(0, mFsShell.run("free", fileName));
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId);
     Assert.assertFalse(isInMemoryTest(fileName));
+  }
+
+  @Test
+  public void freeWildCardNonPersistedFile() throws IOException, AlluxioException {
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem, WriteType.MUST_CACHE);
+    Assert.assertEquals(-1, mFsShell.run("free", testDir + "/foo/*"));
+    IntegrationTestUtils.waitForBlocksToBeFreed(mLocalAlluxioCluster.getWorker().getBlockWorker());
+    // freeing non persisted files is expected to be no-op
+    Assert.assertTrue(isInMemoryTest(testDir + "/foo/foobar1"));
+    Assert.assertTrue(isInMemoryTest(testDir + "/foo/foobar2"));
+    Assert.assertTrue(isInMemoryTest(testDir + "/bar/foobar3"));
+    Assert.assertTrue(isInMemoryTest(testDir + "/foobar4"));
   }
 
   @Test

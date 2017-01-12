@@ -112,6 +112,7 @@ public enum ExceptionMessage {
   PARENT_CREATION_FAILED("Unable to create parent directories for path {0}"),
 
   // file system master
+  CANNOT_FREE_NON_PERSISTED_FILE("Cannot free {0} because it is not persisted"),
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
   INODE_DOES_NOT_EXIST_RETRIES("inodeId {0,number,#} does not exist; too many retries"),
   NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),

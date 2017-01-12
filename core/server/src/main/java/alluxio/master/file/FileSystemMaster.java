@@ -23,6 +23,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FailedPreconditionException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -2087,9 +2088,10 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
+   * @throws FailedPreconditionException if the file or directory can not be freed
    */
   public boolean free(AlluxioURI path, boolean recursive)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FailedPreconditionException, FileDoesNotExistException, InvalidPathException, AccessControlException {
     Metrics.FREE_FILE_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
@@ -2105,7 +2107,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return true if the file was freed
    */
   private boolean freeInternal(LockedInodePath inodePath, boolean recursive)
-      throws FileDoesNotExistException {
+      throws FailedPreconditionException, FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
@@ -2124,6 +2126,12 @@ public final class FileSystemMaster extends AbstractMaster {
         Inode<?> freeInode = freeInodes.get(i);
 
         if (freeInode.isFile()) {
+          // TODO(binfan): freeing non-persisted files is a no-op for now, we should figure out a
+          // better way to inform the client
+          if (freeInode.getPersistenceState() != PersistenceState.PERSISTED) {
+            throw new FailedPreconditionException(
+                ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE.getMessage(inode.getName()));
+          }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
         }
@@ -2693,7 +2701,8 @@ public final class FileSystemMaster extends AbstractMaster {
   // Currently used by Lineage Master
   // TODO(binfan): Add permission checking for internal APIs
   public void resetFile(long fileId)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FailedPreconditionException, FileDoesNotExistException, InvalidPathException,
+      AccessControlException {
     // TODO(yupeng) check the file is not persisted
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
