@@ -31,6 +31,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -61,7 +62,7 @@ public final class NettyPacketReaderTest {
   @Before
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
-    mAddress = PowerMockito.mock(InetSocketAddress.class);
+    mAddress = Mockito.mock(InetSocketAddress.class);
     mFactory = new NettyPacketReader.Factory(mContext, mAddress, BLOCK_ID, LOCK_ID, SESSION_ID,
         Protocol.RequestType.ALLUXIO_BLOCK);
 
