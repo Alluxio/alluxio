@@ -69,11 +69,18 @@ public final class AlluxioShellUtilsTest {
     TFS, LOCAL
   }
 
+  // TODO(binfan): rename resetFileHierarchy to resetFileSystemHierarchy
+  // TODO(binfan): use option idiom for FileSystem fs, WriteType writeType
+  // TODO(binfan): move those static methods to a util class
   public String resetFileHierarchy() throws IOException, AlluxioException {
     return resetFileHierarchy(mFileSystem);
   }
 
-  public static String resetFileHierarchy(FileSystem fs)
+  public static String resetFileHierarchy(FileSystem fs) throws IOException, AlluxioException {
+    return resetFileHierarchy(fs, WriteType.MUST_CACHE);
+  }
+
+  public static String resetFileHierarchy(FileSystem fs, WriteType writeType)
       throws IOException, AlluxioException {
     /**
      * Generate such local structure TEST_DIR
@@ -91,10 +98,10 @@ public final class AlluxioShellUtilsTest {
     fs.createDirectory(new AlluxioURI(TEST_DIR + "/foo"));
     fs.createDirectory(new AlluxioURI(TEST_DIR + "/bar"));
 
-    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foo/foobar1", WriteType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foo/foobar2", WriteType.MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/bar/foobar3", WriteType.MUST_CACHE, 30);
-    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foobar4", WriteType.MUST_CACHE, 40);
+    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foo/foobar1", writeType, 10);
+    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foo/foobar2", writeType, 20);
+    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/bar/foobar3", writeType, 30);
+    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foobar4", writeType, 40);
     return TEST_DIR;
   }
 
