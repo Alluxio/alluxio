@@ -58,7 +58,7 @@ public final class EmbeddedChannels {
 
     private void recordException(Throwable e) {
       try {
-        Method method = getClass().getMethod("recordException");
+        Method method = getClass().getSuperclass().getDeclaredMethod("recordException");
         method.setAccessible(true);
         method.invoke(this, e);
       } catch (Exception ee) {
