@@ -217,3 +217,4 @@ public final class AlluxioShellUtilsTest {
     Assert.assertEquals(AlluxioShellUtils.match("/", "/*"), true);
   }
 }
+
