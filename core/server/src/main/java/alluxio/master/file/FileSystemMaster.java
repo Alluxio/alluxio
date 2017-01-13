@@ -2100,26 +2100,25 @@ public final class FileSystemMaster extends AbstractMaster {
     Metrics.FREE_FILE_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-      freeInternalAndJournal(inodePath, options);
+      freeAndJournal(inodePath, options);
     }
   }
 
   /**
    * Implements free operation.
    * <p>
-   * This may write to the journal as free operation may change pinned state.
+   * This may write to the journal as free operation may change the pinned state of inodes.
    *
    * @param inodePath inode of the path to free
    * @param options options to free
    */
-  private void freeInternalAndJournal(LockedInodePath inodePath, FreeOptions options)
+  private void freeAndJournal(LockedInodePath inodePath, FreeOptions options)
       throws FileDoesNotExistException, UnexpectedAlluxioException, AccessControlException,
       InvalidPathException {
     Inode<?> inode = inodePath.getInode();
     if (inode.isDirectory() && !options.isRecursive()
         && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
-      // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
-      // true
+      // inode is nonempty, and we don't free a nonempty directory unless recursive is true
       throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR
           .getMessage(mInodeTree.getPath(inode)));
     }
@@ -2725,7 +2724,7 @@ public final class FileSystemMaster extends AbstractMaster {
         .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
       // free the file first
       InodeFile inodeFile = inodePath.getInodeFile();
-      freeInternalAndJournal(inodePath, FreeOptions.defaults().setForced(true).setRecursive(false));
+      freeAndJournal(inodePath, FreeOptions.defaults().setForced(true).setRecursive(false));
       inodeFile.reset();
     }
   }

@@ -17,6 +17,7 @@ import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
@@ -39,24 +40,30 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
+  protected Options getOptions() {
+    return new Options().addOption(FORCE_OPTION);
+  }
+
+  @Override
   public String getCommandName() {
     return "free";
   }
 
   @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    FreeOptions options = FreeOptions.defaults().setRecursive(true);
+    FreeOptions options = FreeOptions.defaults().setRecursive(true).setForced(cl.hasOption("f"));
     mFileSystem.free(path, options);
     System.out.println(path + " was successfully freed from memory.");
   }
 
   @Override
   public String getUsage() {
-    return "free <path>";
+    return "free [-f] <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Frees the space occupied by a file or a directory in Alluxio.";
+    return "Frees the space occupied by a file or a directory in Alluxio."
+        + " Specify -f to force freeing pinned files in the directory.";
   }
 }

@@ -64,7 +64,6 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -1179,11 +1178,48 @@ public final class FileSystemMasterTest {
   @Test
   public void freeNonPersistedFile() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
-    // cannot free a non-persisted file
     mThrown.expect(UnexpectedAlluxioException.class);
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
+    // cannot free a non-persisted file
     mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults());
+  }
+
+  /**
+   * Tests {@link FileSystemMaster#free} on pinned file when forced flag is false.
+   */
+  @Test
+  public void freePinnedFileWithoutForce() throws Exception {
+    mNestedFileOptions.setPersisted(true);
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    mThrown.expect(UnexpectedAlluxioException.class);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
+        .getMessage(NESTED_FILE_URI.getPath()));
+    // cannot free a pinned file without "forced"
+    mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults().setForced(false));
+  }
+
+  /**
+   * Tests {@link FileSystemMaster#free} on pinned file when forced flag is true.
+   */
+  @Test
+  public void freePinnedFileWithForce() throws Exception {
+    mNestedFileOptions.setPersisted(true);
+    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+
+    Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+
+    // free the file
+    mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults().setForced(true));
+    // Update the heartbeat of removedBlockId received from worker 1
+    Command heartbeat =
+        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
+            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
   /**
@@ -1193,9 +1229,9 @@ public final class FileSystemMasterTest {
   public void freeDirNonRecursive() throws Exception {
     mNestedFileOptions.setPersisted(true);
     createFileWithSingleBlock(NESTED_FILE_URI);
-    // cannot free directory with recursive argument to false
     mThrown.expect(UnexpectedAlluxioException.class);
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(NESTED_URI));
+    // cannot free directory with recursive argument to false
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(), FreeOptions.defaults().setRecursive(false));
   }
 
@@ -1217,6 +1253,58 @@ public final class FileSystemMasterTest {
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat3);
+    Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#free} method with a directory with a file non-persisted.
+   */
+  @Test
+  public void freeDirWithNonPersistedFile() throws Exception {
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mThrown.expect(UnexpectedAlluxioException.class);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
+        .getMessage(NESTED_FILE_URI.getPath()));
+    // cannot free the parent dir of a non-persisted file
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeOptions.defaults().setForced(false).setRecursive(true));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#free} method with a directory with a file pinned when
+   * forced flag is false.
+   */
+  @Test
+  public void freeDirWithPinnedFileAndNotForced() throws Exception {
+    mNestedFileOptions.setPersisted(true);
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    mThrown.expect(UnexpectedAlluxioException.class);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
+        .getMessage(NESTED_FILE_URI.getPath()));
+    // cannot free the parent dir of a pinned file without "forced"
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeOptions.defaults().setForced(false).setRecursive(true));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#free} method with a directory with a file pinned when
+   * forced flag is true.
+   */
+  @Test
+  public void freeDirWithPinnedFileAndForced() throws Exception {
+    mNestedFileOptions.setPersisted(true);
+    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    // free the parent dir of a pinned file with "forced"
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeOptions.defaults().setForced(true).setRecursive(true));
+    // Update the heartbeat of removedBlockId received from worker 1
+    Command heartbeat =
+        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
+            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
