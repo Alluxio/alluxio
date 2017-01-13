@@ -12,8 +12,6 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.FreeTOptions;
-import alluxio.thrift.ListStatusTOptions;
-import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Objects;
 
@@ -64,7 +62,6 @@ public final class FreeOptions {
   public boolean isRecursive() {
     return mRecursive;
   }
-
 
   /**
    * Sets the forced flag.
