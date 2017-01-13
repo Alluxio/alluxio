@@ -165,7 +165,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the path of the file or directory */ 1: string path,
     // This is deprecated since 1.4 and will be removed in 2.0. Use FreeTOptions.
     /** whether to free recursively */ 2: bool recursive,
-    /** the options for creating a path */ 3: FreeTOptions options,
+    /** the options for freeing a path */ 3: FreeTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 

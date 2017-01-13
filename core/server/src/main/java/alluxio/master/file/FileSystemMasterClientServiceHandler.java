@@ -133,9 +133,11 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public Void call() throws AlluxioException {
         if (options == null) {
-          // Alluxio client is v1.4 or earlier
+          // For Alluxio client v1.4 or earlier.
+          // NOTE, we try to be conservative here so early Alluxio clients will not be able to force
+          // freeing pinned items but see the error thrown.
           mFileSystemMaster.free(new AlluxioURI(path),
-              FreeOptions.defaults().setForced(true).setRecursive(recursive));
+              FreeOptions.defaults().setRecursive(recursive));
         } else {
           mFileSystemMaster.free(new AlluxioURI(path), new FreeOptions(options));
         }

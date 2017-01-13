@@ -85,7 +85,7 @@ public class FileSystemMasterClientService {
      * 
      * @param recursive whether to free recursively
      * 
-     * @param options the options for creating a path
+     * @param options the options for freeing a path
      */
     public void free(String path, boolean recursive, FreeTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
@@ -6851,7 +6851,7 @@ public class FileSystemMasterClientService {
        */
       RECURSIVE((short)2, "recursive"),
       /**
-       * the options for creating a path
+       * the options for freeing a path
        */
       OPTIONS((short)3, "options");
 
@@ -7030,14 +7030,14 @@ public class FileSystemMasterClientService {
     }
 
     /**
-     * the options for creating a path
+     * the options for freeing a path
      */
     public FreeTOptions getOptions() {
       return this.options;
     }
 
     /**
-     * the options for creating a path
+     * the options for freeing a path
      */
     public free_args setOptions(FreeTOptions options) {
       this.options = options;

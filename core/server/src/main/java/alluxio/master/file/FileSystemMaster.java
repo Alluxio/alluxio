@@ -2116,6 +2116,10 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param inodePath inode of the path to free
    * @param options options to free
    * @return the flush counter for journaling
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the given path is invalid
+   * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
   private long freeAndJournal(LockedInodePath inodePath, FreeOptions options)
       throws FileDoesNotExistException, UnexpectedAlluxioException, AccessControlException,
@@ -2728,13 +2732,17 @@ public final class FileSystemMaster extends AbstractMaster {
   public void resetFile(long fileId)
       throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
       AccessControlException {
+    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     // TODO(yupeng) check the file is not persisted
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
       // free the file first
       InodeFile inodeFile = inodePath.getInodeFile();
-      freeAndJournal(inodePath, FreeOptions.defaults().setForced(true));
+      flushCounter = freeAndJournal(inodePath, FreeOptions.defaults().setForced(true));
       inodeFile.reset();
+    } finally {
+      // finally runs after resources are closed (unlocked).
+      waitForJournalFlush(flushCounter);
     }
   }
 
