@@ -153,7 +153,7 @@ public final class ContainerAllocator {
       priority = Priority.newInstance(101);
     }
 
-    if (hosts.length * mMaxContainersPerHost < numContainersToRequest) {
+    if (hosts.length * mMaxContainersPerHost < mTargetNumContainers - mAllocatedContainers.size()) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_HOSTS
           .getMessage(numContainersToRequest, mContainerName, hosts.length));
     }
