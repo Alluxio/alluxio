@@ -105,7 +105,9 @@ public final class ContainerAllocator {
    */
   public List<Container> allocateContainers() throws Exception {
     for (int attempt = 0; attempt < MAX_WORKER_CONTAINER_REQUEST_ATTEMPTS; attempt++) {
+      LOG.debug("Attempt {} of {} to allocate containers", attempt, MAX_WORKER_CONTAINER_REQUEST_ATTEMPTS);
       int numContainersToRequest = mTargetNumContainers - mAllocatedContainerHosts.size();
+      LOG.debug("Requesting {} containers", numContainersToRequest);
       mOutstandingContainerRequestsLatch = new CountDownLatch(numContainersToRequest);
       requestContainers(numContainersToRequest);
       // Wait for all outstanding requests to be responded to before beginning the next round.
