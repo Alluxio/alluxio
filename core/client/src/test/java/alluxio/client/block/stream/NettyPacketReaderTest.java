@@ -56,7 +56,7 @@ public final class NettyPacketReaderTest {
 
   private FileSystemContext mContext;
   private InetSocketAddress mAddress;
-  private EmbeddedChannels.EmbeddedChannelEmptyCtor mChannel;
+  private EmbeddedChannels.EmbeddedEmptyCtorChannel mChannel;
   private NettyPacketReader.Factory mFactory;
 
   @Before
@@ -66,7 +66,7 @@ public final class NettyPacketReaderTest {
     mFactory = new NettyPacketReader.Factory(mContext, mAddress, BLOCK_ID, LOCK_ID, SESSION_ID,
         Protocol.RequestType.ALLUXIO_BLOCK);
 
-    mChannel = new EmbeddedChannels.EmbeddedChannelEmptyCtor();
+    mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
     PowerMockito.doNothing().when(mContext).releaseNettyChannel(mAddress, mChannel);
   }
@@ -76,6 +76,9 @@ public final class NettyPacketReaderTest {
     mChannel.close();
   }
 
+  /**
+   * Reads an empty file.
+   */
   @Test
   public void readEmptyFile() throws Exception {
     try (PacketReader reader = create(0, 10)) {
@@ -85,6 +88,9 @@ public final class NettyPacketReaderTest {
     validateReadRequestSent(mChannel, 0, 10, false);
   }
 
+  /**
+   * Reads all contents in a file.
+   */
   @Test(timeout = 1000 * 60)
   public void readFullFile() throws Exception {
     long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
@@ -97,6 +103,9 @@ public final class NettyPacketReaderTest {
     validateReadRequestSent(mChannel, 0, length, false);
   }
 
+  /**
+   * Reads part of a file and checks the checksum of the part that is read.
+   */
   @Test(timeout = 1000 * 60)
   public void readPartialFile() throws Exception {
     long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
@@ -114,6 +123,9 @@ public final class NettyPacketReaderTest {
     validateReadRequestSent(mChannel, 0, 0, true);
   }
 
+  /**
+   * Reads a file with unknown length.
+   */
   @Test(timeout = 1000 * 60)
   public void fileLengthUnknown() throws Exception {
     long lengthActual = PACKET_SIZE * 1024 + PACKET_SIZE / 3;

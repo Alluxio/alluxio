@@ -29,8 +29,8 @@ public final class EmbeddedChannels {
    * A customized {@link EmbeddedChannel} that supports empty constructor and supports thread safe
    * read/write outbound messages from/to this channel.
    */
-  public static final class EmbeddedChannelEmptyCtor extends EmbeddedChannel {
-    public EmbeddedChannelEmptyCtor() {
+  public static final class EmbeddedEmptyCtorChannel extends EmbeddedChannel {
+    public EmbeddedEmptyCtorChannel() {
       // Invoke the parent ctor with a dummy handler.
       super(new ChannelInboundHandlerAdapter());
       // Remove the dummy handler.

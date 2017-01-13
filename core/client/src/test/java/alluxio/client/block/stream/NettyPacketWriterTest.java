@@ -62,14 +62,14 @@ public final class NettyPacketWriterTest {
 
   private FileSystemContext mContext;
   private InetSocketAddress mAddress;
-  private EmbeddedChannels.EmbeddedChannelEmptyCtor mChannel;
+  private EmbeddedChannels.EmbeddedEmptyCtorChannel mChannel;
 
   @Before
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = Mockito.mock(InetSocketAddress.class);
 
-    mChannel = new EmbeddedChannels.EmbeddedChannelEmptyCtor();
+    mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
     PowerMockito.doNothing().when(mContext).releaseNettyChannel(mAddress, mChannel);
   }
@@ -79,6 +79,9 @@ public final class NettyPacketWriterTest {
     mChannel.close();
   }
 
+  /**
+   * Writes an empty file.
+   */
   @Test(timeout = 1000 * 60)
   public void writeEmptyFile() throws Exception {
     Future<Long> checksumActual;
@@ -88,6 +91,10 @@ public final class NettyPacketWriterTest {
     Assert.assertEquals(0, checksumActual.get().longValue());
   }
 
+  /**
+   * Writes a file with file length matches what is given and verifies the checksum of the whole
+   * file.
+   */
   @Test(timeout = 1000 * 60)
   public void writeFullFile() throws Exception {
     Future<Long> checksumActual;
@@ -101,6 +108,10 @@ public final class NettyPacketWriterTest {
     Assert.assertEquals(checksumExpected.get(), checksumActual.get());
   }
 
+  /**
+   * Writes a file with file length matches what is given and verifies the checksum of the whole
+   * file.
+   */
   @Test(timeout = 1000 * 60)
   public void writeFileChecksumOfPartialFile() throws Exception {
     Future<Long> checksumActual;
@@ -114,6 +125,9 @@ public final class NettyPacketWriterTest {
     Assert.assertEquals(checksumExpected.get(), checksumActual.get());
   }
 
+  /**
+   * Writes a file with unknown length.
+   */
   @Test(timeout = 1000 * 60)
   public void writeFileUnknownLength() throws Exception {
     Future<Long> checksumActual;
@@ -127,6 +141,9 @@ public final class NettyPacketWriterTest {
     Assert.assertEquals(checksumExpected.get(), checksumActual.get());
   }
 
+  /**
+   * Writes lots of packets.
+   */
   @Test(timeout = 1000 * 60)
   public void writeFileManyPackets() throws Exception {
     Future<Long> checksumActual;
