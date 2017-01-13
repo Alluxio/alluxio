@@ -23,7 +23,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.proxy.AlluxioProxy;
+import alluxio.proxy.AlluxioProxyService;
+import alluxio.proxy.DefaultAlluxioProxy;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.LocalFileSystemCluster;
@@ -56,7 +57,7 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final int DEFAULT_BLOCK_SIZE_BYTES = Constants.KB;
   private static final long DEFAULT_WORKER_MEMORY_BYTES = 100 * Constants.MB;
 
-  protected AlluxioProxy mProxy;
+  protected AlluxioProxyService mProxy;
   protected List<AlluxioWorkerService> mWorkers;
 
   protected UnderFileSystemCluster mUfsCluster;
@@ -70,7 +71,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @param numWorkers the number of workers to run
    */
   public AbstractLocalAlluxioCluster(int numWorkers) {
-    mProxy = new AlluxioProxy();
+    mProxy = new DefaultAlluxioProxy();
     mNumWorkers = numWorkers;
   }
 
@@ -348,7 +349,7 @@ public abstract class AbstractLocalAlluxioCluster {
    *
    * @return the proxy
    */
-  public AlluxioProxy getProxy() {
+  public AlluxioProxyService getProxy() {
     return mProxy;
   }
 
