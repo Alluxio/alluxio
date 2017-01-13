@@ -747,7 +747,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   /**
-   * @return the lost blocks in Alluxio Storage
+   * @return the block ids of lost blocks in Alluxio
    */
   public Set<Long> getLostBlocks() {
     return ImmutableSet.copyOf(mLostBlocks);
