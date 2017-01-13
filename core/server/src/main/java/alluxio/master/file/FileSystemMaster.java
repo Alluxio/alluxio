@@ -2084,8 +2084,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * This operation requires users to have {@link Mode.Bits#READ} permission on the path.
    *
    * @param path the path to free
-   * @param recursive if true, and the file is a directory, all descendants will be freed
-   * @param forced if true, non-persisted files will be freed
+   * @param options options to free
    * @return true if the file was freed
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
@@ -2096,26 +2095,25 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException {
     Metrics.FREE_FILE_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
+    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-      flushCounter = freeInternalAndJournal(inodePath, options);
-    } finally {
-      // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      freeInternalAndJournal(inodePath, options);
     }
+    return true;
   }
 
   /**
    * Implements free operation.
+   * <p>
+   * This may write to the journal as free operation may change pinned state.
    *
    * @param inodePath inode of the path to free
-   * @param recursive if true, and the file is a directory, all descendants will be freed
-   * @param forced if true, non-persisted files will be freed
+   * @param options options to free
    * @return true if the file was freed
    */
-  private long freeInternalAndJournal(LockedInodePath inodePath, FreeOptions options)
-      throws FileDoesNotExistException, UnexpectedAlluxioException {
+  private void freeInternalAndJournal(LockedInodePath inodePath, FreeOptions options)
+      throws FileDoesNotExistException, UnexpectedAlluxioException, AccessControlException,
+      InvalidPathException {
     Inode<?> inode = inodePath.getInode();
     if (inode.isDirectory() && !options.isRecursive()
         && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
@@ -2128,9 +2126,9 @@ public final class FileSystemMaster extends AbstractMaster {
     List<Inode<?>> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
 
-    try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
+    try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       freeInodes.addAll(lockList.getInodes());
-
+      TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
       // We go through each inode.
       for (int i = freeInodes.size() - 1; i >= 0; i--) {
         Inode<?> freeInode = freeInodes.get(i);
@@ -2145,7 +2143,10 @@ public final class FileSystemMaster extends AbstractMaster {
               throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
                   .getMessage(mInodeTree.getPath(freeInode)));
             }
-            setAttributeAndJournal(lockList, SetAttributeOptions.defaults().setPinned(false));
+            // the path to inode for getPath should already be locked.
+            tempInodePath.setDescendant(freeInode, mInodeTree.getPath(freeInode));
+            setAttributeAndJournal(tempInodePath,
+                SetAttributeOptions.defaults().setRecursive(false).setPinned(false), false, false);
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
@@ -2154,7 +2155,6 @@ public final class FileSystemMaster extends AbstractMaster {
     }
 
     Metrics.FILES_FREED.inc(freeInodes.size());
-    return true;
   }
 
   /**
@@ -2724,7 +2724,7 @@ public final class FileSystemMaster extends AbstractMaster {
         .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
       // free the file first
       InodeFile inodeFile = inodePath.getInodeFile();
-      freeInternalAndJournal(inodePath, false, true);
+      freeInternalAndJournal(inodePath, FreeOptions.defaults().setForced(true).setRecursive(false));
       inodeFile.reset();
     }
   }
@@ -3084,7 +3084,7 @@ public final class FileSystemMaster extends AbstractMaster {
               LOG.debug("File {} is expired. Performing action {}", inode.getName(), ttlAction);
               switch (ttlAction) {
                 case FREE:
-                  free(path, false, true);
+                  free(path, FreeOptions.defaults().setRecursive(false).setForced(true));
                   // Reset state
                   inode.setTtl(Constants.NO_TTL);
                   inode.setTtlAction(TtlAction.DELETE);

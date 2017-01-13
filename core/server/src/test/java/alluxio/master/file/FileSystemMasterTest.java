@@ -34,6 +34,7 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -1159,7 +1160,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests {@link FileSystemMaster#free(AlluxioURI, boolean, boolean)} on persisted file.
+   * Tests {@link FileSystemMaster#free} on persisted file.
    */
   @Test
   public void free() throws Exception {
@@ -1168,7 +1169,8 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // free the file
-    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false, true));
+    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI,
+        FreeOptions.defaults().setForced(false).setRecursive(false)));
     // Update the heartbeat of removedBlockId received from worker 1
     Command heartbeat2 =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
@@ -1180,7 +1182,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests {@link FileSystemMaster#free(AlluxioURI, boolean, boolean)} on non-persisted file.
+   * Tests {@link FileSystemMaster#free} on non-persisted file.
    */
   @Test
   public void freeNonPersistedFile() throws Exception {
@@ -1189,11 +1191,27 @@ public final class FileSystemMasterTest {
     mThrown.expect(UnexpectedAlluxioException.class);
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
-    mFileSystemMaster.free(NESTED_FILE_URI, false, true);
+    mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults());
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free(AlluxioURI, boolean, boolean)} method with a directory.
+   * Tests the {@link FileSystemMaster#free} method with a directory but recursive to false.
+   */
+  @Test
+  public void freeDirNonRecursive() throws Exception {
+    sNestedFileOptions.setPersisted(true);
+    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+    // cannot free directory with recursive argument to false
+    mThrown.expect(UnexpectedAlluxioException.class);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR
+        .getMessage(NESTED_FILE_URI.getParent().getPath()));
+    Assert.assertFalse(mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeOptions.defaults().setRecursive(false)));
+    sNestedFileOptions.setPersisted(false);
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#free} method with a directory.
    */
   @Test
   public void freeDir() throws Exception {
@@ -1201,11 +1219,9 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
-    // cannot free directory with recursive argument to false
-    Assert.assertFalse(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), false, true));
-
     // free the dir
-    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), true, true));
+    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeOptions.defaults().setForced(true).setRecursive(true)));
     // Update the heartbeat of removedBlockId received from worker 1
     Command heartbeat3 =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
