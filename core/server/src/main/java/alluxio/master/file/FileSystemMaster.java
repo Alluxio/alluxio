@@ -2079,7 +2079,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   // TODO(binfan): throw a better exception rather than UnexpectedAlluxioException. Currently
   // UnexpectedAlluxioException is thrown because we want to keep backwards compatibility with
-  // clients of earlier versions prior to 1.4. If a new exception is added, it will be converted
+  // clients of earlier versions prior to 1.5. If a new exception is added, it will be converted
   // into RuntimeException on the client.
   /**
    * Frees or evicts all of the blocks of the file from alluxio storage. If the given file is a
