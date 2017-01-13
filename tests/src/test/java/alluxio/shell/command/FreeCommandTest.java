@@ -107,12 +107,14 @@ public final class FreeCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void freeWildCardPinnedFileForced() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem, WriteType.CACHE_THROUGH);
-    long blockId = mFileSystem.getStatus(new AlluxioURI(testDir + "/foo/foobar1")).getBlockIds()
+    long blockId1 = mFileSystem.getStatus(new AlluxioURI(testDir + "/foo/foobar1")).getBlockIds()
         .get(0);
+    long blockId2 =
+        mFileSystem.getStatus(new AlluxioURI(testDir + "/foo/foobar2")).getBlockIds().get(0);
     mFsShell.run("pin", testDir + "/foo/foobar1");
     Assert.assertEquals(0, mFsShell.run("free", "-f", testDir + "/foo/*"));
-    IntegrationTestUtils
-        .waitForBlocksToBeFreed(mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId);
+    IntegrationTestUtils.waitForBlocksToBeFreed(
+        mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId1, blockId2);
     Assert.assertFalse(isInMemoryTest(testDir + "/foo/foobar1"));
     Assert.assertFalse(isInMemoryTest(testDir + "/foo/foobar2"));
     Assert.assertTrue(isInMemoryTest(testDir + "/bar/foobar3"));
