@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -142,6 +143,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  @Ignore
   public void free() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
     mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());

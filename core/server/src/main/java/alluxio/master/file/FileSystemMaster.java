@@ -2077,6 +2077,10 @@ public final class FileSystemMaster extends AbstractMaster {
     return counter;
   }
 
+  // TODO(binfan): throw a better exception rather than UnexpectedAlluxioException. Currently
+  // UnexpectedAlluxioException is thrown because we want to keep backwards compatibility with
+  // clients of earlier versions prior to 1.4. If new exception is added, it will be converted
+  // into Runtime exception.
   /**
    * Frees or evicts all of the blocks of the file from alluxio storage. If the given file is a
    * directory, and the 'recursive' flag is enabled, all descendant files will also be freed.
@@ -2085,13 +2089,12 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param path the path to free
    * @param options options to free
-   * @return true if the file was freed
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
    * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
-  public boolean free(AlluxioURI path, FreeOptions options)
+  public void free(AlluxioURI path, FreeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException {
     Metrics.FREE_FILE_OPS.inc();
@@ -2099,7 +2102,6 @@ public final class FileSystemMaster extends AbstractMaster {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       freeInternalAndJournal(inodePath, options);
     }
-    return true;
   }
 
   /**
@@ -2109,7 +2111,6 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath inode of the path to free
    * @param options options to free
-   * @return true if the file was freed
    */
   private void freeInternalAndJournal(LockedInodePath inodePath, FreeOptions options)
       throws FileDoesNotExistException, UnexpectedAlluxioException, AccessControlException,

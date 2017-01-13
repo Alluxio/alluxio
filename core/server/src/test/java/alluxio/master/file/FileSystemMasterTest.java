@@ -100,8 +100,8 @@ public final class FileSystemMasterTest {
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final String TEST_USER = "test";
-  private static CreateFileOptions sNestedFileOptions;
 
+  private CreateFileOptions mNestedFileOptions;
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
@@ -129,15 +129,6 @@ public final class FileSystemMasterTest {
   public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(0);
 
   /**
-   * Sets up the dependencies before a single test runs.
-   */
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    sNestedFileOptions =
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
-  }
-
-  /**
    * Sets up the dependencies before a test runs.
    */
   @Before
@@ -151,6 +142,8 @@ public final class FileSystemMasterTest {
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
     Configuration.set(PropertyKey.UNDERFS_ADDRESS, mUnderFS);
+    mNestedFileOptions =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     mJournalFolder = mTestFolder.newFolder().getAbsolutePath();
     startServices();
   }
@@ -235,7 +228,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void getNewBlockIdForFile() throws Exception {
-    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
@@ -1013,7 +1006,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setAttribute() throws Exception {
-    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
@@ -1045,7 +1038,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void permission() throws Exception {
-    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
     Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
     Assert.assertEquals(0666, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
   }
@@ -1056,7 +1049,7 @@ public final class FileSystemMasterTest {
   @Test
   public void isFullyInMemory() throws Exception {
     // add nested file
-    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
@@ -1079,7 +1072,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void rename() throws Exception {
-    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
 
     // try to rename a file to root
     try {
@@ -1155,7 +1148,7 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Traversal failed. Component 2(test) is a file");
 
-    mFileSystemMaster.createFile(NESTED_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_URI, mNestedFileOptions);
     mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI);
   }
 
@@ -1164,13 +1157,13 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void free() throws Exception {
-    sNestedFileOptions.setPersisted(true);
+    mNestedFileOptions.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // free the file
-    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI,
-        FreeOptions.defaults().setForced(false).setRecursive(false)));
+    mFileSystemMaster.free(NESTED_FILE_URI,
+        FreeOptions.defaults().setForced(false).setRecursive(false));
     // Update the heartbeat of removedBlockId received from worker 1
     Command heartbeat2 =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
@@ -1178,7 +1171,6 @@ public final class FileSystemMasterTest {
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat2);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-    sNestedFileOptions.setPersisted(false);
   }
 
   /**
@@ -1199,15 +1191,12 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void freeDirNonRecursive() throws Exception {
-    sNestedFileOptions.setPersisted(true);
-    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+    mNestedFileOptions.setPersisted(true);
+    createFileWithSingleBlock(NESTED_FILE_URI);
     // cannot free directory with recursive argument to false
     mThrown.expect(UnexpectedAlluxioException.class);
-    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR
-        .getMessage(NESTED_FILE_URI.getParent().getPath()));
-    Assert.assertFalse(mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeOptions.defaults().setRecursive(false)));
-    sNestedFileOptions.setPersisted(false);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(NESTED_URI));
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(), FreeOptions.defaults().setRecursive(false));
   }
 
   /**
@@ -1215,13 +1204,13 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void freeDir() throws Exception {
-    sNestedFileOptions.setPersisted(true);
+    mNestedFileOptions.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // free the dir
-    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeOptions.defaults().setForced(true).setRecursive(true)));
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeOptions.defaults().setForced(true).setRecursive(true));
     // Update the heartbeat of removedBlockId received from worker 1
     Command heartbeat3 =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
@@ -1229,7 +1218,6 @@ public final class FileSystemMasterTest {
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat3);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-    sNestedFileOptions.setPersisted(false);
   }
 
   /**
@@ -1446,7 +1434,7 @@ public final class FileSystemMasterTest {
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
-    mFileSystemMaster.createFile(uri, sNestedFileOptions);
+    mFileSystemMaster.createFile(uri, mNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
     CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(Constants.KB);
@@ -1486,7 +1474,7 @@ public final class FileSystemMasterTest {
 
     for (int i = 0; i < numThreads; i++) {
       srcs[i] = new AlluxioURI("/file" + i);
-      mFileSystemMaster.createFile(srcs[i], sNestedFileOptions);
+      mFileSystemMaster.createFile(srcs[i], mNestedFileOptions);
       dsts[i] = new AlluxioURI("/renamed" + i);
     }
 
@@ -1517,7 +1505,7 @@ public final class FileSystemMasterTest {
 
     for (int i = 0; i < numThreads; i++) {
       srcs[i] = dir.join("/file" + i);
-      mFileSystemMaster.createFile(srcs[i], sNestedFileOptions);
+      mFileSystemMaster.createFile(srcs[i], mNestedFileOptions);
       dsts[i] = dir.join("/renamed" + i);
     }
     int errors = concurrentRename(srcs, dsts);
@@ -1848,7 +1836,7 @@ public final class FileSystemMasterTest {
       }
     };
     for (int i = 0; i < iterations; i++) {
-      mFileSystemMaster.createFile(file, sNestedFileOptions);
+      mFileSystemMaster.createFile(file, mNestedFileOptions);
       Thread renamer = new Thread(new Runnable() {
         @Override
         public void run() {
