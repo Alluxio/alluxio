@@ -115,7 +115,7 @@ public enum ExceptionMessage {
   CANNOT_FREE_NON_EMPTY_DIR("Cannot free directory {0} which is not empty. Please set "
       + "the \"recursive\" flag of free operation to true"),
   CANNOT_FREE_NON_PERSISTED_FILE("Cannot free file {0} which is not persisted"),
-  CANNOT_FREE_PINNED_FILE("Cannot free file {0} which is pinned. Please unpinned it first or"
+  CANNOT_FREE_PINNED_FILE("Cannot free file {0} which is pinned. Please unpin it first or"
       + " set the \"forced\" flag of free operation to true"),
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
   INODE_DOES_NOT_EXIST_RETRIES("inodeId {0,number,#} does not exist; too many retries"),

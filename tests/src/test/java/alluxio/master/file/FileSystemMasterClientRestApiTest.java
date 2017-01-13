@@ -142,6 +142,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     Assert.assertEquals(0, fileInfo.getLength());
   }
 
+  // TODO(binfan): re-enable this test
   @Test
   @Ignore
   public void free() throws Exception {

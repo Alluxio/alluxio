@@ -2079,8 +2079,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
   // TODO(binfan): throw a better exception rather than UnexpectedAlluxioException. Currently
   // UnexpectedAlluxioException is thrown because we want to keep backwards compatibility with
-  // clients of earlier versions prior to 1.4. If new exception is added, it will be converted
-  // into Runtime exception.
+  // clients of earlier versions prior to 1.4. If a new exception is added, it will be converted
+  // into RuntimeException on the client.
   /**
    * Frees or evicts all of the blocks of the file from alluxio storage. If the given file is a
    * directory, and the 'recursive' flag is enabled, all descendant files will also be freed.
@@ -2098,9 +2098,13 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException {
     Metrics.FREE_FILE_OPS.inc();
+    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-      freeAndJournal(inodePath, options);
+      flushCounter = freeAndJournal(inodePath, options);
+    } finally {
+      // finally runs after resources are closed (unlocked).
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -2111,8 +2115,9 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath inode of the path to free
    * @param options options to free
+   * @return the flush counter for journaling
    */
-  private void freeAndJournal(LockedInodePath inodePath, FreeOptions options)
+  private long freeAndJournal(LockedInodePath inodePath, FreeOptions options)
       throws FileDoesNotExistException, UnexpectedAlluxioException, AccessControlException,
       InvalidPathException {
     Inode<?> inode = inodePath.getInode();
@@ -2122,7 +2127,8 @@ public final class FileSystemMaster extends AbstractMaster {
       throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR
           .getMessage(mInodeTree.getPath(inode)));
     }
-
+    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    long opTimeMs = System.currentTimeMillis();
     List<Inode<?>> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
 
@@ -2145,8 +2151,10 @@ public final class FileSystemMaster extends AbstractMaster {
             }
             // the path to inode for getPath should already be locked.
             tempInodePath.setDescendant(freeInode, mInodeTree.getPath(freeInode));
-            setAttributeAndJournal(tempInodePath,
-                SetAttributeOptions.defaults().setRecursive(false).setPinned(false), false, false);
+            SetAttributeOptions setAttributeOptions = SetAttributeOptions.defaults()
+                .setRecursive(false).setPinned(false);
+            setAttributeInternal(tempInodePath, false, opTimeMs, setAttributeOptions);
+            flushCounter = journalSetAttribute(tempInodePath, opTimeMs, setAttributeOptions);
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
@@ -2155,6 +2163,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
 
     Metrics.FILES_FREED.inc(freeInodes.size());
+    return flushCounter;
   }
 
   /**
@@ -2724,7 +2733,7 @@ public final class FileSystemMaster extends AbstractMaster {
         .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
       // free the file first
       InodeFile inodeFile = inodePath.getInodeFile();
-      freeAndJournal(inodePath, FreeOptions.defaults().setForced(true).setRecursive(false));
+      freeAndJournal(inodePath, FreeOptions.defaults().setForced(true));
       inodeFile.reset();
     }
   }
@@ -3084,7 +3093,7 @@ public final class FileSystemMaster extends AbstractMaster {
               LOG.debug("File {} is expired. Performing action {}", inode.getName(), ttlAction);
               switch (ttlAction) {
                 case FREE:
-                  free(path, FreeOptions.defaults().setRecursive(false).setForced(true));
+                  free(path, FreeOptions.defaults().setForced(true));
                   // Reset state
                   inode.setTtl(Constants.NO_TTL);
                   inode.setTtlAction(TtlAction.DELETE);

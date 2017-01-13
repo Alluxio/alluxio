@@ -19,7 +19,6 @@ import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -265,23 +264,21 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
+   * @summary free a path
    * @param path the path
    * @param recursive whether the path should be freed recursively
-   * @param forced whether the file should be freed regardless of its pinning state
    * @return the response object
    */
   @POST
   @Path(FREE)
   @ReturnType("java.lang.Void")
   public Response free(@QueryParam("path") final String path,
-      @QueryParam("recursive") final boolean recursive,
-      @QueryParam("forced") final boolean forced) {
+      @QueryParam("recursive") final boolean recursive) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        mFileSystemMaster.free(new AlluxioURI(path),
-            FreeOptions.defaults().setRecursive(recursive).setForced(forced));
+        mFileSystemMaster.free(new AlluxioURI(path), recursive);
         return null;
       }
     });

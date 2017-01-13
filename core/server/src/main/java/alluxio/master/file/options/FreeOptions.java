@@ -38,7 +38,7 @@ public final class FreeOptions {
   }
 
   /**
-   * Create an instance of {@link FreeOptions} from a {@link FreeTOptions}.
+   * Creates an instance of {@link FreeOptions} from a {@link FreeTOptions}.
    *
    * @param options the thrift representation of free options
    */
