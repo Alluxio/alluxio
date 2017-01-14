@@ -52,7 +52,7 @@ public final class AlluxioProxy {
       System.exit(1);
     }
 
-    AlluxioProxyService proxy = new DefaultAlluxioProxy();
+    AlluxioProxyService proxy = AlluxioProxyService.Factory.create();
     ServerUtils.run(proxy, "Alluxio proxy");
   }
 
