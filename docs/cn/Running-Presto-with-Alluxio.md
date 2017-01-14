@@ -6,17 +6,21 @@ group: Frameworks
 priority: 2
 ---
 
-该文档介绍如何运行[Facebook Presto](https://prestodb.io/)，让Presto能够执行Alluxio上的Hive表。
+该文档介绍如何运行[Facebook Presto](https://prestodb.io/)，让Presto能够查询Alluxio上的Hive表。
 
 # 前期准备
 
-开始之前你需要安装好[Java](Java-Setup.html)，Java 版本要求在1.8以上，同时使用[本地模式](Running-Alluxio-Locally.html)或[集群模式](Running-Alluxio-on-a-Cluster.html)构建好Alluxio。
+开始之前你需要安装好[Java](Java-Setup.html)，Java 版本要求在1.8以上，同时使用[本地模式](Running-Alluxio-Locally.html)
+或[集群模式](Running-Alluxio-on-a-Cluster.html)构建好Alluxio。
 
-接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)。并且已经配置好[Hive On Alluxio](http://www.alluxio.org/docs/master/cn/Running-Hive-with-Alluxio.html)
+接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)。并且已经配置好
+[Hive On Alluxio](http://www.alluxio.org/docs/master/cn/Running-Hive-with-Alluxio.html)
 
 # 配置
 
-Presto 通过连接Hive metastore来获取数据库和表的信息，同时通过表的location位置信息来获取表数据所在的hdfs位置信息。所以需要先配置[Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html),为了访问hdfs，需要将hadoop的core-site.xml、hdfs-site.xml加入到Presto
+Presto 通过连接Hive metastore来获取数据库和表的信息，同时通过表的location位置信息来获取表数据所在的hdfs位置信息。
+所以需要先配置[Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html),为了访问hdfs，
+需要将hadoop的core-site.xml、hdfs-site.xml加入到Presto，并通过hive.config.resources指向hadoop的配置文件.
 
 #### 配置`core-site.xml`
 
@@ -46,7 +50,7 @@ HA模式的Alluxio需要加入如下配置
 
 将Alluxio客户端Jar包分发到Presto所有节点中：
 
-- 你必须将Alluxio客户端jar包`alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
+- 你必须将Alluxio客户端jar包 `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
 （在`/<PATH_TO_ALLUXIO>/core/client/target/`目录下）放置在所有Presto节点的`$PRESTO_HOME/plugin/hadoop/`
 目录中（针对不同hadoop版本，放到相应的文件夹下），并且重启所有coordinator和worker。
 
