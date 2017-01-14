@@ -50,6 +50,7 @@ import org.mockito.Mockito;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -88,7 +89,7 @@ public final class NettyDataServerTest {
 
   @Test
   public void port() {
-    assertTrue(mNettyDataServer.getPort() > 0);
+    assertTrue(((InetSocketAddress) mNettyDataServer.getBindAddress()).getPort() > 0);
   }
 
   @Test
@@ -244,9 +245,8 @@ public final class NettyDataServerTest {
   }
 
   private RPCResponse request(RPCRequest rpcBlockWriteRequest) throws Exception {
-    InetSocketAddress address =
-        new InetSocketAddress(mNettyDataServer.getBindHost(), mNettyDataServer.getPort());
-    Bootstrap clientBootstrap = NettyClient.createClientBootstrap();
+    SocketAddress address = mNettyDataServer.getBindAddress();
+    Bootstrap clientBootstrap = NettyClient.createClientBootstrap(address);
     ChannelFuture f = clientBootstrap.connect(address).sync();
     Channel channel = f.channel();
     try {

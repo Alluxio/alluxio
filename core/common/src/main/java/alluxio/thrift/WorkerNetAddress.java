@@ -45,6 +45,7 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
   private static final org.apache.thrift.protocol.TField RPC_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("rpcPort", org.apache.thrift.protocol.TType.I32, (short)2);
   private static final org.apache.thrift.protocol.TField DATA_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("dataPort", org.apache.thrift.protocol.TType.I32, (short)3);
   private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I32, (short)4);
+  private static final org.apache.thrift.protocol.TField DOMAIN_SOCKET_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("domainSocketPath", org.apache.thrift.protocol.TType.STRING, (short)5);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -56,13 +57,15 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
   private int rpcPort; // required
   private int dataPort; // required
   private int webPort; // required
+  private String domainSocketPath; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     HOST((short)1, "host"),
     RPC_PORT((short)2, "rpcPort"),
     DATA_PORT((short)3, "dataPort"),
-    WEB_PORT((short)4, "webPort");
+    WEB_PORT((short)4, "webPort"),
+    DOMAIN_SOCKET_PATH((short)5, "domainSocketPath");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -85,6 +88,8 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
           return DATA_PORT;
         case 4: // WEB_PORT
           return WEB_PORT;
+        case 5: // DOMAIN_SOCKET_PATH
+          return DOMAIN_SOCKET_PATH;
         default:
           return null;
       }
@@ -140,6 +145,8 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.WEB_PORT, new org.apache.thrift.meta_data.FieldMetaData("webPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.DOMAIN_SOCKET_PATH, new org.apache.thrift.meta_data.FieldMetaData("domainSocketPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WorkerNetAddress.class, metaDataMap);
   }
@@ -151,7 +158,8 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     String host,
     int rpcPort,
     int dataPort,
-    int webPort)
+    int webPort,
+    String domainSocketPath)
   {
     this();
     this.host = host;
@@ -161,6 +169,7 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     setDataPortIsSet(true);
     this.webPort = webPort;
     setWebPortIsSet(true);
+    this.domainSocketPath = domainSocketPath;
   }
 
   /**
@@ -174,6 +183,9 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     this.rpcPort = other.rpcPort;
     this.dataPort = other.dataPort;
     this.webPort = other.webPort;
+    if (other.isSetDomainSocketPath()) {
+      this.domainSocketPath = other.domainSocketPath;
+    }
   }
 
   public WorkerNetAddress deepCopy() {
@@ -189,6 +201,7 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     this.dataPort = 0;
     setWebPortIsSet(false);
     this.webPort = 0;
+    this.domainSocketPath = null;
   }
 
   public String getHost() {
@@ -284,6 +297,30 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WEBPORT_ISSET_ID, value);
   }
 
+  public String getDomainSocketPath() {
+    return this.domainSocketPath;
+  }
+
+  public WorkerNetAddress setDomainSocketPath(String domainSocketPath) {
+    this.domainSocketPath = domainSocketPath;
+    return this;
+  }
+
+  public void unsetDomainSocketPath() {
+    this.domainSocketPath = null;
+  }
+
+  /** Returns true if field domainSocketPath is set (has been assigned a value) and false otherwise */
+  public boolean isSetDomainSocketPath() {
+    return this.domainSocketPath != null;
+  }
+
+  public void setDomainSocketPathIsSet(boolean value) {
+    if (!value) {
+      this.domainSocketPath = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case HOST:
@@ -318,6 +355,14 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       }
       break;
 
+    case DOMAIN_SOCKET_PATH:
+      if (value == null) {
+        unsetDomainSocketPath();
+      } else {
+        setDomainSocketPath((String)value);
+      }
+      break;
+
     }
   }
 
@@ -334,6 +379,9 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
 
     case WEB_PORT:
       return getWebPort();
+
+    case DOMAIN_SOCKET_PATH:
+      return getDomainSocketPath();
 
     }
     throw new IllegalStateException();
@@ -354,6 +402,8 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       return isSetDataPort();
     case WEB_PORT:
       return isSetWebPort();
+    case DOMAIN_SOCKET_PATH:
+      return isSetDomainSocketPath();
     }
     throw new IllegalStateException();
   }
@@ -407,6 +457,15 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
         return false;
     }
 
+    boolean this_present_domainSocketPath = true && this.isSetDomainSocketPath();
+    boolean that_present_domainSocketPath = true && that.isSetDomainSocketPath();
+    if (this_present_domainSocketPath || that_present_domainSocketPath) {
+      if (!(this_present_domainSocketPath && that_present_domainSocketPath))
+        return false;
+      if (!this.domainSocketPath.equals(that.domainSocketPath))
+        return false;
+    }
+
     return true;
   }
 
@@ -433,6 +492,11 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     list.add(present_webPort);
     if (present_webPort)
       list.add(webPort);
+
+    boolean present_domainSocketPath = true && (isSetDomainSocketPath());
+    list.add(present_domainSocketPath);
+    if (present_domainSocketPath)
+      list.add(domainSocketPath);
 
     return list.hashCode();
   }
@@ -485,6 +549,16 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetDomainSocketPath()).compareTo(other.isSetDomainSocketPath());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetDomainSocketPath()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.domainSocketPath, other.domainSocketPath);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -523,6 +597,14 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     if (!first) sb.append(", ");
     sb.append("webPort:");
     sb.append(this.webPort);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("domainSocketPath:");
+    if (this.domainSocketPath == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.domainSocketPath);
+    }
     first = false;
     sb.append(")");
     return sb.toString();
@@ -601,6 +683,14 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 5: // DOMAIN_SOCKET_PATH
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.domainSocketPath = iprot.readString();
+              struct.setDomainSocketPathIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -630,6 +720,11 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       oprot.writeFieldBegin(WEB_PORT_FIELD_DESC);
       oprot.writeI32(struct.webPort);
       oprot.writeFieldEnd();
+      if (struct.domainSocketPath != null) {
+        oprot.writeFieldBegin(DOMAIN_SOCKET_PATH_FIELD_DESC);
+        oprot.writeString(struct.domainSocketPath);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -660,7 +755,10 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       if (struct.isSetWebPort()) {
         optionals.set(3);
       }
-      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetDomainSocketPath()) {
+        optionals.set(4);
+      }
+      oprot.writeBitSet(optionals, 5);
       if (struct.isSetHost()) {
         oprot.writeString(struct.host);
       }
@@ -673,12 +771,15 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       if (struct.isSetWebPort()) {
         oprot.writeI32(struct.webPort);
       }
+      if (struct.isSetDomainSocketPath()) {
+        oprot.writeString(struct.domainSocketPath);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, WorkerNetAddress struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(4);
+      BitSet incoming = iprot.readBitSet(5);
       if (incoming.get(0)) {
         struct.host = iprot.readString();
         struct.setHostIsSet(true);
@@ -694,6 +795,10 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       if (incoming.get(3)) {
         struct.webPort = iprot.readI32();
         struct.setWebPortIsSet(true);
+      }
+      if (incoming.get(4)) {
+        struct.domainSocketPath = iprot.readString();
+        struct.setDomainSocketPathIsSet(true);
       }
     }
   }
