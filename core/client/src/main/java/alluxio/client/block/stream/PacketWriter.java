@@ -23,7 +23,8 @@ import java.io.IOException;
  */
 public interface PacketWriter extends Closeable, Cancelable {
   /**
-   * Writes a packet. This method takes the ownership of this packet.
+   * Writes a packet. This method takes the ownership of this packet even if it fails to write
+   * the packet.
    *
    * @param packet the packet
    * @throws IOException if it fails to write the packet
