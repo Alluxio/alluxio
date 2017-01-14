@@ -25,7 +25,6 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -72,7 +71,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
    * Creates a {@link PacketInStream} to read from a netty data server.
    *
    * @param context the file system context
-   * @param address the address of the netty data server
+   * @param address the network address of the netty data server
    * @param id the ID
    * @param lockId the lock ID (set to -1 if not applicable)
    * @param sessionId the session ID (set to -1 if not applicable)
@@ -81,7 +80,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
    * @return the {@link PacketInStream} created
    */
   public static PacketInStream createNettyPacketInStream(FileSystemContext context,
-      SocketAddress address, long id, long lockId, long sessionId, long length,
+      InetSocketAddress address, long id, long lockId, long sessionId, long length,
       Protocol.RequestType type) {
     PacketReader.Factory factory =
         new NettyPacketReader.Factory(context, address, id, lockId, sessionId, type);

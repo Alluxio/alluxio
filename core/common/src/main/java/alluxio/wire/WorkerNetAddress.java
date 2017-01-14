@@ -29,7 +29,6 @@ public final class WorkerNetAddress implements Serializable {
   private int mRpcPort;
   private int mDataPort;
   private int mWebPort;
-  private String mDomainSocketPath = "";
 
   /**
    * Creates a new instance of {@link WorkerNetAddress}.
@@ -46,7 +45,6 @@ public final class WorkerNetAddress implements Serializable {
     mRpcPort = workerNetAddress.getRpcPort();
     mDataPort = workerNetAddress.getDataPort();
     mWebPort = workerNetAddress.getWebPort();
-    mDomainSocketPath = workerNetAddress.getDomainSocketPath();
   }
 
   /**
@@ -75,13 +73,6 @@ public final class WorkerNetAddress implements Serializable {
    */
   public int getWebPort() {
     return mWebPort;
-  }
-
-  /**
-   * @return the domain socket path
-   */
-  public String getDomainSocketPath() {
-    return mDomainSocketPath;
   }
 
   /**
@@ -122,20 +113,10 @@ public final class WorkerNetAddress implements Serializable {
   }
 
   /**
-   * @param domainSocketPath the domain socket path
-   * @return the worker net address
-   */
-  public WorkerNetAddress setDomainSocketPath(String domainSocketPath) {
-    mDomainSocketPath = domainSocketPath;
-    return this;
-  }
-
-  /**
    * @return a net address of thrift construct
    */
   protected alluxio.thrift.WorkerNetAddress toThrift() {
-    return new alluxio.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort,
-        mDomainSocketPath);
+    return new alluxio.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort);
   }
 
   @Override
@@ -148,18 +129,17 @@ public final class WorkerNetAddress implements Serializable {
     }
     WorkerNetAddress that = (WorkerNetAddress) o;
     return mHost.equals(that.mHost) && mRpcPort == that.mRpcPort && mDataPort == that.mDataPort
-        && mWebPort == that.mWebPort && mDomainSocketPath.equals(that.mDomainSocketPath);
+        && mWebPort == that.mWebPort;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort, mDomainSocketPath);
+    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("host", mHost).add("rpcPort", mRpcPort)
-        .add("dataPort", mDataPort).add("webPort", mWebPort)
-        .add("domainSocketPath", mDomainSocketPath).toString();
+        .add("dataPort", mDataPort).add("webPort", mWebPort).toString();
   }
 }

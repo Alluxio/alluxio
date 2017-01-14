@@ -143,7 +143,7 @@ public class FileOutStream extends AbstractOutStream {
           mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
               CreateUfsFileOptions.defaults().setPermission(perm));
           mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
-              .create(mContext, mFileSystemWorkerClient, mUfsFileId));
+              .create(mContext, mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
         } else {
           UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
           // TODO(jiri): Implement collection of temporary files left behind by dead clients.

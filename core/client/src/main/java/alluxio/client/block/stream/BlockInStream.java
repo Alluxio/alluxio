@@ -19,20 +19,17 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.netty.NettyClient;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
-import io.netty.channel.unix.DomainSocketAddress;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -102,14 +99,13 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @param blockSize the block size
    * @param workerNetAddress the worker network address
    * @param context the file system context
-   * @param isLocal whether the worker is local
    * @param options the options
    * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
-  public static BlockInStream createNettyBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, boolean isLocal,
-      InStreamOptions options) throws IOException {
+  public static BlockInStream createRemoteBlockInStream(long blockId, long blockSize,
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
+    throws IOException {
     Closer closer = Closer.create();
 
     BlockWorkerClient blockWorkerClient = null;
@@ -118,16 +114,10 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       blockWorkerClient =
           closer.register(context.createBlockWorkerClient(workerNetAddress));
       lockBlockResult = blockWorkerClient.lockBlock(blockId);
-      SocketAddress address;
-      if (isLocal && NettyClient.isDomainSocketEnabled() && !workerNetAddress.getDomainSocketPath()
-          .isEmpty()) {
-        address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
-      } else {
-        address = blockWorkerClient.getDataServerAddress();
-      }
       PacketInStream inStream = closer.register(PacketInStream
-          .createNettyPacketInStream(context, address, blockId, lockBlockResult.getLockId(),
-              blockWorkerClient.getSessionId(), blockSize, Protocol.RequestType.ALLUXIO_BLOCK));
+          .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
+              lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
+              Protocol.RequestType.ALLUXIO_BLOCK));
       return new BlockInStream(inStream, blockId, blockWorkerClient, options);
     } catch (Exception e) {
       if (lockBlockResult != null) {

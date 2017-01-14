@@ -39,7 +39,6 @@ import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -85,7 +84,7 @@ public final class FileSystemContext implements Closeable {
       mFileSystemWorkerClientHeartbeatPools = new ConcurrentHashMapV8<>();
 
   // The netty data server channel pools.
-  private final ConcurrentHashMapV8<SocketAddress, NettyChannelPool>
+  private final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
       mNettyChannelPools = new ConcurrentHashMapV8<>();
 
   /** The shared master address associated with the {@link FileSystemContext}. */
@@ -370,9 +369,9 @@ public final class FileSystemContext implements Closeable {
    * @throws IOException if it fails to create a new client instance mostly because it fails to
    *         connect to remote worker
    */
-  public Channel acquireNettyChannel(final SocketAddress address) throws IOException {
+  public Channel acquireNettyChannel(final InetSocketAddress address) throws IOException {
     if (!mNettyChannelPools.containsKey(address)) {
-      Bootstrap bs = NettyClient.createClientBootstrap(address);
+      Bootstrap bs = NettyClient.createClientBootstrap();
       bs.remoteAddress(address);
       NettyChannelPool pool = new NettyChannelPool(bs,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
@@ -392,10 +391,10 @@ public final class FileSystemContext implements Closeable {
   /**
    * Releases a netty channel to the channel pools.
    *
-   * @param address the address of the channel
+   * @param address the network address of the channel
    * @param channel the channel to release
    */
-  public void releaseNettyChannel(SocketAddress address, Channel channel) {
+  public void releaseNettyChannel(InetSocketAddress address, Channel channel) {
     Preconditions.checkArgument(mNettyChannelPools.containsKey(address));
     mNettyChannelPools.get(address).release(channel);
   }

@@ -29,12 +29,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollMode;
-import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -50,7 +49,6 @@ public final class NettyDataServer implements DataServer {
   private final ChannelFuture mChannelFuture;
   // Use a shared handler for all pipelines.
   private final DataServerHandler mDataServerHandler;
-  private final SocketAddress mSocketAddress;
 
   /**
    * Creates a new instance of {@link NettyDataServer}.
@@ -59,8 +57,7 @@ public final class NettyDataServer implements DataServer {
    * @param worker the Alluxio worker which contains the appropriate components to handle data
    *               operations
    */
-  public NettyDataServer(final SocketAddress address, final AlluxioWorkerService worker) {
-    mSocketAddress = address;
+  public NettyDataServer(final InetSocketAddress address, final AlluxioWorkerService worker) {
     mDataServerHandler = new DataServerHandler(Preconditions.checkNotNull(worker));
     mBootstrap = createBootstrap().childHandler(new PipelineHandler(worker, mDataServerHandler));
 
@@ -143,8 +140,17 @@ public final class NettyDataServer implements DataServer {
   }
 
   @Override
-  public SocketAddress getBindAddress() {
-    return mChannelFuture.channel().localAddress();
+  public String getBindHost() {
+    // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
+    // InetSocketAddress to get detailed info such as port.
+    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostString();
+  }
+
+  @Override
+  public int getPort() {
+    // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
+    // InetSocketAddress to get detailed info such as port.
+    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getPort();
   }
 
   @Override
@@ -170,8 +176,8 @@ public final class NettyDataServer implements DataServer {
     final EventLoopGroup workerGroup =
         NettyUtils.createEventLoop(type, workerThreadCount, "data-server-worker-%d", false);
 
-    final Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(type,
-         mSocketAddress instanceof DomainSocketAddress);
+    final Class<? extends ServerChannel> socketChannelClass =
+        NettyUtils.getServerChannelClass(type);
     boot.group(bossGroup, workerGroup).channel(socketChannelClass);
     if (type == ChannelType.EPOLL) {
       boot.childOption(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);

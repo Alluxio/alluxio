@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -68,7 +68,7 @@ public final class NettyPacketWriter implements PacketWriter {
 
   private final FileSystemContext mContext;
   private final Channel mChannel;
-  private final SocketAddress mAddress;
+  private final InetSocketAddress mAddress;
   private final long mId;
   private final long mSessionId;
   private final int mTier;
@@ -104,7 +104,7 @@ public final class NettyPacketWriter implements PacketWriter {
    * Creates an instance of {@link NettyPacketWriter}.
    *
    * @param context the file system context
-   * @param address the data server address
+   * @param address the data server network address
    * @param id the block ID or UFS file ID
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param sessionId the session ID
@@ -112,7 +112,7 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param type the request type (block or UFS file)
    * @throws IOException it fails to acquire a netty channel
    */
-  public NettyPacketWriter(FileSystemContext context, final SocketAddress address, long id,
+  public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long id,
       long length, long sessionId, int tier, Protocol.RequestType type) throws IOException {
     mContext = context;
     mAddress = address;

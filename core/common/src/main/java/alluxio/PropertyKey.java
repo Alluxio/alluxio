@@ -167,7 +167,6 @@ public enum PropertyKey {
   WORKER_DATA_HOSTNAME(Name.WORKER_DATA_HOSTNAME, null),
   WORKER_DATA_PORT(Name.WORKER_DATA_PORT, 29999),
   WORKER_DATA_SERVER_CLASS(Name.WORKER_DATA_SERVER_CLASS, "alluxio.worker.netty.NettyDataServer"),
-  WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS, ""),
   WORKER_DATA_TMP_FOLDER(Name.WORKER_DATA_TMP_FOLDER, ".tmp_blocks"),
   WORKER_DATA_TMP_SUBDIR_MAX(Name.WORKER_DATA_TMP_SUBDIR_MAX, 1024),
   WORKER_EVICTOR_CLASS(Name.WORKER_EVICTOR_CLASS, "alluxio.worker.block.evictor.LRUEvictor"),
@@ -303,8 +302,6 @@ public enum PropertyKey {
       "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
   USER_LOCAL_READER_PACKET_SIZE_BYTES(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES, "8MB"),
   USER_LOCAL_WRITER_PACKET_SIZE_BYTES(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB"),
-  UESER_NETWORK_NETTY_PACKET_READER_ALLOCATOR_SIZE(
-      Name.UESER_NETWORK_NETTY_PACKET_READER_ALLOCATOR_SIZE, "64KB"),
   USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, false),
 
   //
@@ -423,7 +420,7 @@ public enum PropertyKey {
         "alluxio.zookeeper.leader.inquiry.retry";
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
 
-   //
+    //
     // UFS related properties
     //
     public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
@@ -569,8 +566,6 @@ public enum PropertyKey {
     public static final String WORKER_DATA_HOSTNAME = "alluxio.worker.data.hostname";
     public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
     public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
-    public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
-        "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
@@ -756,8 +751,6 @@ public enum PropertyKey {
         "alluxio.user.local.writer.packet.size.bytes";
     public static final String USER_PACKET_STREAMING_ENABLED =
         "alluxio.user.packet.streaming.enabled";
-    public static final String UESER_NETWORK_NETTY_PACKET_READER_ALLOCATOR_SIZE =
-        "alluxio.user.network.netty.packet.reader.allocator.size";
 
     //
     // FUSE integration related properties

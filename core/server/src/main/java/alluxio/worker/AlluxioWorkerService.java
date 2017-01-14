@@ -61,11 +61,6 @@ public interface AlluxioWorkerService extends Server {
   int getDataLocalPort();
 
   /**
-   * @return the worker's data service domain socket path if available or "" if not available
-   */
-  String getDataDomainSocketPath();
-
-  /**
    * @return the file system worker for this Alluxio worker
    */
   FileSystemWorker getFileSystemWorker();

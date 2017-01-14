@@ -12,7 +12,7 @@
 package alluxio.network.protocol;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannelV2;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 
@@ -59,7 +59,7 @@ public final class RPCProtoMessage extends RPCMessage {
   public RPCProtoMessage(MessageLite message, DataBuffer data) {
     if (data != null) {
       Preconditions
-          .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannelV2),
+          .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannel),
               "Only DataNettyBufferV2 and DataFileChannel are allowed.");
     }
     mMessage = message;
@@ -92,7 +92,7 @@ public final class RPCProtoMessage extends RPCMessage {
    */
   public RPCProtoMessage(byte[] serialized, MessageLite prototype, DataBuffer data) {
     Preconditions
-        .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannelV2),
+        .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannel),
             "Only DataNettyBufferV2 and DataFileChannel are allowed.");
     try {
       mMessage = prototype.getParserForType().parseFrom(serialized);

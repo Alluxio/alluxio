@@ -173,8 +173,7 @@ public class FileOutStreamTest {
     };
     mUnderStorageFlushed = underStorageFlushed;
 
-    when(
-        mFactory.create(any(FileSystemContext.class), any(FileSystemWorkerClient.class), anyLong()))
+    when(mFactory.create(any(FileSystemContext.class), any(InetSocketAddress.class), anyLong()))
         .thenReturn(mUnderStorageOutputStream);
 
     // Set up underFileStorage so that we can test UnderStorageType.SYNC_PERSIST

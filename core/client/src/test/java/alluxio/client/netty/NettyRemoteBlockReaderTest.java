@@ -68,8 +68,7 @@ public class NettyRemoteBlockReaderTest {
   @Before
   public void before() throws Exception {
     PowerMockito.mockStatic(NettyClient.class);
-    BDDMockito.given(NettyClient.createClientBootstrap(Mockito.any(SocketAddress.class)))
-        .willReturn(sBootstrap);
+    BDDMockito.given(NettyClient.createClientBootstrap()).willReturn(sBootstrap);
     mContext = PowerMockito.mock(FileSystemContext.class);
     mNettyRemoteBlockReader = new NettyRemoteBlockReader(mContext);
     mChannel = Mockito.mock(Channel.class);

@@ -14,18 +14,15 @@ package alluxio.client.file;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.UnderFileSystemFileWriter;
-import alluxio.client.netty.NettyClient;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
-import io.netty.channel.unix.DomainSocketAddress;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -78,26 +75,18 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
 
     /**
      * @param context the file system context
-     * @param client the file system worker client
+     * @param address the address of an Alluxio worker
      * @param ufsFileId the file ID of the ufs fild to write to
      * @return a new {@link UnderFileSystemFileOutStream}
      * @throws IOException if it fails to create the out stream
      */
-    public OutputStream create(FileSystemContext context, FileSystemWorkerClient client,
-        long ufsFileId) throws IOException {
+    public OutputStream create(FileSystemContext context, InetSocketAddress address, long ufsFileId)
+        throws IOException {
       if (PACKET_STREAMING_ENABLED) {
-        SocketAddress address;
-        if (client.isLocal() && NettyClient.isDomainSocketEnabled() && !client.getWorkerNetAddress()
-            .getDomainSocketPath().isEmpty()) {
-          address = new DomainSocketAddress(client.getWorkerNetAddress().getDomainSocketPath());
-        } else {
-          address = client.getWorkerDataServerAddress();
-        }
         return new alluxio.client.block.stream.UnderFileSystemFileOutStream(context, address,
             ufsFileId);
       } else {
-        return new UnderFileSystemFileOutStream(context, client.getWorkerDataServerAddress(),
-            ufsFileId);
+        return new UnderFileSystemFileOutStream(context, address, ufsFileId);
       }
     }
   }

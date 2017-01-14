@@ -18,7 +18,6 @@ import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.netty.NettyClient;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -51,10 +50,6 @@ public final class StreamFactory {
   public static OutputStream createLocalBlockOutStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
     if (PACKET_STREAMING_ENABLED) {
-      if (!address.getDomainSocketPath().isEmpty() && NettyClient.isDomainSocketEnabled()) {
-        return BlockOutStream
-            .createNettyBlockOutStream(blockId, blockSize, address, context, true, options);
-      }
       return BlockOutStream
           .createLocalBlockOutStream(blockId, blockSize, address, context, options);
     } else {
@@ -78,7 +73,7 @@ public final class StreamFactory {
       long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
     if (PACKET_STREAMING_ENABLED) {
       return BlockOutStream
-          .createNettyBlockOutStream(blockId, blockSize, address, context, false, options);
+          .createRemoteBlockOutStream(blockId, blockSize, address, context, options);
     } else {
       return new alluxio.client.block.RemoteBlockOutStream(blockId, blockSize, address, context,
           options);
@@ -99,10 +94,6 @@ public final class StreamFactory {
   public static InputStream createLocalBlockInStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
     if (PACKET_STREAMING_ENABLED) {
-      if (!address.getDomainSocketPath().isEmpty() && NettyClient.isDomainSocketEnabled()) {
-        return BlockInStream
-            .createNettyBlockInStream(blockId, blockSize, address, context, true, options);
-      }
       return BlockInStream.createLocalBlockInStream(blockId, blockSize, address, context, options);
     } else {
       return new alluxio.client.block.LocalBlockInStream(blockId, blockSize, address, context,
@@ -124,8 +115,7 @@ public final class StreamFactory {
   public static InputStream createRemoteBlockInStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
     if (PACKET_STREAMING_ENABLED) {
-      return BlockInStream
-          .createNettyBlockInStream(blockId, blockSize, address, context, false, options);
+      return BlockInStream.createRemoteBlockInStream(blockId, blockSize, address, context, options);
     } else {
       return new alluxio.client.block.RemoteBlockInStream(blockId, blockSize, address, context,
           options);

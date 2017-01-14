@@ -46,7 +46,6 @@ struct WorkerNetAddress {
   2: i32 rpcPort
   3: i32 dataPort
   4: i32 webPort
-  5: string domainSocketPath
 }
 
 /**

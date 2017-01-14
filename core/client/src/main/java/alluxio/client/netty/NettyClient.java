@@ -22,18 +22,15 @@ import alluxio.util.network.NettyUtils;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollMode;
+import io.netty.channel.socket.SocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -51,6 +48,8 @@ public final class NettyClient {
       Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
 
   private static final ChannelType CHANNEL_TYPE = getChannelType();
+  private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
+      .getClientChannelClass(CHANNEL_TYPE);
   /**
    * Reuse {@link EventLoopGroup} for all clients. Use daemon threads so the JVM is allowed to
    * shutdown even when daemon threads are alive. If number of worker threads is 0, Netty creates
@@ -69,14 +68,12 @@ public final class NettyClient {
   /**
    * Creates and returns a new Netty client bootstrap for clients to connect to remote servers.
    *
-   * @param address the socket address
    * @return the new client {@link Bootstrap}
    */
-  public static Bootstrap createClientBootstrap(SocketAddress address) {
+  public static Bootstrap createClientBootstrap() {
     final Bootstrap boot = new Bootstrap();
 
-    boot.group(WORKER_GROUP).channel(
-        NettyUtils.getClientChannelClass(CHANNEL_TYPE, !(address instanceof InetSocketAddress)));
+    boot.group(WORKER_GROUP).channel(CLIENT_CHANNEL_CLASS);
     boot.option(ChannelOption.SO_KEEPALIVE, true);
     boot.option(ChannelOption.TCP_NODELAY, true);
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -84,9 +81,9 @@ public final class NettyClient {
       boot.option(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);
     }
 
-    boot.handler(new ChannelInitializer<Channel>() {
+    boot.handler(new ChannelInitializer<SocketChannel>() {
       @Override
-      public void initChannel(Channel ch) throws Exception {
+      public void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
 
         pipeline.addLast(RPCMessage.createFrameDecoder());
@@ -96,13 +93,6 @@ public final class NettyClient {
     });
 
     return boot;
-  }
-
-  /**
-   * @return true if the domain socket is enabled on this client
-   */
-  public static boolean isDomainSocketEnabled() {
-    return getChannelType() == ChannelType.EPOLL;
   }
 
   /**

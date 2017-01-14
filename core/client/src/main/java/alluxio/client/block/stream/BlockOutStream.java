@@ -17,19 +17,16 @@ import alluxio.client.Cancelable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.netty.NettyClient;
 import alluxio.exception.AlluxioException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
-import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.net.SocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -77,33 +74,25 @@ public final class BlockOutStream extends FilterOutputStream implements BoundedS
   }
 
   /**
-   * Creates a new netty block output stream.
+   * Creates a new remote block output stream.
    *
    * @param blockId the block id
    * @param blockSize the block size
    * @param workerNetAddress the worker network address
    * @param context the file system context
-   * @param isLocal whether the worker is local
    * @param options the options
    * @throws IOException if an I/O error occurs
    * @return the {@link BlockOutStream} instance created
    */
-  public static BlockOutStream createNettyBlockOutStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, boolean isLocal,
-      OutStreamOptions options) throws IOException {
+  public static BlockOutStream createRemoteBlockOutStream(long blockId, long blockSize,
+      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
+      throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
 
-      SocketAddress address;
-      if (isLocal && NettyClient.isDomainSocketEnabled() && !workerNetAddress.getDomainSocketPath()
-          .isEmpty()) {
-        address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
-      } else {
-        address = client.getDataServerAddress();
-      }
       PacketOutStream outStream = PacketOutStream
-          .createNettyPacketOutStream(context, address, client.getSessionId(),
+          .createNettyPacketOutStream(context, client.getDataServerAddress(), client.getSessionId(),
               blockId, blockSize, options.getWriteTier(), Protocol.RequestType.ALLUXIO_BLOCK);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
