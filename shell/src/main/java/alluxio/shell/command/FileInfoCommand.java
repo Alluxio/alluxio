@@ -23,8 +23,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays the file's all blocks info.
+ *
+ * @deprecated since version 1.5
  */
 @ThreadSafe
+@Deprecated
 public final class FileInfoCommand extends WithWildCardPathCommand {
   /**
    * @param fs the filesystem of Alluxio
@@ -41,7 +44,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     System.out
-        .println("The \"alluxio fs fileInfo <path>\" command is deprecated since version 1.4.");
+        .println("The \"alluxio fs fileInfo <path>\" command is deprecated since version 1.5.");
     System.out.println("Use the \"alluxio fs stat <path>\" command instead.");
   }
 

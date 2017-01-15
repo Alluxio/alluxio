@@ -160,6 +160,7 @@ fs命令中的所有“路径”都应该以以下开头：
 {% include Command-Line-Interface/du.md %}
 
 ## fileInfo
+`fileInfo`命令从1.5开始不再支持，请使用stat命令。
 
 `fileInfo`命令将一个文件的主要信息输出到控制台，这主要是为了让用户调试他们的系统。一般来说，在Web UI上查看文件信息要容易理解得多。
 

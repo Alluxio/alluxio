@@ -184,6 +184,9 @@ which folders are taking up the most space.
 {% include Command-Line-Interface/du.md %}
 
 ## fileInfo
+The `fileInfo` command is deprecated since Alluxio version 1.5.
+Please use `alluxio fs stat <path>` command instead.
+
 The `fileInfo` command dumps the FileInfo representation of a file to the console.
 It is primarily intended to assist powerusers in debugging their system. Generally viewing the file
 info in the UI will be much easier to understand.
