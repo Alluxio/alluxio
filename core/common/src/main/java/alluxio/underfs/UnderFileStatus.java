@@ -15,8 +15,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Information about a file or a directory in the under file system. Listing contents in a
- * {@link UnderFileSystem}
- * returns entries of this class.
+ * {@link UnderFileSystem} returns entries of this class.
  */
 @NotThreadSafe
 public class UnderFileStatus {
