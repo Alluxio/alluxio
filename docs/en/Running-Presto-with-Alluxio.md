@@ -11,7 +11,7 @@ that you can easily use presto to query Hive tables in Alluxio's tiered storage.
 
 # Prerequisites
 
-he prerequisite for this part is that you have [Java](Java-Setup.html). And the Java version must greater then
+The prerequisite for this part is that you have [Java](Java-Setup.html). And the Java version must greater then
 1.8. Alluxio cluster should also be set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
@@ -20,10 +20,10 @@ Please[Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/prest
 
 # Configuration
 
-Presto access to the database and table information by connecting Hive Metastore，At the same time,
-the HDFS position information of table is obtained by the table's schema information. So you need to configure
+Presto get the database and table information by connecting Hive Metastore，At the same time,
+the HDFS location of table is obtained by the table's metadata. So you need to configure
 [Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html), In order to access hdfs，
-you need to add the hadoop conf file(core-site.xml、hdfs-site.xml) Add to Presto，And use the hive.config.resources
+you need to add the hadoop conf file(core-site.xml、hdfs-site.xml) Add to Presto，And use the `hive.config.resources`
 point to the file's location.
 
 #### Configure `core-site.xml`

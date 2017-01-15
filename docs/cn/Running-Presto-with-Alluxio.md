@@ -18,9 +18,9 @@ priority: 2
 
 # 配置
 
-Presto 通过连接Hive metastore来获取数据库和表的信息，同时通过表的location位置信息来获取表数据所在的hdfs位置信息。
+Presto 通过连接Hive metastore来获取数据库和表的信息，同时通过表的元数据信息来获取表数据所在的hdfs位置信息。
 所以需要先配置[Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html),为了访问hdfs，
-需要将hadoop的core-site.xml、hdfs-site.xml加入到Presto，并通过hive.config.resources指向hadoop的配置文件.
+需要将hadoop的core-site.xml、hdfs-site.xml加入到Presto，并通过`hive.config.resources`指向hadoop的配置文件.
 
 #### 配置`core-site.xml`
 
