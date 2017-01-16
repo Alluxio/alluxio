@@ -173,24 +173,42 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * Helper class for testing {@link IndexedSet}.
+   */
   private final class TestInfo {
-    private long mId;
-    private int mSize;
+    private final long mId;
+    private final int mSize;
 
+    /**
+     * Creates an instance of {@link TestInfo} randomly.
+     */
     private TestInfo() {
       this(ThreadLocalRandom.current().nextLong(),
           ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
     }
 
+    /**
+     * Creates an instance of {@link TestInfo} by giving its id and size fields.
+     *
+     * @param id the id
+     * @param size the size
+     */
     private TestInfo(long id, int size) {
       mId = id;
       mSize = size;
     }
 
+    /**
+     * @return {@link #mId}
+     */
     public long getId() {
       return mId;
     }
 
+    /**
+     * @return {@link #mSize}
+     */
     public int getSize() {
       return mSize;
     }
