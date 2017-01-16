@@ -192,11 +192,22 @@ public class JournalShutdownIntegrationTest {
     private final int mOpType; // 0: create file
     private final FileSystem mFileSystem;
 
+    /**
+     * Constructs the client thread.
+     *
+     * @param opType the create operation type
+     * @param fs a file system client to use for creating files
+     */
     public ClientThread(int opType, FileSystem fs) {
       mOpType = opType;
       mFileSystem = fs;
     }
 
+    /**
+     * Gets the number of files which are successfully created.
+     *
+     * @return the number of files successfully created
+     */
     public int getSuccessNum() {
       return mSuccessNum;
     }
