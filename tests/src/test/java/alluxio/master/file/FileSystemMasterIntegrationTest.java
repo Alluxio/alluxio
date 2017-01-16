@@ -703,17 +703,34 @@ public class FileSystemMasterIntegrationTest {
   // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
   // }
 
+  /**
+   * This class provides multiple concurrent threads to create all files in one directory.
+   */
   class ConcurrentCreator implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
 
+    /**
+     * Constructs the concurrent creator.
+     *
+     * @param depth the depth of files to be created in one directory
+     * @param concurrencyDepth the concurrency depth of files to be created in one directory
+     * @param initPath the directory of files to be created in
+     */
     ConcurrentCreator(int depth, int concurrencyDepth, AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
       mInitPath = initPath;
     }
 
+    /**
+     * Authenticates the client user named TEST_USER and executes the process of creating all files in one
+     * directory by multiple concurrent threads.
+     *
+     * @return null
+     * @throws Exception if an exception occurs
+     */
     @Override
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
@@ -721,6 +738,14 @@ public class FileSystemMasterIntegrationTest {
       return null;
     }
 
+    /**
+     * Executes the process of creating all files in one directory by multiple concurrent threads.
+     *
+     * @param depth the depth of files to be created in one directory
+     * @param concurrencyDepth the concurrency depth of files to be created in one directory
+     * @param path the directory of files to be created in
+     * @throws Exception if an exception occurs
+     */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
@@ -764,7 +789,7 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
-  /*
+  /**
    * This class provides multiple concurrent threads to free all files in one directory.
    */
   class ConcurrentFreer implements Callable<Void> {
