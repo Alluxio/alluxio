@@ -6,7 +6,8 @@ group: Under Store
 priority: 5
 ---
 
-This guide describes how to configure Alluxio with [NFS](http://nfs.sourceforge.net) as the under storage system.
+This guide describes how to configure Alluxio with [NFS](http://nfs.sourceforge.net) as the under
+storage system.
 
 # Initial Setup
 
@@ -15,20 +16,22 @@ First, the Alluxio binaries must be on your machine. You can either
 [download the binaries locally](Running-Alluxio-Locally.html).
 
 Then, if you haven't already done so, create your configuration file with `bootstrapConf` command.
-For example, if you are running Alluxio on your local machine, `<ALLUXIO_MASTER_HOSTNAME>` should be set to `localhost` in the following command:
+For example, if you are running Alluxio on your local machine, `<ALLUXIO_MASTER_HOSTNAME>` should be
+set to `localhost` in the following command:
 
 ```bash
 $ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 ```
 
-Alternatively, you can also create the configuration file from the template and set the contents manually.
+Alternatively, you can also create the configuration file from the template and set the contents
+manually.
 
 {% include Configuring-Alluxio-with-NFS/copy-alluxio-env.md %}
 
 # Configuring Alluxio
 
-Assuming the NFS clients are co-located with Alluxio nodes, all the NFS shares are mounted at directory
-`/mnt/nfs`, the following environment variable assignment needs to be added to
+Assuming the NFS clients are co-located with Alluxio nodes, all the NFS shares are mounted at
+directory `/mnt/nfs`, the following environment variable assignment needs to be added to
 `conf/alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-NFS/underfs-address.md %}

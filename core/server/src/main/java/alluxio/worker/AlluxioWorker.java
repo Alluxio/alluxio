@@ -11,9 +11,12 @@
 
 package alluxio.worker;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.ServerUtils;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.ServerUtils;
+import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +40,16 @@ public final class AlluxioWorker {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
           AlluxioWorker.class.getCanonicalName());
       System.exit(-1);
+    }
+
+    if (!ConfigurationUtils.masterHostConfigured()) {
+      System.out.println(String.format(
+          "Cannot run alluxio worker; master hostname is not "
+              + "configured. Please modify %s to either set %s or configure zookeeper with "
+              + "%s=true and %s=[comma-separated zookeeper master addresses]",
+          Configuration.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
+          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+      System.exit(1);
     }
 
     AlluxioWorkerService worker = AlluxioWorkerService.Factory.create();

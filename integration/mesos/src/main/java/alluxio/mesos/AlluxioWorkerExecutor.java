@@ -75,8 +75,7 @@ public class AlluxioWorkerExecutor implements Executor {
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
 
-          // TODO(jiri): Consider handling Format.main() failures gracefully.
-          Format.main(new String[] {"worker"});
+          Format.format("worker");
           AlluxioWorker.main(new String[] {});
 
           status =
@@ -84,7 +83,7 @@ public class AlluxioWorkerExecutor implements Executor {
                   .setState(Protos.TaskState.TASK_FINISHED).build();
           driver.sendStatusUpdate(status);
         } catch (Exception e) {
-          e.printStackTrace();
+          LOG.error("Error starting Alluxio worker", e);
         }
       }
     }.start();

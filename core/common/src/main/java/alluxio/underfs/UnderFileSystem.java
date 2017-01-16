@@ -239,7 +239,8 @@ public interface UnderFileSystem {
   void connectFromWorker(String hostname) throws IOException;
 
   /**
-   * Creates a file in the under file system with the indicated name.
+   * Creates a file in the under file system with the indicated name. Parents directories will be
+   * created recursively.
    *
    * @param path the file name
    * @return A {@code OutputStream} object

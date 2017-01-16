@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
+import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -44,8 +45,39 @@ public final class MockBlockWriter implements BlockWriter {
   }
 
   @Override
-  public WritableByteChannel getChannel() {
-    return Channels.newChannel(mOutputStream);
+  public GatheringByteChannel getChannel() {
+    return new GatheringByteChannel() {
+      WritableByteChannel mChannel = Channels.newChannel(mOutputStream);
+
+      @Override
+      public long write(ByteBuffer[] srcs, int offset, int length) throws IOException {
+        long b = 0;
+        for (int i = offset; i < offset + length; i++) {
+          b += mChannel.write(srcs[i]);
+        }
+        return b;
+      }
+
+      @Override
+      public long write(ByteBuffer[] srcs) throws IOException {
+        return write(srcs, 0, srcs.length);
+      }
+
+      @Override
+      public int write(ByteBuffer src) throws IOException {
+        return mChannel.write(src);
+      }
+
+      @Override
+      public boolean isOpen() {
+        return mChannel.isOpen();
+      }
+
+      @Override
+      public void close() throws IOException {
+        mChannel.close();
+      }
+    };
   }
 
   /**

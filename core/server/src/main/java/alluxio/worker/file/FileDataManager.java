@@ -18,14 +18,13 @@ import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.collections.Pair;
+import alluxio.client.file.UnderFileSystemUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -50,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -302,42 +300,13 @@ public final class FileDataManager {
    * @throws IOException if the folder creation fails
    */
   private String prepareUfsFilePath(long fileId) throws AlluxioException, IOException {
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    AlluxioURI uri = new AlluxioURI(fileInfo.getPath());
-    AlluxioURI dstPath = new AlluxioURI(PathUtils.concatPath(ufsRoot, fileInfo.getPath()));
-    LOG.info("persist file {} at {}", fileId, dstPath);
-    String parentPath = PathUtils.concatPath(ufsRoot, uri.getParent().getPath());
-    // creates the parent folder if it does not exist
-    if (!mUfs.isDirectory(parentPath)) {
-      FileSystem fs = FileSystem.Factory.get();
-      // Create ancestor directories from top to the bottom. We cannot use recursive create parents
-      // here because the permission for the ancestors can be different.
-      Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
-      AlluxioURI curAlluxioPath = uri.getParent();
-      AlluxioURI curUfsPath = dstPath.getParent();
-      // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not exist.
-      while (!mUfs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
-        URIStatus curDirStatus;
-        curDirStatus = fs.getStatus(curAlluxioPath);
-        Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
-            (short) curDirStatus.getMode());
-        ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
-            MkdirsOptions.defaults().setCreateParent(false).setPermission(perm)));
-        curAlluxioPath = curAlluxioPath.getParent();
-        curUfsPath = curUfsPath.getParent();
-      }
-      while (!ufsDirsToMakeWithOptions.empty()) {
-        Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
-        // UFS mkdirs might fail if the directory is already created. If so, skip the mkdirs
-        // and assume the directory is already prepared, regardless of permission matching.
-        if (!mUfs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())
-            && !mUfs.isDirectory(ufsDirAndPerm.getFirst())) {
-          throw new IOException("Failed to create dir: " + ufsDirAndPerm.getFirst());
-        }
-      }
-    }
-    return dstPath.toString();
+    AlluxioURI alluxioPath = new AlluxioURI(fileInfo.getPath());
+    FileSystem fs = FileSystem.Factory.get();
+    URIStatus status = fs.getStatus(alluxioPath);
+    String ufsPath = status.getUfsPath();
+    UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, mUfs);
+    return ufsPath;
   }
 
   /**

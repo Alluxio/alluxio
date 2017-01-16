@@ -39,6 +39,8 @@ import java.util.Random;
 public class CreateFileOptionsTest {
   private final long mDefaultBlockSizeBytes = Configuration.getBytes(
       PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+  private final int mDefaultWriteTier =
+      Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
   private final WriteType mDefaultWriteType = Configuration.getEnum(
       PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, alluxio.client.WriteType.class);
 
@@ -50,6 +52,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(mDefaultBlockSizeBytes, options.getBlockSizeBytes());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
+    Assert.assertEquals(mDefaultWriteTier, options.getWriteTier());
     Assert.assertEquals(mDefaultWriteType, options.getWriteType());
   }
 
@@ -64,6 +67,7 @@ public class CreateFileOptionsTest {
     Mode mode = new Mode((short) 0123);
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
+    int writeTier = random.nextInt();
     WriteType writeType = WriteType.NONE;
 
     CreateFileOptions options = CreateFileOptions.defaults();
@@ -73,6 +77,7 @@ public class CreateFileOptionsTest {
     options.setRecursive(recursive);
     options.setTtl(ttl);
     options.setTtlAction(TtlAction.FREE);
+    options.setWriteTier(writeTier);
     options.setWriteType(writeType);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
@@ -81,6 +86,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
+    Assert.assertEquals(writeTier, options.getWriteTier());
     Assert.assertEquals(writeType, options.getWriteType());
   }
 

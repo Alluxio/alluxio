@@ -47,6 +47,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final boolean PACKET_STREAMING_ENABLED =
+      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
 
   private long mCurrentPosition;
   private Path mHdfsPath;
@@ -211,11 +213,60 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   @Override
-  public synchronized int read(long position, byte[] buffer, int offset, int length)
-      throws IOException {
+  public int read(long position, byte[] buffer, int offset, int length) throws IOException {
     if (mClosed) {
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
+
+    if (PACKET_STREAMING_ENABLED) {
+      return readWithPacketStreaming(position, buffer, offset, length);
+    } else {
+      return readWithoutPacketStreaming(position, buffer, offset, length);
+    }
+  }
+
+  /**
+   * Reads upto the specified number of bytes, from a given position within a file, and return the
+   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
+   * This is used if packet streaming is enabled.
+   *
+   * @param position the start position to read from the stream
+   * @param buffer the buffer to hold the data read
+   * @param offset the offset in the buffer
+   * @param length the number of bytes to read from the file
+   * @return the number of bytes read or -1 if EOF is reached
+   * @throws IOException if it fails to read
+   */
+  private int readWithPacketStreaming(long position, byte[] buffer, int offset,
+      int length) throws IOException {
+    int bytesRead = -1;
+
+    if (mAlluxioFileInputStream != null) {
+      bytesRead = mAlluxioFileInputStream.positionedRead(position, buffer, offset, length);
+    } else {
+      getHdfsInputStream();
+      bytesRead = mHdfsInputStream.read(position, buffer, offset, length);
+    }
+    if (mStatistics != null && bytesRead != -1) {
+      mStatistics.incrementBytesRead(bytesRead);
+    }
+    return bytesRead;
+  }
+
+  /**
+   * Reads upto the specified number of bytes, from a given position within a file, and return the
+   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
+   * This is used if packet streaming is not enabled.
+   *
+   * @param position the start position to read from the stream
+   * @param buffer the buffer to hold the data read
+   * @param offset the offset in the buffer
+   * @param length the number of bytes to read from the file
+   * @return the number of bytes read or -1 if EOF is reached
+   * @throws IOException if it fails to read
+   */
+  private synchronized int readWithoutPacketStreaming(long position, byte[] buffer, int offset,
+      int length) throws IOException {
     int ret = -1;
     long oldPos = getPos();
     if ((position < 0) || (position >= mFileInfo.getLength())) {
@@ -338,5 +389,28 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {
     throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
+  }
+
+  /**
+   * Skips over the given bytes from the current position. Since the inherited
+   * {@link InputStream#skip(long)} is inefficient, {@link #skip(long)} should be explicitly
+   * overrided.
+   *
+   * @param n the number of bytes to be skipped
+   * @return the actual number of bytes skipped
+   * @throws IOException if the after position exceeds the end of the file
+   */
+  @Override
+  public long skip(long n) throws IOException {
+    if (mClosed) {
+      throw new IOException("Cannot skip bytes in a closed stream.");
+    }
+    if (n <= 0) {
+      return 0;
+    }
+
+    long toSkip = Math.min(n, available());
+    seek(mCurrentPosition + toSkip);
+    return toSkip;
   }
 }

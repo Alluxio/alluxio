@@ -14,7 +14,7 @@ package alluxio.worker.block.io;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
+import java.nio.channels.GatheringByteChannel;
 
 /**
  * A writer interface to write or update a block stored in managed storage.
@@ -36,5 +36,5 @@ public interface BlockWriter extends Closeable {
    *
    * @return channel
    */
-  WritableByteChannel getChannel();
+  GatheringByteChannel getChannel();
 }

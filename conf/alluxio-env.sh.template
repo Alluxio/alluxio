@@ -10,17 +10,17 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# Copy it as alluxio-env.sh and edit that to configure Alluxio for your
+# Copy this file as alluxio-env.sh and edit it to configure Alluxio for your
 # site. This file is sourced to launch Alluxio servers or use Alluxio shell
 # commands.
 #
-# This file provides one way to configure Alluxio options by setting the
+# This file is an optional approach to configure Alluxio options by setting the
 # following listed environment variables. Note that, setting this file will not
 # affect jobs (e.g., Spark job or MapReduce job) that are using Alluxio client
-# as a library. Alternatively, you can edit alluxio-site.properties file, where
-# you can set all the configuration options supported by Alluxio
-# (http://alluxio.org/documentation/) which is respected by both external jobs
-# and Alluxio servers (or shell).
+# as a library. Alternatively, it is recommended to create alluxio-site.properties file,
+# which supports all the configuration options provided by Alluxio
+# (http://www.alluxio.org/documentation/en/Configuration-Settings.html),
+# and is respected by both external jobs and Alluxio servers (or shell).
 
 # The directory where Alluxio deployment is installed. (Default: the parent directory of libexec/).
 # ALLUXIO_HOME
@@ -55,7 +55,7 @@
 # ALLUXIO_MASTER_JAVA_OPTS
 
 # Config properties set for Alluxio worker daemon. (Default: "")
-# E.g. "-Dalluxio.worker.port=49999" to set worker port, "-Xms2048M -Xmx2048M" to limit the heap size of worker. 
+# E.g. "-Dalluxio.worker.port=49999" to set worker port, "-Xms2048M -Xmx2048M" to limit the heap size of worker.
 # ALLUXIO_WORKER_JAVA_OPTS
 
 # Config properties set for Alluxio shell. (Default: "")

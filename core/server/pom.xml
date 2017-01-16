@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.5.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-server</artifactId>
   <packaging>jar</packaging>
@@ -32,6 +32,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+    <!-- TODO(jiri): Do not depend on alluxio-core-client in alluxio-core-server. -->
+    <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
@@ -44,7 +49,6 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
-      <version>4.0.28.Final</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.containers</groupId>
@@ -212,7 +216,7 @@
             <html>
               <intro>${project.basedir}/src/main/resources/intro.html</intro>
               <title>Alluxio ${project.version} REST API</title>
-              <baseUrl>http://host:port/v1/api</baseUrl>
+              <baseUrl>http://host:port/api/v1</baseUrl>
             </html>
           </output>
           <restModel>

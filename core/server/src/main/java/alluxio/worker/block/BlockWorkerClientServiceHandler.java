@@ -196,18 +196,20 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param sessionId the id of the client requesting the create
    * @param blockId the id of the new block to create
    * @param initialBytes the initial number of bytes to allocate for this block
+   * @param writeTier policy used to choose tier for this block
    * @return the temporary file path of the block file
    * @throws AlluxioTException if an Alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
   public String requestBlockLocation(final long sessionId, final long blockId,
-      final long initialBytes) throws AlluxioTException, ThriftIOException {
+      final long initialBytes, final int writeTier)
+      throws AlluxioTException, ThriftIOException {
     return RpcUtils.call(new RpcCallableThrowsIOException<String>() {
       @Override
       public String call() throws AlluxioException, IOException {
-        // NOTE: right now, we ask allocator to allocate new blocks in top tier
-        return mWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes);
+        return mWorker
+            .createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(writeTier), initialBytes);
       }
     });
   }

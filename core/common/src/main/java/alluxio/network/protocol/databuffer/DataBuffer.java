@@ -40,6 +40,22 @@ public interface DataBuffer {
   ByteBuffer getReadOnlyByteBuffer();
 
   /**
+   * Transfers this buffer's data to the specified destination starting at
+   * the current {@code readerIndex} and increases the {@code readerIndex}
+   * by the number of the transferred bytes (= {@code length}).
+   *
+   * @param dst the destination
+   * @param dstIndex the first index of the destination
+   * @param length the number of bytes to transfer
+   */
+  void readBytes(byte[] dst, int dstIndex, int length);
+
+  /**
+   * @return the number of readable bytes remaining
+   */
+  int readableBytes();
+
+  /**
    * Release the underlying buffer of this DataBuffer if no longer needed.
    */
   void release();

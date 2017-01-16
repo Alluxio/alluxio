@@ -184,9 +184,12 @@ which folders are taking up the most space.
 {% include Command-Line-Interface/du.md %}
 
 ## fileInfo
-The `fileInfo` command dumps the FileInfo representation of a file to the console. It is primarily
-intended to assist powerusers in debugging their system. Generally viewing the file info in the UI
-will be much easier to understand.
+The `fileInfo` command is deprecated since Alluxio version 1.5.
+Please use `alluxio fs stat <path>` command instead.
+
+The `fileInfo` command dumps the FileInfo representation of a file to the console.
+It is primarily intended to assist powerusers in debugging their system. Generally viewing the file
+info in the UI will be much easier to understand.
 
 For example, `fileInfo` can be used to debug the block locations of a file. This is useful when
 trying to achieve locality for compute workloads.
@@ -353,16 +356,28 @@ For example, `rm` can be used to remove temporary files which are no longer need
 {% include Command-Line-Interface/rm2.md %}
 
 ## setTtl
-The `setTtl` command sets the time-to-live of a file, in milliseconds. Action parameter will
-indicate the action to perform once the current time is greater than the TTL + creation time of the file.
-Action `delete` (default) will delete file from both Alluxio and the under storage system, whereas action
-`free` will just free the file from Alluxio.
+The `setTtl` command sets the time-to-live of a file or a directory, in milliseconds. If set ttl
+to a directory, all the children inside that directory will set too. So a directory's TTL expires,
+all the children inside that directory will also expire. Action parameter will indicate the action
+to perform once the current time is greater than the TTL + creation time of the file.
+Action `delete` (default) will delete file or directory from both Alluxio and the under storage system,
+whereas action `free` will just free the file from Alluxio.
 
 For example, `setTtl` with action `delete` can be used to clean up files the administrator knows are
-unnecessary after a period of time, or can be used to just remove the contents from Alluxio to make room
-for more space in Alluxio.
+unnecessary after a period of time, or with action 'free' just remove the contents from Alluxio to
+make room for more space in Alluxio.
 
 {% include Command-Line-Interface/setTtl.md %}
+
+## stat
+The `stat` command dumps the FileInfo representation of a file or a directory to the console.
+It is primarily intended to assist powerusers in debugging their system. Generally viewing the file
+info in the UI will be much easier to understand.
+
+For example, `stat` can be used to debug the block locations of a file. This is useful when
+trying to achieve locality for compute workloads.
+
+{% include Command-Line-Interface/stat.md %}
 
 ## tail
 The `tail` command outputs the last 1 kb of data in a file to the console.

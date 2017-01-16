@@ -12,10 +12,13 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.Seekable;
+import alluxio.client.UnderFileSystemFileReader;
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.options.CloseUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
-import alluxio.client.UnderFileSystemFileReader;
 import alluxio.exception.AlluxioException;
 import alluxio.underfs.options.OpenOptions;
 
@@ -29,6 +32,9 @@ import java.io.InputStream;
  * through the file system worker API.
  */
 public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamFactory {
+  private static final boolean PACKET_STREAMING_ENABLED =
+      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
+
   private final FileSystemWorkerClient mClient;
   private final long mFileId;
 
@@ -49,10 +55,23 @@ public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamF
   }
 
   @Override
-  public InputStream create(FileSystemContext context, OpenOptions options) {
-    Preconditions.checkNotNull(context);
-    return new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(),
-        mFileId, options.getOffset(), UnderFileSystemFileReader.Factory.create(context));
+  public InputStream create(FileSystemContext context, OpenOptions options) throws IOException {
+    InputStream inputStream;
+    if (PACKET_STREAMING_ENABLED) {
+      inputStream = new alluxio.client.block.stream.UnderFileSystemFileInStream(context,
+          mClient.getWorkerDataServerAddress(), mFileId, options.getLength());
+    } else {
+      inputStream = new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mFileId,
+          UnderFileSystemFileReader.Factory.create(context));
+    }
+    try {
+      Preconditions.checkState(inputStream instanceof Seekable);
+      ((Seekable) inputStream).seek(options.getOffset());
+      return inputStream;
+    } catch (IOException e) {
+      inputStream.close();
+      throw e;
+    }
   }
 
   @Override

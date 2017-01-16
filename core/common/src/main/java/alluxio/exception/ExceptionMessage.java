@@ -98,9 +98,7 @@ public enum ExceptionMessage {
 
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
-  NO_ENTRY_TYPE("Could not find entry type for journal entry. Unrecognized fields: {0}"),
   UNEXPECTED_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
-  UNKNOWN_JOURNAL_ENTRY_TYPE("Unknown journal entry type: {0}"),
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
@@ -153,7 +151,7 @@ public enum ExceptionMessage {
   UNKNOWN_LINEAGE_FILE_STATE("Unknown LineageFileState: {0}"),
 
   // client
-  DIFFERENT_MASTER_ADDRESS("Master address {0} is different from that in client context {1}"),
+  DIFFERENT_MASTER_ADDRESS("Master address {0} is different from that in file system context {1}"),
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // configuration

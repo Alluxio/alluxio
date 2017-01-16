@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME> glusterfs 
+$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 ```

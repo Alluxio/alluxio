@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.AtomicFileOutputStream;
@@ -91,6 +92,12 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     path = stripPath(path);
+    if (options.getCreateParent()) {
+      File parent = new File(path).getParentFile();
+      if (parent != null && !parent.mkdirs() && !parent.isDirectory()) {
+        throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
+      }
+    }
     OutputStream stream = new FileOutputStream(path);
     try {
       setMode(path, options.getPermission().getMode().toShort());
@@ -134,6 +141,13 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     path = stripPath(path);
     File file = new File(path);
     return file.isFile() && file.delete();
+  }
+
+  @Override
+  public boolean exists(String path) throws IOException {
+    path = stripPath(path);
+    File file = new File(path);
+    return file.exists();
   }
 
   @Override

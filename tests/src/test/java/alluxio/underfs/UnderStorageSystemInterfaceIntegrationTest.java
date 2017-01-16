@@ -24,6 +24,9 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.underfs.hdfs.HdfsUnderFileSystem;
+import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -37,6 +40,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,6 +56,12 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       new LocalAlluxioClusterResource.Builder().build();
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
+
+  /**
+   * The exception expected to be thrown.
+   */
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public final void before() throws Exception {
@@ -90,6 +100,32 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests that create with parent creation option off throws an Exception.
+   */
+  @Test
+  public void createNoParent() throws IOException {
+    // Run the test only for local UFS. Other UFSs succeed if no parents are present
+    if (mUfs instanceof LocalUnderFileSystem) {
+      mThrown.expect(IOException.class);
+      String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
+      OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(false));
+      o.close();
+      Assert.assertFalse(mUfs.exists(testFile));
+    }
+  }
+
+  /**
+   * Tests that create with parent creation option on succeeds.
+   */
+  @Test
+  public void createParent() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
+    OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(true));
+    o.close();
+    Assert.assertTrue(mUfs.exists(testFile));
+  }
+
+  /**
    * Tests that a file can be created and validates the data written to it.
    */
   @Test
@@ -100,6 +136,23 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     int bytesRead = mUfs.open(testFile).read(buf);
     Assert.assertTrue(bytesRead == TEST_BYTES.length);
     Assert.assertTrue(Arrays.equals(buf, TEST_BYTES));
+  }
+
+  /**
+   * Tests that no bytes are read from an empty file.
+   */
+  @Test
+  public void createOpenEmpty() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    createEmptyFile(testFile);
+    byte[] buf = new byte[0];
+    int bytesRead = mUfs.open(testFile).read(buf);
+    // TODO(adit): Consider making the return value uniform across UFSs
+    if (mUfs instanceof HdfsUnderFileSystem) {
+      Assert.assertTrue(bytesRead == -1);
+    } else {
+      Assert.assertTrue(bytesRead == 0);
+    }
   }
 
   /**
