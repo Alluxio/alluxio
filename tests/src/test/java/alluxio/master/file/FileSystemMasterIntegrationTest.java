@@ -725,8 +725,8 @@ public class FileSystemMasterIntegrationTest {
     }
 
     /**
-     * Authenticates the client user named TEST_USER and executes the process of creating all files in one
-     * directory by multiple concurrent threads.
+     * Authenticates the client user named TEST_USER and executes the process of creating all
+     * files in one directory by multiple concurrent threads.
      *
      * @return null
      * @throws Exception if an exception occurs
