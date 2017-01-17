@@ -23,7 +23,7 @@ Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/pres
 Presto gets the database and table information by connecting Hive Metastore. At the same time,
 The file system location of table is obtained by the table's metadata. So you need to configure
 [Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html). In order to access hdfs,
-you need to add the hadoop conf file(core-site.xml、hdfs-site.xml)，And use hive.config.resources
+you need to add the hadoop conf file(core-site.xml、hdfs-site.xml), and use hive.config.resources
 point to the file's location.
 
 #### Configure `core-site.xml`
@@ -53,7 +53,7 @@ If your Alluxio is HA, another configuration need to added:
 # Distribute the Alluxio Client Jar
 
 Distribute the Alluxio client Jar to all worker nodes in Presto:
-- Because of PreSto use guava's version is 18.0 and Alluxio use 14.0, So you need to update the Alluxio's client guava version
+- Because of Presto use guava's version is 18.0 and Alluxio use 14.0, So you need to update the Alluxio's client guava version
 to 18.0 and then recompile it.
 
 - You must put Alluxio client jar package `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
