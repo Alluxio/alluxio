@@ -74,7 +74,7 @@ Alluxio Web UI的默认端口为**19999**。
 
 Hadoop Web UI的默认端口为**50070**。
 
-在浏览器中输入`http://{MASTER_IP}:{PORT}`地址访问Web UI。
+在浏览器中输入`http://{MASTER_IP}:{PORT}`地址访问Web UIs。
 
 也能通过[AWS web console](https://console.aws.amazon.com/console/home?region=us-east-1)监视其状态。
 
@@ -104,7 +104,7 @@ Hadoop Web UI的默认端口为**50070**。
 
 定制Alluxio master和worker的特定属性(例如，每个worker建立分层存储)，参考
 [配置设置](Configuration-Settings.html)获取更多信息。为了确保你的配置可以被ApplicationMaster和
-Alluxio master/worker读取,将`~/.alluxio/`下的`alluxio-site.properties`放在每一台EC2机器上。
+Alluxio master/worker读取,将`~/.alluxio`下的`alluxio-site.properties`放在每一台EC2机器上。
 
 # 启动Alluxio
 
@@ -116,7 +116,9 @@ Alluxio master/worker读取,将`~/.alluxio/`下的`alluxio-site.properties`放�
 3. 运行Alluxio Master的节点的YARN的名称。（选填项，默认为`ALLUXIO_MASTER_HOSTNAME`）
 
 
-举例而言，启动3个worker节点的Alluxio集群，HDFS临时目录是`hdfs://AlluxioMaster:9000/tmp/`
+举例而言，启动3个worker节点的Alluxio集群，HDFS临时目录是`hdfs://AlluxioMaster:9000/tmp/`,主机的名字是`AlluxioMaster`
+
+你也可以分别从Yarn开启Alluxio Maswter节点，在这种情况下，上述启动将自动检测所在地址中所提供Master并跳过新实例的初始化。这是非常有用的，如果你有一个特定的主机，想在Master上运行，而这个主机不是你的Yarn集群的一部分，比如一个AWS EMR Master Instance。
 
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
 
