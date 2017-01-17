@@ -190,7 +190,7 @@ public class FileSystemMasterIntegrationTest {
 
   /**
    * A test function to create files from ROOT_PATH depends on the given depth concurrently, then to delete the created
-   * file.
+   * files concurrently.
    *
    * @throws Exception
    */
@@ -210,7 +210,7 @@ public class FileSystemMasterIntegrationTest {
 
   /**
    * A test function to create files from ROOT_PATH depends on the given depth concurrently, then to free the created
-   * file.
+   * files concurrently.
    *
    * @throws Exception
    */
