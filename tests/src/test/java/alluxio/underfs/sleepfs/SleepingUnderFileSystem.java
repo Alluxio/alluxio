@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.underfs.sleepfs;
 
 import alluxio.AlluxioURI;
@@ -9,6 +20,7 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,25 +66,31 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
     sleepIfNecessary(mOptions.getCreateMs());
-    return super.create(path, options);
+    return super.create(cleanPath(path), options);
+  }
+
+  @Override
+  public OutputStream createDirect(String path, CreateOptions options) throws IOException {
+    sleepIfNecessary(mOptions.getCreateMs());
+    return super.createDirect(cleanPath(path), options);
   }
 
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     sleepIfNecessary(mOptions.getDeleteDirectoryMs());
-    return super.deleteDirectory(path, options);
+    return super.deleteDirectory(cleanPath(path), options);
   }
 
   @Override
   public boolean deleteFile(String path) throws IOException {
     sleepIfNecessary(mOptions.getDeleteFileMs());
-    return super.deleteFile(path);
+    return super.deleteFile(cleanPath(path));
   }
 
   @Override
   public long getBlockSizeByte(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetBlockSizeByteMs());
-    return super.getBlockSizeByte(path);
+    return super.getBlockSizeByte(cleanPath(path));
   }
 
   @Override
@@ -84,49 +102,49 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetFileLocationsMs());
-    return super.getFileLocations(path);
+    return super.getFileLocations(cleanPath(path));
   }
 
   @Override
   public List<String> getFileLocations(String path, FileLocationOptions options) throws IOException {
     sleepIfNecessary(mOptions.getGetFileLocationsMs());
-    return super.getFileLocations(path, options);
+    return super.getFileLocations(cleanPath(path), options);
   }
 
   @Override
   public long getFileSize(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetFileSizeMs());
-    return super.getFileSize(path);
+    return super.getFileSize(cleanPath(path));
   }
 
   @Override
   public String getGroup(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetGroupMs());
-    return super.getGroup(path);
+    return super.getGroup(cleanPath(path));
   }
 
   @Override
   public short getMode(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetModeMs());
-    return super.getMode(path);
+    return super.getMode(cleanPath(path));
   }
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetModificationTimeMs());
-    return super.getModificationTimeMs(path);
+    return super.getModificationTimeMs(cleanPath(path));
   }
 
   @Override
   public String getOwner(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetOwnerMs());
-    return super.getOwner(path);
+    return super.getOwner(cleanPath(path));
   }
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     sleepIfNecessary(mOptions.getGetSpaceMs());
-    return super.getSpace(path, type);
+    return super.getSpace(cleanPath(path), type);
   }
 
   @Override
@@ -138,43 +156,47 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   @Override
   public boolean isDirectory(String path) throws IOException {
     sleepIfNecessary(mOptions.getIsDirectoryMs());
-    return super.isDirectory(path);
+    return super.isDirectory(cleanPath(path));
   }
 
   @Override
   public boolean isFile(String path) throws IOException {
     sleepIfNecessary(mOptions.getIsFileMs());
-    return super.isFile(path);
+    return super.isFile(cleanPath(path));
   }
 
   @Override
   public UnderFileStatus[] listStatus(String path) throws IOException {
     sleepIfNecessary(mOptions.getListStatusMs());
-    return super.listStatus(path);
+    return super.listStatus(cleanPath(path));
   }
 
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     sleepIfNecessary(mOptions.getMkdirsMs());
-    return super.mkdirs(path, options);
+    return super.mkdirs(cleanPath(path), options);
   }
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
     sleepIfNecessary(mOptions.getOpenMs());
-    return super.open(path, options);
+    return super.open(cleanPath(path), options);
   }
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
     sleepIfNecessary(mOptions.getRenameDirectoryMs());
-    return super.renameDirectory(src, dst);
+    return super.renameDirectory(cleanPath(src), cleanPath(dst));
   }
 
   @Override
   public boolean renameFile(String src, String dst) throws IOException {
-    sleepIfNecessary(mOptions.getRenameFileMs());
-    return super.renameFile(src, dst);
+    if (!PathUtils.isTemporaryFileName(src)) {
+      sleepIfNecessary(mOptions.getRenameFileMs());
+    } else {
+      sleepIfNecessary(mOptions.getRenameTemporaryFileMs());
+    }
+    return super.renameFile(cleanPath(src), cleanPath(dst));
   }
 
   @Override
@@ -186,19 +208,32 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   @Override
   public void setOwner(String path, String owner, String group) throws IOException {
     sleepIfNecessary(mOptions.getSetOwnerMs());
-    super.setOwner(path, owner, group);
+    super.setOwner(cleanPath(path), owner, group);
   }
 
   @Override
   public void setMode(String path, short mode) throws IOException {
     sleepIfNecessary(mOptions.getSetModeMs());
-    super.setMode(path, mode);
+    super.setMode(cleanPath(path), mode);
   }
 
   @Override
   public boolean supportsFlush() {
     sleepIfNecessary(mOptions.getSupportsFlushMs());
     return super.supportsFlush();
+  }
+
+  /**
+   * Removes the sleep scheme from the path if it exists.
+   *
+   * @param path the path to clean
+   * @return a path without the sleep scheme
+   */
+  private String cleanPath(String path) {
+    if (path.startsWith("sleep://")) {
+      return path.substring(8);
+    }
+    return path;
   }
 
   /**

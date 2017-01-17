@@ -17,15 +17,30 @@ import alluxio.underfs.UnderFileSystemFactory;
 import com.google.common.base.Preconditions;
 
 /**
- * Factory for creating {@link SleepingUnderFileSystem}.
+ * Factory for creating {@link SleepingUnderFileSystem}. Should only be used by tests. Modify
+ * options by using the getter and setter to change behavior during a test.
  */
 public class SleepingUnderFileSystemFactory implements UnderFileSystemFactory {
-  private final SleepingUnderFileSystemOptions mOptions;
+  private SleepingUnderFileSystemOptions mOptions;
 
   /**
    * Constructs a new {@link SleepingUnderFileSystemFactory}.
    */
   public SleepingUnderFileSystemFactory(SleepingUnderFileSystemOptions options) {
+    mOptions = options;
+  }
+
+  /**
+   * @return options of this sleeping ufs factory
+   */
+  public SleepingUnderFileSystemOptions getOptions() {
+    return mOptions;
+  }
+
+  /**
+   * @param options the options for this sleeping ufs factory
+   */
+  public void setOptions(SleepingUnderFileSystemOptions options) {
     mOptions = options;
   }
 
@@ -37,6 +52,6 @@ public class SleepingUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path) {
-    return path != null && path.startsWith("sleep://");
+    return path != null && path.startsWith("sleep:///");
   }
 }

@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.underfs.sleepfs;
 
 public class SleepingUnderFileSystemOptions {
@@ -24,6 +35,7 @@ public class SleepingUnderFileSystemOptions {
   private long mOpenMs = -1;
   private long mRenameDirectoryMs = -1;
   private long mRenameFileMs = -1;
+  private long mRenameTemporaryFileMs = -1;
   private long mSetConfMs = -1;
   private long mSetOwnerMs = -1;
   private long mSetModeMs = -1;
@@ -211,6 +223,14 @@ public class SleepingUnderFileSystemOptions {
 
   public void setRenameFileMs(long renameFileMs) {
     mRenameFileMs = renameFileMs;
+  }
+
+  public long getRenameTemporaryFileMs() {
+    return mRenameTemporaryFileMs;
+  }
+
+  public void setRenameTemporaryFileMs(long renameTemporaryFileMs) {
+    mRenameTemporaryFileMs = renameTemporaryFileMs;
   }
 
   public long getSetConfMs() {
