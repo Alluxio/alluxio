@@ -141,8 +141,6 @@ public final class ContainerAllocator {
   }
 
   private void requestContainers() throws Exception {
-    int numContainersToRequest = mTargetNumContainers - mAllocatedContainers.size();
-    LOG.info("Requesting {} {} containers", numContainersToRequest, mContainerName);
     String[] hosts;
     boolean relaxLocality;
     // YARN requires that priority for relaxed-locality requests is different from strict-locality.
@@ -156,6 +154,9 @@ public final class ContainerAllocator {
       relaxLocality = true;
       priority = Priority.newInstance(101);
     }
+
+    int numContainersToRequest = mTargetNumContainers - mAllocatedContainers.size();
+    LOG.info("Requesting {} {} containers", numContainersToRequest, mContainerName);
 
     if (hosts.length * mMaxContainersPerHost < numContainersToRequest) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_HOSTS
