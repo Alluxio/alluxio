@@ -199,16 +199,10 @@ public class IndexedSetConcurrencyTest {
       mSize = size;
     }
 
-    /**
-     * @return {@link #mId}
-     */
     public long getId() {
       return mId;
     }
 
-    /**
-     * @return {@link #mSize}
-     */
     public int getSize() {
       return mSize;
     }
