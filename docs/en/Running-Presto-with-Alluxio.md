@@ -11,19 +11,19 @@ that you can easily use presto to query Hive tables in Alluxio's tiered storage.
 
 # Prerequisites
 
-The prerequisite for this part is that you have [Java](Java-Setup.html). And the Java version must greater then
-1.8. Alluxio cluster should also be set up in accordance to these guides for either
+The prerequisite for this part is that you have [Java](Java-Setup.html). And the Java version must use Java 8 Update 60 or higher (8u60+), 64-bit.
+Alluxio cluster should also be set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
-Please[Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)。And have finished
-[Hive On Alluxio](http://www.alluxio.org/docs/master/cn/Running-Hive-with-Alluxio.html)
+Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/). And have finished
+[Hive On Alluxio](http://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html)
 
 # Configuration
 
-Presto get the database and table information by connecting Hive Metastore，At the same time,
-the HDFS location of table is obtained by the table's metadata. So you need to configure
-[Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html), In order to access hdfs，
-you need to add the hadoop conf file(core-site.xml、hdfs-site.xml) Add to Presto，And use the `hive.config.resources`
+Presto gets the database and table information by connecting Hive Metastore. At the same time,
+The file system location of table is obtained by the table's metadata. So you need to configure
+[Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html). In order to access hdfs,
+you need to add the hadoop conf file(core-site.xml、hdfs-site.xml)，And use hive.config.resources
 point to the file's location.
 
 #### Configure `core-site.xml`
@@ -50,16 +50,15 @@ If your Alluxio is HA, another configuration need to added:
 </property>
 ```
 
-# Alluxio client jar issue
+# Distribute the Alluxio Client Jar
 
-Distribute the Alluxio client Jar packet to all worker nodes in Presto:
+Distribute the Alluxio client Jar to all worker nodes in Presto:
+- Because of PreSto use guava's version is 18.0 and Alluxio use 14.0, So you need to update the Alluxio's client guava version
+to 18.0 and then recompile it.
 
 - You must put Alluxio client jar package `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
 (in `/<PATH_TO_ALLUXIO>/core/client/target/` directory) into Presto cluster's worker directory `$PRESTO_HOME/plugin/hadoop/`
 (For different versions of Hadoop, put the appropriate folder), And restart the process of coordinator and worker.
-
-
-
 
 # Presto cli examples
 
@@ -86,16 +85,15 @@ View Alluxio WebUI at `http://master_hostname:19999` and you can see the directo
 
 ![HiveTableInAlluxio]({{site.data.img.screenshot_presto_table_in_alluxio}})
 
+Using a single query:
 ```
 /home/path/presto/presto-cli-0.159-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
-```
-
-Using a single query:
-
-```
-hive> select * from u_user;
 ```
 
 And you can see the query results from console:
 
 ![PrestoQueryResult]({{site.data.img.screenshot_presto_query_result}})
+
+Presto Server log：
+
+![PrestoQueryLog]({{site.data.img.screenshot_presto_query_log}})
