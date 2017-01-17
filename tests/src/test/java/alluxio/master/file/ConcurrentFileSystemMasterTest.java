@@ -270,7 +270,7 @@ public class ConcurrentFileSystemMasterTest {
         originalFiles.add(file.getName());
       }
     }
-    // One renamed file should exist, and 9 original source files
+    // One renamed file should exist, and numThreads - 1 original source files
     Assert.assertEquals(numThreads, files.size());
     Assert.assertEquals(1, renamedFiles.size());
     Assert.assertEquals(numThreads - 1, originalFiles.size());
