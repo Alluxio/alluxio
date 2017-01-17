@@ -52,10 +52,17 @@ public class IndexedSetConcurrencyTest {
   /** Used to stop concurrent threads. */
   private AtomicBoolean mStopThreads;
 
+  /**
+   * Base class for testing different behaviours of {@link IndexedSet} concurrently.
+   */
   private abstract class ConcurrentTask implements Callable<Void> {
-    private long mCount = 0;
+    /** Number of items added or deleted in this single task. */
+    private volatile long mCount = 0;
     private CyclicBarrier mBarrier;
 
+    /**
+     * @param barrier the CyclicBarrier
+     */
     public ConcurrentTask(CyclicBarrier barrier) {
       mBarrier = barrier;
     }
