@@ -37,7 +37,7 @@ priority: 1
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-hadoop.md %}
 
-该配置确保Alluxio客户端jar包是利用的，对于通过Alluxio的URIs来创建和提交作业进行s交互的MapReduce作业客户端。
+该配置确保Alluxio客户端jar包是利用的，对于通过Alluxio的URIs来创建和提交作业进行交互的MapReduce作业客户端。
 
 注意，从Alluxio-1.3.0发布开始，要求将Alluxio客户端jar文件添加到`HADOOP_CLASSPATH`。因为安全选项默认开启，如果`HADOOP_CLASSPATH`不包含Alluxio客户端jar文件，那么在Alluxio上运行Hadoop MapReduce可能得到如下错误：“Failed to login: No Alluxio User is found.”。
 
