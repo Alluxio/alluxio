@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
-import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -30,7 +29,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,13 +122,8 @@ public final class NettyPacketReader implements PacketReader {
     mBytesToRead = len;
     mRequestType = type;
 
-    mChannel = context.acquireNettyChannel(address);
+    mChannel = mContext.acquireNettyChannel(address);
 
-    ChannelPipeline pipeline = mChannel.pipeline();
-    if (!(pipeline.last() instanceof RPCMessageDecoder)) {
-      throw new RuntimeException(String.format("Channel pipeline has unexpected handlers %s.",
-          pipeline.last().getClass().getCanonicalName()));
-    }
     mChannel.pipeline().addLast(new PacketReadHandler());
 
     Protocol.ReadRequest readRequest =
@@ -242,7 +235,6 @@ public final class NettyPacketReader implements PacketReader {
       }
     } finally {
       if (mChannel.isOpen()) {
-        Preconditions.checkState(mChannel.pipeline().last() instanceof PacketReadHandler);
         mChannel.pipeline().removeLast();
 
         // Make sure "autoread" is on before realsing the channel.

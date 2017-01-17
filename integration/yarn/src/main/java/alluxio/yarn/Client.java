@@ -129,7 +129,7 @@ public final class Client {
     mOptions.addOption("queue", true,
         "RM Queue in which this application is to be submitted. Default 'default'");
     mOptions.addOption("am_memory", true,
-        "Amount of memory in MB to request to run ApplicationMaster. Default 256");
+        "Amount of memory in MB to request to run ApplicationMaster. Default 1024");
     mOptions.addOption("am_vcores", true,
         "Amount of virtual cores to request to run ApplicationMaster. Default 1");
     mOptions.addOption("resource_path", true,
@@ -215,7 +215,7 @@ public final class Client {
     mAppName = cliParser.getOptionValue("appname", "Alluxio");
     mAmPriority = Integer.parseInt(cliParser.getOptionValue("priority", "0"));
     mAmQueue = cliParser.getOptionValue("queue", "default");
-    mAmMemoryInMB = Integer.parseInt(cliParser.getOptionValue("am_memory", "256"));
+    mAmMemoryInMB = Integer.parseInt(cliParser.getOptionValue("am_memory", "1024"));
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("am_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
     mMaxWorkersPerHost =

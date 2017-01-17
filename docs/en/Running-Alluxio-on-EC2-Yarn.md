@@ -138,6 +138,8 @@ Use the script `integration/yarn/bin/alluxio-yarn.sh` to start Alluxio. This scr
 For example, here we launch an Alluxio cluster with 3 worker nodes, where an HDFS temp directory is
 `hdfs://AlluxioMaster:9000/tmp/` and the master hostname is `AlluxioMaster`
 
+You may also start the Alluxio Master node separately from Yarn in which case the above startup will automatically detect the Master at the address provided and skip initialization of a new instance. This is useful if you have a particular host you'd like to run the Master on, which isn't part of your Yarn cluster, like an AWS EMR Master Instance.
+
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
 
 This script will launch an Alluxio Application Master on Yarn, which will then request containers for the Alluxio master and workers. You can also check `http://AlluxioMaster:8088` in the browser to

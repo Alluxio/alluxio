@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
-import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -31,7 +30,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,14 +121,7 @@ public final class NettyPacketWriter implements PacketWriter {
     mRequestType = type;
     mLength = length;
     mTier = tier;
-    mChannel = context.acquireNettyChannel(address);
-
-    ChannelPipeline pipeline = mChannel.pipeline();
-    if (!(pipeline.last() instanceof RPCMessageDecoder)) {
-      throw new RuntimeException(String
-          .format("Channel pipeline has unexpected handlers %s (expects RPCMessageDecoder).",
-              pipeline.last().getClass().getCanonicalName()));
-    }
+    mChannel = mContext.acquireNettyChannel(address);
     mChannel.pipeline().addLast(new PacketWriteHandler());
   }
 
@@ -269,7 +260,6 @@ public final class NettyPacketWriter implements PacketWriter {
     } finally {
       mLock.unlock();
       if (mChannel.isOpen()) {
-        Preconditions.checkState(mChannel.pipeline().last() instanceof PacketWriteHandler);
         mChannel.pipeline().removeLast();
       }
       mContext.releaseNettyChannel(mAddress, mChannel);

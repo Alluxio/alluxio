@@ -12,7 +12,9 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
@@ -22,39 +24,48 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Displays the file's all blocks info.
- *
- * @deprecated since version 1.5
+ * Displays the path's info.
+ * If path is a directory it displays the directory's info.
+ * If path is a file, it displays the file's all blocks info.
  */
 @ThreadSafe
-@Deprecated
-public final class FileInfoCommand extends WithWildCardPathCommand {
+public final class StatCommand extends WithWildCardPathCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public FileInfoCommand(FileSystem fs) {
+  public StatCommand(FileSystem fs) {
     super(fs);
   }
 
   @Override
   public String getCommandName() {
-    return "fileInfo";
+    return "stat";
   }
 
   @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    System.out
-        .println("The \"alluxio fs fileInfo <path>\" command is deprecated since version 1.5.");
-    System.out.println("Use the \"alluxio fs stat <path>\" command instead.");
+    URIStatus status = mFileSystem.getStatus(path);
+    if (status.isFolder()) {
+      System.out.println(path + " is a directory path.");
+      System.out.println(status);
+    } else {
+      System.out.println(path + " is a file path.");
+      System.out.println(status);
+      System.out.println("Containing the following blocks: ");
+      AlluxioBlockStore blockStore = AlluxioBlockStore.create();
+      for (long blockId : status.getBlockIds()) {
+        System.out.println(blockStore.getInfo(blockId));
+      }
+    }
   }
 
   @Override
   public String getUsage() {
-    return "fileInfo <path>";
+    return "stat <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Displays all block info for the specified file.";
+    return "Displays info for the specified path both file and directory.";
   }
 }
