@@ -14,33 +14,21 @@ package alluxio.underfs.sleepfs;
 import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
+
 import com.google.common.base.Preconditions;
 
 /**
- * Factory for creating {@link SleepingUnderFileSystem}. Should only be used by tests. Modify
- * options by using the getter and setter to change behavior during a test.
+ * Factory for creating {@link SleepingUnderFileSystem}. Should only be used in tests.
  */
 public class SleepingUnderFileSystemFactory implements UnderFileSystemFactory {
   private SleepingUnderFileSystemOptions mOptions;
 
   /**
    * Constructs a new {@link SleepingUnderFileSystemFactory}.
+   *
+   * @param options the options to associate with any created under file systems
    */
   public SleepingUnderFileSystemFactory(SleepingUnderFileSystemOptions options) {
-    mOptions = options;
-  }
-
-  /**
-   * @return options of this sleeping ufs factory
-   */
-  public SleepingUnderFileSystemOptions getOptions() {
-    return mOptions;
-  }
-
-  /**
-   * @param options the options for this sleeping ufs factory
-   */
-  public void setOptions(SleepingUnderFileSystemOptions options) {
     mOptions = options;
   }
 

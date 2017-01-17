@@ -31,7 +31,6 @@ import java.util.List;
  * An under file system for testing that sleeps a predefined amount of time before executing an
  * operation. The operation behavior will be equivalent to that of {@link LocalUnderFileSystem}.
  */
-// TODO(calvin): Consider making the behavior customizable per method call
 public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   private final SleepingUnderFileSystemOptions mOptions;
 
@@ -106,7 +105,8 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public List<String> getFileLocations(String path, FileLocationOptions options) throws IOException {
+  public List<String> getFileLocations(String path, FileLocationOptions options)
+      throws IOException {
     sleepIfNecessary(mOptions.getGetFileLocationsMs());
     return super.getFileLocations(cleanPath(path), options);
   }

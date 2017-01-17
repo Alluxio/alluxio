@@ -27,8 +27,8 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
-
 import alluxio.util.CommonUtils;
+
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import org.junit.AfterClass;
