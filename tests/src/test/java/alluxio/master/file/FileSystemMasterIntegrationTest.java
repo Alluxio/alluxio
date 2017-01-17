@@ -212,6 +212,12 @@ public class FileSystemMasterIntegrationTest {
     concurrentFreer.call();
   }
 
+  /**
+   * A test function to create files from ROOT_PATH depends on the given depth concurrently, then to rename the created
+   + files concurrently.
+   *
+   * @throws Exception
+   */
   @Test
   public void concurrentRename() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -949,6 +955,10 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  /**
+   * A class to start a thread to create file, complete file and delete file continuity, until the thread is
+   * set to stop.
+   */
   private class ConcurrentCreateDelete implements Callable<Void> {
     private final CyclicBarrier mStartBarrier;
     private final AtomicBoolean mStopThread;
