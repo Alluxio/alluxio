@@ -15,9 +15,13 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -31,6 +35,7 @@ import com.google.common.base.Throwables;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -41,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * OpenStack Swift API {@link UnderFileSystem} implementation based on the Stocator library.
  */
 @ThreadSafe
-public class StocatorUnderFileSystem extends UnderFileSystem {
+public class StocatorUnderFileSystem extends BaseUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Stocator access. */
@@ -92,11 +97,6 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public FSDataOutputStream create(String path) throws IOException {
-    return create(path, new CreateOptions());
-  }
-
-  @Override
   public FSDataOutputStream create(String path, CreateOptions options)
       throws IOException {
     try {
@@ -108,9 +108,13 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
-    LOG.debug("Delete method: {}, recursive {}", path, recursive);
-    return mFileSystem.delete(new Path(path), recursive);
+  public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
+    return isDirectory(path) && delete(path, options.isRecursive());
+  }
+
+  @Override
+  public boolean deleteFile(String path) throws IOException {
+    return isFile(path) && delete(path, false);
   }
 
   @Override
@@ -146,7 +150,8 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public List<String> getFileLocations(String path, long offset) throws IOException {
+  public List<String> getFileLocations(String path, FileLocationOptions options)
+      throws IOException {
     LOG.debug("getFileLocations is not supported when using "
         + "StocatorUnderFileSystem, returning null.");
     return null;
@@ -181,34 +186,30 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public boolean isDirectory(String path) throws IOException {
+    return mFileSystem.isDirectory(new Path(path));
+  }
+
+  @Override
   public boolean isFile(String path) throws IOException {
     return mFileSystem.isFile(new Path(path));
   }
 
   @Override
-  public String[] list(String path) throws IOException {
+  public UnderFileStatus[] listStatus(String path) throws IOException {
     FileStatus[] files;
     try {
       files = mFileSystem.listStatus(new Path(path));
     } catch (FileNotFoundException e) {
       return null;
     }
-    if (files != null && !isFile(path)) {
-      String[] rtn = new String[files.length];
-      int i = 0;
-      for (FileStatus status : files) {
-        // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i++] = status.getPath().getName();
-      }
-      return rtn;
-    } else {
-      return null;
+    UnderFileStatus[] rtn = new UnderFileStatus[files.length];
+    int i = 0;
+    for (FileStatus status : files) {
+      // only return the relative path, to keep consistent with java.io.File.list()
+      rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDir());
     }
-  }
-
-  @Override
-  public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+    return rtn;
   }
 
   @Override
@@ -217,11 +218,17 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public FSDataInputStream open(String path) throws IOException {
+  public InputStream open(String path, OpenOptions options) throws IOException {
     LOG.debug("Open file {}", path);
     try {
       FSDataInputStream in = mFileSystem.open(new Path(path));
       LOG.debug("Got input stream for {}", path);
+      try {
+        in.seek(options.getOffset());
+      } catch (IOException e) {
+        in.close();
+        throw e;
+      }
       return in;
     } catch (IOException e) {
       LOG.error("Failed to open {} : {}", path, e.getMessage(), e);
@@ -229,18 +236,15 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
     }
   }
 
-  /**
-   * @inheritDoc
-   * Rename will overwrite destination if it already exists
-   *
-   * @param source the source file or folder name
-   * @param destination the destination file or folder name
-   * @return true if succeed, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
   @Override
-  public boolean rename(String source, String destination) throws IOException {
-    return mFileSystem.rename(new Path(source), new Path(destination));
+  public boolean renameDirectory(String src, String dst) throws IOException {
+    LOG.debug("Renaming directory from {} to {}", src, dst);
+    return mFileSystem.rename(new Path(src), new Path(dst));
+  }
+
+  @Override
+  public boolean renameFile(String src, String dst) throws IOException {
+    return mFileSystem.rename(new Path(src), new Path(dst));
   }
 
   @Override
@@ -276,4 +280,15 @@ public class StocatorUnderFileSystem extends UnderFileSystem {
   public String getUnderFSType() {
     return "swift2d";
   }
+
+  @Override
+  public boolean supportsFlush() {
+    return true;
+  }
+
+  private boolean delete(String path, boolean recursive) throws IOException {
+    LOG.debug("Delete method: {}, recursive {}", path, recursive);
+    return mFileSystem.delete(new Path(path), recursive);
+  }
+
 }
