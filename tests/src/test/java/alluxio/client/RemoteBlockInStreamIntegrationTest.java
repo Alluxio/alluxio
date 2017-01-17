@@ -83,10 +83,11 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Constructor for {@RemoteBlockInStreamIntegrationTest}.
+   * Constructor for {@link RemoteBlockInStreamIntegrationTest}.
    *
    * @param dataServer the address of the worker's data server
    * @param transferType the file transfer type used by the worker
+   * @param reader                    
    */
   public RemoteBlockInStreamIntegrationTest(String dataServer, String transferType, String reader) {
     mLocalAlluxioClusterResource = new LocalAlluxioClusterResource.Builder()
