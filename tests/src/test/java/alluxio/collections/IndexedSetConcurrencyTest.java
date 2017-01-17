@@ -67,9 +67,6 @@ public class IndexedSetConcurrencyTest {
       mBarrier = barrier;
     }
 
-    /**
-     * @return {@link #mCount}
-     */
     public long getCount() {
       return mCount;
     }
