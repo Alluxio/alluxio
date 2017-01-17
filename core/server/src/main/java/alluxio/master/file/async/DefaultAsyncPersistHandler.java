@@ -38,11 +38,14 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The default handler for async persistence that schedules the persistence on the workers that
  * contains all the blocks of a given file, and the handler returns the scheduled request whenever
  * the corresponding worker polls.
  */
+@ThreadSafe
 public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
