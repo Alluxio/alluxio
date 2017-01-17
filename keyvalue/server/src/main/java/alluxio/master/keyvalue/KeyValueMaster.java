@@ -159,7 +159,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * Marks a partition complete and adds it to an incomplete key-value store.
    *
    * @param path URI of the key-value store
-   * @param info information of this completed parition
+   * @param info information of this completed partition
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    * @throws InvalidPathException if the path is invalid
