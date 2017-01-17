@@ -227,7 +227,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
   @Override
   public void waitForReady() {
-    CommonUtils.waitFor("master web server", new Function<Void, Boolean>() {
+    CommonUtils.waitFor("Alluxio master to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         return mMasterServiceServer != null && mMasterServiceServer.isServing()
@@ -244,14 +244,12 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
   @Override
   public void stop() throws Exception {
+    LOG.info("Stopping Alluxio master @ {}", mRpcAddress);
     if (mIsServing) {
-      LOG.info("Stopping RPC server on Alluxio master @ {}", mRpcAddress);
       stopServing();
       stopMasters();
       mTServerSocket.close();
       mIsServing = false;
-    } else {
-      LOG.info("Stopping Alluxio master @ {}", mRpcAddress);
     }
   }
 
