@@ -11,6 +11,7 @@
 
 package alluxio.client.netty;
 
+import alluxio.client.file.FileSystemContext;
 import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCFileWriteResponse;
@@ -43,9 +44,10 @@ import java.nio.ByteBuffer;
  * Tests for the {@link NettyRemoteBlockReader} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(NettyClient.class)
+@PrepareForTest({FileSystemContext.class, NettyClient.class})
 public class NettyRemoteBlockReaderTest {
 
+  private FileSystemContext mContext;
   private NettyRemoteBlockReader mNettyRemoteBlockReader;
   private static Bootstrap sBootstrap = Mockito.mock(Bootstrap.class);
   private static ClientHandler sClientHandler = new ClientHandler();
@@ -64,11 +66,14 @@ public class NettyRemoteBlockReaderTest {
    * Set up.
    */
   @Before
-  public void before() throws InterruptedException {
+  public void before() throws Exception {
     PowerMockito.mockStatic(NettyClient.class);
     BDDMockito.given(NettyClient.createClientBootstrap()).willReturn(sBootstrap);
-    mNettyRemoteBlockReader = new NettyRemoteBlockReader();
+    mContext = PowerMockito.mock(FileSystemContext.class);
+    mNettyRemoteBlockReader = new NettyRemoteBlockReader(mContext);
     mChannel = Mockito.mock(Channel.class);
+    Mockito.when(mContext.acquireNettyChannel(Mockito.any(InetSocketAddress.class)))
+        .thenReturn(mChannel);
     mChannelFuture = Mockito.mock(ChannelFuture.class);
     mChannelPipeline = Mockito.mock(ChannelPipeline.class);
 

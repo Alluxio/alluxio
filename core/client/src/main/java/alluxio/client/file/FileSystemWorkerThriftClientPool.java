@@ -20,6 +20,7 @@ import org.apache.thrift.protocol.TProtocol;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * Class for managing a pool of {@link FileSystemWorkerClientService.Client}.
@@ -27,9 +28,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 final class FileSystemWorkerThriftClientPool
     extends ThriftClientPool<FileSystemWorkerClientService.Client> {
-  public FileSystemWorkerThriftClientPool(InetSocketAddress address, int maxCapacity,
-      long gcThresholdMs) {
-    super(Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME,
+  public FileSystemWorkerThriftClientPool(Subject subject, InetSocketAddress address,
+      int maxCapacity, long gcThresholdMs) {
+    super(subject, Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME,
         Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION, address, maxCapacity, gcThresholdMs);
   }
 

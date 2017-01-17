@@ -11,11 +11,8 @@
 
 package alluxio.client;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.util.CommonUtils;
-
-import com.google.common.base.Throwables;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.netty.NettyUnderFileSystemFileReader;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -37,16 +34,11 @@ public interface UnderFileSystemFileReader extends Closeable {
     /**
      * Factory for {@link UnderFileSystemFileReader}.
      *
+     * @param context the file system context
      * @return a new instance of {@link UnderFileSystemFileReader}
      */
-    public static UnderFileSystemFileReader create() {
-      try {
-        return CommonUtils.createNewClassInstance(
-            Configuration.<UnderFileSystemFileReader>getClass(
-                PropertyKey.USER_UFS_FILE_READER_CLASS), null, null);
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
-      }
+    public static UnderFileSystemFileReader create(FileSystemContext context) {
+      return new NettyUnderFileSystemFileReader(context);
     }
   }
 

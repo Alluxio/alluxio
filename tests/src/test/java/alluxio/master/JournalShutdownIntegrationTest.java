@@ -19,9 +19,9 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
-import alluxio.client.block.BlockStoreContextTestUtils;
 import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
@@ -67,18 +67,19 @@ public class JournalShutdownIntegrationTest {
     ConfigurationTestUtils.resetConfiguration();
     RetryHandlingBlockWorkerClientTestUtils.reset();
     FileSystemWorkerClientTestUtils.reset();
-    BlockStoreContextTestUtils.resetPool();
+    FileSystemContext.INSTANCE.reset();
   }
 
   @Before
   public final void before() throws Exception {
     mExecutorsForClient = Executors.newFixedThreadPool(1);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
   }
 
   @Test
   public void singleMasterJournalStopIntegration() throws Exception {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
-    CommonUtils.sleepMs(TEST_TIME_MS);
+    runCreateFileThread(cluster.getClient());
     // Shutdown the cluster
     cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
@@ -91,10 +92,10 @@ public class JournalShutdownIntegrationTest {
   @Test
   public void singleMasterJournalCrashIntegration() throws Exception {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
-    CommonUtils.sleepMs(TEST_TIME_MS);
+    runCreateFileThread(cluster.getClient());
     cluster.stopWorkers();
     // Crash the master
-    cluster.getMaster().kill();
+    cluster.getMaster().stop();
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
@@ -105,13 +106,13 @@ public class JournalShutdownIntegrationTest {
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
+    runCreateFileThread(cluster.getClient());
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
-      CommonUtils.sleepMs(TEST_TIME_MS);
-      Assert.assertTrue(cluster.killLeader());
+      cluster.waitForNewMaster(60 * Constants.SECOND_MS);
+      Assert.assertTrue(cluster.stopLeader());
     }
     cluster.stopFS();
-    CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
     // clean up
@@ -154,8 +155,6 @@ public class JournalShutdownIntegrationTest {
         new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
     cluster.initConfiguration();
     cluster.start();
-    mCreateFileThread = new ClientThread(0, cluster.getClient());
-    mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
   }
 
@@ -165,9 +164,22 @@ public class JournalShutdownIntegrationTest {
     cluster.initConfiguration();
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
     cluster.start();
-    mCreateFileThread = new ClientThread(0, cluster.getClient());
-    mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
+  }
+
+  /**
+   * Starts a file-creating thread and runs it for some time, at least until it has created one
+   * file.
+   *
+   * @param fs a file system client to use for creating files
+   */
+  private void runCreateFileThread(FileSystem fs) {
+    mCreateFileThread = new ClientThread(0, fs);
+    mExecutorsForClient.submit(mCreateFileThread);
+    CommonUtils.sleepMs(TEST_TIME_MS);
+    while (mCreateFileThread.getSuccessNum() == 0) {
+      CommonUtils.sleepMs(TEST_TIME_MS);
+    }
   }
 
   /**

@@ -31,7 +31,7 @@ this="$config_bin/$script"
 # This will set the default installation for a tarball installation while os distributors can create
 # their own alluxio-layout.sh file to set system installation locations.
 if [[ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]]; then
-  VERSION=1.4.0-SNAPSHOT
+  VERSION=1.4.1-SNAPSHOT
   ALLUXIO_HOME=$(dirname $(dirname "${this}"))
   ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
   ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
@@ -46,15 +46,22 @@ fi
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 
-# Make sure alluxio-env.sh exists
-if [[ ! -e ${ALLUXIO_CONF_DIR}/alluxio-env.sh ]]; then
-  echo "Cannot find ${ALLUXIO_CONF_DIR}/alluxio-env.sh. To proceed, you can" >&2
-  echo "(1) create one based on the provided template file ${ALLUXIO_CONF_DIR}/alluxio-env.sh.template, or" >&2
-  echo "(2) use a bootstraping tool by running: ${ALLUXIO_HOME}/bin/alluxio bootstrapConf" >&2
-  exit 1
+if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
+  . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 fi
 
-. "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
+# Determine reasonable defaults for worker memory and ramdisk folder
+if [[ $(uname -s) == Darwin ]]; then
+  # Assuming Mac OS X
+  DEFAULT_RAM_FOLDER="/Volumes/ramdisk"
+else
+  # Assuming Linux
+  DEFAULT_RAM_FOLDER="/mnt/ramdisk"
+fi
+# If ALLUXIO_RAM_FOLDER is explicitly set to the empty string, do not overwrite. This way a user
+# could set ALLUXIO_RAM_FOLDER="" to avoid using ramdisk at all. The ${X-Y} syntax will return $X
+# unless X is UNSET (not just empty), in which case it returns Y.
+ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER-${DEFAULT_RAM_FOLDER}}
 
 if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
   echo "ALLUXIO_MASTER_ADDRESS is deprecated since version 1.1 and will be remove in version 2.0."
@@ -92,15 +99,15 @@ ALLUXIO_JAVA_OPTS+=" -Djava.net.preferIPv4Stack=true"
 
 # Master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=MASTER_LOGGER"
+ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTER_LOGGER}"
 
 # Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_PROXY_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.logger.type=PROXY_LOGGER"
+ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_PROXY_LOGGER:-PROXY_LOGGER}"
 
 # Worker specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_WORKER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=WORKER_LOGGER"
+ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_WORKER_LOGGER:-WORKER_LOGGER}"
 
 # Client specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_USER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}

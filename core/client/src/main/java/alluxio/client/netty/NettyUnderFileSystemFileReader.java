@@ -13,7 +13,7 @@ package alluxio.client.netty;
 
 import alluxio.Constants;
 import alluxio.client.UnderFileSystemFileReader;
-import alluxio.client.block.BlockStoreContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCErrorResponse;
@@ -23,6 +23,7 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -47,13 +48,18 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class NettyUnderFileSystemFileReader implements UnderFileSystemFileReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private final FileSystemContext mContext;
+
   /** A reference to read response so we can explicitly release the resource after reading. */
   private RPCFileReadResponse mReadResponse;
 
   /**
    * Creates a new reader for a file in an under file system through a worker's data server.
+   * @param context the file system context
    */
-  public NettyUnderFileSystemFileReader() {}
+  public NettyUnderFileSystemFileReader(FileSystemContext context) {
+    mContext = Preconditions.checkNotNull(context);
+  }
 
   @Override
   public ByteBuffer read(InetSocketAddress address, long ufsFileId, long offset, long length)
@@ -67,7 +73,7 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
     Channel channel = null;
     ClientHandler clientHandler = null;
     try {
-      channel = BlockStoreContext.acquireNettyChannel(address);
+      channel = mContext.acquireNettyChannel(address);
       if (!(channel.pipeline().last() instanceof ClientHandler)) {
         channel.pipeline().addLast(new ClientHandler());
       }
@@ -124,7 +130,7 @@ public final class NettyUnderFileSystemFileReader implements UnderFileSystemFile
         clientHandler.removeListeners();
       }
       if (channel != null) {
-        BlockStoreContext.releaseNettyChannel(address, channel);
+        mContext.releaseNettyChannel(address, channel);
       }
     }
   }

@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -174,6 +175,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public boolean exists(String path) throws IOException {
+    return mFileSystem.exists(new Path(path));
+  }
+
+  @Override
   public long getBlockSizeByte(String path) throws IOException {
     Path tPath = new Path(path);
     if (!mFileSystem.exists(tPath)) {
@@ -196,6 +202,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
+    // If the user has hinted the underlying storage nodes are not co-located with Alluxio
+    // workers, short circuit without querying the locations
+    if (Configuration.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)) {
+      return null;
+    }
     List<String> ret = new ArrayList<>();
     try {
       FileStatus fStatus = mFileSystem.getFileStatus(new Path(path));
@@ -275,17 +286,16 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public UnderFileStatus[] listStatus(String path) throws IOException {
     FileStatus[] files = listStatusInternal(path);
-    if (files != null && !isFile(path)) {
-      UnderFileStatus[] rtn = new UnderFileStatus[files.length];
-      int i = 0;
-      for (FileStatus status : files) {
-        // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDir());
-      }
-      return rtn;
-    } else {
+    if (files == null) {
       return null;
     }
+    UnderFileStatus[] rtn = new UnderFileStatus[files.length];
+    int i = 0;
+    for (FileStatus status : files) {
+      // only return the relative path, to keep consistent with java.io.File.list()
+      rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDir());
+    }
+    return rtn;
   }
 
   @Override
@@ -369,7 +379,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public FSDataInputStream open(String path, OpenOptions options) throws IOException {
+  public InputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
@@ -381,7 +391,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           inputStream.close();
           throw e;
         }
-        return inputStream;
+        return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
         LOG.error("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage(), e);
         te = e;
@@ -420,8 +430,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public void setOwner(String path, String user, String group) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
-      LOG.info("Changing file '{}' user from: {} to {}, group from: {} to {}", fileStatus.getPath(),
-          fileStatus.getOwner(), user, fileStatus.getGroup(), group);
+      LOG.debug("Changing file '{}' user from: {} to {}, group from: {} to {}",
+          fileStatus.getPath(), fileStatus.getOwner(), user, fileStatus.getGroup(), group);
       mFileSystem.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
       LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group, e);
@@ -440,7 +450,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public void setMode(String path, short mode) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
-      LOG.info("Changing file '{}' permissions from: {} to {}", fileStatus.getPath(),
+      LOG.debug("Changing file '{}' permissions from: {} to {}", fileStatus.getPath(),
           fileStatus.getPermission(), mode);
       mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
@@ -520,6 +530,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     try {
       files = mFileSystem.listStatus(new Path(path));
     } catch (FileNotFoundException e) {
+      return null;
+    }
+    // Check if path is a file
+    if (files != null && files.length == 1 && files[0].getPath().toString().equals(path)) {
       return null;
     }
     return files;

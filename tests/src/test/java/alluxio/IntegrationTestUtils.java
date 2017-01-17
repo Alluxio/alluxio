@@ -24,13 +24,11 @@ import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Util methods for writing integration tests.
  */
 public final class IntegrationTestUtils {
-
   /**
    * Convenience method for calling
    * {@link #waitForPersist(LocalAlluxioClusterResource, AlluxioURI, int)} with a default timeout.
@@ -53,7 +51,7 @@ public final class IntegrationTestUtils {
   public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
       final AlluxioURI uri, int timeoutMs) {
 
-    try (FileSystemMasterClient client = new FileSystemMasterClient(
+    try (FileSystemMasterClient client = new FileSystemMasterClient(null,
         localAlluxioClusterResource.get().getMaster().getAddress())) {
       CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override
@@ -66,19 +64,6 @@ public final class IntegrationTestUtils {
         }
       }, timeoutMs);
     }
-  }
-
-  /**
-   * @return a random sequence of characters from 'a' to 'z' of random length up to 100 characters
-   */
-  public static String randomString() {
-    Random random = new Random();
-    int length = random.nextInt(100) + 1;
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < length; i++) {
-      sb.append((char) (random.nextInt(26) + 97));
-    }
-    return sb.toString();
   }
 
   /**

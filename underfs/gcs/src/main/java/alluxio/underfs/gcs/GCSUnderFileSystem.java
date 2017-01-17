@@ -46,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * GCS FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
-public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
+public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
@@ -225,6 +225,8 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
+    // In case key is root (empty string) do not normalize prefix
+    key = key.equals(PATH_SEPARATOR) ? "" : key;
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     StorageObjectsChunk chunk = getObjectListingChunk(key, delimiter, null);
     if (chunk != null) {
@@ -312,8 +314,7 @@ public final class GCSUnderFileSystem extends ObjectUnderFileSystem {
     try {
       return new GCSInputStream(mBucketName, key, mClient, options.getOffset());
     } catch (ServiceException e) {
-      LOG.error("Failed to open file: {}", key, e);
-      return null;
+      throw new IOException(e.getMessage());
     }
   }
 

@@ -298,7 +298,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setCacheable(entry.getCacheable())
         .setCompleted(entry.getCompleted())
         .setCreationTimeMs(entry.getCreationTimeMs())
-        .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+        .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
         .setLength(entry.getLength())
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))

@@ -13,7 +13,6 @@ package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.IntegrationTestConstants;
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
@@ -68,8 +67,6 @@ public class LineageMasterIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES))
-          .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS,
-              IntegrationTestConstants.NETTY_DATA_SERVER)
           .setProperty(PropertyKey.USER_LINEAGE_ENABLED, "true")
           .setProperty(PropertyKey.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS,
               Integer.toString(RECOMPUTE_INTERVAL_MS))
@@ -224,6 +221,7 @@ public class LineageMasterIntegrationTest {
   }
 
   private FileSystemMasterClient getFileSystemMasterClient() {
-    return new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
+    return new FileSystemMasterClient(null,
+        mLocalAlluxioClusterResource.get().getMaster().getAddress());
   }
 }

@@ -121,15 +121,15 @@ Note that adding `-DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.
 but it makes the build run significantly faster.
 
 To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
-worker), one can refer to [Configuration settings](Configuration-Settings.html) for more
-information. To ensure your configuration can be read by both the ApplicationMaster and Alluxio
-master/workers, put `alluxio-site.properties` under `~/.alluxio/` on each EC2 machine.
+worker), see [Configuration settings](Configuration-Settings.html). To ensure your configuration can be
+read by both the ApplicationMaster and Alluxio master/workers, put `alluxio-site.properties` in
+`~/.alluxio` under the home folders for any users that will launch an Alluxio client or server.
 
 # Start Alluxio
 
-If Yarn does not reside in HADOOP_HOME, you'll want to export the environment variable YARN_HOME to the base path of Yarn.
+If Yarn does not reside in HADOOP_HOME, set the environment variable YARN_HOME to the base path of Yarn.
 
-Use the script `integration/bin/alluxio-yarn.sh` to start Alluxio. This script takes three arguments:
+Use the script `integration/yarn/bin/alluxio-yarn.sh` to start Alluxio. This script takes three arguments:
 
 1. The total number of Alluxio workers to start. (required)
 2. An HDFS path to distribute the binaries for Alluxio ApplicationMaster. (required)
@@ -151,11 +151,6 @@ From the output, we know the application ID to run Alluxio is
 **`application_1445469376652_0002`**. This application ID is needed to kill the application.
 
 # Test Alluxio
-
-When you know the IP of Alluxio master container, you can modify the `conf/alluxio-env.sh` to set
- up environment variable `ALLUXIO_MASTER_HOSTNAME` on each EC2 machine:
-
-{% include Running-Alluxio-on-EC2-Yarn/environment-variable.md %}
 
 You can run tests against Alluxio to check its health:
 
