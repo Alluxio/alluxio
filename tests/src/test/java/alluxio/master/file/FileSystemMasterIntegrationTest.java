@@ -188,6 +188,12 @@ public class FileSystemMasterIntegrationTest {
     concurrentCreator.call();
   }
 
+  /**
+   * A test function to create files from ROOT_PATH depends on the given depth concurrently, then to delete the created
+   * file.
+   *
+   * @throws Exception
+   */
   @Test
   public void concurrentDelete() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -202,6 +208,12 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
   }
 
+  /**
+   * A test function to create files from ROOT_PATH depends on the given depth concurrently, then to free the created
+   * file.
+   *
+   * @throws Exception
+   */
   @Test
   public void concurrentFree() throws Exception {
     ConcurrentCreator concurrentCreator =
