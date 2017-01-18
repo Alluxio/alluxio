@@ -79,7 +79,7 @@ public class JournalShutdownIntegrationTest {
   @Test
   public void singleMasterJournalStopIntegration() throws Exception {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
-    CommonUtils.sleepMs(TEST_TIME_MS);
+    runCreateFileThread(cluster.getClient());
     // Shutdown the cluster
     cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
@@ -92,7 +92,7 @@ public class JournalShutdownIntegrationTest {
   @Test
   public void singleMasterJournalCrashIntegration() throws Exception {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
-    CommonUtils.sleepMs(TEST_TIME_MS);
+    runCreateFileThread(cluster.getClient());
     cluster.stopWorkers();
     // Crash the master
     cluster.getMaster().stop();
@@ -106,8 +106,7 @@ public class JournalShutdownIntegrationTest {
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
-    // Run the test client thread for some time.
-    CommonUtils.sleepMs(TEST_TIME_MS);
+    runCreateFileThread(cluster.getClient());
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
       cluster.waitForNewMaster(60 * Constants.SECOND_MS);
@@ -156,8 +155,6 @@ public class JournalShutdownIntegrationTest {
         new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
     cluster.initConfiguration();
     cluster.start();
-    mCreateFileThread = new ClientThread(0, cluster.getClient());
-    mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
   }
 
@@ -167,9 +164,22 @@ public class JournalShutdownIntegrationTest {
     cluster.initConfiguration();
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
     cluster.start();
-    mCreateFileThread = new ClientThread(0, cluster.getClient());
-    mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
+  }
+
+  /**
+   * Starts a file-creating thread and runs it for some time, at least until it has created one
+   * file.
+   *
+   * @param fs a file system client to use for creating files
+   */
+  private void runCreateFileThread(FileSystem fs) {
+    mCreateFileThread = new ClientThread(0, fs);
+    mExecutorsForClient.submit(mCreateFileThread);
+    CommonUtils.sleepMs(TEST_TIME_MS);
+    while (mCreateFileThread.getSuccessNum() == 0) {
+      CommonUtils.sleepMs(TEST_TIME_MS);
+    }
   }
 
   /**
@@ -182,11 +192,22 @@ public class JournalShutdownIntegrationTest {
     private final int mOpType; // 0: create file
     private final FileSystem mFileSystem;
 
+    /**
+     * Constructs the client thread.
+     *
+     * @param opType the create operation type
+     * @param fs a file system client to use for creating files
+     */
     public ClientThread(int opType, FileSystem fs) {
       mOpType = opType;
       mFileSystem = fs;
     }
 
+    /**
+     * Gets the number of files which are successfully created.
+     *
+     * @return the number of files successfully created
+     */
     public int getSuccessNum() {
       return mSuccessNum;
     }

@@ -1066,7 +1066,7 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param path the file to create
    * @param options method options
-   * @return the file id of the create file
+   * @return the id of the created file
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if an invalid block information is encountered
@@ -1614,6 +1614,7 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param path the path of the directory
    * @param options method options
+   * @return the id of the created directory
    * @throws InvalidPathException when the path is invalid, please see documentation on
    *         {@link InodeTree#createPath(LockedInodePath, CreatePathOptions)} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
@@ -1622,7 +1623,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  public void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
+  public long createDirectory(AlluxioURI path, CreateDirectoryOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
       FileDoesNotExistException {
     LOG.debug("createDirectory {} ", path);
@@ -1632,6 +1633,7 @@ public final class FileSystemMaster extends AbstractMaster {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
       flushCounter = createDirectoryAndJournal(inodePath, options);
+      return inodePath.getInode().getId();
     } finally {
       // finally runs after resources are closed (unlocked).
       waitForJournalFlush(flushCounter);
@@ -2271,13 +2273,19 @@ public final class FileSystemMaster extends AbstractMaster {
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     try {
-      if (!ufs.exists(ufsUri.toString())) {
+      if (options.getUnderFileStatus() == null && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
         inode.setDirectChildrenLoaded(true);
         return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
       }
-      if (ufs.isFile(ufsUri.toString())) {
+      boolean isFile;
+      if (options.getUnderFileStatus() != null) {
+        isFile = options.getUnderFileStatus().isFile();
+      } else {
+        isFile = ufs.isFile(ufsUri.toString());
+      }
+      if (isFile) {
         return loadFileMetadataAndJournal(inodePath, resolution, options);
       } else {
         long counter = loadDirectoryMetadataAndJournal(inodePath, options);
@@ -2285,9 +2293,6 @@ public final class FileSystemMaster extends AbstractMaster {
 
         if (options.isLoadDirectChildren()) {
           UnderFileStatus[] files = ufs.listStatus(ufsUri.toString());
-          LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults();
-          loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
-
           for (UnderFileStatus file : files) {
             if (PathUtils.isTemporaryFileName(file.getName())
                 || inode.getChild(file.getName()) != null) {
@@ -2295,6 +2300,8 @@ public final class FileSystemMaster extends AbstractMaster {
             }
             TempInodePathForChild tempInodePath =
                 new TempInodePathForChild(inodePath, file.getName());
+            LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults()
+                .setLoadDirectChildren(false).setCreateAncestors(false).setUnderFileStatus(file);
             counter = loadMetadataAndJournal(tempInodePath, loadMetadataOptions);
           }
           inode.setDirectChildrenLoaded(true);

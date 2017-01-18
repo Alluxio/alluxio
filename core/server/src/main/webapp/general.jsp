@@ -114,6 +114,38 @@
       </div>
     </div>
   </div>
+  <!--  show inconsistent path  -->
+  <% if ((Integer) request.getAttribute("inconsistentPaths") != 0) { %>
+  <div class="row-fluid">
+    <div class="accordion span14" id="accordion4">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
+            <h4>Inconsistent Files Details</h4>
+          </a>
+        </div>
+        <div id="data4" class="accordion-body collapse in">
+          <div class="accordion-inner">
+            <table class="table table-hover table-condensed">
+              <thead>
+                <th> <font color="red">On Startup, <%= request.getAttribute("inconsistentPaths") %> inconsistent files were found. This check is only checked once at startup, and you can restart the Alluxio Master for the latest information. <br/> The following files may be corrupted: </font></th>
+              </thead>
+              <tbody>
+                <% List array = (List) request.getAttribute("inconsistentPathItems");
+                   for (int i = 0; i < array.size(); i++) { %>
+                  <tr>
+                    <th><font color="red"><%= array.get(i) %></font></th>
+                  </tr>
+                <% }%>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
   <div class="row-fluid">
     <div class="accordion span14" id="accordion3">
       <div class="accordion-group">

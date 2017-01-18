@@ -16,13 +16,13 @@ function doAutoRefresh() {
 var autoRefreshTimer;
 function toggleAutoRefresh() {
   if (autoRefresh) {
-      autoRefresh = false;
-      window.clearTimeout(autoRefreshTimer);
-      $("#autorefresh-link").text("Enable Auto-Refresh");
+    autoRefresh = false;
+    window.clearTimeout(autoRefreshTimer);
+    $("#autorefresh-link").text("Enable Auto-Refresh");
   } else {
-      autoRefresh = true;
-      autoRefreshTimer = window.setTimeout(doAutoRefresh, 15000);
-      $("#autorefresh-link").text("Disable Auto-Refresh");
+    autoRefresh = true;
+    autoRefreshTimer = window.setTimeout(doAutoRefresh, 15000);
+    $("#autorefresh-link").text("Disable Auto-Refresh");
   }
 }
 if (autoRefresh) {

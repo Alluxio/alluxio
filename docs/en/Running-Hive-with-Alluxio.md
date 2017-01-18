@@ -23,9 +23,9 @@ Please [Download Hive](http://hive.apache.org/downloads.html).
 Apache Hive allows you to use Alluxio through a generic file system wrapper for the Hadoop file system.
 Therefore, the configuration of Alluxio is done mostly in Hive and its under computing frameworks.
 
-#### Configure `hive-site.xml`
+#### Configure Hive
 
-You need to add the following property to `hive-site.xml` in your Hive installation `conf` directory
+Add the following property to `hive-site.xml` in your Hive installation `conf` directory
 
 ```xml
 <property>
@@ -36,45 +36,10 @@ You need to add the following property to `hive-site.xml` in your Hive installat
 
 #### Configure Hadoop MapReduce
 
-If you run Hive on Hadoop MapReduce, Hive can read configirations from Hadoop configuration files. In addition,
-Hive's Hadoop jobs will store its intermediate results in Alluxio.
+If you run Hive on Hadoop MapReduce, Hive can read configurations from Hadoop configuration files. In addition,
+Hive's Hadoop jobs will store its intermediate results in Alluxio. Please follow instructions in
+[running MapReduce on Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html) to make sure Hadoop MapReduce can run with Alluxio.
 
-You need to add the following properties to `core-site.xml` file in Hadoop:
-
-```xml
-<property>
-   <name>fs.alluxio.impl</name>
-   <value>alluxio.hadoop.FileSystem</value>
-</property>
-<property>
-   <name>fs.AbstractFileSystem.alluxio.impl</name>
-   <value>alluxio.hadoop.AlluxioFileSystem</value>
-</property>
-```
-
-modify `$HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
-
-```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
-```
-
-Distributing the Alluxio Client Jar in Hadoop MapReduce:
-
-- You must place the client jar
-`alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
-(located in the `/<PATH_TO_ALLUXIO>/core/client/target/` directory), in the `$HADOOP_HOME/share/hadoop/common/lib`
-(may be `$HADOOP_HOME/lib` for different versions of Hadoop) directory of every
-MapReduce node, and restart all of the NodeManagers.
-
-# Distribute the Alluxio Client jar
-
-We need to make the Alluxio client `jar` file available to Hive, because it contains the configured
-`alluxio.hadoop.FileSystem` class.
-
-You can achieve this by:
-
-- Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
-  `lib` directory of Hive.
 
 #### Add additional Alluxio site properties to Hive
 

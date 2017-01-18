@@ -40,7 +40,8 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A object based abstract {@link UnderFileSystem}.
+ * An object based abstract {@link UnderFileSystem}. Object Stores implementing the
+ * {@link UnderFileSystem} interface should derive from this class.
  */
 @ThreadSafe
 public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
@@ -534,7 +535,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
     // If there are, this is a folder and we can create the necessary metadata
-    if (objs != null && objs.getObjectNames() != null && objs.getObjectNames().length > 0) {
+    if (objs != null && ((objs.getObjectNames() != null && objs.getObjectNames().length > 0)
+        || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
       // If the breadcrumb exists, this is a no-op
       mkdirsInternal(dir);
       return objs;

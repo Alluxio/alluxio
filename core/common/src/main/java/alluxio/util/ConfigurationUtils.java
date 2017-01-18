@@ -13,6 +13,7 @@ package alluxio.util;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Utilities to create Alluxio configurations.
+ * Utilities for working with Alluxio configurations.
  */
 public final class ConfigurationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -102,4 +103,13 @@ public final class ConfigurationUtils {
     return loadPropertiesFromResource(propertiesFile);
   }
 
+  /**
+   * @return whether the configuration describes how to find the master host, either through
+   *         explicit configuration or through zookeeper
+   */
+  public static boolean masterHostConfigured() {
+    boolean usingZk = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
+        && Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS);
+    return Configuration.containsKey(PropertyKey.MASTER_HOSTNAME) || usingZk;
+  }
 }
