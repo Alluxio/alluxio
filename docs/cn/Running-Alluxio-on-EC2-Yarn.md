@@ -118,7 +118,8 @@ Alluxio master/worker读取,将`~/.alluxio`下的`alluxio-site.properties`放在
 
 举例而言，启动3个worker节点的Alluxio集群，HDFS临时目录是`hdfs://AlluxioMaster:9000/tmp/`,主机的名字是`AlluxioMaster`
 
-你也可以分别从Yarn开启Alluxio Master节点，在这种情况下，上述启动将自动检测所在地址中所提供Master并跳过新实例的初始化。这是非常有用的，如果你有一个特定的主机，想在Master上运行，而这个主机不是你的Yarn集群的一部分，比如一个AWS EMR Master Instance。
+你也可以在Yarn之外启动Alluxio Master节点，在这种情况下，上述启动过程将会自动检测所提供地址的主机上的Master，并且跳过该新实例的初始化。这非常有用，特别是当你想在某台特定的主机上运行Master，而该主机不属于Yarn集群，例如一个AWS EMR Master实例。
+
 
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
 
