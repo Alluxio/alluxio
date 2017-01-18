@@ -11,7 +11,9 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
@@ -47,6 +49,8 @@ public abstract class AbstractMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long SHUTDOWN_TIMEOUT_MS = 10000;
+  private static final long JOURNAL_FLUSH_RETRY_TIMEOUT_MS =
+      Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_RETRY_TIMEOUT_MS);
 
   /** A factory for creating executor services when they are needed. */
   private ExecutorServiceFactory mExecutorServiceFactory = null;
@@ -255,7 +259,7 @@ public abstract class AbstractMaster implements Master {
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
 
     // TODO(gpang): add configurable parameter
-    RetryPolicy retry = new TimeoutRetry(300000, 1000);
+    RetryPolicy retry = new TimeoutRetry(JOURNAL_FLUSH_RETRY_TIMEOUT_MS, 1000);
     while (retry.attemptRetry()) {
       try {
         mAsyncJournalWriter.flush(counter);
@@ -265,7 +269,7 @@ public abstract class AbstractMaster implements Master {
       }
     }
     LOG.error("Journal flush failed after retries. Terminating process to prevent inconsistency.");
-    System.exit(0);
+    System.exit(1);
   }
 
   /**
