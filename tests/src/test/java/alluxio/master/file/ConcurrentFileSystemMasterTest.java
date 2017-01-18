@@ -89,8 +89,7 @@ public class ConcurrentFileSystemMasterTest {
     // Register sleeping ufs with slow rename
     SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
     sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    options.setRenameFileMs(SLEEP_MS);
-    options.setRenameDirectoryMs(SLEEP_MS);
+    options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS);
     UnderFileSystemRegistry.register(sSleepingUfsFactory);
   }
 

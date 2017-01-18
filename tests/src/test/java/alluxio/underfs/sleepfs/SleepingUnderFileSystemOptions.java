@@ -11,6 +11,11 @@
 
 package alluxio.underfs.sleepfs;
 
+/**
+ * Options for {@link SleepingUnderFileSystem} which will determine the amount of sleeping
+ * injected into the various under file system calls. These options should be specified when
+ * creating a {@link SleepingUnderFileSystemFactory}.
+ */
 public class SleepingUnderFileSystemOptions {
   private long mCloseMs = -1;
   private long mConnectFromMasterMs = -1;
@@ -45,223 +50,251 @@ public class SleepingUnderFileSystemOptions {
     return mCloseMs;
   }
 
-  public void setCloseMs(long closeMs) {
+  public SleepingUnderFileSystemOptions setCloseMs(long closeMs) {
     mCloseMs = closeMs;
+    return this;
   }
 
   public long getConnectFromMasterMs() {
     return mConnectFromMasterMs;
   }
 
-  public void setConnectFromMasterMs(long connectFromMasterMs) {
+  public SleepingUnderFileSystemOptions setConnectFromMasterMs(long connectFromMasterMs) {
     mConnectFromMasterMs = connectFromMasterMs;
+    return this;
   }
 
   public long getConnectFromWorkerMs() {
     return mConnectFromWorkerMs;
   }
 
-  public void setConnectFromWorkerMs(long connectFromWorkerMs) {
+  public SleepingUnderFileSystemOptions setConnectFromWorkerMs(long connectFromWorkerMs) {
     mConnectFromWorkerMs = connectFromWorkerMs;
+    return this;
   }
 
   public long getCreateMs() {
     return mCreateMs;
   }
 
-  public void setCreateMs(long createMs) {
+  public SleepingUnderFileSystemOptions setCreateMs(long createMs) {
     mCreateMs = createMs;
+    return this;
   }
 
   public long getDeleteDirectoryMs() {
     return mDeleteDirectoryMs;
   }
 
-  public void setDeleteDirectoryMs(long deleteDirectoryMs) {
+  public SleepingUnderFileSystemOptions setDeleteDirectoryMs(long deleteDirectoryMs) {
     mDeleteDirectoryMs = deleteDirectoryMs;
+    return this;
   }
 
   public long getDeleteFileMs() {
     return mDeleteFileMs;
   }
 
-  public void setDeleteFileMs(long deleteFileMs) {
+  public SleepingUnderFileSystemOptions setDeleteFileMs(long deleteFileMs) {
     mDeleteFileMs = deleteFileMs;
+    return this;
   }
 
   public long getGetBlockSizeByteMs() {
     return mGetBlockSizeByteMs;
   }
 
-  public void setGetBlockSizeByteMs(long getBlockSizeByteMs) {
+  public SleepingUnderFileSystemOptions setGetBlockSizeByteMs(long getBlockSizeByteMs) {
     mGetBlockSizeByteMs = getBlockSizeByteMs;
+    return this;
   }
 
   public long getGetConfMs() {
     return mGetConfMs;
   }
 
-  public void setGetConfMs(long getConfMs) {
+  public SleepingUnderFileSystemOptions setGetConfMs(long getConfMs) {
     mGetConfMs = getConfMs;
+    return this;
   }
 
   public long getGetFileLocationsMs() {
     return mGetFileLocationsMs;
   }
 
-  public void setGetFileLocationsMs(long getFileLocationsMs) {
+  public SleepingUnderFileSystemOptions setGetFileLocationsMs(long getFileLocationsMs) {
     mGetFileLocationsMs = getFileLocationsMs;
+    return this;
   }
 
   public long getGetFileSizeMs() {
     return mGetFileSizeMs;
   }
 
-  public void setGetFileSizeMs(long getFileSizeMs) {
+  public SleepingUnderFileSystemOptions setGetFileSizeMs(long getFileSizeMs) {
     mGetFileSizeMs = getFileSizeMs;
+    return this;
   }
 
   public long getGetGroupMs() {
     return mGetGroupMs;
   }
 
-  public void setGetGroupMs(long getGroupMs) {
+  public SleepingUnderFileSystemOptions setGetGroupMs(long getGroupMs) {
     mGetGroupMs = getGroupMs;
+    return this;
   }
 
   public long getGetModeMs() {
     return mGetModeMs;
   }
 
-  public void setGetModeMs(long getModeMs) {
+  public SleepingUnderFileSystemOptions setGetModeMs(long getModeMs) {
     mGetModeMs = getModeMs;
+    return this;
   }
 
   public long getGetModificationTimeMs() {
     return mGetModificationTimeMs;
   }
 
-  public void setGetModificationTimeMs(long getModificationTimeMs) {
+  public SleepingUnderFileSystemOptions setGetModificationTimeMs(long getModificationTimeMs) {
     mGetModificationTimeMs = getModificationTimeMs;
+    return this;
   }
 
   public long getGetOwnerMs() {
     return mGetOwnerMs;
   }
 
-  public void setGetOwnerMs(long getOwnerMs) {
+  public SleepingUnderFileSystemOptions setGetOwnerMs(long getOwnerMs) {
     mGetOwnerMs = getOwnerMs;
+    return this;
   }
 
   public long getGetSpaceMs() {
     return mGetSpaceMs;
   }
 
-  public void setGetSpaceMs(long getSpaceMs) {
+  public SleepingUnderFileSystemOptions setGetSpaceMs(long getSpaceMs) {
     mGetSpaceMs = getSpaceMs;
+    return this;
   }
 
   public long getGetUnderFSTypeMs() {
     return mGetUnderFSTypeMs;
   }
 
-  public void setGetUnderFSTypeMs(long getUnderFSTypeMs) {
+  public SleepingUnderFileSystemOptions setGetUnderFSTypeMs(long getUnderFSTypeMs) {
     mGetUnderFSTypeMs = getUnderFSTypeMs;
+    return this;
   }
 
   public long getIsDirectoryMs() {
     return mIsDirectoryMs;
   }
 
-  public void setIsDirectoryMs(long isDirectoryMs) {
+  public SleepingUnderFileSystemOptions setIsDirectoryMs(long isDirectoryMs) {
     mIsDirectoryMs = isDirectoryMs;
+    return this;
   }
 
   public long getIsFileMs() {
     return mIsFileMs;
   }
 
-  public void setIsFileMs(long isFileMs) {
+  public SleepingUnderFileSystemOptions setIsFileMs(long isFileMs) {
     mIsFileMs = isFileMs;
+    return this;
   }
 
   public long getListStatusMs() {
     return mListStatusMs;
   }
 
-  public void setListStatusMs(long listStatusMs) {
+  public SleepingUnderFileSystemOptions setListStatusMs(long listStatusMs) {
     mListStatusMs = listStatusMs;
+    return this;
   }
 
   public long getMkdirsMs() {
     return mMkdirsMs;
   }
 
-  public void setMkdirsMs(long mkdirsMs) {
+  public SleepingUnderFileSystemOptions setMkdirsMs(long mkdirsMs) {
     mMkdirsMs = mkdirsMs;
+    return this;
   }
 
   public long getOpenMs() {
     return mOpenMs;
   }
 
-  public void setOpenMs(long openMs) {
+  public SleepingUnderFileSystemOptions setOpenMs(long openMs) {
     mOpenMs = openMs;
+    return this;
   }
 
   public long getRenameDirectoryMs() {
     return mRenameDirectoryMs;
   }
 
-  public void setRenameDirectoryMs(long renameDirectoryMs) {
+  public SleepingUnderFileSystemOptions setRenameDirectoryMs(long renameDirectoryMs) {
     mRenameDirectoryMs = renameDirectoryMs;
+    return this;
   }
 
   public long getRenameFileMs() {
     return mRenameFileMs;
   }
 
-  public void setRenameFileMs(long renameFileMs) {
+  public SleepingUnderFileSystemOptions setRenameFileMs(long renameFileMs) {
     mRenameFileMs = renameFileMs;
+    return this;
   }
 
   public long getRenameTemporaryFileMs() {
     return mRenameTemporaryFileMs;
   }
 
-  public void setRenameTemporaryFileMs(long renameTemporaryFileMs) {
+  public SleepingUnderFileSystemOptions setRenameTemporaryFileMs(long renameTemporaryFileMs) {
     mRenameTemporaryFileMs = renameTemporaryFileMs;
+    return this;
   }
 
   public long getSetConfMs() {
     return mSetConfMs;
   }
 
-  public void setSetConfMs(long setConfMs) {
+  public SleepingUnderFileSystemOptions setSetConfMs(long setConfMs) {
     mSetConfMs = setConfMs;
+    return this;
   }
 
   public long getSetOwnerMs() {
     return mSetOwnerMs;
   }
 
-  public void setSetOwnerMs(long setOwnerMs) {
+  public SleepingUnderFileSystemOptions setSetOwnerMs(long setOwnerMs) {
     mSetOwnerMs = setOwnerMs;
+    return this;
   }
 
   public long getSetModeMs() {
     return mSetModeMs;
   }
 
-  public void setSetModeMs(long setModeMs) {
+  public SleepingUnderFileSystemOptions setSetModeMs(long setModeMs) {
     mSetModeMs = setModeMs;
+    return this;
   }
 
   public long getSupportsFlushMs() {
     return mSupportsFlushMs;
   }
 
-  public void setSupportsFlushMs(long supportsFlushMs) {
+  public SleepingUnderFileSystemOptions setSupportsFlushMs(long supportsFlushMs) {
     mSupportsFlushMs = supportsFlushMs;
+    return this;
   }
 }
