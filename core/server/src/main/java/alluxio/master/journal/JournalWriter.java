@@ -135,14 +135,7 @@ public final class JournalWriter {
     return mCheckpointOutputStream;
   }
 
-  /**
-   * Returns an output stream for the journal entries. The returned output stream is a singleton for
-   * this writer.
-   *
-   * @return the output stream for the journal entries
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized JournalOutputStream getEntryOutputStream() throws IOException {
+  public synchronized void writeEntry(JournalEntry entry) throws IOException {
     if (mCheckpointOutputStream == null || !mCheckpointOutputStream.isClosed()) {
       throw new IOException("The checkpoint must be written and closed before writing entries.");
     }
@@ -150,7 +143,17 @@ public final class JournalWriter {
       mEntryOutputStream = new EntryOutputStream(mUfs, mJournal.getCurrentLogFilePath(),
           mJournal.getJournalFormatter(), this);
     }
-    return mEntryOutputStream;
+    mEntryOutputStream.writeEntry(entry);
+  }
+
+  public synchronized void flushEntry() throws IOException {
+    if (mCheckpointOutputStream == null || !mCheckpointOutputStream.isClosed()) {
+      throw new IOException("The checkpoint must be written and closed before writing entries.");
+    }
+    if (mEntryOutputStream == null) { // no entries to flush
+      return;
+    }
+    mEntryOutputStream.flush();
   }
 
   /**
