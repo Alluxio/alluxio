@@ -215,7 +215,7 @@ public class FileSystemMasterIntegrationTest {
   /**
    * Tests concurrent rename of files.
    *
-   * @throws Exception
+   * @throws Exception if an error occurs during creating or renaming files
    */
   @Test
   public void concurrentRename() throws Exception {
