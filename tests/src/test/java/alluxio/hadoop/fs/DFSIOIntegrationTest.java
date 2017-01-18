@@ -232,7 +232,7 @@ public class DFSIOIntegrationTest implements Tool {
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     sBench.cleanup(fs);
   }
-  
+
   public static void writeTest() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());

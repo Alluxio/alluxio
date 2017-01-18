@@ -75,10 +75,9 @@ public class RemoteBlockInStreamIntegrationTest {
     // creates a new instance of RemoteBlockInStreamTest for each network type
     List<Object[]> list = new ArrayList<>();
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
+        IntegrationTestConstants.MAPPED_TRANSFER});
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.FILE_CHANNEL_TRANSFER,
-        IntegrationTestConstants.NETTY_BLOCK_READER});
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
     return list;
   }
 
