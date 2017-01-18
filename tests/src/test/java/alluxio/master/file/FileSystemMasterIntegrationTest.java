@@ -213,8 +213,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   /**
-   * A test function to create files from ROOT_PATH depends on the given depth concurrently, then to rename the created
-   + files concurrently.
+   * Tests concurrent rename of files.
    *
    * @throws Exception
    */
@@ -956,8 +955,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   /**
-   * A class to start a thread to create file, complete file and delete file continuity, until the thread is
-   * set to stop.
+   *  A class to start a thread that creates a file, completes the file and then deletes the file.
    */
   private class ConcurrentCreateDelete implements Callable<Void> {
     private final CyclicBarrier mStartBarrier;
