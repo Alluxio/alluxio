@@ -269,6 +269,9 @@ public abstract class AbstractMaster implements Master {
       }
     }
     LOG.error("Journal flush failed after retries. Terminating process to prevent inconsistency.");
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+      throw new RuntimeException();
+    }
     System.exit(1);
   }
 
