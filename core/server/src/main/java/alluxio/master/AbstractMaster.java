@@ -23,6 +23,8 @@ import alluxio.master.journal.JournalTailerThread;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.TimeoutRetry;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.google.common.base.Preconditions;
@@ -251,11 +253,19 @@ public abstract class AbstractMaster implements Master {
       return;
     }
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
-    try {
-      mAsyncJournalWriter.flush(counter);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+
+    // TODO(gpang): add configurable parameter
+    RetryPolicy retry = new TimeoutRetry(300000, 1000);
+    while (retry.attemptRetry()) {
+      try {
+        mAsyncJournalWriter.flush(counter);
+        return;
+      } catch (IOException e) {
+        LOG.warn("Journal flush failed. retrying...", e);
+      }
     }
+    LOG.error("Journal flush failed after retries. Terminating process to prevent inconsistency.");
+    System.exit(0);
   }
 
   /**
