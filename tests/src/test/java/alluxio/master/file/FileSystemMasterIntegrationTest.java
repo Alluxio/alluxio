@@ -955,7 +955,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   /**
-   *  A class to start a thread that creates a file, completes the file and then deletes the file.
+   * A class to start a thread that creates a file, completes the file and then deletes the file.
    */
   private class ConcurrentCreateDelete implements Callable<Void> {
     private final CyclicBarrier mStartBarrier;
