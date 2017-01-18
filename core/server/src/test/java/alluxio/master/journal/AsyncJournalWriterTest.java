@@ -90,7 +90,6 @@ public class AsyncJournalWriterTest {
     writesAndFlushesInternal(true);
   }
 
-
   public void failedWriteInternal(boolean batchingEnabled) throws Exception {
     setupAsyncJournalWriter(batchingEnabled);
     int entries = 5;
@@ -146,7 +145,6 @@ public class AsyncJournalWriterTest {
     failedWriteInternal(true);
   }
 
-
   public void failedFlushInternal(boolean batchingEnabled) throws Exception {
     setupAsyncJournalWriter(batchingEnabled);
     int entries = 5;
@@ -200,5 +198,4 @@ public class AsyncJournalWriterTest {
   public void failedFlushWithBatching() throws Exception {
     failedFlushInternal(true);
   }
-
 }
