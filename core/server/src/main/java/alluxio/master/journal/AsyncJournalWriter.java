@@ -135,7 +135,7 @@ public final class AsyncJournalWriter {
           }
         }
       }
-      mJournalWriter.flushEntry();
+      mJournalWriter.flushEntryStream();
       mFlushCounter.set(flushCounter);
     } finally {
       mFlushLock.unlock();
