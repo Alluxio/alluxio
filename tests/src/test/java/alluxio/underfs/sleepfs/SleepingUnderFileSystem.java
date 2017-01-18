@@ -32,6 +32,7 @@ import java.util.List;
  * operation. The operation behavior will be equivalent to that of {@link LocalUnderFileSystem}.
  */
 public class SleepingUnderFileSystem extends LocalUnderFileSystem {
+  private static final String SLEEP_SCHEME = "sleep";
   private final SleepingUnderFileSystemOptions mOptions;
 
   /**
@@ -230,15 +231,16 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
    * @return a path without the sleep scheme
    */
   private String cleanPath(String path) {
-    if (path.startsWith("sleep://")) {
-      return path.substring(8);
+    AlluxioURI uri = new AlluxioURI(path);
+    if (SLEEP_SCHEME.equals(uri.getScheme())) {
+      return uri.getPath();
     }
     return path;
   }
 
   /**
-   * Waits for the specified duration if the duration is non-negative. The thread will sleep if
-   * the duration is 0.
+   * Waits for the specified duration if the duration is non-negative. A duration of 0 is
+   * equivalent to calling Thread.sleep(0).
    *
    * @param duration time to sleep, negative if the thread should not sleep
    */
