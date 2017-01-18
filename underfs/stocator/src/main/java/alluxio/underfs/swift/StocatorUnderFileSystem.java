@@ -301,6 +301,9 @@ public class StocatorUnderFileSystem extends BaseUnderFileSystem {
 
   private boolean delete(String path, boolean recursive) throws IOException {
     LOG.debug("Delete method: {}, recursive {}", path, recursive);
+    if (PathUtils.isTemporaryFileName(path)) {
+      return true;
+    }
     return mFileSystem.delete(new Path(path), recursive);
   }
 
