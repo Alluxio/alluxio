@@ -212,6 +212,11 @@ public class FileSystemMasterIntegrationTest {
     concurrentFreer.call();
   }
 
+  /**
+   * Tests concurrent rename of files.
+   *
+   * @throws Exception if an error occurs during creating or renaming files
+   */
   @Test
   public void concurrentRename() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -949,6 +954,9 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  /**
+   * A class to start a thread that creates a file, completes the file and then deletes the file.
+   */
   private class ConcurrentCreateDelete implements Callable<Void> {
     private final CyclicBarrier mStartBarrier;
     private final AtomicBoolean mStopThread;
