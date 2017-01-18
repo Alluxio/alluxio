@@ -191,7 +191,7 @@ public class FileSystemMasterIntegrationTest {
   /**
    * Tests concurrent delete of files.
    *
-   * @throws Exception
+   * @throws Exception if an error occurs during creating or deleting files
    */
   @Test
   public void concurrentDelete() throws Exception {
@@ -210,7 +210,7 @@ public class FileSystemMasterIntegrationTest {
   /**
    * Tests concurrent free of files.
    *
-   * @throws Exception
+   * @throws Exception if an error occurs during creating or freeing files
    */
   @Test
   public void concurrentFree() throws Exception {
