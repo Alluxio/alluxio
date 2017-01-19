@@ -18,7 +18,7 @@ import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * An option which allows retrying based on a maximum retry timeout.
+ * A retry policy which allows retrying based on a maximum retry timeout.
  */
 @NotThreadSafe
 public class TimeoutRetry implements RetryPolicy {
