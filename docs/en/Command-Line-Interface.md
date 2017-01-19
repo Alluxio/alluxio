@@ -198,8 +198,10 @@ The `free` command sends a request to the master to evict all blocks of a file f
 workers. If the argument to `free` is a directory, it will recursively `free` all files. This
 request is not guaranteed to take effect immediately, as readers may be currently using the blocks
 of the file. `Free` will return immediately after the request is acknowledged by the master. Note
-that `free` does not delete any data from the under storage system, and only affects data stored in
-Alluxio space. In addition, metadata will not be affected by this operation, meaning the freed file
+that, files must be persisted already in under storage before being freed, or the `free` command will fail;
+also any pinned files cannot be freed unless `-f` option is specified. The `free` command
+does not delete any data from the under storage system, but only removing the blocks of those files in
+Alluxio space to reclaim space. In addition, metadata will not be affected by this operation, meaning the freed file
 will still show up if an `ls` command is run.
 
 For example, `free` can be used to manually manage Alluxio's data caching.
