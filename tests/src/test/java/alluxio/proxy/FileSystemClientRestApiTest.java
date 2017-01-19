@@ -31,7 +31,6 @@ import alluxio.rest.TestCase;
 import alluxio.rest.TestCaseOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
