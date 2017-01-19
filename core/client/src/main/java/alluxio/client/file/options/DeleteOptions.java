@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.thrift.DeleteTOptions;
 
 import com.google.common.base.Objects;
 
@@ -24,6 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class DeleteOptions {
   private boolean mRecursive;
+  private boolean mRemoveUFSFile;
 
   /**
    * @return the default {@link DeleteOptions}
@@ -34,6 +36,7 @@ public final class DeleteOptions {
 
   private DeleteOptions() {
     mRecursive = false;
+    mRemoveUFSFile = true;
   }
 
   /**
@@ -42,6 +45,14 @@ public final class DeleteOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @return the removeUFSFile flag value; the flag specifies whether the file content should
+   *         be deleted from the under storage file system.
+   */
+  public boolean isRemoveUFSFile() {
+    return mRemoveUFSFile;
   }
 
   /**
@@ -56,6 +67,18 @@ public final class DeleteOptions {
     return this;
   }
 
+  /**
+   * Sets the removeUFSFile flag.
+   *
+   * @param removeUFSFile the removeUFSFile flag value to use; the flag specifies whether the file
+   *        content should be deleted from the under storage file system.
+   * @return the updated options object
+   */
+  public DeleteOptions setRemoveUFSFile(boolean removeUFSFile) {
+    mRemoveUFSFile = removeUFSFile;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -65,18 +88,30 @@ public final class DeleteOptions {
       return false;
     }
     DeleteOptions that = (DeleteOptions) o;
-    return Objects.equal(mRecursive, that.mRecursive);
+    return Objects.equal(mRecursive, that.mRecursive) && Objects.equal(mRemoveUFSFile,
+        that.mRemoveUFSFile);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive);
+    return Objects.hashCode(mRecursive, mRemoveUFSFile);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("recursive", mRecursive)
+        .add("removeUFSFile", mRemoveUFSFile)
         .toString();
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public DeleteTOptions toThrift() {
+    DeleteTOptions options = new DeleteTOptions();
+    options.setRecursive(mRecursive);
+    options.setRemoveUFSFile(mRemoveUFSFile);
+    return options;
   }
 }
