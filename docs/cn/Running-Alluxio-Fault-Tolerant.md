@@ -85,7 +85,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 除了以上配置，Alluxio master需要额外的配置，以下变量需在`conf/alluxio-site.properties`中正确设置：
 
-    export alluxio.master.hostname=[externally visible address of this machine]
+   alluxio.master.hostname=[externally visible address of this machine]
 
 同样，指定正确的日志文件夹需在`conf/alluxio-site.properties`中设置`alluxio.master.journal.folder`，举例而言，如果
 使用HDFS来存放日志，可以添加：
@@ -97,7 +97,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### Worker配置
 
-只要以上参数配置正确，worker就可以咨询ZooKeeper，找到当前应当连接的master。所以，worker无需设置`Alluxio master hostname`。
+只要以上参数配置正确，worker就可以咨询ZooKeeper，找到当前应当连接的master。所以，worker无需设置`alluxio.master.hostname`。
 
 > 注意: 当在容错模式下运行Alluxio, worker的默认心跳超时时间可能太短。
 > 为了能在master进行故障转移时正确处理master的状态，建议将worker的默认心跳超时时间设置的长点。
