@@ -27,17 +27,11 @@ Alluxio master 主页如下所示:
 
 主页显示了系统状态的概要信息，包括以下部分：
 
-* **Alluxio概要**
+* **Alluxio概要** Alluxio系统级信息
 
-    Alluxio系统级信息
+* **集群使用概要** Alluxio存储信息和底层存储信息。Alluxio的存储使用可以接近100%，但底层的存储使用不应该接近100%。
 
-* **集群使用概要**
-
-    Alluxio存储信息和底层存储信息。Alluxio的存储使用可以接近100%，但底层的存储使用不应该接近100%。
-
-* **存储使用概要**
-
-   Alluxio分层存储信息，分项列出了Alluxio集群中每层存储空间的使用量。
+* **存储使用概要** Alluxio分层存储信息，分项列出了Alluxio集群中每层存储空间的使用量。
 
 ## 配置页面
 
@@ -47,13 +41,9 @@ Alluxio master 主页如下所示:
 
 配置页面包含两部分:
 
-* **Alluxio配置**
+* **Alluxio配置** 所有Alluxio配置的属性和设定值的映射。
 
-     所有Alluxio配置的属性和设定值的映射。
-
-* **白名单**
-
-    包含所有符合要求的可以存储在Alluxio上的Alluxio路径前缀。用户可以访问路径前缀不在白名单上的文件。只有白名单中的文件可以存储在Alluxio上。
+* **白名单** 包含所有符合要求的可以存储在Alluxio上的Alluxio路径前缀。用户可以访问路径前缀不在白名单上的文件。只有白名单中的文件可以存储在Alluxio上。
 
 ## 浏览文件系统
 
@@ -81,13 +71,9 @@ master也显示了系统中所有已知的Alluxio worker。点击"Workers"选项
 
 workers页面将所有Alluxio worker节点分为两类显示：
 
-* **存活节点**
+* **存活节点** 所有当前可以处理Alluxio请求的节点列表。点击worker名将重定向到worker的web UI页面。
 
-    所有当前可以处理Alluxio请求的节点列表。点击worker名将重定向到worker的web UI页面。
-
-* **失效节点**
-
-    所有被master宣布失效的worker列表，通常是因为等待worker心跳超时，可能的原因包括worker系统重启或网络故障。
+* **失效节点** 所有被master宣布失效的worker列表，通常是因为等待worker心跳超时，可能的原因包括worker系统重启或网络故障。
 
 ## Master度量信息 
 
@@ -97,17 +83,11 @@ workers页面将所有Alluxio worker节点分为两类显示：
 
 这一部分显示了master的所有度量信息，包括：
 
-* **Master整体指标**
+* **Master整体指标** 集群的整体度量信息。
 
-    集群的整体度量信息。
+* **逻辑操作** 执行的操作数量。
 
-* **逻辑操作**
-
-    执行的操作数量。
-
-* **RPC调用**
-
-    每个操作的RPC调用次数。
+* **RPC调用** 每个操作的RPC调用次数。
 
 # Alluxio Workers Web界面
 
@@ -133,10 +113,6 @@ Alluxio worker的主页和Alluxio master类似，但是显示的是单个worker�
 
 这一部分显示了worker的所有度量信息，包括：
 
-* **Worker整体指标**
+* **Worker整体指标** Worker的整体度量信息。
 
-    Worker的整体度量信息。
-
-* **逻辑操作**
-
-    执行的操作数量。
+* **逻辑操作** 执行的操作数量。
