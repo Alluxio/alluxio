@@ -3098,7 +3098,7 @@ public final class FileSystemMaster extends AbstractMaster {
           if (path != null) {
             try {
               TtlAction ttlAction = inode.getTtlAction();
-              LOG.debug("Path {} has expired. Performing action {}", path, ttlAction);
+              LOG.debug("Path {} has expired. Performing action {}", path.getPath(), ttlAction);
               switch (ttlAction) {
                 case FREE:
                   // public free method will lock the path, and check WRITE permission required at
