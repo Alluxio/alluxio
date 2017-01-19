@@ -123,7 +123,7 @@ public final class AsyncJournalWriter {
             // No more entries in the queue. Break out of the infinite for-loop.
             break;
           }
-          mJournalWriter.getEntryOutputStream().writeEntry(entry);
+          mJournalWriter.writeEntry(entry);
           flushCounter++;
 
           if (flushCounter >= counter) {
@@ -135,7 +135,7 @@ public final class AsyncJournalWriter {
           }
         }
       }
-      mJournalWriter.getEntryOutputStream().flush();
+      mJournalWriter.flushEntryStream();
       mFlushCounter.set(flushCounter);
     } finally {
       mFlushLock.unlock();
