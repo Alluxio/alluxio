@@ -223,7 +223,7 @@ public abstract class AbstractMaster implements Master {
   protected void writeJournalEntry(JournalEntry entry) {
     Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {
-      mJournalWriter.getEntryOutputStream().writeEntry(entry);
+      mJournalWriter.writeEntry(entry);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -235,7 +235,7 @@ public abstract class AbstractMaster implements Master {
   protected void flushJournal() {
     Preconditions.checkNotNull(mJournalWriter, "Cannot flush journal: journal writer is null.");
     try {
-      mJournalWriter.getEntryOutputStream().flush();
+      mJournalWriter.flushEntryStream();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
