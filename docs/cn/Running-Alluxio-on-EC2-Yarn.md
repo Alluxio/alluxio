@@ -74,7 +74,7 @@ Alluxio Web UI的默认端口为**19999**。
 
 Hadoop Web UI的默认端口为**50070**。
 
-在浏览器中输入`http://{MASTER_IP}:{PORT}`地址访问Web UIs。
+在浏览器中输入`http://{MASTER_IP}:{PORT}`地址访问Web UI。
 
 也能通过[AWS web console](https://console.aws.amazon.com/console/home?region=us-east-1)监视其状态。
 
