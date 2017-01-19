@@ -71,7 +71,7 @@ public final class FreeCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void free() throws IOException, AlluxioException {
     String fileName = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.CACHE_THROUGH, 10);
     long blockId = mFileSystem.getStatus(new AlluxioURI(fileName)).getBlockIds().get(0);
     Assert.assertEquals(0, mFsShell.run("free", fileName));
     IntegrationTestUtils.waitForBlocksToBeFreed(
@@ -123,7 +123,7 @@ public final class FreeCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void freeWildCard() throws IOException, AlluxioException {
-    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem, WriteType.CACHE_THROUGH);
     long blockId1 =
         mFileSystem.getStatus(new AlluxioURI(testDir + "/foo/foobar1")).getBlockIds().get(0);
     long blockId2 =
@@ -149,5 +149,4 @@ public final class FreeCommandTest extends AbstractAlluxioShellTest {
     Assert.assertFalse(isInMemoryTest(testDir + "/bar/foobar3"));
     Assert.assertFalse(isInMemoryTest(testDir + "/foobar4"));
   }
-
 }
