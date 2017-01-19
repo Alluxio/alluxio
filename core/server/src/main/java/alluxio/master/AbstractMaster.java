@@ -259,7 +259,7 @@ public abstract class AbstractMaster implements Master {
     }
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
 
-    RetryPolicy retry = new TimeoutRetry(JOURNAL_FLUSH_RETRY_TIMEOUT_MS);
+    RetryPolicy retry = new TimeoutRetry(JOURNAL_FLUSH_RETRY_TIMEOUT_MS, Constants.SECOND_MS);
     int attempts = 0;
     while (retry.attemptRetry()) {
       try {
@@ -268,7 +268,6 @@ public abstract class AbstractMaster implements Master {
         return;
       } catch (IOException e) {
         LOG.warn("Journal flush failed. retrying...", e);
-        CommonUtils.sleepMs(Constants.SECOND_MS);
       }
     }
     LOG.error(

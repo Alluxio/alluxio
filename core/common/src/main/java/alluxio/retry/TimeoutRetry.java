@@ -24,6 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class TimeoutRetry implements RetryPolicy {
 
   private final long mRetryTimeoutMs;
+  private final long mSleepMs;
   private long mStartMs = 0;
   private int mCount = 0;
 
@@ -31,10 +32,13 @@ public class TimeoutRetry implements RetryPolicy {
    * Constructs a retry facility which allows a maximum retry timeout.
    *
    * @param retryTimeoutMs maximum period of time to retry for, in milliseconds
+   * @param sleepMs time in milliseconds to sleep before retrying
    */
-  public TimeoutRetry(long retryTimeoutMs) {
+  public TimeoutRetry(long retryTimeoutMs, int sleepMs) {
     Preconditions.checkArgument(retryTimeoutMs > 0, "Retry timeout must be a positive number");
+    Preconditions.checkArgument(sleepMs >= 0, "sleepMs cannot be negative");
     mRetryTimeoutMs = retryTimeoutMs;
+    mSleepMs = sleepMs;
   }
 
   @Override
@@ -51,6 +55,9 @@ public class TimeoutRetry implements RetryPolicy {
       return true;
     }
 
+    if (mSleepMs > 0) {
+      CommonUtils.sleepMs(mSleepMs);
+    }
     if ((CommonUtils.getCurrentMs() - mStartMs) <= mRetryTimeoutMs) {
       mCount++;
       return true;
