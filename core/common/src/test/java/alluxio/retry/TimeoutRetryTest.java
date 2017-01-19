@@ -26,7 +26,7 @@ public class TimeoutRetryTest {
   public void timeout() {
     final long timeoutMs = 1000;
     int attempts = 0;
-    TimeoutRetry timeoutRetry = new TimeoutRetry(timeoutMs, 0);
+    TimeoutRetry timeoutRetry = new TimeoutRetry(timeoutMs);
     Assert.assertEquals(0, timeoutRetry.getRetryCount());
     long startMs = System.currentTimeMillis();
     while (timeoutRetry.attemptRetry()) {
@@ -36,26 +36,5 @@ public class TimeoutRetryTest {
     Assert.assertTrue(attempts > 0);
     Assert.assertTrue((endMs - startMs) >= timeoutMs);
     Assert.assertEquals(attempts, timeoutRetry.getRetryCount());
-  }
-
-  /**
-   * Tests the sleep parameter between attempts.
-   */
-  @Test
-  public void sleep() {
-    final long timeoutMs = 1000;
-    final int sleepMs = 100;
-    int attempts = 0;
-    TimeoutRetry timeoutRetry = new TimeoutRetry(timeoutMs, sleepMs);
-    Assert.assertEquals(0, timeoutRetry.getRetryCount());
-    long startMs = System.currentTimeMillis();
-    while (timeoutRetry.attemptRetry()) {
-      attempts++;
-    }
-    long endMs = System.currentTimeMillis();
-    Assert.assertTrue(attempts > 0);
-    Assert.assertTrue((endMs - startMs) >= timeoutMs);
-    Assert.assertEquals(attempts, timeoutRetry.getRetryCount());
-    Assert.assertTrue(attempts <= timeoutMs / sleepMs);
   }
 }
