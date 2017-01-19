@@ -95,8 +95,8 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     /**
      * Constructor of enum _Fields.
      *
-     * @param thriftId
-     * @param fieldName
+     * @param thriftId the value of the _thriftId
+     * @param fieldName the value of the _fieldName
      */
     _Fields(short thriftId, String fieldName) {
       _thriftId = thriftId;
@@ -137,7 +137,7 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
   /**
    * Constructor of class JobConfInfo
    *
-   * @param outputFile
+   * @param outputFile the value of outputFile
    */
   public JobConfInfo(
     String outputFile)
@@ -329,7 +329,7 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
 
   /**
    * @param iprot the TProtocol to be readed
-   * @throws org.apache.thrift.TException if read TProtocol is failed
+   * @throws org.apache.thrift.TException if reading TProtocol is failed
    */
   public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
     schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
@@ -337,7 +337,7 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
 
   /**
    * @param oprot the TProtocol to be writted
-   * @throws org.apache.thrift.TException if write TProtocol is failed
+   * @throws org.apache.thrift.TException if writting TProtocol is failed
    */
   public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
     schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
