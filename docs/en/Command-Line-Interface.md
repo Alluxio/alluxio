@@ -360,10 +360,10 @@ to a directory, all the children inside that directory will set too. So a direct
 all the children inside that directory will also expire. Action parameter will indicate the action
 to perform once the current time is greater than the TTL + creation time of the file.
 Action `delete` (default) will delete file or directory from both Alluxio and the under storage system,
-whereas action `free` will just free the file from Alluxio.
+whereas action `free` will just free the file from Alluxio even they are pinned.
 
 For example, `setTtl` with action `delete` can be used to clean up files the administrator knows are
-unnecessary after a period of time, or with action 'free' just remove the contents from Alluxio to
+unnecessary after a period of time, or with action `free` just remove the contents from Alluxio to
 make room for more space in Alluxio.
 
 {% include Command-Line-Interface/setTtl.md %}
