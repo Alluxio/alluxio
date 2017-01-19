@@ -28,6 +28,11 @@ struct CreateFileTOptions {
   6: optional common.TTtlAction ttlAction
 }
 
+struct DeleteTOptions {
+  1: optional bool recursive
+  2: optional bool removeUFSFile
+}
+
 struct MountTOptions {
   1: optional bool readOnly
   2: optional map<string, string> properties
@@ -244,7 +249,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
    */
   void remove(
     /** the path of the file or directory */ 1: string path,
-    /** whether to remove recursively */ 2: bool recursive,
+    /** the options for deleting the file */ 2: DeleteTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 
