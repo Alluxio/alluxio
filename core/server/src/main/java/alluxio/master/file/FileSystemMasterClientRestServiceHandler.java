@@ -19,6 +19,7 @@ import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteFileOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -389,7 +390,9 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        mFileSystemMaster.delete(new AlluxioURI(path), recursive);
+        DeleteFileOptions deleteFileOptions = DeleteFileOptions.defaults();
+        deleteFileOptions.setRecursive(recursive);
+        mFileSystemMaster.delete(new AlluxioURI(path), deleteFileOptions);
         return null;
       }
     });

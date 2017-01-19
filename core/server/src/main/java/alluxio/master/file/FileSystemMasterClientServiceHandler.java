@@ -21,6 +21,7 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteFileOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -30,6 +31,7 @@ import alluxio.thrift.CheckConsistencyTOptions;
 import alluxio.thrift.CompleteFileTOptions;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.thrift.CreateFileTOptions;
+import alluxio.thrift.DeleteTOptions;
 import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
@@ -257,12 +259,12 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public void remove(final String path, final boolean recursive)
+  public void remove(final String path, final DeleteTOptions options)
       throws AlluxioTException, ThriftIOException {
     RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
-        mFileSystemMaster.delete(new AlluxioURI(path), recursive);
+        mFileSystemMaster.delete(new AlluxioURI(path), new DeleteFileOptions(options));
         return null;
       }
     });
