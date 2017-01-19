@@ -65,14 +65,29 @@ public final class AlluxioShellUtilsTest {
     }
   }
 
+  /** Type of file system. */
   public enum FsType {
     TFS, LOCAL
   }
 
+  /**
+   * Reset the file hierarchy.
+   *
+   * @return the test directory
+   * @throws IOException
+   * @throws AlluxioException
+   */
   public String resetFileHierarchy() throws IOException, AlluxioException {
     return resetFileHierarchy(mFileSystem);
   }
 
+  /**
+   * Reset the file hierarchy.
+   *
+   * @return the test directory
+   * @throws IOException
+   * @throws AlluxioException
+   */
   public static String resetFileHierarchy(FileSystem fs)
       throws IOException, AlluxioException {
     /**
@@ -98,10 +113,22 @@ public final class AlluxioShellUtilsTest {
     return TEST_DIR;
   }
 
+  /**
+   * Reset the local file hierarchy.
+   *
+   * @return the local test directory
+   * @throws IOException
+   */
   public String resetLocalFileHierarchy() throws IOException {
     return resetLocalFileHierarchy(mLocalAlluxioClusterResource.get());
   }
 
+  /**
+   * Reset the local file hierarchy.
+   *
+   * @return the local test directory
+   * @throws IOException
+   */
   public static String resetLocalFileHierarchy(LocalAlluxioCluster localAlluxioCluster)
       throws IOException {
     /**
@@ -126,6 +153,15 @@ public final class AlluxioShellUtilsTest {
     return localAlluxioCluster.getAlluxioHome() + TEST_DIR;
   }
 
+  /**
+   * Gets all the file paths that match the inputPath depending on fsType.
+   *
+   * @param path the input path
+   * @param fsType the type of file system
+   * @return a list of files that matches inputPath
+   * @throws IOException
+   * @throws TException
+   */
   public List<String> getPaths(String path, FsType fsType) throws IOException, TException {
     List<String> ret = null;
     if (fsType == FsType.TFS) {
@@ -145,6 +181,14 @@ public final class AlluxioShellUtilsTest {
     return ret;
   }
 
+  /**
+   * Reset the file hierarchy depending on the type of file system.
+   *
+   * @param fsType the type of file system
+   * @return the test directory, null if the fsType is invalid
+   * @throws IOException
+   * @throws AlluxioException
+   */
   public String resetFsHierarchy(FsType fsType) throws IOException, AlluxioException {
     if (fsType == FsType.TFS) {
       return resetFileHierarchy();
