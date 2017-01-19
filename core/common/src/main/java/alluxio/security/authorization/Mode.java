@@ -109,6 +109,8 @@ public final class Mode {
   private Bits mGroupBits;
   private Bits mOtherBits;
 
+  private Mode() {} // needed for JSON serialization and deserialization
+
   /**
    * Constructs an instance of {@link Mode} with the given {@link Bits}.
    *

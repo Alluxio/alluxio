@@ -140,8 +140,8 @@ public final class TestCase {
     }
 
     connection.connect();
-    Assert
-        .assertEquals(mEndpoint, Response.Status.OK.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(connection.getResponseMessage(), Response.Status.OK.getStatusCode(),
+        connection.getResponseCode());
     return getResponse(connection);
   }
 
