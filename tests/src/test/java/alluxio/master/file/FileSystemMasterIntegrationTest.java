@@ -188,6 +188,11 @@ public class FileSystemMasterIntegrationTest {
     concurrentCreator.call();
   }
 
+  /**
+   * Tests concurrent delete of files.
+   *
+   * @throws Exception if an error occurs during creating or deleting files
+   */
   @Test
   public void concurrentDelete() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -202,6 +207,11 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
   }
 
+  /**
+   * Tests concurrent free of files.
+   *
+   * @throws Exception if an error occurs during creating or freeing files
+   */
   @Test
   public void concurrentFree() throws Exception {
     ConcurrentCreator concurrentCreator =
