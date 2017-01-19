@@ -35,14 +35,23 @@ public final class HadoopClientTestUtils {
     }
   }
 
+  /**
+   * @return true if the hadoop version is 1.x
+   */
   public static boolean isHadoop1x() {
     return getHadoopVersion().startsWith("1");
   }
 
+  /**
+   * @return true if the hadoop version is 2.x
+   */
   public static boolean isHadoop2x() {
     return getHadoopVersion().startsWith("2");
   }
 
+  /**
+   * @return the hadoop version
+   */
   public static String getHadoopVersion() {
     try {
       final URL url = getSourcePath(org.apache.hadoop.fs.FileSystem.class);
