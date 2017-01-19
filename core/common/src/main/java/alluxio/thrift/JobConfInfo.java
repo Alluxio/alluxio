@@ -104,14 +104,14 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     }
 
     /**
-     * @return the thrift id
+     * @return the _thriftId of _Fields
      */
     public short getThriftFieldId() {
       return _thriftId;
     }
 
     /**
-     * @return the field name
+     * @return the _fieldName of _Fields
      */
     public String getFieldName() {
       return _fieldName;
@@ -129,13 +129,13 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
   }
 
   /**
-   * default constructor.
+   * Default constructor.
    */
   public JobConfInfo() {
   }
 
   /**
-   * Constructor of class JobConfInfo
+   * Constructor of class JobConfInfo.
    *
    * @param outputFile the value of outputFile
    */
@@ -291,7 +291,7 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
   }
 
   /**
-   * Compare to a JobConfInfo object, return 0 if equal.
+   * Compare to a JobConfInfo object, return 0 if they are equal.
    *
    * @param other the JobConfInfo object to be compared
    * @return the compared result
