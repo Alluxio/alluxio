@@ -234,7 +234,7 @@ public class DFSIOIntegrationTest implements Tool {
   }
 
   /**
-   * writes into files, then calculates and collects the write test statistics.
+   * Writes into files, then calculates and collects the write test statistics.
    *
    * @throws Exception if has error
    */
