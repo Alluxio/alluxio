@@ -92,15 +92,27 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     private final short _thriftId;
     private final String _fieldName;
 
+    /**
+     * Constructor of enum _Fields.
+     *
+     * @param thriftId
+     * @param fieldName
+     */
     _Fields(short thriftId, String fieldName) {
       _thriftId = thriftId;
       _fieldName = fieldName;
     }
 
+    /**
+     * @return the thrift id
+     */
     public short getThriftFieldId() {
       return _thriftId;
     }
 
+    /**
+     * @return the field name
+     */
     public String getFieldName() {
       return _fieldName;
     }
@@ -116,9 +128,17 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(JobConfInfo.class, metaDataMap);
   }
 
+  /**
+   * default constructor.
+   */
   public JobConfInfo() {
   }
 
+  /**
+   * Constructor of class JobConfInfo
+   *
+   * @param outputFile
+   */
   public JobConfInfo(
     String outputFile)
   {
@@ -135,10 +155,16 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     }
   }
 
+  /**
+   * Performs a deep copy on itself.
+   *
+   * @return result object of deep copy
+   */
   public JobConfInfo deepCopy() {
     return new JobConfInfo(this);
   }
 
+  /** Clear the outputFile.*/
   @Override
   public void clear() {
     this.outputFile = null;
@@ -168,6 +194,12 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     }
   }
 
+  /**
+   * Set the value of outputFile.
+   *
+   * @param field the _Fields constant
+   * @param value the value to be setted
+   */
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case OUTPUT_FILE:
@@ -181,6 +213,12 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     }
   }
 
+  /**
+   * Get the object depends on the value of _Fields.
+   *
+   * @param field the value of _Fields
+   * @return the outputFile
+   */
   public Object getFieldValue(_Fields field) {
     switch (field) {
     case OUTPUT_FILE:
@@ -203,6 +241,12 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     throw new IllegalStateException();
   }
 
+  /**
+   * Judge if it is equal to the object <i>that</i>.
+   *
+   * @param that the object to be judged
+   * @return a boolean value
+   */
   @Override
   public boolean equals(Object that) {
     if (that == null)
@@ -212,6 +256,12 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     return false;
   }
 
+  /**
+   * Judge if it is equal to the object JobConfInfo <i>that</i>.
+   *
+   * @param that the JobConfInfo object to be judged
+   * @return boolean value
+   */
   public boolean equals(JobConfInfo that) {
     if (that == null)
       return false;
@@ -240,6 +290,12 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     return list.hashCode();
   }
 
+  /**
+   * Compare to a JobConfInfo object, return 0 if equal.
+   *
+   * @param other the JobConfInfo object to be compared
+   * @return the compared result
+   */
   @Override
   public int compareTo(JobConfInfo other) {
     if (!getClass().equals(other.getClass())) {
@@ -261,18 +317,35 @@ public class JobConfInfo implements org.apache.thrift.TBase<JobConfInfo, JobConf
     return 0;
   }
 
+  /**
+   * Find the _Fields constant that matches fieldId.
+   *
+   * @param fieldId the fieldId matched the _Fields constant
+   * @return the _Fields constant
+   */
   public _Fields fieldForId(int fieldId) {
     return _Fields.findByThriftId(fieldId);
   }
 
+  /**
+   * @param iprot the TProtocol to be readed
+   * @throws org.apache.thrift.TException if read TProtocol is failed
+   */
   public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
     schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
   }
 
+  /**
+   * @param oprot the TProtocol to be writted
+   * @throws org.apache.thrift.TException if write TProtocol is failed
+   */
   public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
     schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
   }
 
+  /**
+   * @return the String type of object
+   */
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("JobConfInfo(");
