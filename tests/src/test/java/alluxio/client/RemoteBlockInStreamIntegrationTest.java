@@ -75,14 +75,19 @@ public class RemoteBlockInStreamIntegrationTest {
     // creates a new instance of RemoteBlockInStreamTest for each network type
     List<Object[]> list = new ArrayList<>();
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
+        IntegrationTestConstants.MAPPED_TRANSFER});
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.FILE_CHANNEL_TRANSFER,
-        IntegrationTestConstants.NETTY_BLOCK_READER});
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
     return list;
   }
 
-  public RemoteBlockInStreamIntegrationTest(String dataServer, String transferType, String reader) {
+  /**
+   * Constructor for {@link RemoteBlockInStreamIntegrationTest}.
+   *
+   * @param dataServer the address of the worker's data server
+   * @param transferType the file transfer type used by the worker
+   */
+  public RemoteBlockInStreamIntegrationTest(String dataServer, String transferType) {
     mLocalAlluxioClusterResource = new LocalAlluxioClusterResource.Builder()
         .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, dataServer)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType)
