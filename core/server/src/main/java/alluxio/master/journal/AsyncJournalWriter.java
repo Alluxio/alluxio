@@ -41,10 +41,10 @@ public final class AsyncJournalWriter {
   private final ConcurrentLinkedQueue<JournalEntry> mQueue;
   /** Represents the count of entries added to the journal queue. */
   private final AtomicLong mCounter;
-  /** Represents the entries flushed to the journal writer. */
+  /** Represents the count of entries flushed to the journal writer. */
   private final AtomicLong mFlushCounter;
   /**
-   * Represents the entries written to the journal writer.
+   * Represents the count of entries written to the journal writer.
    * Invariant: {@code mWriteCounter >= mFlushCounter}
    */
   private final AtomicLong mWriteCounter;

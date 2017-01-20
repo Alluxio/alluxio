@@ -12,9 +12,8 @@ alluxio.master.format.file_prefix:
   was once formatted.
 alluxio.master.journal.flush.batch.time.ms:
   Time (in milliseconds) to wait for batching journal writes.
-alluxio.master.journal.flush.retry.timeout.ms:
-  The amount of time (in milliseconds) to keep retrying journal writes before considering the journal
-  location unavailable.
+alluxio.master.journal.flush.timeout.ms:
+  The amount of time (in milliseconds) to keep retrying journal writes before giving up and shutting down the master.
 alluxio.master.journal.folder:
   The path to store master journal logs.
 alluxio.master.journal.formatter.class:

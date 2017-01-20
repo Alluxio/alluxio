@@ -50,7 +50,7 @@ public abstract class AbstractMaster implements Master {
 
   private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
   private static final long JOURNAL_FLUSH_RETRY_TIMEOUT_MS =
-      Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_RETRY_TIMEOUT_MS);
+      Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
 
   /** A factory for creating executor services when they are needed. */
   private ExecutorServiceFactory mExecutorServiceFactory = null;
@@ -273,7 +273,8 @@ public abstract class AbstractMaster implements Master {
         "Journal flush failed after {} attempts. Terminating process to prevent inconsistency.",
         attempts);
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-      throw new RuntimeException();
+      throw new RuntimeException("Journal flush failed after " + attempts
+          + " attempts. Terminating process to prevent inconsistency.");
     }
     System.exit(-1);
   }

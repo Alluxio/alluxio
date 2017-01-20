@@ -12,8 +12,10 @@
 package alluxio.master.journal;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -25,6 +27,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -62,16 +65,20 @@ public class AsyncJournalWriterTest {
   public void writesAndFlushesInternal(boolean batchingEnabled) throws Exception {
     setupAsyncJournalWriter(batchingEnabled);
     int entries = 5;
-    long flushCounter;
 
     for (int i = 0; i < entries; i++) {
-      flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
+      long flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
       // Assuming the flush counter starts from 0.
       Assert.assertEquals(i + 1, flushCounter);
     }
 
     for (int i = 1; i <= entries; i++) {
       mAsyncJournalWriter.flush(i);
+    }
+    if (batchingEnabled) {
+      Mockito.verify(mMockJournalWriter, atLeastOnce()).flushEntryStream();
+    } else {
+      Mockito.verify(mMockJournalWriter, times(entries)).flushEntryStream();
     }
   }
 
@@ -88,22 +95,10 @@ public class AsyncJournalWriterTest {
   public void failedWriteInternal(boolean batchingEnabled) throws Exception {
     setupAsyncJournalWriter(batchingEnabled);
     int entries = 5;
-    long flushCounter;
 
     for (int i = 0; i < entries; i++) {
-      flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
+      long flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
       // Assuming the flush counter starts from 0
-      Assert.assertEquals(i + 1, flushCounter);
-    }
-
-    // Flushes should succeed.
-    for (int i = 1; i <= entries; i++) {
-      mAsyncJournalWriter.flush(i);
-    }
-
-    // Add additional entries.
-    for (int i = entries; i < 2 * entries; i++) {
-      flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
       Assert.assertEquals(i + 1, flushCounter);
     }
 
@@ -112,9 +107,9 @@ public class AsyncJournalWriterTest {
         .writeEntry(any(JournalEntry.class));
 
     // Flushes should fail.
-    for (int i = 0; i < entries; i++) {
+    for (int i = 1; i <= entries; i++) {
       try {
-        mAsyncJournalWriter.flush(entries + 1);
+        mAsyncJournalWriter.flush(1);
         Assert.fail("journal flush should not succeed if journal write fails.");
       } catch (IOException e) {
         // This is expected.
@@ -125,8 +120,13 @@ public class AsyncJournalWriterTest {
     doNothing().when(mMockJournalWriter).writeEntry(any(JournalEntry.class));
 
     // Flushes should succeed.
-    for (int i = entries + 1; i <= 2 * entries; i++) {
+    for (int i = 1; i <= entries; i++) {
       mAsyncJournalWriter.flush(i);
+    }
+    if (batchingEnabled) {
+      Mockito.verify(mMockJournalWriter, atLeastOnce()).flushEntryStream();
+    } else {
+      Mockito.verify(mMockJournalWriter, times(entries)).flushEntryStream();
     }
   }
 
@@ -143,22 +143,10 @@ public class AsyncJournalWriterTest {
   public void failedFlushInternal(boolean batchingEnabled) throws Exception {
     setupAsyncJournalWriter(batchingEnabled);
     int entries = 5;
-    long flushCounter;
 
     for (int i = 0; i < entries; i++) {
-      flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
+      long flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
       // Assuming the flush counter starts from 0
-      Assert.assertEquals(i + 1, flushCounter);
-    }
-
-    // Flushes should succeed.
-    for (int i = 1; i <= entries; i++) {
-      mAsyncJournalWriter.flush(i);
-    }
-
-    // Add additional entries.
-    for (int i = entries; i < 2 * entries; i++) {
-      flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
       Assert.assertEquals(i + 1, flushCounter);
     }
 
@@ -166,9 +154,9 @@ public class AsyncJournalWriterTest {
     doThrow(new IOException("flush failed")).when(mMockJournalWriter).flushEntryStream();
 
     // Flushes should fail.
-    for (int i = 0; i < entries; i++) {
+    for (int i = 1; i <= entries; i++) {
       try {
-        mAsyncJournalWriter.flush(entries + 1);
+        mAsyncJournalWriter.flush(1);
         Assert.fail("journal flush should not succeed if journal flush fails.");
       } catch (IOException e) {
         // This is expected.
@@ -179,8 +167,14 @@ public class AsyncJournalWriterTest {
     doNothing().when(mMockJournalWriter).flushEntryStream();
 
     // Flushes should succeed.
-    for (int i = entries + 1; i <= 2 * entries; i++) {
+    for (int i = 1; i <= entries; i++) {
       mAsyncJournalWriter.flush(i);
+    }
+    if (batchingEnabled) {
+      Mockito.verify(mMockJournalWriter, atLeastOnce()).flushEntryStream();
+    } else {
+      // The first half of the calls were the failed flush calls.
+      Mockito.verify(mMockJournalWriter, times(2 * entries)).flushEntryStream();
     }
   }
 

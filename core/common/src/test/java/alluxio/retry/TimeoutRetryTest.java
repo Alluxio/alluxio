@@ -24,7 +24,7 @@ public class TimeoutRetryTest {
    */
   @Test
   public void timeout() {
-    final long timeoutMs = 1000;
+    final long timeoutMs = 50;
     final int sleepMs = 10;
     int attempts = 0;
     TimeoutRetry timeoutRetry = new TimeoutRetry(timeoutMs, sleepMs);
@@ -44,8 +44,8 @@ public class TimeoutRetryTest {
    */
   @Test
   public void sleep() {
-    final long timeoutMs = 1000;
-    final int sleepMs = 100;
+    final long timeoutMs = 50;
+    final int sleepMs = 10;
     int attempts = 0;
     TimeoutRetry timeoutRetry = new TimeoutRetry(timeoutMs, sleepMs);
     Assert.assertEquals(0, timeoutRetry.getRetryCount());
