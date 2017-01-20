@@ -29,6 +29,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -59,6 +60,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteFileOptions;
+import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -67,12 +69,12 @@ import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
-import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
 import alluxio.proto.journal.File.DeleteFileEntry;
 import alluxio.proto.journal.File.DeleteMountPointEntry;
+import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
 import alluxio.proto.journal.File.PersistDirectoryEntry;
@@ -2085,6 +2087,10 @@ public final class FileSystemMaster extends AbstractMaster {
     return counter;
   }
 
+  // TODO(binfan): throw a better exception rather than UnexpectedAlluxioException. Currently
+  // UnexpectedAlluxioException is thrown because we want to keep backwards compatibility with
+  // clients of earlier versions prior to 1.5. If a new exception is added, it will be converted
+  // into RuntimeException on the client.
   /**
    * Frees or evicts all of the blocks of the file from alluxio storage. If the given file is a
    * directory, and the 'recursive' flag is enabled, all descendant files will also be freed.
@@ -2092,48 +2098,78 @@ public final class FileSystemMaster extends AbstractMaster {
    * This operation requires users to have {@link Mode.Bits#READ} permission on the path.
    *
    * @param path the path to free
-   * @param recursive if true, and the file is a directory, all descendants will be freed
-   * @return true if the file was freed
+   * @param options options to free
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
+   * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
-  public boolean free(AlluxioURI path, boolean recursive)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+  public void free(AlluxioURI path, FreeOptions options)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnexpectedAlluxioException {
     Metrics.FREE_FILE_OPS.inc();
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
+    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-      return freeInternal(inodePath, recursive);
+      flushCounter = freeAndJournal(inodePath, options);
+    } finally {
+      // finally runs after resources are closed (unlocked).
+      waitForJournalFlush(flushCounter);
     }
   }
 
   /**
    * Implements free operation.
+   * <p>
+   * This may write to the journal as free operation may change the pinned state of inodes.
    *
    * @param inodePath inode of the path to free
-   * @param recursive if true, and the file is a directory, all descendants will be freed
-   * @return true if the file was freed
+   * @param options options to free
+   * @return the flush counter for journaling
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the given path is invalid
+   * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
-  private boolean freeInternal(LockedInodePath inodePath, boolean recursive)
-      throws FileDoesNotExistException {
+  private long freeAndJournal(LockedInodePath inodePath, FreeOptions options)
+      throws FileDoesNotExistException, UnexpectedAlluxioException, AccessControlException,
+      InvalidPathException {
     Inode<?> inode = inodePath.getInode();
-    if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
-      // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
-      // true
-      return false;
+    if (inode.isDirectory() && !options.isRecursive()
+        && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
+      // inode is nonempty, and we don't free a nonempty directory unless recursive is true
+      throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR
+          .getMessage(mInodeTree.getPath(inode)));
     }
-
+    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    long opTimeMs = System.currentTimeMillis();
     List<Inode<?>> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
 
-    try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
+    try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       freeInodes.addAll(lockList.getInodes());
-
+      TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
       // We go through each inode.
       for (int i = freeInodes.size() - 1; i >= 0; i--) {
         Inode<?> freeInode = freeInodes.get(i);
 
         if (freeInode.isFile()) {
+          if (freeInode.getPersistenceState() != PersistenceState.PERSISTED) {
+            throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
+                .getMessage(mInodeTree.getPath(freeInode)));
+          }
+          if (freeInode.isPinned()) {
+            if (!options.isForced()) {
+              throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
+                  .getMessage(mInodeTree.getPath(freeInode)));
+            }
+            // the path to inode for getPath should already be locked.
+            tempInodePath.setDescendant(freeInode, mInodeTree.getPath(freeInode));
+            SetAttributeOptions setAttributeOptions = SetAttributeOptions.defaults()
+                .setRecursive(false).setPinned(false);
+            setAttributeInternal(tempInodePath, false, opTimeMs, setAttributeOptions);
+            flushCounter = journalSetAttribute(tempInodePath, opTimeMs, setAttributeOptions);
+          }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
         }
@@ -2141,7 +2177,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
 
     Metrics.FILES_FREED.inc(freeInodes.size());
-    return true;
+    return flushCounter;
   }
 
   /**
@@ -2699,18 +2735,24 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid for the id of the file
+   * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
   // Currently used by Lineage Master
   // TODO(binfan): Add permission checking for internal APIs
   public void resetFile(long fileId)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
+      AccessControlException {
+    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     // TODO(yupeng) check the file is not persisted
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
       // free the file first
       InodeFile inodeFile = inodePath.getInodeFile();
-      freeInternal(inodePath, false);
+      flushCounter = freeAndJournal(inodePath, FreeOptions.defaults().setForced(true));
       inodeFile.reset();
+    } finally {
+      // finally runs after resources are closed (unlocked).
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -3066,10 +3108,16 @@ public final class FileSystemMaster extends AbstractMaster {
           if (path != null) {
             try {
               TtlAction ttlAction = inode.getTtlAction();
-              LOG.debug("File {} is expired. Performing action {}", inode.getName(), ttlAction);
+              LOG.debug("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
               switch (ttlAction) {
                 case FREE:
-                  free(path, true);
+                  // public free method will lock the path, and check WRITE permission required at
+                  // parent of file
+                  if (inode.isDirectory()) {
+                    free(path, FreeOptions.defaults().setForced(true).setRecursive(true));
+                  } else {
+                    free(path, FreeOptions.defaults().setForced(true));
+                  }
                   // Reset state
                   inode.setTtl(Constants.NO_TTL);
                   inode.setTtlAction(TtlAction.DELETE);
@@ -3080,11 +3128,12 @@ public final class FileSystemMaster extends AbstractMaster {
                   // parent of file
                   if (inode.isDirectory()) {
                     delete(path, DeleteFileOptions.defaults().setRecursive(true));
+                  } else {
+                    delete(path, DeleteFileOptions.defaults().setRecursive(false));
                   }
-                  delete(path, DeleteFileOptions.defaults().setRecursive(false));
                   break;
                 default:
-                  LOG.error("Unknown TtlAction.");
+                  LOG.error("Unknown ttl action {}", ttlAction);
               }
             } catch (Exception e) {
               LOG.error("Exception trying to clean up {} for ttl check: {}", inode.toString(),

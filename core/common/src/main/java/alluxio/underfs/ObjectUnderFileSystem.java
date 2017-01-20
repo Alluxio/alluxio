@@ -40,7 +40,8 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A object based abstract {@link UnderFileSystem}.
+ * An object based abstract {@link UnderFileSystem}. Object Stores implementing the
+ * {@link UnderFileSystem} interface should derive from this class.
  */
 @ThreadSafe
 public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {

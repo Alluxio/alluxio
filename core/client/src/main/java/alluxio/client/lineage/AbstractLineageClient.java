@@ -106,7 +106,7 @@ public abstract class AbstractLineageClient implements LineageClient {
    * where each string is {@link AlluxioURI#getPath()}.
    *
    * @param uris the list of {@link AlluxioURI}s to be stripped
-   * @return a new list of strings mapping the input URIs to theri path component
+   * @return a new list of strings mapping the input URIs to their path component
    */
   private List<String> stripURIList(List<AlluxioURI> uris) {
     final List<String> pathStrings = new ArrayList<>(uris.size());

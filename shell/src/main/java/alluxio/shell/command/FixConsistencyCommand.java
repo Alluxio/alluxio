@@ -62,9 +62,9 @@ public class MakeConsistencyCommand extends AbstractShellCommand {
     List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(root, options);
     if (inconsistentUris.isEmpty()) {
       System.out.println(root + " is consistent with the under storage system.");
-      ListStatusOptions options1 = ListStatusOptions.defaults();
-      options1.setLoadMetadataType(LoadMetadataType.Always);
-      mFileSystem.listStatus(root, options1);
+      ListStatusOptions listOptions = ListStatusOptions.defaults();
+      listOptions.setLoadMetadataType(LoadMetadataType.Always);
+      mFileSystem.listStatus(root, listOptions);
       loadFile(root);
     } else {
       Collections.sort(inconsistentUris);

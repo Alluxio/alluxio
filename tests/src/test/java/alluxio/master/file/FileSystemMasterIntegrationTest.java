@@ -34,6 +34,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteFileOptions;
+import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
@@ -189,6 +190,11 @@ public class FileSystemMasterIntegrationTest {
     concurrentCreator.call();
   }
 
+  /**
+   * Tests concurrent delete of files.
+   *
+   * @throws Exception if an error occurs during creating or deleting files
+   */
   @Test
   public void concurrentDelete() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -203,16 +209,27 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
   }
 
+  /**
+   * Tests concurrent free of files.
+   *
+   * @throws Exception if an error occurs during creating or freeing files
+   */
   @Test
   public void concurrentFree() throws Exception {
     ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
+            CreateFileOptions.defaults().setPersisted(true));
     concurrentCreator.call();
 
     ConcurrentFreer concurrentFreer = new ConcurrentFreer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentFreer.call();
   }
 
+  /**
+   * Tests concurrent rename of files.
+   *
+   * @throws Exception if an error occurs during creating or renaming files
+   */
   @Test
   public void concurrentRename() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -588,8 +605,8 @@ public class FileSystemMasterIntegrationTest {
   public void ttlExpiredCreateFileWithFreeActionTest() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
-    CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
-    options.setTtlAction(TtlAction.FREE);
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setPersisted(true).setTtl(ttl).setTtlAction(TtlAction.FREE);
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
@@ -711,17 +728,41 @@ public class FileSystemMasterIntegrationTest {
   // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
   // }
 
+  /**
+   * This class provides multiple concurrent threads to create all files in one directory.
+   */
   class ConcurrentCreator implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
+    private CreateFileOptions mCreateFileOptions;
 
+    /**
+     * Constructs the concurrent creator.
+     *
+     * @param depth the depth of files to be created in one directory
+     * @param concurrencyDepth the concurrency depth of files to be created in one directory
+     * @param initPath the directory of files to be created in
+     */
     ConcurrentCreator(int depth, int concurrencyDepth, AlluxioURI initPath) {
+      this(depth, concurrencyDepth, initPath, CreateFileOptions.defaults());
+    }
+
+    ConcurrentCreator(int depth, int concurrencyDepth, AlluxioURI initPath,
+        CreateFileOptions options) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
       mInitPath = initPath;
+      mCreateFileOptions = options;
     }
 
+    /**
+     * Authenticates the client user named TEST_USER and executes the process of creating all
+     * files in one directory by multiple concurrent threads.
+     *
+     * @return null
+     * @throws Exception if an exception occurs
+     */
     @Override
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
@@ -729,11 +770,19 @@ public class FileSystemMasterIntegrationTest {
       return null;
     }
 
+    /**
+     * Executes the process of creating all files in one directory by multiple concurrent threads.
+     *
+     * @param depth the depth of files to be created in one directory
+     * @param concurrencyDepth the concurrency depth of files to be created in one directory
+     * @param path the directory of files to be created in
+     * @throws Exception if an exception occurs
+     */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
       } else if (depth == 1) {
-        long fileId = mFsMaster.createFile(path, CreateFileOptions.defaults());
+        long fileId = mFsMaster.createFile(path, mCreateFileOptions);
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
         // verify the user permission for file
         FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
@@ -755,7 +804,7 @@ public class FileSystemMasterIntegrationTest {
           ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
           for (int i = 0; i < FILES_PER_NODE; i++) {
             Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
-                path.join(Integer.toString(i))));
+                path.join(Integer.toString(i)), mCreateFileOptions));
             futures.add(executor.submit(call));
           }
           for (Future<Void> f : futures) {
@@ -772,7 +821,7 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
-  /*
+  /**
    * This class provides multiple concurrent threads to free all files in one directory.
    */
   class ConcurrentFreer implements Callable<Void> {
@@ -794,7 +843,7 @@ public class FileSystemMasterIntegrationTest {
     }
 
     private void doFree(AlluxioURI path) throws Exception {
-      mFsMaster.free(path, true);
+      mFsMaster.free(path, FreeOptions.defaults().setForced(true).setRecursive(true));
       Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
@@ -957,6 +1006,9 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  /**
+   * A class to start a thread that creates a file, completes the file and then deletes the file.
+   */
   private class ConcurrentCreateDelete implements Callable<Void> {
     private final CyclicBarrier mStartBarrier;
     private final AtomicBoolean mStopThread;
