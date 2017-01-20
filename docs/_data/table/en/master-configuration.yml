@@ -10,6 +10,10 @@ alluxio.master.format.file_prefix:
   The file prefix of the file generated in the journal directory when the journal is
   formatted. The master will search for a file with this prefix when determining of the journal
   was once formatted.
+alluxio.master.journal.flush.batch.time.ms:
+  Time (in milliseconds) to wait for batching journal writes.
+alluxio.master.journal.flush.timeout.ms:
+  The amount of time (in milliseconds) to keep retrying journal writes before giving up and shutting down the master.
 alluxio.master.journal.folder:
   The path to store master journal logs.
 alluxio.master.journal.formatter.class:
