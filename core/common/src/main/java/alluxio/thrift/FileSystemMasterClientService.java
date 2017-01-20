@@ -168,9 +168,11 @@ public class FileSystemMasterClientService {
      * 
      * @param path the path of the file or directory
      * 
+     * @param recursive whether to remove recursively
+     * 
      * @param options the options for deleting the file
      */
-    public void remove(String path, DeleteTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public void remove(String path, boolean recursive, DeleteTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Renames a file or a directory.
@@ -236,7 +238,7 @@ public class FileSystemMasterClientService {
 
     public void mount(String alluxioPath, String ufsPath, MountTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void remove(String path, DeleteTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void remove(String path, boolean recursive, DeleteTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void rename(String path, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -615,16 +617,17 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public void remove(String path, DeleteTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public void remove(String path, boolean recursive, DeleteTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_remove(path, options);
+      send_remove(path, recursive, options);
       recv_remove();
     }
 
-    public void send_remove(String path, DeleteTOptions options) throws org.apache.thrift.TException
+    public void send_remove(String path, boolean recursive, DeleteTOptions options) throws org.apache.thrift.TException
     {
       remove_args args = new remove_args();
       args.setPath(path);
+      args.setRecursive(recursive);
       args.setOptions(options);
       sendBase("remove", args);
     }
@@ -1200,19 +1203,21 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public void remove(String path, DeleteTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void remove(String path, boolean recursive, DeleteTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      remove_call method_call = new remove_call(path, options, resultHandler, this, ___protocolFactory, ___transport);
+      remove_call method_call = new remove_call(path, recursive, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class remove_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
+      private boolean recursive;
       private DeleteTOptions options;
-      public remove_call(String path, DeleteTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public remove_call(String path, boolean recursive, DeleteTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
+        this.recursive = recursive;
         this.options = options;
       }
 
@@ -1220,6 +1225,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("remove", org.apache.thrift.protocol.TMessageType.CALL, 0));
         remove_args args = new remove_args();
         args.setPath(path);
+        args.setRecursive(recursive);
         args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
@@ -1743,7 +1749,7 @@ public class FileSystemMasterClientService {
       public remove_result getResult(I iface, remove_args args) throws org.apache.thrift.TException {
         remove_result result = new remove_result();
         try {
-          iface.remove(args.path, args.options);
+          iface.remove(args.path, args.recursive, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -2700,7 +2706,7 @@ public class FileSystemMasterClientService {
       }
 
       public void start(I iface, remove_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.remove(args.path, args.options,resultHandler);
+        iface.remove(args.path, args.recursive, args.options,resultHandler);
       }
     }
 
@@ -15062,7 +15068,8 @@ public class FileSystemMasterClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("remove_args");
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -15071,6 +15078,7 @@ public class FileSystemMasterClientService {
     }
 
     private String path; // required
+    private boolean recursive; // required
     private DeleteTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -15080,9 +15088,13 @@ public class FileSystemMasterClientService {
        */
       PATH((short)1, "path"),
       /**
+       * whether to remove recursively
+       */
+      RECURSIVE((short)2, "recursive"),
+      /**
        * the options for deleting the file
        */
-      OPTIONS((short)2, "options");
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -15099,7 +15111,9 @@ public class FileSystemMasterClientService {
         switch(fieldId) {
           case 1: // PATH
             return PATH;
-          case 2: // OPTIONS
+          case 2: // RECURSIVE
+            return RECURSIVE;
+          case 3: // OPTIONS
             return OPTIONS;
           default:
             return null;
@@ -15141,11 +15155,15 @@ public class FileSystemMasterClientService {
     }
 
     // isset id assignments
+    private static final int __RECURSIVE_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, DeleteTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -15157,10 +15175,13 @@ public class FileSystemMasterClientService {
 
     public remove_args(
       String path,
+      boolean recursive,
       DeleteTOptions options)
     {
       this();
       this.path = path;
+      this.recursive = recursive;
+      setRecursiveIsSet(true);
       this.options = options;
     }
 
@@ -15168,9 +15189,11 @@ public class FileSystemMasterClientService {
      * Performs a deep copy on <i>other</i>.
      */
     public remove_args(remove_args other) {
+      __isset_bitfield = other.__isset_bitfield;
       if (other.isSetPath()) {
         this.path = other.path;
       }
+      this.recursive = other.recursive;
       if (other.isSetOptions()) {
         this.options = new DeleteTOptions(other.options);
       }
@@ -15183,6 +15206,8 @@ public class FileSystemMasterClientService {
     @Override
     public void clear() {
       this.path = null;
+      setRecursiveIsSet(false);
+      this.recursive = false;
       this.options = null;
     }
 
@@ -15214,6 +15239,35 @@ public class FileSystemMasterClientService {
       if (!value) {
         this.path = null;
       }
+    }
+
+    /**
+     * whether to remove recursively
+     */
+    public boolean isRecursive() {
+      return this.recursive;
+    }
+
+    /**
+     * whether to remove recursively
+     */
+    public remove_args setRecursive(boolean recursive) {
+      this.recursive = recursive;
+      setRecursiveIsSet(true);
+      return this;
+    }
+
+    public void unsetRecursive() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
+    }
+
+    /** Returns true if field recursive is set (has been assigned a value) and false otherwise */
+    public boolean isSetRecursive() {
+      return EncodingUtils.testBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
+    }
+
+    public void setRecursiveIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
     }
 
     /**
@@ -15256,6 +15310,14 @@ public class FileSystemMasterClientService {
         }
         break;
 
+      case RECURSIVE:
+        if (value == null) {
+          unsetRecursive();
+        } else {
+          setRecursive((Boolean)value);
+        }
+        break;
+
       case OPTIONS:
         if (value == null) {
           unsetOptions();
@@ -15271,6 +15333,9 @@ public class FileSystemMasterClientService {
       switch (field) {
       case PATH:
         return getPath();
+
+      case RECURSIVE:
+        return isRecursive();
 
       case OPTIONS:
         return getOptions();
@@ -15288,6 +15353,8 @@ public class FileSystemMasterClientService {
       switch (field) {
       case PATH:
         return isSetPath();
+      case RECURSIVE:
+        return isSetRecursive();
       case OPTIONS:
         return isSetOptions();
       }
@@ -15316,6 +15383,15 @@ public class FileSystemMasterClientService {
           return false;
       }
 
+      boolean this_present_recursive = true;
+      boolean that_present_recursive = true;
+      if (this_present_recursive || that_present_recursive) {
+        if (!(this_present_recursive && that_present_recursive))
+          return false;
+        if (this.recursive != that.recursive)
+          return false;
+      }
+
       boolean this_present_options = true && this.isSetOptions();
       boolean that_present_options = true && that.isSetOptions();
       if (this_present_options || that_present_options) {
@@ -15336,6 +15412,11 @@ public class FileSystemMasterClientService {
       list.add(present_path);
       if (present_path)
         list.add(path);
+
+      boolean present_recursive = true;
+      list.add(present_recursive);
+      if (present_recursive)
+        list.add(recursive);
 
       boolean present_options = true && (isSetOptions());
       list.add(present_options);
@@ -15359,6 +15440,16 @@ public class FileSystemMasterClientService {
       }
       if (isSetPath()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetRecursive()).compareTo(other.isSetRecursive());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetRecursive()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.recursive, other.recursive);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -15401,6 +15492,10 @@ public class FileSystemMasterClientService {
       }
       first = false;
       if (!first) sb.append(", ");
+      sb.append("recursive:");
+      sb.append(this.recursive);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("options:");
       if (this.options == null) {
         sb.append("null");
@@ -15430,6 +15525,8 @@ public class FileSystemMasterClientService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -15462,7 +15559,15 @@ public class FileSystemMasterClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // OPTIONS
+            case 2: // RECURSIVE
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.recursive = iprot.readBool();
+                struct.setRecursiveIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.options = new DeleteTOptions();
                 struct.options.read(iprot);
@@ -15491,6 +15596,9 @@ public class FileSystemMasterClientService {
           oprot.writeString(struct.path);
           oprot.writeFieldEnd();
         }
+        oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
+        oprot.writeBool(struct.recursive);
+        oprot.writeFieldEnd();
         if (struct.options != null) {
           oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
           struct.options.write(oprot);
@@ -15517,12 +15625,18 @@ public class FileSystemMasterClientService {
         if (struct.isSetPath()) {
           optionals.set(0);
         }
-        if (struct.isSetOptions()) {
+        if (struct.isSetRecursive()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
+        }
+        if (struct.isSetRecursive()) {
+          oprot.writeBool(struct.recursive);
         }
         if (struct.isSetOptions()) {
           struct.options.write(oprot);
@@ -15532,12 +15646,16 @@ public class FileSystemMasterClientService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, remove_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.path = iprot.readString();
           struct.setPathIsSet(true);
         }
         if (incoming.get(1)) {
+          struct.recursive = iprot.readBool();
+          struct.setRecursiveIsSet(true);
+        }
+        if (incoming.get(2)) {
           struct.options = new DeleteTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);

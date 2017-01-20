@@ -34,13 +34,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Command for make the consistency of a file between Alluxio and the under storage.
+ * Command for fix the consistency of a file between Alluxio and the under storage.
  */
-public class MakeConsistencyCommand extends AbstractShellCommand {
+public class FixConsistencyCommand extends AbstractShellCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public MakeConsistencyCommand(FileSystem fs) {
+  public FixConsistencyCommand(FileSystem fs) {
     super(fs);
   }
 
@@ -51,7 +51,7 @@ public class MakeConsistencyCommand extends AbstractShellCommand {
 
   @Override
   public String getCommandName() {
-    return "makeConsistency";
+    return "fixConsistency";
   }
 
   @Override
@@ -137,12 +137,12 @@ public class MakeConsistencyCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "makeConsistency <Alluxio path>";
+    return "fixConsistency <Alluxio path>";
   }
 
   @Override
   public String getDescription() {
-    return "make consistency of a persisted file in Alluxio. Any files or "
+    return "fix consistency of a persisted file in Alluxio. Any files or "
       + "directories which only exist in Alluxio or do not match the metadata of files in the "
       + "under storage will be fixed.";
   }
