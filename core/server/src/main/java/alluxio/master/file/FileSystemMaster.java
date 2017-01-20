@@ -3098,7 +3098,7 @@ public final class FileSystemMaster extends AbstractMaster {
           if (path != null) {
             try {
               TtlAction ttlAction = inode.getTtlAction();
-              LOG.debug("Path {} has expired. Performing action {}", path.getPath(), ttlAction);
+              LOG.debug("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
               switch (ttlAction) {
                 case FREE:
                   // public free method will lock the path, and check WRITE permission required at
@@ -3123,7 +3123,7 @@ public final class FileSystemMaster extends AbstractMaster {
                   }
                   break;
                 default:
-                  LOG.error("Unknown TtlAction {}", ttlAction);
+                  LOG.error("Unknown ttl action {}", ttlAction);
               }
             } catch (Exception e) {
               LOG.error("Exception trying to clean up {} for ttl check: {}", inode.toString(),
