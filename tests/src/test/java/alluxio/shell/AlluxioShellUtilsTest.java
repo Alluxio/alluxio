@@ -74,11 +74,6 @@ public final class AlluxioShellUtilsTest {
     return resetFileHierarchy(mFileSystem);
   }
 
-  /**
-   * Reset the file hierarchy.
-   *
-   * @return the test directory
-   */
   public static String resetFileHierarchy(FileSystem fs)
       throws IOException, AlluxioException {
     /**
