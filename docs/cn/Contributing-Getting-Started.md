@@ -48,6 +48,16 @@ Alluxio源码托管在GitHub上，仓库地址为[Alluxio repository](https://gi
 
 Alluxio开源项目使用[JIRA](https://alluxio.atlassian.net/projects/ALLUXIO/issues)来跟踪特性、bug以及问题。请[创建一个Alluxio JIRA账户](https://alluxio.atlassian.net/admin/users/sign-up)，从而能够新建、跟踪以及修复ticket。
 
+请[创建一个Alluxio JIRA账户](https://alluxio.atlassian.net/admin/users/sign-up)来新建tickets,跟踪tickets以及为tickets提供修复。如果不能通过上述链接建立JIRA账户，请按下述格式发送邮件至jira-admin@alluxio.org：
+
+```
+Subject: JIRA Account Request
+Body:
+	Email Address: example@example.com
+	Username: JohnS
+	Full Name: John Smith
+```
+
 ## Fork Alluxio源代码库
 
 在向Alluxio贡献源码之前，你首先需要fork Alluxio源代码库。如果你还未这么做，先进入[Alluxio仓库](https://github.com/Alluxio/alluxio)，再点击页面右上角的Fork按钮， 之后你便有了Alluxio源代码库的fork了。
