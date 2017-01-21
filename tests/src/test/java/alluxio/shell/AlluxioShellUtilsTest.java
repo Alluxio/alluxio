@@ -70,11 +70,6 @@ public final class AlluxioShellUtilsTest {
     TFS, LOCAL
   }
 
-  /**
-   * Reset the file hierarchy.
-   *
-   * @return the test directory
-   */
   public String resetFileHierarchy() throws IOException, AlluxioException {
     return resetFileHierarchy(mFileSystem);
   }
