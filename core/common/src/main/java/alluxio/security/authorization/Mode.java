@@ -70,7 +70,7 @@ public final class Mode {
      * Checks whether these bits imply the given bits.
      *
      * @param that mode bits
-     * @return true when thes bits imply the given bits
+     * @return true when these bits imply the given bits
      */
     public boolean imply(Bits that) {
       if (that != null) {
