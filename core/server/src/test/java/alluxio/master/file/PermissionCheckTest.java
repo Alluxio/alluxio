@@ -124,6 +124,9 @@ public final class PermissionCheckTest {
     }
   }
 
+  /**
+   * A mapping from a user to its corresponding group.
+   */
   public static class FakeUserGroupsMapping implements GroupMappingService {
     private HashMap<String, String> mUserGroups = new HashMap<>();
 
