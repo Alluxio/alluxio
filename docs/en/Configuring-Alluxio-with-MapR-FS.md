@@ -78,7 +78,7 @@ alluxio.underfs.address=maprfs:///<path in MapR-FS>/
 You can also mount a directory in MapR-FS to a directory in the Alluxio namespace.
 
 ```bash
-$ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR-FS>/
+${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR-FS>/
 ```
 
 # Running Alluxio Locally with MapR-FS

@@ -1,3 +1,3 @@
 ```bash
-$ mvn test
+mvn test
 ```

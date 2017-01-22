@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio runTest Basic CACHE THROUGH
+./bin/alluxio runTest Basic CACHE THROUGH
 ```

@@ -1,3 +1,3 @@
 ```bash
-$ mvn clean install -Dhadoop.version=<YOUR_HADOOP_VERSION>
+mvn clean install -Dhadoop.version=<YOUR_HADOOP_VERSION>
 ```

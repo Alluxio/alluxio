@@ -1,3 +1,3 @@
 ```bash
-$ ls /leader
+ls /leader
 ```

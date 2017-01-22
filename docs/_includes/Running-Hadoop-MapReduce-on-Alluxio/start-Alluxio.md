@@ -1,4 +1,4 @@
 ```bash
-$ ./bin/alluxio-stop.sh all
-$ ./bin/alluxio-start.sh local
+./bin/alluxio-stop.sh all
+./bin/alluxio-start.sh local
 ```

@@ -34,15 +34,15 @@ way to do this is via a Ruby Gem (see the [jekyll installation instructions]
 Before running `jekyll`, please run mvn to generate Java doc under alluxio root directory.
 
 ```bash
-$ mvn javadoc:javadoc
-$ mvn javadoc:aggregate
+mvn javadoc:javadoc
+mvn javadoc:aggregate
 ```
 
 Then go to `docs` directory and use jekyll to build the HTML documentation.
 
 ```bash
-$ cd docs
-$ jekyll build
+cd docs
+jekyll build
 ```
 
 This will create a directory called `_site` containing `index.html` as well as the rest of the

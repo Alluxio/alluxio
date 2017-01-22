@@ -1,3 +1,3 @@
 ```bash
-$ brew install boost
+brew install boost
 ```

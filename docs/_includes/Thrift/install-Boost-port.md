@@ -1,3 +1,3 @@
 ```bash
-$ sudo port install boost
+sudo port install boost
 ```

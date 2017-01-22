@@ -1,3 +1,3 @@
 ```bash
-$ sudo port selfupdate
+sudo port selfupdate
 ```

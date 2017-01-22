@@ -89,13 +89,13 @@ ALLUXIO_PROXY_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transp
 - 对于MapReduce应用，可以将客户端jar包添加到`$HADOOP_CLASSPATH`：
 
 ```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 - 对于Spark应用，可以将客户端jar包添加到`$SPARK_CLASSPATH`：
 
 ```bash
-$ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
+export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 ```
 
 除了上述方法，还可以将以下配置添加到`spark/conf/spark-defaults.conf`中：
@@ -129,7 +129,7 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用�
 你可以通过将策略修改为`RoundRobinPolicy`(如下所述)来将你的文件分散存储到不同worker节点上。
 
 ```bash
-$ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
+bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
 ```
 
 - 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[Command-Line-Interface](Command-Line-Interface.html)获取更多信息。

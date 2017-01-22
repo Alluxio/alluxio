@@ -34,8 +34,8 @@ priority: 0
 接着，你可以用如下命令解压下载包。取决于你下载的预编译二进制版本，你的文件名可能和下面有所不同。
 
 ```bash
-$ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
-$ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
+tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
+cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
 这会创建一个包含所有的Alluxio源文件和Java二进制文件的文件夹`alluxio-{{site.ALLUXIO_RELEASED_VERSION}}`。
@@ -47,7 +47,7 @@ $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 从模板文件创建`conf/alluxio-env.sh`配置文件。也可以通过如下命令创建配置文件：
 
 ```bash
-$ ./bin/alluxio bootstrapConf localhost
+./bin/alluxio bootstrapConf localhost
 ```
 
 ### [奖励] AWS相关配置
@@ -55,8 +55,8 @@ $ ./bin/alluxio bootstrapConf localhost
 如果你有一个包含access key id和secret accsee key的AWS账户，你可以添加你的Alluxio配置以备接下来与Amazon S3的交互。如下命令可以添加你的AWS访问信息到`conf/alluxio-site.properties`文件。
 
 ```bash
-$ echo "aws.accessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
-$ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
+echo "aws.accessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
+echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
 ```
 
 你必须将**AWS_ACCESS_KEY_ID**替换成你的AWS access key id，将**AWS_SECRET_ACCESS_KEY**替换成你的AWS secret access key。现在，Alluxio完全配置好了。
@@ -66,13 +66,13 @@ $ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
 接下来，我们格式化Alluxio为启动Alluxio做准备。如下命令会格式化Alluxio的日志和worker存储目录，以便接下来启动master和worker。
 
 ```bash
-$ ./bin/alluxio format
+./bin/alluxio format
 ```
 
 现在，我们启动Alluxio！Alluxio默认配置成在localhost启动master和worker。我们可以用如下命令在localhost启动Alluxio：
 
 ```bash
-$ ./bin/alluxio-start.sh local
+./bin/alluxio-start.sh local
 ```
 
 恭喜！Alluxio已经启动并运行了！你可以访问[http://localhost:19999](http://localhost:19999)查看Alluxio master的运行状态，访问[http://localhost:30000](http://localhost:30000)查看Alluxio worker的运行状态。
@@ -82,7 +82,7 @@ $ ./bin/alluxio-start.sh local
 既然Alluxio在运行，我们可以通过[Alluxio shell](Command-Line-Interface.html)检查Alluxio文件系统。Alluxio shell包含多种与Alluxio交互的命令行操作。你可以通过如下命令调用Alluxio shell：
 
 ```bash
-$ ./bin/alluxio fs
+./bin/alluxio fs
 ```
 
 该命令将打印可用的Alluxio命令行操作。
@@ -90,20 +90,20 @@ $ ./bin/alluxio fs
 你可以通过`ls`命令列出Alluxio里的文件。比如列出根目录下所有文件：
 
 ```bash
-$ ./bin/alluxio fs ls /
+./bin/alluxio fs ls /
 ```
 
 可惜现在Alluxio里没有文件。我们可以拷贝文件到Alluxio。`copyFromLocal`命令可以拷贝本地文件到Alluxio中。
 
 ```bash
-$ ./bin/alluxio fs copyFromLocal LICENSE /LICENSE
+./bin/alluxio fs copyFromLocal LICENSE /LICENSE
 Copied LICENSE to /LICENSE
 ```
 
 拷贝`LICENSE`文件之后，我们可以在Alluxio中看到它。列出Alluxio里的文件：
 
 ```bash
-$ ./bin/alluxio fs ls /
+./bin/alluxio fs ls /
 26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
 ```
 输出显示`LICENSE`文件在Alluxio中，也包含一些其他的有用信息，比如文件的大小，创建的日期，文件的in-memory状态。
@@ -111,7 +111,7 @@ $ ./bin/alluxio fs ls /
 你也可以通过Alluxio shell来查看文件的内容。`cat`命令可以打印文件的内容。
 
 ```bash
-$ ./bin/alluxio fs cat /LICENSE
+./bin/alluxio fs cat /LICENSE
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -123,7 +123,7 @@ $ ./bin/alluxio fs cat /LICENSE
 默认设置中，Alluxio使用本地文件系统作为底层文件系统(UFS)。默认的UFS路径是`./underFSStorage`。我们可以查看UFS中的内容：
 
 ```bash
-$ ls ./underFSStorage/
+ls ./underFSStorage/
 ```
 
 然而，这个目录不存在！这是由于Alluxio默认只写入数据到Alluxio存储空间，而不会写入UFS。
@@ -131,14 +131,14 @@ $ ls ./underFSStorage/
 但是，我们可以告诉Alluxio将文件从Alluxio空间持久化到UFS。shell命令`persist`可以做到。
 
 ```bash
-$ ./bin/alluxio fs persist /LICENSE
+./bin/alluxio fs persist /LICENSE
 persisted file /LICENSE with size 26847
 ```
 
 现在，如果我们再次检查UFS。文件出现了。
 
 ```bash
-$ ls ./underFSStorage
+ls ./underFSStorage
 LICENSE
 ```
 
@@ -153,14 +153,14 @@ Alluxio通过统一命名空间的特性统一了对底层存储的访问。你�
 首先，我们在Alluxio中创建一个目录作为挂载点。
 
 ```bash
-$ ./bin/alluxio fs mkdir /mnt
+./bin/alluxio fs mkdir /mnt
 Successfully created directory /mnt
 ```
 
 接着，我们挂载一个已有的S3 bucket样本到Alluxio。你可以使用我们提供的S3 bucket样本。
 
 ```bash
-$ ./bin/alluxio fs mount -readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
+./bin/alluxio fs mount -readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
 Mounted s3a://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 ```
 
@@ -169,7 +169,7 @@ Mounted s3a://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 我们可以通过Alluxio命名空间列出S3中的文件。使用熟悉的`ls`shell命令列出S3挂载目录下的文件。
 
 ```bash
-$ ./bin/alluxio fs ls /mnt/s3
+./bin/alluxio fs ls /mnt/s3
 87.86KB   06-20-2016 12:50:51:660  Not In Memory  /mnt/s3/sample_tweets_100k.csv
 933.21KB  06-20-2016 12:50:53:633  Not In Memory  /mnt/s3/sample_tweets_1m.csv
 149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
@@ -181,7 +181,7 @@ $ ./bin/alluxio fs ls /mnt/s3
 通过Alluxio统一命名空间，你可以无缝地从不同存储系统中交互数据。举个例子，使用`ls`shell命令，你可以递归地列举出一个目录下的所有文件。
 
 ```bash
-$ ./bin/alluxio fs ls -R /
+./bin/alluxio fs ls -R /
 26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
 1.00B     06-20-2016 12:28:39:176                 /mnt
 4.00B     06-20-2016 12:30:41:986                 /mnt/s3
@@ -198,14 +198,14 @@ $ ./bin/alluxio fs ls -R /
 由于Alluxio利用内存存储数据，它可以加速数据的访问。首先，我们看一看Alluxio中文件的状态(从S3中挂载)。
 
 ```bash
-$ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
+./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
 ```
 
 输出显示了文件**Not In Memory**。该文件是tweet的样本。我们看看有多少tweet提到了单词“kitten”。使用如下的命令，我们可以统计含有“kitten”的tweet数量。
 
 ```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c kitten
+time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c kitten
 889
 
 real	0m22.857s
@@ -218,7 +218,7 @@ sys	0m1.181s
 现在，让我们看一下有多少tweet包含单词"puppy"。
 
 ```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
+time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
 1553
 
 real	0m25.998s
@@ -229,13 +229,13 @@ sys	0m1.048s
 正如你看见的，每个命令花费大量的时间访问数据。Alluxio使用内存存储这些数据来加速数据访问。`cat`命令不能缓存数据到Alluxio内存中。另外一个命令`load`可以告诉Alluxio存储数据到内存中。你可以使用如下命令告诉Alluxio加载数据到内存中。
 
 ```bash
-$ ./bin/alluxio fs load /mnt/s3/sample_tweets_150m.csv
+./bin/alluxio fs load /mnt/s3/sample_tweets_150m.csv
 ```
 
 加载完文件之后，使用`ls`命令检查其状态：
 
 ```bash
-$ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
+./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 149.77MB  06-20-2016 12:50:55:473  In Memory      /mnt/s3/sample_tweets_150m.csv
 ```
 
@@ -244,7 +244,7 @@ $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 我们统计一下包含"puppy"的tweet数量。
 
 ```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
+time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
 1553
 
 real	0m1.917s
@@ -255,7 +255,7 @@ sys	0m0.243s
 如你所见，读文件非常快，只有几秒！由于数据在Alluxio内存中，你可以再次很快的读取文件。我们统计一下包含单词"bunny"的tweet数量。
 
 ```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c bunny
+time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c bunny
 907
 
 real	0m1.983s
@@ -270,7 +270,7 @@ sys	0m0.240s
 你完成了本地安装和使用Alluxio，你可以使用如下命令关闭Alluxio：
 
 ```bash
-$ ./bin/alluxio-stop.sh all
+./bin/alluxio-stop.sh all
 ```
 
 ## 结论

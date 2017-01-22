@@ -52,8 +52,8 @@ Next, you can unpack the download with the following commands. Your filename may
 depending on which pre-built binaries you have downloaded.
 
 ```bash
-$ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
-$ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
+tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
+cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
 This will create a directory `alluxio-{{site.ALLUXIO_RELEASED_VERSION}}` with all of the Alluxio
@@ -67,7 +67,7 @@ Create the `conf/alluxio-env.sh` configuration file from the template. You can c
 file with the following command:
 
 ```bash
-$ ./bin/alluxio bootstrapConf localhost
+./bin/alluxio bootstrapConf localhost
 ```
 
 ### [Bonus] Configuration for AWS
@@ -78,8 +78,8 @@ your AWS access information to the Alluxio configuration by adding the keys to t
 `conf/alluxio-site.properties` file. The following commands will update the configuration.
 
 ```bash
-$ echo "aws.accessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
-$ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
+echo "aws.accessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
+echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
 ```
 
 You will have to replace **AWS_ACCESS_KEY_ID** with your AWS access key id, and
@@ -93,14 +93,14 @@ the Alluxio journal and the worker storage directory in preparation for the mast
 start.
 
 ```bash
-$ ./bin/alluxio format
+./bin/alluxio format
 ```
 
 Now, we can start Alluxio! By default, Alluxio is configured to start a master and worker on the
 localhost. We can start Alluxio on localhost with the following command:
 
 ```bash
-$ ./bin/alluxio-start.sh local
+./bin/alluxio-start.sh local
 ```
 
 Congratulations! Alluxio is now up and running! You can visit
@@ -114,7 +114,7 @@ Now that Alluxio is running, we can examine the Alluxio file system with the
 for interacting with Alluxio. You can invoke the Alluxio shell with the following command:
 
 ```bash
-$ ./bin/alluxio fs
+./bin/alluxio fs
 ```
 
 This will print out the available Alluxio command-line operations.
@@ -122,14 +122,14 @@ This will print out the available Alluxio command-line operations.
 For example, you can list files in Alluxio with the `ls` command. To list all files in the root directory, use the following command:
 
 ```bash
-$ ./bin/alluxio fs ls /
+./bin/alluxio fs ls /
 ```
 
 Unfortunately, we do not have any files in Alluxio. We can solve that by copying a file into
 Alluxio. The `copyFromLocal` shell command is used to copy a local file into Alluxio.
 
 ```bash
-$ ./bin/alluxio fs copyFromLocal LICENSE /LICENSE
+./bin/alluxio fs copyFromLocal LICENSE /LICENSE
 Copied LICENSE to /LICENSE
 ```
 
@@ -137,7 +137,7 @@ After copying the `LICENSE` file, we should be able to see it in Alluxio. List t
 Alluxio with the command:
 
 ```bash
-$ ./bin/alluxio fs ls /
+./bin/alluxio fs ls /
 26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
 ```
 
@@ -148,7 +148,7 @@ You can also view the contents of the file through the Alluxio shell. The `cat` 
 the contents of the file.
 
 ```bash
-$ ./bin/alluxio fs cat /LICENSE
+./bin/alluxio fs cat /LICENSE
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -161,7 +161,7 @@ With the default configuration, Alluxio uses the local file system as its UnderF
 default path for the UFS is `./underFSStorage`. We can see what is in the UFS with:
 
 ```bash
-$ ls ./underFSStorage/
+ls ./underFSStorage/
 ```
 
 However, the directory doesn't exist! By default, Alluxio will write data only into
@@ -171,14 +171,14 @@ However, we can tell Alluxio to persist the file from Alluxio space to the UFS. 
 `persist` will do just that.
 
 ```bash
-$ ./bin/alluxio fs persist /LICENSE
+./bin/alluxio fs persist /LICENSE
 persisted file /LICENSE with size 26847
 ```
 
 Now, if we examine the local UFS again, the file should appear.
 
 ```bash
-$ ls ./underFSStorage
+ls ./underFSStorage
 LICENSE
 ```
 
@@ -199,7 +199,7 @@ access the files across various storage systems through the Alluxio namespace se
 First, we will create a directory in Alluxio to store our mount points.
 
 ```bash
-$ ./bin/alluxio fs mkdir /mnt
+./bin/alluxio fs mkdir /mnt
 Successfully created directory /mnt
 ```
 
@@ -207,7 +207,7 @@ Next, we will mount an existing sample S3 bucket to Alluxio. We have provided a 
 you to use in the rest of this guide.
 
 ```bash
-$ ./bin/alluxio fs mount -readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
+./bin/alluxio fs mount -readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
 Mounted s3a://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 ```
 
@@ -217,7 +217,7 @@ We can list the files from S3, through the Alluxio namespace. We can use the fam
 command to list the files from the S3 mounted directory.
 
 ```bash
-$ ./bin/alluxio fs ls /mnt/s3
+./bin/alluxio fs ls /mnt/s3
 87.86KB   06-20-2016 12:50:51:660  Not In Memory  /mnt/s3/sample_tweets_100k.csv
 933.21KB  06-20-2016 12:50:53:633  Not In Memory  /mnt/s3/sample_tweets_1m.csv
 149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
@@ -231,7 +231,7 @@ seamlessly. For example, with the `ls` shell command, you can recursively list a
 exist under a directory.
 
 ```bash
-$ ./bin/alluxio fs ls -R /
+./bin/alluxio fs ls -R /
 26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
 1.00B     06-20-2016 12:28:39:176                 /mnt
 4.00B     06-20-2016 12:30:41:986                 /mnt/s3
@@ -251,7 +251,7 @@ Since Alluxio leverages memory to store data, it can accelerate access to data. 
 look at the status of a file in Alluxio (mounted from S3).
 
 ```bash
-$ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
+./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
 ```
 
@@ -260,7 +260,7 @@ many tweets mention the word "kitten". With the following command, we can count 
 tweets with "kitten".
 
 ```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c kitten
+time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c kitten
 889
 
 real	0m22.857s
@@ -275,7 +275,7 @@ of this file.
 Now, let’s see how many tweets mention the word "puppy".
 
 ```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
+time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
 1553
 
 real	0m25.998s
@@ -290,13 +290,13 @@ Alluxio to store the data in memory. You can tell Alluxio to load the data into 
 following command.
 
 ```bash
-$ ./bin/alluxio fs load /mnt/s3/sample_tweets_150m.csv
+./bin/alluxio fs load /mnt/s3/sample_tweets_150m.csv
 ```
 
 After loading the file, you can check the status with the ls command:
 
 ```bash
-$ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
+./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 149.77MB  06-20-2016 12:50:55:473  In Memory      /mnt/s3/sample_tweets_150m.csv
 ```
 
@@ -306,7 +306,7 @@ should be much faster now.
 Let’s count the number of tweets with the word "puppy".
 
 ```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
+time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
 1553
 
 real	0m1.917s
@@ -319,7 +319,7 @@ memory, you can easily read the file again just as quickly. Let’s now count ho
 the word "bunny".
 
 ```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c bunny
+time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c bunny
 907
 
 real	0m1.983s
@@ -335,7 +335,7 @@ Once you are done with interacting with your local Alluxio installation, you can
 the following command:
 
 ```bash
-$ ./bin/alluxio-stop.sh all
+./bin/alluxio-stop.sh all
 ```
 
 ## Conclusion

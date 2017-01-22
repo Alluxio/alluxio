@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio fs checkConsistency /
+./bin/alluxio fs checkConsistency /
 ```
