@@ -1,3 +1,3 @@
 ```bash
-$ jps | grep AlluxioMaster
+jps | grep AlluxioMaster
 ```

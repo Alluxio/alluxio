@@ -1,3 +1,3 @@
 ```bash
-$ bin/alluxio fs copyFromLocal LICENSE /LICENSE
+bin/alluxio fs copyFromLocal LICENSE /LICENSE
 ```

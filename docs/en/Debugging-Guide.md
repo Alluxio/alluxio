@@ -103,13 +103,13 @@ properties on all nodes running this framework. Here are some examples:
 - For MapReduce jobs, you can append the client jar to `$HADOOP_CLASSPATH`:
 
 ```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 - For Spark jobs, you can append the client jar to `$SPARK_CLASSPATH`:
 
 ```bash
-$ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
+export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 ```
 
 Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
@@ -142,7 +142,7 @@ In this case, you will see the above error once the local worker does not have e
 To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
 
 ```bash
-$ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
+bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
 ```
 
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.

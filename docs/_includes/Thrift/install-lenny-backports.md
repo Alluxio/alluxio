@@ -1,3 +1,3 @@
 ```bash
-$ sudo apt-get -t lenny-backports install automake libboost-test-dev
+sudo apt-get -t lenny-backports install automake libboost-test-dev
 ```

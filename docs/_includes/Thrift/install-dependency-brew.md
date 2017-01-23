@@ -1,3 +1,3 @@
 ```bash
-$ brew install autoconf automake libtool pkg-config libevent
+brew install autoconf automake libtool pkg-config libevent
 ```

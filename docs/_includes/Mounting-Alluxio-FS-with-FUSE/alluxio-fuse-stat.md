@@ -1,3 +1,3 @@
 ```bash
-$ integration/fuse/bin/alluxio-fuse.sh stat
+integration/fuse/bin/alluxio-fuse.sh stat
 ```

@@ -50,7 +50,7 @@ Apache Hive允许你通过Hadoop通用文件系统接口使用Alluxio，因此�
 在`hadoop-env.sh`文件中修改`$HADOOP_CLASSPATH`：
 
 ```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 将Alluxio客户端Jar包分发到Hadoop MapReduce所有节点中：
@@ -84,10 +84,10 @@ $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 在Alluxio中为Hive创建相应目录：
 
 ```bash
-$ ./bin/alluxio fs mkdir /tmp
-$ ./bin/alluxio fs mkdir /user/hive/warehouse
-$ ./bin/alluxio fs chmod 775 /tmp
-$ ./bin/alluxio fs chmod 775 /user/hive/warehouse
+./bin/alluxio fs mkdir /tmp
+./bin/alluxio fs mkdir /user/hive/warehouse
+./bin/alluxio fs chmod 775 /tmp
+./bin/alluxio fs chmod 775 /user/hive/warehouse
 ```
 
 接着你可以根据[Hive documentation](https://cwiki.apache.org/confluence/display/Hive/GettingStarted)来使用Hive了。

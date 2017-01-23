@@ -58,10 +58,10 @@ change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE
 Create Directories in Alluxio for Hive:
 
 ```bash
-$ ./bin/alluxio fs mkdir /tmp
-$ ./bin/alluxio fs mkdir /user/hive/warehouse
-$ ./bin/alluxio fs chmod 775 /tmp
-$ ./bin/alluxio fs chmod 775 /user/hive/warehouse
+./bin/alluxio fs mkdir /tmp
+./bin/alluxio fs mkdir /user/hive/warehouse
+./bin/alluxio fs chmod 775 /tmp
+./bin/alluxio fs chmod 775 /user/hive/warehouse
 ```
 
 Then you can follow the [Hive documentation](https://cwiki.apache.org/confluence/display/Hive/GettingStarted) to use Hive

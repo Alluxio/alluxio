@@ -1,3 +1,3 @@
 ```bash
-$ /zookeeper/bin/zkCli.sh
+/zookeeper/bin/zkCli.sh
 ```

@@ -1,3 +1,3 @@
 ```bash
-$ gcloud compute firewall-rules create alluxio-ui --allow tcp:19999
+gcloud compute firewall-rules create alluxio-ui --allow tcp:19999
 ```

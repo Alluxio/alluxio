@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio fs getCapacityBytes
+./bin/alluxio fs getCapacityBytes
 ```

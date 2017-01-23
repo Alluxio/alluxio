@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio fs free /unused/data
+./bin/alluxio fs free /unused/data
 ```

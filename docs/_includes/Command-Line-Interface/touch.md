@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio fs touch /data/yesterday/_DONE_
+./bin/alluxio fs touch /data/yesterday/_DONE_
 ```
