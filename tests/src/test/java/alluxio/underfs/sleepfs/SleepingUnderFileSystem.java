@@ -36,7 +36,7 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   private final SleepingUnderFileSystemOptions mOptions;
 
   /**
-   * Creates a new SleepingUnderFileSystem for the given uri.
+   * Creates a new {@link SleepingUnderFileSystem} for the given uri.
    *
    * @param uri path belonging to this under file system
    */
