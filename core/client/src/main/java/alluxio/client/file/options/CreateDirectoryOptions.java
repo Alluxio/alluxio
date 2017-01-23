@@ -21,6 +21,8 @@ import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -30,6 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
+@JsonInclude(Include.NON_EMPTY)
 public final class CreateDirectoryOptions {
   private boolean mAllowExists;
   private Mode mMode; // null if creating the dir using system default mode

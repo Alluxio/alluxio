@@ -26,6 +26,8 @@ import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
@@ -36,6 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
+@JsonInclude(Include.NON_EMPTY)
 public final class CreateFileOptions {
   private boolean mRecursive;
   private FileWriteLocationPolicy mLocationPolicy;

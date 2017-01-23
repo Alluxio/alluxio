@@ -14,6 +14,8 @@ package alluxio.client.file.options;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.FreeTOptions;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -23,6 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
+@JsonInclude(Include.NON_EMPTY)
 public final class FreeOptions {
   private boolean mForced;
   private boolean mRecursive;
