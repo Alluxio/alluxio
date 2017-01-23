@@ -76,7 +76,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
     /**
      * @param context the file system context
      * @param address the address of an Alluxio worker
-     * @param ufsFileId the file ID of the ufs fild to write to
+     * @param ufsFileId the file ID of the ufs file to write to
      * @return a new {@link UnderFileSystemFileOutStream}
      * @throws IOException if it fails to create the out stream
      */

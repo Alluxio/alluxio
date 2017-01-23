@@ -21,6 +21,7 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -33,6 +34,7 @@ import alluxio.thrift.CreateFileTOptions;
 import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.FreeTOptions;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.thrift.MountTOptions;
 import alluxio.thrift.SetAttributeTOptions;
@@ -125,11 +127,20 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public void free(final String path, final boolean recursive) throws AlluxioTException {
+  public void free(final String path, final boolean recursive, final FreeTOptions options)
+      throws AlluxioTException {
     RpcUtils.call(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioException {
-        mFileSystemMaster.free(new AlluxioURI(path), recursive);
+        if (options == null) {
+          // For Alluxio client v1.4 or earlier.
+          // NOTE, we try to be conservative here so early Alluxio clients will not be able to force
+          // freeing pinned items but see the error thrown.
+          mFileSystemMaster.free(new AlluxioURI(path),
+              FreeOptions.defaults().setRecursive(recursive));
+        } else {
+          mFileSystemMaster.free(new AlluxioURI(path), new FreeOptions(options));
+        }
         return null;
       }
     });

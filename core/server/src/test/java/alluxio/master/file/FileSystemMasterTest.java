@@ -23,6 +23,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -32,6 +33,7 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -59,7 +61,6 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -90,8 +91,8 @@ public final class FileSystemMasterTest {
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final String TEST_USER = "test";
-  private static CreateFileOptions sNestedFileOptions;
 
+  private CreateFileOptions mNestedFileOptions;
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
@@ -119,15 +120,6 @@ public final class FileSystemMasterTest {
   public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(0);
 
   /**
-   * Sets up the dependencies before a single test runs.
-   */
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    sNestedFileOptions =
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
-  }
-
-  /**
    * Sets up the dependencies before a test runs.
    */
   @Before
@@ -141,6 +133,8 @@ public final class FileSystemMasterTest {
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
     Configuration.set(PropertyKey.UNDERFS_ADDRESS, mUnderFS);
+    mNestedFileOptions =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     mJournalFolder = mTestFolder.newFolder().getAbsolutePath();
     startServices();
   }
@@ -225,7 +219,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void getNewBlockIdForFile() throws Exception {
-    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
@@ -1003,7 +997,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setAttribute() throws Exception {
-    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
@@ -1035,7 +1029,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void permission() throws Exception {
-    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
     Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
     Assert.assertEquals(0666, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
   }
@@ -1046,7 +1040,7 @@ public final class FileSystemMasterTest {
   @Test
   public void isFullyInMemory() throws Exception {
     // add nested file
-    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
@@ -1069,7 +1063,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void rename() throws Exception {
-    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
 
     // try to rename a file to root
     try {
@@ -1145,23 +1139,22 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Traversal failed. Component 2(test) is a file");
 
-    mFileSystemMaster.createFile(NESTED_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_URI, mNestedFileOptions);
     mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI);
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free(AlluxioURI, boolean)} method.
+   * Tests {@link FileSystemMaster#free} on persisted file.
    */
   @Test
   public void free() throws Exception {
+    mNestedFileOptions.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
-    // cannot free directory with recursive argument to false
-    Assert.assertFalse(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), false));
-
     // free the file
-    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
+    mFileSystemMaster.free(NESTED_FILE_URI,
+        FreeOptions.defaults().setForced(false).setRecursive(false));
     // Update the heartbeat of removedBlockId received from worker 1
     Command heartbeat2 =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
@@ -1172,21 +1165,138 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free(AlluxioURI, boolean)} method with a directory.
+   * Tests {@link FileSystemMaster#free} on non-persisted file.
+   */
+  @Test
+  public void freeNonPersistedFile() throws Exception {
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mThrown.expect(UnexpectedAlluxioException.class);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
+        .getMessage(NESTED_FILE_URI.getPath()));
+    // cannot free a non-persisted file
+    mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults());
+  }
+
+  /**
+   * Tests {@link FileSystemMaster#free} on pinned file when forced flag is false.
+   */
+  @Test
+  public void freePinnedFileWithoutForce() throws Exception {
+    mNestedFileOptions.setPersisted(true);
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    mThrown.expect(UnexpectedAlluxioException.class);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
+        .getMessage(NESTED_FILE_URI.getPath()));
+    // cannot free a pinned file without "forced"
+    mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults().setForced(false));
+  }
+
+  /**
+   * Tests {@link FileSystemMaster#free} on pinned file when forced flag is true.
+   */
+  @Test
+  public void freePinnedFileWithForce() throws Exception {
+    mNestedFileOptions.setPersisted(true);
+    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+
+    Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+
+    // free the file
+    mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults().setForced(true));
+    // Update the heartbeat of removedBlockId received from worker 1
+    Command heartbeat =
+        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
+            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#free} method with a directory but recursive to false.
+   */
+  @Test
+  public void freeDirNonRecursive() throws Exception {
+    mNestedFileOptions.setPersisted(true);
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mThrown.expect(UnexpectedAlluxioException.class);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(NESTED_URI));
+    // cannot free directory with recursive argument to false
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(), FreeOptions.defaults().setRecursive(false));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#free} method with a directory.
    */
   @Test
   public void freeDir() throws Exception {
+    mNestedFileOptions.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // free the dir
-    Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), true));
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeOptions.defaults().setForced(true).setRecursive(true));
     // Update the heartbeat of removedBlockId received from worker 1
     Command heartbeat3 =
         mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
             ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat3);
+    Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#free} method with a directory with a file non-persisted.
+   */
+  @Test
+  public void freeDirWithNonPersistedFile() throws Exception {
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mThrown.expect(UnexpectedAlluxioException.class);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
+        .getMessage(NESTED_FILE_URI.getPath()));
+    // cannot free the parent dir of a non-persisted file
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeOptions.defaults().setForced(false).setRecursive(true));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#free} method with a directory with a file pinned when
+   * forced flag is false.
+   */
+  @Test
+  public void freeDirWithPinnedFileAndNotForced() throws Exception {
+    mNestedFileOptions.setPersisted(true);
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    mThrown.expect(UnexpectedAlluxioException.class);
+    mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
+        .getMessage(NESTED_FILE_URI.getPath()));
+    // cannot free the parent dir of a pinned file without "forced"
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeOptions.defaults().setForced(false).setRecursive(true));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#free} method with a directory with a file pinned when
+   * forced flag is true.
+   */
+  @Test
+  public void freeDirWithPinnedFileAndForced() throws Exception {
+    mNestedFileOptions.setPersisted(true);
+    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    // free the parent dir of a pinned file with "forced"
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeOptions.defaults().setForced(true).setRecursive(true));
+    // Update the heartbeat of removedBlockId received from worker 1
+    Command heartbeat =
+        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
+            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1404,7 +1514,7 @@ public final class FileSystemMasterTest {
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
-    mFileSystemMaster.createFile(uri, sNestedFileOptions);
+    mFileSystemMaster.createFile(uri, mNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
     CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(Constants.KB);

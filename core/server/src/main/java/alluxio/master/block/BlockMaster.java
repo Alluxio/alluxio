@@ -302,9 +302,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   /**
-   * Gets info about the lost workers.
-   *
-   * @return a set of worker info
+   * @return a set of {@link WorkerInfo}s of lost workers
    */
   public List<WorkerInfo> getLostWorkersInfoList() {
     List<WorkerInfo> ret = new ArrayList<>(mLostWorkers.size());
@@ -747,7 +745,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   /**
-   * @return the lost blocks in Alluxio Storage
+   * @return the block ids of lost blocks in Alluxio
    */
   public Set<Long> getLostBlocks() {
     return ImmutableSet.copyOf(mLostBlocks);
