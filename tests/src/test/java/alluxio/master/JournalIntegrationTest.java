@@ -142,9 +142,9 @@ public class JournalIntegrationTest {
       JournalWriter writer = journal.getNewWriter();
       writer.getCheckpointOutputStream(0).close();
       // Flush multiple times, without writing to the log.
-      writer.getEntryOutputStream().flush();
-      writer.getEntryOutputStream().flush();
-      writer.getEntryOutputStream().flush();
+      writer.flushEntryStream();
+      writer.flushEntryStream();
+      writer.flushEntryStream();
       UnderFileStatus[] paths = UnderFileSystem.Factory.get(journalFolder)
           .listStatus(journal.getCompletedDirectory());
       // Make sure no new empty files were created.
