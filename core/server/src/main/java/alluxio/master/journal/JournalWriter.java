@@ -136,13 +136,14 @@ public final class JournalWriter {
   }
 
   /**
-   * Returns an output stream for the journal entries. The returned output stream is a singleton for
-   * this writer.
+   * Writes an entry to the current {@link EntryOutputStream} if one is active. Otherwise a new
+   * stream is created and the entry is written to it. {@link #flushEntryStream} should be called
+   * afterward to ensure the entry is written to the underlying storage.
    *
-   * @return the output stream for the journal entries
-   * @throws IOException if an I/O error occurs
+   * @param entry the journal entry to write
+   * @throws IOException if an error occurs writing the entry or if the checkpoint is not closed
    */
-  public synchronized JournalOutputStream getEntryOutputStream() throws IOException {
+  public synchronized void writeEntry(JournalEntry entry) throws IOException {
     if (mCheckpointOutputStream == null || !mCheckpointOutputStream.isClosed()) {
       throw new IOException("The checkpoint must be written and closed before writing entries.");
     }
@@ -150,7 +151,23 @@ public final class JournalWriter {
       mEntryOutputStream = new EntryOutputStream(mUfs, mJournal.getCurrentLogFilePath(),
           mJournal.getJournalFormatter(), this);
     }
-    return mEntryOutputStream;
+    mEntryOutputStream.writeEntry(entry);
+  }
+
+  /**
+   * Flushes the current {@link EntryOutputStream} if one is active. Otherwise this operation is
+   * a no-op.
+   *
+   * @throws IOException if an error occurs preventing the stream from being flushed
+   */
+  public synchronized void flushEntryStream() throws IOException {
+    if (mCheckpointOutputStream == null || !mCheckpointOutputStream.isClosed()) {
+      throw new IOException("The checkpoint must be written and closed before writing entries.");
+    }
+    if (mEntryOutputStream == null) { // no entries to flush
+      return;
+    }
+    mEntryOutputStream.flush();
   }
 
   /**
@@ -319,7 +336,7 @@ public final class JournalWriter {
    * </pre>
    */
   @ThreadSafe
-  public static class EntryOutputStream implements JournalOutputStream {
+  protected static class EntryOutputStream implements JournalOutputStream {
     private final UnderFileSystem mUfs;
     private final String mCurrentLogPath;
     private final JournalFormatter mJournalFormatter;

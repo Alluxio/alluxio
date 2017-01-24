@@ -11,7 +11,9 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
@@ -23,6 +25,8 @@ import alluxio.master.journal.JournalTailerThread;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.TimeoutRetry;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.google.common.base.Preconditions;
@@ -44,7 +48,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final long SHUTDOWN_TIMEOUT_MS = 10000;
+  private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
+  private static final long JOURNAL_FLUSH_RETRY_TIMEOUT_MS =
+      Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
 
   /** A factory for creating executor services when they are needed. */
   private ExecutorServiceFactory mExecutorServiceFactory = null;
@@ -216,7 +222,7 @@ public abstract class AbstractMaster implements Master {
   protected void writeJournalEntry(JournalEntry entry) {
     Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {
-      mJournalWriter.getEntryOutputStream().writeEntry(entry);
+      mJournalWriter.writeEntry(entry);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -228,7 +234,7 @@ public abstract class AbstractMaster implements Master {
   protected void flushJournal() {
     Preconditions.checkNotNull(mJournalWriter, "Cannot flush journal: journal writer is null.");
     try {
-      mJournalWriter.getEntryOutputStream().flush();
+      mJournalWriter.flushEntryStream();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -251,11 +257,26 @@ public abstract class AbstractMaster implements Master {
       return;
     }
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
-    try {
-      mAsyncJournalWriter.flush(counter);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+
+    RetryPolicy retry = new TimeoutRetry(JOURNAL_FLUSH_RETRY_TIMEOUT_MS, Constants.SECOND_MS);
+    int attempts = 0;
+    while (retry.attemptRetry()) {
+      try {
+        attempts++;
+        mAsyncJournalWriter.flush(counter);
+        return;
+      } catch (IOException e) {
+        LOG.warn("Journal flush failed. retrying...", e);
+      }
     }
+    LOG.error(
+        "Journal flush failed after {} attempts. Terminating process to prevent inconsistency.",
+        attempts);
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+      throw new RuntimeException("Journal flush failed after " + attempts
+          + " attempts. Terminating process to prevent inconsistency.");
+    }
+    System.exit(-1);
   }
 
   /**

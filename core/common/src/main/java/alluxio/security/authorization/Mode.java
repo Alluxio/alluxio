@@ -70,7 +70,7 @@ public final class Mode {
      * Checks whether these bits imply the given bits.
      *
      * @param that mode bits
-     * @return true when thes bits imply the given bits
+     * @return true when these bits imply the given bits
      */
     public boolean imply(Bits that) {
       if (that != null) {
@@ -108,6 +108,8 @@ public final class Mode {
   private Bits mOwnerBits;
   private Bits mGroupBits;
   private Bits mOtherBits;
+
+  private Mode() {} // needed for JSON serialization and deserialization
 
   /**
    * Constructs an instance of {@link Mode} with the given {@link Bits}.
