@@ -26,7 +26,6 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlIntervalRule;
@@ -456,8 +455,8 @@ public class FileSystemMasterIntegrationTest {
   public void lastModificationTimeRename() throws Exception {
     AlluxioURI srcPath = new AlluxioURI("/testFolder/testFile1");
     AlluxioURI dstPath = new AlluxioURI("/testFolder/testFile2");
-    mFsMaster.createDirectory(srcPath, CreateDirectoryOptions.defaults());
-    mFsMaster.createFile(dstPath, CreateFileOptions.defaults());
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
+    mFsMaster.createFile(srcPath, CreateFileOptions.defaults());
     RenameOptions options = RenameOptions.defaults().setOperationTimeMs(TEST_TIME_MS);
     mFsMaster.rename(srcPath, dstPath, options);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));

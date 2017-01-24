@@ -975,7 +975,6 @@ public final class FileSystemMaster extends AbstractMaster {
       CompleteFileOptions options)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException {
-    long opTimeMs = System.currentTimeMillis();
     Inode<?> inode = inodePath.getInode();
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(
@@ -1007,12 +1006,12 @@ public final class FileSystemMaster extends AbstractMaster {
     // determined by its memory footprint.
     long length = fileInode.isPersisted() ? options.getUfsLength() : inMemoryLength;
 
-    completeFileInternal(fileInode.getBlockIds(), inodePath, length, opTimeMs);
+    completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs());
     CompleteFileEntry completeFileEntry = CompleteFileEntry.newBuilder()
         .addAllBlockIds(fileInode.getBlockIds())
         .setId(inode.getId())
         .setLength(length)
-        .setOpTimeMs(opTimeMs)
+        .setOpTimeMs(options.getOperationTimeMs())
         .build();
     flushCounter.setValue(
         appendJournalEntry(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build()));
