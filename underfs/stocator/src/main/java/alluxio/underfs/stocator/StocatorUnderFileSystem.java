@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.swift;
+package alluxio.underfs.stocator;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -40,11 +40,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * OpenStack Swift API {@link UnderFileSystem} implementation based on the Stocator library.
+ * Object store driver {@link BaseUnderFileSystem} implementation based on the Stocator library.
  */
 @ThreadSafe
 public class StocatorUnderFileSystem extends BaseUnderFileSystem {
@@ -62,16 +63,16 @@ public class StocatorUnderFileSystem extends BaseUnderFileSystem {
     super(uri);
     LOG.debug("Stocator under fs constructor {}", uri.toString());
     org.apache.hadoop.conf.Configuration hConf = new org.apache.hadoop.conf.Configuration();
-    hConf.set("fs.swift2d.impl", "com.ibm.stocator.fs.ObjectStoreFileSystem");
-    hConf.set("fs.swift2d.service.srv.auth.url", Configuration.get(PropertyKey.SWIFT_AUTH_URL_KEY));
-    hConf.set("fs.swift2d.service.srv.public",
-        Configuration.get(PropertyKey.SWIFT_USE_PUBLIC_URI_KEY));
-    hConf.set("fs.swift2d.service.srv.tenant", Configuration.get(PropertyKey.SWIFT_TENANT_KEY));
-    hConf.set("fs.swift2d.service.srv.password", Configuration.get(PropertyKey.SWIFT_PASSWORD_KEY));
-    hConf.set("fs.swift2d.service.srv.username", Configuration.get(PropertyKey.SWIFT_USER_KEY));
-    hConf.set("fs.swift2d.service.srv.auth.method",
-        Configuration.get(PropertyKey.SWIFT_AUTH_METHOD_KEY));
+    String stocatorSupported = Configuration.get(PropertyKey.STOCATOR_SCHEME_LIST);
+    hConf.set("fs.stocator.scheme.list", stocatorSupported);
+    String[] stocatorScheme = stocatorSupported.split(",");
     LOG.debug("Stocator under fs init {}", uri.toString());
+    Map<String, String> allProperties = Configuration.toMap();
+    for (Map.Entry<String, String> entry : allProperties.entrySet()) {
+      if (isStocatorKey(entry.getKey(), stocatorScheme)) {
+        hConf.set(entry.getKey(), entry.getValue());
+      }
+    }
     try {
       mFileSystem = FileSystem.get(new URI(uri.toString()) , hConf);
       LOG.debug("Stocator under fs init successfull {}", uri.toString());
@@ -307,4 +308,16 @@ public class StocatorUnderFileSystem extends BaseUnderFileSystem {
     return mFileSystem.delete(new Path(path), recursive);
   }
 
+  private boolean isStocatorKey(String key, String[] stocatorScheme) {
+    if (key.contains("stocator") || key.contains("aws") || key.contains("swift")) {
+      return true;
+    } else {
+      for (String entry : stocatorScheme) {
+        if (key.contains("." + entry)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }

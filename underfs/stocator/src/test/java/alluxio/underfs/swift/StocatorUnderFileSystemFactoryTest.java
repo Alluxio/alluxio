@@ -13,6 +13,7 @@ package alluxio.underfs.swift;
 
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.stocator.StocatorUnderFileSystem;
 
 import org.junit.Assert;
 import org.junit.Test;

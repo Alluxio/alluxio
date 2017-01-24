@@ -18,8 +18,8 @@
     <version>1.5.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-stocator</artifactId>
-  <name>Alluxio Under File System - Stocator Swift driver</name>
-  <description>Stocator Under File System implementation - OpenStack Swift API</description>
+  <name>Alluxio Under File System - Stocator driver</name>
+  <description>Under File System implementation based on the Stocator object store driver</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
