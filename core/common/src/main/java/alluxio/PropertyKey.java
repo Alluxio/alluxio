@@ -109,6 +109,7 @@ public enum PropertyKey {
   SWIFT_USE_PUBLIC_URI_KEY(Name.SWIFT_USE_PUBLIC_URI_KEY, "true"),
   SWIFT_USER_KEY(Name.SWIFT_USER_KEY, null),
   SWIFT_REGION_KEY(Name.SWIFT_REGION_KEY, null),
+  STOCATOR_SCHEME_LIST(Name.STOCATOR_SCHEME_LIST, "swift2d"),
 
   //
   // Master related properties
@@ -495,6 +496,7 @@ public enum PropertyKey {
     public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
     public static final String SWIFT_REGION_KEY = "fs.swift.region";
+    public static final String STOCATOR_SCHEME_LIST = "fs.stocator.scheme.list";
 
     //
     // Master related properties
@@ -800,7 +802,7 @@ public enum PropertyKey {
    * @return whether the input is a valid property name
    */
   public static boolean isValid(String keyStr) {
-    return KEYS_MAP.containsKey(keyStr);
+    return KEYS_MAP.containsKey(keyStr) || keyStr.startsWith("fs");
   }
 
   /**
