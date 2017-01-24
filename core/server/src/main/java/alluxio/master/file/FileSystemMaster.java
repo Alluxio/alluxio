@@ -58,7 +58,6 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
@@ -267,7 +266,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param blockMaster the {@link BlockMaster} to use
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param executorServiceFactory a factory for creating the executor service to use for running
-   * maintenance threads
+   *        maintenance threads
    */
   public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
@@ -1090,7 +1089,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if an invalid block information in encountered
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
-   * option is false
+   *         option is false
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if the creation fails
    */
@@ -1111,7 +1110,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws BlockInfoException if invalid block information is encountered
    * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
-   * option is false
+   *         option is false
    */
   InodeTree.CreatePathResult createFileInternal(LockedInodePath inodePath,
       CreateFileOptions options)
@@ -1310,7 +1309,7 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath the file {@link LockedInodePath}
    * @param recursive if the file id identifies a directory, this flag specifies whether the
-   * directory content should be deleted recursively
+   *        directory content should be deleted recursively
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
    * @throws FileDoesNotExistException if a non-existent file is encountered
@@ -1598,12 +1597,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param options method options
    * @return the id of the created directory
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   * InodeTree#createPath(LockedInodePath, CreatePathOptions)} for more details
+   *         InodeTree#createPath(LockedInodePath, CreatePathOptions)}  for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
-   * option is false
+   *         option is false
    */
   public long createDirectory(AlluxioURI path, CreateDirectoryOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
@@ -1630,9 +1629,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param journalContext the journal context
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
-   * option is false
+   *         option is false
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   * InodeTree#createPath(LockedInodePath, CreatePathOptions)} for more details
+   *         InodeTree#createPath(LockedInodePath, CreatePathOptions)} for more details
    * @throws AccessControlException if permission checking fails
    * @throws IOException if a non-Alluxio related exception occurs
    */
@@ -1651,9 +1650,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param inodePath the path of the directory
    * @param options method options
    * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
-   * modified inodes and created inodes during path creation
+   *         modified inodes and created inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   * InodeTree#createPath(LockedInodePath, CreatePathOptions)} for more details
+   *         InodeTree#createPath(LockedInodePath, CreatePathOptions)} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
@@ -2042,12 +2041,13 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param persistedInodes the list of persisted inodes to journal
    * @param journalContext the journal context
    */
-  private void journalPersistedInodes(List<Inode<?>> persistedInodes, JournalContext journalContext) {
+  private void journalPersistedInodes(List<Inode<?>> persistedInodes,
+      JournalContext journalContext) {
     for (Inode<?> inode : persistedInodes) {
       PersistDirectoryEntry persistDirectory =
           PersistDirectoryEntry.newBuilder().setId(inode.getId()).build();
-      appendJournalEntry(
-          JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build(), journalContext);
+      appendJournalEntry(JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build(),
+          journalContext);
     }
   }
 
@@ -2598,7 +2598,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * of the Alluxio path.
    *
    * @param alluxioPath the Alluxio path to unmount, must be a mount point
-   * @return true if the UFS path was successfully unmounted, false otherwise
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
@@ -2840,8 +2839,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * @param inodePath the {@link LockedInodePath} of the file to schedule asynchronous persistence
-   * for
+   * @param inodePath the {@link LockedInodePath} of the file to persist
    * @throws AlluxioException if scheduling fails
    */
   private void scheduleAsyncPersistenceInternal(LockedInodePath inodePath) throws AlluxioException {
@@ -3023,8 +3021,7 @@ public final class FileSystemMaster extends AbstractMaster {
     /**
      * Constructs a new {@link MasterInodeTtlCheckExecutor}.
      */
-    public MasterInodeTtlCheckExecutor() {
-    }
+    public MasterInodeTtlCheckExecutor() {}
 
     @Override
     public void heartbeat() {
@@ -3093,8 +3090,7 @@ public final class FileSystemMaster extends AbstractMaster {
     /**
      * Constructs a new {@link LostFilesDetectionHeartbeatExecutor}.
      */
-    public LostFilesDetectionHeartbeatExecutor() {
-    }
+    public LostFilesDetectionHeartbeatExecutor() {}
 
     @Override
     public void heartbeat() {
@@ -3224,7 +3220,6 @@ public final class FileSystemMaster extends AbstractMaster {
           });
     }
 
-    private Metrics() {
-    } // prevent instantiation
+    private Metrics() {} // prevent instantiation
   }
 }

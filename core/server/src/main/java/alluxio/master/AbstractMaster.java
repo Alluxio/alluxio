@@ -251,7 +251,7 @@ public abstract class AbstractMaster implements Master {
    *
    * @param journalContext the journal context
    */
-  protected void waitForJournalFlush(JournalContext journalContext) {
+  private void waitForJournalFlush(JournalContext journalContext) {
     if (journalContext.getFlushCounter() == AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
       // Check this before the precondition.
       return;
@@ -286,11 +286,17 @@ public abstract class AbstractMaster implements Master {
     return mExecutorService;
   }
 
+  /**
+   * @return new instance of {@link JournalContext}
+   */
   protected JournalContext createJournalContext() {
     return new JournalContext();
   }
 
-  public class JournalContext implements AutoCloseable {
+  /**
+   * Context for storing journaling information.
+   */
+  public final class JournalContext implements AutoCloseable {
     private long mFlushCounter;
 
     private JournalContext() {

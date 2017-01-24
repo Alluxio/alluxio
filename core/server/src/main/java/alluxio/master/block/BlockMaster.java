@@ -427,7 +427,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     try (JournalContext journalContext = createJournalContext()) {
       synchronized (worker) {
         // Loop until block metadata is successfully locked.
-        for (; ; ) {
+        while (true) {
           boolean newBlock = false;
           MasterBlockInfo block = mBlocks.get(blockId);
           if (block == null) {
