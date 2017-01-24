@@ -63,6 +63,7 @@ import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
+import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.JournalFactory;
@@ -115,6 +116,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.mutable.Mutable;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -658,11 +661,11 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    */
   public long getFileId(AlluxioURI path) throws AccessControlException {
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       // This is WRITE locked, since loading metadata is possible.
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-      flushCounter = loadMetadataIfNotExistAndJournal(inodePath,
+      loadMetadataIfNotExistAndJournal(inodePath, flushCounter,
           LoadMetadataOptions.defaults().setCreateAncestors(true));
       mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
       return inodePath.getInode().getId();
@@ -670,7 +673,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return IdUtils.INVALID_FILE_ID;
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -708,7 +711,7 @@ public final class FileSystemMaster extends AbstractMaster {
   public FileInfo getFileInfo(AlluxioURI path)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     Metrics.GET_FILE_INFO_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
 
     // Get a READ lock first to see if we need to load metadata, note that this assumes load
     // metadata for direct children is disabled by default.
@@ -723,13 +726,13 @@ public final class FileSystemMaster extends AbstractMaster {
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       // This is WRITE locked, since loading metadata is possible.
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-      flushCounter = loadMetadataIfNotExistAndJournal(inodePath,
+      loadMetadataIfNotExistAndJournal(inodePath, flushCounter,
           LoadMetadataOptions.defaults().setCreateAncestors(true));
       mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
       return getFileInfoInternal(inodePath);
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -801,7 +804,7 @@ public final class FileSystemMaster extends AbstractMaster {
   public List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     Metrics.GET_FILE_INFO_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       // This is WRITE locked, since loading metadata is possible.
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
@@ -819,7 +822,7 @@ public final class FileSystemMaster extends AbstractMaster {
         }
       }
 
-      flushCounter = loadMetadataIfNotExistAndJournal(inodePath, loadMetadataOptions);
+      loadMetadataIfNotExistAndJournal(inodePath, flushCounter, loadMetadataOptions);
       mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
       inode = inodePath.getInode();
 
@@ -844,7 +847,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return ret;
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -943,14 +946,14 @@ public final class FileSystemMaster extends AbstractMaster {
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException {
     Metrics.COMPLETE_FILE_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
-      flushCounter = completeFileAndJournal(inodePath, options);
+      completeFileAndJournal(inodePath, flushCounter, options);
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -960,15 +963,16 @@ public final class FileSystemMaster extends AbstractMaster {
    * Writes to the journal.
    *
    * @param inodePath the {@link LockedInodePath} to complete
+   * @param flushCounter counter used for journaling operations
    * @param options the method options
-   * @return the flush counter for journaling
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileDoesNotExistException if the file does not exist
    * @throws BlockInfoException if a block information exception is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws InvalidFileSizeException if an invalid file size is encountered
    */
-  private long completeFileAndJournal(LockedInodePath inodePath, CompleteFileOptions options)
+  private void completeFileAndJournal(LockedInodePath inodePath, Mutable<Long> flushCounter,
+      CompleteFileOptions options)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException {
     long opTimeMs = System.currentTimeMillis();
@@ -1010,7 +1014,8 @@ public final class FileSystemMaster extends AbstractMaster {
         .setLength(length)
         .setOpTimeMs(opTimeMs)
         .build();
-    return appendJournalEntry(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
+    flushCounter.setValue(
+        appendJournalEntry(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build()));
   }
 
   /**
@@ -1023,7 +1028,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file has already been completed
    */
-  void completeFileInternal(List<Long> blockIds, LockedInodePath inodePath, long length,
+  private void completeFileInternal(List<Long> blockIds, LockedInodePath inodePath, long length,
       long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException {
@@ -1081,15 +1086,15 @@ public final class FileSystemMaster extends AbstractMaster {
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
           BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
-      flushCounter = createFileAndJournal(inodePath, options);
+      createFileAndJournal(inodePath, flushCounter, options);
       return inodePath.getInode().getId();
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -1099,8 +1104,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * Writes to the journal.
    *
    * @param inodePath the file to create
+   * @param flushCounter counter used for journaling operations
    * @param options method options
-   * @return the file id of the create file
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if an invalid block information in encountered
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
@@ -1108,12 +1113,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if the creation fails
    */
-  private long createFileAndJournal(LockedInodePath inodePath, CreateFileOptions options)
+  private void createFileAndJournal(LockedInodePath inodePath, Mutable<Long> flushCounter,
+      CreateFileOptions options)
       throws FileAlreadyExistsException, BlockInfoException, FileDoesNotExistException,
       InvalidPathException, IOException {
     InodeTree.CreatePathResult createResult = createFileInternal(inodePath, options);
-
-    return journalCreatePathResult(createResult);
+    journalCreatePathResult(createResult, flushCounter);
   }
 
   /**
@@ -1160,18 +1165,18 @@ public final class FileSystemMaster extends AbstractMaster {
   // Used by lineage master
   public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl,
       TtlAction ttlAction) throws InvalidPathException, FileDoesNotExistException {
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       long id = mInodeTree.reinitializeFile(inodePath, blockSizeBytes, ttl, ttlAction);
       ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder()
           .setPath(path.getPath()).setBlockSizeBytes(blockSizeBytes).setTtl(ttl)
           .setTtlAction(ProtobufUtils.toProtobuf(ttlAction)).build();
-      flushCounter = appendJournalEntry(
-          JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
+      flushCounter.setValue(appendJournalEntry(
+          JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build()));
       return id;
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -1249,16 +1254,16 @@ public final class FileSystemMaster extends AbstractMaster {
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
           InvalidPathException, AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     // Delete should lock the parent to remove the child inode.
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(path, InodeTree.LockMode.WRITE_PARENT)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
-      flushCounter = deleteAndJournal(inodePath, recursive);
+      deleteAndJournal(inodePath, recursive, flushCounter);
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -1269,13 +1274,14 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath the path to delete
    * @param recursive if true, will delete all its children
-   * @return the flush counter for journaling
+   * @param flushCounter counter used for journaling operations
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private long deleteAndJournal(LockedInodePath inodePath, boolean recursive)
+  private void deleteAndJournal(LockedInodePath inodePath, boolean recursive,
+      Mutable<Long> flushCounter)
       throws InvalidPathException, FileDoesNotExistException, IOException,
       DirectoryNotEmptyException {
     Inode<?> inode = inodePath.getInode();
@@ -1287,7 +1293,8 @@ public final class FileSystemMaster extends AbstractMaster {
         .setRecursive(recursive)
         .setOpTimeMs(opTimeMs)
         .build();
-    return appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+    flushCounter
+        .setValue(appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build()));
   }
 
   /**
@@ -1630,15 +1637,15 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException {
     LOG.debug("createDirectory {} ", path);
     Metrics.CREATE_DIRECTORIES_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
-      flushCounter = createDirectoryAndJournal(inodePath, options);
+      createDirectoryAndJournal(inodePath, flushCounter, options);
       return inodePath.getInode().getId();
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -1648,8 +1655,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * Writes to the journal.
    *
    * @param inodePath the {@link LockedInodePath} of the directory
+   * @param flushCounter counter used for journaling operations
    * @param options method options
-   * @return the flush counter for journaling
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
@@ -1658,13 +1665,13 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    * @throws IOException if a non-Alluxio related exception occurs
    */
-  private long createDirectoryAndJournal(LockedInodePath inodePath, CreateDirectoryOptions options)
+  private void createDirectoryAndJournal(LockedInodePath inodePath, Mutable<Long> flushCounter,
+      CreateDirectoryOptions options)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
     InodeTree.CreatePathResult createResult = createDirectoryInternal(inodePath, options);
-    long counter = journalCreatePathResult(createResult);
+    journalCreatePathResult(createResult, flushCounter);
     Metrics.DIRECTORIES_CREATED.inc();
-    return counter;
   }
 
   /**
@@ -1705,38 +1712,37 @@ public final class FileSystemMaster extends AbstractMaster {
    * Synchronization is required outside of this method.
    *
    * @param createResult the {@link InodeTree.CreatePathResult} to journal
-   * @return the flush counter for journaling
+   * @param flushCounter counter used for journaling operations
    */
-  private long journalCreatePathResult(InodeTree.CreatePathResult createResult) {
-    long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+  private void journalCreatePathResult(InodeTree.CreatePathResult createResult,
+      Mutable<Long> flushCounter) {
     for (Inode<?> inode : createResult.getModified()) {
       InodeLastModificationTimeEntry inodeLastModificationTime =
           InodeLastModificationTimeEntry.newBuilder()
           .setId(inode.getId())
           .setLastModificationTimeMs(inode.getLastModificationTimeMs())
           .build();
-      counter = appendJournalEntry(JournalEntry.newBuilder()
-          .setInodeLastModificationTime(inodeLastModificationTime).build());
+      flushCounter.setValue(appendJournalEntry(JournalEntry.newBuilder()
+          .setInodeLastModificationTime(inodeLastModificationTime).build()));
     }
     boolean createdDir = false;
     for (Inode<?> inode : createResult.getCreated()) {
-      counter = appendJournalEntry(inode.toJournalEntry());
+      flushCounter.setValue(appendJournalEntry(inode.toJournalEntry()));
       if (inode.isDirectory()) {
         createdDir = true;
       }
     }
     if (createdDir) {
       // At least one directory was created, so journal the state of the directory id generator.
-      counter = appendJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+      flushCounter.setValue(appendJournalEntry(mDirectoryIdGenerator.toJournalEntry()));
     }
     for (Inode<?> inode : createResult.getPersisted()) {
       PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
           .setId(inode.getId())
           .build();
-      counter = appendJournalEntry(
-          JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+      flushCounter.setValue(appendJournalEntry(
+          JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build()));
     }
-    return counter;
   }
 
   /**
@@ -1748,16 +1754,18 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param srcPath the source path to rename
    * @param dstPath the destination path to rename the file to
+   * @param options method options
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if permission checking fails
    * @throws FileAlreadyExistsException if the file already exists
    */
-  public void rename(AlluxioURI srcPath, AlluxioURI dstPath) throws FileAlreadyExistsException,
-      FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
+  public void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenameOptions options)
+      throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
+      IOException, AccessControlException {
     Metrics.RENAME_PATH_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     // Require a WRITE lock on the source but only a READ lock on the destination. Since the
     // destination should not exist, we will only obtain a READ lock on the destination parent. The
     // modify operations on the parent inodes are thread safe so WRITE locks are not required.
@@ -1770,11 +1778,11 @@ public final class FileSystemMaster extends AbstractMaster {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, dstInodePath);
       mMountTable.checkUnderWritableMountPoint(srcPath);
       mMountTable.checkUnderWritableMountPoint(dstPath);
-      flushCounter = renameAndJournal(srcInodePath, dstInodePath);
+      renameAndJournal(srcInodePath, dstInodePath, flushCounter, options);
       LOG.debug("Renamed {} to {}", srcPath, dstPath);
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -1785,13 +1793,15 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param srcInodePath the source path to rename
    * @param dstInodePath the destination path to rename the file to
-   * @return the flush counter for journaling
+   * @param flushCounter counter used for journaling operations
+   * @param options method options
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws FileAlreadyExistsException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  private long renameAndJournal(LockedInodePath srcInodePath, LockedInodePath dstInodePath)
+  private void renameAndJournal(LockedInodePath srcInodePath, LockedInodePath dstInodePath,
+      Mutable<Long> flushCounter, RenameOptions options)
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       IOException {
     if (!srcInodePath.fullPathExists()) {
@@ -1802,7 +1812,7 @@ public final class FileSystemMaster extends AbstractMaster {
     Inode<?> srcInode = srcInodePath.getInode();
     // Renaming path to itself is a no-op.
     if (srcInodePath.getUri().equals(dstInodePath.getUri())) {
-      return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+      return;
     }
     // Renaming the root is not allowed.
     if (srcInodePath.getUri().isRoot()) {
@@ -1850,17 +1860,16 @@ public final class FileSystemMaster extends AbstractMaster {
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
-    long opTimeMs = System.currentTimeMillis();
-    renameInternal(srcInodePath, dstInodePath, false, opTimeMs);
+    renameInternal(srcInodePath, dstInodePath, false, options);
     List<Inode<?>> persistedInodes = propagatePersistedInternal(srcInodePath, false);
-    journalPersistedInodes(persistedInodes);
+    journalPersistedInodes(persistedInodes, flushCounter);
 
     RenameEntry rename = RenameEntry.newBuilder()
         .setId(srcInode.getId())
         .setDstPath(dstInodePath.getUri().getPath())
-        .setOpTimeMs(opTimeMs)
+        .setOpTimeMs(options.getOperationTimeMs())
         .build();
-    return appendJournalEntry(JournalEntry.newBuilder().setRename(rename).build());
+    flushCounter.setValue(appendJournalEntry(JournalEntry.newBuilder().setRename(rename).build()));
   }
 
   /**
@@ -1869,13 +1878,14 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param srcInodePath the path of the rename source
    * @param dstInodePath the path to the rename destination
    * @param replayed whether the operation is a result of replaying the journal
-   * @param opTimeMs the time of the operation
+   * @param options method options
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error is encountered
    */
-  void renameInternal(LockedInodePath srcInodePath, LockedInodePath dstInodePath, boolean replayed,
-      long opTimeMs) throws FileDoesNotExistException, InvalidPathException, IOException {
+  private void renameInternal(LockedInodePath srcInodePath, LockedInodePath dstInodePath,
+      boolean replayed, RenameOptions options)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
 
     // Rename logic:
     // 1. Change the source inode name to the destination name.
@@ -1986,8 +1996,8 @@ public final class FileSystemMaster extends AbstractMaster {
     // 5. Set the last modification times for both source and destination parent inodes.
     // Note this step relies on setLastModificationTimeMs being thread safe to guarantee the
     // correct behavior when multiple files are being renamed within a directory.
-    dstParentInode.setLastModificationTimeMs(opTimeMs);
-    srcParentInode.setLastModificationTimeMs(opTimeMs);
+    dstParentInode.setLastModificationTimeMs(options.getOperationTimeMs());
+    srcParentInode.setLastModificationTimeMs(options.getOperationTimeMs());
     Metrics.PATHS_RENAMED.inc();
   }
 
@@ -2012,7 +2022,8 @@ public final class FileSystemMaster extends AbstractMaster {
             InodeTree.LockMode.WRITE_PARENT)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
-      renameInternal(srcInodePath, dstInodePath, true, entry.getOpTimeMs());
+      RenameOptions options = RenameOptions.defaults().setOperationTimeMs(entry.getOpTimeMs());
+      renameInternal(srcInodePath, dstInodePath, true, options);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -2064,17 +2075,15 @@ public final class FileSystemMaster extends AbstractMaster {
    * {@link #propagatePersistedInternal(LockedInodePath, boolean)}. This does not flush the journal.
    *
    * @param persistedInodes the list of persisted inodes to journal
-   * @return the flush counter for journaling
+   * @param flushCounter counter used for journaling operations
    */
-  private long journalPersistedInodes(List<Inode<?>> persistedInodes) {
-    long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+  private void journalPersistedInodes(List<Inode<?>> persistedInodes, Mutable<Long> flushCounter) {
     for (Inode<?> inode : persistedInodes) {
       PersistDirectoryEntry persistDirectory =
           PersistDirectoryEntry.newBuilder().setId(inode.getId()).build();
-      counter = appendJournalEntry(
-          JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+      flushCounter.setValue(appendJournalEntry(
+          JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build()));
     }
-    return counter;
   }
 
   // TODO(binfan): throw a better exception rather than UnexpectedAlluxioException. Currently
@@ -2098,13 +2107,13 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException {
     Metrics.FREE_FILE_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-      flushCounter = freeAndJournal(inodePath, options);
+      freeAndJournal(inodePath, flushCounter, options);
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -2114,14 +2123,15 @@ public final class FileSystemMaster extends AbstractMaster {
    * This may write to the journal as free operation may change the pinned state of inodes.
    *
    * @param inodePath inode of the path to free
+   * @param flushCounter counter used for journaling operations
    * @param options options to free
-   * @return the flush counter for journaling
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
    * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
-  private long freeAndJournal(LockedInodePath inodePath, FreeOptions options)
+  private void freeAndJournal(LockedInodePath inodePath, Mutable<Long> flushCounter,
+      FreeOptions options)
       throws FileDoesNotExistException, UnexpectedAlluxioException, AccessControlException,
       InvalidPathException {
     Inode<?> inode = inodePath.getInode();
@@ -2131,7 +2141,6 @@ public final class FileSystemMaster extends AbstractMaster {
       throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR
           .getMessage(mInodeTree.getPath(inode)));
     }
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     long opTimeMs = System.currentTimeMillis();
     List<Inode<?>> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
@@ -2158,16 +2167,14 @@ public final class FileSystemMaster extends AbstractMaster {
             SetAttributeOptions setAttributeOptions = SetAttributeOptions.defaults()
                 .setRecursive(false).setPinned(false);
             setAttributeInternal(tempInodePath, false, opTimeMs, setAttributeOptions);
-            flushCounter = journalSetAttribute(tempInodePath, opTimeMs, setAttributeOptions);
+            journalSetAttribute(tempInodePath, opTimeMs, flushCounter, setAttributeOptions);
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
         }
       }
     }
-
     Metrics.FILES_FREED.inc(freeInodes.size());
-    return flushCounter;
   }
 
   /**
@@ -2273,14 +2280,14 @@ public final class FileSystemMaster extends AbstractMaster {
   public long loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException {
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
-      flushCounter = loadMetadataAndJournal(inodePath, options);
+      loadMetadataAndJournal(inodePath, flushCounter, options);
       return inodePath.getInode().getId();
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -2290,8 +2297,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * Writes to the journal.
    *
    * @param inodePath the path for which metadata should be loaded
+   * @param flushCounter counter used for journaling operations
    * @param options the load metadata options
-   * @return the flush counter for journaling
    * @throws InvalidPathException if invalid path is encountered
    * @throws FileDoesNotExistException if there is no UFS path
    * @throws BlockInfoException if an invalid block size is encountered
@@ -2300,10 +2307,10 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    * @throws IOException if an I/O error occurs
    */
-  private long loadMetadataAndJournal(LockedInodePath inodePath, LoadMetadataOptions options)
+  private void loadMetadataAndJournal(LockedInodePath inodePath, Mutable<Long> flushCounter,
+      LoadMetadataOptions options)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
-      FileAlreadyCompletedException, InvalidFileSizeException,
-      AccessControlException, IOException {
+      FileAlreadyCompletedException, InvalidFileSizeException, AccessControlException, IOException {
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
@@ -2313,7 +2320,6 @@ public final class FileSystemMaster extends AbstractMaster {
         // uri does not exist in ufs
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
         inode.setDirectChildrenLoaded(true);
-        return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
       }
       boolean isFile;
       if (options.getUnderFileStatus() != null) {
@@ -2322,9 +2328,9 @@ public final class FileSystemMaster extends AbstractMaster {
         isFile = ufs.isFile(ufsUri.toString());
       }
       if (isFile) {
-        return loadFileMetadataAndJournal(inodePath, resolution, options);
+        loadFileMetadataAndJournal(inodePath, resolution, flushCounter, options);
       } else {
-        long counter = loadDirectoryMetadataAndJournal(inodePath, options);
+        loadDirectoryMetadataAndJournal(inodePath, flushCounter, options);
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
         if (options.isLoadDirectChildren()) {
@@ -2338,11 +2344,10 @@ public final class FileSystemMaster extends AbstractMaster {
                 new TempInodePathForChild(inodePath, file.getName());
             LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults()
                 .setLoadDirectChildren(false).setCreateAncestors(false).setUnderFileStatus(file);
-            counter = loadMetadataAndJournal(tempInodePath, loadMetadataOptions);
+            loadMetadataAndJournal(tempInodePath, flushCounter, loadMetadataOptions);
           }
           inode.setDirectChildrenLoaded(true);
         }
-        return counter;
       }
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
@@ -2355,8 +2360,8 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath the path for which metadata should be loaded
    * @param resolution the UFS resolution of path
+   * @param flushCounter counter used for journaling operations
    * @param options the load metadata options
-   * @return the file id of the loaded file
    * @throws BlockInfoException if an invalid block size is encountered
    * @throws FileDoesNotExistException if there is no UFS path
    * @throws InvalidPathException if invalid path is encountered
@@ -2365,12 +2370,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws IOException if an I/O error occurs
    */
-  private long loadFileMetadataAndJournal(LockedInodePath inodePath,
-      MountTable.Resolution resolution, LoadMetadataOptions options)
-      throws IOException, BlockInfoException, FileDoesNotExistException, InvalidPathException,
+  private void loadFileMetadataAndJournal(LockedInodePath inodePath,
+      MountTable.Resolution resolution, Mutable<Long> flushCounter, LoadMetadataOptions options)
+      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException, IOException {
     if (inodePath.fullPathExists()) {
-      return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+      return;
     }
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
@@ -2394,11 +2399,9 @@ public final class FileSystemMaster extends AbstractMaster {
     createFileOptions = createFileOptions.setPermission(permission).setDefaultMode(false);
 
     try {
-      long counter = createFileAndJournal(inodePath, createFileOptions);
+      createFileAndJournal(inodePath, flushCounter, createFileOptions);
       CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
-      counter = AsyncJournalWriter
-          .getFlushCounter(counter, completeFileAndJournal(inodePath, completeOptions));
-      return counter;
+      completeFileAndJournal(inodePath, flushCounter, completeOptions);
     } catch (FileAlreadyExistsException e) {
       LOG.error("FileAlreadyExistsException seen unexpectedly.", e);
       throw new RuntimeException(e);
@@ -2411,6 +2414,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * It is a no-op if the directory exists and is persisted.
    *
    * @param inodePath the path for which metadata should be loaded
+   * @param flushCounter counter used for journaling operations
    * @param options the load metadata options
    * @return the flush counter for journaling
    * @throws InvalidPathException if invalid path is encountered
@@ -2419,12 +2423,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the path does not exist
    */
 
-  private long loadDirectoryMetadataAndJournal(LockedInodePath inodePath,
-      LoadMetadataOptions options)
+  private void loadDirectoryMetadataAndJournal(LockedInodePath inodePath,
+      Mutable<Long> flushCounter, LoadMetadataOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     if (inodePath.fullPathExists()) {
       if (inodePath.getInode().isPersisted()) {
-        return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+        return;
       }
     }
     CreateDirectoryOptions createDirectoryOptions = CreateDirectoryOptions.defaults()
@@ -2447,7 +2451,7 @@ public final class FileSystemMaster extends AbstractMaster {
     createDirectoryOptions = createDirectoryOptions.setPermission(permission).setDefaultMode(false);
 
     try {
-      return createDirectoryAndJournal(inodePath, createDirectoryOptions);
+      createDirectoryAndJournal(inodePath, flushCounter, createDirectoryOptions);
     } catch (FileAlreadyExistsException e) {
       // This should not happen.
       throw new RuntimeException(e);
@@ -2458,10 +2462,11 @@ public final class FileSystemMaster extends AbstractMaster {
    * Loads metadata for the path if it is (non-existing || load direct children is set).
    *
    * @param inodePath the {@link LockedInodePath} to load the metadata for
+   * @param flushCounter counter used for journaling operations
    * @param options the load metadata options
    */
-  private long loadMetadataIfNotExistAndJournal(LockedInodePath inodePath,
-      LoadMetadataOptions options) {
+  private void loadMetadataIfNotExistAndJournal(LockedInodePath inodePath,
+      Mutable<Long> flushCounter, LoadMetadataOptions options) {
     boolean inodeExists = inodePath.fullPathExists();
     boolean loadDirectChildren = false;
     if (inodeExists) {
@@ -2475,14 +2480,13 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     if (!inodeExists || loadDirectChildren) {
       try {
-        return loadMetadataAndJournal(inodePath, options);
+        loadMetadataAndJournal(inodePath, flushCounter, options);
       } catch (Exception e) {
         // NOTE, this may be expected when client tries to get info (e.g. exists()) for a file
         // existing neither in Alluxio nor UFS.
         LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri());
       }
     }
-    return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
   }
 
   /**
@@ -2504,16 +2508,16 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
     Metrics.MOUNT_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree
         .lockInodePath(alluxioPath, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(alluxioPath);
-      flushCounter = mountAndJournal(inodePath, ufsPath, options);
+      mountAndJournal(inodePath, ufsPath, flushCounter, options);
       Metrics.PATHS_MOUNTED.inc();
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -2524,6 +2528,7 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
+   * @param flushCounter counter used for operation journaling
    * @param options the mount options
    * @return the flush counter for journaling
    * @throws InvalidPathException if an invalid path is encountered
@@ -2532,7 +2537,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if the permission check fails
    */
-  private long mountAndJournal(LockedInodePath inodePath, AlluxioURI ufsPath, MountOptions options)
+  private void mountAndJournal(LockedInodePath inodePath, AlluxioURI ufsPath,
+      Mutable<Long> flushCounter, MountOptions options)
       throws InvalidPathException, FileAlreadyExistsException, FileDoesNotExistException,
       IOException, AccessControlException {
     // Check that the Alluxio Path does not exist
@@ -2546,7 +2552,7 @@ public final class FileSystemMaster extends AbstractMaster {
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
-      loadDirectoryMetadataAndJournal(inodePath,
+      loadDirectoryMetadataAndJournal(inodePath, flushCounter,
           LoadMetadataOptions.defaults().setCreateAncestors(false));
       loadMetadataSucceeded = true;
     } finally {
@@ -2569,7 +2575,8 @@ public final class FileSystemMaster extends AbstractMaster {
         AddMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString())
             .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
             .addAllProperties(protoProperties).setShared(options.isShared()).build();
-    return appendJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
+    flushCounter.setValue(
+        appendJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build()));
   }
 
   /**
@@ -2648,21 +2655,21 @@ public final class FileSystemMaster extends AbstractMaster {
   public boolean unmount(AlluxioURI alluxioPath)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Metrics.UNMOUNT_OPS.inc();
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     // Unmount should lock the parent to remove the child inode.
     try (
         LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(alluxioPath, InodeTree.LockMode.WRITE_PARENT)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
-      flushCounter = unmountAndJournal(inodePath);
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
+      unmountAndJournal(inodePath, flushCounter);
+      if (flushCounter.getValue() != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
         Metrics.PATHS_UNMOUNTED.inc();
         return true;
       }
       return false;
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -2672,12 +2679,13 @@ public final class FileSystemMaster extends AbstractMaster {
    * Writes to the journal.
    *
    * @param inodePath the Alluxio path to unmount, must be a mount point
+   * @param flushCounter counter used for journaling operations
    * @return the flush counter for journaling
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    * @throws IOException if an I/O error occurs
    */
-  private long unmountAndJournal(LockedInodePath inodePath)
+  private void unmountAndJournal(LockedInodePath inodePath, Mutable<Long> flushCounter)
       throws InvalidPathException, FileDoesNotExistException, IOException {
     if (unmountInternal(inodePath.getUri())) {
       Inode<?> inode = inodePath.getInode();
@@ -2689,13 +2697,13 @@ public final class FileSystemMaster extends AbstractMaster {
       DeleteFileEntry deleteFile =
           DeleteFileEntry.newBuilder().setId(fileId).setRecursive(true).setOpTimeMs(opTimeMs)
               .build();
-      appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+      flushCounter.setValue(
+          appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build()));
       DeleteMountPointEntry deleteMountPoint =
           DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
-      return appendJournalEntry(
-          JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
+      flushCounter.setValue(appendJournalEntry(
+          JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build()));
     }
-    return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
   }
 
   /**
@@ -2732,17 +2740,17 @@ public final class FileSystemMaster extends AbstractMaster {
   public void resetFile(long fileId)
       throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
       AccessControlException {
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     // TODO(yupeng) check the file is not persisted
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
       // free the file first
       InodeFile inodeFile = inodePath.getInodeFile();
-      flushCounter = freeAndJournal(inodePath, FreeOptions.defaults().setForced(true));
+      freeAndJournal(inodePath, flushCounter, FreeOptions.defaults().setForced(true));
       inodeFile.reset();
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -2767,13 +2775,13 @@ public final class FileSystemMaster extends AbstractMaster {
     // for chgrp, chmod
     boolean ownerRequired =
         (options.getGroup() != null) || (options.getMode() != Constants.INVALID_MODE);
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
-      flushCounter = setAttributeAndJournal(inodePath, options, rootRequired, ownerRequired);
+      setAttributeAndJournal(inodePath, rootRequired, ownerRequired, flushCounter, options);
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
   }
 
@@ -2783,15 +2791,16 @@ public final class FileSystemMaster extends AbstractMaster {
    * Writes to the journal.
    *
    * @param inodePath the {@link LockedInodePath} to set attribute for
-   * @param options attributes to be set, see {@link SetAttributeOptions}
    * @param rootRequired indicates whether it requires to be the superuser
    * @param ownerRequired indicates whether it requires to be the owner of this path
+   * @param flushCounter counter used for journaling operations
+   * @param options attributes to be set, see {@link SetAttributeOptions}
    * @throws InvalidPathException if the given path is invalid
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    */
-  private long setAttributeAndJournal(LockedInodePath inodePath, SetAttributeOptions options,
-      boolean rootRequired, boolean ownerRequired)
+  private void setAttributeAndJournal(LockedInodePath inodePath, boolean rootRequired,
+      boolean ownerRequired, Mutable<Long> flushCounter, SetAttributeOptions options)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException {
     Inode<?> targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
@@ -2814,25 +2823,26 @@ public final class FileSystemMaster extends AbstractMaster {
           tempInodePath.setDescendant(inode, mInodeTree.getPath(inode));
           List<Inode<?>> persistedInodes = setAttributeInternal(tempInodePath, false, opTimeMs,
               options);
-          journalPersistedInodes(persistedInodes);
-          journalSetAttribute(tempInodePath, opTimeMs, options);
+          journalPersistedInodes(persistedInodes, flushCounter);
+          journalSetAttribute(tempInodePath, opTimeMs, flushCounter, options);
         }
       }
     }
     List<Inode<?>> persistedInodes = setAttributeInternal(inodePath, false, opTimeMs, options);
-    journalPersistedInodes(persistedInodes);
-    return journalSetAttribute(inodePath, opTimeMs, options);
+    journalPersistedInodes(persistedInodes, flushCounter);
+    journalSetAttribute(inodePath, opTimeMs, flushCounter, options);
   }
 
   /**
    * @param inodePath the file path to use
    * @param opTimeMs the operation time (in milliseconds)
+   * @param flushCounter counter used for journaling operations
    * @param options the method options
    * @return the flush counter for journaling
    * @throws FileDoesNotExistException if path does not exist
    */
-  private long journalSetAttribute(LockedInodePath inodePath, long opTimeMs,
-      SetAttributeOptions options) throws FileDoesNotExistException {
+  private void journalSetAttribute(LockedInodePath inodePath, long opTimeMs,
+      Mutable<Long> flushCounter, SetAttributeOptions options) throws FileDoesNotExistException {
     SetAttributeEntry.Builder builder =
         SetAttributeEntry.newBuilder().setId(inodePath.getInode().getId()).setOpTimeMs(opTimeMs);
     if (options.getPinned() != null) {
@@ -2855,7 +2865,8 @@ public final class FileSystemMaster extends AbstractMaster {
     if (options.getMode() != Constants.INVALID_MODE) {
       builder.setPermission(options.getMode());
     }
-    return appendJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build());
+    flushCounter
+        .setValue(appendJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build()));
   }
 
   /**
@@ -2865,12 +2876,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AlluxioException if scheduling fails
    */
   public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
-    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    Mutable<Long> flushCounter = new MutableObject<>(AsyncJournalWriter.INVALID_FLUSH_COUNTER);
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
-      flushCounter = scheduleAsyncPersistenceAndJournal(inodePath);
+      scheduleAsyncPersistenceAndJournal(inodePath, flushCounter);
     } finally {
       // finally runs after resources are closed (unlocked).
-      waitForJournalFlush(flushCounter);
+      waitForJournalFlush(flushCounter.getValue());
     }
     // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
     mAsyncPersistHandler.scheduleAsyncPersistence(path);
@@ -2882,18 +2893,18 @@ public final class FileSystemMaster extends AbstractMaster {
    * Writes to the journal.
    *
    * @param inodePath the {@link LockedInodePath} of the file for persistence
-   * @return the flush counter for journaling
+   * @param flushCounter counter used for journaling operations
    * @throws AlluxioException if scheduling fails
    */
-  private long scheduleAsyncPersistenceAndJournal(LockedInodePath inodePath)
-      throws AlluxioException {
+  private void scheduleAsyncPersistenceAndJournal(LockedInodePath inodePath,
+      Mutable<Long> flushCounter) throws AlluxioException {
     long fileId = inodePath.getInode().getId();
     scheduleAsyncPersistenceInternal(inodePath);
     // write to journal
     AsyncPersistRequestEntry asyncPersistRequestEntry =
         AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
-    return appendJournalEntry(
-        JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
+    flushCounter.setValue(appendJournalEntry(
+        JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build()));
   }
 
   /**

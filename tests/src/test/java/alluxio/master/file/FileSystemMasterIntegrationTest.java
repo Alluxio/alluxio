@@ -35,6 +35,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
+import alluxio.master.file.options.RenameOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -417,10 +418,8 @@ public class FileSystemMasterIntegrationTest {
   public void lastModificationTimeCompleteFile() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     long opTimeMs = TEST_TIME_MS;
-    try (LockedInodePath inodePath =
-        mInodeTree.lockFullInodePath(new AlluxioURI("/testFile"), InodeTree.LockMode.WRITE)) {
-      mFsMaster.completeFileInternal(new ArrayList<Long>(), inodePath, 0, opTimeMs);
-    }
+    mFsMaster.completeFile(new AlluxioURI("/testFile"),
+        CompleteFileOptions.defaults().setOperationTimeMs(opTimeMs).setUfsLength(0));
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.getLastModificationTimeMs());
   }
@@ -455,19 +454,14 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void lastModificationTimeRename() throws Exception {
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
-    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), CreateFileOptions.defaults());
-    long opTimeMs = TEST_TIME_MS;
-
-    try (InodePathPair inodePathPair = mInodeTree.lockInodePathPair(
-        new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
-        new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
-      LockedInodePath srcPath = inodePathPair.getFirst();
-      LockedInodePath dstPath = inodePathPair.getSecond();
-      mFsMaster.renameInternal(srcPath, dstPath, true, opTimeMs);
-    }
+    AlluxioURI srcPath = new AlluxioURI("/testFolder/testFile1");
+    AlluxioURI dstPath = new AlluxioURI("/testFolder/testFile2");
+    mFsMaster.createDirectory(srcPath, CreateDirectoryOptions.defaults());
+    mFsMaster.createFile(dstPath, CreateFileOptions.defaults());
+    RenameOptions options = RenameOptions.defaults().setOperationTimeMs(TEST_TIME_MS);
+    mFsMaster.rename(srcPath, dstPath, options);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
-    Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
+    Assert.assertEquals(TEST_TIME_MS, folderInfo.getLastModificationTimeMs());
   }
 
   @Test
@@ -534,7 +528,8 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFile1"), CreateFileOptions.defaults());
     mFsMaster.createFile(new AlluxioURI("/testFile2"), CreateFileOptions.defaults());
     try {
-      mFsMaster.rename(new AlluxioURI("/testFile1"), new AlluxioURI("/testFile2"));
+      mFsMaster.rename(new AlluxioURI("/testFile1"), new AlluxioURI("/testFile2"),
+          RenameOptions.defaults());
       Assert.fail("Should not be able to rename to an existing file");
     } catch (Exception e) {
       // expected
@@ -557,7 +552,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testDir1/testDir2/testDir3/testFile3"),
         createFileOptions);
     mFsMaster.rename(new AlluxioURI("/testDir1/testDir2"),
-        new AlluxioURI("/testDir1/testDir2/testDir3/testDir4"));
+        new AlluxioURI("/testDir1/testDir2/testDir3/testDir4"), RenameOptions.defaults());
   }
 
   @Test
@@ -617,19 +612,14 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void ttlRename() throws Exception {
+    AlluxioURI srcPath = new AlluxioURI("/testFolder/testFile1");
+    AlluxioURI dstPath = new AlluxioURI("/testFolder/testFile2");
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
-    CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
-    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
-
-    long opTimeMs = TEST_TIME_MS;
-    try (InodePathPair inodePathPair = mInodeTree.lockInodePathPair(
-        new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
-        new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
-      LockedInodePath srcPath = inodePathPair.getFirst();
-      LockedInodePath dstPath = inodePathPair.getSecond();
-      mFsMaster.renameInternal(srcPath, dstPath, true, opTimeMs);
-    }
+    CreateFileOptions createOptions = CreateFileOptions.defaults().setTtl(ttl);
+    mFsMaster.createFile(srcPath, createOptions);
+    RenameOptions renameOptions = RenameOptions.defaults().setOperationTimeMs(TEST_TIME_MS);
+    mFsMaster.rename(srcPath, dstPath, renameOptions);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
@@ -973,7 +963,7 @@ public class FileSystemMasterIntegrationTest {
           // InvalidPathException: This could happen if we are renaming something that's a child of
           // the root.
         }
-        mFsMaster.rename(srcPath, dstPath);
+        mFsMaster.rename(srcPath, dstPath, RenameOptions.defaults());
         Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();

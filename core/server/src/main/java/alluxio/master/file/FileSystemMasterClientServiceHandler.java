@@ -25,6 +25,7 @@ import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
+import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CheckConsistencyTOptions;
@@ -285,7 +286,8 @@ public final class FileSystemMasterClientServiceHandler implements
     RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
-        mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath));
+        mFileSystemMaster
+            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), RenameOptions.defaults());
         return null;
       }
     });
