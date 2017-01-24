@@ -504,13 +504,14 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   @POST
   @Path(UNMOUNT)
-  @ReturnType("java.lang.Boolean")
+  @ReturnType("java.lang.Void")
   public Response unmount(@QueryParam("path") final String path) {
-    return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
+    return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
-      public Boolean call() throws Exception {
+      public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        return mFileSystemMaster.unmount(new AlluxioURI(path));
+        mFileSystemMaster.unmount(new AlluxioURI(path));
+        return null;
       }
     });
   }

@@ -379,10 +379,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       // Set the next id to journal with a reservation of container ids, to avoid having to write
       // to the journal for ids within the reservation.
       mJournaledNextContainerId = containerId + CONTAINER_ID_RESERVATION_SIZE;
-      long counter = appendJournalEntry(getContainerIdJournalEntry());
-      // This must be flushed while holding the lock on mBlockContainerIdGenerator, in order to
-      // prevent subsequent calls to return container ids that have not been journaled and flushed.
-      waitForJournalFlush(counter);
+      try (JournalContext journalContext = createJournalContext()) {
+        // This must be flushed while holding the lock on mBlockContainerIdGenerator, in order to
+        // prevent subsequent calls to return ids that have not been journaled and flushed.
+        appendJournalEntry(getContainerIdJournalEntry(), journalContext);
+      }
       return containerId;
     }
   }
@@ -423,59 +424,59 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     }
 
     // Lock the worker metadata first.
-    synchronized (worker) {
-      // Loop until block metadata is successfully locked.
-      for (;;) {
-        boolean newBlock = false;
-        MasterBlockInfo block = mBlocks.get(blockId);
-        if (block == null) {
-          // The block metadata doesn't exist yet.
-          block = new MasterBlockInfo(blockId, length);
-          newBlock = true;
-        }
+    try (JournalContext journalContext = createJournalContext()) {
+      synchronized (worker) {
+        // Loop until block metadata is successfully locked.
+        for (; ; ) {
+          boolean newBlock = false;
+          MasterBlockInfo block = mBlocks.get(blockId);
+          if (block == null) {
+            // The block metadata doesn't exist yet.
+            block = new MasterBlockInfo(blockId, length);
+            newBlock = true;
+          }
 
-        // Lock the block metadata.
-        synchronized (block) {
-          boolean writeJournal = false;
-          if (newBlock) {
-            if (mBlocks.putIfAbsent(blockId, block) != null) {
-              // Another thread already inserted the metadata for this block, so start loop over.
-              continue;
+          // Lock the block metadata.
+          synchronized (block) {
+            boolean writeJournal = false;
+            if (newBlock) {
+              if (mBlocks.putIfAbsent(blockId, block) != null) {
+                // Another thread already inserted the metadata for this block, so start loop over.
+                continue;
+              }
+              // Successfully added the new block metadata. Append a journal entry for the new
+              // metadata.
+              writeJournal = true;
+            } else if (block.getLength() != length && block.getLength() == Constants.UNKNOWN_SIZE) {
+              // The block size was previously unknown. Update the block size with the committed
+              // size, and append a journal entry.
+              block.updateLength(length);
+              writeJournal = true;
             }
-            // Successfully added the new block metadata. Append a journal entry for the new
-            // metadata.
-            writeJournal = true;
-          } else if (block.getLength() != length
-              && block.getLength() == Constants.UNKNOWN_SIZE) {
-            // The block size was previously unknown. Update the block size with the committed
-            // size, and append a journal entry.
-            block.updateLength(length);
-            writeJournal = true;
-          }
-          if (writeJournal) {
-            BlockInfoEntry blockInfo =
-                BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
-            counter = appendJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
-          }
-          // At this point, both the worker and the block metadata are locked.
+            if (writeJournal) {
+              BlockInfoEntry blockInfo =
+                  BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
+              appendJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build(),
+                  journalContext);
+            }
+            // At this point, both the worker and the block metadata are locked.
 
-          // Update the block metadata with the new worker location.
-          block.addWorker(workerId, tierAlias);
-          // This worker has this block, so it is no longer lost.
-          mLostBlocks.remove(blockId);
+            // Update the block metadata with the new worker location.
+            block.addWorker(workerId, tierAlias);
+            // This worker has this block, so it is no longer lost.
+            mLostBlocks.remove(blockId);
 
-          // Update the worker information for this new block.
-          // TODO(binfan): when retry commitBlock on master is expected, make sure metrics are not
-          // double counted.
-          worker.addBlock(blockId);
-          worker.updateUsedBytes(tierAlias, usedBytesOnTier);
-          worker.updateLastUpdatedTimeMs();
+            // Update the worker information for this new block.
+            // TODO(binfan): when retry commitBlock on master is expected, make sure metrics are not
+            // double counted.
+            worker.addBlock(blockId);
+            worker.updateUsedBytes(tierAlias, usedBytesOnTier);
+            worker.updateLastUpdatedTimeMs();
+          }
+          break;
         }
-        break;
       }
     }
-
-    waitForJournalFlush(counter);
   }
 
   /**
@@ -493,16 +494,17 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
     // The block has not been committed previously, so add the metadata to commit the block.
     MasterBlockInfo block = new MasterBlockInfo(blockId, length);
-    long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-    synchronized (block) {
-      if (mBlocks.putIfAbsent(blockId, block) == null) {
-        // Successfully added the new block metadata. Append a journal entry for the new metadata.
-        BlockInfoEntry blockInfo =
-            BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
-        counter = appendJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
+    try (JournalContext journalContext = createJournalContext()) {
+      synchronized (block) {
+        if (mBlocks.putIfAbsent(blockId, block) == null) {
+          // Successfully added the new block metadata. Append a journal entry for the new metadata.
+          BlockInfoEntry blockInfo =
+              BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
+          appendJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build(),
+              journalContext);
+        }
       }
     }
-    waitForJournalFlush(counter);
   }
 
   /**
