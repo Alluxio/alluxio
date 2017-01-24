@@ -173,9 +173,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * Any changes to file system metadata that need to survive system restarts and / or failures
    * should be journaled. The intent to journal and the actual writing of the journal is decoupled
    * so that operations are not holding metadata locks waiting on the journal IO. In particular,
-   * file system operations are expected to create a {@link JournalContext} resource and is use it
+   * file system operations are expected to create a {@link JournalContext} resource, use it
    * throughout the lifetime of an operation to collect journal events through
-   * {@link #appendJournalEntry(JournalEntry, JournalContext)} and then close the resource, which
+   * {@link #appendJournalEntry(JournalEntry, JournalContext)}, and then close the resource, which
    * will persist the journal events. In order to ensure the journal events are always persisted,
    * the following paradigm is recommended:
    *
@@ -186,8 +186,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * </pre></blockquote>
    *
    * NOTE: Because resources are released in the opposite order they are acquired, the
-   * {@link JournalContext} resources should be always created before the {@link LockedInodePath}
-   * resource.
+   * {@link JournalContext} resources should be always created before any {@link LockedInodePath}
+   * resources to avoid holding an inode path lock while waiting for journal IO.
    *
    * Method Conventions in the FileSystemMaster
    *
