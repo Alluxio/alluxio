@@ -78,9 +78,9 @@ public final class AlluxioShellUtilsTest {
   }
 
   /**
-   * Reset the file hierarchy.
+   * Resets the file hierarchy.
    *
-   *@param fs the file system
+   * @param fs the file system
    * @return the test directory
    */
   public static String resetFileHierarchy(FileSystem fs) throws IOException, AlluxioException {
@@ -88,7 +88,7 @@ public final class AlluxioShellUtilsTest {
   }
 
   /**
-   * Reset the file hierarchy.
+   * Resets the file hierarchy.
    *
    * @param fs the file system
    * @param writeType write types for creating a file in Alluxio
@@ -120,7 +120,7 @@ public final class AlluxioShellUtilsTest {
   }
 
   /**
-   * Reset the local file hierarchy.
+   * Resets the local file hierarchy.
    *
    * @return the local test directory
    */
@@ -129,7 +129,7 @@ public final class AlluxioShellUtilsTest {
   }
 
   /**
-   * Reset the local file hierarchy.
+   * Resets the local file hierarchy.
    *
    * @param localAlluxioCluster local Alluxio cluster for tests
    * @return the local test directory
@@ -185,7 +185,7 @@ public final class AlluxioShellUtilsTest {
   }
 
   /**
-   * Reset the file hierarchy depending on the type of file system.
+   * Resets the file hierarchy depending on the type of file system.
    *
    * @param fsType the type of file system
    * @return the test directory, null if the fsType is invalid
