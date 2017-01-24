@@ -61,6 +61,11 @@ public final class RenameOptions {
   }
 
   @Override
+  public int hashCode() {
+    return Objects.hashCode("");
+  }
+
+  @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("operationTimeMs", mOperationTimeMs)
