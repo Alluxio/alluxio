@@ -21,7 +21,6 @@ import java.util.Random;
 
 public class JobConfInfoTest {
 
-
   /**
    * Test to convert between a JobConfInfo type and a json type.
    *
