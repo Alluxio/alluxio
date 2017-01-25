@@ -24,7 +24,7 @@ public class JobConfInfoTest {
   /**
    * Test to convert between a JobConfInfo type and a json type.
    *
-   * @throws Exception if an error occurs during convert between BlockInfo type and json type
+   * @throws Exception if an error occurs during convert between JobConfInfo type and json type
    */
   @Test
   public void jsonTest() throws Exception {
