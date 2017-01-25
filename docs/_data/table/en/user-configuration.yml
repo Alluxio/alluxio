@@ -36,7 +36,10 @@ alluxio.user.file.waitcompleted.poll.ms:
 alluxio.user.file.worker.client.threads:
   How many threads to use for file worker clients to read from workers.
 alluxio.user.file.write.location.policy.class:
-  The default location policy for choosing workers for writing a file's blocks.
+  The default location policy for choosing workers for writing a file's blocks
+alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes:
+  The portion of space reserved in worker when user use the LocalFirstAvoidEvictionPolicy class
+  as file write location policy, default 0 MB.
 alluxio.user.file.write.tier.default:
   The default tier for choosing a where to write a block. Valid option is any integer. Non-negative
   values identify tiers starting from top going down (0 identifies the first tier, 1 identifies the
