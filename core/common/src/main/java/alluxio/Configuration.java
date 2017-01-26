@@ -448,8 +448,7 @@ public final class Configuration {
       Preconditions.checkState(containsKey(PropertyKey.ZOOKEEPER_ADDRESS),
           PreconditionMessage.ERR_ZK_ADDRESS_NOT_SET.toString(),
           PropertyKey.ZOOKEEPER_ADDRESS.toString());
-    }
-    if (containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
+    } else if (containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
       LOG.warn("{} is configured, but {} is set to false", PropertyKey.ZOOKEEPER_ADDRESS.toString(),
           PropertyKey.ZOOKEEPER_ENABLED.toString());
     }
