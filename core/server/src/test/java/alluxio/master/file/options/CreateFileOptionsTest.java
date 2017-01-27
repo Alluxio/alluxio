@@ -88,6 +88,6 @@ public class CreateFileOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateFileOptions.class, "mOperationTimeMs");
+    CommonTestUtils.testEquals(CreateFileOptions.class);
   }
 }

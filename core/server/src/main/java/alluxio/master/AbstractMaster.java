@@ -48,6 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  public static final long INVALID_FLUSH_COUNTER = -1;
   private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
   private static final long JOURNAL_FLUSH_RETRY_TIMEOUT_MS =
       Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
@@ -240,19 +241,19 @@ public abstract class AbstractMaster implements Master {
     }
   }
 
-  protected long appendJournalEntry(JournalEntry entry) {
+  protected void appendJournalEntry(JournalEntry entry, JournalContext journalContext) {
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
-    return mAsyncJournalWriter.appendEntry(entry);
+    journalContext.setFlushCounter(mAsyncJournalWriter.appendEntry(entry));
   }
 
   /**
    * Waits for the flush counter to be flushed to the journal. If the counter is
-   * {@link AsyncJournalWriter#INVALID_FLUSH_COUNTER}, this is a noop.
+   * {@link #INVALID_FLUSH_COUNTER}, this is a noop.
    *
-   * @param counter the flush counter
+   * @param journalContext the journal context
    */
-  protected void waitForJournalFlush(long counter) {
-    if (counter == AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
+  private void waitForJournalFlush(JournalContext journalContext) {
+    if (journalContext.getFlushCounter() == INVALID_FLUSH_COUNTER) {
       // Check this before the precondition.
       return;
     }
@@ -263,7 +264,7 @@ public abstract class AbstractMaster implements Master {
     while (retry.attemptRetry()) {
       try {
         attempts++;
-        mAsyncJournalWriter.flush(counter);
+        mAsyncJournalWriter.flush(journalContext.getFlushCounter());
         return;
       } catch (IOException e) {
         LOG.warn("Journal flush failed. retrying...", e);
@@ -284,5 +285,37 @@ public abstract class AbstractMaster implements Master {
    */
   protected ExecutorService getExecutorService() {
     return mExecutorService;
+  }
+
+  /**
+   * @return new instance of {@link JournalContext}
+   */
+  protected JournalContext createJournalContext() {
+    return new JournalContext();
+  }
+
+  /**
+   * Context for storing journaling information.
+   */
+  @NotThreadSafe
+  public final class JournalContext implements AutoCloseable {
+    private long mFlushCounter;
+
+    private JournalContext() {
+      mFlushCounter = INVALID_FLUSH_COUNTER;
+    }
+
+    private long getFlushCounter() {
+      return mFlushCounter;
+    }
+
+    private void setFlushCounter(long counter) {
+      mFlushCounter = counter;
+    }
+
+    @Override
+    public void close() {
+      waitForJournalFlush(this);
+    }
   }
 }

@@ -281,6 +281,6 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
     new TestCase(mHostname, mPort, getEndpoint(FileSystemMasterClientRestServiceHandler.UNMOUNT),
-        params, HttpMethod.POST, true).run();
+        params, HttpMethod.POST, null).run();
   }
 }

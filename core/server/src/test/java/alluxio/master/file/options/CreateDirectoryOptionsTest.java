@@ -87,6 +87,6 @@ public class CreateDirectoryOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateDirectoryOptions.class, "mOperationTimeMs");
+    CommonTestUtils.testEquals(CreateDirectoryOptions.class);
   }
 }

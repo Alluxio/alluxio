@@ -21,35 +21,22 @@ import java.util.Random;
 /**
  * Unit tests for {@link CompleteFileOptions}.
  */
-public class CompleteFileOptionsTest {
-  /**
-   * Tests the {@link CompleteFileOptions#defaults()} method.
-   */
-  @Test
-  public void defaults() {
-    CompleteFileOptions options = CompleteFileOptions.defaults();
-
-    Assert.assertEquals(0, options.getUfsLength());
-  }
-
+public class RenameOptionsTest {
   /**
    * Tests getting and setting fields.
    */
   @Test
   public void fields() {
     Random random = new Random();
-    long ufsLength = random.nextLong();
     long operationTimeMs = random.nextLong();
 
-    CompleteFileOptions options =
-        CompleteFileOptions.defaults().setUfsLength(ufsLength).setOperationTimeMs(operationTimeMs);
+    RenameOptions options = RenameOptions.defaults().setOperationTimeMs(operationTimeMs);
 
-    Assert.assertEquals(ufsLength, options.getUfsLength());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
   }
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CompleteFileOptions.class);
+    CommonTestUtils.testEquals(RenameOptions.class);
   }
 }

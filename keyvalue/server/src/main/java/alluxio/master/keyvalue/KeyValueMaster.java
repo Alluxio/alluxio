@@ -23,6 +23,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.AbstractMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.RenameOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -335,7 +336,7 @@ public final class KeyValueMaster extends AbstractMaster {
     long oldFileId = getFileId(oldUri);
     checkIsCompletePartition(oldFileId, oldUri);
     try {
-      mFileSystemMaster.rename(oldUri, newUri);
+      mFileSystemMaster.rename(oldUri, newUri, RenameOptions.defaults());
     } catch (FileAlreadyExistsException e) {
       throw new FileAlreadyExistsException(
           String.format("failed to rename store:the path %s has been used", newUri), e);
@@ -379,7 +380,8 @@ public final class KeyValueMaster extends AbstractMaster {
     // Rename fromUri to "toUri/%s-%s" % (last component of fromUri, UUID).
     // NOTE: rename does not change the existing block IDs.
     mFileSystemMaster.rename(fromUri, new AlluxioURI(PathUtils.concatPath(toUri.toString(),
-        String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))));
+        String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))),
+        RenameOptions.defaults());
     mergeStoreInternal(fromFileId, toFileId);
 
     writeJournalEntry(newMergeStoreEntry(fromFileId, toFileId));

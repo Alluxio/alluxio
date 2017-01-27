@@ -11,8 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.thrift.CompleteFileTOptions;
-
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -21,37 +19,18 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public final class CompleteFileOptions {
-  private long mUfsLength;
+public final class RenameOptions {
   private long mOperationTimeMs;
 
   /**
-   * @return the default {@link CompleteFileOptions}
+   * @return the default {@link RenameOptions}
    */
-  public static CompleteFileOptions defaults() {
-    return new CompleteFileOptions();
+  public static RenameOptions defaults() {
+    return new RenameOptions();
   }
 
-  /**
-   * Creates a new instance of {@link CompleteFileOptions} from {@link CompleteFileTOptions}.
-   *
-   * @param options Thrift options
-   */
-  public CompleteFileOptions(CompleteFileTOptions options) {
-    mUfsLength = options.getUfsLength();
+  private RenameOptions() {
     mOperationTimeMs = System.currentTimeMillis();
-  }
-
-  private CompleteFileOptions() {
-    mUfsLength = 0;
-    mOperationTimeMs = System.currentTimeMillis();
-  }
-
-  /**
-   * @return the UFS file length
-   */
-  public long getUfsLength() {
-    return mUfsLength;
   }
 
   /**
@@ -62,19 +41,10 @@ public final class CompleteFileOptions {
   }
 
   /**
-   * @param ufsLength the UFS file length to use
-   * @return the updated options object
-   */
-  public CompleteFileOptions setUfsLength(long ufsLength) {
-    mUfsLength = ufsLength;
-    return this;
-  }
-
-  /**
    * @param operationTimeMs the operation time to use
    * @return the updated options object
    */
-  public CompleteFileOptions setOperationTimeMs(long operationTimeMs) {
+  public RenameOptions setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
   }
@@ -84,22 +54,21 @@ public final class CompleteFileOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof CompleteFileOptions)) {
+    if (!(o instanceof RenameOptions)) {
       return false;
     }
-    CompleteFileOptions that = (CompleteFileOptions) o;
-    return Objects.equal(mUfsLength, that.mUfsLength) && mOperationTimeMs == that.mOperationTimeMs;
+    RenameOptions that = (RenameOptions) o;
+    return mOperationTimeMs == that.mOperationTimeMs;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsLength, mOperationTimeMs);
+    return Objects.hashCode(mOperationTimeMs);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("ufsLength", mUfsLength)
         .add("operationTimeMs", mOperationTimeMs)
         .toString();
   }

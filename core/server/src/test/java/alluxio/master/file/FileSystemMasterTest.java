@@ -37,6 +37,7 @@ import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
+import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -1059,7 +1060,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#rename(AlluxioURI, AlluxioURI)} method.
+   * Tests the {@link FileSystemMaster#rename(AlluxioURI, AlluxioURI, RenameOptions)} method.
    */
   @Test
   public void rename() throws Exception {
@@ -1067,7 +1068,7 @@ public final class FileSystemMasterTest {
 
     // try to rename a file to root
     try {
-      mFileSystemMaster.rename(NESTED_FILE_URI, ROOT_URI);
+      mFileSystemMaster.rename(NESTED_FILE_URI, ROOT_URI, RenameOptions.defaults());
       Assert.fail("Renaming to root should fail.");
     } catch (InvalidPathException e) {
       Assert.assertEquals(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage(), e.getMessage());
@@ -1075,7 +1076,7 @@ public final class FileSystemMasterTest {
 
     // move root to another path
     try {
-      mFileSystemMaster.rename(ROOT_URI, TEST_URI);
+      mFileSystemMaster.rename(ROOT_URI, TEST_URI, RenameOptions.defaults());
       Assert.fail("Should not be able to rename root");
     } catch (InvalidPathException e) {
       Assert.assertEquals(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage(), e.getMessage());
@@ -1083,7 +1084,7 @@ public final class FileSystemMasterTest {
 
     // move to existing path
     try {
-      mFileSystemMaster.rename(NESTED_FILE_URI, NESTED_URI);
+      mFileSystemMaster.rename(NESTED_FILE_URI, NESTED_URI, RenameOptions.defaults());
       Assert.fail("Should not be able to overwrite existing file.");
     } catch (FileAlreadyExistsException e) {
       Assert.assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI.getPath()),
@@ -1091,12 +1092,12 @@ public final class FileSystemMasterTest {
     }
 
     // move a nested file to a root file
-    mFileSystemMaster.rename(NESTED_FILE_URI, TEST_URI);
+    mFileSystemMaster.rename(NESTED_FILE_URI, TEST_URI, RenameOptions.defaults());
     Assert.assertEquals(mFileSystemMaster.getFileInfo(TEST_URI).getPath(), TEST_URI.getPath());
 
     // move a file where the dst is lexicographically earlier than the source
     AlluxioURI newDst = new AlluxioURI("/abc_test");
-    mFileSystemMaster.rename(TEST_URI, newDst);
+    mFileSystemMaster.rename(TEST_URI, newDst, RenameOptions.defaults());
     Assert.assertEquals(mFileSystemMaster.getFileInfo(newDst).getPath(), newDst.getPath());
   }
 
@@ -1113,7 +1114,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createFile(TEST_URI, options);
 
     // nested dir
-    mFileSystemMaster.rename(TEST_URI, NESTED_FILE_URI);
+    mFileSystemMaster.rename(TEST_URI, NESTED_FILE_URI, RenameOptions.defaults());
   }
 
   @Test
@@ -1123,7 +1124,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createFile(NESTED_URI, options);
 
     try {
-      mFileSystemMaster.rename(NESTED_URI, new AlluxioURI("/testDNE/b"));
+      mFileSystemMaster.rename(NESTED_URI, new AlluxioURI("/testDNE/b"), RenameOptions.defaults());
       Assert.fail("Rename to a non-existent parent path should not succeed.");
     } catch (FileDoesNotExistException e) {
       // Expected case
@@ -1140,7 +1141,7 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage("Traversal failed. Component 2(test) is a file");
 
     mFileSystemMaster.createFile(NESTED_URI, mNestedFileOptions);
-    mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI);
+    mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI, RenameOptions.defaults());
   }
 
   /**
