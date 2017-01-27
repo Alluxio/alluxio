@@ -88,12 +88,12 @@ public final class CompleteFileOptions {
       return false;
     }
     CompleteFileOptions that = (CompleteFileOptions) o;
-    return Objects.equal(mUfsLength, that.mUfsLength);
+    return Objects.equal(mUfsLength, that.mUfsLength) && mOperationTimeMs == that.mOperationTimeMs;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsLength);
+    return Objects.hashCode(mUfsLength, mOperationTimeMs);
   }
 
   @Override

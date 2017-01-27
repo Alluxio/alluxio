@@ -48,6 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  public static final long INVALID_FLUSH_COUNTER = -1;
   private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
   private static final long JOURNAL_FLUSH_RETRY_TIMEOUT_MS =
       Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
@@ -247,12 +248,12 @@ public abstract class AbstractMaster implements Master {
 
   /**
    * Waits for the flush counter to be flushed to the journal. If the counter is
-   * {@link AsyncJournalWriter#INVALID_FLUSH_COUNTER}, this is a noop.
+   * {@link #INVALID_FLUSH_COUNTER}, this is a noop.
    *
    * @param journalContext the journal context
    */
   private void waitForJournalFlush(JournalContext journalContext) {
-    if (journalContext.getFlushCounter() == AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
+    if (journalContext.getFlushCounter() == INVALID_FLUSH_COUNTER) {
       // Check this before the precondition.
       return;
     }
@@ -296,11 +297,12 @@ public abstract class AbstractMaster implements Master {
   /**
    * Context for storing journaling information.
    */
+  @NotThreadSafe
   public final class JournalContext implements AutoCloseable {
     private long mFlushCounter;
 
     private JournalContext() {
-      mFlushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+      mFlushCounter = INVALID_FLUSH_COUNTER;
     }
 
     private long getFlushCounter() {

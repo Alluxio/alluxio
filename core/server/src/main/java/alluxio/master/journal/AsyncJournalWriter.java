@@ -34,9 +34,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AsyncJournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** An invalid journal flush counter. */
-  public static final long INVALID_FLUSH_COUNTER = -1;
-
   private final JournalWriter mJournalWriter;
   private final ConcurrentLinkedQueue<JournalEntry> mQueue;
   /** Represents the count of entries added to the journal queue. */

@@ -50,6 +50,6 @@ public class CompleteFileOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CompleteFileOptions.class, "mOperationTimeMs");
+    CommonTestUtils.testEquals(CompleteFileOptions.class);
   }
 }

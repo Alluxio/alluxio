@@ -239,13 +239,14 @@ public final class SetAttributeOptions {
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode)
-        && Objects.equal(mRecursive, that.mRecursive);
+        && Objects.equal(mRecursive, that.mRecursive)
+        && mOperationTimeMs == that.mOperationTimeMs;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode,
-        mRecursive);
+        mRecursive, mOperationTimeMs);
   }
 
   @Override

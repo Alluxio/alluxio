@@ -178,13 +178,14 @@ public abstract class CreatePathOptions<T> {
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mMetadataLoad, that.mMetadataLoad)
-        && Objects.equal(mDefaultMode, that.mDefaultMode);
+        && Objects.equal(mDefaultMode, that.mDefaultMode)
+        && mOperationTimeMs == that.mOperationTimeMs;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mMountPoint, mPermission, mPersisted, mRecursive, mMetadataLoad,
-        mDefaultMode);
+        mDefaultMode, mOperationTimeMs);
   }
 
   protected Objects.ToStringHelper toStringHelper() {

@@ -37,6 +37,6 @@ public class RenameOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(RenameOptions.class, "mOperationTimeMs");
+    CommonTestUtils.testEquals(RenameOptions.class);
   }
 }

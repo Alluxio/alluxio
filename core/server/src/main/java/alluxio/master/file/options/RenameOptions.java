@@ -57,12 +57,13 @@ public final class RenameOptions {
     if (!(o instanceof RenameOptions)) {
       return false;
     }
-    return true;
+    RenameOptions that = (RenameOptions) o;
+    return mOperationTimeMs == that.mOperationTimeMs;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode("");
+    return Objects.hashCode(mOperationTimeMs);
   }
 
   @Override
