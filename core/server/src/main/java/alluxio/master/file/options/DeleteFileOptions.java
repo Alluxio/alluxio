@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class DeleteFileOptions {
   private boolean mRecursive;
-  private boolean mRemoveUFSFile;
+  private boolean mAlluxioOnly;
 
   /**
    * @return the default {@link DeleteFileOptions}
@@ -37,12 +37,12 @@ public final class DeleteFileOptions {
    */
   public DeleteFileOptions(DeleteTOptions options) {
     mRecursive = options.isRecursive();
-    mRemoveUFSFile = options.isRemoveUFSFile();
+    mAlluxioOnly = options.isAlluxioOnly();
   }
 
   private DeleteFileOptions() {
     mRecursive = false;
-    mRemoveUFSFile = true;
+    mAlluxioOnly = false;
   }
 
   /**
@@ -54,11 +54,11 @@ public final class DeleteFileOptions {
   }
 
   /**
-   * @return the removeUFSFile flag value; the flag specifies whether the file content should
-   *         be delete from the under storage file system.
+   * @return the alluxioOnly flag value; the flag specifies whether the file content should
+   *         be stored only in alluxio.
    */
-  public boolean isRemoveUFSFile() {
-    return mRemoveUFSFile;
+  public boolean isAlluxioOnly() {
+    return mAlluxioOnly;
   }
 
   /**
@@ -77,11 +77,11 @@ public final class DeleteFileOptions {
    * Sets the removeUFSFile flag.
    *
    * @param removeUFSFile the removeUFSFile flag value to use; the flag specifies whether the file
-   *        content should be deleted from the under storage file system.
+   *        content should be stored only in alluxio.
    * @return the updated options object
    */
-  public DeleteFileOptions setRemoveUFSFile(boolean removeUFSFile) {
-    mRemoveUFSFile = removeUFSFile;
+  public DeleteFileOptions setAlluxioOnly(boolean removeUFSFile) {
+    mAlluxioOnly = removeUFSFile;
     return this;
   }
 
@@ -94,20 +94,20 @@ public final class DeleteFileOptions {
       return false;
     }
     DeleteFileOptions that = (DeleteFileOptions) o;
-    return Objects.equal(mRecursive, that.mRecursive) && Objects.equal(mRemoveUFSFile,
-        that.mRemoveUFSFile);
+    return Objects.equal(mRecursive, that.mRecursive) && Objects.equal(mAlluxioOnly,
+        that.mAlluxioOnly);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mRemoveUFSFile);
+    return Objects.hashCode(mRecursive, mAlluxioOnly);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
          .add("recursive", mRecursive)
-         .add("removeUFSFile", mRemoveUFSFile)
+         .add("alluxioOnly", mAlluxioOnly)
          .toString();
   }
 }

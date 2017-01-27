@@ -3034,13 +3034,13 @@ public final class File {
     boolean getRecursive();
 
     /**
-     * <code>optional bool removeUFSFile = 3;</code>
+     * <code>optional bool alluxioOnly = 3;</code>
      */
-    boolean hasRemoveUFSFile();
+    boolean hasAlluxioOnly();
     /**
-     * <code>optional bool removeUFSFile = 3;</code>
+     * <code>optional bool alluxioOnly = 3;</code>
      */
-    boolean getRemoveUFSFile();
+    boolean getAlluxioOnly();
 
     /**
      * <code>optional int64 op_time_ms = 4;</code>
@@ -3119,7 +3119,7 @@ public final class File {
             }
             case 24: {
               bitField0_ |= 0x00000004;
-              removeUFSFile_ = input.readBool();
+              alluxioOnly_ = input.readBool();
               break;
             }
             case 32: {
@@ -3197,19 +3197,19 @@ public final class File {
       return recursive_;
     }
 
-    public static final int REMOVEUFSFILE_FIELD_NUMBER = 3;
-    private boolean removeUFSFile_;
+    public static final int ALLUXIOONLY_FIELD_NUMBER = 3;
+    private boolean alluxioOnly_;
     /**
-     * <code>optional bool removeUFSFile = 3;</code>
+     * <code>optional bool alluxioOnly = 3;</code>
      */
-    public boolean hasRemoveUFSFile() {
+    public boolean hasAlluxioOnly() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional bool removeUFSFile = 3;</code>
+     * <code>optional bool alluxioOnly = 3;</code>
      */
-    public boolean getRemoveUFSFile() {
-      return removeUFSFile_;
+    public boolean getAlluxioOnly() {
+      return alluxioOnly_;
     }
 
     public static final int OP_TIME_MS_FIELD_NUMBER = 4;
@@ -3230,7 +3230,7 @@ public final class File {
     private void initFields() {
       id_ = 0L;
       recursive_ = false;
-      removeUFSFile_ = false;
+      alluxioOnly_ = false;
       opTimeMs_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
@@ -3253,7 +3253,7 @@ public final class File {
         output.writeBool(2, recursive_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBool(3, removeUFSFile_);
+        output.writeBool(3, alluxioOnly_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt64(4, opTimeMs_);
@@ -3277,7 +3277,7 @@ public final class File {
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(3, removeUFSFile_);
+          .computeBoolSize(3, alluxioOnly_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
@@ -3408,7 +3408,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000001);
         recursive_ = false;
         bitField0_ = (bitField0_ & ~0x00000002);
-        removeUFSFile_ = false;
+        alluxioOnly_ = false;
         bitField0_ = (bitField0_ & ~0x00000004);
         opTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -3451,7 +3451,7 @@ public final class File {
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
-        result.removeUFSFile_ = removeUFSFile_;
+        result.alluxioOnly_ = alluxioOnly_;
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
         }
@@ -3478,8 +3478,8 @@ public final class File {
         if (other.hasRecursive()) {
           setRecursive(other.getRecursive());
         }
-        if (other.hasRemoveUFSFile()) {
-          setRemoveUFSFile(other.getRemoveUFSFile());
+        if (other.hasAlluxioOnly()) {
+          setAlluxioOnly(other.getAlluxioOnly());
         }
         if (other.hasOpTimeMs()) {
           setOpTimeMs(other.getOpTimeMs());
@@ -3575,34 +3575,34 @@ public final class File {
         return this;
       }
 
-      private boolean removeUFSFile_ ;
+      private boolean alluxioOnly_ ;
       /**
-       * <code>optional bool removeUFSFile = 3;</code>
+       * <code>optional bool alluxioOnly = 3;</code>
        */
-      public boolean hasRemoveUFSFile() {
+      public boolean hasAlluxioOnly() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>optional bool removeUFSFile = 3;</code>
+       * <code>optional bool alluxioOnly = 3;</code>
        */
-      public boolean getRemoveUFSFile() {
-        return removeUFSFile_;
+      public boolean getAlluxioOnly() {
+        return alluxioOnly_;
       }
       /**
-       * <code>optional bool removeUFSFile = 3;</code>
+       * <code>optional bool alluxioOnly = 3;</code>
        */
-      public Builder setRemoveUFSFile(boolean value) {
+      public Builder setAlluxioOnly(boolean value) {
         bitField0_ |= 0x00000004;
-        removeUFSFile_ = value;
+        alluxioOnly_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional bool removeUFSFile = 3;</code>
+       * <code>optional bool alluxioOnly = 3;</code>
        */
-      public Builder clearRemoveUFSFile() {
+      public Builder clearAlluxioOnly() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        removeUFSFile_ = false;
+        alluxioOnly_ = false;
         onChanged();
         return this;
       }
@@ -12521,47 +12521,47 @@ public final class File {
       "+\n\030AsyncPersistRequestEntry\022\017\n\007file_id\030\001" +
       " \001(\003\"V\n\021CompleteFileEntry\022\021\n\tblock_ids\030\001" +
       " \003(\003\022\n\n\002id\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\022\n\nop_t" +
-      "ime_ms\030\004 \001(\003\"[\n\017DeleteFileEntry\022\n\n\002id\030\001 ",
-      "\001(\003\022\021\n\trecursive\030\002 \001(\010\022\025\n\rremoveUFSFile\030" +
-      "\003 \001(\010\022\022\n\nop_time_ms\030\004 \001(\003\"-\n\025DeleteMount" +
-      "PointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\326\002\n\023Ino" +
-      "deDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_i" +
-      "d\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_sta" +
-      "te\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_tim" +
-      "e_ms\030\006 \001(\003\022!\n\031last_modification_time_ms\030" +
-      "\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004m" +
-      "ode\030\n \001(\005\022\023\n\013mount_point\030\013 \001(\010\022\036\n\026direct" +
-      "_children_loaded\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003\022<\n\tt",
-      "tlAction\030\016 \001(\0162!.alluxio.proto.journal.P" +
-      "TtlAction:\006DELETE\"O\n\036InodeDirectoryIdGen" +
-      "eratorEntry\022\024\n\014container_id\030\001 \001(\003\022\027\n\017seq" +
-      "uence_number\030\002 \001(\003\"\374\002\n\016InodeFileEntry\022\n\n" +
-      "\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001" +
-      "(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030" +
-      "\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_" +
-      "modification_time_ms\030\007 \001(\003\022\030\n\020block_size" +
-      "_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcomplete" +
-      "d\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006blocks\030\014 \003",
-      "(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030\016 \001(\t\022\r\n\005group\030" +
-      "\017 \001(\t\022\014\n\004mode\030\020 \001(\005\022<\n\tttlAction\030\021 \001(\0162!" +
-      ".alluxio.proto.journal.PTtlAction:\006DELET" +
-      "E\"O\n\036InodeLastModificationTimeEntry\022\n\n\002i" +
-      "d\030\001 \001(\003\022!\n\031last_modification_time_ms\030\002 \001" +
-      "(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"" +
-      "B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006lengt" +
-      "h\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"\212\001\n\025Reinitia" +
-      "lizeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_siz" +
-      "e_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\022<\n\tttlAction\030",
-      "\004 \001(\0162!.alluxio.proto.journal.PTtlAction" +
-      ":\006DELETE\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010d" +
-      "st_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\323\001\n\021Se" +
-      "tAttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_m" +
-      "s\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\t" +
-      "persisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030" +
-      "\007 \001(\t\022\022\n\npermission\030\010 \001(\005\022<\n\tttlAction\030\t" +
-      " \001(\0162!.alluxio.proto.journal.PTtlAction:" +
-      "\006DELETE*\"\n\nPTtlAction\022\n\n\006DELETE\020\000\022\010\n\004FRE" +
-      "E\020\001"
+      "ime_ms\030\004 \001(\003\"Y\n\017DeleteFileEntry\022\n\n\002id\030\001 ",
+      "\001(\003\022\021\n\trecursive\030\002 \001(\010\022\023\n\013alluxioOnly\030\003 " +
+      "\001(\010\022\022\n\nop_time_ms\030\004 \001(\003\"-\n\025DeleteMountPo" +
+      "intEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\326\002\n\023Inode" +
+      "DirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030" +
+      "\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state" +
+      "\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_" +
+      "ms\030\006 \001(\003\022!\n\031last_modification_time_ms\030\007 " +
+      "\001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004mod" +
+      "e\030\n \001(\005\022\023\n\013mount_point\030\013 \001(\010\022\036\n\026direct_c" +
+      "hildren_loaded\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003\022<\n\tttl",
+      "Action\030\016 \001(\0162!.alluxio.proto.journal.PTt" +
+      "lAction:\006DELETE\"O\n\036InodeDirectoryIdGener" +
+      "atorEntry\022\024\n\014container_id\030\001 \001(\003\022\027\n\017seque" +
+      "nce_number\030\002 \001(\003\"\374\002\n\016InodeFileEntry\022\n\n\002i" +
+      "d\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t" +
+      "\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 " +
+      "\001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_mo" +
+      "dification_time_ms\030\007 \001(\003\022\030\n\020block_size_b" +
+      "ytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcompleted\030" +
+      "\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003",
+      "\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030\016 \001(\t\022\r\n\005group\030\017 " +
+      "\001(\t\022\014\n\004mode\030\020 \001(\005\022<\n\tttlAction\030\021 \001(\0162!.a" +
+      "lluxio.proto.journal.PTtlAction:\006DELETE\"" +
+      "O\n\036InodeLastModificationTimeEntry\022\n\n\002id\030" +
+      "\001 \001(\003\022!\n\031last_modification_time_ms\030\002 \001(\003" +
+      "\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n" +
+      "\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030" +
+      "\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"\212\001\n\025Reinitiali" +
+      "zeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_size_" +
+      "bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\022<\n\tttlAction\030\004 ",
+      "\001(\0162!.alluxio.proto.journal.PTtlAction:\006" +
+      "DELETE\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst" +
+      "_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\323\001\n\021SetA" +
+      "ttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030" +
+      "\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpe" +
+      "rsisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 " +
+      "\001(\t\022\022\n\npermission\030\010 \001(\005\022<\n\tttlAction\030\t \001" +
+      "(\0162!.alluxio.proto.journal.PTtlAction:\006D" +
+      "ELETE*\"\n\nPTtlAction\022\n\n\006DELETE\020\000\022\010\n\004FREE\020" +
+      "\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -12604,7 +12604,7 @@ public final class File {
     internal_static_alluxio_proto_journal_DeleteFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_DeleteFileEntry_descriptor,
-        new java.lang.String[] { "Id", "Recursive", "RemoveUFSFile", "OpTimeMs", });
+        new java.lang.String[] { "Id", "Recursive", "AlluxioOnly", "OpTimeMs", });
     internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_alluxio_proto_journal_DeleteMountPointEntry_fieldAccessorTable = new

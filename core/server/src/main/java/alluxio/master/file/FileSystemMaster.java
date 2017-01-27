@@ -1286,7 +1286,7 @@ public final class FileSystemMaster extends AbstractMaster {
     DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
         .setId(fileId)
         .setRecursive(deleteFileOptions.isRecursive())
-        .setRemoveUFSFile(deleteFileOptions.isRemoveUFSFile())
+        .setAlluxioOnly(deleteFileOptions.isAlluxioOnly())
         .setOpTimeMs(opTimeMs)
         .build();
     return appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
@@ -1302,7 +1302,7 @@ public final class FileSystemMaster extends AbstractMaster {
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE_PARENT)) {
       DeleteFileOptions deleteFileOptions = DeleteFileOptions.defaults();
       deleteFileOptions.setRecursive(entry.getRecursive());
-      deleteFileOptions.setRemoveUFSFile(entry.getRemoveUFSFile());
+      deleteFileOptions.setAlluxioOnly(entry.getAlluxioOnly());
       deleteInternal(inodePath, deleteFileOptions, true, entry.getOpTimeMs());
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -1357,7 +1357,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return;
     }
     boolean recursive = deleteFileOptions.isRecursive();
-    boolean removeUFSFile = deleteFileOptions.isRemoveUFSFile();
+    boolean alluxioOnly = deleteFileOptions.isAlluxioOnly();
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
       // true
@@ -1398,7 +1398,7 @@ public final class FileSystemMaster extends AbstractMaster {
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
               boolean failedToDelete = false;
-              if (removeUFSFile) {
+              if (!alluxioOnly) {
                 if (delInode.isFile()) {
                   if (!ufs.deleteFile(ufsUri)) {
                     failedToDelete = ufs.isFile(ufsUri);

@@ -37,7 +37,7 @@ message CompleteFileEntry {
 message DeleteFileEntry {
   optional int64 id = 1;
   optional bool recursive = 2;
-  optional bool removeUFSFile =3;
+  optional bool alluxioOnly =3;
   optional int64 op_time_ms = 4;
 }
 

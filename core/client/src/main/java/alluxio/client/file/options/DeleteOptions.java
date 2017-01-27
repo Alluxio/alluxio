@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class DeleteOptions {
   private boolean mRecursive;
-  private boolean mRemoveUFSFile;
+  private boolean mAlluxioOnly;
 
   /**
    * @return the default {@link DeleteOptions}
@@ -36,7 +36,7 @@ public final class DeleteOptions {
 
   private DeleteOptions() {
     mRecursive = false;
-    mRemoveUFSFile = true;
+    mAlluxioOnly = false;
   }
 
   /**
@@ -48,11 +48,11 @@ public final class DeleteOptions {
   }
 
   /**
-   * @return the removeUFSFile flag value; the flag specifies whether the file content should
-   *         be deleted from the under storage file system.
+   * @return the mAlluxioOnly flag value; the flag specifies whether the file content should
+   *         be stored only in alluxio.
    */
-  public boolean isRemoveUFSFile() {
-    return mRemoveUFSFile;
+  public boolean isAlluxioOnly() {
+    return mAlluxioOnly;
   }
 
   /**
@@ -68,14 +68,14 @@ public final class DeleteOptions {
   }
 
   /**
-   * Sets the removeUFSFile flag.
+   * Sets the alluxioOnly flag.
    *
-   * @param removeUFSFile the removeUFSFile flag value to use; the flag specifies whether the file
-   *        content should be deleted from the under storage file system.
+   * @param alluxioOnly the alluxioOnly flag value to use; the flag specifies whether the file
+   *        content should be stored only in alluxio.
    * @return the updated options object
    */
-  public DeleteOptions setRemoveUFSFile(boolean removeUFSFile) {
-    mRemoveUFSFile = removeUFSFile;
+  public DeleteOptions setAlluxioOnly(boolean alluxioOnly) {
+    mAlluxioOnly = alluxioOnly;
     return this;
   }
 
@@ -88,20 +88,20 @@ public final class DeleteOptions {
       return false;
     }
     DeleteOptions that = (DeleteOptions) o;
-    return Objects.equal(mRecursive, that.mRecursive) && Objects.equal(mRemoveUFSFile,
-        that.mRemoveUFSFile);
+    return Objects.equal(mRecursive, that.mRecursive) && Objects.equal(mAlluxioOnly,
+        that.mAlluxioOnly);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mRemoveUFSFile);
+    return Objects.hashCode(mRecursive, mAlluxioOnly);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("recursive", mRecursive)
-        .add("removeUFSFile", mRemoveUFSFile)
+        .add("alluxioOnly", mAlluxioOnly)
         .toString();
   }
 
@@ -111,7 +111,7 @@ public final class DeleteOptions {
   public DeleteTOptions toThrift() {
     DeleteTOptions options = new DeleteTOptions();
     options.setRecursive(mRecursive);
-    options.setRemoveUFSFile(mRemoveUFSFile);
+    options.setAlluxioOnly(mAlluxioOnly);
     return options;
   }
 }

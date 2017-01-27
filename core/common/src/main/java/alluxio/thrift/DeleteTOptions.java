@@ -39,7 +39,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("DeleteTOptions");
 
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)1);
-  private static final org.apache.thrift.protocol.TField REMOVE_UFSFILE_FIELD_DESC = new org.apache.thrift.protocol.TField("removeUFSFile", org.apache.thrift.protocol.TType.BOOL, (short)2);
+  private static final org.apache.thrift.protocol.TField ALLUXIO_ONLY_FIELD_DESC = new org.apache.thrift.protocol.TField("alluxioOnly", org.apache.thrift.protocol.TType.BOOL, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -48,12 +48,12 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
   }
 
   private boolean recursive; // optional
-  private boolean removeUFSFile; // optional
+  private boolean alluxioOnly; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     RECURSIVE((short)1, "recursive"),
-    REMOVE_UFSFILE((short)2, "removeUFSFile");
+    ALLUXIO_ONLY((short)2, "alluxioOnly");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -70,8 +70,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       switch(fieldId) {
         case 1: // RECURSIVE
           return RECURSIVE;
-        case 2: // REMOVE_UFSFILE
-          return REMOVE_UFSFILE;
+        case 2: // ALLUXIO_ONLY
+          return ALLUXIO_ONLY;
         default:
           return null;
       }
@@ -113,15 +113,15 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
 
   // isset id assignments
   private static final int __RECURSIVE_ISSET_ID = 0;
-  private static final int __REMOVEUFSFILE_ISSET_ID = 1;
+  private static final int __ALLUXIOONLY_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.RECURSIVE,_Fields.REMOVE_UFSFILE};
+  private static final _Fields optionals[] = {_Fields.RECURSIVE,_Fields.ALLUXIO_ONLY};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.REMOVE_UFSFILE, new org.apache.thrift.meta_data.FieldMetaData("removeUFSFile", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.ALLUXIO_ONLY, new org.apache.thrift.meta_data.FieldMetaData("alluxioOnly", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(DeleteTOptions.class, metaDataMap);
@@ -136,7 +136,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
   public DeleteTOptions(DeleteTOptions other) {
     __isset_bitfield = other.__isset_bitfield;
     this.recursive = other.recursive;
-    this.removeUFSFile = other.removeUFSFile;
+    this.alluxioOnly = other.alluxioOnly;
   }
 
   public DeleteTOptions deepCopy() {
@@ -147,8 +147,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
   public void clear() {
     setRecursiveIsSet(false);
     this.recursive = false;
-    setRemoveUFSFileIsSet(false);
-    this.removeUFSFile = false;
+    setAlluxioOnlyIsSet(false);
+    this.alluxioOnly = false;
   }
 
   public boolean isRecursive() {
@@ -174,27 +174,27 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
   }
 
-  public boolean isRemoveUFSFile() {
-    return this.removeUFSFile;
+  public boolean isAlluxioOnly() {
+    return this.alluxioOnly;
   }
 
-  public DeleteTOptions setRemoveUFSFile(boolean removeUFSFile) {
-    this.removeUFSFile = removeUFSFile;
-    setRemoveUFSFileIsSet(true);
+  public DeleteTOptions setAlluxioOnly(boolean alluxioOnly) {
+    this.alluxioOnly = alluxioOnly;
+    setAlluxioOnlyIsSet(true);
     return this;
   }
 
-  public void unsetRemoveUFSFile() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REMOVEUFSFILE_ISSET_ID);
+  public void unsetAlluxioOnly() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ALLUXIOONLY_ISSET_ID);
   }
 
-  /** Returns true if field removeUFSFile is set (has been assigned a value) and false otherwise */
-  public boolean isSetRemoveUFSFile() {
-    return EncodingUtils.testBit(__isset_bitfield, __REMOVEUFSFILE_ISSET_ID);
+  /** Returns true if field alluxioOnly is set (has been assigned a value) and false otherwise */
+  public boolean isSetAlluxioOnly() {
+    return EncodingUtils.testBit(__isset_bitfield, __ALLUXIOONLY_ISSET_ID);
   }
 
-  public void setRemoveUFSFileIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REMOVEUFSFILE_ISSET_ID, value);
+  public void setAlluxioOnlyIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ALLUXIOONLY_ISSET_ID, value);
   }
 
   public void setFieldValue(_Fields field, Object value) {
@@ -207,11 +207,11 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       }
       break;
 
-    case REMOVE_UFSFILE:
+    case ALLUXIO_ONLY:
       if (value == null) {
-        unsetRemoveUFSFile();
+        unsetAlluxioOnly();
       } else {
-        setRemoveUFSFile((Boolean)value);
+        setAlluxioOnly((Boolean)value);
       }
       break;
 
@@ -223,8 +223,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     case RECURSIVE:
       return isRecursive();
 
-    case REMOVE_UFSFILE:
-      return isRemoveUFSFile();
+    case ALLUXIO_ONLY:
+      return isAlluxioOnly();
 
     }
     throw new IllegalStateException();
@@ -239,8 +239,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     switch (field) {
     case RECURSIVE:
       return isSetRecursive();
-    case REMOVE_UFSFILE:
-      return isSetRemoveUFSFile();
+    case ALLUXIO_ONLY:
+      return isSetAlluxioOnly();
     }
     throw new IllegalStateException();
   }
@@ -267,12 +267,12 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         return false;
     }
 
-    boolean this_present_removeUFSFile = true && this.isSetRemoveUFSFile();
-    boolean that_present_removeUFSFile = true && that.isSetRemoveUFSFile();
-    if (this_present_removeUFSFile || that_present_removeUFSFile) {
-      if (!(this_present_removeUFSFile && that_present_removeUFSFile))
+    boolean this_present_alluxioOnly = true && this.isSetAlluxioOnly();
+    boolean that_present_alluxioOnly = true && that.isSetAlluxioOnly();
+    if (this_present_alluxioOnly || that_present_alluxioOnly) {
+      if (!(this_present_alluxioOnly && that_present_alluxioOnly))
         return false;
-      if (this.removeUFSFile != that.removeUFSFile)
+      if (this.alluxioOnly != that.alluxioOnly)
         return false;
     }
 
@@ -288,10 +288,10 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     if (present_recursive)
       list.add(recursive);
 
-    boolean present_removeUFSFile = true && (isSetRemoveUFSFile());
-    list.add(present_removeUFSFile);
-    if (present_removeUFSFile)
-      list.add(removeUFSFile);
+    boolean present_alluxioOnly = true && (isSetAlluxioOnly());
+    list.add(present_alluxioOnly);
+    if (present_alluxioOnly)
+      list.add(alluxioOnly);
 
     return list.hashCode();
   }
@@ -314,12 +314,12 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetRemoveUFSFile()).compareTo(other.isSetRemoveUFSFile());
+    lastComparison = Boolean.valueOf(isSetAlluxioOnly()).compareTo(other.isSetAlluxioOnly());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetRemoveUFSFile()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.removeUFSFile, other.removeUFSFile);
+    if (isSetAlluxioOnly()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.alluxioOnly, other.alluxioOnly);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -349,10 +349,10 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       sb.append(this.recursive);
       first = false;
     }
-    if (isSetRemoveUFSFile()) {
+    if (isSetAlluxioOnly()) {
       if (!first) sb.append(", ");
-      sb.append("removeUFSFile:");
-      sb.append(this.removeUFSFile);
+      sb.append("alluxioOnly:");
+      sb.append(this.alluxioOnly);
       first = false;
     }
     sb.append(")");
@@ -408,10 +408,10 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // REMOVE_UFSFILE
+          case 2: // ALLUXIO_ONLY
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.removeUFSFile = iprot.readBool();
-              struct.setRemoveUFSFileIsSet(true);
+              struct.alluxioOnly = iprot.readBool();
+              struct.setAlluxioOnlyIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -436,9 +436,9 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         oprot.writeBool(struct.recursive);
         oprot.writeFieldEnd();
       }
-      if (struct.isSetRemoveUFSFile()) {
-        oprot.writeFieldBegin(REMOVE_UFSFILE_FIELD_DESC);
-        oprot.writeBool(struct.removeUFSFile);
+      if (struct.isSetAlluxioOnly()) {
+        oprot.writeFieldBegin(ALLUXIO_ONLY_FIELD_DESC);
+        oprot.writeBool(struct.alluxioOnly);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -462,15 +462,15 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       if (struct.isSetRecursive()) {
         optionals.set(0);
       }
-      if (struct.isSetRemoveUFSFile()) {
+      if (struct.isSetAlluxioOnly()) {
         optionals.set(1);
       }
       oprot.writeBitSet(optionals, 2);
       if (struct.isSetRecursive()) {
         oprot.writeBool(struct.recursive);
       }
-      if (struct.isSetRemoveUFSFile()) {
-        oprot.writeBool(struct.removeUFSFile);
+      if (struct.isSetAlluxioOnly()) {
+        oprot.writeBool(struct.alluxioOnly);
       }
     }
 
@@ -483,8 +483,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         struct.setRecursiveIsSet(true);
       }
       if (incoming.get(1)) {
-        struct.removeUFSFile = iprot.readBool();
-        struct.setRemoveUFSFileIsSet(true);
+        struct.alluxioOnly = iprot.readBool();
+        struct.setAlluxioOnlyIsSet(true);
       }
     }
   }
