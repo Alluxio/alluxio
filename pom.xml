@@ -761,6 +761,15 @@
       </modules>
     </profile>
 
+    <!--
+        build profile for Facebook Presto.
+        Empty Presto profile to avoid missing profile complaints. Client
+        submodules do more interesting things with this profile.
+    -->
+    <profile>
+      <id>presto</id>
+    </profile>
+
     <!-- profile that Alluxio developers should use -->
     <profile>
       <id>developer</id>

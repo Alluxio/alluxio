@@ -15,6 +15,13 @@ The prerequisite for this part is that you have [Java](Java-Setup.html). And the
 Alluxio cluster should also be set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
+Alluxio client will need to be compiled with the Presto specific profile. Build the entire project
+from the top level `alluxio` directory with the following command:
+
+```bash
+mvn clean package -Ppresto -DskipTests
+```
+
 Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.160). And have finished
 [Hive On Alluxio](http://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html)
 
