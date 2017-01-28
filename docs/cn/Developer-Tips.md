@@ -40,7 +40,7 @@ Alluxio使用协议缓冲区来读写日志消息。`.proto`文件被定义在`s
 <tr>
   <td>{{dscp.command}}</td>
   <td>{{dscp.args}}</td>
-  <td>{{site.data.table.cn.Developer-Tips.[dscp.command]}}</td>
+  <td>{{site.data.table.cn.Developer-Tips[dscp.command]}}</td>
 </tr>
 {% endfor %}
 </table>

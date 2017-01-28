@@ -61,7 +61,7 @@ Alluxio提供了Java版本的API来操作和访问世系关系信息。
 <tr>
   <td>{{record.parameter}}</td>
   <td>{{record.defaultvalue}}</td>
-  <td>{{site.data.table.cn.LineageParameter.[record.parameter]}}</td>
+  <td>{{site.data.table.cn.LineageParameter[record.parameter]}}</td>
 </tr>
 {% endfor %}
 </table>

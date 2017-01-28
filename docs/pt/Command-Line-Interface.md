@@ -50,7 +50,7 @@ deve ter uma tratativa de parâmetros finais (`cat /\\*`).
     <tr>
       <td>{{ item.operation }}</td>
       <td>{{ item.syntax }}</td>
-      <td>{{ site.data.table.en.operation-command.[item.operation] }}</td>
+      <td>{{ site.data.table.en.operation-command[item.operation] }}</td>
     </tr>
   {% endfor %}
 </table>

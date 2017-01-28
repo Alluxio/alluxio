@@ -47,7 +47,7 @@ As configurações comum contém constantes compartilhadas por componentes difer
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.common-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.common-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -62,7 +62,7 @@ A configuração do `master` especifica informações referentes ao nó `master`
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.master-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.master-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -77,7 +77,7 @@ A configuração do `worker` especifica informações referentes ao nó `woeker`
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.worker-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.worker-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -93,7 +93,7 @@ A configuração do `worker` especifica informações referentes ao acesso do `f
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.user-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.user-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -109,7 +109,7 @@ opções de configuração adicionais.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.cluster-management.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.cluster-management[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -127,7 +127,7 @@ a página [Segurança](Security.html) para maiores informações sobre funcional
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.security-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.security-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>

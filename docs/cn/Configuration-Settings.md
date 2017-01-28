@@ -120,7 +120,7 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.common-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.common-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -135,7 +135,7 @@ Master配置项指定master节点的信息，例如地址和端口号。
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.master-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.master-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -150,7 +150,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.worker-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.worker-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -166,7 +166,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.user-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.user-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -181,7 +181,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.cluster-management.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.cluster-management[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -199,7 +199,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.security-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.security-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>

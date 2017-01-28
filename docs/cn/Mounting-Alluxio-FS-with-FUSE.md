@@ -112,7 +112,7 @@ Seek操作只支持用于读的文件，即在指定`O_RDONLY` flags方式下被
   <tr>
     <td>{{ item.parameter }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.Alluxio-FUSE-parameter.[item.parameter] }}</td>
+    <td>{{ site.data.table.cn.Alluxio-FUSE-parameter[item.parameter] }}</td>
   </tr>
 {% endfor %}
 </table>

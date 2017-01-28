@@ -90,7 +90,7 @@ Alluxio através da alteração do parametro `alluxio.keyvalue.enabled` para `tr
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.key-value-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.key-value-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>

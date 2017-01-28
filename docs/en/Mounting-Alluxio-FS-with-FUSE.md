@@ -149,7 +149,7 @@ These are the configuration parameters for Alluxio-FUSE.
   <tr>
     <td>{{ item.parameter }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.Alluxio-FUSE-parameter.[item.parameter] }}</td>
+    <td>{{ site.data.table.en.Alluxio-FUSE-parameter[item.parameter] }}</td>
   </tr>
 {% endfor %}
 </table>

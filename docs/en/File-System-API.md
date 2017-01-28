@@ -62,7 +62,7 @@ over the under storage system.
 {% for readtype in site.data.table.ReadType %}
 <tr>
   <td>{{readtype.readtype}}</td>
-  <td>{{site.data.table.en.ReadType.[readtype.readtype]}}</td>
+  <td>{{site.data.table.en.ReadType[readtype.readtype]}}</td>
 </tr>
 {% endfor %}
 </table>
@@ -75,7 +75,7 @@ Below is a table of the expected behaviors of `WriteType`
 {% for writetype in site.data.table.WriteType %}
 <tr>
   <td>{{writetype.writetype}}</td>
-  <td>{{site.data.table.en.WriteType.[writetype.writetype]}}</td>
+  <td>{{site.data.table.en.WriteType[writetype.writetype]}}</td>
 </tr>
 {% endfor %}
 </table>

@@ -52,7 +52,7 @@ the syntax of each command.
 <tr>
   <td>{{dscp.command}}</td>
   <td>{{dscp.args}}</td>
-  <td>{{site.data.table.en.Developer-Tips.[dscp.command]}}</td>
+  <td>{{site.data.table.en.Developer-Tips[dscp.command]}}</td>
 </tr>
 {% endfor %}
 </table>

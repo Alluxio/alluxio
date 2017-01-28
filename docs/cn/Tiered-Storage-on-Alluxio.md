@@ -137,7 +137,7 @@ Alluxio使用回收策略决定当空间需要释放时，哪些数据块被移�
 <tr>
 <td>{{ item.parameter }}</td>
 <td>{{ item.defaultValue }}</td>
-<td>{{ site.data.table.cn.tiered-storage-configuration-parameters.[item.parameter] }}</td>
+<td>{{ site.data.table.cn.tiered-storage-configuration-parameters[item.parameter] }}</td>
 </tr>
 {% endfor %}
 </table>
