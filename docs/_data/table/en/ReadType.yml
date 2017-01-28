@@ -4,6 +4,6 @@ CACHE_PROMOTE:
   for each completely read data block. This is the default read type.
 CACHE:
   If the data was not in the Alluxio storage of the local worker, a replica will be added to the
-  local Alluxio worker for each completely read data block.
+  local Alluxio worker.
 NO_CACHE:
   No replicas will be created.
