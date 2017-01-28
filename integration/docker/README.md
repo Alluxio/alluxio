@@ -10,12 +10,8 @@ To build with a local Alluxio tarball, specify the ALLUXIO_TARBALL build argumen
 docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz .
 ```
 
-The generated image expects to be run with single argument of either "master" or "worker".
+The generated image expects to be run with single argument of "master", "worker", or "proxy".
 
 ```bash
-docker run alluxio master
-```
-
-```bash
-docker run alluxio worker
+docker run alluxio [master|worker|proxy]
 ```
