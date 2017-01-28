@@ -3,7 +3,7 @@
 set -e
 
 if [[ $# -ne 1 ]]; then
-  echo 'expected one argument; either "master" or "worker"'
+  echo 'expected one argument: "master", "worker", or "proxy"'
   exit 1
 fi
 
@@ -21,16 +21,19 @@ for keyvaluepair in $(env | grep "ALLUXIO_"); do
 done
 
 case ${service,,} in
-  worker)
-    bin/alluxio formatWorker
-    integration/docker/bin/alluxio-worker.sh
-    ;;
   master)
     bin/alluxio format
     integration/docker/bin/alluxio-master.sh
     ;;
+  worker)
+    bin/alluxio formatWorker
+    integration/docker/bin/alluxio-worker.sh
+    ;;
+  proxy)
+    integration/docker/bin/alluxio-proxy.sh
+    ;;
   *)
-    echo 'expected either "master" or "worker"';
+    echo 'expected "master", "worker", or "proxy"';
     exit 1
     ;;
 esac
