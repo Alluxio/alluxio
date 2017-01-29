@@ -1,3 +1,14 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
 FROM openjdk:7-jdk-alpine
 MAINTAINER Andrew Audibert (aaudibert10@gmail.com)
 
@@ -10,10 +21,8 @@ ADD ${ALLUXIO_TARBALL} /opt/
 
 # if the tarball was remote, it needs to be untarred
 RUN cd /opt && \
-    (tar -xzf alluxio* || true) && \
-    (rm *.tar.gz || true)
+    (if ls | grep -q ".tar.gz"; then tar -xzf alluxio* && rm *.tar.gz; fi)
 
 COPY entrypoint.sh /
 
 ENTRYPOINT ["/entrypoint.sh"]
-

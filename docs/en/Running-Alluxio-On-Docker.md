@@ -48,16 +48,16 @@ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
 ## Run the Alluxio master
 
 ```bash
-docker run -d alluxio master
+docker run -d --net=host alluxio master
 ```
 
 ## Run the Alluxio worker
 
-We need to tell the worker where to find the master. Set HOSTNAME to the hostname of
-your instance and run
+We need to tell the worker where to find the master. Set the ALLUXIO_MASTER_HOSTNAME
+environment variable to your machine's hostname when launching the worker Docker container.
 
 ```bash
-docker run -d -e ALLUXIO_MASTER_HOSTNAME=${HOSTNAME} alluxio worker
+docker run -d -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_HOSTNAME} --net=host alluxio worker
 ```
 
 # Test the cluster
@@ -76,5 +76,5 @@ bin/alluxio runTests
 # Configuration
 
 Configuration may be passed to the Alluxio containers using the `-e` flag when launching the container.
-Any environment variables beginning with `"ALLUXIO_"` will be saved to `conf/alluxio-site.properties` inside
+Any environment variables beginning with `ALLUXIO_` will be saved to `conf/alluxio-site.properties` inside
 the container.
