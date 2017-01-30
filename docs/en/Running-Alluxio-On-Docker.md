@@ -53,7 +53,7 @@ docker run -d --net=host alluxio master
 
 ## Run the Alluxio worker
 
-We need to tell the worker where to find the master. Set the ALLUXIO_MASTER_HOSTNAME
+We need to tell the worker where to find the master. Set the `ALLUXIO_MASTER_HOSTNAME`
 environment variable to your machine's hostname when launching the worker Docker container.
 
 ```bash
