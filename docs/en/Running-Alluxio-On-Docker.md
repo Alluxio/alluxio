@@ -11,17 +11,19 @@ in Docker using the Dockerfile that comes in the Alluxio github repository.
 
 # Prerequisites
 
-A Linux box. For the purposes of this guide, we will use a fresh EC2 machine running
+A linux machine. For the purposes of this guide, we will use a fresh EC2 machine running
 Amazon Linux. The machine size doesn't need to be large; we will use t2.small.
 
 # Launch a standalone cluster
 
-## Install Docker and Git
+All steps below should be executed from your linux machine.
+
+## Install Docker
 
 ```bash
-sudo yum install -y git docker
+sudo yum install -y docker
 sudo service docker start
-sudo usermod -a -G docker ec2-user
+sudo usermod -a -G docker $(id -u -n)
 ```
 
 Finally, log out and log back in again to pick up the group changes
@@ -40,7 +42,7 @@ docker build -t alluxio .
 ```
 
 By default, this will build an image for the latest released version of Alluxio. To build
-from a local Alluxio tarball, use `--build-arg`
+from a local Alluxio tarball instead, you can use `--build-arg`
 ```bash
 docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
 ```
@@ -75,6 +77,12 @@ bin/alluxio runTests
 
 # Configuration
 
-Configuration may be passed to the Alluxio containers using the `-e` flag when launching the container.
-Any environment variables beginning with `ALLUXIO_` will be saved to `conf/alluxio-site.properties` inside
-the container.
+To set an Alluxio configuration property, convert it to an environment variable by uppercasing
+and replacing periods with underscores. For example, `alluxio.worker.memory.size` converts to
+`ALLUXIO_WORKER_MEMORY_SIZE`. You can then set the environment variable on the image with
+`-e PROPERTY=value`. Alluxio configuration values will be copied to `conf/alluxio-site.properties`
+when the image starts.
+
+```bash
+docker run -d -e ALLUXIO_WORKER_MEMORY_SIZE=10GB --net=host alluxio worker
+```
