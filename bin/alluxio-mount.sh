@@ -29,21 +29,8 @@ function init_env() {
   local libexec_dir=${ALLUXIO_LIBEXEC_DIR:-"${BIN}"/../libexec}
   . ${libexec_dir}/alluxio-config.sh
 
-  # Determine a reasonable default for worker memory
-  if [[ $(uname -s) == Darwin ]]; then
-    # Assuming Mac OS X
-    local default_total_mem=$(sysctl hw.memsize | cut -d ' ' -f2)
-    default_total_mem=$[default_total_mem / 1024 / 1024]
-    default_total_mem=$[default_total_mem * 2 / 3]MB
-  else
-    # Assuming Linux
-    local default_total_mem=$(awk '/MemTotal/{print $2}' /proc/meminfo)
-    default_total_mem=$[TOTAL_MEM / 1024 * 2 / 3]MB
-  fi
-  local worker_mem_size=$(${BIN}/alluxio getConf alluxio.worker.memory.size)
-  worker_mem_size=${worker_mem_size:-${default_total_mem}}
-
-  MEM_SIZE=$(echo "${worker_mem_size}" | tr -s '[:upper:]' '[:lower:]')
+  MEM_SIZE=$(${BIN}/alluxio getConf alluxio.worker.memory.size)
+  RAM_FOLDER=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
 }
 
 #enable the regexp case match
@@ -147,11 +134,6 @@ function mac_hfs_provision_sectors() {
 function mount_ramfs_linux() {
   init_env $1
 
-  if [[ -z ${ALLUXIO_RAM_FOLDER} ]]; then
-    ALLUXIO_RAM_FOLDER=/mnt/ramdisk
-    echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: ${ALLUXIO_RAM_FOLDER}"
-  fi
-
   mem_size_to_bytes
   TOTAL_MEM=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
   if [[ ${TOTAL_MEM} -lt ${BYTE_SIZE} ]]; then
@@ -160,37 +142,22 @@ function mount_ramfs_linux() {
     exit 1
   fi
 
-  F=${ALLUXIO_RAM_FOLDER}
-  echo "Formatting RamFS: ${F} (${MEM_SIZE})"
-  if mount | grep ${F} > /dev/null; then
-    umount -f ${F}
+  echo "Formatting RamFS: ${RAM_FOLDER} (${MEM_SIZE})"
+  if mount | grep ${RAM_FOLDER} > /dev/null; then
+    umount -f ${RAM_FOLDER}
     if [[ $? -ne 0 ]]; then
-      echo "ERROR: umount RamFS ${F} failed" >&2
+      echo "ERROR: umount RamFS ${RAM_FOLDER} failed" >&2
       exit 1
     fi
   else
-    mkdir -p ${F}
+    mkdir -p ${RAM_FOLDER}
   fi
 
-  mount -t ramfs -o size=${MEM_SIZE} ramfs ${F} ; chmod a+w ${F} ;
+  mount -t ramfs -o size=${MEM_SIZE} ramfs ${RAM_FOLDER} ; chmod a+w ${RAM_FOLDER} ;
 }
 
 function mount_ramfs_mac() {
   init_env $0
-
-  if [[ -z ${ALLUXIO_RAM_FOLDER} ]]; then
-    ALLUXIO_RAM_FOLDER=/Volumes/ramdisk
-    echo "ALLUXIO_RAM_FOLDER was not set. Using the default one: ${ALLUXIO_RAM_FOLDER}"
-  fi
-
-  if [[ ${ALLUXIO_RAM_FOLDER} != "/Volumes/"* ]]; then
-    echo "Invalid ALLUXIO_RAM_FOLDER: ${ALLUXIO_RAM_FOLDER}" >&2
-    echo "ALLUXIO_RAM_FOLDER must set to /Volumes/[name] on Mac OS X." >&2
-    exit 1
-  fi
-
-  # Remove the "/Volumes/" part so we can get the name of the volume.
-  F=${ALLUXIO_RAM_FOLDER/#\/Volumes\//}
 
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
   mem_size_to_bytes
@@ -198,15 +165,16 @@ function mount_ramfs_mac() {
 
   # Format the RAM FS
   # We may have a pre-existing RAM FS which we need to throw away
-  echo "Formatting RamFS: ${F} ${NUM_SECTORS} sectors (${MEM_SIZE})."
-  DEVICE=$(df -l | grep ${F} | cut -d " " -f 1)
+  echo "Formatting RamFS: ${RAM_FOLDER} ${NUM_SECTORS} sectors (${MEM_SIZE})."
+  DEVICE=$(df -l | grep ${RAM_FOLDER} | cut -d " " -f 1)
   if [[ -n "${DEVICE}" ]]; then
     hdiutil detach -force ${DEVICE}
   fi
-  diskutil erasevolume HFS+ ${F} $(hdiutil attach -nomount ram://${NUM_SECTORS})
+  # Remove the "/Volumes/" part so we can get the name of the volume.
+  diskutil erasevolume HFS+ ${RAM_FOLDER/#\/Volumes\//} $(hdiutil attach -nomount ram://${NUM_SECTORS})
 }
 
-function mount_local() {
+function mount_ramfs_local() {
   if [[ $(uname -a) == Darwin* ]]; then
     # Assuming Mac OS X
     mount_ramfs_mac
@@ -224,18 +192,22 @@ ${DECL_MEM_SIZE_TO_BYTES}; ${DECL_MOUNT_LINUX}; mount_ramfs_linux $0"
   fi
 }
 
-case "${1}" in
-  Mount|SudoMount)
-    case "${2}" in
-      ""|local)
-        mount_local $1
-        ;;
-      workers)
-        ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-mount.sh $1
-        ;;
-    esac
-    ;;
-  *)
-    echo -e ${USAGE} >&2
-    exit 1
-esac
+function main {
+  case "${1}" in
+    Mount|SudoMount)
+      case "${2}" in
+        ""|local)
+          mount_ramfs_local $1
+          ;;
+        workers)
+          ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-mount.sh $1
+          ;;
+      esac
+      ;;
+    *)
+      echo -e ${USAGE} >&2
+      exit 1
+  esac
+}
+
+main "$@"

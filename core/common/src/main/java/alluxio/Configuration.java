@@ -16,6 +16,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.OSUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -25,6 +26,7 @@ import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -65,8 +67,7 @@ public final class Configuration {
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Map of properties. */
-  private static final ConcurrentHashMapV8<String, String> PROPERTIES =
-      new ConcurrentHashMapV8<>();
+  private static final ConcurrentHashMapV8<String, String> PROPERTIES = new ConcurrentHashMapV8<>();
 
   /** File to set customized properties for Alluxio server (both master and worker) and client. */
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
@@ -95,6 +96,25 @@ public final class Configuration {
         String.valueOf(ChannelType.defaultType()));
     defaultProps.setProperty(PropertyKey.USER_NETWORK_NETTY_CHANNEL.toString(),
         String.valueOf(ChannelType.defaultType()));
+    // Set ramdisk volume according to OS type
+    if (OSUtils.isLinux()) {
+      defaultProps
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.toString(), "/mnt/ramdisk");
+    } else if (OSUtils.isMacOS()) {
+      defaultProps.setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.toString(),
+          "/Volumes/ramdisk");
+    }
+    // Set a reasonable default for worker memory
+    try {
+      com.sun.management.OperatingSystemMXBean operatingSystemMXBean =
+          (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+      long memSize = operatingSystemMXBean.getTotalPhysicalMemorySize();
+      defaultProps
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE.toString(), String.valueOf(memSize * 2 / 3));
+    } catch (Exception e) {
+      // The package com.sun.management may not be available on every platform.
+      // fallback to use the default value
+    }
 
     // Load system properties
     Properties systemProps = new Properties();
