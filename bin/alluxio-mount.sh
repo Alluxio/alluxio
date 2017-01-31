@@ -33,46 +33,6 @@ function init_env() {
   RAM_FOLDER=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
 }
 
-#enable the regexp case match
-shopt -s extglob
-function mem_size_to_bytes() {
-  float_scale=2
-  function float_eval() {
-    local stat=0
-    local result=0.0
-    if [[ $# -gt 0 ]]; then
-      result=$(echo "scale=${float_scale}; $*" | bc -q 2>/dev/null)
-      stat=$?
-      if [[ ${stat} -eq 0  &&  -z "${result}" ]]; then stat=1; fi
-    fi
-    echo $( printf "%.0f" ${result} )
-    return $( printf "%.0f" ${stat} )
-  }
-
-  SIZE=${MEM_SIZE//[^0-9.]/}
-  case ${MEM_SIZE} in
-    *g?(b) )
-      # Size was specified in gigabytes.
-      BYTE_SIZE=$(float_eval "${SIZE} * 1024 * 1024 * 1024")
-      ;;
-    *m?(b))
-      # Size was specified in megabytes.
-      BYTE_SIZE=$(float_eval "${SIZE} * 1024 * 1024")
-      ;;
-    *k?(b))
-      # Size was specified in kilobytes.
-      BYTE_SIZE=$(float_eval "${SIZE} * 1024")
-      ;;
-    +([0-9])?(b))
-      # Size was specified in bytes.
-      BYTE_SIZE=${SIZE}
-      ;;
-    *)
-      echo "Please specify ALLUXIO_WORKER_MEMORY_SIZE in a correct form." >&2
-      exit 1
-  esac
-}
-
 # Mac OS X HFS+ provisioning
 # Arguments:
 #   Requested filesystem size in bytes
@@ -132,12 +92,9 @@ function mac_hfs_provision_sectors() {
 }
 
 function mount_ramfs_linux() {
-  init_env $1
-
-  mem_size_to_bytes
   TOTAL_MEM=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
-  if [[ ${TOTAL_MEM} -lt ${BYTE_SIZE} ]]; then
-    echo "ERROR: Memory(${TOTAL_MEM}) is less than requested ramdisk size(${BYTE_SIZE}). Please
+  if [[ ${TOTAL_MEM} -lt ${MEM_SIZE} ]]; then
+    echo "ERROR: Memory(${TOTAL_MEM}) is less than requested ramdisk size(${MEM_SIZE}). Please
     reduce ALLUXIO_WORKER_MEMORY_SIZE" >&2
     exit 1
   fi
@@ -157,11 +114,8 @@ function mount_ramfs_linux() {
 }
 
 function mount_ramfs_mac() {
-  init_env $0
-
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
-  mem_size_to_bytes
-  NUM_SECTORS=$(mac_hfs_provision_sectors ${BYTE_SIZE} 512)
+  NUM_SECTORS=$(mac_hfs_provision_sectors ${MEM_SIZE} 512)
 
   # Format the RAM FS
   # We may have a pre-existing RAM FS which we need to throw away
@@ -175,19 +129,17 @@ function mount_ramfs_mac() {
 }
 
 function mount_ramfs_local() {
+  init_env
+
   if [[ $(uname -a) == Darwin* ]]; then
     # Assuming Mac OS X
     mount_ramfs_mac
   else
     # Assuming Linux
     if [[ "$1" == "SudoMount" ]]; then
-      DECL_INIT=$(declare -f init_env)
-      DECL_MEM_SIZE_TO_BYTES=$(declare -f mem_size_to_bytes)
-      DECL_MOUNT_LINUX=$(declare -f mount_ramfs_linux)
-      sudo bash -O extglob -c "ALLUXIO_CONF_DIR=${ALLUXIO_CONF_DIR}; BIN=${BIN}; ${DECL_INIT}; \
-${DECL_MEM_SIZE_TO_BYTES}; ${DECL_MOUNT_LINUX}; mount_ramfs_linux $0"
+      sudo bash -O extglob -c "mount_ramfs_linux"
     else
-      mount_ramfs_linux $0
+      mount_ramfs_linux
     fi
   fi
 }
