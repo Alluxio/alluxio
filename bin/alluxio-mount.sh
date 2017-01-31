@@ -30,7 +30,8 @@ function init_env() {
   . ${libexec_dir}/alluxio-config.sh
 
   MEM_SIZE=$(${BIN}/alluxio getConf alluxio.worker.memory.size)
-  RAM_FOLDER=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
+  TIER_ALIAS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
+  TIER_PATH=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
 }
 
 # Mac OS X HFS+ provisioning
@@ -99,18 +100,18 @@ function mount_ramfs_linux() {
     exit 1
   fi
 
-  echo "Formatting RamFS: ${RAM_FOLDER} (${MEM_SIZE})"
-  if mount | grep ${RAM_FOLDER} > /dev/null; then
-    umount -f ${RAM_FOLDER}
+  echo "Formatting RamFS: ${TIER_PATH} (${MEM_SIZE})"
+  if mount | grep ${TIER_PATH} > /dev/null; then
+    umount -f ${TIER_PATH}
     if [[ $? -ne 0 ]]; then
-      echo "ERROR: umount RamFS ${RAM_FOLDER} failed" >&2
+      echo "ERROR: umount RamFS ${TIER_PATH} failed" >&2
       exit 1
     fi
   else
-    mkdir -p ${RAM_FOLDER}
+    mkdir -p ${TIER_PATH}
   fi
 
-  mount -t ramfs -o size=${MEM_SIZE} ramfs ${RAM_FOLDER} ; chmod a+w ${RAM_FOLDER} ;
+  mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH} ; chmod a+w ${TIER_PATH} ;
 }
 
 function mount_ramfs_mac() {
@@ -119,17 +120,22 @@ function mount_ramfs_mac() {
 
   # Format the RAM FS
   # We may have a pre-existing RAM FS which we need to throw away
-  echo "Formatting RamFS: ${RAM_FOLDER} ${num_sectors} sectors (${MEM_SIZE})."
-  local device=$(df -l | grep ${RAM_FOLDER} | cut -d " " -f 1)
+  echo "Formatting RamFS: ${TIER_PATH} ${num_sectors} sectors (${MEM_SIZE})."
+  local device=$(df -l | grep ${TIER_PATH} | cut -d " " -f 1)
   if [[ -n "${device}" ]]; then
     hdiutil detach -force ${device}
   fi
   # Remove the "/Volumes/" part so we can get the name of the volume.
-  diskutil erasevolume HFS+ ${RAM_FOLDER/#\/Volumes\//} $(hdiutil attach -nomount ram://${num_sectors})
+  diskutil erasevolume HFS+ ${TIER_PATH/#\/Volumes\//} $(hdiutil attach -nomount ram://${num_sectors})
 }
 
 function mount_ramfs_local() {
   init_env
+
+  if [[ ${TIER_ALIAS} != "MEM" ]]; then
+    # the top tier is not MEM, skip
+    exit 1
+  fi
 
   if [[ $(uname -a) == Darwin* ]]; then
     # Assuming Mac OS X
@@ -154,6 +160,9 @@ function main {
         workers)
           ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-mount.sh $1
           ;;
+        *)
+          echo -e ${USAGE} >&2
+          exit 1
       esac
       ;;
     *)

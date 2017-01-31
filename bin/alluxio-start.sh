@@ -37,8 +37,8 @@ MOPT (Mount Option) is one of:
   SudoMount\tMount the configured RamFS using sudo.
            \tNotice: this will format the existing RamFS.
   NoMount  \tDo not mount the configured RamFS.
-           \tNotice: to avoid sudo requirement but use tmpFS in Linux,
-             one can set ALLUXIO_RAM_FOLDER=/dev/shm and use NoMount.
+           \tNotice: to avoid sudo requirement but using tmpFS in Linux,
+             set ALLUXIO_RAM_FOLDER=/dev/shm on each worker and use NoMount.
   SudoMount is assumed if MOPT is not specified.
 
 -f  format Journal, UnderFS Data and Workers Folder on master
@@ -83,13 +83,13 @@ check_mount_mode() {
     Mount);;
     SudoMount);;
     NoMount)
-      local folder_type=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-      local ram_folder=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
-      if [[ ${folder_type} != "MEM" ]]; then
+      local tier_alias=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
+      local tier_path=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
+      if [[ ${tier_alias} != "MEM" ]]; then
         # if the top tier is not MEM, skip check
         return
       fi
-      is_ram_folder_mounted "${ram_folder}"
+      is_ram_folder_mounted "${tier_path}"
       if [[ $? -ne 0 ]]; then
         if [[ $(uname -s) == Darwin ]]; then
           # Assuming Mac OS X
@@ -98,7 +98,7 @@ check_mount_mode() {
           exit 1
         fi
       fi
-      if [[ "${ram_folder}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
+      if [[ "${tier_path}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
         echo "WARNING: Using tmpFS does not guarantee data to be stored in memory."
         echo "WARNING: Check vmstat for memory statistics (e.g. swapping)."
       fi
