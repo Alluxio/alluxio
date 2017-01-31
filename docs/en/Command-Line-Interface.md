@@ -48,7 +48,7 @@ should have the final escaped parameters (cat /\\*).
     <tr>
       <td>{{ item.operation }}</td>
       <td>{{ item.syntax }}</td>
-      <td>{{ site.data.table.en.operation-command.[item.operation] }}</td>
+      <td>{{ site.data.table.en.operation-command[item.operation] }}</td>
     </tr>
   {% endfor %}
 </table>

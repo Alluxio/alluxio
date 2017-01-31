@@ -33,7 +33,7 @@ Alluxio默认配置是禁用键值存储库的，可以通过配置`alluxio.keyv
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.key-value-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.key-value-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>

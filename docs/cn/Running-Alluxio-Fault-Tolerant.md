@@ -65,7 +65,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 <tr>
   <td>{{item.PropertyName}}</td>
   <td>{{item.Value}}</td>
-  <td>{{site.data.table.cn.java-options-for-fault-tolerance.[item.PropertyName]}}</td>
+  <td>{{site.data.table.cn.java-options-for-fault-tolerance[item.PropertyName]}}</td>
 </tr>
 {% endfor %}
 </table>

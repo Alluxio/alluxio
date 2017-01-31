@@ -82,7 +82,7 @@ Estes são os parâmetros de configuração relacionados as funcionalidades do `
 <tr>
   <td>{{record.parameter}}</td>
   <td>{{record.defaultvalue}}</td>
-  <td>{{site.data.table.en.LineageParameter.[record.parameter]}}</td>
+  <td>{{site.data.table.en.LineageParameter[record.parameter]}}</td>
 </tr>
 {% endfor %}
 </table>

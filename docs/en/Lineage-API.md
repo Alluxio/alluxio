@@ -80,7 +80,7 @@ These are the configuration parameters related to Alluxio's lineage feature.
 <tr>
   <td>{{record.parameter}}</td>
   <td>{{record.defaultvalue}}</td>
-  <td>{{site.data.table.en.LineageParameter.[record.parameter]}}</td>
+  <td>{{site.data.table.en.LineageParameter[record.parameter]}}</td>
 </tr>
 {% endfor %}
 </table>

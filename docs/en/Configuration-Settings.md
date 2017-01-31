@@ -166,7 +166,7 @@ The common configuration contains constants shared by different components.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.common-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.common-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -182,7 +182,7 @@ the port number.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.master-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.master-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -198,7 +198,7 @@ the port number.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.worker-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.worker-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -214,7 +214,7 @@ The user configuration specifies values regarding file system access.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.user-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.user-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -230,7 +230,7 @@ configuration options.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.cluster-management.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.cluster-management[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -248,7 +248,7 @@ See [Security](Security.html) for more information about security features.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.security-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.security-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>

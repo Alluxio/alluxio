@@ -189,7 +189,7 @@ These are the configuration parameters for tiered storage.
 <tr>
 <td>{{ item.parameter }}</td>
 <td>{{ item.defaultValue }}</td>
-<td>{{ site.data.table.en.tiered-storage-configuration-parameters.[item.parameter] }}</td>
+<td>{{ site.data.table.en.tiered-storage-configuration-parameters[item.parameter] }}</td>
 </tr>
 {% endfor %}
 </table>

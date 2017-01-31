@@ -43,7 +43,7 @@ fs命令中的所有“路径”都应该以以下开头：
     <tr>
       <td>{{ item.operation }}</td>
       <td>{{ item.syntax }}</td>
-      <td>{{ site.data.table.cn.operation-command.[item.operation] }}</td>
+      <td>{{ site.data.table.cn.operation-command[item.operation] }}</td>
     </tr>
   {% endfor %}
 </table>

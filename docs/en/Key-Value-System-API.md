@@ -35,7 +35,7 @@ Key-Value support in Alluxio is disabled by default, and it can be enabled in Al
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.key-value-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.key-value-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>

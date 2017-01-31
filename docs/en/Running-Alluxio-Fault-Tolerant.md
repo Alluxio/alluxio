@@ -79,7 +79,7 @@ Alluxio masters, workers, and clients. In `conf/alluxio-site.properties`, these 
 <tr>
   <td>{{item.PropertyName}}</td>
   <td>{{item.Value}}</td>
-  <td>{{site.data.table.en.java-options-for-fault-tolerance.[item.PropertyName]}}</td>
+  <td>{{site.data.table.en.java-options-for-fault-tolerance[item.PropertyName]}}</td>
 </tr>
 {% endfor %}
 </table>
