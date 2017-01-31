@@ -70,7 +70,7 @@ public final class CompleteUfsFileOptionsTest {
     CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
     Assert.assertEquals(TEST_USER, options.getOwner());
     Assert.assertEquals(TEST_USER, options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
   }
 
   /**

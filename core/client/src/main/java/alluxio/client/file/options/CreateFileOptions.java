@@ -45,7 +45,7 @@ public final class CreateFileOptions {
   private long mBlockSizeBytes;
   private long mTtl;
   private TtlAction mTtlAction;
-  private Mode mMode; // null if creating the file using system default mode
+  private Mode mMode;
   private int mWriteTier;
   private WriteType mWriteType;
 
@@ -70,7 +70,7 @@ public final class CreateFileOptions {
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
-    mMode = null;
+    mMode = Mode.defaults().applyFileUMask();
   }
 
   /**

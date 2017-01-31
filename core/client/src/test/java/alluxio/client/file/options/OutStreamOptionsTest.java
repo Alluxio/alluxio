@@ -60,9 +60,9 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(alluxioType, options.getAlluxioStorageType());
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    Assert.assertEquals("", options.getOwner());
+    Assert.assertEquals("test", options.getOwner());
     Assert.assertEquals("", options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     Assert.assertEquals(ufsType, options.getUnderStorageType());

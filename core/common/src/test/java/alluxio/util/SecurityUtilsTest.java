@@ -27,6 +27,7 @@ public class SecurityUtilsTest {
 
   @After
   public void after() {
+    LoginUserTestUtils.resetLoginUser();
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -76,7 +77,6 @@ public class SecurityUtilsTest {
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test_login_user");
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
-    LoginUserTestUtils.resetLoginUser();
     Assert.assertEquals("test_login_user", SecurityUtils.getOwnerFromLoginModule());
   }
 
@@ -84,7 +84,7 @@ public class SecurityUtilsTest {
    * Tests the {@link SecurityUtils#getGroupFromLoginModule()} method.
    */
   @Test
-  public void getGroupFromLoginModule() throws Exception {
+  public void getGroupFromLoginModuleError() throws Exception {
     // When security is not enabled, user and group are not set
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     Assert.assertEquals("", SecurityUtils.getGroupFromLoginModule());

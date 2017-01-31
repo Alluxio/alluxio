@@ -31,9 +31,6 @@ import java.util.Random;
 /**
  * Tests for the {@link CreateDirectoryOptions} class.
  */
-@RunWith(PowerMockRunner.class)
-// Need to mock Mode to use CommonTestUtils#testEquals.
-@PrepareForTest(Mode.class)
 public class CreateDirectoryOptionsTest {
   private final WriteType mDefaultWriteType =
       Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);

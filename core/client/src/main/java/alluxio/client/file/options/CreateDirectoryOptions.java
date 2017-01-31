@@ -35,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @JsonInclude(Include.NON_EMPTY)
 public final class CreateDirectoryOptions {
   private boolean mAllowExists;
-  private Mode mMode; // null if creating the dir using system default mode
+  private Mode mMode;
   private long mTtl;
   private TtlAction mTtlAction;
   private boolean mRecursive;
@@ -51,7 +51,7 @@ public final class CreateDirectoryOptions {
   private CreateDirectoryOptions() {
     mRecursive = false;
     mAllowExists = false;
-    mMode = null;
+    mMode = Mode.defaults().applyDirectoryUMask();
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mWriteType =

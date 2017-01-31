@@ -43,7 +43,7 @@ public final class CreateOptionsTest {
     Assert.assertTrue(options.isEnsureAtomic());
     Assert.assertEquals("", options.getOwner());
     Assert.assertEquals("", options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
   }
 
   /**
@@ -64,7 +64,7 @@ public final class CreateOptionsTest {
     Assert.assertTrue(options.isEnsureAtomic());
     Assert.assertEquals("", options.getOwner());
     Assert.assertEquals("", options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
   }
 
   /**

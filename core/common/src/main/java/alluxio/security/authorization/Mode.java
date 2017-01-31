@@ -59,7 +59,11 @@ public final class Mode {
     return new Mode(Bits.ALL, Bits.ALL, Bits.ALL);
   }
 
-  private Mode() {} // needed for JSON serialization and deserialization
+  private Mode() {
+    mOwnerBits = Bits.NONE;
+    mGroupBits = Bits.NONE;
+    mOtherBits = Bits.NONE;
+  } // needed for equality testing and JSON serialization and deserialization
 
   /**
    * Constructs an instance of {@link Mode} with the given {@link Bits}.
@@ -238,7 +242,7 @@ public final class Mode {
   private void applyUMask(Mode umask) {
     mOwnerBits = mOwnerBits.and(umask.mOwnerBits.not());
     mGroupBits = mGroupBits.and(umask.mGroupBits.not());
-    mOwnerBits = mOtherBits.and(umask.mOtherBits.not());
+    mOtherBits = mOtherBits.and(umask.mOtherBits.not());
   }
 
   /**
@@ -250,7 +254,7 @@ public final class Mode {
     int umask = Constants.DEFAULT_FILE_SYSTEM_UMASK;
     String confUmask = Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     if (confUmask != null) {
-      if ((confUmask.length() > 4) || !tryParseInt(confUmask)) {
+      if ((confUmask.length() > 4) || !isValid(confUmask)) {
         throw new IllegalArgumentException(ExceptionMessage.INVALID_CONFIGURATION_VALUE
             .getMessage(confUmask, PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
       }
@@ -264,7 +268,7 @@ public final class Mode {
     return new Mode((short) umask);
   }
 
-  private static boolean tryParseInt(String value) {
+  private static boolean isValid(String value) {
     try {
       Integer.parseInt(value);
       return true;

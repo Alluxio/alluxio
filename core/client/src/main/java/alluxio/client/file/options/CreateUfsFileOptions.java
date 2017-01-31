@@ -140,9 +140,8 @@ public final class CreateUfsFileOptions {
     if (!mGroup.isEmpty()) {
       options.setGroup(mGroup);
     }
-    short mode = mMode.toShort();
-    if (mode != Constants.INVALID_MODE) {
-      options.setMode(mode);
+    if (mMode != null && mMode.toShort() != Constants.INVALID_MODE) {
+      options.setMode(mMode.toShort());
     }
     return options;
   }
