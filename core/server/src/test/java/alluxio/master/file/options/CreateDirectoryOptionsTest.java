@@ -15,8 +15,9 @@ import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.security.authorization.Permission;
 import alluxio.Constants;
+import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
@@ -30,9 +31,6 @@ import java.util.Random;
 /**
  * Unit tests for {@link CreateDirectoryOptions}.
  */
-@RunWith(PowerMockRunner.class)
-// Need to mock Permission to use CommonTestUtils#testEquals.
-@PrepareForTest(Permission.class)
 public class CreateDirectoryOptionsTest {
   /**
    * Tests the {@link CreateDirectoryOptions#defaults()} method.
@@ -60,7 +58,10 @@ public class CreateDirectoryOptionsTest {
     boolean allowExists = random.nextBoolean();
     boolean mountPoint = random.nextBoolean();
     long operationTimeMs = random.nextLong();
-    Permission permission = Permission.defaults();
+    String owner = CommonUtils.randomAlphaNumString(10);
+    String group = CommonUtils.randomAlphaNumString(10);
+    Mode mode = new Mode((short) random.nextInt());
+
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
@@ -70,7 +71,9 @@ public class CreateDirectoryOptionsTest {
         .setMountPoint(mountPoint)
         .setOperationTimeMs(operationTimeMs)
         .setPersisted(persisted)
-        .setPermission(permission)
+        .setOwner(owner)
+        .setGroup(group)
+        .setMode(mode)
         .setRecursive(recursive)
         .setTtl(ttl)
         .setTtlAction(TtlAction.FREE);
@@ -78,8 +81,10 @@ public class CreateDirectoryOptionsTest {
     Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(mountPoint, options.isMountPoint());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-    Assert.assertEquals(permission, options.getPermission());
     Assert.assertEquals(persisted, options.isPersisted());
+    Assert.assertEquals(owner, options.getOwner());
+    Assert.assertEquals(group, options.getGroup());
+    Assert.assertEquals(mode, options.getMode());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(TtlAction.FREE, options.getTtlAction());

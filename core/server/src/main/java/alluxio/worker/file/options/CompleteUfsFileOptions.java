@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.worker.file.options;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
-import alluxio.thrift.CreateUfsFileTOptions;
+import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Objects;
@@ -24,33 +24,44 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Options for creating a UFS file. Currently we do not allow user to set arbitrary owner and
+ * Options for completing a UFS file. Currently we do not allow users to set arbitrary owner and
  * group options. The owner and group will be set to the user login.
  */
 @PublicApi
 @NotThreadSafe
-public final class CreateUfsFileOptions {
+public final class CompleteUfsFileOptions {
   private String mOwner;
   private String mGroup;
   private Mode mMode;
 
   /**
-   * Creates a default {@link CreateUfsFileOptions} with owner, group from login module and
+   * Creates a default {@link CompleteUfsFileOptions} with owner, group from login module and
    * default file mode.
    *
-   * @return the default {@link CreateUfsFileOptions}
+   * @return the default {@link CompleteUfsFileOptions}
    * @throws IOException if failed to set owner from login module
    */
-  public static CreateUfsFileOptions defaults() throws IOException {
-    return new CreateUfsFileOptions();
+  public static CompleteUfsFileOptions defaults() throws IOException {
+    return new CompleteUfsFileOptions();
   }
 
-  private CreateUfsFileOptions() throws IOException {
+  private CompleteUfsFileOptions() throws IOException {
     mOwner = SecurityUtils.getOwnerFromLoginModule();
     mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = Mode.defaults().applyFileUMask();
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
+  }
+
+  /**
+   * Creates a new instance of {@link CompleteUfsFileOptions} from a Thrift representation.
+   *
+   * @param options the Thrift representation to use
+   */
+  public CompleteUfsFileOptions(CompleteUfsFileTOptions options) {
+    mOwner = options.isSetOwner() ? options.getOwner() : "";
+    mGroup = options.isSetGroup() ? options.getGroup() : "";
+    mMode = new Mode(options.isSetMode() ? options.getMode() : Constants.INVALID_MODE);
   }
 
   /**
@@ -78,7 +89,7 @@ public final class CreateUfsFileOptions {
    * @param owner the owner to set
    * @return the updated object
    */
-  public CreateUfsFileOptions setOwner(String owner) {
+  public CompleteUfsFileOptions setOwner(String owner) {
     mOwner = owner;
     return this;
   }
@@ -87,7 +98,7 @@ public final class CreateUfsFileOptions {
    * @param group the group to set
    * @return the updated object
    */
-  public CreateUfsFileOptions setGroup(String group) {
+  public CompleteUfsFileOptions setGroup(String group) {
     mGroup = group;
     return this;
   }
@@ -96,7 +107,7 @@ public final class CreateUfsFileOptions {
    * @param mode the mode to set
    * @return the updated object
    */
-  public CreateUfsFileOptions setMode(Mode mode) {
+  public CompleteUfsFileOptions setMode(Mode mode) {
     mMode = mode;
     return this;
   }
@@ -106,10 +117,10 @@ public final class CreateUfsFileOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof CreateUfsFileOptions)) {
+    if (!(o instanceof CompleteUfsFileOptions)) {
       return false;
     }
-    CreateUfsFileOptions that = (CreateUfsFileOptions) o;
+    CompleteUfsFileOptions that = (CompleteUfsFileOptions) o;
     return Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode);
@@ -132,8 +143,8 @@ public final class CreateUfsFileOptions {
   /**
    * @return Thrift representation of the options
    */
-  public CreateUfsFileTOptions toThrift() {
-    CreateUfsFileTOptions options = new CreateUfsFileTOptions();
+  public CompleteUfsFileTOptions toThrift() {
+    CompleteUfsFileTOptions options = new CompleteUfsFileTOptions();
     if (!mOwner.isEmpty()) {
       options.setOwner(mOwner);
     }

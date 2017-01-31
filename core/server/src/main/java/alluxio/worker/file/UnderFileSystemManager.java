@@ -20,12 +20,14 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.worker.file.options.CompleteUfsFileOptions;
+import alluxio.worker.file.options.CreateUfsFileOptions;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -215,8 +217,10 @@ public final class UnderFileSystemManager {
     private final OutputStream mStream;
     /** String form of the final uri to write to in the under file system. */
     private final String mUri;
-    /** The permission for the file. */
-    private final Permission mPermission;
+
+    private String mOwner;
+    private String mGroup;
+    private Mode mMode;
 
     /**
      * Creates an output stream agent for the specified UFS uri. The UFS file must not exist when
@@ -225,20 +229,25 @@ public final class UnderFileSystemManager {
      * @param sessionId the agentId of the session that created this object
      * @param agentId the worker specific agentId which references this object
      * @param ufsUri the file to create in the UFS
-     * @param perm the permission of the file
+     * @param owner the owner of the file
+     * @param group the group of the file
+     * @param mode the mode of the file
      * @throws FileAlreadyExistsException if a file already exists at the uri specified
      * @throws IOException if an error occurs when interacting with the UFS
      */
-    private OutputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri, Permission perm)
-        throws FileAlreadyExistsException, IOException {
+    private OutputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri, String owner,
+        String group, Mode mode) throws FileAlreadyExistsException, IOException {
       mSessionId = sessionId;
       mAgentId = agentId;
       mUri = Preconditions.checkNotNull(ufsUri).toString();
-      mPermission = perm;
+      mOwner = owner;
+      mGroup = group;
+      mMode = mode;
       UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-      mStream = ufs.create(mUri, CreateOptions.defaults().setPermission(mPermission));
+      mStream =
+          ufs.create(mUri, CreateOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
     }
 
     /**
@@ -257,11 +266,13 @@ public final class UnderFileSystemManager {
      * Closes the temporary file and attempts to promote it to the final file path. If the final
      * path already exists, the stream is canceled instead.
      *
-     * @param perm the permission of the file
+     * @param owner the owner of the file
+     * @param group the group of the file
+     * @param mode the mode of the file
      * @return the length of the completed file
      * @throws IOException if an error occurs during the under file system operation
      */
-    private long complete(Permission perm) throws IOException {
+    private long complete(String owner, String group, Mode mode) throws IOException {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
       return ufs.getFileSize(mUri);
@@ -281,15 +292,17 @@ public final class UnderFileSystemManager {
    *
    * @param sessionId the session id of the request
    * @param ufsUri the path to create in the under file system
-   * @param perm the permission for the file to be created
+   * @param options the method options
    * @return the worker file id which should be used to reference the open stream
    * @throws FileAlreadyExistsException if the under file system path already exists
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long createFile(long sessionId, AlluxioURI ufsUri, Permission perm)
+  public long createFile(long sessionId, AlluxioURI ufsUri, CreateUfsFileOptions options)
       throws FileAlreadyExistsException, IOException {
     long id = mIdGenerator.getAndIncrement();
-    OutputStreamAgent agent = new OutputStreamAgent(sessionId, id, ufsUri, perm);
+    OutputStreamAgent agent =
+        new OutputStreamAgent(sessionId, id, ufsUri, options.getOwner(), options.getGroup(),
+            options.getMode());
     synchronized (mOutputStreamAgents) {
       mOutputStreamAgents.add(agent);
     }
@@ -392,12 +405,12 @@ public final class UnderFileSystemManager {
    *
    * @param sessionId the session id of the request
    * @param tempUfsFileId the worker id referencing an open file in the under file system
-   * @param perm the permission of the file
+   * @param options the method options
    * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long completeFile(long sessionId, long tempUfsFileId, Permission perm)
+  public long completeFile(long sessionId, long tempUfsFileId, CompleteUfsFileOptions options)
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
@@ -411,7 +424,7 @@ public final class UnderFileSystemManager {
       Preconditions.checkState(mOutputStreamAgents.remove(agent),
           PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT.toString(), tempUfsFileId);
     }
-    return agent.complete(perm);
+    return agent.complete(options.getOwner(), options.getGroup(), options.getMode());
   }
 
   /**

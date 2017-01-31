@@ -14,8 +14,9 @@ package alluxio.worker.file;
 import alluxio.AlluxioURI;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.security.authorization.Permission;
 import alluxio.worker.Worker;
+import alluxio.worker.file.options.CompleteUfsFileOptions;
+import alluxio.worker.file.options.CreateUfsFileOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,12 +60,12 @@ public interface FileSystemWorker extends Worker {
    * @param sessionId the session id of the request
    * @param tempUfsFileId the id of the file to complete, only understood by the worker that created
    *                      the file
-   * @param perm the permission of the file
+   * @param options the method options
    * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  long completeUfsFile(long sessionId, long tempUfsFileId, Permission perm)
+  long completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileOptions options)
       throws FileDoesNotExistException, IOException;
 
   /**
@@ -73,13 +74,13 @@ public interface FileSystemWorker extends Worker {
    *
    * @param sessionId the session id of the request
    * @param ufsUri the under file system uri to create a file for
-   * @param perm the permission of the file
+   * @param options the method options
    * @throws FileAlreadyExistsException if a file already exists in the under file system with
    *                                    the same path
    * @throws IOException if an error occurs interacting with the under file system
    * @return the temporary worker specific file id which references the in-progress ufs file
    */
-  long createUfsFile(long sessionId, AlluxioURI ufsUri, Permission perm)
+  long createUfsFile(long sessionId, AlluxioURI ufsUri, CreateUfsFileOptions options)
       throws FileAlreadyExistsException, IOException;
 
   /**
@@ -101,7 +102,7 @@ public interface FileSystemWorker extends Worker {
   /**
    * Returns the output stream to the under file system file denoted by the temporary file id.
    * The stream should not be closed by the caller but through the {@link #cancelUfsFile(long,long)}
-   * or the {@link #completeUfsFile(long, long, Permission)} methods.
+   * or the {@link #completeUfsFile(long, long, CompleteUfsFileOptions)} methods.
    *
    * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
    * @return the output stream writing the contents of the file

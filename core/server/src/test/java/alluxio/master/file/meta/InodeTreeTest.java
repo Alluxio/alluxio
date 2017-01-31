@@ -27,7 +27,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Lists;
@@ -55,7 +55,9 @@ public final class InodeTreeTest {
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
-  private static final Permission TEST_PERMISSION = new Permission("user1", "", (short) 0755);
+  public static final String TEST_OWNER = "user1";
+  public static final String TEST_GROUP = "group1";
+  public static final Mode TEST_MODE = new Mode((short) 0755);
   private static CreateFileOptions sFileOptions;
   private static CreateDirectoryOptions sDirectoryOptions;
   private static CreateFileOptions sNestedFileOptions;
@@ -87,7 +89,7 @@ public final class InodeTreeTest {
 
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
-    mTree.initializeRoot(TEST_PERMISSION);
+    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_MODE);
   }
 
   @After
@@ -100,14 +102,18 @@ public final class InodeTreeTest {
    */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermission(TEST_PERMISSION);
+    sFileOptions =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(TEST_OWNER)
+            .setGroup(TEST_GROUP).setMode(TEST_MODE);
     sDirectoryOptions =
-        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION);
+        CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
+            .setMode(TEST_MODE);
     sNestedFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermission(TEST_PERMISSION).setRecursive(true);
+        .setOwner(TEST_OWNER).setGroup(TEST_GROUP)
+        .setMode(TEST_MODE).setRecursive(true);
     sNestedDirectoryOptions =
-        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION).setRecursive(true);
+        CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
+            .setMode(TEST_MODE).setRecursive(true);
   }
 
   /**
@@ -117,8 +123,8 @@ public final class InodeTreeTest {
   public void initializeRootTwice() throws Exception {
     Inode<?> root = getInodeByPath(mTree, new AlluxioURI("/"));
     // initializeRoot call does nothing
-    mTree.initializeRoot(TEST_PERMISSION);
-    Assert.assertEquals(TEST_PERMISSION.getOwner(), root.getOwner());
+    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_MODE);
+    Assert.assertEquals(TEST_OWNER, root.getOwner());
     Inode<?> newRoot = getInodeByPath(mTree, new AlluxioURI("/"));
     Assert.assertEquals(root, newRoot);
   }
@@ -219,7 +225,8 @@ public final class InodeTreeTest {
 
     // Need to use updated options to set the correct last mod time.
     CreateDirectoryOptions dirOptions =
-        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION).setRecursive(true);
+        CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
+            .setMode(TEST_MODE).setRecursive(true);
 
     // create nested directory
     InodeTree.CreatePathResult createResult = createPath(mTree, NESTED_URI, dirOptions);

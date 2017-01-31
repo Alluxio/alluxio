@@ -32,7 +32,7 @@ import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.SecurityUtils;
@@ -138,13 +138,15 @@ public class InodeTree implements JournalCheckpointStreamable {
   /**
    * Initializes the root of the inode tree.
    *
-   * @param permission the root {@link Permission}
+   * @param owner the root owner
+   * @param group the root group
+   * @param mode the root mode
    */
-  public void initializeRoot(Permission permission) {
+  public void initializeRoot(String owner, String group, Mode mode) {
     if (mRoot == null) {
       mRoot = InodeDirectory
           .create(mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT, ROOT_INODE_NAME,
-              CreateDirectoryOptions.defaults().setPermission(permission));
+              CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
       mRoot.setPersistenceState(PersistenceState.PERSISTED);
       mInodes.add(mRoot);
       mCachedInode = mRoot;
@@ -555,7 +557,9 @@ public class InodeTree implements JournalCheckpointStreamable {
     CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(false)
         .setPersisted(options.isPersisted())
-        .setPermission(options.getPermission())
+        .setOwner(options.getOwner())
+        .setGroup(options.getGroup())
+        .setMode(options.getMode())
         .setDefaultMode(true);
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir =
@@ -634,9 +638,9 @@ public class InodeTree implements JournalCheckpointStreamable {
       MountTable.Resolution resolution = mMountTable.resolve(getPath(inode));
       String ufsUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
-      Permission permission = new Permission(inode.getOwner(), inode.getGroup(), inode.getMode());
-      MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
-          .setPermission(permission);
+      MkdirsOptions mkdirsOptions =
+          MkdirsOptions.defaults().setCreateParent(false).setOwner(inode.getOwner())
+              .setGroup(inode.getGroup()).setMode(new Mode(inode.getMode()));
       if (ufs.isDirectory(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
         inode.setPersistenceState(PersistenceState.PERSISTED);
       }
@@ -871,7 +875,7 @@ public class InodeTree implements JournalCheckpointStreamable {
       // for backwards-compatibility.
       if (SecurityUtils.isSecurityEnabled() && mRoot != null && mRoot.getOwner().isEmpty() && mRoot
           .getGroup().isEmpty()) {
-        mRoot.setPermission(Constants.DEFAULT_FILE_SYSTEM_MODE);
+        mRoot.setMode(Constants.DEFAULT_FILE_SYSTEM_MODE);
       }
       mCachedInode = mRoot;
       mInodes.add(mRoot);
@@ -898,7 +902,7 @@ public class InodeTree implements JournalCheckpointStreamable {
     // for backwards-compatibility.
     if (SecurityUtils.isSecurityEnabled() && inode != null && inode.getOwner().isEmpty()
         && inode.getGroup().isEmpty()) {
-      inode.setPermission(Constants.DEFAULT_FILE_SYSTEM_MODE);
+      inode.setMode(Constants.DEFAULT_FILE_SYSTEM_MODE);
     }
     // Update indexes.
     if (inode.isFile() && inode.isPinned()) {

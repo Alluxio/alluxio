@@ -26,88 +26,38 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class Mode {
-  /**
-   * Mode bits.
-   */
-  @ThreadSafe
-  public enum Bits {
-    NONE("---"),
-    EXECUTE("--x"),
-    WRITE("-w-"),
-    WRITE_EXECUTE("-wx"),
-    READ("r--"),
-    READ_EXECUTE("r-x"),
-    READ_WRITE("rw-"),
-    ALL("rwx"),
-    ;
-
-    /** String representation of the bits. */
-    private final String mString;
-
-    /** Retain reference to the values array. */
-    private static final Bits[] SVALS = values();
-
-    Bits(String s) {
-      mString = s;
-    }
-
-    /**
-     * Creates a {@link Bits} from a short.
-     *
-     * @param bits {@link Bits} in short
-     * @return the {@link Bits} created
-     */
-    public static Bits fromShort(short bits) {
-      return SVALS[bits];
-    }
-
-    @Override
-    public String toString() {
-      return mString;
-    }
-
-    /**
-     * Checks whether these bits imply the given bits.
-     *
-     * @param that mode bits
-     * @return true when these bits imply the given bits
-     */
-    public boolean imply(Bits that) {
-      if (that != null) {
-        return (ordinal() & that.ordinal()) == that.ordinal();
-      }
-      return false;
-    }
-
-    /**
-     * @param that mode bits
-     * @return the intersection of thes bits and the given bits
-     */
-    public Bits and(Bits that) {
-      Preconditions.checkNotNull(that);
-      return SVALS[ordinal() & that.ordinal()];
-    }
-
-    /**
-     * @param that mode bits
-     * @return the union of thes bits and the given bits
-     */
-    public Bits or(Bits that) {
-      Preconditions.checkNotNull(that);
-      return SVALS[ordinal() | that.ordinal()];
-    }
-
-    /**
-     * @return the complement of these bits
-     */
-    public Bits not() {
-      return SVALS[7 - ordinal()];
-    }
-  }
+  private static final Mode FILE_UMASK = new Mode(Constants.FILE_DIR_PERMISSION_DIFF);
 
   private Bits mOwnerBits;
   private Bits mGroupBits;
   private Bits mOtherBits;
+
+  /**
+   * Gets the default mode.
+   *
+   * @return the default {@link Mode}
+   */
+  public static Mode defaults() {
+    return new Mode(Constants.DEFAULT_FILE_SYSTEM_MODE);
+  }
+
+  /**
+   * Creates the "no access" mode.
+   *
+   * @return the none {@link Mode}
+   */
+  public static Mode createNoAccess() {
+    return new Mode(Bits.NONE, Bits.NONE, Bits.NONE);
+  }
+
+  /**
+   * Creates the "full access" mode.
+   *
+   * @return the none {@link Mode}
+   */
+  public static Mode createFullAccess() {
+    return new Mode(Bits.ALL, Bits.ALL, Bits.ALL);
+  }
 
   private Mode() {} // needed for JSON serialization and deserialization
 
@@ -260,50 +210,35 @@ public final class Mode {
   }
 
   /**
+   * Applies the default umask for newly created files to the mode bits.
+   *
+   * @return the updated object
+   */
+  public Mode applyFileUMask() {
+    applyUMask(Mode.getUMask());
+    applyUMask(FILE_UMASK);
+    return this;
+  }
+
+  /**
+   * Applies the default umask for newly created directories to the mode bits.
+   *
+   * @return the updated object
+   */
+  public Mode applyDirectoryUMask() {
+    applyUMask(Mode.getUMask());
+    return this;
+  }
+
+  /**
    * Creates a new mode by applying the given umask {@link Mode} to this mode.
    *
    * @param umask the umask to apply
-   * @return a new {@link Mode}
    */
-  public Mode applyUMask(Mode umask) {
-    return new Mode(mOwnerBits.and(umask.mOwnerBits.not()), mGroupBits.and(umask.mGroupBits.not()),
-        mOtherBits.and(umask.mOtherBits.not()));
-  }
-
-  /**
-   * Creates a new mode by applying the umask specified in configuration to this mode.
-   *
-   * @return a new {@link Mode}
-   */
-  public Mode applyUMask() {
-    return applyUMask(getUMask());
-  }
-
-  /**
-   * Gets the default mode.
-   *
-   * @return the default {@link Mode}
-   */
-  public static Mode getDefault() {
-    return new Mode(Constants.DEFAULT_FILE_SYSTEM_MODE);
-  }
-
-  /**
-   * Creates the "no access" mode.
-   *
-   * @return the none {@link Mode}
-   */
-  public static Mode createNoAccess() {
-    return new Mode(Bits.NONE, Bits.NONE, Bits.NONE);
-  }
-
-  /**
-   * Creates the "full access" mode.
-   *
-   * @return the none {@link Mode}
-   */
-  public static Mode createFullAccess() {
-    return new Mode(Bits.ALL, Bits.ALL, Bits.ALL);
+  private void applyUMask(Mode umask) {
+    mOwnerBits = mOwnerBits.and(umask.mOwnerBits.not());
+    mGroupBits = mGroupBits.and(umask.mGroupBits.not());
+    mOwnerBits = mOtherBits.and(umask.mOtherBits.not());
   }
 
   /**
@@ -311,7 +246,7 @@ public final class Mode {
    *
    * @return the umask {@link Mode}
    */
-  public static Mode getUMask() {
+  private static Mode getUMask() {
     int umask = Constants.DEFAULT_FILE_SYSTEM_UMASK;
     String confUmask = Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     if (confUmask != null) {
@@ -335,6 +270,85 @@ public final class Mode {
       return true;
     } catch (NumberFormatException e) {
       return false;
+    }
+  }
+
+  /**
+   * Mode bits.
+   */
+  @ThreadSafe
+  public enum Bits {
+    NONE("---"),
+    EXECUTE("--x"),
+    WRITE("-w-"),
+    WRITE_EXECUTE("-wx"),
+    READ("r--"),
+    READ_EXECUTE("r-x"),
+    READ_WRITE("rw-"),
+    ALL("rwx"),
+    ;
+
+    /** String representation of the bits. */
+    private final String mString;
+
+    /** Retain reference to the values array. */
+    private static final Bits[] SVALS = values();
+
+    Bits(String s) {
+      mString = s;
+    }
+
+    /**
+     * Creates a {@link Bits} from a short.
+     *
+     * @param bits {@link Bits} in short
+     * @return the {@link Bits} created
+     */
+    public static Bits fromShort(short bits) {
+      return SVALS[bits];
+    }
+
+    @Override
+    public String toString() {
+      return mString;
+    }
+
+    /**
+     * Checks whether these bits imply the given bits.
+     *
+     * @param that mode bits
+     * @return true when these bits imply the given bits
+     */
+    public boolean imply(Bits that) {
+      if (that != null) {
+        return (ordinal() & that.ordinal()) == that.ordinal();
+      }
+      return false;
+    }
+
+    /**
+     * @param that mode bits
+     * @return the intersection of thes bits and the given bits
+     */
+    public Bits and(Bits that) {
+      Preconditions.checkNotNull(that);
+      return SVALS[ordinal() & that.ordinal()];
+    }
+
+    /**
+     * @param that mode bits
+     * @return the union of thes bits and the given bits
+     */
+    public Bits or(Bits that) {
+      Preconditions.checkNotNull(that);
+      return SVALS[ordinal() | that.ordinal()];
+    }
+
+    /**
+     * @return the complement of these bits
+     */
+    public Bits not() {
+      return SVALS[7 - ordinal()];
     }
   }
 }

@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
-import alluxio.security.authorization.Permission;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CancelUfsFileTOptions;
 import alluxio.thrift.CloseUfsFileTOptions;
@@ -24,6 +23,8 @@ import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.thrift.OpenUfsFileTOptions;
 import alluxio.thrift.ThriftIOException;
+import alluxio.worker.file.options.CompleteUfsFileOptions;
+import alluxio.worker.file.options.CreateUfsFileOptions;
 
 import com.google.common.base.Preconditions;
 
@@ -115,11 +116,8 @@ public final class FileSystemWorkerClientServiceHandler
     return RpcUtils.call(new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
-        String owner = options.isSetOwner() ? options.getOwner() : "";
-        String group = options.isSetGroup() ? options.getGroup() : "";
-        short mode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
         return mWorker
-            .completeUfsFile(sessionId, tempUfsFileId, new Permission(owner, group, mode));
+            .completeUfsFile(sessionId, tempUfsFileId, new CompleteUfsFileOptions(options));
       }
     });
   }
@@ -141,11 +139,8 @@ public final class FileSystemWorkerClientServiceHandler
     return RpcUtils.call(new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
-        String user = options.isSetOwner() ? options.getOwner() : "";
-        String group = options.isSetGroup() ? options.getGroup() : "";
-        short mode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
         return mWorker
-            .createUfsFile(sessionId, new AlluxioURI(ufsUri), new Permission(user, group, mode));
+            .createUfsFile(sessionId, new AlluxioURI(ufsUri), new CreateUfsFileOptions(options));
       }
     });
   }

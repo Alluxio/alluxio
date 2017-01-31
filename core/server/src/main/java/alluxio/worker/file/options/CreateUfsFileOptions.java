@@ -9,11 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.worker.file.options;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
+import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.util.SecurityUtils;
 
@@ -51,6 +52,17 @@ public final class CreateUfsFileOptions {
     mMode = Mode.defaults().applyFileUMask();
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
+  }
+
+  /**
+   * Creates a new instance of {@link CreateUfsFileOptions} from a Thrift representation.
+   *
+   * @param options the Thrift representation to use
+   */
+  public CreateUfsFileOptions(CreateUfsFileTOptions options) {
+    mOwner = options.isSetOwner() ? options.getOwner() : "";
+    mGroup = options.isSetGroup() ? options.getGroup() : "";
+    mMode = new Mode(options.isSetMode() ? options.getMode() : Constants.INVALID_MODE);
   }
 
   /**

@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.master.block.BlockId;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
@@ -24,10 +24,10 @@ import org.junit.rules.ExpectedException;
  * Abstract class for serving inode tests.
  */
 public abstract class AbstractInodeTest {
-  public static final String TEST_USER_NAME = "user1";
-  public static final String TEST_GROUP_NAME = "group1";
-  public static final Permission TEST_PERMISSION =
-      new Permission(TEST_USER_NAME, TEST_GROUP_NAME, (short) 0755);
+  public static final String TEST_OWNER = "user1";
+  public static final String TEST_GROUP = "group1";
+  public static final Mode TEST_MODE = new Mode((short) 0755);
+
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -37,12 +37,13 @@ public abstract class AbstractInodeTest {
 
   protected static InodeDirectory createInodeDirectory() {
     return InodeDirectory.create(1, 0, "test1",
-        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION));
+        CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
+            .setMode(TEST_MODE));
   }
 
   protected InodeFile createInodeFile(long id) {
     return InodeFile.create(id, 1, "testFile" + id, 0,
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-            .setPermission(TEST_PERMISSION));
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(TEST_OWNER)
+            .setGroup(TEST_GROUP).setMode(TEST_MODE));
   }
 }
