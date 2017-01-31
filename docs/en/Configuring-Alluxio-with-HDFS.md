@@ -39,18 +39,6 @@ If everything succeeds, you should see
 `assembly/target` directory and this is the jar file you can use to run both Alluxio Master and
 Worker.
 
-# Configuring HDFS
-
-Since Alluxio v1.3, filesystem [security and permission features](Security.html) are turned on by default.
-To ensure that the user, group and permission bits information is consistent in HDFS after files are persisted from Alluxio to HDFS, the user to start Alluxio master and worker processes **is required** to be either the super user of HDFS or added to the superuser group of HDFS.
-There are two common approaches:
-
-1. Use the same user that starts HDFS namenode process to also start Alluxio servers. Please refer [HDFS Super User](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User) for more explanation.
-
-2. Alternatively, edit HDFS configuration file `hdfs-site.xml` and check its configuration property `dfs.permissions.superusergroup`. If this property is set with a group (e.g., "hdfs"), add the user to run Alluxio process (e.g., "alluxio") to this group; if this property is not set, add a group to this property and ensure the newly added group has your Alluxio running user.
-Please refer to [HDFS Security Configuration Parameters](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters) for more details.
-
-
 # Configuring Alluxio
 
 To run Alluxio binary, we must setup configuration files. Create your configuration file with
@@ -91,6 +79,17 @@ service already configured in `core-site.xml`) if you are mapping HDFS root dire
 
 Next, for Alluxio clients, `alluxio.underfs.hdfs.configuration` should also be set to the hadoop
 property file `hdfs-site.xml` (or `core-site.xml`).
+
+# Configuring Permission Mapping between Alluxio and HDFS
+
+Since v1.3, Alluxio supports filesystem [user and permission checking](Security.html) by default.
+To ensure that the permission information of files/directories including user, group and mode in HDFS is consistent with Alluxio, the user to start Alluxio master and worker processes **is required** to be either case:
+
+1. [HDFS super user](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User). Namely, use the same user that starts HDFS namenode process to also start Alluxio master and worker processes.
+
+2. A member of [HDFS superuser group](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters). Edit HDFS configuration file `hdfs-site.xml` and check the value of configuration property `dfs.permissions.superusergroup`. If this property is set with a group (e.g., "hdfs"), add the user to start Alluxio process (e.g., "alluxio") to this group ("hdfs"); if this property is not set, add a group to this property where your Alluxio running user is a member of this newly added group.
+
+Note that, the user set above is only the identity that starts Alluxio master and worker processes. Once Alluxio servers started, it is **unnecessary** to run your Alluxio client applications using this user.
 
 # Running Alluxio Locally with HDFS
 
