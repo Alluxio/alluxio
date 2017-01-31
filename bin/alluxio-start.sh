@@ -37,7 +37,8 @@ MOPT (Mount Option) is one of:
   SudoMount\tMount the configured RamFS using sudo.
            \tNotice: this will format the existing RamFS.
   NoMount  \tDo not mount the configured RamFS.
-           \tNotice: Use NoMount (Linux only) to use tmpFS to avoid sudo requirement.
+           \tNotice: to avoid sudo requirement but use tmpFS in Linux,
+             one can set ALLUXIO_RAM_FOLDER=/dev/shm and use NoMount.
   SudoMount is assumed if MOPT is not specified.
 
 -f  format Journal, UnderFS Data and Workers Folder on master
