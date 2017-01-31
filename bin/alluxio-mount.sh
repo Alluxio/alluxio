@@ -92,10 +92,10 @@ function mac_hfs_provision_sectors() {
 }
 
 function mount_ramfs_linux() {
-  TOTAL_MEM=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
-  if [[ ${TOTAL_MEM} -lt ${MEM_SIZE} ]]; then
-    echo "ERROR: Memory(${TOTAL_MEM}) is less than requested ramdisk size(${MEM_SIZE}). Please
-    reduce ALLUXIO_WORKER_MEMORY_SIZE" >&2
+  local total_mem=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
+  if [[ ${total_mem} -lt ${MEM_SIZE} ]]; then
+    echo "ERROR: Memory(${total_mem}) is less than requested ramdisk size(${MEM_SIZE}). Please
+    reduce alluxio.worker.memory.size in alluxio-site.properties" >&2
     exit 1
   fi
 
@@ -115,17 +115,17 @@ function mount_ramfs_linux() {
 
 function mount_ramfs_mac() {
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
-  NUM_SECTORS=$(mac_hfs_provision_sectors ${MEM_SIZE} 512)
+  local num_sectors=$(mac_hfs_provision_sectors ${MEM_SIZE} 512)
 
   # Format the RAM FS
   # We may have a pre-existing RAM FS which we need to throw away
-  echo "Formatting RamFS: ${RAM_FOLDER} ${NUM_SECTORS} sectors (${MEM_SIZE})."
-  DEVICE=$(df -l | grep ${RAM_FOLDER} | cut -d " " -f 1)
-  if [[ -n "${DEVICE}" ]]; then
-    hdiutil detach -force ${DEVICE}
+  echo "Formatting RamFS: ${RAM_FOLDER} ${num_sectors} sectors (${MEM_SIZE})."
+  local device=$(df -l | grep ${RAM_FOLDER} | cut -d " " -f 1)
+  if [[ -n "${device}" ]]; then
+    hdiutil detach -force ${device}
   fi
   # Remove the "/Volumes/" part so we can get the name of the volume.
-  diskutil erasevolume HFS+ ${RAM_FOLDER/#\/Volumes\//} $(hdiutil attach -nomount ram://${NUM_SECTORS})
+  diskutil erasevolume HFS+ ${RAM_FOLDER/#\/Volumes\//} $(hdiutil attach -nomount ram://${num_sectors})
 }
 
 function mount_ramfs_local() {

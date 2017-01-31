@@ -69,8 +69,7 @@ is_ram_folder_mounted() {
   fi
 
   for fs in ${mounted_fs}; do
-    if [[ "${1}" == "${fs}" || \
-     "${1}" =~ ^"${fs}"\/.* ]]; then
+    if [[ "${1}" == "${fs}" || "${1}" =~ ^"${fs}"\/.* ]]; then
       return 0
     fi
   done
@@ -99,7 +98,7 @@ check_mount_mode() {
         fi
       fi
       if [[ "${ram_folder}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
-        echo "WARNING: Using tmpFS which is not guaranteed to be in memory."
+        echo "WARNING: Using tmpFS does not guarantee data to be stored in memory."
         echo "WARNING: Check vmstat for memory statistics (e.g. swapping)."
       fi
       ;;
@@ -119,7 +118,7 @@ do_mount() {
   MOUNT_FAILED=0
   case "$1" in
     Mount|SudoMount)
-      ${LAUNCHER} ${BIN}/alluxio-mount.sh $1
+      ${LAUNCHER} "${BIN}/alluxio-mount.sh" $1
       MOUNT_FAILED=$?
       ;;
     NoMount)
