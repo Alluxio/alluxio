@@ -78,8 +78,8 @@ bin/alluxio runTests
 # Configuration
 
 To set an Alluxio configuration property, convert it to an environment variable by uppercasing
-and replacing periods with underscores. For example, `alluxio.worker.memory.size` converts to
-`ALLUXIO_WORKER_MEMORY_SIZE`. You can then set the environment variable on the image with
+and replacing periods with underscores. For example, `alluxio.master.hostname` converts to
+`ALLUXIO_MASTER_HOSTNAME`. You can then set the environment variable on the image with
 `-e PROPERTY=value`. Alluxio configuration values will be copied to `conf/alluxio-site.properties`
 when the image starts.
 
