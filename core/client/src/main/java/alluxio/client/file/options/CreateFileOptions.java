@@ -289,7 +289,7 @@ public final class CreateFileOptions {
   public CreateFileTOptions toThrift() {
     CreateFileTOptions options = new CreateFileTOptions();
     options.setBlockSizeBytes(mBlockSizeBytes);
-    options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
+    options.setPersisted(mWriteType.isThrough());
     options.setRecursive(mRecursive);
     options.setTtl(mTtl);
     options.setTtlAction(ThriftUtils.toThrift(mTtlAction));

@@ -40,6 +40,7 @@ public class CreateDirectoryOptionsTest {
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     Assert.assertEquals(mDefaultWriteType, options.getWriteType());
+    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
   }
 
   /**
@@ -50,7 +51,7 @@ public class CreateDirectoryOptionsTest {
     Random random = new Random();
     boolean allowExists = random.nextBoolean();
     boolean recursive = random.nextBoolean();
-    Mode mode = new Mode((short) 0123);
+    Mode mode = new Mode((short) random.nextInt());
     long ttl = random.nextLong();
     WriteType writeType = WriteType.NONE;
 
@@ -78,22 +79,24 @@ public class CreateDirectoryOptionsTest {
     Random random = new Random();
     boolean allowExists = random.nextBoolean();
     boolean recursive = random.nextBoolean();
-    Mode mode = new Mode((short) 0123);
+    Mode mode = new Mode((short) random.nextInt());
+    long ttl = random.nextLong();
     WriteType writeType = WriteType.NONE;
 
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
     options.setAllowExists(allowExists);
     options.setMode(mode);
+    options.setTtl(ttl);
+    options.setTtlAction(TtlAction.FREE);
     options.setRecursive(recursive);
     options.setWriteType(writeType);
 
     CreateDirectoryTOptions thriftOptions = options.toThrift();
     Assert.assertEquals(allowExists, thriftOptions.isAllowExists());
     Assert.assertEquals(recursive, thriftOptions.isRecursive());
-    Assert.assertEquals(writeType.getUnderStorageType().isSyncPersist(),
-        thriftOptions.isPersisted());
-    Assert.assertEquals(Constants.NO_TTL, thriftOptions.getTtl());
-    Assert.assertEquals(alluxio.thrift.TTtlAction.Delete, thriftOptions.getTtlAction());
+    Assert.assertEquals(writeType.isThrough(), thriftOptions.isPersisted());
+    Assert.assertEquals(ttl, thriftOptions.getTtl());
+    Assert.assertEquals(alluxio.thrift.TTtlAction.Free, thriftOptions.getTtlAction());
     Assert.assertEquals(mode.toShort(), thriftOptions.getMode());
   }
 
