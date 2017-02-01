@@ -1,3 +1,4 @@
+<!doctype html>
 <%--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,7 +16,7 @@
 <%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
 <%@ page import="static java.net.URLEncoder.encode" %>
 
-<html>
+<html ng-app="app">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <jsp:include page="../header-links.jsp" />
