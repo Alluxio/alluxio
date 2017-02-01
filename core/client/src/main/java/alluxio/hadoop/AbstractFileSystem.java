@@ -433,12 +433,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
 
-    String authority = uri.getHost() + ":" + uri.getPort();
-    if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED) && uri.getHost() == null) {
-      // If we are in fault-tolerant mode, the uri host and port may be null. In this case, Hadoop
-      // requires that we use "alluxio-ft:///" for the header.
-      authority = "/";
-    }
+    // HDFS doesn't allow the authority to be ""; it must be "/" instead.
+    String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
     mAlluxioHeader = getScheme() + "://" + authority;
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
