@@ -42,15 +42,18 @@ public final class TestRunner {
       .asList(WriteType.MUST_CACHE, WriteType.CACHE_THROUGH, WriteType.THROUGH,
           WriteType.ASYNC_THROUGH);
 
-  @Parameter(names = {"--operation"}, description = "The operation to test, either basic or "
-      + "basicNonByteBuffer. By default both operations are tested.")
+  @Parameter(names = {"-h", "--help"}, description = "Prints usage information", help = true)
+  private boolean help;
+
+  @Parameter(names = "--operation", description = "The operation to test, either BASIC or "
+      + "BASIC_NON_BYTE_BUFFER. By default both operations are tested.")
   private String mOperation;
 
-  @Parameter(names = {"--readType"},
+  @Parameter(names = "--readType",
       description = "The read type to use. By default all readTypes are tested.")
   private String mReadType;
 
-  @Parameter(names = {"--writeType"},
+  @Parameter(names = "--writeType",
       description = "The write type to use. By default all writeTypes are tested.")
   private String mWriteType;
 
@@ -61,11 +64,11 @@ public final class TestRunner {
     /**
      * Basic operations.
      */
-    Basic,
+    BASIC,
     /**
      * Basic operations but not using ByteBuffer.
      */
-    BasicNonByteBuffer,
+    BASIC_NON_BYTE_BUFFER,
   }
 
   private TestRunner() {} // prevent instantiation
@@ -81,7 +84,12 @@ public final class TestRunner {
    */
   public static void main(String[] args) throws Exception {
     TestRunner runner = new TestRunner();
-    new JCommander(runner, args);
+    JCommander jCommander = new JCommander(runner, args);
+    jCommander.setProgramName("TestRunner");
+    if (runner.help) {
+        jCommander.usage();
+        return;
+    }
 
     AlluxioURI testDir = new AlluxioURI(TEST_PATH);
 
@@ -137,11 +145,11 @@ public final class TestRunner {
 
     boolean result = true;
     switch (opType) {
-      case Basic:
+      case BASIC:
         result =
             CliUtils.runExample(new BasicOperations(filePath, readType, writeType));
         break;
-      case BasicNonByteBuffer:
+      case BASIC_NON_BYTE_BUFFER:
         result = CliUtils.runExample(
             new BasicNonByteBufferOperations(filePath, readType, writeType, true,
                 20));
