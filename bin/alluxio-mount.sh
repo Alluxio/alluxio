@@ -143,7 +143,8 @@ function mount_ramfs_local() {
   else
     # Assuming Linux
     if [[ "$1" == "SudoMount" ]]; then
-      sudo bash -O extglob -c "mount_ramfs_linux"
+      DECL_MOUNT_LINUX=$(declare -f mount_ramfs_linux)
+      sudo bash -c "MEM_SIZE=${MEM_SIZE};TIER_PATH=${TIER_PATH};${DECL_MOUNT_LINUX};mount_ramfs_linux"
     else
       mount_ramfs_linux
     fi
