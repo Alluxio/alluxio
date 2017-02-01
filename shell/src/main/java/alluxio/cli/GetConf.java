@@ -28,10 +28,10 @@ import java.util.Map.Entry;
  * Utility for printing Alluxio configuration.
  */
 public final class GetConf {
-  private static final String USAGE = "USAGE: GetConf [-inBytes] [KEY]\n\n"
+  private static final String USAGE = "USAGE: GetConf [-bytes] [KEY]\n\n"
       + "GetConf [KEY] prints the configured value for the given key. If the key is invalid, the "
       + "exit code will be nonzero. If the key is valid but isn't set, an empty string is printed. "
-      + "If no key is specified, all configuration is printed. If \"inBytes\" option is specified, "
+      + "If no key is specified, all configuration is printed. If \"bytes\" option is specified, "
       + "a value of \"1KB\" will be converted to a value of 1024.";
 
   private static final String BYTES_OPTION_NAME = "bytes";
