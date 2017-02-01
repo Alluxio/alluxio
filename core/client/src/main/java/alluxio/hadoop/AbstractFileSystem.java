@@ -435,7 +435,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
 
-    // HDFS doesn't allow the authority to be ""; it must be "/" instead.
+    // HDFS doesn't allow the authority to be empty; it must be "/" instead.
     String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
     mAlluxioHeader = getScheme() + "://" + authority;
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
