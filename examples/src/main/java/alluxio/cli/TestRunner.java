@@ -43,7 +43,7 @@ public final class TestRunner {
           WriteType.ASYNC_THROUGH);
 
   @Parameter(names = {"-h", "--help"}, description = "Prints usage information", help = true)
-  private boolean help;
+  private boolean mHelp;
 
   @Parameter(names = "--operation", description = "The operation to test, either BASIC or "
       + "BASIC_NON_BYTE_BUFFER. By default both operations are tested.")
@@ -86,9 +86,9 @@ public final class TestRunner {
     TestRunner runner = new TestRunner();
     JCommander jCommander = new JCommander(runner, args);
     jCommander.setProgramName("TestRunner");
-    if (runner.help) {
-        jCommander.usage();
-        return;
+    if (runner.mHelp) {
+      jCommander.usage();
+      return;
     }
 
     AlluxioURI testDir = new AlluxioURI(TEST_PATH);
@@ -138,21 +138,18 @@ public final class TestRunner {
    * @param writeType write type
    * @return 0 on success, 1 on failure
    */
-  private static int runTest(OperationType opType, ReadType readType,
-      WriteType writeType) {
+  private static int runTest(OperationType opType, ReadType readType, WriteType writeType) {
     AlluxioURI filePath =
         new AlluxioURI(String.format("%s/%s_%s_%s", TEST_PATH, opType, readType, writeType));
 
     boolean result = true;
     switch (opType) {
       case BASIC:
-        result =
-            CliUtils.runExample(new BasicOperations(filePath, readType, writeType));
+        result = CliUtils.runExample(new BasicOperations(filePath, readType, writeType));
         break;
       case BASIC_NON_BYTE_BUFFER:
-        result = CliUtils.runExample(
-            new BasicNonByteBufferOperations(filePath, readType, writeType, true,
-                20));
+        result = CliUtils
+            .runExample(new BasicNonByteBufferOperations(filePath, readType, writeType, true, 20));
         break;
       default:
         System.out.println("Unrecognized operation type " + opType);
