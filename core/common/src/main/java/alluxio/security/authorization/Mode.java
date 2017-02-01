@@ -47,7 +47,7 @@ public final class Mode {
    * @return the none {@link Mode}
    */
   public static Mode createNoAccess() {
-    return new Mode(Bits.NONE, Bits.NONE, Bits.NONE);
+    return new Mode();
   }
 
   /**
@@ -59,11 +59,15 @@ public final class Mode {
     return new Mode(Bits.ALL, Bits.ALL, Bits.ALL);
   }
 
+  /**
+   * Default constructor for {@link Mode}. Default constructor is required for equality testing
+   * and JSON deserialization.
+   */
   private Mode() {
     mOwnerBits = Bits.NONE;
     mGroupBits = Bits.NONE;
     mOtherBits = Bits.NONE;
-  } // needed for equality testing and JSON serialization and deserialization
+  }
 
   /**
    * Constructs an instance of {@link Mode} with the given {@link Bits}.
@@ -214,35 +218,34 @@ public final class Mode {
   }
 
   /**
-   * Applies the default umask for newly created files to the mode bits.
+   * Applies the default umask for newly created files to this mode.
    *
    * @return the updated object
    */
   public Mode applyFileUMask() {
-    applyUMask(Mode.getUMask());
-    applyUMask(FILE_UMASK);
-    return this;
+    return applyUMask(Mode.getUMask()).applyUMask(FILE_UMASK);
   }
 
   /**
-   * Applies the default umask for newly created directories to the mode bits.
+   * Applies the default umask for newly created directories to this mode.
    *
    * @return the updated object
    */
   public Mode applyDirectoryUMask() {
-    applyUMask(Mode.getUMask());
-    return this;
+    return applyUMask(Mode.getUMask());
   }
 
   /**
-   * Creates a new mode by applying the given umask {@link Mode} to this mode.
+   * Applies the given umask {@link Mode} to this mode.
    *
    * @param umask the umask to apply
+   * @return the updated object
    */
-  private void applyUMask(Mode umask) {
+  private Mode applyUMask(Mode umask) {
     mOwnerBits = mOwnerBits.and(umask.mOwnerBits.not());
     mGroupBits = mGroupBits.and(umask.mGroupBits.not());
     mOtherBits = mOtherBits.and(umask.mOtherBits.not());
+    return this;
   }
 
   /**
