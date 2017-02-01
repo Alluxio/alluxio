@@ -27,6 +27,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.master.block.BlockMaster;
 import alluxio.thrift.CommandType;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Function;
@@ -108,12 +109,14 @@ public class MasterFaultToleranceIntegrationTest {
 
   /**
    * Wait for a number of workers to register. This call will block until the block master
-   * detects the required number of workers or more.
+   * detects the required number of workers or if the timeout is exceeded.
    *
    * @param store the block store object which references the correct block master
    * @param numWorkers the number of workers to wait for
+   * @param timeoutMs the number of milliseconds to wait before timing out
    */
-  private void waitForWorkerRegistration(final AlluxioBlockStore store, final int numWorkers) {
+  private void waitForWorkerRegistration(final AlluxioBlockStore store, final int numWorkers,
+      int timeoutMs) {
     CommonUtils.waitFor("Worker to register.", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void aVoid) {
@@ -124,7 +127,7 @@ public class MasterFaultToleranceIntegrationTest {
         }
         return false;
       }
-    });
+    }, WaitForOptions.defaults().setTimeout(timeoutMs));
   }
 
   @Test
@@ -228,7 +231,7 @@ public class MasterFaultToleranceIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(store, 1);
+      waitForWorkerRegistration(store, 1, Constants.SECOND_MS);
       // If worker is successfully re-registered, the capacity bytes should not change.
       Assert.assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
     }
