@@ -139,22 +139,4 @@ public final class CompleteUfsFileOptions {
         .add("mode", mMode)
         .toString();
   }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public CompleteUfsFileTOptions toThrift() {
-    CompleteUfsFileTOptions options = new CompleteUfsFileTOptions();
-    if (!mOwner.isEmpty()) {
-      options.setOwner(mOwner);
-    }
-    if (!mGroup.isEmpty()) {
-      options.setGroup(mGroup);
-    }
-    short mode = mMode.toShort();
-    if (mode != Constants.INVALID_MODE) {
-      options.setMode(mode);
-    }
-    return options;
-  }
 }

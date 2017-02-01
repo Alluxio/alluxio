@@ -139,22 +139,4 @@ public final class CreateUfsFileOptions {
         .add("mode", mMode)
         .toString();
   }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public CreateUfsFileTOptions toThrift() {
-    CreateUfsFileTOptions options = new CreateUfsFileTOptions();
-    if (!mOwner.isEmpty()) {
-      options.setOwner(mOwner);
-    }
-    if (!mGroup.isEmpty()) {
-      options.setGroup(mGroup);
-    }
-    short mode = mMode.toShort();
-    if (mode != Constants.INVALID_MODE) {
-      options.setMode(mode);
-    }
-    return options;
-  }
 }
