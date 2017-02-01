@@ -59,7 +59,7 @@ We need to tell the worker where to find the master. Set the `ALLUXIO_MASTER_HOS
 environment variable to your machine's hostname when launching the worker Docker container.
 
 ```bash
-docker run -d -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_HOSTNAME} --net=host alluxio worker
+docker run -d --net=host -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_HOSTNAME} alluxio worker
 ```
 
 # Test the cluster
@@ -77,6 +77,8 @@ bin/alluxio runTests
 
 # Configuration
 
+## Alluxio Configuration Properties
+
 To set an Alluxio configuration property, convert it to an environment variable by uppercasing
 and replacing periods with underscores. For example, `alluxio.master.hostname` converts to
 `ALLUXIO_MASTER_HOSTNAME`. You can then set the environment variable on the image with
@@ -84,5 +86,18 @@ and replacing periods with underscores. For example, `alluxio.master.hostname` c
 when the image starts.
 
 ```bash
-docker run -d -e ALLUXIO_WORKER_MEMORY_SIZE=10GB --net=host alluxio worker
+docker run -d --net=host -e ALLUXIO_MASTER_HOSTNAME=ec2-203-0-113-25.compute-1.amazonaws.com alluxio worker
+```
+
+# Setting worker memory size
+
+The Docker worker container will use the tmpfs mounted at `/dev/shm` by default. To set the
+size of the worker memory to `50GB`, you can specify `--shm-size 50G` and configure the Alluxio worker to
+use `50GB`. The full command would look like
+
+```bash
+docker run -d --net=host --shm-size=50GB \
+           -e ALLUXIO_MASTER_HOSTNAME=master \
+           -e ALLUXIO_WORKER_MEMORY_SIZE=50GB \
+           alluxio worker
 ```
