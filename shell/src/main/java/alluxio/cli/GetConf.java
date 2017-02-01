@@ -14,22 +14,49 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
+import com.google.common.base.Preconditions;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import java.util.Map.Entry;
 
 /**
  * Utility for printing Alluxio configuration.
  */
 public final class GetConf {
-  private static final String USAGE = "USAGE: GetConf [KEY]\n\n"
+  private static final String USAGE = "USAGE: GetConf [-inBytes] [KEY]\n\n"
       + "GetConf [KEY] prints the configured value for the given key. If the key is invalid, the "
       + "exit code will be nonzero. If the key is valid but isn't set, an empty string is printed. "
-      + "If no key is specified, all configuration is printed.";
+      + "If no key is specified, all configuration is printed. If \"inBytes\" option is specified, "
+      + "a value of \"1KB\" will be converted to a value of 1024.";
+
+  private static final String BYTES_OPTION_NAME = "bytes";
+  private static final Option BYTES_OPTION =
+      Option.builder().required(false).longOpt(BYTES_OPTION_NAME).hasArg(false)
+          .desc("value in bytes").build();
 
   /**
    * @param args should be size 0 or 1; if size 1, the specified configuration value is printed,
    *        otherwise all configuration is printed
    */
   public static void main(String[] args) {
+    Options opts = new Options().addOption(BYTES_OPTION);
+    CommandLineParser parser = new DefaultParser();
+    CommandLine cmd = null;
+
+    try {
+      cmd = parser.parse(opts, args, true /* stopAtNonOption */);
+    } catch (ParseException e) {
+      System.err.println("Unable to parse input args: " + e.getMessage());
+      System.out.println(USAGE);
+      System.exit(1);
+    }
+    Preconditions.checkNotNull(cmd, "Unable to parse input args");
+    args = cmd.getArgs();
     switch (args.length) {
       case 0:
         for (Entry<String, String> entry : Configuration.toMap().entrySet()) {
@@ -45,10 +72,14 @@ public final class GetConf {
           System.exit(1);
         }
         PropertyKey key = PropertyKey.fromString(args[0]);
-        if (!Configuration.containsKey(key)) {
-          System.out.println("");
+        if (Configuration.containsKey(key)) {
+          if (cmd.hasOption(BYTES_OPTION_NAME)) {
+            System.out.println(Configuration.getBytes(key));
+          } else {
+            System.out.println(Configuration.get(key));
+          }
         } else {
-          System.out.println(Configuration.get(key));
+          System.out.println("");
         }
         break;
       default:
