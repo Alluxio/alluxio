@@ -25,6 +25,7 @@ import alluxio.web.entity.PageResultEntity;
 import alluxio.web.entity.PaginationOptionsEntity;
 import alluxio.web.entity.SortEntity;
 import alluxio.wire.FileInfo;
+
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang.StringUtils;
 
@@ -38,31 +39,39 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Servlet that provides ajax request for browsing the file system in memory fully.
  */
 @ThreadSafe
 public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
-  private static final transient Map<String, Method> fileInfoGetterMap = new HashMap<>();
-  private static final transient Map<String, String> fileInfoSpecialFieldMap = new HashMap<>();
+  private static final transient Map<String, Method> FILE_INFO_GETTER_MAP = new HashMap<>();
+  private static final transient Map<String, String> FILE_INFO_SPECIAL_FIELD_MAP = new HashMap<>();
   private final transient AlluxioMasterService mMaster;
 
   static {
     Method[] methods = UIFileInfo.class.getMethods();
     for (Method method : methods) {
       //getter must start with get, no parameter and return type mustn't be void
-      if (method.getName().startsWith("get") && method.getParameterTypes().length == 0 && !void.class.equals(method.getReturnType())) {
+      if (method.getName().startsWith("get") && method.getParameterTypes().length == 0
+          && !void.class.equals(method.getReturnType())) {
         String key = StringUtils.uncapitalize(method.getName().substring("get".length()));
-        fileInfoGetterMap.put(key, method);
-      } else if (method.getName().startsWith("is") && method.getParameterTypes().length == 0 && boolean.class.equals(method.getReturnType())) {
+        FILE_INFO_GETTER_MAP.put(key, method);
+      } else if (method.getName().startsWith("is") && method.getParameterTypes().length == 0
+          && boolean.class.equals(method.getReturnType())) {
         String key = StringUtils.uncapitalize(method.getName().substring("is".length()));
-        fileInfoGetterMap.put(key, method);
+        FILE_INFO_GETTER_MAP.put(key, method);
       }
     }
-    fileInfoSpecialFieldMap.put("creationTime", "mCreationTimeMs");
-    fileInfoSpecialFieldMap.put("modificationTime", "mLastModificationTimeMs");
+    FILE_INFO_SPECIAL_FIELD_MAP.put("creationTime", "mCreationTimeMs");
+    FILE_INFO_SPECIAL_FIELD_MAP.put("modificationTime", "mLastModificationTimeMs");
   }
 
   /**
@@ -92,7 +101,6 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
@@ -105,9 +113,11 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
     // Collections.sort(inMemoryFiles);
 
     String paginationOptions = request.getParameter("paginationOptions");
-    final PaginationOptionsEntity paginationOptionsEntity = JSON.parseObject(paginationOptions, PaginationOptionsEntity.class);
-    if (paginationOptionsEntity == null)
+    final PaginationOptionsEntity paginationOptionsEntity = JSON.parseObject(paginationOptions,
+        PaginationOptionsEntity.class);
+    if (paginationOptionsEntity == null) {
       return;
+    }
     //get all fullInMemory fileInfo;
     List<UIFileInfo> fileInfos = new ArrayList<>();
     for (AlluxioURI file : inMemoryFiles) {
@@ -139,8 +149,8 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
           try {
             for (SortEntity sortEntity : paginationOptionsEntity.getSorters()) {
               int sortDirection = SortEntity.SORT_ASC.equals(sortEntity.getDirection()) ? 1 : -1;
-              if (fileInfoSpecialFieldMap.containsKey(sortEntity.getField())) {
-                Field field = UIFileInfo.class.getDeclaredField(fileInfoSpecialFieldMap.get(sortEntity.getField()));
+              if (FILE_INFO_SPECIAL_FIELD_MAP.containsKey(sortEntity.getField())) {
+                Field field = UIFileInfo.class.getDeclaredField(FILE_INFO_SPECIAL_FIELD_MAP.get(sortEntity.getField()));
                 field.setAccessible(true);
                 Long o1Value = (Long) field.get(o1);
                 Long o2Value = (Long) field.get(o2);
@@ -149,7 +159,7 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
                   return compareResult * sortDirection;
                 }
               } else {
-                Method getterMethod = fileInfoGetterMap.get(sortEntity.getField());
+                Method getterMethod = FILE_INFO_GETTER_MAP.get(sortEntity.getField());
                 if (getterMethod != null) {
                   Object o1Value = getterMethod.invoke(o1);
                   Object o2Value = getterMethod.invoke(o2);
@@ -158,8 +168,9 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
                     if (compareResult != 0) {
                       return compareResult * sortDirection;
                     }
-                  } else//not impl
+                  } else {
                     return 0;
+                  }
                 }
               }
             }
@@ -183,8 +194,8 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
         boolean filterPassed = true;
         UIFileInfo uiFileInfo = uiFileInfoIter.next();
         for (FilterEntity fe : filterEntityList) {
-          if (fileInfoGetterMap.containsKey(fe.getField())) {
-            Method getterMethod = fileInfoGetterMap.get(fe.getField());
+          if (FILE_INFO_GETTER_MAP.containsKey(fe.getField())) {
+            Method getterMethod = FILE_INFO_GETTER_MAP.get(fe.getField());
             Object value = null;
             try {
               value = getterMethod.invoke(uiFileInfo);
@@ -217,7 +228,8 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
     int offset = (paginationOptionsEntity.getPageNumber() - 1) * paginationOptionsEntity.getPageSize();
     if (offset >= fileInfos.size())
       offset = 0;
-    int length = (offset + paginationOptionsEntity.getPageSize()) > fileInfos.size() ? fileInfos.size() : offset + paginationOptionsEntity.getPageSize();
+    int length = (offset + paginationOptionsEntity.getPageSize()) > fileInfos.size()
+        ? fileInfos.size() : offset + paginationOptionsEntity.getPageSize();
 
     List<UIFileInfo> subFileInfo = fileInfos.subList(offset, length);
     PageResultEntity pageResultEntity = new PageResultEntity();

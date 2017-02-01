@@ -8,6 +8,7 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package alluxio.web.entity;
 
 import alluxio.web.UIFileInfo;
@@ -15,23 +16,48 @@ import alluxio.web.UIFileInfo;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The web page grid result entity.
+ */
 public class PageResultEntity {
-  private int totalCount = 0;
-  private List<UIFileInfo> pageData = new ArrayList<>();
+  private int mTotalCount = 0;
+  private List<UIFileInfo> mPageData = new ArrayList<>();
 
+  /**
+   * Creates page result entity.
+   */
+  public PageResultEntity(){
+  }
+
+  /**
+   * @return the page total count
+   */
   public int getTotalCount() {
-    return totalCount;
+    return mTotalCount;
   }
 
+  /**
+   * Sets the page of filter.
+   *
+   * @param totalCount the page totalCount
+   */
   public void setTotalCount(int totalCount) {
-    this.totalCount = totalCount;
+    mTotalCount = totalCount;
   }
 
+  /**
+   * @return the page data
+   */
   public List<UIFileInfo> getPageData() {
-    return pageData;
+    return mPageData;
   }
 
+  /**
+   * Sets page data to display.
+   *
+   * @param pageData the page data to display
+   */
   public void setPageData(List<UIFileInfo> pageData) {
-    this.pageData = pageData;
+    mPageData = pageData;
   }
 }

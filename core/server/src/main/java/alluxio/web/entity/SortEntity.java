@@ -8,27 +8,53 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package alluxio.web.entity;
 
+/**
+ * The web page grid sort entity.
+ */
 public class SortEntity {
   public static final String SORT_ASC = "asc";
   public static final String SORT_DESC = "desc";
-  private String field;
-  private String direction;
+  private String mField;
+  private String mDirection;
 
+  /**
+   * Creates sort entity.
+   */
+  public SortEntity() {
+  }
+
+  /**
+   * @return the sort field
+   */
   public String getField() {
-    return field;
+    return mField;
   }
 
+  /**
+   * @return the sort direction.
+   */
   public String getDirection() {
-    return direction;
+    return mDirection;
   }
 
+  /**
+   * Sets the sort field.
+   *
+   * @param field the sort field
+   */
   public void setField(String field) {
-    this.field = field;
+    this.mField = field;
   }
 
+  /**
+   * Sets the sort direction.
+   *
+   * @param direction the sort direction
+   */
   public void setDirection(String direction) {
-    this.direction = direction;
+    this.mDirection = direction;
   }
 }

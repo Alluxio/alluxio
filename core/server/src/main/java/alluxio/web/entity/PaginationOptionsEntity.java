@@ -8,46 +8,88 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package alluxio.web.entity;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The web page grid pagination options entity.
+ */
 public class PaginationOptionsEntity {
-  private int pageNumber;
-  private int pageSize;
-  private List<SortEntity> sorters = new ArrayList<>();
-  private List<FilterEntity> filters = new ArrayList<>();
+  private int mPageNumber;
+  private int mPageSize;
+  private List<SortEntity> mSorters = new ArrayList<>();
+  private List<FilterEntity> mFilters = new ArrayList<>();
 
+  /**
+   * Creates page pagination options entity.
+   */
+  public PaginationOptionsEntity(){
+  }
+
+  /**
+   * @return the page number
+   */
   public int getPageNumber() {
-    return pageNumber;
+    return mPageNumber;
   }
 
+  /**
+   * Sets the page number.
+   *
+   * @param pageNumber the page number
+   */
   public void setPageNumber(int pageNumber) {
-    this.pageNumber = pageNumber;
+    this.mPageNumber = pageNumber;
   }
 
+  /**
+   * @return the page size
+   */
   public int getPageSize() {
-    return pageSize;
+    return mPageSize;
   }
 
+  /**
+   * Sets the page size.
+   *
+   * @param pageSize the page size
+   */
   public void setPageSize(int pageSize) {
-    this.pageSize = pageSize;
+    this.mPageSize = pageSize;
   }
 
+  /**
+   * @return the filters
+   */
   public List<FilterEntity> getFilters() {
-    return filters;
+    return mFilters;
   }
 
+  /**
+   * Sets the page filters.
+   *
+   * @param filters the page filters
+   */
   public void setFilters(List<FilterEntity> filters) {
-    this.filters = filters;
+    this.mFilters = filters;
   }
 
+  /**
+   * @return the sorters
+   */
   public List<SortEntity> getSorters() {
-    return sorters;
+    return mSorters;
   }
 
+  /**
+   * Sets the page sorters.
+   *
+   * @param sorters the page sorters
+   */
   public void setSorters(List<SortEntity> sorters) {
-    this.sorters = sorters;
+    this.mSorters = sorters;
   }
 }

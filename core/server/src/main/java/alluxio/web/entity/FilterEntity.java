@@ -8,25 +8,51 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package alluxio.web.entity;
 
+/**
+ * The web page grid filter entity.
+ */
 public class FilterEntity {
-  private String field;
-  private String term;
+  private String mField;
+  private String mTerm;
 
+  /**
+   * create filter entity.
+   */
+  public FilterEntity(){
+  }
+
+  /**
+   * Sets the field of filter.
+   *
+   * @param field the field of filter
+   */
   public void setField(String field) {
-    this.field = field;
+    mField = field;
   }
 
+  /**
+   * Sets the term to filter.
+   *
+   * @param term the term of filter
+   */
   public void setTerm(String term) {
-    this.term = term;
+    mTerm = term;
   }
 
+  /**
+   * @return the field
+   */
   public String getField() {
-    return field;
+    return mField;
   }
 
+  /**
+   * @return the term
+   */
   public String getTerm() {
-    return term;
+    return mTerm;
   }
 }
