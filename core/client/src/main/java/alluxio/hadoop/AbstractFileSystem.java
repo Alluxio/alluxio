@@ -435,6 +435,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     String authority = uri.getHost() + ":" + uri.getPort();
     if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED) && uri.getHost() == null) {
+      // If we are in fault-tolerant mode, the uri host and port may be null. In this case, Hadoop
+      // requires that we use "alluxio-ft:///" for the header.
       authority = "/";
     }
     mAlluxioHeader = getScheme() + "://" + authority;
