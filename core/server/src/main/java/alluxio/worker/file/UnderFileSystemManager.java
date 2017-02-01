@@ -246,8 +246,8 @@ public final class UnderFileSystemManager {
       UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-      mStream =
-          ufs.create(mUri, CreateOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
+      mStream = ufs.create(mUri,
+          CreateOptions.defaults().setOwner(mOwner).setGroup(mGroup).setMode(mMode));
     }
 
     /**

@@ -14,7 +14,6 @@ package alluxio.worker.file.options;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
-import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.util.SecurityUtils;
 

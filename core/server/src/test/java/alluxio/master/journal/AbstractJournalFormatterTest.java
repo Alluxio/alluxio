@@ -39,7 +39,6 @@ import alluxio.proto.journal.KeyValue.RenameStoreEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
 import alluxio.proto.journal.Lineage.LineageEntry;
 import alluxio.proto.journal.Lineage.LineageIdGeneratorEntry;
-import alluxio.security.authorization.Mode;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ContiguousSet;

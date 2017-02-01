@@ -13,7 +13,6 @@ package alluxio.util;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.exception.ExceptionMessage;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
@@ -58,14 +57,22 @@ public final class SecurityUtils {
     return Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
   }
 
+  /**
+   * @return the owner fetched from the login module, or empty string if the fetch fails or
+   *         authentication is disabled
+   */
   public static String getOwnerFromLoginModule() {
     try {
       return LoginUser.get().getName();
-    } catch (IOException| UnsupportedOperationException e) {
+    } catch (IOException | UnsupportedOperationException e) {
       return "";
     }
   }
 
+  /**
+   * @return the owner fetched from the Thrift client, or empty string if the fetch fails or
+   *         authentication is disabled
+   */
   public static String getOwnerFromThriftClient() {
     try {
       User user = AuthenticatedClientUser.get();
@@ -78,6 +85,10 @@ public final class SecurityUtils {
     }
   }
 
+  /**
+   * @return the group fetched from the login module, or empty string if the fetch fails or
+   *         authentication is disabled
+   */
   public static String getGroupFromLoginModule() {
     try {
       return CommonUtils.getPrimaryGroupName(LoginUser.get().getName());
@@ -86,6 +97,10 @@ public final class SecurityUtils {
     }
   }
 
+  /**
+   * @return the group fetched from the Thrift client, or empty string if the fetch fails or
+   *         authentication is disabled
+   */
   public static String getGroupFromThriftClient() {
     try {
       User user = AuthenticatedClientUser.get();

@@ -61,7 +61,7 @@ public class CreateFileOptionsTest {
     long operationTimeMs = random.nextLong();
     String owner = CommonUtils.randomAlphaNumString(10);
     String group = CommonUtils.randomAlphaNumString(10);
-    Mode mode = new Mode((short)random.nextInt());
+    Mode mode = new Mode((short) random.nextInt());
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
