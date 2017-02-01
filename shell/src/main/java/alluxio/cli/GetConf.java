@@ -72,14 +72,14 @@ public final class GetConf {
           System.exit(1);
         }
         PropertyKey key = PropertyKey.fromString(args[0]);
-        if (Configuration.containsKey(key)) {
+        if (!Configuration.containsKey(key)) {
+          System.out.println("");
+        } else {
           if (cmd.hasOption(BYTES_OPTION_NAME)) {
             System.out.println(Configuration.getBytes(key));
           } else {
             System.out.println(Configuration.get(key));
           }
-        } else {
-          System.out.println("");
         }
         break;
       default:
