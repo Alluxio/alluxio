@@ -61,8 +61,11 @@ import java.util.regex.Pattern;
  */
 public class ConcurrentFileSystemMasterTest {
   private static final String TEST_USER = "test";
-  private static final long SLEEP_MS = Constants.SECOND_MS;
   private static final int CONCURRENCY_FACTOR = 50;
+  /** Duration to sleep during the rename call to show the benefits of concurrency. */
+  private static final long SLEEP_MS = Constants.SECOND_MS;
+  /** Timeout for the concurrent test after which we will mark the test as failed. */
+  private static final long LIMIT_MS = SLEEP_MS * CONCURRENCY_FACTOR / 10;
   /**
    * Options to mark a created file as persisted. Note that this does not actually persist the
    * file but flag the file to be treated as persisted, which will invoke ufs operations.
@@ -404,8 +407,8 @@ public class ConcurrentFileSystemMasterTest {
       t.join();
     }
     long durationMs = CommonUtils.getCurrentMs() - startMs;
-    Assert.assertTrue("Execution duration " + durationMs + " took longer than expected "
-        + (SLEEP_MS * 2), durationMs < SLEEP_MS * 2);
+    Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + LIMIT_MS,
+        durationMs < LIMIT_MS);
     return errors.size();
   }
 
