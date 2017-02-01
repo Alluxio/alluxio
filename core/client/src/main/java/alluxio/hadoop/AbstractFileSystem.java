@@ -422,6 +422,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
+    // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
+    // configuration property, so the user doesn't need to specify the authority.
     if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
       Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
