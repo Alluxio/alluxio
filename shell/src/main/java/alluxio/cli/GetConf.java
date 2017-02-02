@@ -135,8 +135,9 @@ public final class GetConf {
   }
 
   /**
-   * @param args should be size 0 or 1; if size 1, the specified configuration value is printed,
-   *        otherwise all configuration is printed
+   * Prints Alluxio configuration.
+   *
+   * @param args the arguments to specify the unit (optional) and configuration key (optional)
    */
   public static void main(String[] args) {
     System.exit(getConf(args));
