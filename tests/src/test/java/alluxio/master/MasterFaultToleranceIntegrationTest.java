@@ -231,7 +231,7 @@ public class MasterFaultToleranceIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(store, 1, Constants.SECOND_MS);
+      waitForWorkerRegistration(store, 1, 5 * Constants.SECOND_MS);
       // If worker is successfully re-registered, the capacity bytes should not change.
       Assert.assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
     }
