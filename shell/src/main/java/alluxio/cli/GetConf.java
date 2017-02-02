@@ -18,6 +18,7 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -28,32 +29,64 @@ import java.util.Map.Entry;
  * Utility for printing Alluxio configuration.
  */
 public final class GetConf {
-  private static final String USAGE = "USAGE: GetConf [-bytes] [KEY]\n\n"
-      + "GetConf [KEY] prints the configured value for the given key. If the key is invalid, the "
+  private static final String USAGE = "USAGE: GetConf [--unit] [KEY]\n\n"
+      + "GetConf prints the configured value for the given key. If the key is invalid, the "
       + "exit code will be nonzero. If the key is valid but isn't set, an empty string is printed. "
-      + "If no key is specified, all configuration is printed. If \"bytes\" option is specified, "
-      + "a value of \"1KB\" will be converted to a value of 1024.";
+      + "If no key is specified, all configuration is printed. If \"--unit\" option is specified, "
+      + "values of data size configuration will be converted to a quantity in the given unit."
+      + "E.g., with \"--unit=KB\", a configuration value of \"4096\" will return 4, "
+      + "and \"10MB\" will return 10240. Possible unit options include B, KB, MB, GB, TP, PB";
 
-  private static final String BYTES_OPTION_NAME = "bytes";
-  private static final Option BYTES_OPTION =
-      Option.builder().required(false).longOpt(BYTES_OPTION_NAME).hasArg(false)
-          .desc("value in bytes").build();
+  private static final String UNIT_OPTION_NAME = "unit";
+  private static final Option UNIT_OPTION =
+      Option.builder().required(false).longOpt(UNIT_OPTION_NAME).hasArg(true)
+          .desc("unit of the value to return.").build();
+  private static final Options OPTIONS = new Options().addOption(UNIT_OPTION);
+
+  private enum Unit {
+    B(1L), KB(1L << 10), MB(1L << 20), GB(1L << 30), TB(1L << 40), PB(1L << 50);
+
+    /** value associated with each unit. */
+    private long mValue;
+
+    /**
+     * @return the value of this unit
+     */
+    public long getValue() {
+      return mValue;
+    }
+
+    Unit(long value) {
+      mValue = value;
+    }
+  }
 
   /**
-   * @param args should be size 0 or 1; if size 1, the specified configuration value is printed,
-   *        otherwise all configuration is printed
+   * Prints the help message.
+   *
+   * @param message message before standard usage information
    */
-  public static void main(String[] args) {
-    Options opts = new Options().addOption(BYTES_OPTION);
+  public static void printHelp(String message) {
+    System.err.println(message);
+    HelpFormatter help = new HelpFormatter();
+    help.printHelp(USAGE, OPTIONS);
+  }
+
+  /**
+   * Implements get configuration.
+   *
+   * @param args list of arguments
+   * @return 0 on success, 1 on failures
+   */
+  public static int getConf(String... args) {
     CommandLineParser parser = new DefaultParser();
-    CommandLine cmd = null;
+    CommandLine cmd;
 
     try {
-      cmd = parser.parse(opts, args, true /* stopAtNonOption */);
+      cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
     } catch (ParseException e) {
-      System.err.println("Unable to parse input args: " + e.getMessage());
-      System.out.println(USAGE);
-      System.exit(1);
+      printHelp("Unable to parse input args: " + e.getMessage());
+      return 1;
     }
     Preconditions.checkNotNull(cmd, "Unable to parse input args");
     args = cmd.getArgs();
@@ -67,25 +100,42 @@ public final class GetConf {
         break;
       case 1:
         if (!PropertyKey.isValid(args[0])) {
-          System.out.println(String.format("%s is not a valid configuration key", args[0]));
-          System.out.println(USAGE);
-          System.exit(1);
+          printHelp(String.format("%s is not a valid configuration key", args[0]));
+          return 1;
         }
         PropertyKey key = PropertyKey.fromString(args[0]);
         if (!Configuration.containsKey(key)) {
           System.out.println("");
         } else {
-          if (cmd.hasOption(BYTES_OPTION_NAME)) {
-            System.out.println(Configuration.getBytes(key));
+          if (cmd.hasOption(UNIT_OPTION_NAME)) {
+            String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
+            Unit unit;
+            try {
+              unit = Unit.valueOf(arg);
+              System.out.println(Configuration.getBytes(key) / unit.getValue());
+            } catch (IllegalArgumentException e) {
+              printHelp(String.format("%s is not a valid unit", arg));
+              return 1;
+            }
           } else {
             System.out.println(Configuration.get(key));
           }
         }
         break;
       default:
-        System.out.println(USAGE);
-        System.exit(1);
+        printHelp("More arguments than expected");
+        return 1;
     }
+    return 0;
+  }
+
+  /**
+   * @param args should be size 0 or 1; if size 1, the specified configuration value is printed,
+   *        otherwise all configuration is printed
+   */
+  public static void main(String[] args) {
+    int status = getConf(args);
+    System.exit(status);
   }
 
   private GetConf() {} // this class is not intended for instantiation
