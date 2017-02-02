@@ -22,7 +22,12 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
-import alluxio.wire.*;
+
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
+import alluxio.wire.LoadMetadataType;
+import alluxio.wire.WorkerNetAddress;
 
 import com.alibaba.fastjson.JSON;
 
@@ -62,9 +67,9 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
     mMaster = master;
   }
 
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws
+      ServletException, IOException {
     doGet(req, resp);
-
   }
 
   /**
@@ -81,7 +86,6 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     String requestPath = request.getParameter("path");
-
     List<UIFileInfo> fileInfos = new ArrayList<>();
     String baseUrl = request.getParameter("baseUrl");
     if (baseUrl != null && baseUrl.contains("browseLogs")) {
@@ -92,13 +96,10 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
       request.setAttribute("baseUrl", "./browseLogs");
       request.setAttribute("currentPath", "");
       request.setAttribute("showPermissions", false);
-
       String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
       if (requestPath == null || requestPath.isEmpty()) {
         // List all log files in the log/ directory.
-
-
         File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
         if (logFiles != null) {
           for (File logFile : logFiles) {
@@ -109,7 +110,6 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
           }
         }
         Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
-
       }
     } else {
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
@@ -118,7 +118,6 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
       request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
       request.setAttribute("showPermissions",
           Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
-
       request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
       request.setAttribute("invalidPathError", "");
       if (requestPath == null || requestPath.isEmpty()) {
@@ -140,7 +139,8 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
       } catch (InvalidPathException e) {
-        request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getLocalizedMessage());
+        request.setAttribute("invalidPathError", "Error: Invalid Path "
+            + e.getLocalizedMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
       } catch (AccessControlException e) {
@@ -149,7 +149,6 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
       }
-
       fileInfos = new ArrayList<>(filesInfo.size());
       for (FileInfo fileInfo : filesInfo) {
         UIFileInfo toAdd = new UIFileInfo(fileInfo);
@@ -185,7 +184,6 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
         }
         fileInfos.add(toAdd);
       }
-
     }
     String json = JSON.toJSONString(fileInfos);
     response.setContentType("application/json");

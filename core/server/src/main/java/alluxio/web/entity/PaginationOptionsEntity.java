@@ -42,7 +42,7 @@ public class PaginationOptionsEntity {
    * @param pageNumber the page number
    */
   public void setPageNumber(int pageNumber) {
-    this.mPageNumber = pageNumber;
+    mPageNumber = pageNumber;
   }
 
   /**
@@ -58,7 +58,7 @@ public class PaginationOptionsEntity {
    * @param pageSize the page size
    */
   public void setPageSize(int pageSize) {
-    this.mPageSize = pageSize;
+    mPageSize = pageSize;
   }
 
   /**
@@ -74,7 +74,7 @@ public class PaginationOptionsEntity {
    * @param filters the page filters
    */
   public void setFilters(List<FilterEntity> filters) {
-    this.mFilters = filters;
+    mFilters = filters;
   }
 
   /**
@@ -90,6 +90,6 @@ public class PaginationOptionsEntity {
    * @param sorters the page sorters
    */
   public void setSorters(List<SortEntity> sorters) {
-    this.mSorters = sorters;
+    mSorters = sorters;
   }
 }

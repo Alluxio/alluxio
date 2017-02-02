@@ -83,9 +83,9 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
     mMaster = master;
   }
 
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws
+      ServletException, IOException {
     doGet(req, resp);
-
   }
 
   /**
@@ -142,7 +142,8 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
     request.setAttribute("inMemoryFileNum", fileInfos.size());
 
     //sort
-    if (paginationOptionsEntity.getSorters() != null && paginationOptionsEntity.getSorters().size() > 0) {
+    if (paginationOptionsEntity.getSorters() != null
+        && paginationOptionsEntity.getSorters().size() > 0) {
       Collections.sort(fileInfos, new Comparator<UIFileInfo>() {
         @Override
         public int compare(UIFileInfo o1, UIFileInfo o2) {
@@ -150,7 +151,8 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
             for (SortEntity sortEntity : paginationOptionsEntity.getSorters()) {
               int sortDirection = SortEntity.SORT_ASC.equals(sortEntity.getDirection()) ? 1 : -1;
               if (FILE_INFO_SPECIAL_FIELD_MAP.containsKey(sortEntity.getField())) {
-                Field field = UIFileInfo.class.getDeclaredField(FILE_INFO_SPECIAL_FIELD_MAP.get(sortEntity.getField()));
+                Field field = UIFileInfo.class.getDeclaredField(
+                    FILE_INFO_SPECIAL_FIELD_MAP.get(sortEntity.getField()));
                 field.setAccessible(true);
                 Long o1Value = (Long) field.get(o1);
                 Long o2Value = (Long) field.get(o2);
@@ -225,9 +227,11 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
         }
       }
     }
-    int offset = (paginationOptionsEntity.getPageNumber() - 1) * paginationOptionsEntity.getPageSize();
-    if (offset >= fileInfos.size())
+    int offset = (paginationOptionsEntity.getPageNumber() - 1) * paginationOptionsEntity
+        .getPageSize();
+    if (offset >= fileInfos.size()) {
       offset = 0;
+    }
     int length = (offset + paginationOptionsEntity.getPageSize()) > fileInfos.size()
         ? fileInfos.size() : offset + paginationOptionsEntity.getPageSize();
 

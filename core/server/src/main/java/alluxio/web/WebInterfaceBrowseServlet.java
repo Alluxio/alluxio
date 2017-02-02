@@ -204,8 +204,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     }
-
-
   }
 
   /**

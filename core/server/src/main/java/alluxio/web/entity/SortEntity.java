@@ -34,7 +34,7 @@ public class SortEntity {
   }
 
   /**
-   * @return the sort direction.
+   * @return the sort direction
    */
   public String getDirection() {
     return mDirection;
@@ -46,7 +46,7 @@ public class SortEntity {
    * @param field the sort field
    */
   public void setField(String field) {
-    this.mField = field;
+    mField = field;
   }
 
   /**
@@ -55,6 +55,6 @@ public class SortEntity {
    * @param direction the sort direction
    */
   public void setDirection(String direction) {
-    this.mDirection = direction;
+    mDirection = direction;
   }
 }
