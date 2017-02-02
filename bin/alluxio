@@ -230,6 +230,7 @@ function main {
     echo "Formatting Alluxio Master @ $(hostname -f)"
     CLASS="alluxio.cli.Format"
     PARAMETER="master"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "formatWorker")
