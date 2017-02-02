@@ -29,12 +29,12 @@ import java.util.Map.Entry;
  * Utility for printing Alluxio configuration.
  */
 public final class GetConf {
-  private static final String USAGE = "USAGE: GetConf [--unit] [KEY]\n\n"
+  private static final String USAGE = "USAGE: GetConf [--unit <arg>] [KEY]\n\n"
       + "GetConf prints the configured value for the given key. If the key is invalid, the "
       + "exit code will be nonzero. If the key is valid but isn't set, an empty string is printed. "
       + "If no key is specified, all configuration is printed. If \"--unit\" option is specified, "
       + "values of data size configuration will be converted to a quantity in the given unit."
-      + "E.g., with \"--unit=KB\", a configuration value of \"4096\" will return 4, "
+      + "E.g., with \"--unit KB\", a configuration value of \"4096\" will return 4, "
       + "and \"10MB\" will return 10240. Possible unit options include B, KB, MB, GB, TP, PB";
 
   private static final String UNIT_OPTION_NAME = "unit";
@@ -44,7 +44,12 @@ public final class GetConf {
   private static final Options OPTIONS = new Options().addOption(UNIT_OPTION);
 
   private enum Unit {
-    B(1L), KB(1L << 10), MB(1L << 20), GB(1L << 30), TB(1L << 40), PB(1L << 50);
+    B(1L),
+    KB(1L << 10),
+    MB(1L << 20),
+    GB(1L << 30),
+    TB(1L << 40),
+    PB(1L << 50);
 
     /** value associated with each unit. */
     private long mValue;
@@ -134,8 +139,7 @@ public final class GetConf {
    *        otherwise all configuration is printed
    */
   public static void main(String[] args) {
-    int status = getConf(args);
-    System.exit(status);
+    System.exit(getConf(args));
   }
 
   private GetConf() {} // this class is not intended for instantiation
