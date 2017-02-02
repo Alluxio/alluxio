@@ -23,9 +23,10 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-/**assertEquals(0,
+/**
  * Tests for {@link GetConf}.
  */
+// TODO(binfan): create a SystemOutRule for unit test
 public final class GetConfTest {
   private ByteArrayOutputStream mOutputStream = null;
   private PrintStream mNewOutput = null;
