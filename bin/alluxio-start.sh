@@ -37,7 +37,8 @@ MOPT (Mount Option) is one of:
   SudoMount\tMount the configured RamFS using sudo.
            \tNotice: this will format the existing RamFS.
   NoMount  \tDo not mount the configured RamFS.
-           \tNotice: Use NoMount (Linux only) to use tmpFS to avoid sudo requirement.
+           \tNotice: to avoid sudo requirement but using tmpFS in Linux,
+             set ALLUXIO_RAM_FOLDER=/dev/shm on each worker and use NoMount.
   SudoMount is assumed if MOPT is not specified.
 
 -f  format Journal, UnderFS Data and Workers Folder on master
@@ -58,11 +59,9 @@ get_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 }
 
-# The exit status is 0 if ALLUXIO_RAM_FOLDER is mounted as tmpfs or ramfs.
+# Pass ram folder to check as $1
+# Return 0 if ram folder is mounted as tmpfs or ramfs, 1 otherwise
 is_ram_folder_mounted() {
-  if [[ -z ${ALLUXIO_RAM_FOLDER} ]]; then
-    return 1
-  fi
   local mounted_fs=""
   if [[ $(uname -s) == Darwin ]]; then
     mounted_fs=$(mount -t "hfs" | grep '/Volumes/' | cut -d " " -f 3)
@@ -71,8 +70,7 @@ is_ram_folder_mounted() {
   fi
 
   for fs in ${mounted_fs}; do
-    if [[ "${ALLUXIO_RAM_FOLDER}" == "${fs}" || \
-     "${ALLUXIO_RAM_FOLDER}" =~ ^"${fs}"\/.* ]]; then
+    if [[ "${1}" == "${fs}" || "${1}" =~ ^"${fs}"\/.* ]]; then
       return 0
     fi
   done
@@ -85,25 +83,26 @@ check_mount_mode() {
     Mount);;
     SudoMount);;
     NoMount)
-      is_ram_folder_mounted
+      local tier_alias=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
+      local tier_path=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
+      if [[ ${tier_alias} != "MEM" ]]; then
+        # if the top tier is not MEM, skip check
+        return
+      fi
+      is_ram_folder_mounted "${tier_path}"
       if [[ $? -ne 0 ]]; then
         if [[ $(uname -s) == Darwin ]]; then
           # Assuming Mac OS X
           echo "ERROR: NoMount is not supported on Mac OS X." >&2
           echo -e "${USAGE}" >&2
           exit 1
-        else
-          echo "WARNING: Overriding ALLUXIO_RAM_FOLDER to /dev/shm to use tmpFS now."
-          export ALLUXIO_RAM_FOLDER="/dev/shm"
-          # Set env again since some env variables depend on ALLUXIO_RAM_FOLDER.
-          get_env
         fi
       fi
-      if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
-        echo "WARNING: Using tmpFS which is not guaranteed to be in memory."
+      if [[ "${tier_path}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
+        echo "WARNING: Using tmpFS does not guarantee data to be stored in memory."
         echo "WARNING: Check vmstat for memory statistics (e.g. swapping)."
       fi
-    ;;
+      ;;
     *)
       if [[ -z $1 ]]; then
         echo "This command requires a mount mode be specified" >&2
@@ -120,7 +119,7 @@ do_mount() {
   MOUNT_FAILED=0
   case "$1" in
     Mount|SudoMount)
-      ${LAUNCHER} ${BIN}/alluxio-mount.sh $1
+      ${LAUNCHER} "${BIN}/alluxio-mount.sh" $1
       MOUNT_FAILED=$?
       ;;
     NoMount)
