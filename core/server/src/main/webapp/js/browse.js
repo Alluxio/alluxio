@@ -1,4 +1,7 @@
 function rebuildNavPill(path) {
+  if (path.length > 0 && path.charAt(path.length - 1) === '/') {
+    path = path.substr(0, path.length - 1);
+  }
   var pathSeg = path.split("/");
   if (path == "/")
     pathSeg.length = 1;
@@ -7,15 +10,14 @@ function rebuildNavPill(path) {
     $("#pathUl").children().remove();
     var curPath = "/";
     $.each(pathSeg, function (index, value) {
-      if (index > 1)
-        curPath += "/" + value
-      else if (index == 1) {
-        curPath += value;
+      if (value.length === 0)
+        return;
+      if (index > 1) {
+        curPath += "/" + value;
       }
       var liNode = document.createElement("li");
       var aNode = document.createElement("a");
       $(aNode).attr("href", "javascript:void(0)");
-      // $(aNode).attr("style","height:8px;");
       $(aNode).attr("onClick", 'generateData("' + curPath + '")');
       $(aNode).append(value);
       if (index == pathSeg.length - 1) {
@@ -36,7 +38,8 @@ function generateData(path) {
       baseUrl: base
     },
     success: function (json) {
-      globalScope.gridOptions.data = json;
+      $(".text-error").text(json.argumentMap.invalidPathError);
+      globalScope.gridOptions.data = json.pageData;
       globalScope.gridApi.grid.refresh();
       $("#pathInput").val(path);
       rebuildNavPill(path);
@@ -58,118 +61,115 @@ function changeDir() {
 }
 
 function initGrid() {
-  var app = angular.module('app', ['ui.grid', 'ui.grid.pagination', 'ui.grid.resizeColumns', 'ui.grid.moveColumns']);
-  app.controller('MainCtrl', ['$scope', '$http', 'uiGridConstants', function ($scope, $http, uiGridConstants) {
-    globalScope = $scope;
-    function cellValueTooltip(row, col) {
-      return $scope.gridApi.grid.getCellValue(row, col);
-    }
-
-    $scope.gridOptions = {
-      enableFiltering: true,
-      paginationPageSizes: [25, 50, 75, 100],
-      paginationPageSize: 25,
-      enableGridMenu: true,
-      onRegisterApi: function (gridApi) {
-        $scope.gridApi = gridApi;
-        if (!showPermissions) {
-          $scope.gridOptions.columnDefs[4].visible = false;
-          $scope.gridOptions.columnDefs[5].visible = false;
-          $scope.gridOptions.columnDefs[6].visible = false;
+  var app = angular.module(
+      'app', ['ui.grid', 'ui.grid.pagination', 'ui.grid.resizeColumns', 'ui.grid.moveColumns']);
+  app.controller(
+      'MainCtrl',
+      ['$scope', '$http', 'uiGridConstants', function ($scope, $http, uiGridConstants) {
+        globalScope = $scope;
+        function cellValueTooltip(row, col) {
+          return $scope.gridApi.grid.getCellValue(row, col);
         }
-        $scope.gridOptions.columnDefs[7].visible = false;
 
-      },
-      columnDefs: [
-        {
-          field: 'name', name: "File Name",
-          cellTemplate: '<nobr>' +
-          '<i ng-if="row.entity.isDirectory" class="icon-folder-close"></i>' +
-          '<i ng-if="row.entity.isDirectory == false" class="icon-file"></i>' +
-          '<a href="javascript:void(0)" ng-click=grid.appScope.goPath(row)>{{row.entity.name}}</a>' +
-          '</nobr>',
-          cellTooltip: cellValueTooltip
-        },
-        {
-          field: 'size', name: "Size", width: '10%',
-          cellTooltip: cellValueTooltip
-        },
-        {
-          field: 'blockSizeBytes', name: "Block Size", width: '8%',
-          cellTooltip: cellValueTooltip
-        },
-        {
-          field: 'inMemoryPercentage',
-          name: "In-Memory",
-          width: '6%',
-          cellTemplate: '<div>' +
-          '<i ng-if="row.entity.inMemoryPercentage == 0" class="icon-hdd icon-white"></i>' +
-          '<i ng-if="row.entity.inMemoryPercentage != 0" class="icon-hdd icon-black"></i>' +
-          '{{row.entity.inMemoryPercentage}} %' +
-          '</div>',
-          cellTooltip: cellValueTooltip
-        },
-        {
-          field: 'mode',
-          name: "Mode", width: '8%',
-          cellTooltip: cellValueTooltip,
-        },
-        {
-          field: 'owner',
-          name: "Owner", width: '6%',
-          cellTooltip: cellValueTooltip
-        },
-        {
-          field: 'group',
-          name: "Group", width: '6%',
-          cellTooltip: cellValueTooltip
-        },
-        {
-          field: 'persistenceState',
-          displayName: "Persistence State",
-          width: '10%',
-          cellTooltip: cellValueTooltip
-        },
-        {
-          field: 'pinned',
-          displayName: "Pin",
-          width: '5%',
-          filter: {
-            type: uiGridConstants.filter.SELECT,
-            selectOptions: [{value: true, label: 'YES'}, {value: false, label: 'NO'}]
+        $scope.gridOptions = {
+          enableFiltering: true,
+          paginationPageSizes: [25, 50, 75, 100],
+          paginationPageSize: 25,
+          enableGridMenu: true,
+          onRegisterApi: function (gridApi) {
+            $scope.gridApi = gridApi;
+            if (!showPermissions) {
+              $scope.gridOptions.columnDefs[4].visible = false;
+              $scope.gridOptions.columnDefs[5].visible = false;
+              $scope.gridOptions.columnDefs[6].visible = false;
+            }
+            $scope.gridOptions.columnDefs[7].visible = false;
+
           },
-          cellFilter: 'pinned',
-          cellTooltip: cellValueTooltip
-        },
-        {
-          field: 'creationTime',
-          displayName: "Creation Time",
-          width: '10%',
-          cellTooltip: cellValueTooltip
-        },
-        {
-          field: 'modificationTime',
-          displayName: "Modification Time",
-          width: '10%',
-          cellFilter: 'date:"longDate"',
-          cellTooltip: cellValueTooltip
-        }
-      ],
-    };
+          columnDefs: [
+            {
+              field: 'name', name: "File Name",
+              cellTemplate: '<nobr>' +
+              '<i ng-if="row.entity.isDirectory" class="icon-folder-close"></i>' +
+              '<i ng-if="row.entity.isDirectory == false" class="icon-file"></i>' +
+              '<a href="javascript:void(0)" ng-click=grid.appScope.goPath(row)>' +
+              '{{row.entity.name}}</a>' +
+              '</nobr>',
+              cellTooltip: cellValueTooltip
+            },
+            {
+              field: 'size', name: "Size", width: '10%',
+              cellTooltip: cellValueTooltip
+            },
+            {
+              field: 'blockSizeBytes', name: "Block Size", width: '8%',
+              cellTooltip: cellValueTooltip
+            },
+            {
+              field: 'inMemoryPercentage',
+              name: "In-Memory",
+              width: '6%',
+              cellTemplate: '<div>' +
+              '<i ng-if="row.entity.inMemoryPercentage == 0" class="icon-hdd icon-white"></i>' +
+              '<i ng-if="row.entity.inMemoryPercentage != 0" class="icon-hdd icon-black"></i>' +
+              '{{row.entity.inMemoryPercentage}} %' +
+              '</div>',
+              cellTooltip: cellValueTooltip
+            },
+            {
+              field: 'mode',
+              name: "Mode", width: '8%',
+              cellTooltip: cellValueTooltip,
+            },
+            {
+              field: 'owner',
+              name: "Owner", width: '6%',
+              cellTooltip: cellValueTooltip
+            },
+            {
+              field: 'group',
+              name: "Group", width: '6%',
+              cellTooltip: cellValueTooltip
+            },
+            {
+              field: 'persistenceState',
+              displayName: "Persistence State",
+              width: '10%',
+              cellTooltip: cellValueTooltip
+            },
+            {
+              field: 'pinned',
+              displayName: "Pin",
+              width: '5%',
+              filter: {
+                type: uiGridConstants.filter.SELECT,
+                selectOptions: [{value: true, label: 'YES'}, {value: false, label: 'NO'}]
+              },
+              cellFilter: 'pinned',
+              cellTooltip: cellValueTooltip
+            },
+            {
+              field: 'creationTime',
+              displayName: "Creation Time",
+              width: '10%',
+              cellTooltip: cellValueTooltip
+            }
+          ],
+        };
 
-    $scope.toggleFiltering = function () {
-      $scope.gridOptions.enableFiltering = !$scope.gridOptions.enableFiltering;
-      $scope.gridApi.core.notifyDataChange(uiGridConstants.dataChange.COLUMN);
-    };
-    $scope.goPath = function (row) {
-      if (!row.entity.isDirectory) {
-        var path = encodeURI(row.entity.absolutePath);
-        window.open("./" + base + "?path=" + path);
-      } else {
-        generateData(row.entity.absolutePath);
-      }
-    }
-  }])
+        $scope.toggleFiltering = function () {
+          $scope.gridOptions.enableFiltering = !$scope.gridOptions.enableFiltering;
+          $scope.gridApi.core.notifyDataChange(uiGridConstants.dataChange.COLUMN);
+        };
+        $scope.goPath = function (row) {
+          if (!row.entity.isDirectory) {
+            var path = encodeURI(row.entity.absolutePath);
+            window.open("./" + base + "?path=" + path);
+          } else {
+            generateData(row.entity.absolutePath);
+          }
+        }
+      }])
       .filter('pinned', function () {
         return function (input) {
           if (input == true)
