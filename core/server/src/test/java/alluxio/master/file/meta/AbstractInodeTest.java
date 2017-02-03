@@ -26,7 +26,8 @@ import org.junit.rules.ExpectedException;
 public abstract class AbstractInodeTest {
   public static final String TEST_OWNER = "user1";
   public static final String TEST_GROUP = "group1";
-  public static final Mode TEST_MODE = new Mode((short) 0755);
+  public static final Mode TEST_DIR_MODE = new Mode((short) 0755);
+  public static final Mode TEST_FILE_MODE = new Mode((short) 0644);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -38,12 +39,12 @@ public abstract class AbstractInodeTest {
   protected static InodeDirectory createInodeDirectory() {
     return InodeDirectory.create(1, 0, "test1",
         CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
-            .setMode(TEST_MODE));
+            .setMode(TEST_DIR_MODE));
   }
 
   protected InodeFile createInodeFile(long id) {
     return InodeFile.create(id, 1, "testFile" + id, 0,
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(TEST_OWNER)
-            .setGroup(TEST_GROUP).setMode(TEST_MODE));
+            .setGroup(TEST_GROUP).setMode(TEST_FILE_MODE));
   }
 }

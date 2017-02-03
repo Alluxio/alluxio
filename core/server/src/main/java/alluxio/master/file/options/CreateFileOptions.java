@@ -61,8 +61,9 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
       mGroup = SecurityUtils.getGroupFromThriftClient();
     }
     if (options.isSetMode()) {
-      mDefaultMode = false;
       mMode = new Mode(options.getMode());
+    } else {
+      mMode = Mode.defaults().applyFileUMask();
     }
   }
 
@@ -71,6 +72,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
+    mMode.applyFileUMask();
   }
 
   /**

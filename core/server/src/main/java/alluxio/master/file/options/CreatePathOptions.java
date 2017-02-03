@@ -33,18 +33,16 @@ public abstract class CreatePathOptions<T> {
   // TODO(peis): Rename this to mCreateAncestors.
   protected boolean mRecursive;
   protected boolean mMetadataLoad;
-  protected boolean mDefaultMode;
 
   protected CreatePathOptions() {
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
     mOwner = "";
     mGroup = "";
-    mMode = Mode.createFullAccess();
+    mMode = Mode.defaults();
     mPersisted = false;
     mRecursive = false;
     mMetadataLoad = false;
-    mDefaultMode = true;
   }
 
   protected abstract T getThis();
@@ -104,13 +102,6 @@ public abstract class CreatePathOptions<T> {
    */
   public boolean isMetadataLoad() {
     return mMetadataLoad;
-  }
-
-  /**
-   * @return the defaultMode flag; if true, the create path uses the default permission mode
-   */
-  public boolean isDefaultMode() {
-    return mDefaultMode;
   }
 
   /**
@@ -189,14 +180,6 @@ public abstract class CreatePathOptions<T> {
     return getThis();
   }
 
-  /**
-   * @param defaultMode the flag value to use; if true, the create path uses default permission mode
-   * @return the updated options object
-   */
-  public T setDefaultMode(boolean defaultMode) {
-    mDefaultMode = defaultMode;
-    return getThis();
-  }
 
   @Override
   public boolean equals(Object o) {
@@ -214,7 +197,6 @@ public abstract class CreatePathOptions<T> {
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mMetadataLoad, that.mMetadataLoad)
-        && Objects.equal(mDefaultMode, that.mDefaultMode)
         && mOperationTimeMs == that.mOperationTimeMs;
   }
 
@@ -222,7 +204,7 @@ public abstract class CreatePathOptions<T> {
   public int hashCode() {
     return Objects
         .hashCode(mMountPoint, mOwner, mGroup, mMode, mPersisted, mRecursive, mMetadataLoad,
-            mDefaultMode, mOperationTimeMs);
+            mOperationTimeMs);
   }
 
   protected Objects.ToStringHelper toStringHelper() {
@@ -234,7 +216,6 @@ public abstract class CreatePathOptions<T> {
         .add("mode", mMode)
         .add("persisted", mPersisted)
         .add("recursive", mRecursive)
-        .add("metadataLoad", mMetadataLoad)
-        .add("defaultMode", mDefaultMode);
+        .add("metadataLoad", mMetadataLoad);
   }
 }

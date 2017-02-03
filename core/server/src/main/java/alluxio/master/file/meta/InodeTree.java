@@ -558,9 +558,7 @@ public class InodeTree implements JournalCheckpointStreamable {
         .setMountPoint(false)
         .setPersisted(options.isPersisted())
         .setOwner(options.getOwner())
-        .setGroup(options.getGroup())
-        .setMode(options.getMode())
-        .setDefaultMode(true);
+        .setGroup(options.getGroup());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir =
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
