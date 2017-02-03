@@ -36,7 +36,7 @@
     <div class="row-fluid">
       <div class="span12 well">
         <h1 class="text-error">
-          <%--<%= request.getAttribute("invalidPathError") %>--%>
+          <%= request.getAttribute("fatalError") %>
         </h1>
 
         <div id="MainCtrl" ng-controller="MainCtrl">
