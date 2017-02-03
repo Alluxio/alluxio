@@ -19,6 +19,8 @@
   </parent>
   <artifactId>alluxio-core-server</artifactId>
   <packaging>pom</packaging>
+  <name>Alluxio Core - Server</name>
+  <description>Alluxio core services</description>
 
   <modules>
     <module>common</module>

@@ -19,6 +19,8 @@
   </parent>
   <artifactId>alluxio-core-server-worker</artifactId>
   <packaging>jar</packaging>
+  <name>Alluxio Core - Server - Worker</name>
+  <description>Alluxio worker service</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run

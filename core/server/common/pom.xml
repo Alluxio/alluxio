@@ -19,6 +19,8 @@
   </parent>
   <artifactId>alluxio-core-server-common</artifactId>
   <packaging>jar</packaging>
+  <name>Alluxio Core - Server - Common Utilities</name>
+  <description>Common utilities for Alluxio core services</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
