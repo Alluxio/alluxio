@@ -20,7 +20,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.security.authorization.Permission;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
@@ -30,6 +29,8 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.file.options.CompleteUfsFileOptions;
+import alluxio.worker.file.options.CreateUfsFileOptions;
 
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.RateLimiter;
@@ -131,15 +132,15 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
   }
 
   @Override
-  public long completeUfsFile(long sessionId, long tempUfsFileId, Permission perm)
+  public long completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileOptions options)
       throws FileDoesNotExistException, IOException {
-    return mUnderFileSystemManager.completeFile(sessionId, tempUfsFileId, perm);
+    return mUnderFileSystemManager.completeFile(sessionId, tempUfsFileId, options);
   }
 
   @Override
-  public long createUfsFile(long sessionId, AlluxioURI ufsUri, Permission perm)
+  public long createUfsFile(long sessionId, AlluxioURI ufsUri, CreateUfsFileOptions options)
       throws FileAlreadyExistsException, IOException {
-    return mUnderFileSystemManager.createFile(sessionId, ufsUri, perm);
+    return mUnderFileSystemManager.createFile(sessionId, ufsUri, options);
   }
 
   @Override

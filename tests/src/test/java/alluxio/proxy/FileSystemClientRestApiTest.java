@@ -183,7 +183,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.SET_ATTRIBUTE, NO_PARAMS,
         HttpMethod.POST, null, TestCaseOptions.defaults()
-        .setBody(SetAttributeOptions.defaults().setMode(Mode.getDefault())))
+        .setBody(SetAttributeOptions.defaults().setMode(Mode.defaults())))
         .run();
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri);
     Assert.assertEquals(uri.toString(), fileInfo.getPath());

@@ -13,6 +13,7 @@ package alluxio.security.authorization;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 
@@ -38,6 +39,12 @@ public final class ModeTest {
     ConfigurationTestUtils.resetConfiguration();
   }
 
+  @Test
+  public void defaults() {
+    Mode mode = Mode.defaults();
+    Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE, mode.toShort());
+  }
+
   /**
    * Tests the {@link Mode#toShort()} method.
    */
@@ -46,7 +53,7 @@ public final class ModeTest {
     Mode mode = new Mode(Mode.Bits.ALL, Mode.Bits.READ_EXECUTE, Mode.Bits.READ_EXECUTE);
     Assert.assertEquals(0755, mode.toShort());
 
-    mode = Mode.getDefault();
+    mode = Mode.defaults();
     Assert.assertEquals(0777, mode.toShort());
 
     mode = new Mode(Mode.Bits.READ_WRITE, Mode.Bits.READ, Mode.Bits.READ);
@@ -79,7 +86,7 @@ public final class ModeTest {
    */
   @Test
   public void copyConstructor() {
-    Mode mode = new Mode(Mode.getDefault());
+    Mode mode = new Mode(Mode.defaults());
     Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
     Assert.assertEquals(Mode.Bits.ALL, mode.getGroupBits());
     Assert.assertEquals(Mode.Bits.ALL, mode.getOtherBits());
@@ -104,7 +111,7 @@ public final class ModeTest {
   @Test
   public void equals() {
     Mode allAccess = new Mode((short) 0777);
-    Assert.assertTrue(allAccess.equals(Mode.getDefault()));
+    Assert.assertTrue(allAccess.equals(Mode.defaults()));
     Mode noAccess = new Mode((short) 0000);
     Assert.assertTrue(noAccess.equals(Mode.createNoAccess()));
     Assert.assertFalse(allAccess.equals(noAccess));
@@ -129,9 +136,8 @@ public final class ModeTest {
   public void umask() {
     String umask = "0022";
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
-    Mode umaskMode = Mode.getUMask();
     // after umask 0022, 0777 should change to 0755
-    Mode mode = Mode.getDefault().applyUMask(umaskMode);
+    Mode mode = Mode.defaults().applyDirectoryUMask();
     Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
     Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
     Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
@@ -148,7 +154,7 @@ public final class ModeTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
-    Mode.getUMask();
+    Mode.defaults().applyDirectoryUMask();
   }
 
   /**
@@ -161,7 +167,7 @@ public final class ModeTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
-    Mode.getUMask();
+    Mode.defaults().applyDirectoryUMask();
   }
 
   @Test

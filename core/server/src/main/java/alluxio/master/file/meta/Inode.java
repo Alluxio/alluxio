@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.JournalEntryRepresentable;
-import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -280,28 +279,6 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @param permission the {@link Permission} to use
-   * @return the updated object
-   */
-  public T setPermission(Permission permission) {
-    if (permission != null) {
-      mOwner = permission.getOwner();
-      mGroup = permission.getGroup();
-      mMode = permission.getMode().toShort();
-    }
-    return getThis();
-  }
-
-  /**
-   * @param mode the mode of the inode
-   * @return the updated object
-   */
-  public T setPermission(short mode) {
-    mMode = mode;
-    return getThis();
-  }
-
-  /**
    * @param pinned the pinned flag value to use
    * @return the updated object
    */
@@ -316,6 +293,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T setOwner(String owner) {
     mOwner = owner;
+    return getThis();
+  }
+
+  /**
+   * @param mode the mode of the inode
+   * @return the updated object
+   */
+  public T setMode(short mode) {
+    mMode = mode;
     return getThis();
   }
 

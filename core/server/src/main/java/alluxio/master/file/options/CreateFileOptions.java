@@ -14,8 +14,9 @@ package alluxio.master.file.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateFileTOptions;
+import alluxio.util.SecurityUtils;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
@@ -55,10 +56,13 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
     mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-    mPermission = Permission.defaults().setOwnerFromThriftClient();
+    if (SecurityUtils.isAuthenticationEnabled()) {
+      mOwner = SecurityUtils.getOwnerFromThriftClient();
+      mGroup = SecurityUtils.getGroupFromThriftClient();
+    }
     if (options.isSetMode()) {
       mDefaultMode = false;
-      mPermission.setMode(options.getMode());
+      mMode = new Mode(options.getMode());
     }
   }
 

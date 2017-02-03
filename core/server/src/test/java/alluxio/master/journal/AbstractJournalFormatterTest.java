@@ -39,7 +39,6 @@ import alluxio.proto.journal.KeyValue.RenameStoreEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
 import alluxio.proto.journal.Lineage.LineageEntry;
 import alluxio.proto.journal.Lineage.LineageIdGeneratorEntry;
-import alluxio.security.authorization.Permission;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ContiguousSet;
@@ -87,8 +86,9 @@ public abstract class AbstractJournalFormatterTest {
   protected static final AlluxioURI TEST_UFS_PATH = new AlluxioURI("hdfs://host:port/test/path");
   protected static final String TEST_JOB_COMMAND = "Command";
   protected static final String TEST_JOB_OUTPUT_PATH = "/test/path";
-  protected static final Permission TEST_PERMISSION =
-      new Permission("user1", "group1", (short) 0777);
+  protected static final String TEST_OWNER = "user1";
+  protected static final String TEST_GROUP = "group1";
+  protected static final short TEST_MODE = (short) 0777;
   protected static final String TEST_PERSISTED_STATE = "PERSISTED";
   protected static final String TEST_KEY1 = "test_key1";
   protected static final String TEST_KEY2 = "test_key2";
@@ -132,9 +132,9 @@ public abstract class AbstractJournalFormatterTest {
                     .asList())
                 .setTtl(Constants.NO_TTL)
                 .setTtlAction(PTtlAction.DELETE)
-                .setOwner(TEST_PERMISSION.getOwner())
-                .setGroup(TEST_PERMISSION.getGroup())
-                .setMode(TEST_PERMISSION.getMode().toShort()))
+                .setOwner(TEST_OWNER)
+                .setGroup(TEST_GROUP)
+                .setMode(TEST_MODE))
             .build())
         .add(JournalEntry.newBuilder()
             .setInodeDirectory(InodeDirectoryEntry.newBuilder()
@@ -145,9 +145,9 @@ public abstract class AbstractJournalFormatterTest {
                 .setPersistenceState(TEST_PERSISTED_STATE)
                 .setPinned(true)
                 .setLastModificationTimeMs(TEST_OP_TIME_MS)
-                .setOwner(TEST_PERMISSION.getOwner())
-                .setGroup(TEST_PERMISSION.getGroup())
-                .setMode(TEST_PERMISSION.getMode().toShort()))
+                .setOwner(TEST_OWNER)
+                .setGroup(TEST_GROUP)
+                .setMode(TEST_MODE))
             .build())
         .add(JournalEntry.newBuilder()
             .setInodeLastModificationTime(InodeLastModificationTimeEntry.newBuilder()
@@ -233,9 +233,9 @@ public abstract class AbstractJournalFormatterTest {
                     .setPersisted(true)
                     .setTtl(TEST_TTL)
                     .setTtlAction(PTtlAction.DELETE)
-                    .setOwner(TEST_PERMISSION.getOwner())
-                    .setGroup(TEST_PERMISSION.getGroup())
-                    .setPermission(TEST_PERMISSION.getMode().toShort()))
+                    .setOwner(TEST_OWNER)
+                    .setGroup(TEST_GROUP)
+                    .setPermission(TEST_MODE))
                 .build())
         .add(
             JournalEntry.newBuilder()

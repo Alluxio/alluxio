@@ -13,7 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Sets;
@@ -244,10 +244,9 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   @Test
   public void permissionStatus() {
     InodeDirectory inode2 = createInodeDirectory();
-    Assert.assertEquals(TEST_USER_NAME, inode2.getOwner());
-    Assert.assertEquals(TEST_GROUP_NAME, inode2.getGroup());
-    Assert.assertEquals(new Permission(TEST_PERMISSION).applyDirectoryUMask().getMode().toShort(),
-        inode2.getMode());
+    Assert.assertEquals(TEST_OWNER, inode2.getOwner());
+    Assert.assertEquals(TEST_GROUP, inode2.getGroup());
+    Assert.assertEquals(Mode.defaults().applyDirectoryUMask().toShort(), inode2.getMode());
   }
 
   /**

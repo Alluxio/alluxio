@@ -82,7 +82,6 @@ import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
-import alluxio.security.authorization.Permission;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemCommandOptions;
@@ -96,6 +95,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.IdUtils;
+import alluxio.util.SecurityUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -430,8 +430,8 @@ public final class FileSystemMaster extends AbstractMaster {
       // Only initialize root when isLeader because when initializing root, BlockMaster needs to
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
-      mInodeTree
-          .initializeRoot(Permission.defaults().applyDirectoryUMask().setOwnerFromLoginModule());
+      mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
+          SecurityUtils.getGroupFromLoginModule(), Mode.createFullAccess().applyDirectoryUMask());
       String defaultUFS = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
@@ -1921,10 +1921,9 @@ public final class FileSystemMaster extends AbstractMaster {
             break;
           }
           Inode<?> curInode = dstInodeList.get(i);
-          Permission perm =
-              new Permission(curInode.getOwner(), curInode.getGroup(), curInode.getMode());
           MkdirsOptions mkdirsOptions =
-              MkdirsOptions.defaults().setCreateParent(false).setPermission(perm);
+              MkdirsOptions.defaults().setCreateParent(false).setOwner(curInode.getOwner())
+                  .setGroup(curInode.getGroup()).setMode(new Mode(curInode.getMode()));
           ufsDirsToMakeWithOptions.push(new Pair<>(curUfsDirPath.toString(), mkdirsOptions));
           curUfsDirPath = curUfsDirPath.getParent();
         }
@@ -2371,14 +2370,14 @@ public final class FileSystemMaster extends AbstractMaster {
     String ufsOwner = ufs.getOwner(ufsUri.toString());
     String ufsGroup = ufs.getGroup(ufsUri.toString());
     short ufsMode = ufs.getMode(ufsUri.toString());
-    Permission permission = new Permission(ufsOwner, ufsGroup, ufsMode);
+    Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
-      Mode mode = permission.getMode();
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     // This file is loaded from UFS. By setting default mode to false, umask will not be
     // applied to loaded mode.
-    createFileOptions = createFileOptions.setPermission(permission).setDefaultMode(false);
+    createFileOptions =
+        createFileOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode).setDefaultMode(false);
 
     try {
       createFileAndJournal(inodePath, createFileOptions, journalContext);
@@ -2421,14 +2420,15 @@ public final class FileSystemMaster extends AbstractMaster {
     String ufsOwner = ufs.getOwner(ufsUri.toString());
     String ufsGroup = ufs.getGroup(ufsUri.toString());
     short ufsMode = ufs.getMode(ufsUri.toString());
-    Permission permission = new Permission(ufsOwner, ufsGroup, ufsMode);
+    Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
-      Mode mode = permission.getMode();
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     // This directory is loaded from UFS. By setting default mode to false, umask will not be
     // applied to loaded mode.
-    createDirectoryOptions = createDirectoryOptions.setPermission(permission).setDefaultMode(false);
+    createDirectoryOptions =
+        createDirectoryOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode)
+            .setDefaultMode(false);
 
     try {
       createDirectoryAndJournal(inodePath, createDirectoryOptions, journalContext);
@@ -2987,7 +2987,7 @@ public final class FileSystemMaster extends AbstractMaster {
       inode.setGroup(options.getGroup());
     }
     if (modeChanged) {
-      inode.setPermission(options.getMode());
+      inode.setMode(options.getMode());
     }
     return persistedInodes;
   }

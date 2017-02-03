@@ -19,7 +19,6 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
-import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
@@ -204,8 +203,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
-    Permission permission =
-        new Permission(entry.getOwner(), entry.getGroup(), (short) entry.getMode());
     return new InodeDirectory(entry.getId())
         .setCreationTimeMs(entry.getCreationTimeMs())
         .setName(entry.getName())
@@ -213,7 +210,9 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
-        .setPermission(permission)
+        .setOwner(entry.getOwner())
+        .setGroup(entry.getGroup())
+        .setMode((short) entry.getMode())
         .setMountPoint(entry.getMountPoint())
         .setTtl(entry.getTtl())
         .setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()))
@@ -226,22 +225,24 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @param id id of this inode
    * @param parentId id of the parent of this inode
    * @param name name of this inode
-   * @param directoryOptions options to create this directory
+   * @param options options to create this directory
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory create(long id, long parentId, String name,
-      CreateDirectoryOptions directoryOptions) {
-    Permission permission = new Permission(directoryOptions.getPermission());
-    if (directoryOptions.isDefaultMode()) {
-      permission.setMode(Mode.getDefault()).applyDirectoryUMask();
+      CreateDirectoryOptions options) {
+    Mode mode = new Mode(options.getMode());
+    if (options.isDefaultMode()) {
+      mode = Mode.defaults().applyDirectoryUMask();
     }
     return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
-        .setTtl(directoryOptions.getTtl())
-        .setTtlAction(directoryOptions.getTtlAction())
-        .setPermission(permission)
-        .setMountPoint(directoryOptions.isMountPoint());
+        .setTtl(options.getTtl())
+        .setTtlAction(options.getTtlAction())
+        .setOwner(options.getOwner())
+        .setGroup(options.getGroup())
+        .setMode(mode.toShort())
+        .setMountPoint(options.isMountPoint());
   }
 
   @Override

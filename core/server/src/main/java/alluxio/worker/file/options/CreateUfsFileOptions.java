@@ -9,51 +9,59 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.options;
+package alluxio.worker.file.options;
 
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
+import alluxio.thrift.CreateUfsFileTOptions;
+import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Objects;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for mkdirs in UnderFileSystem.
+ * Options for creating a UFS file. Currently we do not allow user to set arbitrary owner and
+ * group options. The owner and group will be set to the user login.
  */
 @PublicApi
 @NotThreadSafe
-public final class MkdirsOptions {
-  // Determine whether to create any necessary but nonexistent parent directories.
-  private boolean mCreateParent;
-
+public final class CreateUfsFileOptions {
   private String mOwner;
   private String mGroup;
   private Mode mMode;
 
   /**
-   * @return the default {@link MkdirsOptions}
+   * Creates a default {@link CreateUfsFileOptions} with owner, group from login module and
+   * default file mode.
+   *
+   * @return the default {@link CreateUfsFileOptions}
+   * @throws IOException if failed to set owner from login module
    */
-  public static MkdirsOptions defaults() {
-    return new MkdirsOptions();
+  public static CreateUfsFileOptions defaults() throws IOException {
+    return new CreateUfsFileOptions();
+  }
+
+  private CreateUfsFileOptions() throws IOException {
+    mOwner = SecurityUtils.getOwnerFromLoginModule();
+    mGroup = SecurityUtils.getGroupFromLoginModule();
+    mMode = Mode.defaults().applyFileUMask();
+    // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
+    // file is always created with default permission.
   }
 
   /**
-   * Constructs a default {@link MkdirsOptions}.
+   * Creates a new instance of {@link CreateUfsFileOptions} from a Thrift representation.
+   *
+   * @param options the Thrift representation to use
    */
-  private MkdirsOptions() {
-    // By default create parent is true.
-    mCreateParent = true;
-    mOwner = "";
-    mGroup = "";
-    mMode = Mode.defaults().applyDirectoryUMask();
-  }
-
-  /**
-   * @return whether to create any necessary but nonexistent parent directories
-   */
-  public boolean getCreateParent() {
-    return mCreateParent;
+  public CreateUfsFileOptions(CreateUfsFileTOptions options) {
+    mOwner = options.isSetOwner() ? options.getOwner() : "";
+    mGroup = options.isSetGroup() ? options.getGroup() : "";
+    mMode = new Mode(options.isSetMode() ? options.getMode() : Constants.INVALID_MODE);
   }
 
   /**
@@ -78,21 +86,10 @@ public final class MkdirsOptions {
   }
 
   /**
-   * Sets option to create parent directories.
-   *
-   * @param createParent if true, creates any necessary but nonexistent parent directories
-   * @return the updated option object
-   */
-  public MkdirsOptions setCreateParent(boolean createParent) {
-    mCreateParent = createParent;
-    return this;
-  }
-
-  /**
    * @param owner the owner to set
    * @return the updated object
    */
-  public MkdirsOptions setOwner(String owner) {
+  public CreateUfsFileOptions setOwner(String owner) {
     mOwner = owner;
     return this;
   }
@@ -101,7 +98,7 @@ public final class MkdirsOptions {
    * @param group the group to set
    * @return the updated object
    */
-  public MkdirsOptions setGroup(String group) {
+  public CreateUfsFileOptions setGroup(String group) {
     mGroup = group;
     return this;
   }
@@ -110,7 +107,7 @@ public final class MkdirsOptions {
    * @param mode the mode to set
    * @return the updated object
    */
-  public MkdirsOptions setMode(Mode mode) {
+  public CreateUfsFileOptions setMode(Mode mode) {
     mMode = mode;
     return this;
   }
@@ -120,25 +117,23 @@ public final class MkdirsOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof MkdirsOptions)) {
+    if (!(o instanceof CreateUfsFileOptions)) {
       return false;
     }
-    MkdirsOptions that = (MkdirsOptions) o;
-    return Objects.equal(mCreateParent, that.mCreateParent)
-        && Objects.equal(mOwner, that.mOwner)
+    CreateUfsFileOptions that = (CreateUfsFileOptions) o;
+    return Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCreateParent, mOwner, mGroup, mMode);
+    return Objects.hashCode(mOwner, mGroup, mMode);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("createParent", mCreateParent)
         .add("owner", mOwner)
         .add("group", mGroup)
         .add("mode", mMode)
