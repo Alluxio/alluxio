@@ -18,7 +18,6 @@ import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;

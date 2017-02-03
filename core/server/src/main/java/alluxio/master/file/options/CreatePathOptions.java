@@ -180,7 +180,6 @@ public abstract class CreatePathOptions<T> {
     return getThis();
   }
 
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
