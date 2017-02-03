@@ -13,6 +13,7 @@ package alluxio.worker.netty;
 
 import alluxio.Constants;
 import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -91,9 +92,10 @@ public abstract class DataServerWriteHandlerTest {
   protected void checkWriteResponse(Object writeResponse, Protocol.Status.Code codeExpected) {
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
 
-    Object response = ((RPCProtoMessage) writeResponse).getMessage();
-    Assert.assertTrue(response instanceof Protocol.Response);
-    Assert.assertEquals(codeExpected, ((Protocol.Response) response).getStatus().getCode());
+    ProtoMessage response = ((RPCProtoMessage) writeResponse).getMessage();
+    Assert.assertTrue(response.getType() == ProtoMessage.Type.RESPONSE);
+    Assert.assertEquals(codeExpected,
+        response.<Protocol.Response>getMessage().getStatus().getCode());
   }
 
   /**

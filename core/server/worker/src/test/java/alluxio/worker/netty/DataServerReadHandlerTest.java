@@ -213,9 +213,10 @@ public abstract class DataServerReadHandlerTest {
   protected DataBuffer checkReadResponse(Object readResponse, Protocol.Status.Code codeExpected) {
     Assert.assertTrue(readResponse instanceof RPCProtoMessage);
 
-    Object response = ((RPCProtoMessage) readResponse).getMessage();
-    Assert.assertTrue(response instanceof Protocol.Response);
-    Assert.assertEquals(codeExpected, ((Protocol.Response) response).getStatus().getCode());
+    ProtoMessage response = ((RPCProtoMessage) readResponse).getMessage();
+    Assert.assertTrue(response.getType() == ProtoMessage.Type.RESPONSE);
+    Assert.assertEquals(codeExpected,
+        response.<Protocol.Response>getMessage().getStatus().getCode());
     return ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
   }
 
