@@ -33,6 +33,10 @@
       <artifactId>protobuf-java</artifactId>
       <version>2.6.1</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
