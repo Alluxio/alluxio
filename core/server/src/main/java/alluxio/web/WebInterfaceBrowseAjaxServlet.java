@@ -29,7 +29,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.WorkerNetAddress;
 
-import com.alibaba.fastjson.JSON;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
@@ -90,6 +90,8 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
+    ObjectMapper mapper = new ObjectMapper();
+
     String requestPath = request.getParameter("path");
     List<UIFileInfo> fileInfos = new ArrayList<>();
     String baseUrl = request.getParameter("baseUrl");
@@ -145,17 +147,17 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
       } catch (FileDoesNotExistException e) {
         pageResultEntity.getArgumentMap().put("invalidPathError",
             "Error: Invalid Path " + e.getMessage());
-        response.getWriter().write(JSON.toJSONString(pageResultEntity));
+        response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
         return;
       } catch (InvalidPathException e) {
         pageResultEntity.getArgumentMap().put("invalidPathError",
             "Error: Invalid Path " + e.getLocalizedMessage());
-        response.getWriter().write(JSON.toJSONString(pageResultEntity));
+        response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
         return;
       } catch (AccessControlException e) {
         pageResultEntity.getArgumentMap().put("invalidPathError",
             "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
-        response.getWriter().write(JSON.toJSONString(pageResultEntity));
+        response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
         return;
       }
 
@@ -180,7 +182,7 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
         } catch (FileDoesNotExistException e) {
           pageResultEntity.getArgumentMap().put("FileDoesNotExistException",
               "Error: non-existing file " + e.getMessage());
-          response.getWriter().write(JSON.toJSONString(pageResultEntity));
+          response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
           return;
         } catch (InvalidPathException e) {
           pageResultEntity.getArgumentMap().put("InvalidPathException",
@@ -188,7 +190,7 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
         } catch (AccessControlException e) {
           pageResultEntity.getArgumentMap().put("AccessControlException",
               "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
-          response.getWriter().write(JSON.toJSONString(pageResultEntity));
+          response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
           return;
         }
         fileInfos.add(toAdd);
@@ -196,7 +198,8 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
     }
     pageResultEntity.setPageData(fileInfos);
     pageResultEntity.setTotalCount(fileInfos.size());
-    String json = JSON.toJSONString(pageResultEntity);
+
+    String json = mapper.writeValueAsString(pageResultEntity);
     response.getWriter().write(json);
   }
 }

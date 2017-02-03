@@ -28,7 +28,6 @@
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
-    <fastjson.version>1.1.41</fastjson.version>
   </properties>
 
   <dependencies>
@@ -166,13 +165,6 @@
       <groupId>com.qmino</groupId>
       <artifactId>miredot-annotations</artifactId>
       <version>1.4.0</version>
-    </dependency>
-
-    <!-- Dependency for JSON -->
-    <dependency>
-      <groupId>com.alibaba</groupId>
-      <artifactId>fastjson</artifactId>
-      <version>${fastjson.version}</version>
     </dependency>
   </dependencies>
 

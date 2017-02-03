@@ -26,8 +26,8 @@ import alluxio.web.entity.PaginationOptionsEntity;
 import alluxio.web.entity.SortEntity;
 import alluxio.wire.FileInfo;
 
-import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
@@ -118,7 +118,8 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
     // Collections.sort(inMemoryFiles);
 
     String paginationOptions = request.getParameter("paginationOptions");
-    final PaginationOptionsEntity paginationOptionsEntity = JSON.parseObject(paginationOptions,
+    ObjectMapper mapper = new ObjectMapper();
+    final PaginationOptionsEntity paginationOptionsEntity = mapper.readValue(paginationOptions,
         PaginationOptionsEntity.class);
     if (paginationOptionsEntity == null) {
       return;
@@ -135,12 +136,12 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
       } catch (FileDoesNotExistException e) {
         pageResultEntity.getArgumentMap().put("fatalError", "Error: File does not exist "
             + e.getLocalizedMessage());
-        response.getWriter().write(JSON.toJSONString(pageResultEntity));
+        response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
         return;
       } catch (AccessControlException e) {
         pageResultEntity.getArgumentMap().put("permissionError",
             "Error: File " + file + " cannot be accessed " + e.getMessage());
-        response.getWriter().write(JSON.toJSONString(pageResultEntity));
+        response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
         return;
       }
     }
@@ -244,8 +245,8 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
 
     pageResultEntity.setPageData(subFileInfo);
     pageResultEntity.setTotalCount(fileInfos.size());
-    String json = JSON.toJSONString(pageResultEntity);
 
+    String json = mapper.writeValueAsString(pageResultEntity);
     response.getWriter().write(json);
   }
 }
