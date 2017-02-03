@@ -188,8 +188,10 @@ public final class UnderFileSystemManager {
       if (mStream == null) {
         UnderFileSystem ufs = UnderFileSystem.Factory.get(mUri);
         mStream = ufs.open(mUri, OpenOptions.defaults().setOffset(position));
-      } else {
+      } else if (mStream instanceof Seekable) {
         ((Seekable) mStream).seek(position);
+      } else {
+        throw new IOException("Unsupported operation.");
       }
       return mStream;
     }

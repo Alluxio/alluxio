@@ -187,8 +187,7 @@ public class BlockWorkerTest {
     when(blockMeta.getBlockSize()).thenReturn(length);
     when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 
-    Mockito.doThrow(new BlockAlreadyExistsException("")).when(mBlockStore).commitBlock(sessionId,
-        blockId);
+    doThrow(new BlockAlreadyExistsException("")).when(mBlockStore).commitBlock(sessionId, blockId);
     mBlockWorker.commitBlock(sessionId, blockId);
   }
 
