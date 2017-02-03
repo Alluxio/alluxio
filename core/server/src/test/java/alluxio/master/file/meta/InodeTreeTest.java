@@ -57,7 +57,8 @@ public final class InodeTreeTest {
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   public static final String TEST_OWNER = "user1";
   public static final String TEST_GROUP = "group1";
-  public static final Mode TEST_MODE = new Mode((short) 0755);
+  public static final Mode TEST_DIR_MODE = new Mode((short) 0755);
+  public static final Mode TEST_FILE_MODE = new Mode((short) 0644);
   private static CreateFileOptions sFileOptions;
   private static CreateDirectoryOptions sDirectoryOptions;
   private static CreateFileOptions sNestedFileOptions;
@@ -89,7 +90,7 @@ public final class InodeTreeTest {
 
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
-    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_MODE);
+    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE);
   }
 
   @After
@@ -104,16 +105,16 @@ public final class InodeTreeTest {
   public static void beforeClass() throws Exception {
     sFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(TEST_OWNER)
-            .setGroup(TEST_GROUP).setMode(TEST_MODE);
+            .setGroup(TEST_GROUP).setMode(TEST_FILE_MODE);
     sDirectoryOptions =
         CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
-            .setMode(TEST_MODE);
+            .setMode(TEST_DIR_MODE);
     sNestedFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP)
-        .setMode(TEST_MODE).setRecursive(true);
+        .setMode(TEST_FILE_MODE).setRecursive(true);
     sNestedDirectoryOptions =
         CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
-            .setMode(TEST_MODE).setRecursive(true);
+            .setMode(TEST_DIR_MODE).setRecursive(true);
   }
 
   /**
@@ -123,7 +124,7 @@ public final class InodeTreeTest {
   public void initializeRootTwice() throws Exception {
     Inode<?> root = getInodeByPath(mTree, new AlluxioURI("/"));
     // initializeRoot call does nothing
-    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_MODE);
+    mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE);
     Assert.assertEquals(TEST_OWNER, root.getOwner());
     Inode<?> newRoot = getInodeByPath(mTree, new AlluxioURI("/"));
     Assert.assertEquals(root, newRoot);
@@ -143,7 +144,7 @@ public final class InodeTreeTest {
     Assert.assertTrue(test.isDirectory());
     Assert.assertEquals("user1", test.getOwner());
     Assert.assertEquals("group1", test.getGroup());
-    Assert.assertEquals((short) 0755, test.getMode());
+    Assert.assertEquals(TEST_DIR_MODE.toShort(), test.getMode());
 
     // create nested directory
     createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
@@ -154,7 +155,7 @@ public final class InodeTreeTest {
     Assert.assertTrue(test.isDirectory());
     Assert.assertEquals("user1", test.getOwner());
     Assert.assertEquals("group1", test.getGroup());
-    Assert.assertEquals((short) 0755, test.getMode());
+    Assert.assertEquals(TEST_DIR_MODE.toShort(), test.getMode());
   }
 
   /**
@@ -210,7 +211,7 @@ public final class InodeTreeTest {
     Assert.assertTrue(nestedFile.isFile());
     Assert.assertEquals("user1", nestedFile.getOwner());
     Assert.assertEquals("group1", nestedFile.getGroup());
-    Assert.assertEquals((short) 0644, nestedFile.getMode());
+    Assert.assertEquals(TEST_FILE_MODE.toShort(), nestedFile.getMode());
   }
 
   /**
@@ -226,7 +227,7 @@ public final class InodeTreeTest {
     // Need to use updated options to set the correct last mod time.
     CreateDirectoryOptions dirOptions =
         CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
-            .setMode(TEST_MODE).setRecursive(true);
+            .setMode(TEST_DIR_MODE).setRecursive(true);
 
     // create nested directory
     InodeTree.CreatePathResult createResult = createPath(mTree, NESTED_URI, dirOptions);

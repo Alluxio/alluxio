@@ -39,6 +39,9 @@ public class CreateDirectoryOptionsTest {
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
 
     Assert.assertEquals(false, options.isAllowExists());
+    Assert.assertEquals("", options.getOwner());
+    Assert.assertEquals("", options.getGroup());
+    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());

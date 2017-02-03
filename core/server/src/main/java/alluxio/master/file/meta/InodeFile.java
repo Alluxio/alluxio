@@ -20,7 +20,6 @@ import alluxio.master.block.BlockId;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
@@ -293,10 +292,6 @@ public final class InodeFile extends Inode<InodeFile> {
    */
   public static InodeFile create(long blockContainerId, long parentId, String name,
       long creationTimeMs, CreateFileOptions options) {
-    Mode mode = new Mode(options.getMode());
-    if (options.isDefaultMode()) {
-      mode = Mode.defaults().applyFileUMask();
-    }
     return new InodeFile(blockContainerId)
         .setBlockSizeBytes(options.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
@@ -306,7 +301,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setParentId(parentId)
         .setOwner(options.getOwner())
         .setGroup(options.getGroup())
-        .setMode(mode.toShort())
+        .setMode(options.getMode().toShort())
         .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED);
 
