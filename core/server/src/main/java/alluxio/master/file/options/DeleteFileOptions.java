@@ -9,35 +9,38 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.master.file.options;
 
-import alluxio.annotation.PublicApi;
 import alluxio.thrift.DeleteTOptions;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for deleting a file.
+ * Method options for deleting a file or a directory.
  */
-@PublicApi
 @NotThreadSafe
-@JsonInclude(Include.NON_EMPTY)
-public final class DeleteOptions {
+public final class DeleteFileOptions {
   private boolean mRecursive;
   private boolean mAlluxioOnly;
 
   /**
-   * @return the default {@link DeleteOptions}
+   * @return the default {@link DeleteFileOptions}
    */
-  public static DeleteOptions defaults() {
-    return new DeleteOptions();
+  public static DeleteFileOptions defaults() {
+    return new DeleteFileOptions();
   }
 
-  private DeleteOptions() {
+  /**
+   * @param options the {@link DeleteTOptions} to use
+   */
+  public DeleteFileOptions(DeleteTOptions options) {
+    mRecursive = options.isRecursive();
+    mAlluxioOnly = options.isAlluxioOnly();
+  }
+
+  private DeleteFileOptions() {
     mRecursive = false;
     mAlluxioOnly = false;
   }
@@ -51,7 +54,7 @@ public final class DeleteOptions {
   }
 
   /**
-   * @return the mAlluxioOnly flag value; the flag specifies whether the file content should
+   * @return the alluxioOnly flag value; the flag specifies whether the file content should
    *         be stored only in alluxio.
    */
   public boolean isAlluxioOnly() {
@@ -65,20 +68,20 @@ public final class DeleteOptions {
    *        the flag specifies whether the directory content should be recursively deleted as well
    * @return the updated options object
    */
-  public DeleteOptions setRecursive(boolean recursive) {
+  public DeleteFileOptions setRecursive(boolean recursive) {
     mRecursive = recursive;
     return this;
   }
 
   /**
-   * Sets the alluxioOnly flag.
+   * Sets the removeUFSFile flag.
    *
-   * @param alluxioOnly the alluxioOnly flag value to use; the flag specifies whether the file
+   * @param removeUFSFile the removeUFSFile flag value to use; the flag specifies whether the file
    *        content should be stored only in alluxio.
    * @return the updated options object
    */
-  public DeleteOptions setAlluxioOnly(boolean alluxioOnly) {
-    mAlluxioOnly = alluxioOnly;
+  public DeleteFileOptions setAlluxioOnly(boolean removeUFSFile) {
+    mAlluxioOnly = removeUFSFile;
     return this;
   }
 
@@ -87,10 +90,10 @@ public final class DeleteOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof DeleteOptions)) {
+    if (!(o instanceof DeleteFileOptions)) {
       return false;
     }
-    DeleteOptions that = (DeleteOptions) o;
+    DeleteFileOptions that = (DeleteFileOptions) o;
     return Objects.equal(mRecursive, that.mRecursive) && Objects.equal(mAlluxioOnly,
         that.mAlluxioOnly);
   }
@@ -103,18 +106,8 @@ public final class DeleteOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("recursive", mRecursive)
-        .add("alluxioOnly", mAlluxioOnly)
-        .toString();
-  }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public DeleteTOptions toThrift() {
-    DeleteTOptions options = new DeleteTOptions();
-    options.setRecursive(mRecursive);
-    options.setAlluxioOnly(mAlluxioOnly);
-    return options;
+         .add("recursive", mRecursive)
+         .add("alluxioOnly", mAlluxioOnly)
+         .toString();
   }
 }

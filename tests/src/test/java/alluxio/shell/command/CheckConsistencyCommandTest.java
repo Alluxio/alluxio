@@ -34,6 +34,9 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     mFsShell.run("checkConsistency", "/testRoot");
     String expected = "/testRoot is consistent with the under storage system.\n";
     Assert.assertEquals(expected, mOutput.toString());
+    mFsShell.run("checkConsistency", "-r", "/testRoot");
+    Assert.assertEquals(expected, mOutput.toString());
+
   }
 
   /**
@@ -54,5 +57,20 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     expected.append("/testRoot/testDir\n");
     expected.append("/testRoot/testDir/testFileB\n");
     Assert.assertEquals(expected.toString(), mOutput.toString());
+
+    mFsShell.run("checkConsistency", "-r", "/testRoot");
+    expected = new StringBuilder();
+    expected.append("/testRoot" + "have: " + "2 files inconsistent.\n");
+    String res = mOutput.toString();
+    Assert.assertTrue(res.contains(expected) && res.contains("Fixing path: " + "/testRoot/testDir")
+        && res.contains("Fixing path: " + "/testRoot/testDir/testFileB"));
+
+    //testFileC will be loaded in alluxio after checkConsistency with options "-r"
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileC",
+            WriteType.THROUGH, 30);
+    mFsShell.run("checkConsistency", "-r", "/testRoot");
+    res = mOutput.toString();
+    Assert.assertTrue(res.contains("The " + "/testRoot/testDir/testFileC"
+        + "is new added in UFS, and successful loaded!"));
   }
 }

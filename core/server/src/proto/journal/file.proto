@@ -33,11 +33,12 @@ message CompleteFileEntry {
   optional int64 op_time_ms = 4;
 }
 
-// next available id: 4
+// next available id: 5
 message DeleteFileEntry {
   optional int64 id = 1;
   optional bool recursive = 2;
-  optional int64 op_time_ms = 3;
+  optional bool alluxioOnly =3;
+  optional int64 op_time_ms = 4;
 }
 
 // next available id: 2

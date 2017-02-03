@@ -58,6 +58,7 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteFileOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
@@ -1242,14 +1243,14 @@ public final class FileSystemMaster extends AbstractMaster {
    * permission on the parent of the path.
    *
    * @param path the path to delete
-   * @param recursive if true, will delete all its children
+   * @param options method options
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public void delete(AlluxioURI path, boolean recursive)
+  public void delete(AlluxioURI path, DeleteFileOptions options)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
@@ -1259,7 +1260,7 @@ public final class FileSystemMaster extends AbstractMaster {
             .lockFullInodePath(path, InodeTree.LockMode.WRITE_PARENT)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
-      deleteAndJournal(inodePath, recursive, journalContext);
+      deleteAndJournal(inodePath, options, journalContext);
     }
   }
 
@@ -1269,24 +1270,24 @@ public final class FileSystemMaster extends AbstractMaster {
    * Writes to the journal.
    *
    * @param inodePath the path to delete
-   * @param recursive if true, will delete all its children
+   * @param deleteFileOptions the deletefile options
    * @param journalContext the journal context
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private void deleteAndJournal(LockedInodePath inodePath, boolean recursive,
+  private void deleteAndJournal(LockedInodePath inodePath, DeleteFileOptions deleteFileOptions,
       JournalContext journalContext)
       throws InvalidPathException, FileDoesNotExistException, IOException,
       DirectoryNotEmptyException {
     Inode<?> inode = inodePath.getInode();
     long fileId = inode.getId();
     long opTimeMs = System.currentTimeMillis();
-    deleteInternal(inodePath, recursive, false, opTimeMs);
+    deleteInternal(inodePath, deleteFileOptions, false, opTimeMs);
     DeleteFileEntry deleteFile =
-        DeleteFileEntry.newBuilder().setId(fileId).setRecursive(recursive).setOpTimeMs(opTimeMs)
-            .build();
+        DeleteFileEntry.newBuilder().setId(fileId).setRecursive(deleteFileOptions.isRecursive())
+            .setOpTimeMs(opTimeMs).build();
     appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build(), journalContext);
   }
 
@@ -1298,7 +1299,10 @@ public final class FileSystemMaster extends AbstractMaster {
     // Delete should lock the parent to remove the child inode.
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE_PARENT)) {
-      deleteInternal(inodePath, entry.getRecursive(), true, entry.getOpTimeMs());
+      DeleteFileOptions deleteFileOptions = DeleteFileOptions.defaults();
+      deleteFileOptions.setRecursive(entry.getRecursive());
+      deleteFileOptions.setAlluxioOnly(entry.getAlluxioOnly());
+      deleteInternal(inodePath, deleteFileOptions, true, entry.getOpTimeMs());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -1306,7 +1310,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
-   * {@link #deleteInternal(LockedInodePath, boolean, boolean, long)}.
+   * {@link #deleteInternal(LockedInodePath, DeleteFileOptions, boolean, long)}.
    *
    * @param inodePath the {@link LockedInodePath} to delete
    * @param replayed whether the operation is a result of replaying the journal
@@ -1318,7 +1322,9 @@ public final class FileSystemMaster extends AbstractMaster {
   private void deleteRecursiveInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, IOException, InvalidPathException {
     try {
-      deleteInternal(inodePath, true, replayed, opTimeMs);
+      DeleteFileOptions deleteFileOptions = DeleteFileOptions.defaults();
+      deleteFileOptions.setRecursive(true);
+      deleteInternal(inodePath, deleteFileOptions, replayed, opTimeMs);
     } catch (DirectoryNotEmptyException e) {
       throw new IllegalStateException(
           "deleteInternal should never throw DirectoryNotEmptyException when recursive is true", e);
@@ -1329,8 +1335,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * Implements file deletion.
    *
    * @param inodePath the file {@link LockedInodePath}
-   * @param recursive if the file id identifies a directory, this flag specifies whether the
-   *        directory content should be deleted recursively
+   * @param deleteFileOptions method optitions
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
    * @throws FileDoesNotExistException if a non-existent file is encountered
@@ -1338,9 +1343,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if the specified path is the root
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private void deleteInternal(LockedInodePath inodePath, boolean recursive, boolean replayed,
-      long opTimeMs) throws FileDoesNotExistException, IOException, DirectoryNotEmptyException,
-      InvalidPathException {
+  private void deleteInternal(LockedInodePath inodePath, DeleteFileOptions deleteFileOptions,
+      boolean replayed, long opTimeMs) throws FileDoesNotExistException, IOException,
+      DirectoryNotEmptyException, InvalidPathException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
     if (!inodePath.fullPathExists()) {
@@ -1350,6 +1355,8 @@ public final class FileSystemMaster extends AbstractMaster {
     if (inode == null) {
       return;
     }
+    boolean recursive = deleteFileOptions.isRecursive();
+    boolean alluxioOnly = deleteFileOptions.isAlluxioOnly();
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
       // true
@@ -1390,24 +1397,26 @@ public final class FileSystemMaster extends AbstractMaster {
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
               boolean failedToDelete = false;
-              if (delInode.isFile()) {
-                if (!ufs.deleteFile(ufsUri)) {
-                  failedToDelete = ufs.isFile(ufsUri);
-                  if (!failedToDelete) {
-                    LOG.warn("The file to delete does not exist in ufs: {}", ufsUri);
+              if (!alluxioOnly) {
+                if (delInode.isFile()) {
+                  if (!ufs.deleteFile(ufsUri)) {
+                    failedToDelete = ufs.isFile(ufsUri);
+                    if (!failedToDelete) {
+                      LOG.warn("The file to delete does not exist in ufs: {}", ufsUri);
+                    }
+                  }
+                } else {
+                  if (!ufs.deleteDirectory(ufsUri, DeleteOptions.defaults().setRecursive(true))) {
+                    failedToDelete = ufs.isDirectory(ufsUri);
+                    if (!failedToDelete) {
+                      LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
+                    }
                   }
                 }
-              } else {
-                if (!ufs.deleteDirectory(ufsUri, DeleteOptions.defaults().setRecursive(true))) {
-                  failedToDelete = ufs.isDirectory(ufsUri);
-                  if (!failedToDelete) {
-                    LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
-                  }
+                if (failedToDelete) {
+                  LOG.error("Failed to delete {} from the under filesystem", ufsUri);
+                  throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
                 }
-              }
-              if (failedToDelete) {
-                LOG.error("Failed to delete {} from the under filesystem", ufsUri);
-                throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
               }
             }
           } catch (InvalidPathException e) {
@@ -3079,9 +3088,9 @@ public final class FileSystemMaster extends AbstractMaster {
                   // public delete method will lock the path, and check WRITE permission required at
                   // parent of file
                   if (inode.isDirectory()) {
-                    delete(path, true);
+                    delete(path, DeleteFileOptions.defaults().setRecursive(true));
                   } else {
-                    delete(path, false);
+                    delete(path, DeleteFileOptions.defaults().setRecursive(false));
                   }
                   break;
                 default:
