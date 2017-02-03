@@ -61,7 +61,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     if (options.isSetMode()) {
       mMode = new Mode(options.getMode());
     } else {
-      mMode = Mode.defaults().applyDirectoryUMask();
+      mMode.applyDirectoryUMask();
     }
   }
 

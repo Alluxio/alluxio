@@ -63,7 +63,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     if (options.isSetMode()) {
       mMode = new Mode(options.getMode());
     } else {
-      mMode = Mode.defaults().applyFileUMask();
+      mMode.applyFileUMask();
     }
   }
 
