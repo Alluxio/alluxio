@@ -322,9 +322,9 @@ function main {
     done
   ;;
   "protoGen")
-    rm -rf ${BIN}/../core/server-new/common/src/main/java/alluxio/proto
-    for src_file in $(find ${BIN}/../core/server-new/common/src/proto -name '*.proto' -type f); do
-      protoc --java_out=${BIN}/../core/server-new/common/src/main/java --proto_path=$(dirname ${src_file}) ${src_file}
+    rm -rf ${BIN}/../core/server/common/src/main/java/alluxio/proto
+    for src_file in $(find ${BIN}/../core/server/common/src/proto -name '*.proto' -type f); do
+      protoc --java_out=${BIN}/../core/server/common/src/main/java --proto_path=$(dirname ${src_file}) ${src_file}
     done
     rm -rf ${BIN}/../core/common/src/main/java/alluxio/proto
     for src_file in $(find ${BIN}/../core/common/src/proto -name '*.proto' -type f); do
