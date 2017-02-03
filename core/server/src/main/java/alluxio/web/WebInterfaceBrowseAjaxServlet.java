@@ -50,6 +50,7 @@ import java.util.List;
 @ThreadSafe
 public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
 
+  private static final long serialVersionUID = 7251644350146133763L;
   private final transient AlluxioMasterService mMaster;
   private static final FilenameFilter LOG_FILE_FILTER = new FilenameFilter() {
     @Override

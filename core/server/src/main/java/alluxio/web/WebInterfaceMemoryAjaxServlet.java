@@ -54,6 +54,7 @@ import java.util.Map;
 public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
   private static final transient Map<String, Method> FILE_INFO_GETTER_MAP = new HashMap<>();
   private static final transient Map<String, String> FILE_INFO_SPECIAL_FIELD_MAP = new HashMap<>();
+  private static final long serialVersionUID = -8262727381905167368L;
   private final transient AlluxioMasterService mMaster;
 
   static {
