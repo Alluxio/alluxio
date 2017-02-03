@@ -42,7 +42,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertEquals("", options.getOwner());
     Assert.assertEquals("", options.getGroup());
-    Assert.assertEquals(Mode.createFullAccess(), options.getMode());
+    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());

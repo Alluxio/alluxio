@@ -18,7 +18,6 @@ import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
@@ -230,10 +229,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public static InodeDirectory create(long id, long parentId, String name,
       CreateDirectoryOptions options) {
-    Mode mode = new Mode(options.getMode());
-    if (options.isDefaultMode()) {
-      mode = Mode.defaults().applyDirectoryUMask();
-    }
     return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
@@ -241,7 +236,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setTtlAction(options.getTtlAction())
         .setOwner(options.getOwner())
         .setGroup(options.getGroup())
-        .setMode(mode.toShort())
+        .setMode(options.getMode().toShort())
         .setMountPoint(options.isMountPoint());
   }
 

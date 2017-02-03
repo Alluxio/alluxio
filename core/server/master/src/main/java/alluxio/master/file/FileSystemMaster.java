@@ -1618,7 +1618,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param options method options
    * @return the id of the created directory
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions)}  for more details
+   *         InodeTree#createPath(LockedInodePath, alluxio.master.file.options.CreatePathOptions)}
+   *         for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
@@ -1652,7 +1653,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions)} for more details
+   *         InodeTree#createPath(LockedInodePath, alluxio.master.file.options.CreatePathOptions)}
+   *         for more details
    * @throws AccessControlException if permission checking fails
    * @throws IOException if a non-Alluxio related exception occurs
    */
@@ -1673,7 +1675,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
    *         modified inodes and created inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions)} for more details
+   *         InodeTree#createPath(LockedInodePath, alluxio.master.file.options.CreatePathOptions)}
+   *         for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
@@ -2374,10 +2377,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    // This file is loaded from UFS. By setting default mode to false, umask will not be
-    // applied to loaded mode.
-    createFileOptions =
-        createFileOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode).setDefaultMode(false);
+    createFileOptions = createFileOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode);
 
     try {
       createFileAndJournal(inodePath, createFileOptions, journalContext);
@@ -2424,11 +2424,8 @@ public final class FileSystemMaster extends AbstractMaster {
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    // This directory is loaded from UFS. By setting default mode to false, umask will not be
-    // applied to loaded mode.
     createDirectoryOptions =
-        createDirectoryOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode)
-            .setDefaultMode(false);
+        createDirectoryOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode);
 
     try {
       createDirectoryAndJournal(inodePath, createDirectoryOptions, journalContext);

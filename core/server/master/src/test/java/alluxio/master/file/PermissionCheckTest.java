@@ -910,7 +910,7 @@ public final class PermissionCheckTest {
       if (i == permissions.size() - 1) {
         Inode<?> inode = InodeFile.create(i + 1, i, (i + 1) + "", CommonUtils.getCurrentMs(),
             CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(owner)
-                .setGroup(group).setMode(mode).setDefaultMode(false));
+                .setGroup(group).setMode(mode));
         inodes.add(inode);
       } else {
         Inode<?> inode = InodeDirectory.create(i + 1, i, (i + 1) + "",

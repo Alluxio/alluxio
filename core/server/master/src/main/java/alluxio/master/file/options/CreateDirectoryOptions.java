@@ -59,8 +59,9 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
       mGroup = SecurityUtils.getGroupFromThriftClient();
     }
     if (options.isSetMode()) {
-      mDefaultMode = false;
       mMode = new Mode(options.getMode());
+    } else {
+      mMode.applyDirectoryUMask();
     }
   }
 
@@ -69,6 +70,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mAllowExists = false;
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
+    mMode.applyDirectoryUMask();
   }
 
   /**
