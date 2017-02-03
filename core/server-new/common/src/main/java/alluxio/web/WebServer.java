@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Class that bootstraps and starts a web server.
  */
@@ -46,11 +47,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  protected final WebAppContext mWebAppContext;
   private final Server mServer;
   private final String mServiceName;
   private InetSocketAddress mAddress;
   private final ServerConnector mServerConnector;
+  protected final WebAppContext mWebAppContext;
 
   /**
    * Creates a new instance of {@link WebServer}. It pairs URLs with servlets and sets the webapp

@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * A class which manages the checkpoint for a journal. The {@link #updateCheckpoint(String)} method
  * will update the journal's checkpoint file to a specified checkpoint, and
- * {@link recoverCheckpoint()} will recover from any failures that may occur during
+ * {@link #recoverCheckpoint()} will recover from any failures that may occur during
  * {@link #updateCheckpoint(String)}.
  *
  * The checkpoint updating process goes
@@ -89,7 +89,7 @@ public final class CheckpointManager {
    *
    * After this method has completed, the checkpoint at {@link #mCheckpointPath} plus any completed
    * logs will fully represent the master's state, and there will be no files at
-   * {@link mBackupCheckpointPath} or {@link #mTempBackupCheckpointPath}.
+   * {@link #mBackupCheckpointPath} or {@link #mTempBackupCheckpointPath}.
    */
   public void recoverCheckpoint() {
     try {
