@@ -154,6 +154,13 @@ function initGrid() {
               displayName: "Creation Time",
               width: '10%',
               cellTooltip: cellValueTooltip
+            },
+            {
+              field: 'modificationTime',
+              displayName: "Modification Time",
+              width: '10%',
+              cellFilter: 'date:"longDate"',
+              cellTooltip: cellValueTooltip
             }
           ],
         };

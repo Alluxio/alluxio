@@ -139,12 +139,6 @@ function initGrid() {
               displayName: "Modification Time",
               width: '10%',
               cellTooltip: cellValueTooltip
-            },
-            {
-              field: 'enterMemoryTime',
-              displayName: "Enter Memory Time",
-              width: '10%',
-              cellTooltip: cellValueTooltip
             }
           ],
 
