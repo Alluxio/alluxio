@@ -21,7 +21,7 @@ All steps below should be executed from your linux machine.
 ## Install Docker
 
 ```bash
-sudo yum install -y docker
+sudo yum install -y docker git
 sudo service docker start
 sudo usermod -a -G docker $(id -u -n)
 ```
