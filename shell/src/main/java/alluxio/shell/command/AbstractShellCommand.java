@@ -73,7 +73,7 @@ public abstract class AbstractShellCommand implements ShellCommand {
       Option.builder("r")
           .required(false)
           .hasArg(false)
-          .desc("fix inconsistent files")
+          .desc("repair inconsistent files")
           .build();
 
   protected AbstractShellCommand(FileSystem fs) {

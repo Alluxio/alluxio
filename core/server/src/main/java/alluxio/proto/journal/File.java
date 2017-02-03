@@ -90,10 +90,10 @@ public final class File {
     // @@protoc_insertion_point(enum_scope:alluxio.proto.journal.PTtlAction)
   }
 
-  public interface StringPairEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.StringPairEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface StringPairEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional string key = 1;
     /**
      * <code>optional string key = 1;</code>
      */
@@ -108,6 +108,7 @@ public final class File {
     com.google.protobuf.ByteString
         getKeyBytes();
 
+    // optional string value = 2;
     /**
      * <code>optional string value = 2;</code>
      */
@@ -131,9 +132,8 @@ public final class File {
    * </pre>
    */
   public static final class StringPairEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.StringPairEntry)
-      StringPairEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements StringPairEntryOrBuilder {
     // Use StringPairEntry.newBuilder() to construct.
     private StringPairEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -180,15 +180,13 @@ public final class File {
               break;
             }
             case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
-              key_ = bs;
+              key_ = input.readBytes();
               break;
             }
             case 18: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
-              value_ = bs;
+              value_ = input.readBytes();
               break;
             }
           }
@@ -231,6 +229,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional string key = 1;
     public static final int KEY_FIELD_NUMBER = 1;
     private java.lang.Object key_;
     /**
@@ -273,6 +272,7 @@ public final class File {
       }
     }
 
+    // optional string value = 2;
     public static final int VALUE_FIELD_NUMBER = 2;
     private java.lang.Object value_;
     /**
@@ -322,8 +322,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -442,9 +441,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.StringPairEntry)
-        alluxio.proto.journal.File.StringPairEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.StringPairEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
@@ -570,6 +568,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional string key = 1;
       private java.lang.Object key_ = "";
       /**
        * <code>optional string key = 1;</code>
@@ -583,12 +582,9 @@ public final class File {
       public java.lang.String getKey() {
         java.lang.Object ref = key_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            key_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          key_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -646,6 +642,7 @@ public final class File {
         return this;
       }
 
+      // optional string value = 2;
       private java.lang.Object value_ = "";
       /**
        * <code>optional string value = 2;</code>
@@ -659,12 +656,9 @@ public final class File {
       public java.lang.String getValue() {
         java.lang.Object ref = value_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            value_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          value_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -733,10 +727,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.StringPairEntry)
   }
 
-  public interface AddMountPointEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.AddMountPointEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface AddMountPointEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional string alluxio_path = 1;
     /**
      * <code>optional string alluxio_path = 1;</code>
      */
@@ -751,6 +745,7 @@ public final class File {
     com.google.protobuf.ByteString
         getAlluxioPathBytes();
 
+    // optional string ufs_path = 2;
     /**
      * <code>optional string ufs_path = 2;</code>
      */
@@ -765,6 +760,7 @@ public final class File {
     com.google.protobuf.ByteString
         getUfsPathBytes();
 
+    // optional bool readOnly = 3;
     /**
      * <code>optional bool readOnly = 3;</code>
      */
@@ -774,6 +770,7 @@ public final class File {
      */
     boolean getReadOnly();
 
+    // repeated .alluxio.proto.journal.StringPairEntry properties = 4;
     /**
      * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
      */
@@ -798,6 +795,7 @@ public final class File {
     alluxio.proto.journal.File.StringPairEntryOrBuilder getPropertiesOrBuilder(
         int index);
 
+    // optional bool shared = 5;
     /**
      * <code>optional bool shared = 5;</code>
      */
@@ -815,9 +813,8 @@ public final class File {
    * </pre>
    */
   public static final class AddMountPointEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.AddMountPointEntry)
-      AddMountPointEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements AddMountPointEntryOrBuilder {
     // Use AddMountPointEntry.newBuilder() to construct.
     private AddMountPointEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -864,15 +861,13 @@ public final class File {
               break;
             }
             case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
-              alluxioPath_ = bs;
+              alluxioPath_ = input.readBytes();
               break;
             }
             case 18: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
-              ufsPath_ = bs;
+              ufsPath_ = input.readBytes();
               break;
             }
             case 24: {
@@ -936,6 +931,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional string alluxio_path = 1;
     public static final int ALLUXIO_PATH_FIELD_NUMBER = 1;
     private java.lang.Object alluxioPath_;
     /**
@@ -978,6 +974,7 @@ public final class File {
       }
     }
 
+    // optional string ufs_path = 2;
     public static final int UFS_PATH_FIELD_NUMBER = 2;
     private java.lang.Object ufsPath_;
     /**
@@ -1020,6 +1017,7 @@ public final class File {
       }
     }
 
+    // optional bool readOnly = 3;
     public static final int READONLY_FIELD_NUMBER = 3;
     private boolean readOnly_;
     /**
@@ -1035,6 +1033,7 @@ public final class File {
       return readOnly_;
     }
 
+    // repeated .alluxio.proto.journal.StringPairEntry properties = 4;
     public static final int PROPERTIES_FIELD_NUMBER = 4;
     private java.util.List<alluxio.proto.journal.File.StringPairEntry> properties_;
     /**
@@ -1070,6 +1069,7 @@ public final class File {
       return properties_.get(index);
     }
 
+    // optional bool shared = 5;
     public static final int SHARED_FIELD_NUMBER = 5;
     private boolean shared_;
     /**
@@ -1095,8 +1095,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -1235,9 +1234,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.AddMountPointEntry)
-        alluxio.proto.journal.File.AddMountPointEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.AddMountPointEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor;
@@ -1423,6 +1421,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional string alluxio_path = 1;
       private java.lang.Object alluxioPath_ = "";
       /**
        * <code>optional string alluxio_path = 1;</code>
@@ -1436,12 +1435,9 @@ public final class File {
       public java.lang.String getAlluxioPath() {
         java.lang.Object ref = alluxioPath_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            alluxioPath_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          alluxioPath_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -1499,6 +1495,7 @@ public final class File {
         return this;
       }
 
+      // optional string ufs_path = 2;
       private java.lang.Object ufsPath_ = "";
       /**
        * <code>optional string ufs_path = 2;</code>
@@ -1512,12 +1509,9 @@ public final class File {
       public java.lang.String getUfsPath() {
         java.lang.Object ref = ufsPath_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            ufsPath_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          ufsPath_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -1575,6 +1569,7 @@ public final class File {
         return this;
       }
 
+      // optional bool readOnly = 3;
       private boolean readOnly_ ;
       /**
        * <code>optional bool readOnly = 3;</code>
@@ -1607,6 +1602,7 @@ public final class File {
         return this;
       }
 
+      // repeated .alluxio.proto.journal.StringPairEntry properties = 4;
       private java.util.List<alluxio.proto.journal.File.StringPairEntry> properties_ =
         java.util.Collections.emptyList();
       private void ensurePropertiesIsMutable() {
@@ -1748,8 +1744,7 @@ public final class File {
           java.lang.Iterable<? extends alluxio.proto.journal.File.StringPairEntry> values) {
         if (propertiesBuilder_ == null) {
           ensurePropertiesIsMutable();
-          com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, properties_);
+          super.addAll(values, properties_);
           onChanged();
         } else {
           propertiesBuilder_.addAllMessages(values);
@@ -1847,6 +1842,7 @@ public final class File {
         return propertiesBuilder_;
       }
 
+      // optional bool shared = 5;
       private boolean shared_ ;
       /**
        * <code>optional bool shared = 5;</code>
@@ -1890,10 +1886,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.AddMountPointEntry)
   }
 
-  public interface AsyncPersistRequestEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.AsyncPersistRequestEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface AsyncPersistRequestEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional int64 file_id = 1;
     /**
      * <code>optional int64 file_id = 1;</code>
      */
@@ -1911,9 +1907,8 @@ public final class File {
    * </pre>
    */
   public static final class AsyncPersistRequestEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.AsyncPersistRequestEntry)
-      AsyncPersistRequestEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements AsyncPersistRequestEntryOrBuilder {
     // Use AsyncPersistRequestEntry.newBuilder() to construct.
     private AsyncPersistRequestEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -2004,6 +1999,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional int64 file_id = 1;
     public static final int FILE_ID_FIELD_NUMBER = 1;
     private long fileId_;
     /**
@@ -2025,8 +2021,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -2137,9 +2132,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.AsyncPersistRequestEntry)
-        alluxio.proto.journal.File.AsyncPersistRequestEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.AsyncPersistRequestEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_descriptor;
@@ -2252,6 +2246,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional int64 file_id = 1;
       private long fileId_ ;
       /**
        * <code>optional int64 file_id = 1;</code>
@@ -2295,10 +2290,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.AsyncPersistRequestEntry)
   }
 
-  public interface CompleteFileEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.CompleteFileEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface CompleteFileEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // repeated int64 block_ids = 1;
     /**
      * <code>repeated int64 block_ids = 1;</code>
      */
@@ -2312,6 +2307,7 @@ public final class File {
      */
     long getBlockIds(int index);
 
+    // optional int64 id = 2;
     /**
      * <code>optional int64 id = 2;</code>
      */
@@ -2321,6 +2317,7 @@ public final class File {
      */
     long getId();
 
+    // optional int64 length = 3;
     /**
      * <code>optional int64 length = 3;</code>
      */
@@ -2330,6 +2327,7 @@ public final class File {
      */
     long getLength();
 
+    // optional int64 op_time_ms = 4;
     /**
      * <code>optional int64 op_time_ms = 4;</code>
      */
@@ -2347,9 +2345,8 @@ public final class File {
    * </pre>
    */
   public static final class CompleteFileEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.CompleteFileEntry)
-      CompleteFileEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements CompleteFileEntryOrBuilder {
     // Use CompleteFileEntry.newBuilder() to construct.
     private CompleteFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -2474,6 +2471,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // repeated int64 block_ids = 1;
     public static final int BLOCK_IDS_FIELD_NUMBER = 1;
     private java.util.List<java.lang.Long> blockIds_;
     /**
@@ -2496,6 +2494,7 @@ public final class File {
       return blockIds_.get(index);
     }
 
+    // optional int64 id = 2;
     public static final int ID_FIELD_NUMBER = 2;
     private long id_;
     /**
@@ -2511,6 +2510,7 @@ public final class File {
       return id_;
     }
 
+    // optional int64 length = 3;
     public static final int LENGTH_FIELD_NUMBER = 3;
     private long length_;
     /**
@@ -2526,6 +2526,7 @@ public final class File {
       return length_;
     }
 
+    // optional int64 op_time_ms = 4;
     public static final int OP_TIME_MS_FIELD_NUMBER = 4;
     private long opTimeMs_;
     /**
@@ -2550,8 +2551,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -2688,9 +2688,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.CompleteFileEntry)
-        alluxio.proto.journal.File.CompleteFileEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.CompleteFileEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_CompleteFileEntry_descriptor;
@@ -2838,6 +2837,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // repeated int64 block_ids = 1;
       private java.util.List<java.lang.Long> blockIds_ = java.util.Collections.emptyList();
       private void ensureBlockIdsIsMutable() {
         if (!((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -2889,8 +2889,7 @@ public final class File {
       public Builder addAllBlockIds(
           java.lang.Iterable<? extends java.lang.Long> values) {
         ensureBlockIdsIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, blockIds_);
+        super.addAll(values, blockIds_);
         onChanged();
         return this;
       }
@@ -2904,6 +2903,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 id = 2;
       private long id_ ;
       /**
        * <code>optional int64 id = 2;</code>
@@ -2936,6 +2936,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 length = 3;
       private long length_ ;
       /**
        * <code>optional int64 length = 3;</code>
@@ -2968,6 +2969,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 op_time_ms = 4;
       private long opTimeMs_ ;
       /**
        * <code>optional int64 op_time_ms = 4;</code>
@@ -3011,10 +3013,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.CompleteFileEntry)
   }
 
-  public interface DeleteFileEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.DeleteFileEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface DeleteFileEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional int64 id = 1;
     /**
      * <code>optional int64 id = 1;</code>
      */
@@ -3024,6 +3026,7 @@ public final class File {
      */
     long getId();
 
+    // optional bool recursive = 2;
     /**
      * <code>optional bool recursive = 2;</code>
      */
@@ -3033,6 +3036,7 @@ public final class File {
      */
     boolean getRecursive();
 
+    // optional bool alluxioOnly = 3;
     /**
      * <code>optional bool alluxioOnly = 3;</code>
      */
@@ -3042,6 +3046,7 @@ public final class File {
      */
     boolean getAlluxioOnly();
 
+    // optional int64 op_time_ms = 4;
     /**
      * <code>optional int64 op_time_ms = 4;</code>
      */
@@ -3059,9 +3064,8 @@ public final class File {
    * </pre>
    */
   public static final class DeleteFileEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.DeleteFileEntry)
-      DeleteFileEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements DeleteFileEntryOrBuilder {
     // Use DeleteFileEntry.newBuilder() to construct.
     private DeleteFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -3167,6 +3171,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional int64 id = 1;
     public static final int ID_FIELD_NUMBER = 1;
     private long id_;
     /**
@@ -3182,6 +3187,7 @@ public final class File {
       return id_;
     }
 
+    // optional bool recursive = 2;
     public static final int RECURSIVE_FIELD_NUMBER = 2;
     private boolean recursive_;
     /**
@@ -3197,6 +3203,7 @@ public final class File {
       return recursive_;
     }
 
+    // optional bool alluxioOnly = 3;
     public static final int ALLUXIOONLY_FIELD_NUMBER = 3;
     private boolean alluxioOnly_;
     /**
@@ -3212,6 +3219,7 @@ public final class File {
       return alluxioOnly_;
     }
 
+    // optional int64 op_time_ms = 4;
     public static final int OP_TIME_MS_FIELD_NUMBER = 4;
     private long opTimeMs_;
     /**
@@ -3236,8 +3244,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -3369,9 +3376,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.DeleteFileEntry)
-        alluxio.proto.journal.File.DeleteFileEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.DeleteFileEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_DeleteFileEntry_descriptor;
@@ -3511,6 +3517,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional int64 id = 1;
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
@@ -3543,6 +3550,7 @@ public final class File {
         return this;
       }
 
+      // optional bool recursive = 2;
       private boolean recursive_ ;
       /**
        * <code>optional bool recursive = 2;</code>
@@ -3575,6 +3583,7 @@ public final class File {
         return this;
       }
 
+      // optional bool alluxioOnly = 3;
       private boolean alluxioOnly_ ;
       /**
        * <code>optional bool alluxioOnly = 3;</code>
@@ -3607,6 +3616,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 op_time_ms = 4;
       private long opTimeMs_ ;
       /**
        * <code>optional int64 op_time_ms = 4;</code>
@@ -3650,10 +3660,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.DeleteFileEntry)
   }
 
-  public interface DeleteMountPointEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.DeleteMountPointEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface DeleteMountPointEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional string alluxio_path = 1;
     /**
      * <code>optional string alluxio_path = 1;</code>
      */
@@ -3676,9 +3686,8 @@ public final class File {
    * </pre>
    */
   public static final class DeleteMountPointEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.DeleteMountPointEntry)
-      DeleteMountPointEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements DeleteMountPointEntryOrBuilder {
     // Use DeleteMountPointEntry.newBuilder() to construct.
     private DeleteMountPointEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -3725,9 +3734,8 @@ public final class File {
               break;
             }
             case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
-              alluxioPath_ = bs;
+              alluxioPath_ = input.readBytes();
               break;
             }
           }
@@ -3770,6 +3778,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional string alluxio_path = 1;
     public static final int ALLUXIO_PATH_FIELD_NUMBER = 1;
     private java.lang.Object alluxioPath_;
     /**
@@ -3818,8 +3827,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -3930,9 +3938,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.DeleteMountPointEntry)
-        alluxio.proto.journal.File.DeleteMountPointEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.DeleteMountPointEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor;
@@ -4047,6 +4054,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional string alluxio_path = 1;
       private java.lang.Object alluxioPath_ = "";
       /**
        * <code>optional string alluxio_path = 1;</code>
@@ -4060,12 +4068,9 @@ public final class File {
       public java.lang.String getAlluxioPath() {
         java.lang.Object ref = alluxioPath_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            alluxioPath_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          alluxioPath_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -4134,10 +4139,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.DeleteMountPointEntry)
   }
 
-  public interface InodeDirectoryEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.InodeDirectoryEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface InodeDirectoryEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional int64 id = 1;
     /**
      * <code>optional int64 id = 1;</code>
      */
@@ -4147,6 +4152,7 @@ public final class File {
      */
     long getId();
 
+    // optional int64 parent_id = 2;
     /**
      * <code>optional int64 parent_id = 2;</code>
      */
@@ -4156,6 +4162,7 @@ public final class File {
      */
     long getParentId();
 
+    // optional string name = 3;
     /**
      * <code>optional string name = 3;</code>
      */
@@ -4170,6 +4177,7 @@ public final class File {
     com.google.protobuf.ByteString
         getNameBytes();
 
+    // optional string persistence_state = 4;
     /**
      * <code>optional string persistence_state = 4;</code>
      */
@@ -4184,6 +4192,7 @@ public final class File {
     com.google.protobuf.ByteString
         getPersistenceStateBytes();
 
+    // optional bool pinned = 5;
     /**
      * <code>optional bool pinned = 5;</code>
      */
@@ -4193,6 +4202,7 @@ public final class File {
      */
     boolean getPinned();
 
+    // optional int64 creation_time_ms = 6;
     /**
      * <code>optional int64 creation_time_ms = 6;</code>
      */
@@ -4202,6 +4212,7 @@ public final class File {
      */
     long getCreationTimeMs();
 
+    // optional int64 last_modification_time_ms = 7;
     /**
      * <code>optional int64 last_modification_time_ms = 7;</code>
      */
@@ -4211,6 +4222,7 @@ public final class File {
      */
     long getLastModificationTimeMs();
 
+    // optional string owner = 8;
     /**
      * <code>optional string owner = 8;</code>
      */
@@ -4225,6 +4237,7 @@ public final class File {
     com.google.protobuf.ByteString
         getOwnerBytes();
 
+    // optional string group = 9;
     /**
      * <code>optional string group = 9;</code>
      */
@@ -4239,6 +4252,7 @@ public final class File {
     com.google.protobuf.ByteString
         getGroupBytes();
 
+    // optional int32 mode = 10;
     /**
      * <code>optional int32 mode = 10;</code>
      */
@@ -4248,6 +4262,7 @@ public final class File {
      */
     int getMode();
 
+    // optional bool mount_point = 11;
     /**
      * <code>optional bool mount_point = 11;</code>
      */
@@ -4257,6 +4272,7 @@ public final class File {
      */
     boolean getMountPoint();
 
+    // optional bool direct_children_loaded = 12;
     /**
      * <code>optional bool direct_children_loaded = 12;</code>
      */
@@ -4266,6 +4282,7 @@ public final class File {
      */
     boolean getDirectChildrenLoaded();
 
+    // optional int64 ttl = 13;
     /**
      * <code>optional int64 ttl = 13;</code>
      */
@@ -4275,6 +4292,7 @@ public final class File {
      */
     long getTtl();
 
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];
     /**
      * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
      */
@@ -4292,9 +4310,8 @@ public final class File {
    * </pre>
    */
   public static final class InodeDirectoryEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.InodeDirectoryEntry)
-      InodeDirectoryEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements InodeDirectoryEntryOrBuilder {
     // Use InodeDirectoryEntry.newBuilder() to construct.
     private InodeDirectoryEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -4351,15 +4368,13 @@ public final class File {
               break;
             }
             case 26: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
-              name_ = bs;
+              name_ = input.readBytes();
               break;
             }
             case 34: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000008;
-              persistenceState_ = bs;
+              persistenceState_ = input.readBytes();
               break;
             }
             case 40: {
@@ -4378,15 +4393,13 @@ public final class File {
               break;
             }
             case 66: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000080;
-              owner_ = bs;
+              owner_ = input.readBytes();
               break;
             }
             case 74: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000100;
-              group_ = bs;
+              group_ = input.readBytes();
               break;
             }
             case 80: {
@@ -4460,6 +4473,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional int64 id = 1;
     public static final int ID_FIELD_NUMBER = 1;
     private long id_;
     /**
@@ -4475,6 +4489,7 @@ public final class File {
       return id_;
     }
 
+    // optional int64 parent_id = 2;
     public static final int PARENT_ID_FIELD_NUMBER = 2;
     private long parentId_;
     /**
@@ -4490,6 +4505,7 @@ public final class File {
       return parentId_;
     }
 
+    // optional string name = 3;
     public static final int NAME_FIELD_NUMBER = 3;
     private java.lang.Object name_;
     /**
@@ -4532,6 +4548,7 @@ public final class File {
       }
     }
 
+    // optional string persistence_state = 4;
     public static final int PERSISTENCE_STATE_FIELD_NUMBER = 4;
     private java.lang.Object persistenceState_;
     /**
@@ -4574,6 +4591,7 @@ public final class File {
       }
     }
 
+    // optional bool pinned = 5;
     public static final int PINNED_FIELD_NUMBER = 5;
     private boolean pinned_;
     /**
@@ -4589,6 +4607,7 @@ public final class File {
       return pinned_;
     }
 
+    // optional int64 creation_time_ms = 6;
     public static final int CREATION_TIME_MS_FIELD_NUMBER = 6;
     private long creationTimeMs_;
     /**
@@ -4604,6 +4623,7 @@ public final class File {
       return creationTimeMs_;
     }
 
+    // optional int64 last_modification_time_ms = 7;
     public static final int LAST_MODIFICATION_TIME_MS_FIELD_NUMBER = 7;
     private long lastModificationTimeMs_;
     /**
@@ -4619,6 +4639,7 @@ public final class File {
       return lastModificationTimeMs_;
     }
 
+    // optional string owner = 8;
     public static final int OWNER_FIELD_NUMBER = 8;
     private java.lang.Object owner_;
     /**
@@ -4661,6 +4682,7 @@ public final class File {
       }
     }
 
+    // optional string group = 9;
     public static final int GROUP_FIELD_NUMBER = 9;
     private java.lang.Object group_;
     /**
@@ -4703,6 +4725,7 @@ public final class File {
       }
     }
 
+    // optional int32 mode = 10;
     public static final int MODE_FIELD_NUMBER = 10;
     private int mode_;
     /**
@@ -4718,6 +4741,7 @@ public final class File {
       return mode_;
     }
 
+    // optional bool mount_point = 11;
     public static final int MOUNT_POINT_FIELD_NUMBER = 11;
     private boolean mountPoint_;
     /**
@@ -4733,6 +4757,7 @@ public final class File {
       return mountPoint_;
     }
 
+    // optional bool direct_children_loaded = 12;
     public static final int DIRECT_CHILDREN_LOADED_FIELD_NUMBER = 12;
     private boolean directChildrenLoaded_;
     /**
@@ -4748,6 +4773,7 @@ public final class File {
       return directChildrenLoaded_;
     }
 
+    // optional int64 ttl = 13;
     public static final int TTL_FIELD_NUMBER = 13;
     private long ttl_;
     /**
@@ -4763,6 +4789,7 @@ public final class File {
       return ttl_;
     }
 
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];
     public static final int TTLACTION_FIELD_NUMBER = 14;
     private alluxio.proto.journal.File.PTtlAction ttlAction_;
     /**
@@ -4797,8 +4824,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -5000,9 +5026,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.InodeDirectoryEntry)
-        alluxio.proto.journal.File.InodeDirectoryEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.InodeDirectoryEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor;
@@ -5240,6 +5265,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional int64 id = 1;
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
@@ -5272,6 +5298,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 parent_id = 2;
       private long parentId_ ;
       /**
        * <code>optional int64 parent_id = 2;</code>
@@ -5304,6 +5331,7 @@ public final class File {
         return this;
       }
 
+      // optional string name = 3;
       private java.lang.Object name_ = "";
       /**
        * <code>optional string name = 3;</code>
@@ -5317,12 +5345,9 @@ public final class File {
       public java.lang.String getName() {
         java.lang.Object ref = name_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            name_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          name_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -5380,6 +5405,7 @@ public final class File {
         return this;
       }
 
+      // optional string persistence_state = 4;
       private java.lang.Object persistenceState_ = "";
       /**
        * <code>optional string persistence_state = 4;</code>
@@ -5393,12 +5419,9 @@ public final class File {
       public java.lang.String getPersistenceState() {
         java.lang.Object ref = persistenceState_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            persistenceState_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          persistenceState_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -5456,6 +5479,7 @@ public final class File {
         return this;
       }
 
+      // optional bool pinned = 5;
       private boolean pinned_ ;
       /**
        * <code>optional bool pinned = 5;</code>
@@ -5488,6 +5512,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 creation_time_ms = 6;
       private long creationTimeMs_ ;
       /**
        * <code>optional int64 creation_time_ms = 6;</code>
@@ -5520,6 +5545,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 last_modification_time_ms = 7;
       private long lastModificationTimeMs_ ;
       /**
        * <code>optional int64 last_modification_time_ms = 7;</code>
@@ -5552,6 +5578,7 @@ public final class File {
         return this;
       }
 
+      // optional string owner = 8;
       private java.lang.Object owner_ = "";
       /**
        * <code>optional string owner = 8;</code>
@@ -5565,12 +5592,9 @@ public final class File {
       public java.lang.String getOwner() {
         java.lang.Object ref = owner_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            owner_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          owner_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -5628,6 +5652,7 @@ public final class File {
         return this;
       }
 
+      // optional string group = 9;
       private java.lang.Object group_ = "";
       /**
        * <code>optional string group = 9;</code>
@@ -5641,12 +5666,9 @@ public final class File {
       public java.lang.String getGroup() {
         java.lang.Object ref = group_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            group_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          group_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -5704,6 +5726,7 @@ public final class File {
         return this;
       }
 
+      // optional int32 mode = 10;
       private int mode_ ;
       /**
        * <code>optional int32 mode = 10;</code>
@@ -5736,6 +5759,7 @@ public final class File {
         return this;
       }
 
+      // optional bool mount_point = 11;
       private boolean mountPoint_ ;
       /**
        * <code>optional bool mount_point = 11;</code>
@@ -5768,6 +5792,7 @@ public final class File {
         return this;
       }
 
+      // optional bool direct_children_loaded = 12;
       private boolean directChildrenLoaded_ ;
       /**
        * <code>optional bool direct_children_loaded = 12;</code>
@@ -5800,6 +5825,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 ttl = 13;
       private long ttl_ ;
       /**
        * <code>optional int64 ttl = 13;</code>
@@ -5832,6 +5858,7 @@ public final class File {
         return this;
       }
 
+      // optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];
       private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
       /**
        * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
@@ -5878,10 +5905,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.InodeDirectoryEntry)
   }
 
-  public interface InodeDirectoryIdGeneratorEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.InodeDirectoryIdGeneratorEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface InodeDirectoryIdGeneratorEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional int64 container_id = 1;
     /**
      * <code>optional int64 container_id = 1;</code>
      */
@@ -5891,6 +5918,7 @@ public final class File {
      */
     long getContainerId();
 
+    // optional int64 sequence_number = 2;
     /**
      * <code>optional int64 sequence_number = 2;</code>
      */
@@ -5908,9 +5936,8 @@ public final class File {
    * </pre>
    */
   public static final class InodeDirectoryIdGeneratorEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.InodeDirectoryIdGeneratorEntry)
-      InodeDirectoryIdGeneratorEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements InodeDirectoryIdGeneratorEntryOrBuilder {
     // Use InodeDirectoryIdGeneratorEntry.newBuilder() to construct.
     private InodeDirectoryIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -6006,6 +6033,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional int64 container_id = 1;
     public static final int CONTAINER_ID_FIELD_NUMBER = 1;
     private long containerId_;
     /**
@@ -6021,6 +6049,7 @@ public final class File {
       return containerId_;
     }
 
+    // optional int64 sequence_number = 2;
     public static final int SEQUENCE_NUMBER_FIELD_NUMBER = 2;
     private long sequenceNumber_;
     /**
@@ -6043,8 +6072,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -6162,9 +6190,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.InodeDirectoryIdGeneratorEntry)
-        alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor;
@@ -6286,6 +6313,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional int64 container_id = 1;
       private long containerId_ ;
       /**
        * <code>optional int64 container_id = 1;</code>
@@ -6318,6 +6346,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 sequence_number = 2;
       private long sequenceNumber_ ;
       /**
        * <code>optional int64 sequence_number = 2;</code>
@@ -6361,10 +6390,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.InodeDirectoryIdGeneratorEntry)
   }
 
-  public interface InodeFileEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.InodeFileEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface InodeFileEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional int64 id = 1;
     /**
      * <code>optional int64 id = 1;</code>
      */
@@ -6374,6 +6403,7 @@ public final class File {
      */
     long getId();
 
+    // optional int64 parent_id = 2;
     /**
      * <code>optional int64 parent_id = 2;</code>
      */
@@ -6383,6 +6413,7 @@ public final class File {
      */
     long getParentId();
 
+    // optional string name = 3;
     /**
      * <code>optional string name = 3;</code>
      */
@@ -6397,6 +6428,7 @@ public final class File {
     com.google.protobuf.ByteString
         getNameBytes();
 
+    // optional string persistence_state = 4;
     /**
      * <code>optional string persistence_state = 4;</code>
      */
@@ -6411,6 +6443,7 @@ public final class File {
     com.google.protobuf.ByteString
         getPersistenceStateBytes();
 
+    // optional bool pinned = 5;
     /**
      * <code>optional bool pinned = 5;</code>
      */
@@ -6420,6 +6453,7 @@ public final class File {
      */
     boolean getPinned();
 
+    // optional int64 creation_time_ms = 6;
     /**
      * <code>optional int64 creation_time_ms = 6;</code>
      */
@@ -6429,6 +6463,7 @@ public final class File {
      */
     long getCreationTimeMs();
 
+    // optional int64 last_modification_time_ms = 7;
     /**
      * <code>optional int64 last_modification_time_ms = 7;</code>
      */
@@ -6438,6 +6473,7 @@ public final class File {
      */
     long getLastModificationTimeMs();
 
+    // optional int64 block_size_bytes = 8;
     /**
      * <code>optional int64 block_size_bytes = 8;</code>
      */
@@ -6447,6 +6483,7 @@ public final class File {
      */
     long getBlockSizeBytes();
 
+    // optional int64 length = 9;
     /**
      * <code>optional int64 length = 9;</code>
      */
@@ -6456,6 +6493,7 @@ public final class File {
      */
     long getLength();
 
+    // optional bool completed = 10;
     /**
      * <code>optional bool completed = 10;</code>
      */
@@ -6465,6 +6503,7 @@ public final class File {
      */
     boolean getCompleted();
 
+    // optional bool cacheable = 11;
     /**
      * <code>optional bool cacheable = 11;</code>
      */
@@ -6474,6 +6513,7 @@ public final class File {
      */
     boolean getCacheable();
 
+    // repeated int64 blocks = 12;
     /**
      * <code>repeated int64 blocks = 12;</code>
      */
@@ -6487,6 +6527,7 @@ public final class File {
      */
     long getBlocks(int index);
 
+    // optional int64 ttl = 13;
     /**
      * <code>optional int64 ttl = 13;</code>
      */
@@ -6496,6 +6537,7 @@ public final class File {
      */
     long getTtl();
 
+    // optional string owner = 14;
     /**
      * <code>optional string owner = 14;</code>
      */
@@ -6510,6 +6552,7 @@ public final class File {
     com.google.protobuf.ByteString
         getOwnerBytes();
 
+    // optional string group = 15;
     /**
      * <code>optional string group = 15;</code>
      */
@@ -6524,6 +6567,7 @@ public final class File {
     com.google.protobuf.ByteString
         getGroupBytes();
 
+    // optional int32 mode = 16;
     /**
      * <code>optional int32 mode = 16;</code>
      */
@@ -6533,6 +6577,7 @@ public final class File {
      */
     int getMode();
 
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];
     /**
      * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
      */
@@ -6550,9 +6595,8 @@ public final class File {
    * </pre>
    */
   public static final class InodeFileEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.InodeFileEntry)
-      InodeFileEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements InodeFileEntryOrBuilder {
     // Use InodeFileEntry.newBuilder() to construct.
     private InodeFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -6609,15 +6653,13 @@ public final class File {
               break;
             }
             case 26: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
-              name_ = bs;
+              name_ = input.readBytes();
               break;
             }
             case 34: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000008;
-              persistenceState_ = bs;
+              persistenceState_ = input.readBytes();
               break;
             }
             case 40: {
@@ -6682,15 +6724,13 @@ public final class File {
               break;
             }
             case 114: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00001000;
-              owner_ = bs;
+              owner_ = input.readBytes();
               break;
             }
             case 122: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00002000;
-              group_ = bs;
+              group_ = input.readBytes();
               break;
             }
             case 128: {
@@ -6752,6 +6792,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional int64 id = 1;
     public static final int ID_FIELD_NUMBER = 1;
     private long id_;
     /**
@@ -6767,6 +6808,7 @@ public final class File {
       return id_;
     }
 
+    // optional int64 parent_id = 2;
     public static final int PARENT_ID_FIELD_NUMBER = 2;
     private long parentId_;
     /**
@@ -6782,6 +6824,7 @@ public final class File {
       return parentId_;
     }
 
+    // optional string name = 3;
     public static final int NAME_FIELD_NUMBER = 3;
     private java.lang.Object name_;
     /**
@@ -6824,6 +6867,7 @@ public final class File {
       }
     }
 
+    // optional string persistence_state = 4;
     public static final int PERSISTENCE_STATE_FIELD_NUMBER = 4;
     private java.lang.Object persistenceState_;
     /**
@@ -6866,6 +6910,7 @@ public final class File {
       }
     }
 
+    // optional bool pinned = 5;
     public static final int PINNED_FIELD_NUMBER = 5;
     private boolean pinned_;
     /**
@@ -6881,6 +6926,7 @@ public final class File {
       return pinned_;
     }
 
+    // optional int64 creation_time_ms = 6;
     public static final int CREATION_TIME_MS_FIELD_NUMBER = 6;
     private long creationTimeMs_;
     /**
@@ -6896,6 +6942,7 @@ public final class File {
       return creationTimeMs_;
     }
 
+    // optional int64 last_modification_time_ms = 7;
     public static final int LAST_MODIFICATION_TIME_MS_FIELD_NUMBER = 7;
     private long lastModificationTimeMs_;
     /**
@@ -6911,6 +6958,7 @@ public final class File {
       return lastModificationTimeMs_;
     }
 
+    // optional int64 block_size_bytes = 8;
     public static final int BLOCK_SIZE_BYTES_FIELD_NUMBER = 8;
     private long blockSizeBytes_;
     /**
@@ -6926,6 +6974,7 @@ public final class File {
       return blockSizeBytes_;
     }
 
+    // optional int64 length = 9;
     public static final int LENGTH_FIELD_NUMBER = 9;
     private long length_;
     /**
@@ -6941,6 +6990,7 @@ public final class File {
       return length_;
     }
 
+    // optional bool completed = 10;
     public static final int COMPLETED_FIELD_NUMBER = 10;
     private boolean completed_;
     /**
@@ -6956,6 +7006,7 @@ public final class File {
       return completed_;
     }
 
+    // optional bool cacheable = 11;
     public static final int CACHEABLE_FIELD_NUMBER = 11;
     private boolean cacheable_;
     /**
@@ -6971,6 +7022,7 @@ public final class File {
       return cacheable_;
     }
 
+    // repeated int64 blocks = 12;
     public static final int BLOCKS_FIELD_NUMBER = 12;
     private java.util.List<java.lang.Long> blocks_;
     /**
@@ -6993,6 +7045,7 @@ public final class File {
       return blocks_.get(index);
     }
 
+    // optional int64 ttl = 13;
     public static final int TTL_FIELD_NUMBER = 13;
     private long ttl_;
     /**
@@ -7008,6 +7061,7 @@ public final class File {
       return ttl_;
     }
 
+    // optional string owner = 14;
     public static final int OWNER_FIELD_NUMBER = 14;
     private java.lang.Object owner_;
     /**
@@ -7050,6 +7104,7 @@ public final class File {
       }
     }
 
+    // optional string group = 15;
     public static final int GROUP_FIELD_NUMBER = 15;
     private java.lang.Object group_;
     /**
@@ -7092,6 +7147,7 @@ public final class File {
       }
     }
 
+    // optional int32 mode = 16;
     public static final int MODE_FIELD_NUMBER = 16;
     private int mode_;
     /**
@@ -7107,6 +7163,7 @@ public final class File {
       return mode_;
     }
 
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];
     public static final int TTLACTION_FIELD_NUMBER = 17;
     private alluxio.proto.journal.File.PTtlAction ttlAction_;
     /**
@@ -7144,8 +7201,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -7373,9 +7429,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.InodeFileEntry)
-        alluxio.proto.journal.File.InodeFileEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.InodeFileEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeFileEntry_descriptor;
@@ -7648,6 +7703,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional int64 id = 1;
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
@@ -7680,6 +7736,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 parent_id = 2;
       private long parentId_ ;
       /**
        * <code>optional int64 parent_id = 2;</code>
@@ -7712,6 +7769,7 @@ public final class File {
         return this;
       }
 
+      // optional string name = 3;
       private java.lang.Object name_ = "";
       /**
        * <code>optional string name = 3;</code>
@@ -7725,12 +7783,9 @@ public final class File {
       public java.lang.String getName() {
         java.lang.Object ref = name_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            name_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          name_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -7788,6 +7843,7 @@ public final class File {
         return this;
       }
 
+      // optional string persistence_state = 4;
       private java.lang.Object persistenceState_ = "";
       /**
        * <code>optional string persistence_state = 4;</code>
@@ -7801,12 +7857,9 @@ public final class File {
       public java.lang.String getPersistenceState() {
         java.lang.Object ref = persistenceState_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            persistenceState_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          persistenceState_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -7864,6 +7917,7 @@ public final class File {
         return this;
       }
 
+      // optional bool pinned = 5;
       private boolean pinned_ ;
       /**
        * <code>optional bool pinned = 5;</code>
@@ -7896,6 +7950,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 creation_time_ms = 6;
       private long creationTimeMs_ ;
       /**
        * <code>optional int64 creation_time_ms = 6;</code>
@@ -7928,6 +7983,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 last_modification_time_ms = 7;
       private long lastModificationTimeMs_ ;
       /**
        * <code>optional int64 last_modification_time_ms = 7;</code>
@@ -7960,6 +8016,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 block_size_bytes = 8;
       private long blockSizeBytes_ ;
       /**
        * <code>optional int64 block_size_bytes = 8;</code>
@@ -7992,6 +8049,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 length = 9;
       private long length_ ;
       /**
        * <code>optional int64 length = 9;</code>
@@ -8024,6 +8082,7 @@ public final class File {
         return this;
       }
 
+      // optional bool completed = 10;
       private boolean completed_ ;
       /**
        * <code>optional bool completed = 10;</code>
@@ -8056,6 +8115,7 @@ public final class File {
         return this;
       }
 
+      // optional bool cacheable = 11;
       private boolean cacheable_ ;
       /**
        * <code>optional bool cacheable = 11;</code>
@@ -8088,6 +8148,7 @@ public final class File {
         return this;
       }
 
+      // repeated int64 blocks = 12;
       private java.util.List<java.lang.Long> blocks_ = java.util.Collections.emptyList();
       private void ensureBlocksIsMutable() {
         if (!((bitField0_ & 0x00000800) == 0x00000800)) {
@@ -8139,8 +8200,7 @@ public final class File {
       public Builder addAllBlocks(
           java.lang.Iterable<? extends java.lang.Long> values) {
         ensureBlocksIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, blocks_);
+        super.addAll(values, blocks_);
         onChanged();
         return this;
       }
@@ -8154,6 +8214,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 ttl = 13;
       private long ttl_ ;
       /**
        * <code>optional int64 ttl = 13;</code>
@@ -8186,6 +8247,7 @@ public final class File {
         return this;
       }
 
+      // optional string owner = 14;
       private java.lang.Object owner_ = "";
       /**
        * <code>optional string owner = 14;</code>
@@ -8199,12 +8261,9 @@ public final class File {
       public java.lang.String getOwner() {
         java.lang.Object ref = owner_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            owner_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          owner_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -8262,6 +8321,7 @@ public final class File {
         return this;
       }
 
+      // optional string group = 15;
       private java.lang.Object group_ = "";
       /**
        * <code>optional string group = 15;</code>
@@ -8275,12 +8335,9 @@ public final class File {
       public java.lang.String getGroup() {
         java.lang.Object ref = group_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            group_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          group_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -8338,6 +8395,7 @@ public final class File {
         return this;
       }
 
+      // optional int32 mode = 16;
       private int mode_ ;
       /**
        * <code>optional int32 mode = 16;</code>
@@ -8370,6 +8428,7 @@ public final class File {
         return this;
       }
 
+      // optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];
       private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
       /**
        * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
@@ -8416,10 +8475,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.InodeFileEntry)
   }
 
-  public interface InodeLastModificationTimeEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.InodeLastModificationTimeEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface InodeLastModificationTimeEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional int64 id = 1;
     /**
      * <code>optional int64 id = 1;</code>
      */
@@ -8429,6 +8488,7 @@ public final class File {
      */
     long getId();
 
+    // optional int64 last_modification_time_ms = 2;
     /**
      * <code>optional int64 last_modification_time_ms = 2;</code>
      */
@@ -8446,9 +8506,8 @@ public final class File {
    * </pre>
    */
   public static final class InodeLastModificationTimeEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.InodeLastModificationTimeEntry)
-      InodeLastModificationTimeEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements InodeLastModificationTimeEntryOrBuilder {
     // Use InodeLastModificationTimeEntry.newBuilder() to construct.
     private InodeLastModificationTimeEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -8544,6 +8603,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional int64 id = 1;
     public static final int ID_FIELD_NUMBER = 1;
     private long id_;
     /**
@@ -8559,6 +8619,7 @@ public final class File {
       return id_;
     }
 
+    // optional int64 last_modification_time_ms = 2;
     public static final int LAST_MODIFICATION_TIME_MS_FIELD_NUMBER = 2;
     private long lastModificationTimeMs_;
     /**
@@ -8581,8 +8642,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -8700,9 +8760,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.InodeLastModificationTimeEntry)
-        alluxio.proto.journal.File.InodeLastModificationTimeEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.InodeLastModificationTimeEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor;
@@ -8824,6 +8883,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional int64 id = 1;
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
@@ -8856,6 +8916,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 last_modification_time_ms = 2;
       private long lastModificationTimeMs_ ;
       /**
        * <code>optional int64 last_modification_time_ms = 2;</code>
@@ -8899,10 +8960,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.InodeLastModificationTimeEntry)
   }
 
-  public interface PersistDirectoryEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.PersistDirectoryEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface PersistDirectoryEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional int64 id = 1;
     /**
      * <code>optional int64 id = 1;</code>
      */
@@ -8920,9 +8981,8 @@ public final class File {
    * </pre>
    */
   public static final class PersistDirectoryEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.PersistDirectoryEntry)
-      PersistDirectoryEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements PersistDirectoryEntryOrBuilder {
     // Use PersistDirectoryEntry.newBuilder() to construct.
     private PersistDirectoryEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -9013,6 +9073,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional int64 id = 1;
     public static final int ID_FIELD_NUMBER = 1;
     private long id_;
     /**
@@ -9034,8 +9095,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -9146,9 +9206,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.PersistDirectoryEntry)
-        alluxio.proto.journal.File.PersistDirectoryEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.PersistDirectoryEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_PersistDirectoryEntry_descriptor;
@@ -9261,6 +9320,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional int64 id = 1;
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
@@ -9304,10 +9364,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.PersistDirectoryEntry)
   }
 
-  public interface PersistFileEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.PersistFileEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface PersistFileEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional int64 id = 1;
     /**
      * <code>optional int64 id = 1;</code>
      */
@@ -9317,6 +9377,7 @@ public final class File {
      */
     long getId();
 
+    // optional int64 length = 2;
     /**
      * <code>optional int64 length = 2;</code>
      */
@@ -9326,6 +9387,7 @@ public final class File {
      */
     long getLength();
 
+    // optional int64 op_time_ms = 3;
     /**
      * <code>optional int64 op_time_ms = 3;</code>
      */
@@ -9343,9 +9405,8 @@ public final class File {
    * </pre>
    */
   public static final class PersistFileEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.PersistFileEntry)
-      PersistFileEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements PersistFileEntryOrBuilder {
     // Use PersistFileEntry.newBuilder() to construct.
     private PersistFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -9446,6 +9507,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional int64 id = 1;
     public static final int ID_FIELD_NUMBER = 1;
     private long id_;
     /**
@@ -9461,6 +9523,7 @@ public final class File {
       return id_;
     }
 
+    // optional int64 length = 2;
     public static final int LENGTH_FIELD_NUMBER = 2;
     private long length_;
     /**
@@ -9476,6 +9539,7 @@ public final class File {
       return length_;
     }
 
+    // optional int64 op_time_ms = 3;
     public static final int OP_TIME_MS_FIELD_NUMBER = 3;
     private long opTimeMs_;
     /**
@@ -9499,8 +9563,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -9625,9 +9688,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.PersistFileEntry)
-        alluxio.proto.journal.File.PersistFileEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.PersistFileEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_PersistFileEntry_descriptor;
@@ -9758,6 +9820,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional int64 id = 1;
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
@@ -9790,6 +9853,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 length = 2;
       private long length_ ;
       /**
        * <code>optional int64 length = 2;</code>
@@ -9822,6 +9886,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 op_time_ms = 3;
       private long opTimeMs_ ;
       /**
        * <code>optional int64 op_time_ms = 3;</code>
@@ -9865,10 +9930,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.PersistFileEntry)
   }
 
-  public interface ReinitializeFileEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.ReinitializeFileEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface ReinitializeFileEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional string path = 1;
     /**
      * <code>optional string path = 1;</code>
      */
@@ -9883,6 +9948,7 @@ public final class File {
     com.google.protobuf.ByteString
         getPathBytes();
 
+    // optional int64 block_size_bytes = 2;
     /**
      * <code>optional int64 block_size_bytes = 2;</code>
      */
@@ -9892,6 +9958,7 @@ public final class File {
      */
     long getBlockSizeBytes();
 
+    // optional int64 ttl = 3;
     /**
      * <code>optional int64 ttl = 3;</code>
      */
@@ -9901,6 +9968,7 @@ public final class File {
      */
     long getTtl();
 
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];
     /**
      * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
      */
@@ -9918,9 +9986,8 @@ public final class File {
    * </pre>
    */
   public static final class ReinitializeFileEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.ReinitializeFileEntry)
-      ReinitializeFileEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements ReinitializeFileEntryOrBuilder {
     // Use ReinitializeFileEntry.newBuilder() to construct.
     private ReinitializeFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -9967,9 +10034,8 @@ public final class File {
               break;
             }
             case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
-              path_ = bs;
+              path_ = input.readBytes();
               break;
             }
             case 16: {
@@ -10033,6 +10099,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional string path = 1;
     public static final int PATH_FIELD_NUMBER = 1;
     private java.lang.Object path_;
     /**
@@ -10075,6 +10142,7 @@ public final class File {
       }
     }
 
+    // optional int64 block_size_bytes = 2;
     public static final int BLOCK_SIZE_BYTES_FIELD_NUMBER = 2;
     private long blockSizeBytes_;
     /**
@@ -10090,6 +10158,7 @@ public final class File {
       return blockSizeBytes_;
     }
 
+    // optional int64 ttl = 3;
     public static final int TTL_FIELD_NUMBER = 3;
     private long ttl_;
     /**
@@ -10105,6 +10174,7 @@ public final class File {
       return ttl_;
     }
 
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];
     public static final int TTLACTION_FIELD_NUMBER = 4;
     private alluxio.proto.journal.File.PTtlAction ttlAction_;
     /**
@@ -10129,8 +10199,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -10262,9 +10331,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.ReinitializeFileEntry)
-        alluxio.proto.journal.File.ReinitializeFileEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.ReinitializeFileEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor;
@@ -10406,6 +10474,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional string path = 1;
       private java.lang.Object path_ = "";
       /**
        * <code>optional string path = 1;</code>
@@ -10419,12 +10488,9 @@ public final class File {
       public java.lang.String getPath() {
         java.lang.Object ref = path_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            path_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          path_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -10482,6 +10548,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 block_size_bytes = 2;
       private long blockSizeBytes_ ;
       /**
        * <code>optional int64 block_size_bytes = 2;</code>
@@ -10514,6 +10581,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 ttl = 3;
       private long ttl_ ;
       /**
        * <code>optional int64 ttl = 3;</code>
@@ -10546,6 +10614,7 @@ public final class File {
         return this;
       }
 
+      // optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];
       private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
       /**
        * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
@@ -10592,10 +10661,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.ReinitializeFileEntry)
   }
 
-  public interface RenameEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.RenameEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface RenameEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional int64 id = 1;
     /**
      * <code>optional int64 id = 1;</code>
      */
@@ -10605,6 +10674,7 @@ public final class File {
      */
     long getId();
 
+    // optional string dst_path = 2;
     /**
      * <code>optional string dst_path = 2;</code>
      */
@@ -10619,6 +10689,7 @@ public final class File {
     com.google.protobuf.ByteString
         getDstPathBytes();
 
+    // optional int64 op_time_ms = 3;
     /**
      * <code>optional int64 op_time_ms = 3;</code>
      */
@@ -10636,9 +10707,8 @@ public final class File {
    * </pre>
    */
   public static final class RenameEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.RenameEntry)
-      RenameEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements RenameEntryOrBuilder {
     // Use RenameEntry.newBuilder() to construct.
     private RenameEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -10690,9 +10760,8 @@ public final class File {
               break;
             }
             case 18: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
-              dstPath_ = bs;
+              dstPath_ = input.readBytes();
               break;
             }
             case 24: {
@@ -10740,6 +10809,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional int64 id = 1;
     public static final int ID_FIELD_NUMBER = 1;
     private long id_;
     /**
@@ -10755,6 +10825,7 @@ public final class File {
       return id_;
     }
 
+    // optional string dst_path = 2;
     public static final int DST_PATH_FIELD_NUMBER = 2;
     private java.lang.Object dstPath_;
     /**
@@ -10797,6 +10868,7 @@ public final class File {
       }
     }
 
+    // optional int64 op_time_ms = 3;
     public static final int OP_TIME_MS_FIELD_NUMBER = 3;
     private long opTimeMs_;
     /**
@@ -10820,8 +10892,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -10946,9 +11017,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.RenameEntry)
-        alluxio.proto.journal.File.RenameEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.RenameEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_RenameEntry_descriptor;
@@ -11081,6 +11151,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional int64 id = 1;
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
@@ -11113,6 +11184,7 @@ public final class File {
         return this;
       }
 
+      // optional string dst_path = 2;
       private java.lang.Object dstPath_ = "";
       /**
        * <code>optional string dst_path = 2;</code>
@@ -11126,12 +11198,9 @@ public final class File {
       public java.lang.String getDstPath() {
         java.lang.Object ref = dstPath_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            dstPath_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          dstPath_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -11189,6 +11258,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 op_time_ms = 3;
       private long opTimeMs_ ;
       /**
        * <code>optional int64 op_time_ms = 3;</code>
@@ -11232,10 +11302,10 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.RenameEntry)
   }
 
-  public interface SetAttributeEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.SetAttributeEntry)
-      com.google.protobuf.MessageOrBuilder {
+  public interface SetAttributeEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional int64 id = 1;
     /**
      * <code>optional int64 id = 1;</code>
      */
@@ -11245,6 +11315,7 @@ public final class File {
      */
     long getId();
 
+    // optional int64 op_time_ms = 2;
     /**
      * <code>optional int64 op_time_ms = 2;</code>
      */
@@ -11254,6 +11325,7 @@ public final class File {
      */
     long getOpTimeMs();
 
+    // optional bool pinned = 3;
     /**
      * <code>optional bool pinned = 3;</code>
      */
@@ -11263,6 +11335,7 @@ public final class File {
      */
     boolean getPinned();
 
+    // optional int64 ttl = 4;
     /**
      * <code>optional int64 ttl = 4;</code>
      */
@@ -11272,6 +11345,7 @@ public final class File {
      */
     long getTtl();
 
+    // optional bool persisted = 5;
     /**
      * <code>optional bool persisted = 5;</code>
      */
@@ -11281,6 +11355,7 @@ public final class File {
      */
     boolean getPersisted();
 
+    // optional string owner = 6;
     /**
      * <code>optional string owner = 6;</code>
      */
@@ -11295,6 +11370,7 @@ public final class File {
     com.google.protobuf.ByteString
         getOwnerBytes();
 
+    // optional string group = 7;
     /**
      * <code>optional string group = 7;</code>
      */
@@ -11309,6 +11385,7 @@ public final class File {
     com.google.protobuf.ByteString
         getGroupBytes();
 
+    // optional int32 permission = 8;
     /**
      * <code>optional int32 permission = 8;</code>
      */
@@ -11318,6 +11395,7 @@ public final class File {
      */
     int getPermission();
 
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];
     /**
      * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];</code>
      */
@@ -11335,9 +11413,8 @@ public final class File {
    * </pre>
    */
   public static final class SetAttributeEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.SetAttributeEntry)
-      SetAttributeEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements SetAttributeEntryOrBuilder {
     // Use SetAttributeEntry.newBuilder() to construct.
     private SetAttributeEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -11409,15 +11486,13 @@ public final class File {
               break;
             }
             case 50: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000020;
-              owner_ = bs;
+              owner_ = input.readBytes();
               break;
             }
             case 58: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000040;
-              group_ = bs;
+              group_ = input.readBytes();
               break;
             }
             case 64: {
@@ -11476,6 +11551,7 @@ public final class File {
     }
 
     private int bitField0_;
+    // optional int64 id = 1;
     public static final int ID_FIELD_NUMBER = 1;
     private long id_;
     /**
@@ -11491,6 +11567,7 @@ public final class File {
       return id_;
     }
 
+    // optional int64 op_time_ms = 2;
     public static final int OP_TIME_MS_FIELD_NUMBER = 2;
     private long opTimeMs_;
     /**
@@ -11506,6 +11583,7 @@ public final class File {
       return opTimeMs_;
     }
 
+    // optional bool pinned = 3;
     public static final int PINNED_FIELD_NUMBER = 3;
     private boolean pinned_;
     /**
@@ -11521,6 +11599,7 @@ public final class File {
       return pinned_;
     }
 
+    // optional int64 ttl = 4;
     public static final int TTL_FIELD_NUMBER = 4;
     private long ttl_;
     /**
@@ -11536,6 +11615,7 @@ public final class File {
       return ttl_;
     }
 
+    // optional bool persisted = 5;
     public static final int PERSISTED_FIELD_NUMBER = 5;
     private boolean persisted_;
     /**
@@ -11551,6 +11631,7 @@ public final class File {
       return persisted_;
     }
 
+    // optional string owner = 6;
     public static final int OWNER_FIELD_NUMBER = 6;
     private java.lang.Object owner_;
     /**
@@ -11593,6 +11674,7 @@ public final class File {
       }
     }
 
+    // optional string group = 7;
     public static final int GROUP_FIELD_NUMBER = 7;
     private java.lang.Object group_;
     /**
@@ -11635,6 +11717,7 @@ public final class File {
       }
     }
 
+    // optional int32 permission = 8;
     public static final int PERMISSION_FIELD_NUMBER = 8;
     private int permission_;
     /**
@@ -11650,6 +11733,7 @@ public final class File {
       return permission_;
     }
 
+    // optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];
     public static final int TTLACTION_FIELD_NUMBER = 9;
     private alluxio.proto.journal.File.PTtlAction ttlAction_;
     /**
@@ -11679,8 +11763,7 @@ public final class File {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -11847,9 +11930,8 @@ public final class File {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.SetAttributeEntry)
-        alluxio.proto.journal.File.SetAttributeEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.journal.File.SetAttributeEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor;
@@ -12038,6 +12120,7 @@ public final class File {
       }
       private int bitField0_;
 
+      // optional int64 id = 1;
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
@@ -12070,6 +12153,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 op_time_ms = 2;
       private long opTimeMs_ ;
       /**
        * <code>optional int64 op_time_ms = 2;</code>
@@ -12102,6 +12186,7 @@ public final class File {
         return this;
       }
 
+      // optional bool pinned = 3;
       private boolean pinned_ ;
       /**
        * <code>optional bool pinned = 3;</code>
@@ -12134,6 +12219,7 @@ public final class File {
         return this;
       }
 
+      // optional int64 ttl = 4;
       private long ttl_ ;
       /**
        * <code>optional int64 ttl = 4;</code>
@@ -12166,6 +12252,7 @@ public final class File {
         return this;
       }
 
+      // optional bool persisted = 5;
       private boolean persisted_ ;
       /**
        * <code>optional bool persisted = 5;</code>
@@ -12198,6 +12285,7 @@ public final class File {
         return this;
       }
 
+      // optional string owner = 6;
       private java.lang.Object owner_ = "";
       /**
        * <code>optional string owner = 6;</code>
@@ -12211,12 +12299,9 @@ public final class File {
       public java.lang.String getOwner() {
         java.lang.Object ref = owner_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            owner_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          owner_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -12274,6 +12359,7 @@ public final class File {
         return this;
       }
 
+      // optional string group = 7;
       private java.lang.Object group_ = "";
       /**
        * <code>optional string group = 7;</code>
@@ -12287,12 +12373,9 @@ public final class File {
       public java.lang.String getGroup() {
         java.lang.Object ref = group_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            group_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          group_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -12350,6 +12433,7 @@ public final class File {
         return this;
       }
 
+      // optional int32 permission = 8;
       private int permission_ ;
       /**
        * <code>optional int32 permission = 8;</code>
@@ -12382,6 +12466,7 @@ public final class File {
         return this;
       }
 
+      // optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];
       private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
       /**
        * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];</code>
@@ -12428,77 +12513,77 @@ public final class File {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.SetAttributeEntry)
   }
 
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_AddMountPointEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_CompleteFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_CompleteFileEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_DeleteFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_DeleteFileEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_DeleteMountPointEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_InodeFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_PersistDirectoryEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_PersistDirectoryEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_PersistFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_PersistFileEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_ReinitializeFileEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_RenameEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_RenameEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -12564,107 +12649,107 @@ public final class File {
       "\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
+      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
+        public com.google.protobuf.ExtensionRegistry assignDescriptors(
+            com.google.protobuf.Descriptors.FileDescriptor root) {
+          descriptor = root;
+          internal_static_alluxio_proto_journal_StringPairEntry_descriptor =
+            getDescriptor().getMessageTypes().get(0);
+          internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_StringPairEntry_descriptor,
+              new java.lang.String[] { "Key", "Value", });
+          internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor =
+            getDescriptor().getMessageTypes().get(1);
+          internal_static_alluxio_proto_journal_AddMountPointEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor,
+              new java.lang.String[] { "AlluxioPath", "UfsPath", "ReadOnly", "Properties", "Shared", });
+          internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_descriptor =
+            getDescriptor().getMessageTypes().get(2);
+          internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_descriptor,
+              new java.lang.String[] { "FileId", });
+          internal_static_alluxio_proto_journal_CompleteFileEntry_descriptor =
+            getDescriptor().getMessageTypes().get(3);
+          internal_static_alluxio_proto_journal_CompleteFileEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_CompleteFileEntry_descriptor,
+              new java.lang.String[] { "BlockIds", "Id", "Length", "OpTimeMs", });
+          internal_static_alluxio_proto_journal_DeleteFileEntry_descriptor =
+            getDescriptor().getMessageTypes().get(4);
+          internal_static_alluxio_proto_journal_DeleteFileEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_DeleteFileEntry_descriptor,
+              new java.lang.String[] { "Id", "Recursive", "AlluxioOnly", "OpTimeMs", });
+          internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor =
+            getDescriptor().getMessageTypes().get(5);
+          internal_static_alluxio_proto_journal_DeleteMountPointEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor,
+              new java.lang.String[] { "AlluxioPath", });
+          internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor =
+            getDescriptor().getMessageTypes().get(6);
+          internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
+              new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", "Ttl", "TtlAction", });
+          internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
+            getDescriptor().getMessageTypes().get(7);
+          internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor,
+              new java.lang.String[] { "ContainerId", "SequenceNumber", });
+          internal_static_alluxio_proto_journal_InodeFileEntry_descriptor =
+            getDescriptor().getMessageTypes().get(8);
+          internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_InodeFileEntry_descriptor,
+              new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", });
+          internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor =
+            getDescriptor().getMessageTypes().get(9);
+          internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor,
+              new java.lang.String[] { "Id", "LastModificationTimeMs", });
+          internal_static_alluxio_proto_journal_PersistDirectoryEntry_descriptor =
+            getDescriptor().getMessageTypes().get(10);
+          internal_static_alluxio_proto_journal_PersistDirectoryEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_PersistDirectoryEntry_descriptor,
+              new java.lang.String[] { "Id", });
+          internal_static_alluxio_proto_journal_PersistFileEntry_descriptor =
+            getDescriptor().getMessageTypes().get(11);
+          internal_static_alluxio_proto_journal_PersistFileEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_PersistFileEntry_descriptor,
+              new java.lang.String[] { "Id", "Length", "OpTimeMs", });
+          internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor =
+            getDescriptor().getMessageTypes().get(12);
+          internal_static_alluxio_proto_journal_ReinitializeFileEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor,
+              new java.lang.String[] { "Path", "BlockSizeBytes", "Ttl", "TtlAction", });
+          internal_static_alluxio_proto_journal_RenameEntry_descriptor =
+            getDescriptor().getMessageTypes().get(13);
+          internal_static_alluxio_proto_journal_RenameEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_RenameEntry_descriptor,
+              new java.lang.String[] { "Id", "DstPath", "OpTimeMs", });
+          internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor =
+            getDescriptor().getMessageTypes().get(14);
+          internal_static_alluxio_proto_journal_SetAttributeEntry_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor,
+              new java.lang.String[] { "Id", "OpTimeMs", "Pinned", "Ttl", "Persisted", "Owner", "Group", "Permission", "TtlAction", });
+          return null;
+        }
+      };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
-    internal_static_alluxio_proto_journal_StringPairEntry_descriptor =
-      getDescriptor().getMessageTypes().get(0);
-    internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_StringPairEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
-    internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor =
-      getDescriptor().getMessageTypes().get(1);
-    internal_static_alluxio_proto_journal_AddMountPointEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor,
-        new java.lang.String[] { "AlluxioPath", "UfsPath", "ReadOnly", "Properties", "Shared", });
-    internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_descriptor =
-      getDescriptor().getMessageTypes().get(2);
-    internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_descriptor,
-        new java.lang.String[] { "FileId", });
-    internal_static_alluxio_proto_journal_CompleteFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(3);
-    internal_static_alluxio_proto_journal_CompleteFileEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_CompleteFileEntry_descriptor,
-        new java.lang.String[] { "BlockIds", "Id", "Length", "OpTimeMs", });
-    internal_static_alluxio_proto_journal_DeleteFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(4);
-    internal_static_alluxio_proto_journal_DeleteFileEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_DeleteFileEntry_descriptor,
-        new java.lang.String[] { "Id", "Recursive", "AlluxioOnly", "OpTimeMs", });
-    internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor =
-      getDescriptor().getMessageTypes().get(5);
-    internal_static_alluxio_proto_journal_DeleteMountPointEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor,
-        new java.lang.String[] { "AlluxioPath", });
-    internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor =
-      getDescriptor().getMessageTypes().get(6);
-    internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", "Ttl", "TtlAction", });
-    internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
-      getDescriptor().getMessageTypes().get(7);
-    internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor,
-        new java.lang.String[] { "ContainerId", "SequenceNumber", });
-    internal_static_alluxio_proto_journal_InodeFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(8);
-    internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_InodeFileEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", });
-    internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor =
-      getDescriptor().getMessageTypes().get(9);
-    internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor,
-        new java.lang.String[] { "Id", "LastModificationTimeMs", });
-    internal_static_alluxio_proto_journal_PersistDirectoryEntry_descriptor =
-      getDescriptor().getMessageTypes().get(10);
-    internal_static_alluxio_proto_journal_PersistDirectoryEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_PersistDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", });
-    internal_static_alluxio_proto_journal_PersistFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(11);
-    internal_static_alluxio_proto_journal_PersistFileEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_PersistFileEntry_descriptor,
-        new java.lang.String[] { "Id", "Length", "OpTimeMs", });
-    internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(12);
-    internal_static_alluxio_proto_journal_ReinitializeFileEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor,
-        new java.lang.String[] { "Path", "BlockSizeBytes", "Ttl", "TtlAction", });
-    internal_static_alluxio_proto_journal_RenameEntry_descriptor =
-      getDescriptor().getMessageTypes().get(13);
-    internal_static_alluxio_proto_journal_RenameEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_RenameEntry_descriptor,
-        new java.lang.String[] { "Id", "DstPath", "OpTimeMs", });
-    internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor =
-      getDescriptor().getMessageTypes().get(14);
-    internal_static_alluxio_proto_journal_SetAttributeEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor,
-        new java.lang.String[] { "Id", "OpTimeMs", "Pinned", "Ttl", "Persisted", "Owner", "Group", "Permission", "TtlAction", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

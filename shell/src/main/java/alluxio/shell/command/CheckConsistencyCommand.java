@@ -67,11 +67,15 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
     checkConsistency(root, cl.hasOption("r"));
   }
 
-  private void checkConsistency(AlluxioURI path, boolean fixConsistency) throws
+  private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
       AlluxioException, IOException {
+    //load the Newly created file's metadata in alluxio
+    ListStatusOptions listOptions = ListStatusOptions.defaults();
+    listOptions.setLoadMetadataType(LoadMetadataType.Always);
+    mFileSystem.listStatus(path, listOptions);
     CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
     List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(path, options);
-    if (!fixConsistency) {
+    if (!repairConsistency) {
       if (inconsistentUris.isEmpty()) {
         System.out.println(path + " is consistent with the under storage system.");
       } else {
@@ -84,31 +88,30 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
     } else {
       if (inconsistentUris.isEmpty()) {
         System.out.println(path + " is consistent with the under storage system.");
-        ListStatusOptions listOptions = ListStatusOptions.defaults();
-        listOptions.setLoadMetadataType(LoadMetadataType.Always);
-        mFileSystem.listStatus(path, listOptions);
-        loadFile(path);
       } else {
         Collections.sort(inconsistentUris);
         System.out.println(path + " have: " + inconsistentUris.size() + "files inconsistent.");
         List<AlluxioURI> dirInconsistencys = new ArrayList<AlluxioURI>();
         for (int i = 0; i < inconsistentUris.size(); i++) {
-          System.out.println("Fixing path: " + inconsistentUris.get(i));
-          if (mFileSystem.getStatus(inconsistentUris.get(i)).isFolder()) {
+          URIStatus status = mFileSystem.getStatus(inconsistentUris.get(i));
+          if (status.isFolder()) {
             dirInconsistencys.add(inconsistentUris.get(i));
             continue;
           }
+          System.out.println("repairing path: " + inconsistentUris.get(i));
           DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
           mFileSystem.delete(inconsistentUris.get(i), deleteOptions);
           Closer closer = Closer.create();
           try {
             OpenFileOptions openFileOptions = OpenFileOptions.defaults()
-                    .setReadType(ReadType.CACHE_PROMOTE);
+                .setReadType(ReadType.CACHE_PROMOTE);
             if (mFileSystem.exists(inconsistentUris.get(i))) {
-              FileInStream in = closer.register(mFileSystem.openFile(inconsistentUris.get(i),
-                      openFileOptions));
-              byte[] buf = new byte[8 * Constants.MB];
-              while (in.read(buf) != -1) {
+              if (status.getInMemoryPercentage() == 100) {
+                FileInStream in = closer.register(mFileSystem.openFile(inconsistentUris.get(i),
+                    openFileOptions));
+                byte[] buf = new byte[8 * Constants.MB];
+                while (in.read(buf) != -1) {
+                }
               }
             }
           } catch (Exception e) {
@@ -116,56 +119,18 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
           } finally {
             closer.close();
           }
-          System.out.println(inconsistentUris.get(i) + "fixed");
+          System.out.println(inconsistentUris.get(i) + "repaired");
           System.out.println();
         }
         for (AlluxioURI uri : dirInconsistencys) {
           DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true)
               .setRecursive(true);
-          System.out.println("Fixing path: " + uri);
+          System.out.println("repairing path: " + uri);
           mFileSystem.delete(uri, deleteOptions);
+          System.out.println(uri + "repaired");
+          System.out.println();
         }
-        ListStatusOptions listOptions = ListStatusOptions.defaults();
-        listOptions.setLoadMetadataType(LoadMetadataType.Always);
-        mFileSystem.listStatus(path, listOptions);
-        loadFile(path);
       }
-    }
-  }
-
-  /**
-   * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
-   */
-  private void loadFile(AlluxioURI filePath) throws AlluxioException, IOException {
-    URIStatus status = mFileSystem.getStatus(filePath);
-    if (status.isFolder()) {
-      List<URIStatus> statuses = mFileSystem.listStatus(filePath);
-      for (URIStatus uriStatus : statuses) {
-        AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
-        loadFile(newPath);
-      }
-    } else {
-      if (status.getInMemoryPercentage() == 100) {
-        // The file has already been fully loaded into Alluxio memory.
-        return;
-      }
-      Closer closer = Closer.create();
-      try {
-        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
-        FileInStream in = closer.register(mFileSystem.openFile(filePath, options));
-        byte[] buf = new byte[8 * Constants.MB];
-        while (in.read(buf) != -1) {
-        }
-      } catch (Exception e) {
-        throw closer.rethrow(e);
-      } finally {
-        closer.close();
-      }
-    }
-    if (!status.isFolder()) {
-      System.out.println("The " + filePath + " is new added in UFS, and successful loaded!");
     }
   }
 
@@ -179,6 +144,6 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
     return "Checks the consistency of a persisted file or directory in Alluxio. Any files or "
         + "directories which only exist in Alluxio or do not match the metadata of files in the "
         + "under storage will be returned. An administrator should then reconcile the differences."
-        + "Specify -r to fixing the inconsistent files.";
+        + "Specify -r to repair the inconsistent files.";
   }
 }

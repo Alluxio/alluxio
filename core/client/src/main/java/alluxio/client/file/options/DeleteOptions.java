@@ -52,15 +52,13 @@ public final class DeleteOptions {
 
   /**
    * @return the mAlluxioOnly flag value; the flag specifies whether the file content should
-   *         be stored only in alluxio.
+   *         be removed from Alluxio, but not from UFS.
    */
   public boolean isAlluxioOnly() {
     return mAlluxioOnly;
   }
 
   /**
-   * Sets the recursive flag.
-   *
    * @param recursive the recursive flag value to use; if the object to be deleted is a directory,
    *        the flag specifies whether the directory content should be recursively deleted as well
    * @return the updated options object
@@ -71,10 +69,8 @@ public final class DeleteOptions {
   }
 
   /**
-   * Sets the alluxioOnly flag.
-   *
    * @param alluxioOnly the alluxioOnly flag value to use; the flag specifies whether the file
-   *        content should be stored only in alluxio.
+   *        content should be removed from Alluxio, but not from UFS.
    * @return the updated options object
    */
   public DeleteOptions setAlluxioOnly(boolean alluxioOnly) {
@@ -91,8 +87,8 @@ public final class DeleteOptions {
       return false;
     }
     DeleteOptions that = (DeleteOptions) o;
-    return Objects.equal(mRecursive, that.mRecursive) && Objects.equal(mAlluxioOnly,
-        that.mAlluxioOnly);
+    return Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mAlluxioOnly, that.mAlluxioOnly);
   }
 
   @Override
