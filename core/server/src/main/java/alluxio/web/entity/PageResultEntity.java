@@ -14,7 +14,9 @@ package alluxio.web.entity;
 import alluxio.web.UIFileInfo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The web page grid result entity.
@@ -22,6 +24,7 @@ import java.util.List;
 public class PageResultEntity {
   private int mTotalCount = 0;
   private List<UIFileInfo> mPageData = new ArrayList<>();
+  private Map<String, Object> mArgumentMap = new HashMap<>();
 
   /**
    * Creates page result entity.
@@ -59,5 +62,21 @@ public class PageResultEntity {
    */
   public void setPageData(List<UIFileInfo> pageData) {
     mPageData = pageData;
+  }
+
+  /**
+   * Sets page data to display.
+   *
+   * @param argumentMap the argument map
+   */
+  public void setArgumentMap(Map<String, Object> argumentMap) {
+    mArgumentMap = argumentMap;
+  }
+
+  /**
+   * @return the page map
+   */
+  public Map<String, Object> getArgumentMap() {
+    return mArgumentMap;
   }
 }

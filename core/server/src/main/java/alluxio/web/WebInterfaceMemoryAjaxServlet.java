@@ -102,12 +102,16 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    PageResultEntity pageResultEntity = new PageResultEntity();
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
-    request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
-    request.setAttribute("fatalError", "");
-    request.setAttribute("showPermissions",
+    pageResultEntity.getArgumentMap().put("masterNodeAddress", mMaster.getRpcAddress().toString());
+    pageResultEntity.getArgumentMap().put("fatalError", "");
+    pageResultEntity.getArgumentMap().put("showPermissions",
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
     List<AlluxioURI> inMemoryFiles = mMaster.getFileSystemMaster().getInMemoryFiles();
@@ -129,14 +133,14 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
           fileInfos.add(new UIFileInfo(fileInfo));
         }
       } catch (FileDoesNotExistException e) {
-        request.setAttribute("fatalError",
-            "Error: File does not exist " + e.getLocalizedMessage());
-        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        pageResultEntity.getArgumentMap().put("fatalError", "Error: File does not exist "
+            + e.getLocalizedMessage());
+        response.getWriter().write(JSON.toJSONString(pageResultEntity));
         return;
       } catch (AccessControlException e) {
-        request.setAttribute("permissionError",
+        pageResultEntity.getArgumentMap().put("permissionError",
             "Error: File " + file + " cannot be accessed " + e.getMessage());
-        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        response.getWriter().write(JSON.toJSONString(pageResultEntity));
         return;
       }
     }
@@ -237,12 +241,11 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
         ? fileInfos.size() : offset + paginationOptionsEntity.getPageSize();
 
     List<UIFileInfo> subFileInfo = fileInfos.subList(offset, length);
-    PageResultEntity pageResultEntity = new PageResultEntity();
+
     pageResultEntity.setPageData(subFileInfo);
     pageResultEntity.setTotalCount(fileInfos.size());
     String json = JSON.toJSONString(pageResultEntity);
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
+
     response.getWriter().write(json);
   }
 }

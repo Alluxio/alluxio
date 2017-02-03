@@ -22,7 +22,7 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
-
+import alluxio.web.entity.PageResultEntity;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
@@ -86,17 +86,22 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    PageResultEntity pageResultEntity = new PageResultEntity();
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+
     String requestPath = request.getParameter("path");
     List<UIFileInfo> fileInfos = new ArrayList<>();
     String baseUrl = request.getParameter("baseUrl");
     if (baseUrl != null && baseUrl.contains("browseLogs")) {
-      request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
-      request.setAttribute("invalidPathError", "");
-      request.setAttribute("viewingOffset", 0);
-      request.setAttribute("downloadLogFile", 1);
-      request.setAttribute("baseUrl", "./browseLogs");
-      request.setAttribute("currentPath", "");
-      request.setAttribute("showPermissions", false);
+      pageResultEntity.getArgumentMap().put("debug", Configuration.getBoolean(PropertyKey.DEBUG));
+      pageResultEntity.getArgumentMap().put("invalidPathError", "");
+      pageResultEntity.getArgumentMap().put("viewingOffset", 0);
+      pageResultEntity.getArgumentMap().put("downloadLogFile", 1);
+      pageResultEntity.getArgumentMap().put("baseUrl", "./browseLogs");
+      pageResultEntity.getArgumentMap().put("currentPath", "");
+      pageResultEntity.getArgumentMap().put("showPermissions", false);
+
       String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
       if (requestPath == null || requestPath.isEmpty()) {
@@ -116,11 +121,13 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
         AuthenticatedClientUser.set(LoginUser.get().getName());
       }
-      request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
-      request.setAttribute("showPermissions",
+      pageResultEntity.getArgumentMap().put("debug", Configuration.getBoolean(PropertyKey.DEBUG));
+      pageResultEntity.getArgumentMap().put("showPermissions",
           Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
-      request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
-      request.setAttribute("invalidPathError", "");
+
+      pageResultEntity.getArgumentMap().put("masterNodeAddress",
+          mMaster.getRpcAddress().toString());
+      pageResultEntity.getArgumentMap().put("invalidPathError", "");
       if (requestPath == null || requestPath.isEmpty()) {
         requestPath = AlluxioURI.SEPARATOR;
       }
@@ -136,20 +143,22 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
         filesInfo = mMaster.getFileSystemMaster().listStatus(currentPath,
             ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
       } catch (FileDoesNotExistException e) {
-        request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());
-        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        pageResultEntity.getArgumentMap().put("invalidPathError",
+            "Error: Invalid Path " + e.getMessage());
+        response.getWriter().write(JSON.toJSONString(pageResultEntity));
         return;
       } catch (InvalidPathException e) {
-        request.setAttribute("invalidPathError", "Error: Invalid Path "
-            + e.getLocalizedMessage());
-        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        pageResultEntity.getArgumentMap().put("invalidPathError",
+            "Error: Invalid Path " + e.getLocalizedMessage());
+        response.getWriter().write(JSON.toJSONString(pageResultEntity));
         return;
       } catch (AccessControlException e) {
-        request.setAttribute("invalidPathError",
+        pageResultEntity.getArgumentMap().put("invalidPathError",
             "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
-        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        response.getWriter().write(JSON.toJSONString(pageResultEntity));
         return;
       }
+
       fileInfos = new ArrayList<>(filesInfo.size());
       for (FileInfo fileInfo : filesInfo) {
         UIFileInfo toAdd = new UIFileInfo(fileInfo);
@@ -169,26 +178,25 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
             toAdd.setFileLocations(locations);
           }
         } catch (FileDoesNotExistException e) {
-          request.setAttribute("FileDoesNotExistException",
+          pageResultEntity.getArgumentMap().put("FileDoesNotExistException",
               "Error: non-existing file " + e.getMessage());
-          getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+          response.getWriter().write(JSON.toJSONString(pageResultEntity));
           return;
         } catch (InvalidPathException e) {
-          request.setAttribute("InvalidPathException",
+          pageResultEntity.getArgumentMap().put("InvalidPathException",
               "Error: invalid path " + e.getMessage());
-          getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         } catch (AccessControlException e) {
-          request.setAttribute("AccessControlException",
+          pageResultEntity.getArgumentMap().put("AccessControlException",
               "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
-          getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+          response.getWriter().write(JSON.toJSONString(pageResultEntity));
           return;
         }
         fileInfos.add(toAdd);
       }
     }
-    String json = JSON.toJSONString(fileInfos);
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
+    pageResultEntity.setPageData(fileInfos);
+    pageResultEntity.setTotalCount(fileInfos.size());
+    String json = JSON.toJSONString(pageResultEntity);
     response.getWriter().write(json);
   }
 }
