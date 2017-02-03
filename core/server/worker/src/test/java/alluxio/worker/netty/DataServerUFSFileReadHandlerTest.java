@@ -13,6 +13,7 @@ package alluxio.worker.netty;
 
 import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.file.FileSystemWorker;
 
@@ -71,6 +72,6 @@ public final class DataServerUFSFileReadHandlerTest extends DataServerReadHandle
     Protocol.ReadRequest readRequest =
         Protocol.ReadRequest.newBuilder().setId(1L).setOffset(offset).setSessionId(1L)
             .setLength(len).setLockId(1L).setType(Protocol.RequestType.UFS_FILE).build();
-    return new RPCProtoMessage(readRequest, null);
+    return new RPCProtoMessage(new ProtoMessage(readRequest), null);
   }
 }
