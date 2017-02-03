@@ -13,7 +13,6 @@ package alluxio.network.protocol;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.ProtoMessage;
-import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
