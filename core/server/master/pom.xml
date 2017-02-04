@@ -45,6 +45,11 @@
       <artifactId>jersey-container-servlet-core</artifactId>
       <version>${jersey.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.alluxio</groupId>
@@ -62,6 +67,12 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-testlib</artifactId>
+      <version>19.0</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
