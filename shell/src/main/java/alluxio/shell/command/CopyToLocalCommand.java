@@ -61,6 +61,10 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws AlluxioException, IOException {
+    System.out
+        .println("The \"alluxio fs " + getUsage() + "\" command is deprecated since version 1.5.");
+    System.out.println("Use the \"alluxio fs cp <src> <dst>\" command instead. Local Path with "
+        + "schema \"file\".");
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     File dstFile = new File(args[1]);
