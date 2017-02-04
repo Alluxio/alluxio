@@ -185,7 +185,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
-        mClient.remove(path.getPath(), options.isRecursive());
+        mClient.remove(path.getPath(), options.isRecursive(), options.toThrift());
         return null;
       }
     });
