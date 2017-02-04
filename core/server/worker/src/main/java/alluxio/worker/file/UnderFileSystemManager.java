@@ -191,7 +191,7 @@ public final class UnderFileSystemManager {
       } else if (mStream instanceof Seekable) {
         ((Seekable) mStream).seek(position);
       } else {
-        throw new IOException("Unsupported operation.");
+        throw new IOException("UFS input stream does not implement seek().");
       }
       return mStream;
     }
