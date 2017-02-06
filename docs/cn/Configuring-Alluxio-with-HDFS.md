@@ -53,7 +53,6 @@ priority: 3
 
 # 配置Alluxio和HDFS之间的权限映射
 
-
 自v1.3以来，Alluxio默认支持文件系统[用户和权限检查](Security.html)。为了确保HDFS中包括用户，组和模式的文件/目录的权限信息与Alluxio一致，启动Alluxio master和worker进程的用户**要求**是以下任一情况：
 
 1. [HDFS超级用户](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User)。即，使用启动HDFS namenode进程的同一用户也启动Alluxio master和worker进程。
