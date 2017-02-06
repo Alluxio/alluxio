@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.thrift.DeleteTOptions;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -27,6 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @JsonInclude(Include.NON_EMPTY)
 public final class DeleteOptions {
   private boolean mRecursive;
+  private boolean mAlluxioOnly;
 
   /**
    * @return the default {@link DeleteOptions}
@@ -37,6 +39,7 @@ public final class DeleteOptions {
 
   private DeleteOptions() {
     mRecursive = false;
+    mAlluxioOnly = false;
   }
 
   /**
@@ -48,14 +51,30 @@ public final class DeleteOptions {
   }
 
   /**
-   * Sets the recursive flag.
-   *
+   * @return the mAlluxioOnly flag value; the flag specifies whether the file content should
+   *         be removed from Alluxio, but not from UFS.
+   */
+  public boolean isAlluxioOnly() {
+    return mAlluxioOnly;
+  }
+
+  /**
    * @param recursive the recursive flag value to use; if the object to be deleted is a directory,
    *        the flag specifies whether the directory content should be recursively deleted as well
    * @return the updated options object
    */
   public DeleteOptions setRecursive(boolean recursive) {
     mRecursive = recursive;
+    return this;
+  }
+
+  /**
+   * @param alluxioOnly the alluxioOnly flag value to use; the flag specifies whether the file
+   *        content should be removed from Alluxio, but not from UFS.
+   * @return the updated options object
+   */
+  public DeleteOptions setAlluxioOnly(boolean alluxioOnly) {
+    mAlluxioOnly = alluxioOnly;
     return this;
   }
 
@@ -68,18 +87,30 @@ public final class DeleteOptions {
       return false;
     }
     DeleteOptions that = (DeleteOptions) o;
-    return Objects.equal(mRecursive, that.mRecursive);
+    return Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mAlluxioOnly, that.mAlluxioOnly);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive);
+    return Objects.hashCode(mRecursive, mAlluxioOnly);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("recursive", mRecursive)
+        .add("alluxioOnly", mAlluxioOnly)
         .toString();
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public DeleteTOptions toThrift() {
+    DeleteTOptions options = new DeleteTOptions();
+    options.setRecursive(mRecursive);
+    options.setAlluxioOnly(mAlluxioOnly);
+    return options;
   }
 }
