@@ -13,7 +13,7 @@ Alluxio可以由Apache YARN启动并管理。该指南介绍如何使用Alluxio�
 [Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)在EC2的机器上用YARN启
 动Alluxio。
 
-# 前期准备
+## 前期准备
 
 **安装Vagrant和AWS插件**
 
@@ -41,7 +41,7 @@ Alluxio可以由Apache YARN启动并管理。该指南介绍如何使用Alluxio�
 
 {% include Running-Alluxio-on-EC2-Yarn/install-pip.md %}
 
-# 启动集群
+## 启动集群
 
 要在EC2上运行Alluxio集群，首先在[Amazon Web Services site](http://aws.amazon.com/)注册一个Amazon EC2帐号。
 
@@ -65,7 +65,7 @@ Vagrant脚本默认会在[区域(**us-east-1**)和可用区域(**us-east-1b**)](
 
 {% include Running-Alluxio-on-EC2-Yarn/launch-Alluxio.md %}
 
-# 访问集群
+## 访问集群
 
 **通过Web UI访问**
 
@@ -95,7 +95,7 @@ Hadoop Web UI的默认端口为**50070**。
 
 所有的软件都安装在根目录下，例如Alluxio安装在`/alluxio`，Hadoop安装在`/hadoop`。
 
-# 配置集成YARN的Alluxio
+## 配置集成YARN的Alluxio
 
 在我们的EC2机器上，YARN作为Hadoop2.4.1的一部分安装。注意，vagrant脚本构建的Alluxio二进制版本并不包含YARN
 的整合。需要先停止默认的Alluxio服务，重新编译Alluxio，编译时指定"yarn"配置文件(以便Alluxio包含YARN client
@@ -109,7 +109,7 @@ Hadoop Web UI的默认端口为**50070**。
 [配置设置](Configuration-Settings.html)获取更多信息。为了确保你的配置可以被ApplicationMaster和
 Alluxio master/worker读取,将`~/.alluxio`下的`alluxio-site.properties`放在每一台EC2机器上。
 
-# 启动Alluxio
+## 启动Alluxio
 
 如果Yarn不是存放在HADOOP_HOME目录下，则需要将Yarn的基本路径保存到YARN_HOME环境变量。
 
@@ -134,7 +134,7 @@ Alluxio master/worker读取,将`~/.alluxio`下的`alluxio-site.properties`放在
 
 从输出中，我们得知运行Alluxio的应用ID是**`application_1445469376652_0002`**。应用ID可以用来杀死该应用。
 
-# 测试Alluxio
+## 测试Alluxio
 
 知道Alluxio master容器的IP后，可以修改`conf/alluxio-env.sh`在每台EC2机器上建立`ALLUXIO_MASTER_HOSTNAME`环境变量：
 
@@ -153,7 +153,7 @@ Alluxio master/worker读取,将`~/.alluxio`下的`alluxio-site.properties`放在
 
 {% include Running-Alluxio-on-EC2-Yarn/kill-application.md %}
 
-# 撤销集群
+## 撤销集群
 
 在启动EC2机器的本地机器`deploy/vagrant`目录下运行：
 
@@ -161,7 +161,7 @@ Alluxio master/worker读取,将`~/.alluxio`下的`alluxio-site.properties`放在
 
 撤销之前创建的集群。一次只能创建一个集群。当该命令成功执行后，EC2实例将终止运行。
 
-# 故障排除
+## 故障排除
 
 1 如果使用maven编译集成YARN的Alluxio，编译时报错显示如下信息：
 

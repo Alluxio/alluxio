@@ -11,7 +11,7 @@ priority: 1
 
 Alluxio提供了访问数据的文件系统接口。Alluxio上的文件提供了一次写入的语义：文件全部被写入之后就不会改变，而且文件在写操作完成之前不能进行读操作。Alluxio提供了两种不同的文件系统API，本地API和兼容Hadoop的API。本地API具有更好的性能，而兼容Hadoop的API使用户可以灵活利用Alluxio，但没必要修改用Hadoop API写的代码。
 
-# 本地API
+## 本地API
 
 Alluxio提供了Java版的API来访问和修改Alluxio文件系统命名空间内的文件。所有资源都可以通过代表资源路径的`AlluxioURI`来访问。
 
@@ -107,7 +107,7 @@ Alluxio允许客户端在向本地worker写入数据块时选择偏好的存储�
 
 {% include File-System-API/read-file.md %}
 
-# REST API
+## REST API
 
 考虑到与其他语言的可移植性，Alluxio本地API也可以以REST API的形式通过HTTP代理访问。
 
@@ -117,7 +117,7 @@ HTTP代理是一个独立的服务器，可以通过`${ALLUXIO_HOME}/bin/alluxio
 
 使用HTTP代理会影响系统性能。特别是使用代理需要额外一跳来访问。为了获得最佳性能，建议在每个计算节点运行代理服务器和Alluxio worker进程。
 
-# Hadoop API
+## Hadoop API
 
 Alluxio有一个原生客户端的封装，其提供了兼容Hadoop的`FileSystem`接口。利用该客户端实例，Hadoop的文件操作将被转换为FileSystem操作。最新的`FileSystem`接口的文档可以在[这里](http://hadoop.apache.org/docs/current/api/org/apache/hadoop/fs/FileSystem.html)找到。
 

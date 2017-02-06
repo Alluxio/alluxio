@@ -25,10 +25,10 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * MetricsServlet: 添加Web UI中的servlet，作为JSON数据来为度量指标数据服务。
 * GangliaSink: 向Ganglia监控进程发送度量信息。
 
-# 配置
+## 配置
 度指标量系统可以通过配置文件进行配置，Alluxio中该文件默认位于`$ALLUXIO_HOME/conf/metrics.properties`。自定义文件位置可以通过`alluxio.metrics.conf.file`配置项来指定。Alluxio在conf目录下提供了一个metrics.properties.template文件，其包括所有可配置属性。默认情况下，MetricsServlet是生效的，你可以发送HTTP请求"/metrics/json"来获取一个以JSON格式表示的所有已注册度量信息的快照。
 
-# 支持的度量指标信息
+## 支持的度量指标信息
 
 度量指标信息可以被分为：
 
@@ -38,9 +38,9 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 
 下面详细展示了可用的度量指标信息。
 
-## Master
+### Master
 
-### 常规信息
+#### 常规信息
 
 * CapacityTotal: 文件系统总容量（以字节为单位）。
 * CapacityUsed: 文件系统中已使用的容量（以字节为单位）。
@@ -51,7 +51,7 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * UnderFsCapacityFree: 底层文件系统中未使用的容量（以字节为单位）。
 * Workers: Worker的数目。
 
-### 逻辑操作
+#### 逻辑操作
 
 * DirectoriesCreated: 创建的目录数目。
 * FileBlockInfosGot: 被检索的文件块数目。
@@ -67,7 +67,7 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * PathsRenamed: 重命名的文件和目录数目。
 * PathsUnmounted: 未被挂载的路径数目。
 
-### RPC调用
+#### RPC调用
 
 * CompleteFileOps: CompleteFile操作的数目。
 * CreateDirectoryOps: CreateDirectory操作的数目。
@@ -82,15 +82,15 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * SetStateOps: SetState操作的数目。
 * UnmountOps: Unmount操作的数目。
 
-## Worker
+### Worker
 
-### 常规信息
+#### 常规信息
 
 * CapacityTotal: 该Worker的总容量（以字节为单位）。
 * CapacityUsed: 该Worker已使用的容量（以字节为单位）。
 * CapacityFree: 该Worker未使用的容量（以字节为单位）。
 
-### 逻辑操作
+#### 逻辑操作
 
 * BlocksAccessed: 访问的数据块数目。
 * BlocksCached: 被缓存的数据块数目。
@@ -103,16 +103,15 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * NettyBlockWrite: 块写入请求的数目。
 * NettyBlockWriteFailures: 块写入请求失败的数目。
 
-## Client
+### Client
 
-### 常规信息
+#### 常规信息
 
 * NettyConnectionOpen: 当前Netty网络连接的数目。
 
-### 逻辑操作
+#### 逻辑操作
 
 * BytesReadRemote: 远程读取的字节数目。
 * BytesWrittenRemote: 远程写入的字节数目。
 * BytesReadUfs: 从ufs中读取的字节数目。
 * BytesWrittenUfs: 写入ufs的字节数目。
-

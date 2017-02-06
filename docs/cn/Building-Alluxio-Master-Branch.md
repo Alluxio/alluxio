@@ -40,7 +40,7 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 
 {% include Common-Commands/stop-alluxio.md %}
 
-# 单元测试
+## 单元测试
 
 运行所有单元测试：
 
@@ -58,45 +58,45 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 
 {% include Building-Alluxio-Master-Branch/STDOUT.md %}
 
-# 多种发行版支持
+## 多种发行版支持
 
 要针对不同hadoop发行版构建Alluxio，只需修改`hadoop.version`：
 
-## Apache
+### Apache
 
 由于所有主要构建版本都来自Apache，因此所有Apache发行版可以直接使用
 
 {% include Building-Alluxio-Master-Branch/Apache.md %}
 
-## Cloudera
+### Cloudera
 
 对于Cloudera发行版，使用该形式`$apacheRelease-cdh$cdhRelease`的版本号
 
 {% include Building-Alluxio-Master-Branch/Cloudera.md %}
 
-## MapR
+### MapR
 
 对于MapR发行版，其值为
 
 {% include Building-Alluxio-Master-Branch/MapR.md %}
 
-## Pivotal
+### Pivotal
 
 对于Pivotal发行版，使用`$apacheRelease-gphd-$pivotalRelease`形式的版本号
 
 {% include Building-Alluxio-Master-Branch/Pivotal.md %}
 
-## Hortonworks
+### Hortonworks
 
 对于Hortonworks发行版，使用`$apacheRelease.$hortonRelease`形式的版本号
 
 {% include Building-Alluxio-Master-Branch/Hortonworks.md %}
 
-# 系统设置
+## 系统设置
 
 有时为了在本地通过单元测试，需要进行些系统设置，常用的一个设置项为ulimit。
 
-## Mac
+### Mac
 
 为增加允许的文件以及进程数目，执行以下命令：
 
