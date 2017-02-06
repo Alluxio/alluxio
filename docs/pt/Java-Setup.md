@@ -3,6 +3,9 @@ layout: global
 title: Configuração Java
 ---
 
+* Table of Contents
+{:toc}
+
 # Mac OSX
 
 1.  Baixar a última versão Java JDK do site
