@@ -52,6 +52,9 @@ public abstract class AbstractClient implements Client {
   private static final Pattern FRAME_SIZE_EXCEPTION_PATTERN =
       Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
 
+  private static final int BASE_SLEEP_MS = 50;
+  private static final int MAX_SLEEP_MS = Constants.MINUTE_MS;
+
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY = 30;
 
@@ -167,9 +170,8 @@ public abstract class AbstractClient implements Client {
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
     int maxConnectsTry = Configuration.getInt(PropertyKey.MASTER_RETRY);
-    final int BASE_SLEEP_MS = 50;
     RetryPolicy retry =
-        new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
+        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, maxConnectsTry);
     while (!mClosed) {
       mAddress = getAddress();
       LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
@@ -313,8 +315,9 @@ public abstract class AbstractClient implements Client {
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws IOException,
       ConnectionFailedException {
-    int retry = 0;
-    while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
+    RetryPolicy retryPolicy =
+        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
+    while (!mClosed) {
       connect();
       try {
         return rpc.call();
@@ -326,8 +329,11 @@ public abstract class AbstractClient implements Client {
         LOG.error(e.getMessage(), e);
         disconnect();
       }
+      if (!retryPolicy.attemptRetry()) {
+        break;
+      }
     }
-    throw new IOException("Failed after " + retry + " retries.");
+    throw new IOException("Failed after " + retryPolicy.getRetryCount() + " retries.");
   }
 
   /**
@@ -344,8 +350,9 @@ public abstract class AbstractClient implements Client {
    */
   protected synchronized <V> V retryRPC(RpcCallableThrowsAlluxioTException<V> rpc)
       throws AlluxioException, IOException {
-    int retry = 0;
-    while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
+    RetryPolicy retryPolicy =
+        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
+    while (!mClosed) {
       connect();
       try {
         return rpc.call();
@@ -357,7 +364,10 @@ public abstract class AbstractClient implements Client {
         LOG.error(e.getMessage(), e);
         disconnect();
       }
+      if (!retryPolicy.attemptRetry()) {
+        break;
+      }
     }
-    throw new IOException("Failed after " + retry + " retries.");
+    throw new IOException("Failed after " + retryPolicy.getRetryCount() + " retries.");
   }
 }
