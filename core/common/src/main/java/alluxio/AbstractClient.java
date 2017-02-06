@@ -52,11 +52,14 @@ public abstract class AbstractClient implements Client {
   private static final Pattern FRAME_SIZE_EXCEPTION_PATTERN =
       Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
 
-  private static final int BASE_SLEEP_MS = 50;
-  private static final int MAX_SLEEP_MS = Constants.MINUTE_MS;
+  private static final int BASE_SLEEP_MS =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+  private static final int MAX_SLEEP_MS =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
 
   /** The number of times to retry a particular RPC. */
-  protected static final int RPC_MAX_NUM_RETRY = 30;
+  protected static final int RPC_MAX_NUM_RETRY =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
 
   protected final String mMode;
 

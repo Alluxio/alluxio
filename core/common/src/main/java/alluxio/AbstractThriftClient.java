@@ -35,9 +35,12 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final int RPC_MAX_NUM_RETRY = 30;
-  private static final int BASE_SLEEP_MS = 50;
-  private static final int MAX_SLEEP_MS = Constants.MINUTE_MS;
+  private static final int BASE_SLEEP_MS =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+  private static final int MAX_SLEEP_MS =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+  private static final int RPC_MAX_NUM_RETRY =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
 
   /**
    * If the implementation of this function guarantees that the client returned will not
