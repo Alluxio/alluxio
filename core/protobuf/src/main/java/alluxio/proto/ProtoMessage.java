@@ -17,7 +17,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
 
 /**
- * A simple wrapper around Protobuf MessageLite.
+ * A simple wrapper around Protobuf MessageLite for messages generated.
  */
 public final class ProtoMessage {
 
@@ -28,36 +28,67 @@ public final class ProtoMessage {
   }
 
   private MessageLite mMessage;
-
   private Type mType;
 
+  /**
+   * Constructs a {@link ProtoMessage} instance wrapping around {@link Protocol.ReadRequest}.
+   *
+   * @param message the message to wrap
+   */
   public ProtoMessage(Protocol.ReadRequest message) {
     this(message, Type.READ_REQUEST);
   }
 
+
+  /**
+   * Constructs a {@link ProtoMessage} instance wrapping around {@link Protocol.WriteRequest}.
+   *
+   * @param message the message to wrap
+   */
   public ProtoMessage(Protocol.WriteRequest message) {
     this(message, Type.WRITE_REQUEST);
   }
 
+  /**
+   * Constructs a {@link ProtoMessage} instance wrapping around {@link Protocol.Response}.
+   *
+   * @param message the message to wrap
+   */
   public ProtoMessage(Protocol.Response message) {
     this(message, Type.RESPONSE);
   }
 
-  ProtoMessage(MessageLite message, Type type) {
+  /**
+   * Constructs a {@link ProtoMessage} instance wrapping around {@link MessageLite}.
+   *
+   * @param message the message to wrap
+   */
+  public ProtoMessage(MessageLite message, Type type) {
     mMessage = message;
     mType = type;
   }
 
+  /**
+   * @param <T> the type T
+   *
+   * @return the unwrapped message as type T
+   */
   public <T> T getMessage() {
     @SuppressWarnings("unchecked")
     T ret = (T) mMessage;
     return ret;
   }
 
+  /**
+   * @return the type of message wrapped
+   */
   public Type getType() {
     return mType;
   }
 
+  /**
+   * @return the serialized message as byte array
+   */
   public byte[] toByteArray() {
     return mMessage.toByteArray();
   }
@@ -80,8 +111,7 @@ public final class ProtoMessage {
       }
       return new ProtoMessage(message, type);
     } catch (InvalidProtocolBufferException e) {
-      // Runtime exception will not kill the netty server.
-      throw new RuntimeException(e);
+      throw new IllegalArgumentException(e);
     }
   }
 }
