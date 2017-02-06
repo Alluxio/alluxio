@@ -5,6 +5,9 @@ nickname: 开发者上手指南
 group: Resources
 ---
 
+* Table of Contents
+{:toc}
+
 欢迎来到Alluxio社区，我们热烈欢迎你参与到我们的社区和对社区进行贡献。本页面提供了如何参与到Alluxio开源项目社区并成为其中一员的指导。
 
 ## 系统需要

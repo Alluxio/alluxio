@@ -5,6 +5,9 @@ group: Features
 priority: 0
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio命令行接口为用户提供了基本的文件系统操作，可以使用以下语法调用命令行功能：
 
 {% include Command-Line-Interface/alluxio-fs.md %}

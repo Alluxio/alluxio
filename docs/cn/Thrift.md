@@ -3,6 +3,9 @@ layout: global
 title: Thrift
 ---
 
+* Table of Contents
+{:toc}
+
 # Mac OS X
 
 在安装[Apache Thift](http://thrift.apache.org)之前，你首先需要有命令行支持。为此，你需要：

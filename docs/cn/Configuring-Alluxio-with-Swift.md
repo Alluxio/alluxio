@@ -6,6 +6,9 @@ group: Under Store
 priority: 1
 ---
 
+* Table of Contents
+{:toc}
+
 该指南介绍如何配置Alluxio从而使其底层存储系统支持[Swift API](http://docs.openstack.org/developer/swift/)。
 
 # 初始安装步骤
@@ -14,9 +17,9 @@ priority: 1
 
 然后，如果你还没有配置文件，可以使用`bootstrapConf`命令来创建自己的配置文件。
 举个例子，假如你正在本地运行Alluxio，那么就应该把`ALLUXIO_MASTER_HOSTNAME`设置为`localhost`。
-              
+
 {% include Configuring-Alluxio-with-Swift/bootstrapConf.md %}
-              
+
 另外你也可以由template文件创建配置文件，并且手动修改它的内容：
 
 {% include Common-Commands/copy-alluxio-env.md %}
@@ -33,7 +36,7 @@ priority: 1
 以下的配置项也应包含在`conf/alluxio-site.properties`文件中：
 
 {% include Configuring-Alluxio-with-Swift/several-configurations.md %}
-  	
+
 `<swift-use-public>`的值为`true`或`false`。
 `<swift-auth-model>`的值为`keystone`、`tempauth`或`swiftauth`。
 当采用`keystone`认证时，下面的参数可以有选择地设置：
@@ -50,7 +53,7 @@ priority: 1
 
 使用Swift模块也使得IBM SoftLayer对象存储可以作为Alluxio底层存储系统的一种选择。
 SoftLayer需要将`<swift-auth-model>`设置为`swiftauth`。
- 
+
 # 在本地Swift上运行Alluxio
 
 所有配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：

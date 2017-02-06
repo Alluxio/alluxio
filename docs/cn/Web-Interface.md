@@ -75,7 +75,7 @@ workers页面将所有Alluxio worker节点分为两类显示：
 
 * **失效节点** 所有被master宣布失效的worker列表，通常是因为等待worker心跳超时，可能的原因包括worker系统重启或网络故障。
 
-## Master度量信息 
+## Master度量信息
 
 点击导航栏中的“Metrics”选项卡即可浏览master的度量信息。
 

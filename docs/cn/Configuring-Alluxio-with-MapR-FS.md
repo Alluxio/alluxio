@@ -6,6 +6,9 @@ group: Under Store
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 该指南介绍如何配置Alluxio以使用[MapR-FS](https://www.mapr.com/products/mapr-fs)作为底层存储系统。
 
 # 以特定MapR版本编译Alluxio
@@ -55,7 +58,7 @@ alluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///
 # 配置Alluxio以使用MapR-FS作为底层文件系统
 
 有多种方式配置Alluxio以使用MapR-FS作为底层文件系统。如果你需要将MapR-FS挂载到Alluxio的根目录，添加以下配置项到`conf/alluxio-site.properties`属性文件中：
- 
+
 ```
 alluxio.underfs.address=maprfs:///<path in MapR-FS>/
 ```

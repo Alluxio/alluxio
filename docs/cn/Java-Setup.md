@@ -3,6 +3,9 @@ layout: global
 title: Java安装
 ---
 
+* Table of Contents
+{:toc}
+
 # Mac OSX
 
 1.  从[Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)下载最新版的Java JDK。

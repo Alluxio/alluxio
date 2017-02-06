@@ -6,6 +6,9 @@ group: Under Store
 priority: 4
 ---
 
+* Table of Contents
+{:toc}
+
 该指南介绍如何配置Alluxio以使用[Aliyun OSS](http://www.aliyun.com/product/oss/?lang=en)作为底层文件系统。对象存储服务（OSS）是阿里云提供的一个大容量、安全、高可靠性的云存储服务。
 
 ## 初始步骤

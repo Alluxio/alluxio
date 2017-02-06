@@ -1,10 +1,13 @@
 ---
 layout: global
-title: 在NFS上配置Alluxio 
+title: 在NFS上配置Alluxio
 nickname: Alluxio使用NFS
 group: Under Store
 priority: 5
 ---
+
+* Table of Contents
+{:toc}
 
 该指南介绍如何配置Alluxio以使用[NFS](http://nfs.sourceforge.net)作为底层文件系统。
 
@@ -29,7 +32,7 @@ $ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 
 {% include Configuring-Alluxio-with-NFS/underfs-address.md %}
 
-# 使用NFS运行Alluxio 
+# 使用NFS运行Alluxio
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 

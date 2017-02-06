@@ -5,7 +5,7 @@ nickname: 构建主分支
 group: Resources
 ---
 
-* 内容列表
+* Table of Contents
 {:toc}
 
 该指南介绍如何从头编译Alluxio。

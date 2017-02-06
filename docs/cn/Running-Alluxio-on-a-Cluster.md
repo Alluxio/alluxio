@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 2
 ---
 
+* Table of Contents
+{:toc}
+
 ## 独立集群
 
 下载`Alluxio` tar文件并解压：

@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 4
 ---
 
+* Table of Contents
+{:toc}
+
 使用Alluxio自带的
 [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)脚本可以将Alluxio部署在Google计算引擎（GCE）上。该脚本允许你创建，配置以及撤销集群。
 

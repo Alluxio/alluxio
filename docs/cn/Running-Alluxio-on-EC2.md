@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 使用Alluxio自带的[Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)可以将
 Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及撤销集群。
 

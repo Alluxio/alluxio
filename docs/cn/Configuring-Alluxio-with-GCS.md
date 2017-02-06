@@ -1,10 +1,13 @@
 ---
 layout: global
-title: 在GCS上配置Alluxio 
-nickname: Alluxio使用GCS 
+title: 在GCS上配置Alluxio
+nickname: Alluxio使用GCS
 group: Under Store
 priority: 0
 ---
+
+* Table of Contents
+{:toc}
 
 该指南介绍如何配置Alluxio以使用[Google Cloud Storage](https://cloud.google.com/storage/)作为底层文件系统。
 

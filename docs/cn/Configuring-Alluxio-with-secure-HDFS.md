@@ -6,6 +6,9 @@ group: Under Store
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 该指南介绍如何配置Alluxio从而使用[安全认证模式下的HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)作为底层文件系统。Alluxio支持安全认证模式下的HDFS作为底层文件系统，通过[Kerberos](http://web.mit.edu/kerberos/)认证。
 
 注：在HDFS安全认证模式下的Kerberos认证不是Alluxio通过Kerberos进行内部的认证
@@ -30,9 +33,9 @@ priority: 3
 
 要运行二进制包，一定要先创建配置文件，你可以使用`bootstrapConf` 命令来创建自己的配置文件。
 举个例子，假如你正在本地运行Alluxio，那么就应该把`ALLUXIO_MASTER_HOSTNAME`设置为`localhost`
-                   
+
 {% include Configuring-Alluxio-with-HDFS/bootstrapConf.md %}
-                   
+
 另外你也可以从template文件创建一个配置文件然后手动修改它的内容。
 
 {% include Common-Commands/copy-alluxio-env.md %}

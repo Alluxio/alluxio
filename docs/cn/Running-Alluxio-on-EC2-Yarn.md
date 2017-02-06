@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 5
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio可以由Apache YARN启动并管理。该指南介绍如何使用Alluxio自带的
 [Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)在EC2的机器上用YARN启
 动Alluxio。

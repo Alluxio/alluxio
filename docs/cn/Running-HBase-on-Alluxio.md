@@ -6,6 +6,9 @@ group: Frameworks
 priority: 2
 ---
 
+* Table of Contents
+{:toc}
+
 该文档介绍如何运行[Apache HBase](http://hbase.apache.org/)，以能够在不同存储层将HBase的表格存储到Alluxio当中。
 
 # 前期准备
@@ -114,4 +117,3 @@ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 在这个mapreduce作业结束后，会看到如下结果：
 
 ![HBaseHadoopOutput]({{site.data.img.screenshot_hbase_hadoop_output}})
-

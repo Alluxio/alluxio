@@ -3,6 +3,9 @@ layout: global
 title: Maven
 ---
 
+* Table of Contents
+{:toc}
+
 # Mac OS X
 
 在OS X Mavericks之前，Mac OS X自带了Apache Maven 3,安装在`/usr/share/maven`目录下。

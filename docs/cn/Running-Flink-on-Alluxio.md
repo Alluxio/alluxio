@@ -6,6 +6,9 @@ group: Frameworks
 priority: 2
 ---
 
+* Table of Contents
+{:toc}
+
 该指南介绍如何在Alluxio上运行[Apache Flink](http://flink.apache.org/),以便你在Flink中使用Alluxio的文件。
 
 # 前期准备
@@ -31,7 +34,7 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 #### 在`conf/flink-conf.yaml`中指定`core-site.xml`的路径
 
-接下来需要指定Flink中Hadoop配置的路径。打开Flink根目录下`conf/flink-conf.yaml`文件，设置`fs.hdfs.hadoopconf`的值为`core-site.xml`的**目录**（对于新的Hadoop版本，该目录通常以`etc/hadoop`结尾）。 
+接下来需要指定Flink中Hadoop配置的路径。打开Flink根目录下`conf/flink-conf.yaml`文件，设置`fs.hdfs.hadoopconf`的值为`core-site.xml`的**目录**（对于新的Hadoop版本，该目录通常以`etc/hadoop`结尾）。
 
 #### 构建及布置Alluxio客户端Jar包
 
