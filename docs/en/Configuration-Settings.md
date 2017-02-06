@@ -221,8 +221,7 @@ The user configuration specifies values regarding file system access.
 
 ### Cluster Management
 
-When running Alluxio with cluster managers like Mesos and YARN, Alluxio has additional
-configuration options.
+When running Alluxio with cluster managers like Mesos and YARN, Alluxio has additional configuration options.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
@@ -237,10 +236,7 @@ configuration options.
 
 ### Security Configuration
 
-The security configuration specifies information regarding the security features,
-such as authentication and file permission. Properties for authentication take effect for master,
-worker, and user. Properties for file permission only take effect for master.
-See [Security](Security.html) for more information about security features.
+The security configuration specifies information regarding the security features, such as authentication and file permission. Properties for authentication take effect for master, worker, and user. Properties for file permission only take effect for master. See [Security](Security.html) for more information about security features.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
@@ -255,8 +251,4 @@ See [Security](Security.html) for more information about security features.
 
 ### Configure multihomed networks
 
-Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more
-than one NICs and you want your Alluxio master to listen on all NICs, you can specify
-`alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node
-from connecting to any of its NIC. This is also the same case for other properties suffixed with
-`bind.host`.
+Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more than one NICs and you want your Alluxio master to listen on all NICs, you can specify `alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node from connecting to any of its NIC. This is also the same case for other properties suffixed with `bind.host`.

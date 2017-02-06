@@ -10,8 +10,7 @@ group: Resources
 
 This guide describes how to compile Alluxio from the beginning.
 
-The prerequisite for this guide is that you have [Java 7 (or above)](Java-Setup.html),
-[Maven](Maven.html), and [Thrift 0.9.3](Thrift.html) (Optional) installed.
+The prerequisite for this guide is that you have [Java 7 (or above)](Java-Setup.html), [Maven](Maven.html), and [Thrift 0.9.3](Thrift.html) (Optional) installed.
 
 Checkout the Alluxio master branch from Github and package:
 
@@ -21,19 +20,15 @@ If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please execute:
 
 {% include Building-Alluxio-Master-Branch/OutOfMemoryError.md %}
 
-If you want to build a particular version of Alluxio, for example {{site.ALLUXIO_RELEASED_VERSION}},
-please do `git checkout v{{site.ALLUXIO_RELEASED_VERSION}}` after `cd alluxio`.
+If you want to build a particular version of Alluxio, for example {{site.ALLUXIO_RELEASED_VERSION}}, please do `git checkout v{{site.ALLUXIO_RELEASED_VERSION}}` after `cd alluxio`.
 
-The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages
-the system. If this is the first time you are building the project, it can take a while to download
-all the dependencies. Subsequent builds, however, will be much faster.
+The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages the system. If this is the first time you are building the project, it can take a while to download all the dependencies. Subsequent builds, however, will be much faster.
 
 Once Alluxio is built, you can start it with:
 
 {% include Common-Commands/start-alluxio.md %}
 
-To verify that Alluxio is running, you can visit [http://localhost:19999](http://localhost:19999) or
-check the log in the `alluxio/logs` directory. You can also run a simple program:
+To verify that Alluxio is running, you can visit [http://localhost:19999](http://localhost:19999) or check the log in the `alluxio/logs` directory. You can also run a simple program:
 
 {% include Common-Commands/runTests.md %}
 
@@ -100,8 +95,7 @@ To build against a Hortonworks release, just use a version like `$apacheRelease.
 
 # System Settings
 
-Sometimes you will need to play with a few system settings in order to have the unit tests pass
-locally.  A common setting that may need to be set is ulimit.
+Sometimes you will need to play with a few system settings in order to have the unit tests pass locally.  A common setting that may need to be set is ulimit.
 
 ## Mac
 
@@ -109,7 +103,4 @@ In order to increase the number of files and processes allowed, run the followin
 
 {% include Building-Alluxio-Master-Branch/increase-number.md %}
 
-It is also recommended to exclude your local clone of Alluxio from Spotlight indexing. Otherwise,
-your Mac may hang constantly trying to re-index the file system during the unit tests.  To do this,
-go to `System Preferences > Spotlight > Privacy`, click the `+` button, browse to the directory
-containing your local clone of Alluxio, and click `Choose` to add it to the exclusions list.
+It is also recommended to exclude your local clone of Alluxio from Spotlight indexing. Otherwise, your Mac may hang constantly trying to re-index the file system during the unit tests.  To do this, go to `System Preferences > Spotlight > Privacy`, click the `+` button, browse to the directory containing your local clone of Alluxio, and click `Choose` to add it to the exclusions list.
