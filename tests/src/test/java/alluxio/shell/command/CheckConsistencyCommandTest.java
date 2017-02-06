@@ -34,6 +34,9 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     mFsShell.run("checkConsistency", "/testRoot");
     String expected = "/testRoot is consistent with the under storage system.\n";
     Assert.assertEquals(expected, mOutput.toString());
+    mOutput.reset();
+    mFsShell.run("checkConsistency", "-r", "/testRoot");
+    Assert.assertEquals(expected, mOutput.toString());
   }
 
   /**
@@ -54,5 +57,31 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     expected.append("/testRoot/testDir\n");
     expected.append("/testRoot/testDir/testFileB\n");
     Assert.assertEquals(expected.toString(), mOutput.toString());
+
+    mOutput.reset();
+    mFsShell.run("checkConsistency", "-r", "/testRoot");
+    String res = mOutput.toString();
+    Assert.assertTrue(res.contains("/testRoot" + "have: " + "2 files inconsistent.\n")
+        && res.contains("repairing path: " + "/testRoot/testDir\n")
+        && res.contains("repairing path: " + "/testRoot/testDir/testFileB\n"));
+    Assert.assertTrue(!mFileSystem.exists(new AlluxioURI("/testRoot/testDir")));
+    Assert.assertTrue(!mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB")));
+
+    mOutput.reset();
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+        WriteType.CACHE_THROUGH, 20);
+    ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB")).getUfsPath();
+    ufs.deleteFile(ufsPath);
+    ufs.create("/testRoot/testDir/testFileB");
+    mFsShell.run("checkConsistency", "-r", "/testRoot");
+    res = mOutput.toString();
+    Assert.assertTrue(res.contains("/testRoot" + "have: " + "1 files inconsistent.\n")
+        && res.contains("repairing path: " + "/testRoot/testDir/testFileB\n"));
+    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
+        .getLength() == 0);
+
+    ufs.create("/testRoot/testDir/testFileC");
+    mFsShell.run("checkConsistency", "-r", "/testRoot");
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileC")));
   }
 }

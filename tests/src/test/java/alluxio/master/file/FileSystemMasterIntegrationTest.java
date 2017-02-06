@@ -32,6 +32,7 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteFileOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.RenameOptions;
@@ -317,7 +318,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
-    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
+    mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteFileOptions.defaults()
+        .setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
   }
@@ -337,7 +339,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
     try {
-      mFsMaster.delete(new AlluxioURI("/testFolder/testFolder2"), false);
+      mFsMaster.delete(new AlluxioURI("/testFolder/testFolder2"), DeleteFileOptions.defaults()
+          .setRecursive(false));
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
@@ -358,7 +361,8 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
-    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
+    mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteFileOptions.defaults()
+        .setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -371,7 +375,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     try {
-      mFsMaster.delete(new AlluxioURI("/testFolder"), false);
+      mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteFileOptions.defaults()
+          .setRecursive(false));
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
@@ -386,7 +391,8 @@ public class FileSystemMasterIntegrationTest {
   public void deleteEmptyDirectory() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
-    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
+    mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteFileOptions.defaults()
+        .setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -395,7 +401,7 @@ public class FileSystemMasterIntegrationTest {
   public void deleteFile() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFile")));
-    mFsMaster.delete(new AlluxioURI("/testFile"), true);
+    mFsMaster.delete(new AlluxioURI("/testFile"), DeleteFileOptions.defaults().setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new AlluxioURI("/testFile")));
   }
 
@@ -403,7 +409,7 @@ public class FileSystemMasterIntegrationTest {
   public void deleteRoot() throws Exception {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
-    mFsMaster.delete(new AlluxioURI("/"), true);
+    mFsMaster.delete(new AlluxioURI("/"), DeleteFileOptions.defaults().setRecursive(true));
   }
 
   @Test
@@ -446,7 +452,8 @@ public class FileSystemMasterIntegrationTest {
     long folderId = mFsMaster.getFileId(new AlluxioURI("/testFolder"));
     long modificationTimeBeforeDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
     CommonUtils.sleepMs(2);
-    mFsMaster.delete(new AlluxioURI("/testFolder/testFile"), true);
+    mFsMaster.delete(new AlluxioURI("/testFolder/testFile"), DeleteFileOptions.defaults()
+        .setRecursive(true));
     long modificationTimeAfterDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
     Assert.assertTrue(modificationTimeBeforeDelete < modificationTimeAfterDelete);
   }
@@ -882,7 +889,7 @@ public class FileSystemMasterIntegrationTest {
     }
 
     private void doDelete(AlluxioURI path) throws Exception {
-      mFsMaster.delete(path, true);
+      mFsMaster.delete(path, DeleteFileOptions.defaults().setRecursive(true));
       Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
@@ -1022,7 +1029,7 @@ public class FileSystemMasterIntegrationTest {
         id = random.nextInt(mFiles.length);
         try {
           // Delete a random file.
-          mFsMaster.delete(mFiles[id], false);
+          mFsMaster.delete(mFiles[id], DeleteFileOptions.defaults().setRecursive(false));
         } catch (FileDoesNotExistException e) {
           // Ignore
         } catch (Exception e) {
