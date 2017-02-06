@@ -3,6 +3,9 @@ layout: global
 title: Maven
 ---
 
+* Table of Contents
+{:toc}
+
 ## Mac OS X
 
 Before OS X Mavericks, Mac OS X comes with Apache Maven 3 built in, and can be located at

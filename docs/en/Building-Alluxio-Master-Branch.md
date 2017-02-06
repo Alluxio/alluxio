@@ -40,7 +40,7 @@ You can also stop the system by using:
 
 {% include Common-Commands/stop-alluxio.md %}
 
-# Unit Tests
+## Unit Tests
 
 To run all unit tests:
 
@@ -58,46 +58,46 @@ To have the logs output to STDOUT, append the following to the `mvn` command
 
 {% include Building-Alluxio-Master-Branch/STDOUT.md %}
 
-# Distro Support
+## Distro Support
 
 To build Alluxio against one of the different distros of hadoop, you only need to change the
 `hadoop.version`.
 
-## Apache
+### Apache
 
 All main builds are from Apache so all Apache releases can be used directly
 
 {% include Building-Alluxio-Master-Branch/Apache.md %}
 
-## Cloudera
+### Cloudera
 
 To build against Cloudera's releases, just use a version like `$apacheRelease-cdh$cdhRelease`
 
 {% include Building-Alluxio-Master-Branch/Cloudera.md %}
 
-## MapR
+### MapR
 
 To build against a MapR release
 
 {% include Building-Alluxio-Master-Branch/MapR.md %}
 
-## Pivotal
+### Pivotal
 
 To build against a Pivotal release, just use a version like `$apacheRelease-gphd-$pivotalRelease`
 
 {% include Building-Alluxio-Master-Branch/Pivotal.md %}
 
-## Hortonworks
+### Hortonworks
 
 To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonRelease`
 
 {% include Building-Alluxio-Master-Branch/Hortonworks.md %}
 
-# System Settings
+## System Settings
 
 Sometimes you will need to play with a few system settings in order to have the unit tests pass locally.  A common setting that may need to be set is ulimit.
 
-## Mac
+### Mac
 
 In order to increase the number of files and processes allowed, run the following
 
