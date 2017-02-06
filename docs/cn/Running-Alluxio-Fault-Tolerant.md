@@ -115,3 +115,11 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
     -Dalluxio.zookeeper.address=[zookeeper_hostname]:2181
 
 在client应用中正确设置，应用可以咨询ZooKeeper获取当前 leader master。
+
+#### HDFS API
+
+如果使用HDFS API与容错模式的Alluxio通信，使用`alluxio-ft://`模式来代替`alluxio://`。在URL中的所有主机名都将被忽略，相应地，`alluxio.zookeeper.address`配置会被读取，从而寻找Alluxio leader master。
+
+```bash
+hadoop fs -ls alluxio-ft:///directory
+```
