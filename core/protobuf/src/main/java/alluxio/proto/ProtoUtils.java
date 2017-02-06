@@ -21,6 +21,14 @@ import java.io.InputStream;
  */
 public final class ProtoUtils {
 
+  /**
+   * A wrapper of {@link CodedInputStream#readRawVarint32(InputStream)}.
+   *
+   * @param firstByte first byte in the input stream
+   * @param input input stream
+   * @return an int value read from the input stream
+   * @throws IOException if the proto message being parsed is invalid
+   */
   public static int readRawVarint32(int firstByte, InputStream input) throws IOException {
     return CodedInputStream.readRawVarint32(firstByte, input);
   }

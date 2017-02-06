@@ -17,7 +17,10 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
 
 /**
- * A simple wrapper around Protobuf MessageLite for messages generated.
+ * A simple wrapper around the MessageLite class in Protobuf for a few messages defined and
+ * generated in Alluxio. In other parts of Alluxio code base that are outside of this module,
+ * use this class to replace MessageLite when it must reference MessageLite as a base class of
+ * different generated messages. This class is intended to be used internally only.
  */
 public final class ProtoMessage {
 
@@ -93,6 +96,13 @@ public final class ProtoMessage {
     return mMessage.toByteArray();
   }
 
+  /**
+   * Parses a serialized bytes array into an instance denoted by type.
+   *
+   * @param type type of the class to parse to
+   * @param serialized input byte array
+   * @return instance as parsing result
+   */
   public static ProtoMessage parseFrom(Type type, byte[] serialized) {
     MessageLite message;
     try {
@@ -107,7 +117,7 @@ public final class ProtoMessage {
           message = Protocol.Response.parseFrom(serialized);
           break;
         default:
-          throw new IllegalArgumentException("Unknown class");
+          throw new IllegalArgumentException("Unknown class type " + type.toString());
       }
       return new ProtoMessage(message, type);
     } catch (InvalidProtocolBufferException e) {
