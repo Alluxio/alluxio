@@ -29,6 +29,7 @@ import alluxio.master.file.meta.MutableLockedInodePath;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteFileOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.RenameOptions;
@@ -512,7 +513,8 @@ public final class PermissionCheckTest {
 
   private void verifyDelete(TestUser user, String path, boolean recursive) throws Exception {
     AuthenticatedClientUser.set(user.getUser());
-    mFileSystemMaster.delete(new AlluxioURI(path), recursive);
+    mFileSystemMaster.delete(new AlluxioURI(path), DeleteFileOptions.defaults()
+        .setRecursive(recursive));
 
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(path)));
   }
