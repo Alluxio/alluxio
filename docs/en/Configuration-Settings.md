@@ -11,7 +11,7 @@ priority: 1
 This page explains the configuration system of Alluxio and also provides recommendation on how to customize the configuration
 for Alluxio in different contexts.
 
-# Configuration in Alluxio
+## Configuration in Alluxio
 
 Alluxio runtime respects three sources of configuration settings:
 
@@ -28,7 +28,7 @@ as well as applications.
 The priority to load property values, from the highest to the lowest, is
 application settings (if any), environment variables, property files and the defaults.
 
-## Application settings
+### Application settings
 
 Alluxio shell users can use `-Dkey=property` to specify an Alluxio configuration value in commandline. For example,
 
@@ -43,7 +43,7 @@ Hadoop MapReduce users can set `"-Dkey=property"` in `hadoop jar` command-lines 
 
 Note that, setting Alluxio configuration in this way is application specific and required for each job or command.
 
-## Environment variables
+### Environment variables
 
 > When you want to
 > [start Alluxio server processes](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html)
@@ -110,7 +110,7 @@ Alternatively, you can create one from a template we provided in the source code
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-## Property files
+### Property files
 
 > Alluxio site property file `alluxio-site.properties` can overwrite Alluxio configuration regardless the JVM is an Alluxio server process or a job using Alluxio client.
 > For the site property file to be loaded, either the parent directory of this file is a part of the classpath of your target JVM process, or the file is in one of the pre-defined paths.
@@ -148,7 +148,7 @@ Alternatively, with access to paths like `/etc/`, one can copy the site properti
 across processes regardless the JVM is an Alluxio server or a job using Alluxio client.
 
 
-# Appendix
+## Appendix
 All Alluxio configuration properties fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration),
@@ -156,7 +156,7 @@ All Alluxio configuration properties fall into one of the six categories:
 Alluxio with cluster managers like Mesos and YARN), and
 [Security specific](#security-configuration) (shared by Master, Worker, and User).
 
-## Common Configuration
+### Common Configuration
 
 The common configuration contains constants shared by different components.
 
@@ -171,7 +171,7 @@ The common configuration contains constants shared by different components.
 {% endfor %}
 </table>
 
-## Master Configuration
+### Master Configuration
 
 The master configuration specifies information regarding the master node, such as the address and
 the port number.
@@ -187,7 +187,7 @@ the port number.
 {% endfor %}
 </table>
 
-## Worker Configuration
+### Worker Configuration
 
 The worker configuration specifies information regarding the worker nodes, such as the address and
 the port number.
@@ -204,7 +204,7 @@ the port number.
 </table>
 
 
-## User Configuration
+### User Configuration
 
 The user configuration specifies values regarding file system access.
 
@@ -219,7 +219,7 @@ The user configuration specifies values regarding file system access.
 {% endfor %}
 </table>
 
-## Cluster Management
+### Cluster Management
 
 When running Alluxio with cluster managers like Mesos and YARN, Alluxio has additional
 configuration options.
@@ -235,7 +235,7 @@ configuration options.
 {% endfor %}
 </table>
 
-## Security Configuration
+### Security Configuration
 
 The security configuration specifies information regarding the security features,
 such as authentication and file permission. Properties for authentication take effect for master,
@@ -253,7 +253,7 @@ See [Security](Security.html) for more information about security features.
 {% endfor %}
 </table>
 
-## Configure multihomed networks
+### Configure multihomed networks
 
 Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more
 than one NICs and you want your Alluxio master to listen on all NICs, you can specify

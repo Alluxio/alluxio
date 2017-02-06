@@ -23,7 +23,7 @@ SIMPLE indicates that server trusts whoever the client claims to be.
 See [Security specific configuration](Configuration-Settings.html#security-configuration) to
 enable and use security features.
 
-# Authentication
+## Authentication
 
 Alluxio provides file system service through Thrift RPC. The client side (representing a user)
 and the server side (such as master) should build an authenticated connection for communication.
@@ -32,7 +32,7 @@ the connection can not be built and an exception will be thrown to client.
 
 Three authentication modes are supported: NOSASL, SIMPLE (default mode), and CUSTOM.
 
-## User Accounts
+### User Accounts
 
 The communication entities in Alluxio consist of master, worker, and client. Each of them needs
 to know its user who are running it, also called as the login user. JAAS (Java Authentication and
@@ -52,14 +52,14 @@ root directory.
 2. For worker and client, the login user is the user who contacts with master for accessing file.
 It is passed to master through RPC connection for authentication.
 
-## NOSASL
+### NOSASL
 
 Authentication is disabled. Alluxio file system behaviors as before.
 SASL (Simple Authentication and Security Layer) is a framework to define the authentication
 between client and server applications, which used in Alluxio to implement authentication feature
 . So NOSASL is used to represent disabled case.
 
-## SIMPLE
+### SIMPLE
 
 Authentication is enabled. Alluxio file system can know the user accessing it,
 and simply believe the user is the one he/she claims.
@@ -67,14 +67,14 @@ and simply believe the user is the one he/she claims.
 After a user creates directories/files, the user name is added into metadata. This user info
 could be read and shown in CLI and UI.
 
-## CUSTOM
+### CUSTOM
 
 Authentication is enabled. Alluxio file system can know the user accessing it,
 and use customized `AuthenticationProvider` to verify the user is the one he/she claims.
 
 Experimental. This mode is only used in tests currently.
 
-# Authorization
+## Authorization
 
 Alluxio file system implements a permissions model for directories and files,
 which is similar as the POSIX permission model.
@@ -108,7 +108,7 @@ For example, the output of the shell command `ls -R` when authorization is enabl
 
 {% include Security/lsr.md %}
 
-## User group mapping
+### User group mapping
 
 When user is determined, the list of groups is determined by a group mapping service, configured by
 'alluxio.security.group.mapping.class'. The default implementation is 'alluxio.security.group
@@ -120,13 +120,13 @@ mapping, the mapping data will be cached for 60 seconds by default, this value c
 Property 'alluxio.security.authorization.permission.supergroup' defines a super group. Any users
 belong to this group are also super users.
 
-## Initialized directory and file permissions
+### Initialized directory and file permissions
 
 The initial creation permission is 777, and the difference between directory and file is 111.
 For default umask value 022, the created directory has permission 755 and file has permission 644.
 The umask can be set by property 'alluxio.security.authorization.permission.umask'.
 
-## Update directory and file permission model
+### Update directory and file permission model
 
 The owner, group, and permissions can be changed by two ways:
 
@@ -138,13 +138,13 @@ The owner, group, and permissions can be changed by two ways:
 The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.
 
-# Encryption
+## Encryption
 
 Service level encryption is not supported yet, user could encrypt sensitive data at application
 level, or enable encryption feature at under file system, e.g. HDFS transparent encryption, Linux
 disk encryption.
 
-# Deployment
+## Deployment
 
 It is recommended to start Alluxio master and workers by one same user. Alluxio cluster service
 composes of master and workers. Every worker needs to RPC with master for some file operations.
