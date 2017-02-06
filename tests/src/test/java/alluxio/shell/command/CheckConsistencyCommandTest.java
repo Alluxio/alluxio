@@ -75,7 +75,7 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     ufs.create("/testRoot/testDir/testFileB");
     mFsShell.run("checkConsistency", "-r", "/testRoot");
     res = mOutput.toString();
-    Assert.assertTrue(res.contains("/testRoot" + "have: " + "1 files inconsistent.\n")
+    Assert.assertTrue(res.contains("/testRoot" + " have: " + "1 files inconsistent.\n")
         && res.contains("repairing path: " + "/testRoot/testDir/testFileB\n"));
     Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
         .getLength() == 0);
