@@ -40,7 +40,7 @@ escaping wildcards, for example:
 Note the double escape, this is because the shell script will eventually call a java program which
 should have the final escaped parameters (cat /\\*).
 
-# List of Operations
+## List of Operations
 
 <table class="table table-striped">
   <tr><th>Operation</th><th>Syntax</th><th>Description</th></tr>
@@ -53,7 +53,7 @@ should have the final escaped parameters (cat /\\*).
   {% endfor %}
 </table>
 
-# Example Use Cases
+## Example Use Cases
 
 ## cat
 The `cat` command prints the entire contents of a file in Alluxio to the console. This can be
@@ -65,7 +65,7 @@ output:
 
 {% include Command-Line-Interface/cat.md %}
 
-## checkConsistency
+### checkConsistency
 The `checkConsistency` command compares Alluxio and under storage metadata for a given path. If the
 path is a directory, the entire subtree will be compared. The command returns a message listing each
 inconsistent file or directory. The system administrator should reconcile the differences of these
@@ -80,7 +80,7 @@ For example, `checkConsistency` can be used to periodically validate the integri
 
 {% include Command-Line-Interface/checkConsistency.md %}
 
-## checksum
+### checksum
 The `checksum` command outputs the md5 value of a file in Alluxio.
 
 For example, `checksum` can be used to verify the content of a file stored in Alluxio
@@ -88,7 +88,7 @@ matches the content stored in an UnderFS or local filesystem:
 
 {% include Command-Line-Interface/checksum.md %}
 
-## chgrp
+### chgrp
 The `chgrp` command changes the group of the file or directory in Alluxio. Alluxio supports file
 authorization with Posix file permission. Group is an authorizable entity in Posix file permission
 model. The file owner or super-user can execute this command to change the group of the file or
@@ -100,7 +100,7 @@ For example, `chgrp` can be used as a quick way to change the group of file:
 
 {% include Command-Line-Interface/chgrp.md %}
 
-## chmod
+### chmod
 The `chmod` command changes the permission of file or directory in Alluxio. Currently octal mode
 is supported: the numerical format accepts three octal digits which refer to permissions for the
 file owner, the group and other users. Here is number-permission mapping table:
@@ -122,7 +122,7 @@ For example, `chmod` can be used as a quick way to change the permission of file
 
 {% include Command-Line-Interface/chmod.md %}
 
-## chown
+### chown
 The `chown` command changes the owner of the file or directory in Alluxio. For obvious security
 reasons, the ownership of a file can only be altered by a super-user.
 
@@ -132,7 +132,7 @@ For example, `chown` can be used as a quick way to change the owner of file:
 
 {% include Command-Line-Interface/chown.md %}
 
-## copyFromLocal
+### copyFromLocal
 The `copyFromLocal` command copies the contents of a file in your local file system into Alluxio.
 If the node you run the command from has an Alluxio worker, the data will be available on that
 worker. Otherwise, the data will be copied to a random remote node running an Alluxio worker. If a
@@ -143,7 +143,7 @@ processing:
 
 {% include Command-Line-Interface/copyFromLocal.md %}
 
-## copyToLocal
+### copyToLocal
 The `copyToLocal` command copies the contents of a file in Alluxio to a file in your local file
 system. If a directory is specified, the directory and all its contents will be downloaded
 recurisvely.
@@ -153,7 +153,7 @@ investigation or debugging.
 
 {% include Command-Line-Interface/copyToLocal.md %}
 
-## count
+### count
 The `count` command outputs the number of files and folders matching a prefix as well as the
 total size of the files. `count` works recursively and accounts for any nested directories and
 files. `count` is best utilized when the user has some predefined naming conventions for their
@@ -164,7 +164,7 @@ data files and their total size for any date, month, or year.
 
 {% include Command-Line-Interface/count.md %}
 
-## cp
+### cp
 The `cp` command copies a file or directory in the Alluxio filesystem.
 
 If the `-R` option is used and the source designates a directory, cp copies the entire subtree at
@@ -174,7 +174,7 @@ For example, `cp` can be used to copy files between Under file systems.
 
 {% include Command-Line-Interface/cp.md %}
 
-## du
+### du
 The `du` command outputs the size of a file. If a directory is specified, it will output the
 aggregate size of all files in the directory and its children directories.
 
@@ -183,7 +183,7 @@ which folders are taking up the most space.
 
 {% include Command-Line-Interface/du.md %}
 
-## fileInfo
+### fileInfo
 The `fileInfo` command is deprecated since Alluxio version 1.5.
 Please use `alluxio fs stat <path>` command instead.
 
@@ -196,7 +196,7 @@ trying to achieve locality for compute workloads.
 
 {% include Command-Line-Interface/fileInfo.md %}
 
-## free
+### free
 The `free` command sends a request to the master to evict all blocks of a file from the Alluxio
 workers. If the argument to `free` is a directory, it will recursively `free` all files. This
 request is not guaranteed to take effect immediately, as readers may be currently using the blocks
@@ -211,26 +211,26 @@ For example, `free` can be used to manually manage Alluxio's data caching.
 
 {% include Command-Line-Interface/free.md %}
 
-## getCapacityBytes
+### getCapacityBytes
 The `getCapacityBytes` command returns the maximum number of bytes Alluxio is configured to store.
 
 For example, `getCapacityBytes` can be used to verify if your cluster is set up as expected.
 
 {% include Command-Line-Interface/getCapacityBytes.md %}
 
-## getUsedBytes
+### getUsedBytes
 The `getUsedBytes` command returns the number of used bytes in Alluxio.
 
 For example, `getUsedBytes` can be used to monitor the health of your cluster.
 
 {% include Command-Line-Interface/getUsedBytes.md %}
 
-## leader
+### leader
 The `leader` command prints the current Alluxio leader master host name.
 
 {% include Command-Line-Interface/leader.md %}
 
-## load
+### load
 The `load` command moves data from the under storage system into Alluxio storage. If there is a
 Alluxio worker on the machine this command is run from, the data will be loaded to that worker.
 Otherwise, a random worker will be selected to serve the data. Load will no-op if the file is
@@ -241,7 +241,7 @@ For example, `load` can be used to prefetch data for analytics jobs.
 
 {% include Command-Line-Interface/load.md %}
 
-## loadMetadata
+### loadMetadata
 The `loadMetadata` command is deprecated since Alluxio version 1.1.
 Please use `alluxio fs ls <path>` command instead.
 
@@ -255,7 +255,7 @@ systems.
 
 {% include Command-Line-Interface/loadMetadata.md %}
 
-## location
+### location
 The `location` command returns the addresses of all the Alluxio workers which contain blocks
 belonging to the given file.
 
@@ -264,7 +264,7 @@ framework.
 
 {% include Command-Line-Interface/location.md %}
 
-## ls
+### ls
 The `ls` command lists all the immediate children in a directory and displays the file size, last
 modification time, and in memory status of the files. Using `ls` on a file will only display the
 information for that specific file.
@@ -286,7 +286,7 @@ For example, `ls` can be used to browse the file system.
 
 `ls` loads the metadata for immedidate children of a directory.
 
-## mkdir
+### mkdir
 The `mkdir` command creates a new directory in Alluxio space. It is recursive and will create any
 nonexistent parent directories. Note that the created directory will not be created in the under
 storage system until a file in the directory is persisted to the underlying storage. Using `mkdir`
@@ -296,7 +296,7 @@ For example, `mkdir` can be used by an admin to set up the basic folder structur
 
 {% include Command-Line-Interface/mkdir.md %}
 
-## mount
+### mount
 The `mount` command links an under storage path to an Alluxio path, and files and folders created
 in Alluxio space under the path will be backed by a corresponding file or folder in the under
 storage path. For more details, see [Unified Namespace](Unified-and-Transparent-Namespace.html).
@@ -305,7 +305,7 @@ For example, `mount` can be used to make data in another storage system availabl
 
 {% include Command-Line-Interface/mount.md %}
 
-## mv
+### mv
 The `mv` command moves a file or directory to another path in Alluxio. The destination path must not
 exist or be a directory. If it is a directory, the file or directory will be placed as a child of
 the directory. `mv` is purely a metadata operation and does not affect the data blocks of the file.
@@ -315,7 +315,7 @@ For example, `mv` can be used to move older data into a non working directory.
 
 {% include Command-Line-Interface/mv.md %}
 
-## persist
+### persist
 The `persist` command persists data in Alluxio storage into the under storage system. This is a data
 operation and will take time depending on how large the file is. After persist is complete, the file
 in Alluxio will be backed by the file in the under storage, make it still valid if the Alluxio
@@ -326,7 +326,7 @@ containing useful data.
 
 {% include Command-Line-Interface/persist.md %}
 
-## pin
+### pin
 The `pin` command marks a file or folder as pinned in Alluxio. This is a metadata operation and will
 not cause any data to be loaded into Alluxio. If a file is pinned, any blocks belonging to the file
 will never be evicted from an Alluxio worker. If there are too many pinned files, Alluxio workers may
@@ -337,7 +337,7 @@ workloads well.
 
 {% include Command-Line-Interface/pin.md %}
 
-## report
+### report
 The `report` command marks a file as lost to the Alluxio master. This command should only be used
 with files created using the [Lineage API](Lineage-API.html). Marking a file as lost will cause the
 master to schedule a recomputation job to regenerate the file.
@@ -346,7 +346,7 @@ For example, `report` can be used to force recomputation of a file.
 
 {% include Command-Line-Interface/report.md %}
 
-## rm
+### rm
 The `rm` command removes a file from Alluxio space and the under storage system. The file will be
 unavailable immediately after this command returns, but the actual data may be deleted a while
 later.
@@ -357,7 +357,7 @@ For example, `rm` can be used to remove temporary files which are no longer need
 
 {% include Command-Line-Interface/rm2.md %}
 
-## setTtl
+### setTtl
 The `setTtl` command sets the time-to-live of a file or a directory, in milliseconds. If set ttl
 to a directory, all the children inside that directory will set too. So a directory's TTL expires,
 all the children inside that directory will also expire. Action parameter will indicate the action
@@ -371,7 +371,7 @@ make room for more space in Alluxio.
 
 {% include Command-Line-Interface/setTtl.md %}
 
-## stat
+### stat
 The `stat` command dumps the FileInfo representation of a file or a directory to the console.
 It is primarily intended to assist powerusers in debugging their system. Generally viewing the file
 info in the UI will be much easier to understand.
@@ -381,7 +381,7 @@ trying to achieve locality for compute workloads.
 
 {% include Command-Line-Interface/stat.md %}
 
-## tail
+### tail
 The `tail` command outputs the last 1 kb of data in a file to the console.
 
 For example, `tail` can be used to verify the output of a job is in the expected format or contains
@@ -389,7 +389,7 @@ expected values.
 
 {% include Command-Line-Interface/tail.md %}
 
-## touch
+### touch
 The `touch` command creates a 0-byte file. Files created with `touch` cannot be overwritten and are
 mostly useful as flags.
 
@@ -398,7 +398,7 @@ directory.
 
 {% include Command-Line-Interface/touch.md %}
 
-## unmount
+### unmount
 The `unmount` command disassociates an Alluxio path with an under storage directory. Alluxio metadata
 for the mount point will be removed along with any data blocks, but the under storage system will
 retain all metadata and data. See [Unified Namespace](Unified-and-Transparent-Namespace.html) for
@@ -409,7 +409,7 @@ data from that system.
 
 {% include Command-Line-Interface/unmount.md %}
 
-## unpin
+### unpin
 The `unpin` command unmarks a file or directory in Alluxio as pinned. This is a metadata operation
 and will not evict or delete any data blocks. Once a file is unpinned, its data blocks can be
 evicted from the various Alluxio workers containing the block.
@@ -419,7 +419,7 @@ pattern.
 
 {% include Command-Line-Interface/unpin.md %}
 
-## unsetTtl
+### unsetTtl
 The `unsetTtl` command will remove the TTL of a file in Alluxio. This is a metadata operation and
 will not evict or store blocks in Alluxio. The TTL of a file can later be reset with `setTtl`.
 

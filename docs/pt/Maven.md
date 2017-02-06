@@ -6,7 +6,7 @@ title: Maven
 * Table of Contents
 {:toc}
 
-# Mac OS X
+## Mac OS X
 
 Antes do OS X Mavericks, o Mac OS X possuía o Maven 3 embutido e podia ser localizado em
 `/usr/share/maven`
@@ -33,7 +33,7 @@ A partir do Mac OS X Mavericks, o Maven foi removido e necessita ser instalado m
 Alternativamente, o Maven pode ser instalado através do [Homebrew](http://brew.sh/) executando
 `brew install maven`.
 
-# Linux
+## Linux
 
 1.  Baixar o [Maven Binary](http://maven.apache.org/download.cgi)
 2.  Extrair o arquivo da distribuição, exemplo

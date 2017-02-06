@@ -13,7 +13,7 @@ Este guia descreve como configurar o Alluxio com
 [HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)
 como um sistema de armazenamento inferior.
 
-# Configuração Inicial
+## Configuração Inicial
 
 Para rodar um Allucio `cluster` em um conjunto de máquinas, você deve colocar os binários do
 Alluxio em cada uma destas máquinas. Você pode
@@ -43,7 +43,7 @@ Se for obtido sucesso, você deve ver o arquivo
 diretório `assembly/target` e este é o arquivo `jar` que você pode utilizar para executar os
 Alluxio `Master` e `Worker`.
 
-# Configurando o Alluxio
+## Configurando o Alluxio
 
 Para rodar o binário do Alluxio, devemos definir os arquivos de configuração. Crie o seu arquivo
 de configuração a partir do modelo:
@@ -56,7 +56,7 @@ endereço do `HDFS Namenode` (exemplo, `hdfs://localhost:9000` se você estiver 
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
-# Rodando o Alluxio Localmente com HDFS
+## Rodando o Alluxio Localmente com HDFS
 
 Depois que tudo estiver configurado, você pode iniciar o Alluxio localmente para ver se tudo
 funciona.

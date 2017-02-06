@@ -74,12 +74,12 @@ HDFS，MaprFS，Ceph，NFS，Alibaba OSS，以及单节点本地文件系统，�
 系统。在调试模式下，管理员可以查看每一个文件的详细信息，包括存放位置，检查点路径等等。用户也可以通
 过``./bin/alluxio fs``与Alluxio交互，例如：将数据从文件系统拷入拷出。
 
-# 快速入门
+## 快速入门
 
 如果要快速地架设alluxio并运行，请阅读[快速入门](Getting-Started.html)页面，该页面描述了如何部署Alluxio并
 在本地环境下运行几个基本的样例。
 
-# 下载
+## 下载
 
 你可以从[Alluxio下载页面](http://alluxio.org/download)获取已发布版本。每个版本都是由已编译二进制文件组成，与各种Hadoop版本兼容。如果你想从源码编译生成Alluxio，请前往
 [从Master分支构建Alluxio](Building-Alluxio-Master-Branch.html)。

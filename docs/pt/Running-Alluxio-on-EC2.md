@@ -14,7 +14,7 @@ Alluxio pode ser implementado no `Amazon EC2` utilizando
 com o Alluxio. Os `scripts` permitem criar, configurar e destruir `clusters` que podem ser
 configurados automaticamente com [Amazon S3](https://s3.amazonaws.com/).
 
-# Pré-requisitos
+## Pré-requisitos
 
 **Instale o Vagrant e os AWS plugins**
 
@@ -43,7 +43,7 @@ e então dentro de `deploy/vagrant`, execute:
 
 {% include Running-Alluxio-on-EC2/install-pip.md %}
 
-# Iniciando um Cluster
+## Iniciando um Cluster
 
 Parar rodar um Alluxio `cluster` no `EC2`, primeiro você deve possuir uma conta na
 [Amazon Web Services site](http://aws.amazon.com/).
@@ -106,7 +106,7 @@ Agora você pode iniciar o Alluxio `cluster` com o seu `under filesystem` escolh
 
 Cado nó do `cluster` executa um Alluxio `worker` e o `AlluxioMaster` roda o Alluxio `master`.
 
-# Acessando o cluster
+## Acessando o cluster
 
 **Acesso através da Web UI**
 
@@ -158,7 +158,7 @@ sem precisar de senha:
 
 {% include Running-Alluxio-on-EC2/ssh-other-node.md %}
 
-# Destruindo o cluster
+## Destruindo o cluster
 
 Sobre o diretório `deploy/vagrant`, você pode executar o comando abaixo para destruir o
 `cluster` que você criou:

@@ -12,7 +12,7 @@ priority: 2
 Este guia descreve como rodar o Alluxio com [Apache Flink](http://flink.apache.org/) para
 que você trabalhe com os arquivos armazenados no Alluxio.
 
-# Pré-requisitos
+## Pré-requisitos
 
 O pré-requisito para esta parte é que você possua [Java](Java-Setup.html). Nós também
 consideramos que você tenha configurado o Alluxio de acordo com estes guias [Local Mode](Running-Alluxio-Locally.html)
@@ -20,13 +20,13 @@ ou [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
 Por favor, siga os guias para configuração do `Flink` no `Apache Flink` [website](http://flink.apache.org/).
 
-# Configuração
+## Configuração
 
 O `Apache Flink` permite utilizar o Alluxio através de um `generic file system wrapper` para o
 `Hadoop file system`. Sendo assim, a configuração do Alluxio é alcançada devido aos arquivos
 de configuração do `Hadoop`.
 
-#### Configurar a propriedade em `core-site.xml`
+### Configurar a propriedade em `core-site.xml`
 
 Se você possui uma configuração `Hadoop` com uma instalação `Flink`, adicione a seguinte
 propriedade no arquivo de configuração `core-site.xml`:
@@ -38,14 +38,14 @@ o conteúdo a seguir:
 
 {% include Running-Flink-on-Alluxio/create-core-site.md %}
 
-#### Especifique o caminho para `core-site.xml` em `conf/flink-config.yaml`
+### Especifique o caminho para `core-site.xml` em `conf/flink-config.yaml`
 
 Em seguida, você deve especificar o caminho para a configuração do `Hadoop` no `Flink`. Abra
 o arquivo `conf/flink-config.yaml` no diretório raiz do `Flink` e defina o valor de configuração
 `fs.hdfs.hadoopconf` para o **diretório** que consta no `core-site.xml` (Para versões mais
 recentes do `Hadoop`, normalmente, este diretório termina com `etc/hadoop`).
 
-#### Tornar o Alluxio Client jar disponível para o Flink
+### Tornar o Alluxio Client jar disponível para o Flink
 
 No último passo, nós precisamos tornar disponível o arquivo `jar` do Alluxio para o `Flink`, porque
 este contém a classe configurada `alluxio.hadoop.FileSystem`.
@@ -61,7 +61,7 @@ isto estará disponível em todo o cluster). Por exemplo:
 
 {% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
 
-# Utilizando o Alluxio com Flink
+## Utilizando o Alluxio com Flink
 
 Para utilizar o Alluxio com `Flink`, apenas especifique o caminho com o `scheme alluxio://`.
 

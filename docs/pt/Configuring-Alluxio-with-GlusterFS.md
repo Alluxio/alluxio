@@ -12,7 +12,7 @@ priority: 2
 Este guia descreve como configurar o Alluxio com o [GlusterFS](http://www.gluster.org/)
 como o sistema de armazenamento inferior.
 
-# Configuração Inicial
+## Configuração Inicial
 
 Primeiro, os binários do Alluxio devem estar na sua máquina. Você pode
 [compilar o Alluxio](Building-Alluxio-Master-Branch.html) ou
@@ -22,7 +22,7 @@ Depois, se você ainda não tiver efetuado, crie o arquivo de configuração a p
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-# Configurando o Alluxio
+## Configurando o Alluxio
 
 Assumindo que o `GlusterFS` está alocado nos nós do Alluxio, o volume do `GlusterFS` é
 montado em `/alluxio_vol`, a variável de ambiente precisa ser adicionada em
@@ -30,7 +30,7 @@ montado em `/alluxio_vol`, a variável de ambiente precisa ser adicionada em
 
 {% include Configuring-Alluxio-with-GlusterFS/underfs-address.md %}
 
-# Rodando o Alluxio Localmente com o GlusterFS
+## Rodando o Alluxio Localmente com o GlusterFS
 
 Depois que tudo estiver configurado, você pode iniciar o Alluxio localmente para ser se está
 tudo funcionando.

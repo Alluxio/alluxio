@@ -12,7 +12,7 @@ priority: 1
 Este guia descreve como configurar o Alluxio com
 [Swift](http://docs.openstack.org/developer/swift/) sendo o armazenamento inferior.
 
-# Configuração Inicial
+## Configuração Inicial
 
 Primeiro, os binários do Alluxio devem estar em sua máquina. Você pode
 [compilar o Alluxio](Building-Alluxio-Master-Branch.html) ou
@@ -22,7 +22,7 @@ Depois, crie o arquivo de configuração a partir do `template`, caso ainda não
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-# Configurando o Alluxio
+## Configurando o Alluxio
 
 Para configurar o Alluxio com o `Swift` como armazenamento inferior, devem ser efetuadas
 alterações no arquivo `conf/alluxio-env.sh`. A primeira alteração é em especificar o endereço
@@ -44,13 +44,13 @@ No sucesso da autenticação, `Keystone` irá retornar dois acessos `URLs`: `pub
 Se o Alluxio estiver sendo usado dentro da rede da sua companhia e o `Swift` está localizado
 na mesma rede, é recomendado em definir o valor de `<swift-use-public>`  para `false`.
 
-## Acessando o IBM SoftLayer object store
+### Acessando o IBM SoftLayer object store
 
 Utilizando o módulo `Swift` também faz com que o `IBM SoftLayer object store` seja uma opção de
 `under storage system` para o Alluxio. O `SoftLayer` requer que o `<swift-auth-model>`
 esteja configurado como `swiftauth`
 
-# Rodando o Alluxio Localmente com Swift
+## Rodando o Alluxio Localmente com Swift
 
 Depois que tudo estiver configurado, você pode inicializar o Alluxio localmente para ver se tudo
 está funcionando.
@@ -73,7 +73,7 @@ Para parar o Alluxio, você pode executar:
 
 {% include Common-Commands/stop-alluxio.md %}
 
-# Executando testes funcionais com o IBM SoftLayer
+## Executando testes funcionais com o IBM SoftLayer
 
 Configure sua conta `Swift` ou `SoftLayer` dentro do `testes/pom.xml`, onde `authMethodKey`
 deve ser `keystone`, `tempauth` ou `swiftauth`. Para executar os testes funcionais:

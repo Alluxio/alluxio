@@ -9,8 +9,6 @@ priority: 1
 * Table of Contents
 {:toc}
 
-# Rodar o Aluxio Standalone em um Única Máquina.
-
 O pré-requisito para isto é que você possua o [Java](Java-Setup.html) (JDK 7 ou superior).
 
 Baixe a distribuição do binário do Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:
