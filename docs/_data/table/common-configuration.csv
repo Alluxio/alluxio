@@ -35,7 +35,7 @@ alluxio.underfs.s3a.secure.http.enabled,false
 alluxio.underfs.s3a.server.side.encryption.enabled,false
 alluxio.underfs.s3a.socket.timeout.ms,50000
 alluxio.underfs.s3a.inherit_acl,true
-alluxio.web.resources,${alluxio.home}/core/server/src/main/webapp
+alluxio.web.resources,${alluxio.home}/core/server/common/src/main/webapp
 alluxio.web.threads,1
 alluxio.work.dir,${alluxio.home}
 alluxio.zookeeper.address,No default
