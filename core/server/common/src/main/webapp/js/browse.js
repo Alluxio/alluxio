@@ -8,13 +8,12 @@ function rebuildNavPill(path) {
   if (pathSeg != null && pathSeg.length > 0) {
     pathSeg[0] = "/";
     $("#pathUl").children().remove();
-    var curPath = "/";
+    var curPath = "";
     $.each(pathSeg, function (index, value) {
       if (value.length === 0)
         return;
-      if (index > 1) {
-        curPath += "/" + value;
-      }
+      curPath += value;
+
       var liNode = document.createElement("li");
       var aNode = document.createElement("a");
       $(aNode).attr("href", "javascript:void(0)");
@@ -25,13 +24,17 @@ function rebuildNavPill(path) {
       }
       liNode.appendChild(aNode);
       $("#pathUl").append(liNode);
+
+      if (value !== "/") {
+        curPath += "/"
+      }
     })
   }
 }
 
 function generateData(path) {
   $.ajax({
-    url: url,
+    url: ajaxUrl,
     type: 'post',
     dataType: 'json',
     data: {
@@ -187,7 +190,7 @@ function initGrid() {
       });
 }
 
-var url = '/browse/jumpPath.ajax';
+var ajaxUrl = '/browse/jumpPath.ajax';
 var globalScope;
 initGrid();
 
@@ -204,7 +207,7 @@ $(document).ready(function () {
       }
     });
   } else {
-    url = '/browse/browseLog.ajax';
+    ajaxUrl = '/browse/browseLog.ajax';
     $("#pathNav").hide();
   }
   generateData(parentPath);
