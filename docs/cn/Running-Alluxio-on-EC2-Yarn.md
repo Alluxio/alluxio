@@ -6,7 +6,7 @@ group: Deploying Alluxio
 priority: 5
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 Alluxio可以由Apache YARN启动并管理。该指南介绍如何使用Alluxio自带的

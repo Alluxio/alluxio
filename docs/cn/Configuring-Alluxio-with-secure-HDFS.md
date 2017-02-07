@@ -6,7 +6,7 @@ group: Under Store
 priority: 3
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 该指南介绍如何配置Alluxio从而使用[安全认证模式下的HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)作为底层文件系统。Alluxio支持安全认证模式下的HDFS作为底层文件系统，通过[Kerberos](http://web.mit.edu/kerberos/)认证。

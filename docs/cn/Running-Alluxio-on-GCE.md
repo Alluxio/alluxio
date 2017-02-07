@@ -6,7 +6,7 @@ group: Deploying Alluxio
 priority: 4
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 使用Alluxio自带的

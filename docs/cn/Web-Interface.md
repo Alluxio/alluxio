@@ -5,7 +5,7 @@ title: Web界面
 priority: 6
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 Alluxio提供了用户友好的Web界面以便用户查看和管理。master和worker都拥有各自的Web UI页面。master Web界面的默认

@@ -6,7 +6,7 @@ group: Under Store
 priority: 3
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 该指南介绍如何配置Alluxio以使用[MapR-FS](https://www.mapr.com/products/mapr-fs)作为底层存储系统。

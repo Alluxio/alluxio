@@ -6,7 +6,7 @@ group: Under Store
 priority: 5
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 该指南介绍如何配置Alluxio以使用[NFS](http://nfs.sourceforge.net)作为底层文件系统。

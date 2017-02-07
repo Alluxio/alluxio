@@ -6,7 +6,7 @@ group: Frameworks
 priority: 1
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 该文档介绍如何让Alluxio与Apache Hadoop MapReduce一起运行，从而让你轻松地运行文件存储在Alluxio上的MapReduce程序。

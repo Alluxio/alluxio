@@ -6,7 +6,7 @@ group: Features
 priority: 4
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 Alluxio支持分层存储，以便管理内存之外的其它存储类型。目前Alluxio支持这些存储类型(存储层)：

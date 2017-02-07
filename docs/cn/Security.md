@@ -6,7 +6,7 @@ group: Features
 priority: 1
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 Alluxio安全性目前有两个特性，该文档介绍它们的概念以及用法。

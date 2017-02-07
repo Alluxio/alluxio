@@ -6,7 +6,7 @@ group: Under Store
 priority: 2
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 该指南介绍如何配置Alluxio以使用[GlusterFS](http://www.gluster.org/)作为底层文件系统。

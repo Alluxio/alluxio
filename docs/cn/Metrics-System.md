@@ -5,7 +5,7 @@ group: Features
 priority: 3
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 度量指标信息可以让用户深入了解集群上运行的任务。这些信息对于监控和调试是宝贵的资源。Alluxio有一个基于[Coda Hale Metrics库](https://github.com/dropwizard/metrics)的可配置的度量指标系统。度量指标系统中，度量指标源就是该度量指标信息生成的地方，度量指标槽会使用由度量指标源生成的记录。度量指标检测系统会周期性地投票决定度量指标源，并将度量指标记录传递给度量指标槽。

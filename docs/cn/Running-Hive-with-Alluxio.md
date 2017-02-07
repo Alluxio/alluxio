@@ -6,7 +6,7 @@ group: Frameworks
 priority: 2
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 该文档介绍如何运行[Apache Hive](http://hive.apache.org/)，以能够在不同存储层将Hive的表格存储到Alluxio当中。

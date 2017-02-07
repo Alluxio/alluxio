@@ -6,7 +6,7 @@ group: Features
 priority: 4
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 Alluxio-FUSE是一个新的处于实验阶段的特性，该特性允许在一台Linux机器上的本地文件系统中挂载一个Alluxio分布式文件系统。通过使用该特性，标注的工具（例如`ls`、 `cat`以及`echo`）和传统的POSIX应用程序都能够直接访问Alluxio分布式文件系统中的数据。

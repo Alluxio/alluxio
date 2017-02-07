@@ -3,7 +3,7 @@ layout: global
 title: Java安装
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 #$ Mac OSX

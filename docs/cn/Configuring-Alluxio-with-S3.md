@@ -6,7 +6,7 @@ group: Under Store
 priority: 0
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 该指南介绍如何配置Alluxio从而使用[Amazon S3](https://aws.amazon.com/s3/)作为底层文件系统。

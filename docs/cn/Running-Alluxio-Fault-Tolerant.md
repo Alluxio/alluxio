@@ -6,7 +6,7 @@ group: Deploying Alluxio
 priority: 3
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 Alluxio的容错通过多master实现。同一时刻，有多个master进程运行。其中一个被选举为leader，作为所有worker和

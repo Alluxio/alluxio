@@ -6,7 +6,7 @@ group: Deploying Alluxio
 priority: 3
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 使用Alluxio自带的[Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)可以将

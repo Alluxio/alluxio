@@ -3,7 +3,7 @@ layout: global
 title: Maven
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 ## Mac OS X

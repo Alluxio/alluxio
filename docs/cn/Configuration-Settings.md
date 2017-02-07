@@ -5,7 +5,7 @@ group: Features
 priority: 1
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 本页面介绍Alluxio的配置项，并提供了在不同环境下的推荐配置。

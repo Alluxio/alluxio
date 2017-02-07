@@ -6,7 +6,7 @@ group: Features
 priority: 2
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 Alluxio可以利用*世系关系（Lineage）*达到很高的读写吞吐量，又不影响容错性，丢失的输出数据会通过重新运行生成该数据的作业来进行恢复。

@@ -6,7 +6,7 @@ group: Features
 priority: 5
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 通过使用其透明命名机制以及挂载API，Alluxio支持在不同存储系统之间对数据进行高效的管理。

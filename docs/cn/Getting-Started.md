@@ -5,7 +5,7 @@ group: User Guide
 priority: 0
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 体验Alluxio最简单的方式是单机本地安装。在这个快速上手指南里，我们会引导你在本地机器上安装Alluxio，挂载样本数据，对Alluxio中的数据执行一些基本操作。具体来说，包括:

@@ -6,7 +6,7 @@ group: Under Store
 priority: 1
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 该指南介绍如何配置Alluxio从而使其底层存储系统支持[Swift API](http://docs.openstack.org/developer/swift/)。
