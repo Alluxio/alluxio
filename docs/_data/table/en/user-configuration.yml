@@ -98,3 +98,12 @@ alluxio.user.ufs.file.writer.class:
 alluxio.user.packet.streaming.enabled:
   If set to true, the packet streaming data transfer protocol is used. Packet streaming is an experimental feature. It
   provides a more efficient data transfer mechanism.
+alluxio.user.rpc.retry.base.sleep.ms:
+  Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
+  the base time in milli seconds in the exponential backoff.
+alluxio.user.rpc.retry.max.sleep.ms:
+  Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
+  the maximum wait time in milli seconds in the backoff.
+alluxio.user.rpc.retry.max.num.retry:
+  Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
+  the maximum number of retries.
