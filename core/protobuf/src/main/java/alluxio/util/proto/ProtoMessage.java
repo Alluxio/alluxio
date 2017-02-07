@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proto;
+package alluxio.util.proto;
 
 import alluxio.proto.dataserver.Protocol;
 

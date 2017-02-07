@@ -14,7 +14,7 @@ package alluxio.network.protocol;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.proto.ProtoMessage;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Objects;

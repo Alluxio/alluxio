@@ -13,7 +13,7 @@ package alluxio.worker.netty;
 
 import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.proto.ProtoMessage;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
