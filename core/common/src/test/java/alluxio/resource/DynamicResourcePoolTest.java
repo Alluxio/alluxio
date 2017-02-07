@@ -28,15 +28,30 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class DynamicResourcePoolTest {
+
+  /**
+   * Resource class used to be test DynamicResourcePool.
+   */
   private static final class Resource {
     private Integer mInteger = 0;
     // Threshold for invalid resource.
     private static final int INVALID_RESOURCE = 10;
 
+    /**
+     * Constructor of Resource class.
+     *
+     * @param i the value of mInteger
+     */
     public Resource(Integer i) {
       mInteger = i;
     }
 
+    /**
+     * Set the value of mInteger and return Resource Object.
+     *
+     * @param i the value of mInteger
+     * @return the Resource object
+     */
     public Resource setInteger(Integer i) {
       mInteger = i;
       return this;
