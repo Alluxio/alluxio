@@ -43,6 +43,9 @@ public final class DynamicResourcePoolTest {
     }
   }
 
+  /**
+   * The subclass of DynamicResourcePool to be tested.
+   */
   private static final class TestPool extends DynamicResourcePool<Resource> {
     private int mGcThresholdInSecs = 120;
     private int mCounter = 0;
@@ -50,41 +53,84 @@ public final class DynamicResourcePoolTest {
     private static final ScheduledExecutorService GC_EXECUTOR =
         new ScheduledThreadPoolExecutor(5, ThreadFactoryUtils.build("TestPool-%d", true));
 
+    /**
+     * Constructor of TestPool class.
+     *
+     * @param options the Options object to set member value of mGcExecutor
+     * @param clock the value of mClock
+     */
     public TestPool(Options options, ManualClock clock) {
       super(options.setGcExecutor(GC_EXECUTOR));
       mClock = clock;
     }
 
+    /**
+     * Constructor of TestPool class.
+     *
+     * @param options the Options object to set member value of mGcExecutor
+     */
     public TestPool(Options options) {
       super(options.setGcExecutor(GC_EXECUTOR));
     }
 
+    /**
+     * Check if the Object should Gc.
+     *
+     * @param resourceInternal the resource to check
+     * @return boolean value defined by if Object should Gc
+     */
     @Override
     protected boolean shouldGc(ResourceInternal<Resource> resourceInternal) {
       return mClock.millis() - resourceInternal.getLastAccessTimeMs()
           >= (long) mGcThresholdInSecs * (long) Constants.SECOND_MS;
     }
 
+    /**
+     * Check if the Resource is healthy.
+     *
+     * @param resource the resource to check
+     * @return boolean value defined by whether the resource is healthy
+     */
     @Override
     protected boolean isHealthy(Resource resource) {
       return resource.mInteger < Resource.INVALID_RESOURCE;
     }
 
+    /**
+     * Close the Resource.
+     *
+     * @param resource the resource to close
+     */
     @Override
     protected void closeResource(Resource resource) {
       resource.setInteger(Resource.INVALID_RESOURCE);
     }
 
+    /**
+     * Close the Resource synchronously.
+     *
+     * @param resource the resource to close
+     */
     @Override
     protected void closeResourceSync(Resource resource) {
       closeResource(resource);
     }
 
+    /**
+     * Create a new Resource object.
+     *
+     * @return the created Resource
+     */
     @Override
     protected Resource createNewResource() {
       return new Resource(mCounter++);
     }
 
+    /**
+     * Set the member variable of mGcThresholdInSecs.
+     *
+     * @param gcThresholdInSecs the value of mGcThresholdInSecs
+     */
     public void setGcThresholdInSecs(int gcThresholdInSecs) {
       mGcThresholdInSecs = gcThresholdInSecs;
     }
