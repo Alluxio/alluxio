@@ -136,3 +136,13 @@ No additional configuration parameters are required for fault tolerant mode. As 
 
 are set appropriately for your client application, the application will be able to consult with
 ZooKeeper for the current leader master.
+
+#### HDFS API
+
+When communicating with fault-tolerant Alluxio using the HDFS API, use `alluxio-ft://` for the scheme
+instead of `alluxio://`. Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used
+instead for finding the Alluxio leader master.
+
+```bash
+hadoop fs -ls alluxio-ft:///directory
+```

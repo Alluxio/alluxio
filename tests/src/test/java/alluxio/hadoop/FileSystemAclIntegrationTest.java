@@ -16,7 +16,6 @@ import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
-import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
@@ -464,8 +463,8 @@ public final class FileSystemAclIntegrationTest {
       sTFS.delete(file, false);
       // Create a file directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, file);
-      Permission permission = new Permission("testuser", "testuser", (short) value);
-      sUfs.create(ufsPath, CreateOptions.defaults().setPermission(permission)).close();
+      sUfs.create(ufsPath, CreateOptions.defaults().setOwner("testuser").setGroup("testgroup")
+          .setMode(new Mode((short) value))).close();
       Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, file)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
       Assert.assertEquals(new Mode((short) value).toString(),
@@ -490,9 +489,9 @@ public final class FileSystemAclIntegrationTest {
       sTFS.delete(dir, true);
       // Create a directory directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, dir);
-      Permission permission = new Permission("testuser", "testuser", (short) value);
-      sUfs.mkdirs(
-          ufsPath, MkdirsOptions.defaults().setCreateParent(false).setPermission(permission));
+      sUfs.mkdirs(ufsPath,
+          MkdirsOptions.defaults().setCreateParent(false).setOwner("testuser").setGroup("testgroup")
+              .setMode(new Mode((short) value)));
       Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, dir)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
       Assert.assertEquals(new Mode((short) value).toString(),

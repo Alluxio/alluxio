@@ -29,7 +29,7 @@ function init_env() {
   local libexec_dir=${ALLUXIO_LIBEXEC_DIR:-"${BIN}"/../libexec}
   . ${libexec_dir}/alluxio-config.sh
 
-  MEM_SIZE=$(${BIN}/alluxio getConf alluxio.worker.memory.size)
+  MEM_SIZE=$(${BIN}/alluxio getConf --unit B alluxio.worker.memory.size)
   TIER_ALIAS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
   TIER_PATH=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
 }
@@ -143,7 +143,8 @@ function mount_ramfs_local() {
   else
     # Assuming Linux
     if [[ "$1" == "SudoMount" ]]; then
-      sudo bash -O extglob -c "mount_ramfs_linux"
+      DECL_MOUNT_LINUX=$(declare -f mount_ramfs_linux)
+      sudo bash -c "MEM_SIZE=${MEM_SIZE};TIER_PATH=${TIER_PATH};${DECL_MOUNT_LINUX};mount_ramfs_linux"
     else
       mount_ramfs_linux
     fi

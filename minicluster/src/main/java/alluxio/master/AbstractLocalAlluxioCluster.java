@@ -247,8 +247,8 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
     Configuration.set(PropertyKey.WEB_THREADS, "1");
-    Configuration.set(PropertyKey.WEB_RESOURCES,
-        PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
+    Configuration.set(PropertyKey.WEB_RESOURCES, PathUtils
+        .concatPath(System.getProperty("user.dir"), "../core/server/common/src/main/webapp"));
 
     Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(0));
     Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
