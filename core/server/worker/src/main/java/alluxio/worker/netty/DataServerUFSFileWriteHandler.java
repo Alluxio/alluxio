@@ -62,7 +62,7 @@ public final class DataServerUFSFileWriteHandler extends DataServerWriteHandler 
     if (!super.acceptMessage(object)) {
       return false;
     }
-    Protocol.WriteRequest request = (Protocol.WriteRequest) ((RPCProtoMessage) object).getMessage();
+    Protocol.WriteRequest request = ((RPCProtoMessage) object).getMessage().getMessage();
     return request.getType() == Protocol.RequestType.UFS_FILE;
   }
 
@@ -76,7 +76,7 @@ public final class DataServerUFSFileWriteHandler extends DataServerWriteHandler 
   protected void initializeRequest(RPCProtoMessage msg) throws Exception {
     super.initializeRequest(msg);
     if (mRequest == null) {
-      mRequest = new FileWriteRequestInternal((Protocol.WriteRequest) msg.getMessage());
+      mRequest = new FileWriteRequestInternal(msg.getMessage().<Protocol.WriteRequest>getMessage());
     }
   }
 

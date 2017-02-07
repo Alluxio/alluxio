@@ -12,7 +12,7 @@
 package alluxio.network.protocol;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.ProtoMessage;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -177,7 +177,7 @@ public abstract class RPCMessage implements EncodedMessage {
    * @param in the input {@link ByteBuf}
    * @return the decoded RPCMessage
    */
-  public static RPCMessage decodeMessage(RPCMessage.Type type, ByteBuf in) {
+  public static RPCMessage decodeMessage(Type type, ByteBuf in) {
     switch (type) {
       case RPC_ERROR_RESPONSE:
         return RPCErrorResponse.decode(in);
@@ -198,11 +198,11 @@ public abstract class RPCMessage implements EncodedMessage {
       case RPC_FILE_WRITE_RESPONSE:
         return RPCFileWriteResponse.decode(in);
       case RPC_READ_REQUEST:
-        return RPCProtoMessage.decode(in, Protocol.ReadRequest.getDefaultInstance());
+        return RPCProtoMessage.decode(in, ProtoMessage.Type.READ_REQUEST);
       case RPC_WRITE_REQUEST:
-        return RPCProtoMessage.decode(in, Protocol.WriteRequest.getDefaultInstance());
+        return RPCProtoMessage.decode(in, ProtoMessage.Type.WRITE_REQUEST);
       case RPC_RESPONSE:
-        return RPCProtoMessage.decode(in, Protocol.Response.getDefaultInstance());
+        return RPCProtoMessage.decode(in, ProtoMessage.Type.RESPONSE);
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }

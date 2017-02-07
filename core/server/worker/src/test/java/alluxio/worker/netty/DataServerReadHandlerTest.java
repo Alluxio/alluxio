@@ -18,6 +18,7 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
+import alluxio.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -107,9 +108,9 @@ public abstract class DataServerReadHandlerTest {
     long fileSize = PACKET_SIZE * 10 + 1;
     populateInputFile(fileSize, 0, fileSize - 1);
     RPCProtoMessage readRequest = buildReadRequest(0, fileSize);
-    Protocol.ReadRequest request = (Protocol.ReadRequest) readRequest.getMessage();
+    Protocol.ReadRequest request = readRequest.getMessage().getMessage();
     RPCProtoMessage cancelRequest =
-        new RPCProtoMessage(request.toBuilder().setCancel(true).build(), null);
+        new RPCProtoMessage(new ProtoMessage(request.toBuilder().setCancel(true).build()), null);
     mChannel.writeInbound(readRequest);
     mChannel.writeInbound(cancelRequest);
 
@@ -212,9 +213,10 @@ public abstract class DataServerReadHandlerTest {
   protected DataBuffer checkReadResponse(Object readResponse, Protocol.Status.Code codeExpected) {
     Assert.assertTrue(readResponse instanceof RPCProtoMessage);
 
-    Object response = ((RPCProtoMessage) readResponse).getMessage();
-    Assert.assertTrue(response instanceof Protocol.Response);
-    Assert.assertEquals(codeExpected, ((Protocol.Response) response).getStatus().getCode());
+    ProtoMessage response = ((RPCProtoMessage) readResponse).getMessage();
+    Assert.assertTrue(response.getType() == ProtoMessage.Type.RESPONSE);
+    Assert.assertEquals(codeExpected,
+        response.<Protocol.Response>getMessage().getStatus().getCode());
     return ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
   }
 

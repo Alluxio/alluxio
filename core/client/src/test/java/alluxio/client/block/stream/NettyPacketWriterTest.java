@@ -245,7 +245,7 @@ public final class NettyPacketWriterTest {
                     return channel.readOutbound();
                   }
                 }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
-            validateWriteRequest((Protocol.WriteRequest) request.getMessage(), pos);
+            validateWriteRequest(request.getMessage().<Protocol.WriteRequest>getMessage(), pos);
 
             DataBuffer buffer = request.getPayloadDataBuffer();
             // Last packet.
