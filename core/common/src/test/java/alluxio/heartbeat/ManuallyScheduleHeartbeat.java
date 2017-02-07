@@ -46,6 +46,9 @@ public final class ManuallyScheduleHeartbeat implements TestRule {
     this(Arrays.asList(threads));
   }
 
+  /**
+   * Stores executor threads and corresponding timer class.
+   */
   public static class Resource implements AutoCloseable {
     private final List<String> mThreads;
     private final Map<String, Class<? extends HeartbeatTimer>> mPrevious;
