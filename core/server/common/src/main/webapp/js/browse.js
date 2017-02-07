@@ -31,12 +31,11 @@ function rebuildNavPill(path) {
 
 function generateData(path) {
   $.ajax({
-    url: '/browse/jumpPath.ajax',
+    url: url,
     type: 'post',
     dataType: 'json',
     data: {
-      path: path,
-      baseUrl: base
+      path: path
     },
     success: function (json) {
       $(".text-error").text(json.argumentMap.invalidPathError);
@@ -188,6 +187,7 @@ function initGrid() {
       });
 }
 
+var url = '/browse/jumpPath.ajax';
 var globalScope;
 initGrid();
 
@@ -204,6 +204,7 @@ $(document).ready(function () {
       }
     });
   } else {
+    url = '/browse/browseLog.ajax';
     $("#pathNav").hide();
   }
   generateData(parentPath);

@@ -63,7 +63,7 @@ public final class WorkerWebServer extends WebServer {
     mWebAppContext
         .addServlet(new ServletHolder(new WebInterfaceWorkerMetricsServlet()), "/metricsui");
     mWebAppContext.addServlet(new ServletHolder(
-        new WebInterfaceBrowseAjaxServlet(null)), "/browse/jumpPath.ajax");
+        new WebInterfaceBrowseLogAjaxServlet()), "/browse/browseLog.ajax");
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");
     // Override the init method to inject a reference to AlluxioWorker into the servlet context.
