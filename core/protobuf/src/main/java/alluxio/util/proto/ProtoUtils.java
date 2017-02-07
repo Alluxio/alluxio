@@ -20,6 +20,7 @@ import java.io.InputStream;
  * Protobuf related utils.
  */
 public final class ProtoUtils {
+  private ProtoUtils() {} // prevent instantiation
 
   /**
    * A wrapper of {@link CodedInputStream#readRawVarint32(InputStream)}.
