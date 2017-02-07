@@ -48,7 +48,7 @@ the Key-Value system is correctly started.
 
 ## Accessing Key-Value System in Java Application
 
-#### Getting a Key-Value System Client
+### Getting a Key-Value System Client
 
 To obtain an Alluxio key-value system client in Java code, use:
 
