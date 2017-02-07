@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proto;
+package alluxio.util.proto;
 
 import com.google.protobuf.CodedInputStream;
 
@@ -20,6 +20,7 @@ import java.io.InputStream;
  * Protobuf related utils.
  */
 public final class ProtoUtils {
+  private ProtoUtils() {} // prevent instantiation
 
   /**
    * A wrapper of {@link CodedInputStream#readRawVarint32(InputStream)}.

@@ -12,7 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.Constants;
-import alluxio.proto.ProtoUtils;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.slf4j.Logger;

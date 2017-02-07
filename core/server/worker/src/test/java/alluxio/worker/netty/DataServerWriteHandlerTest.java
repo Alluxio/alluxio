@@ -13,7 +13,7 @@ package alluxio.worker.netty;
 
 import alluxio.Constants;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.proto.ProtoMessage;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;

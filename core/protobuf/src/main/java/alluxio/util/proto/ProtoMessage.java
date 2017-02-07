@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proto;
+package alluxio.util.proto;
 
 import alluxio.proto.dataserver.Protocol;
 
@@ -24,6 +24,9 @@ import com.google.protobuf.MessageLite;
  */
 public final class ProtoMessage {
 
+  /**
+   * Type of the message.
+   */
   public enum Type {
     READ_REQUEST,
     WRITE_REQUEST,
@@ -41,7 +44,6 @@ public final class ProtoMessage {
   public ProtoMessage(Protocol.ReadRequest message) {
     this(message, Type.READ_REQUEST);
   }
-
 
   /**
    * Constructs a {@link ProtoMessage} instance wrapping around {@link Protocol.WriteRequest}.
@@ -65,6 +67,7 @@ public final class ProtoMessage {
    * Constructs a {@link ProtoMessage} instance wrapping around {@link MessageLite}.
    *
    * @param message the message to wrap
+   * @param type type of the message
    */
   public ProtoMessage(MessageLite message, Type type) {
     mMessage = message;
