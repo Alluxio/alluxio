@@ -122,7 +122,7 @@ have the right access permission to the specified bucket, a permission denied er
 When Alluxio security is enabled, Alluxio loads the bucket ACL to Alluxio permission on the first
 time when the metadata is loaded to Alluxio namespace.
 
-#### Mapping from GCS user to Alluxio file owner
+### Mapping from GCS user to Alluxio file owner
 
 By default, Alluxio tries to extract the GCS user id from the credentials. Optionally,
 `alluxio.underfs.gcs.owner.id.to.username.mapping` can be used to specify a preset gcs owner id to
@@ -130,19 +130,19 @@ Alluxio username static mapping in the format "id1=user1;id2=user2". The Google 
 can be found at the console [address](https://console.cloud.google.com/storage/settings). Please use
 the "Owners" one.
 
-#### Mapping from GCS ACL to Alluxio permission
+### Mapping from GCS ACL to Alluxio permission
 
 Alluxio checks the GCS bucket READ/WRITE ACL to determine the owner's permission mode to a Alluxio
 file. For example, if the GCS user has read-only access to the underlying bucket, the mounted
 directory and files would have 0500 mode. If the GCS user has full access to the underlying bucket,
 the mounted directory and files would have 0700 mode.
 
-#### Mount point sharing
+### Mount point sharing
 
 If you want to share the GCS mount point with other users in Alluxio namespace, you can enable
 `alluxio.underfs.object.store.mount.shared.publicly`.
 
-#### Permission change
+### Permission change
 
 In addition, chown/chgrp/chmod to Alluxio directories and files do NOT propagate to the underlying
 GCS buckets nor objects.
