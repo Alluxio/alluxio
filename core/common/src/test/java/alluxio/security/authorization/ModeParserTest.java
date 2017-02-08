@@ -69,7 +69,12 @@ public final class ModeParserTest {
 
   @Test
   public void symbolics_combined() {
-    Mode parsed = mParser.parse("ugo=rwx");
+    Mode parsed = mParser.parse("a=rwx");
+    Assert.assertEquals(Mode.Bits.ALL, parsed.getOwnerBits());
+    Assert.assertEquals(Mode.Bits.ALL, parsed.getGroupBits());
+    Assert.assertEquals(Mode.Bits.ALL, parsed.getOtherBits());
+
+    parsed = mParser.parse("ugo=rwx");
     Assert.assertEquals(Mode.Bits.ALL, parsed.getOwnerBits());
     Assert.assertEquals(Mode.Bits.ALL, parsed.getGroupBits());
     Assert.assertEquals(Mode.Bits.ALL, parsed.getOtherBits());
@@ -83,5 +88,23 @@ public final class ModeParserTest {
     Assert.assertEquals(Mode.Bits.READ_WRITE, parsed.getOwnerBits());
     Assert.assertEquals(Mode.Bits.READ, parsed.getGroupBits());
     Assert.assertEquals(Mode.Bits.READ, parsed.getOtherBits());
+  }
+
+  @Test
+  public void symbolics_cumulative() {
+    Mode parsed = mParser.parse("u=r,u=w,u=x");
+    Assert.assertEquals(Mode.Bits.ALL, parsed.getOwnerBits());
+    Assert.assertEquals(Mode.Bits.NONE, parsed.getGroupBits());
+    Assert.assertEquals(Mode.Bits.NONE, parsed.getOtherBits());
+
+    parsed = mParser.parse("g=r,g=w,g=x");
+    Assert.assertEquals(Mode.Bits.NONE, parsed.getOwnerBits());
+    Assert.assertEquals(Mode.Bits.ALL, parsed.getGroupBits());
+    Assert.assertEquals(Mode.Bits.NONE, parsed.getOtherBits());
+
+    parsed = mParser.parse("o=r,o=w,o=x");
+    Assert.assertEquals(Mode.Bits.NONE, parsed.getOwnerBits());
+    Assert.assertEquals(Mode.Bits.NONE, parsed.getGroupBits());
+    Assert.assertEquals(Mode.Bits.ALL, parsed.getOtherBits());
   }
 }

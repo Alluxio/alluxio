@@ -23,6 +23,9 @@ import org.apache.commons.lang3.StringUtils;
  */
 public final class ModeParser {
 
+  private static final char[] VALID_TARGETS = { 'u', 'g', 'o', 'a' };
+  private static final char[] VALID_PERMISSIONS = { 'r', 'w', 'x' };
+
   /**
    * Creates a new parser.
    */
@@ -57,9 +60,21 @@ public final class ModeParser {
     String[] specs = value.contains(",") ? value.split(",") : new String[] { value };
     for (String spec : specs) {
       String[] specParts = spec.split("=");
+
+      // Validate that the spec is usable
+      // Must have targets=perm i.e. 2 parts
+      // Targets must be in u, g, o and a
+      // Permissions must be in r, w and x
       Preconditions.checkArgument(specParts.length == 2,
           "Invalid mode %s - contains invalid segment %s", value, spec);
+      Preconditions.checkArgument(StringUtils.containsOnly(specParts[0], VALID_TARGETS),
+          "Invalid mode %s - contains invalid segment %s which has invalid targets %s",
+          value, spec, specParts[0]);
+      Preconditions.checkArgument(StringUtils.containsOnly(specParts[1], VALID_PERMISSIONS),
+          "Invalid mode %s - contains invalid segment %s which has invalid permissions %s",
+          value, spec, specParts[1]);
 
+      // Build the permissions being specified
       Mode.Bits specBits = Bits.NONE;
       for (char permChar : specParts[1].toCharArray()) {
         switch (permChar) {
@@ -73,10 +88,11 @@ public final class ModeParser {
             specBits = specBits.or(Bits.EXECUTE);
             break;
           default:
-            // TODO(rvesse) Report error
+            // Should never get here as already checked for invalid targets
         }
       }
 
+      // Apply them to the targets
       for (char targetChar : specParts[0].toCharArray()) {
         switch (targetChar) {
           case 'u':
@@ -88,12 +104,18 @@ public final class ModeParser {
           case 'o':
             otherBits = otherBits.or(specBits);
             break;
+          case 'a':
+            ownerBits = ownerBits.or(specBits);
+            groupBits = groupBits.or(specBits);
+            otherBits = otherBits.or(specBits);
+            break;
           default:
-            // TODO(rvesse) Report error
+            // Should never get here as already checked for invalid targets
         }
       }
     }
 
+    // Return the resulting mode
     return new Mode(ownerBits, groupBits, otherBits);
   }
 }
