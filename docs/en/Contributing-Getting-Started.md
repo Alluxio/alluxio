@@ -5,6 +5,9 @@ nickname: Contributor Getting Started
 group: Resources
 ---
 
+* Table of Contents
+{:toc}
+
 Welcome to the Alluxio community! We are excited for your contributions and engagement in the
 community! Here is a guide on how to get started with becoming a member in the Alluxio open source
 community.

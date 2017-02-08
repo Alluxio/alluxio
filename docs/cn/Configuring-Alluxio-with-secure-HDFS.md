@@ -6,11 +6,14 @@ group: Under Store
 priority: 3
 ---
 
+* 内容列表
+{:toc}
+
 该指南介绍如何配置Alluxio从而使用[安全认证模式下的HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)作为底层文件系统。Alluxio支持安全认证模式下的HDFS作为底层文件系统，通过[Kerberos](http://web.mit.edu/kerberos/)认证。
 
 注：在HDFS安全认证模式下的Kerberos认证不是Alluxio通过Kerberos进行内部的认证
 
-# 初始步骤
+## 初始步骤
 
 要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
@@ -26,13 +29,13 @@ priority: 3
 
 如果一切正常，在`assembly/target`目录中应当能看到`alluxio-assemblies-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件。使用该jar文件即可运行Alluxio Master和Worker。
 
-# 配置Alluxio
+## 配置Alluxio
 
 要运行二进制包，一定要先创建配置文件，你可以使用`bootstrapConf` 命令来创建自己的配置文件。
 举个例子，假如你正在本地运行Alluxio，那么就应该把`ALLUXIO_MASTER_HOSTNAME`设置为`localhost`
-                   
+
 {% include Configuring-Alluxio-with-HDFS/bootstrapConf.md %}
-                   
+
 另外你也可以从template文件创建一个配置文件然后手动修改它的内容。
 
 {% include Common-Commands/copy-alluxio-env.md %}
@@ -41,10 +44,10 @@ priority: 3
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
-## HDFS配置文件
+### HDFS配置文件
 为了确保Alluxio客户端能够将HDFS配置加入到classpath，请将HDFS安全认证配置文件（`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`）拷贝到`${ALLUXIO_HOME}/conf/`目录下。
 
-## Kerberos配置
+### Kerberos配置
 可选配置项，你可以为自定义的Kerberos配置设置jvm级别的系统属性：`java.security.krb5.realm`和`java.security.krb5.kdc`。这些Kerberos配置将Java库路由到指定的Kerberos域和KDC服务器地址。如果两者都设置为空，Kerberos库将尊从机器上的默认Kerberos配置。例如：
 
 * 如果你使用的是Hadoop，你可以将这两项配置添加到`{HADOOP_CONF_DIR}/hadoop-env.sh`文件的`HADOOP_OPTS`配置项。
@@ -59,14 +62,14 @@ priority: 3
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-opts.md %}
 
-## Alluxio服务器Kerberos认证
+### Alluxio服务器Kerberos认证
 在`alluxio-site.properties`文件配置下面的Alluxio属性：
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-properties-for-secure-hdfs-kerberos.md%}
 
 或者，这些配置项可以在`conf/alluxio-env.sh`文件中设置。更多有关配置参数的设置可以参考[Configuration Settings](Configuration-Settings.html)。
 
-# 使用安全认证模式下的HDFS在本地运行Alluxio
+## 使用安全认证模式下的HDFS在本地运行Alluxio
 
 在这一步开始之前，请确保你的HDFS集群处于运行状态，并且挂载到Alluxio的HDFS目录已经存在。
 

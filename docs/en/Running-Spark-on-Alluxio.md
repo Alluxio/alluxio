@@ -6,6 +6,9 @@ group: Frameworks
 priority: 0
 ---
 
+* Table of Contents
+{:toc}
+
 This guide describes how to run [Apache Spark](http://spark-project.org/) on Alluxio. HDFS is used
 as an example of a distributed under storage system. Note that, Alluxio supports many other under
 storage systems in addition to HDFS and enables frameworks like Spark to read data from or write
@@ -137,8 +140,8 @@ in Spark WebUI below.
 
 ### Running Spark on YARN
 
-To maximize the amount of locality your Spark jobs attain, you should use as many 
-executors as possible, hopefully at least one executor per node. 
+To maximize the amount of locality your Spark jobs attain, you should use as many
+executors as possible, hopefully at least one executor per node.
 As with all methods of Alluxio deployment, there should also be an Alluxio worker on all computation nodes.
 
 When a Spark job is run on YARN, Spark launches its executors without taking data locality into account.
@@ -146,4 +149,4 @@ Spark will then correctly take data locality into account when deciding how to d
 executors. For example, if `host1` contains `blockA` and a job using `blockA` is launched on the YARN
 cluster with `--num-executors=1`, Spark might place the only executor on `host2` and have poor locality.
 However, if `--num-executors=2` and executors are started on `host1` and `host2`, Spark will be smart
-enough to prioritize placing the job on `host1`. 
+enough to prioritize placing the job on `host1`.
