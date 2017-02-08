@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ChmodCommand extends AbstractShellCommand {
-  
+
   private final ModeParser mParser = new ModeParser();
 
   /**
