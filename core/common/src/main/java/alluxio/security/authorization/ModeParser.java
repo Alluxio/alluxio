@@ -34,7 +34,7 @@ public final class ModeParser {
    * @return Mode
    */
   public Mode parse(String value) {
-    Preconditions.checkArgument(StringUtils.isBlank(value), "Invalid mode %s", value);
+    Preconditions.checkArgument(StringUtils.isNotBlank(value), "Invalid mode %s", value);
 
     try {
       return parseNumeric(value);
@@ -45,7 +45,7 @@ public final class ModeParser {
   }
 
   private Mode parseNumeric(String value) {
-    short s = Short.parseShort(value);
+    short s = Short.parseShort(value, 8);
     return new Mode(s);
   }
 
@@ -54,7 +54,7 @@ public final class ModeParser {
     Mode.Bits groupBits = Bits.NONE;
     Mode.Bits otherBits = Bits.NONE;
 
-    String[] specs = value.split(",");
+    String[] specs = value.contains(",") ? value.split(",") : new String[] { value };
     for (String spec : specs) {
       String[] specParts = spec.split("=");
       Preconditions.checkArgument(specParts.length == 2,
