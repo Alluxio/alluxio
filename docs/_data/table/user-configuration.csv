@@ -28,5 +28,5 @@ alluxio.user.ufs.file.reader.class,alluxio.client.netty.&#8203;NettyUnderFileSys
 alluxio.user.ufs.file.writer.class,alluxio.client.netty.&#8203;NettyUnderFileSystemFileWriter
 alluxio.user.packet.streaming.enabled,false
 alluxio.user.rpc.retry.base.sleep.ms,50
-alluxio.user.rpc.retry.max.sleep.ms,60000
+alluxio.user.rpc.retry.max.sleep.ms,10000
 alluxio.user.rpc.retry.max.num.retry,30
