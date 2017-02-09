@@ -18,10 +18,7 @@ as the under storage system. Alluxio supports secure HDFS as the under filesyste
 
 ## Initial Setup
 
-To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
-machines. You can either
-[compile the binaries from Alluxio source code](Building-Alluxio-Master-Branch.html), or
-[download the precompiled binaries directly](http://alluxio.org/downloads/).
+To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines. You can either [compile the binaries from Alluxio source code](Building-Alluxio-Master-Branch.html), or [download the precompiled binaries directly](http://alluxio.org/downloads/).
 
 Note that, by default, Alluxio binaries are built to work with Hadoop HDFS version `2.2.0`. To use
 another Hadoop version, one needs to recompile Alluxio binaries from source code with the correct
@@ -63,10 +60,12 @@ or `hdfs://localhost:9000/alluxio/data` if only the HDFS directory `/alluxio/dat
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
 ### HDFS configuration files
+
 To ensure Alluxio client picks up HDFS configurations in classpath, please copy secure HDFS configuration xml files
 (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to `${ALLUXIO_HOME}/conf/`
 
 ### Kerberos configuration
+
 Optionally, you can set jvm-level system properties for customized Kerberos configurations:
 `java.security.krb5.realm` and `java.security.krb5.kdc`. Those Kerberos configurations route java libraries to specified Kerberos realm and KDC server address.
 If both are set to empty, Kerberos library will respect
@@ -85,6 +84,7 @@ the default Kerberos configuration on the machine. For example:
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-opts.md %}
 
 ### Alluxio server Kerberos credential
+
 Set the following Alluxio properties in `alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-properties-for-secure-hdfs-kerberos.md %}
