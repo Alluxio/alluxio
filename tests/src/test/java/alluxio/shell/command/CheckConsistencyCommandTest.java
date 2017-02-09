@@ -16,6 +16,7 @@ import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 
 import org.junit.Assert;
@@ -72,7 +73,7 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
         WriteType.CACHE_THROUGH, 20);
     ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB")).getUfsPath();
     ufs.deleteFile(ufsPath);
-    ufs.create("/testRoot/testDir/testFileB");
+    ufs.create("/testRoot/testDir/testFileB", CreateOptions.defaults().setCreateParent(true));
     mFsShell.run("checkConsistency", "-r", "/testRoot");
     res = mOutput.toString();
     Assert.assertTrue(res.contains("/testRoot" + " have: " + "1 files inconsistent.\n")
@@ -80,7 +81,7 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
         .getLength() == 0);
 
-    ufs.create("/testRoot/testDir/testFileC");
+    ufs.create("/testRoot/testDir/testFileC", CreateOptions.defaults().setCreateParent(true));
     mFsShell.run("checkConsistency", "-r", "/testRoot");
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileC")));
   }

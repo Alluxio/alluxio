@@ -34,7 +34,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.DeleteFileOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -151,13 +151,13 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteFileOptions)} method.
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method.
    */
   @Test
   public void deleteFile() throws Exception {
     // cannot delete root
     try {
-      mFileSystemMaster.delete(ROOT_URI, DeleteFileOptions.defaults().setRecursive(true));
+      mFileSystemMaster.delete(ROOT_URI, DeleteOptions.defaults().setRecursive(true));
       Assert.fail("Should not have been able to delete the root");
     } catch (InvalidPathException e) {
       Assert.assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.getMessage());
@@ -165,7 +165,7 @@ public final class FileSystemMasterTest {
 
     // delete the file
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.delete(NESTED_FILE_URI, DeleteFileOptions.defaults().setRecursive(false));
+    mFileSystemMaster.delete(NESTED_FILE_URI, DeleteOptions.defaults().setRecursive(false));
 
     mThrown.expect(BlockInfoException.class);
     mBlockMaster.getBlockInfo(blockId);
@@ -183,7 +183,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteFileOptions)} method with a
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method with a
    * non-empty directory.
    */
   @Test
@@ -191,7 +191,7 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_FILE_URI);
     String dirName = mFileSystemMaster.getFileInfo(NESTED_URI).getName();
     try {
-      mFileSystemMaster.delete(NESTED_URI, DeleteFileOptions.defaults().setRecursive(false));
+      mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(false));
       Assert.fail("Deleting a non-empty directory without setting recursive should fail");
     } catch (DirectoryNotEmptyException e) {
       String expectedMessage =
@@ -200,18 +200,18 @@ public final class FileSystemMasterTest {
     }
 
     // Now delete with recursive set to true
-    mFileSystemMaster.delete(NESTED_URI, DeleteFileOptions.defaults().setRecursive(true));
+    mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteFileOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
    * a directory.
    */
   @Test
   public void deleteDir() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
     // delete the dir
-    mFileSystemMaster.delete(NESTED_URI, DeleteFileOptions.defaults().setRecursive(true));
+    mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
 
     // verify the dir is deleted
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));

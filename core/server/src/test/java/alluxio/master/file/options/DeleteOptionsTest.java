@@ -19,16 +19,16 @@ import org.junit.Test;
 import java.util.Random;
 
 /**
- * Unit tests for {@link DeleteFileOptions}.
+ * Unit tests for {@link DeleteOptions}.
  */
-public class DeleteFileOptionsTest {
+public class DeleteOptionsTest {
 
   /**
    * Tests the {@link CreateFileOptions#defaults()} method.
    */
   @Test
   public void defaults() throws Exception {
-    DeleteFileOptions options = DeleteFileOptions.defaults();
+    DeleteOptions options = DeleteOptions.defaults();
     Assert.assertFalse(options.isRecursive());
     Assert.assertFalse(options.isAlluxioOnly());
   }
@@ -41,7 +41,7 @@ public class DeleteFileOptionsTest {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
     boolean alluxioOnly = random.nextBoolean();
-    DeleteFileOptions options = DeleteFileOptions.defaults();
+    DeleteOptions options = DeleteOptions.defaults();
 
     options.setRecursive(recursive);
     options.setAlluxioOnly(alluxioOnly);
@@ -52,6 +52,6 @@ public class DeleteFileOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(DeleteFileOptions.class);
+    CommonTestUtils.testEquals(DeleteOptions.class);
   }
 }

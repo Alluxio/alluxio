@@ -51,8 +51,8 @@ public final class DeleteOptions {
   }
 
   /**
-   * @return the mAlluxioOnly flag value; the flag specifies whether the file content should
-   *         be removed from Alluxio, but not from UFS.
+   * @return return the value of the flag that indicates whether the file should be
+   *         deleted in Alluxio only, or in UFS as well
    */
   public boolean isAlluxioOnly() {
     return mAlluxioOnly;
@@ -69,8 +69,8 @@ public final class DeleteOptions {
   }
 
   /**
-   * @param alluxioOnly the alluxioOnly flag value to use; the flag specifies whether the file
-   *        content should be removed from Alluxio, but not from UFS.
+   * @param alluxioOnly the value to use for the flag that indicates whether the file should be
+   *        deleted in Alluxio only, or in UFS as well
    * @return the updated options object
    */
   public DeleteOptions setAlluxioOnly(boolean alluxioOnly) {

@@ -21,7 +21,7 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.DeleteFileOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
@@ -276,7 +276,7 @@ public final class FileSystemMasterClientServiceHandler implements
     RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
-        mFileSystemMaster.delete(new AlluxioURI(path), new DeleteFileOptions(options)
+        mFileSystemMaster.delete(new AlluxioURI(path), new DeleteOptions(options)
             .setRecursive(recursive));
         return null;
       }
