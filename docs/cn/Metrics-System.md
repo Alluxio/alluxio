@@ -23,7 +23,6 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * JmxSink: 查看JMX控制台中寄存器的度量信息。
 * GraphiteSink: 给Graphite服务器发送度量信息。
 * MetricsServlet: 添加Web UI中的servlet，作为JSON数据来为度量指标数据服务。
-* GangliaSink: 向Ganglia监控进程发送度量信息。
 
 # 配置
 度指标量系统可以通过配置文件进行配置，Alluxio中该文件默认位于`$ALLUXIO_HOME/conf/metrics.properties`。自定义文件位置可以通过`alluxio.metrics.conf.file`配置项来指定。Alluxio在conf目录下提供了一个metrics.properties.template文件，其包括所有可配置属性。默认情况下，MetricsServlet是生效的，你可以发送HTTP请求"/metrics/json"来获取一个以JSON格式表示的所有已注册度量信息的快照。
