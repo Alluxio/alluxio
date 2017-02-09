@@ -21,26 +21,26 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for deleting a file or a directory.
  */
 @NotThreadSafe
-public final class DeleteFileOptions {
+public final class DeleteOptions {
   private boolean mRecursive;
   private boolean mAlluxioOnly;
 
   /**
-   * @return the default {@link DeleteFileOptions}
+   * @return the default {@link DeleteOptions}
    */
-  public static DeleteFileOptions defaults() {
-    return new DeleteFileOptions();
+  public static DeleteOptions defaults() {
+    return new DeleteOptions();
   }
 
   /**
    * @param options the {@link DeleteTOptions} to use
    */
-  public DeleteFileOptions(DeleteTOptions options) {
+  public DeleteOptions(DeleteTOptions options) {
     mRecursive = options.isRecursive();
     mAlluxioOnly = options.isAlluxioOnly();
   }
 
-  private DeleteFileOptions() {
+  private DeleteOptions() {
     mRecursive = false;
     mAlluxioOnly = false;
   }
@@ -54,8 +54,8 @@ public final class DeleteFileOptions {
   }
 
   /**
-   * @return the alluxioOnly flag value; the flag specifies whether the file content should
-   *         be removed from Alluxio, but not from UFS.
+   * @return return the value of the flag that indicates whether the file should be
+   *         deleted in Alluxio only, or in UFS as well
    */
   public boolean isAlluxioOnly() {
     return mAlluxioOnly;
@@ -66,18 +66,18 @@ public final class DeleteFileOptions {
    *        the flag specifies whether the directory content should be recursively deleted as well
    * @return the updated options object
    */
-  public DeleteFileOptions setRecursive(boolean recursive) {
+  public DeleteOptions setRecursive(boolean recursive) {
     mRecursive = recursive;
     return this;
   }
 
   /**
-   * @param removeUFSFile the removeUFSFile flag value to use; the flag specifies whether the file
-   *        content should be removed from Alluxio, but not from UFS.
+   * @param alluxioOnly the value to use for the flag that indicates whether the file should be
+   *        deleted in Alluxio only, or in UFS as well
    * @return the updated options object
    */
-  public DeleteFileOptions setAlluxioOnly(boolean removeUFSFile) {
-    mAlluxioOnly = removeUFSFile;
+  public DeleteOptions setAlluxioOnly(boolean alluxioOnly) {
+    mAlluxioOnly = alluxioOnly;
     return this;
   }
 
@@ -86,10 +86,10 @@ public final class DeleteFileOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof DeleteFileOptions)) {
+    if (!(o instanceof DeleteOptions)) {
       return false;
     }
-    DeleteFileOptions that = (DeleteFileOptions) o;
+    DeleteOptions that = (DeleteOptions) o;
     return Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mAlluxioOnly, that.mAlluxioOnly);
   }
