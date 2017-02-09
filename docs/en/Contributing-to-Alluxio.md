@@ -21,16 +21,10 @@ contribute to Alluxio.
 There are a few things that new contributors can do to familiarize themselves with Alluxio:
 
 1.  [Run Alluxio Locally](Running-Alluxio-Locally.html)
-
 2.  [Run Alluxio on a Cluster](Running-Alluxio-on-a-Cluster.html)
-
 3.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
-
-4.  Read a
-    [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
-
+4.  Read a [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 5.  [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
-
 6.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
 issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
 Here is a list of
@@ -46,17 +40,13 @@ For a tutorial, see the GitHub guides on
 
 -   We encourage you to break your work into small, single-purpose patches if possible. It is much
     harder to merge in a large change with a lot of disjoint features.
-
 -   We track issues and features in our [JIRA](https://alluxio.atlassian.net/). If you have not
     registered an account, please do so!
-
 -   Open a ticket in [JIRA](https://alluxio.atlassian.net/) detailing the proposed change and what
     purpose it serves.
-
 -   Submit the patch as a GitHub pull request. For a tutorial, see the GitHub guides on
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
     [sending a pull request](https://help.github.com/articles/using-pull-requests).
-
 -   In your pull request title, make sure to reference the JIRA ticket. This will connect the
     ticket to the proposed code changes. for example:
 
@@ -65,7 +55,6 @@ For a tutorial, see the GitHub guides on
 ~~~~~
 
 -   In the description field of the pull request, please include a link to the JIRA ticket.
-
 
 Note that for some minor changes it is not required to create corresponding JIRA tickets before
 submiting the pull requests. For instance:
