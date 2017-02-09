@@ -11,9 +11,9 @@
 
 package alluxio.security.authorization;
 
+import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode.Bits;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -37,7 +37,9 @@ public final class ModeParser {
    * @return Mode
    */
   public Mode parse(String value) {
-    Preconditions.checkArgument(StringUtils.isNotBlank(value), "Invalid mode %s", value);
+    if (StringUtils.isBlank(value)) {
+      throw new IllegalArgumentException(ExceptionMessage.INVALID_MODE.getMessage(value));
+    }
 
     try {
       return parseNumeric(value);
@@ -65,14 +67,18 @@ public final class ModeParser {
       // Must have targets=perm i.e. 2 parts
       // Targets must be in u, g, o and a
       // Permissions must be in r, w and x
-      Preconditions.checkArgument(specParts.length == 2,
-          "Invalid mode %s - contains invalid segment %s", value, spec);
-      Preconditions.checkArgument(StringUtils.containsOnly(specParts[0], VALID_TARGETS),
-          "Invalid mode %s - contains invalid segment %s which has invalid targets %s",
-          value, spec, specParts[0]);
-      Preconditions.checkArgument(StringUtils.containsOnly(specParts[1], VALID_PERMISSIONS),
-          "Invalid mode %s - contains invalid segment %s which has invalid permissions %s",
-          value, spec, specParts[1]);
+      if (specParts.length != 2) {
+        throw new IllegalArgumentException(ExceptionMessage.INVALID_MODE_SEGMENT
+            .getMessage(value, spec));
+      }
+      if (!StringUtils.containsOnly(specParts[0], VALID_TARGETS)) {
+        throw new IllegalArgumentException(ExceptionMessage.INVALID_MODE_TARGETS
+            .getMessage(value, spec, specParts[0]));
+      }
+      if (!StringUtils.containsOnly(specParts[1], VALID_PERMISSIONS)) {
+        throw new IllegalArgumentException(ExceptionMessage.INVALID_MODE_PERMISSIONS
+            .getMessage(value, spec, specParts[1]));
+      }
 
       // Build the permissions being specified
       Mode.Bits specBits = Bits.NONE;
