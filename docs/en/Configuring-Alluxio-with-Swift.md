@@ -6,10 +6,13 @@ group: Under Store
 priority: 1
 ---
 
+* Table of Contents
+{:toc}
+
 This guide describes how to configure Alluxio with an under storage system supporting the
 [Swift API](http://docs.openstack.org/developer/swift/).
 
-# Initial Setup
+## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
 [compile Alluxio](Building-Alluxio-Master-Branch.html), or
@@ -26,7 +29,7 @@ manually.
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-# Configuring Alluxio
+## Configuring Alluxio
 
 You need to configure Alluxio to use Swift as its under storage system by modifying
 `conf/alluxio-site.properties`. The first modification is to specify the Swift under storage system
@@ -39,7 +42,7 @@ Where `<swift-container>` is an existing Swift container.
 The following configuration should be provided in the `conf/alluxio-site.properties`
 
 {% include Configuring-Alluxio-with-Swift/several-configurations.md %}
-  	
+
 Possible values of `<swift-use-public>` are `true`, `false`. Possible values of `<swift-auth-model>`
 are `keystone`, `tempauth`, `swiftauth`. When using `keystone` authentication, the following
 parameter can optionally be set
@@ -55,12 +58,12 @@ Alluxio is used inside company network and Swift is located on the same network 
 value of `<swift-use-public>`  to `false`.
 
 
-## Accessing IBM SoftLayer object store
+### Accessing IBM SoftLayer object store
 
 Using the Swift module also makes the IBM SoftLayer object store an option as an under storage
 system for Alluxio.  SoftLayer requires `<swift-auth-model>` to be configured as `swiftauth`
- 
-# Running Alluxio Locally with Swift
+
+## Running Alluxio Locally with Swift
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
@@ -82,7 +85,7 @@ To stop Alluxio, you can run:
 
 {% include Common-Commands/stop-alluxio.md %}
 
-# Running functional test with IBM SoftLayer
+## Running functional test with IBM SoftLayer
 
 Configure your Swift or SoftLayer account in the `tests/pom.xml`, where `authMethodKey` should be
 `keystone` or `tempauth` or `swiftauth`. To run functional tests execute
@@ -93,7 +96,7 @@ In case of failures, logs located under `tests/target/logs`. You may also activa
 
 {% include Configuring-Alluxio-with-Swift/heap-dump.md %}
 
-# Swift Access Control
+## Swift Access Control
 
 If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object storage.
 

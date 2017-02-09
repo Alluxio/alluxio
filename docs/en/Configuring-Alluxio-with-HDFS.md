@@ -6,11 +6,14 @@ group: Under Store
 priority: 3
 ---
 
-This guide describes the instructions to configure 
+* Table of Contents
+{:toc}
+
+This guide describes the instructions to configure
 [HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)
 as Alluxio's under storage system.
 
-# Initial Setup
+## Initial Setup
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either
@@ -39,7 +42,7 @@ If everything succeeds, you should see
 `assembly/target` directory and this is the jar file you can use to run both Alluxio Master and
 Worker.
 
-# Configuring Alluxio
+## Configuring Alluxio
 
 To run Alluxio binary, we must setup configuration files. Create your configuration file with
 `bootstrapConf` command. For example, if you are running Alluxio on your local machine,
@@ -60,14 +63,14 @@ directory `/alluxio/data` is mapped to Alluxio.
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
-## Configuring Alluxio with HDFS namenode HA mode
+### Configuring Alluxio with HDFS namenode HA mode
 
 If HDFS namenodes are running in HA mode, both Alluxio servers and clients should be configured
 properly in order to access HDFS.
 
 For Alluxio servers (masters and workers), copy `hdfs-site.xml` and `core-site.xml` from your hadoop
 installation into `${ALLUXIO_HOME}/conf`. Alternatively, you can set
-`alluxio.underfs.hdfs.configuration` to the hadoop property file `hdfs-site.xml` (or 
+`alluxio.underfs.hdfs.configuration` to the hadoop property file `hdfs-site.xml` (or
 `core-site.xml`) in `conf/alluxio-site.properties` (make sure all the relative configurations are
 available in the file).
 
@@ -80,7 +83,7 @@ service already configured in `core-site.xml`) if you are mapping HDFS root dire
 Next, for Alluxio clients, `alluxio.underfs.hdfs.configuration` should also be set to the hadoop
 property file `hdfs-site.xml` (or `core-site.xml`).
 
-# Configuring Permission Mapping between Alluxio and HDFS
+## Configuring Permission Mapping between Alluxio and HDFS
 
 Since v1.3, Alluxio supports filesystem [user and permission checking](Security.html) by default.
 To ensure that the permission information of files/directories including user, group and mode in HDFS is consistent with Alluxio, the user to start Alluxio master and worker processes **is required** to be either case:
@@ -91,7 +94,7 @@ To ensure that the permission information of files/directories including user, g
 
 Note that, the user set above is only the identity that starts Alluxio master and worker processes. Once Alluxio servers started, it is **unnecessary** to run your Alluxio client applications using this user.
 
-# Running Alluxio Locally with HDFS
+## Running Alluxio Locally with HDFS
 
 Before this step, please make sure your HDFS cluster is running and the directory mapped to Alluxio
 exists. After everything is configured, you can start up Alluxio locally to see that everything

@@ -3,7 +3,10 @@ layout: global
 title: Thrift
 ---
 
-# Mac OS X
+* Table of Contents
+{:toc}
+
+## Mac OS X
 
 Antes que você instale o [Apache Thift](http://thrift.apache.org), primeiro, você precisará  
 configurar o suporte a linha de comando. Para fazer isso, você irá:
@@ -13,7 +16,7 @@ Instalar o Xcode a partir do Mac App Store
 Inicie o Xcode, abra a janela `Preferences`, selecione `Downloads` e instale
     o componente “Command Line Tools for Xcode”.
 
-## Homebrew
+### Homebrew
 
 Esta seção explica como instalar o Apache Thrift através do [Homebrew](http://brew.sh/).
 
@@ -35,7 +38,7 @@ Instale o `Thrift`
 
 {% include Thrift/install-Thrift-brew.md %}
 
-## MacPorts
+### MacPorts
 
 Esta seção explica como instalar o Apache Thrift através do [MacPorts](http://macports.org).
 
@@ -59,21 +62,21 @@ Tente utilizar o `Port` para instalar o `Thrift`:
 
 {% include Thrift/install-Thrift-port.md %}
 
-O último comando PODE falhar, de acordo com o [problema](https://trac.macports.org/ticket/41172). 
+O último comando PODE falhar, de acordo com o [problema](https://trac.macports.org/ticket/41172).
 Neste caso, nós recomendamos construir o `Thrift 0.9.2` a partir do código fonte (Levando em consideração
 que você usa o diretório padrão do `MacPort` em `/opt/local`):
 
 {% include Thrift/build-Thrift-port.md %}
 
 Você pode modificar o `CXXFLAGS`. Aqui nós incluímos `/usr/include/4.2.1` para `std::tr1` no Mavericks e
-`/opt/local/lib` para bibliotecas instaladas pelo `Port`. Sem o `-I`, a instalação pode falhar com 
+`/opt/local/lib` para bibliotecas instaladas pelo `Port`. Sem o `-I`, a instalação pode falhar com
 `tr1/functional not found`. Sem o `-L`, a instalação pode falhar durante o `linking`.
 
-# Linux
+## Linux
 
 [Referência](http://thrift.apache.org/docs/install/)
 
-## Debian/Ubuntu
+### Debian/Ubuntu
 
 O comando a seguir instala todas as ferramentas e bibliotecas necessárias para instalar o  
 compilador Apache Thrift em um sistema Debian/Ubuntu Linux
@@ -95,7 +98,7 @@ Os usuários Debian Lenny Users podem precisar de alguns pacotes do `backports`:
 
 {% include Thrift/build-Thrift-ubuntu.md %}
 
-## CentOS
+### CentOS
 
 Os passos a seguir podem ser utilizados para configurar um sistema CentOS 6.4.
 
@@ -111,7 +114,7 @@ Baixe e instale o código fonte do Apache Thrift:
 
 {% include Thrift/download-install-Thrift.md %}
 
-# Gerando os arquivos Java files do Thrift
+## Gerando os arquivos Java files do Thrift
 
 Alluxio define um serviço RPC utilizando o arquivo `thrift` localizado em:
 

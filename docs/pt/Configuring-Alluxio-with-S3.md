@@ -6,10 +6,13 @@ group: Under Store
 priority: 0
 ---
 
+* Table of Contents
+{:toc}
+
 Este guia descreve como configurar o Alluxio com [Amazon S3](https://aws.amazon.com/s3/)
 como um sistema de armazenamento inferior.
 
-# Configuração Inicial
+## Configuração Inicial
 
 Primeiro, os binários do Alluxio devem estar na sua máquina. Você pode
 [compilar o Alluxio](Building-Alluxio-Master-Branch.html) ou
@@ -25,7 +28,7 @@ criar um novo diretório neste `bucket` ou por escolher um já existente. Pela i
 guia, o nome do `S3 bucket` será chamado de `S3_BUCKET` e o diretório neste `bucket` será
 chamado de `S3_DIRECTORY`.
 
-# Configurando o Alluxio
+## Configurando o Alluxio
 
 Para configurar o Alluxio para utilizar o `S3` como um sistema de armazenamento inferior,
 modificações no arquivo `conf/alluxio-env.sh` devem ser efetuados. A primeira modificação é
@@ -47,7 +50,7 @@ Depois dessas alterações, o Alluxio deve ser configurado para trabalhar com o 
 sistema de armazenamento inferior e você pode tentar
 [Executar o Alluxio localmente com S3](#executando-o-alluxio-localmente-com-s3).
 
-## Acessando S3 através de um Proxy
+### Acessando S3 através de um Proxy
 
 Para comunicar com o `S3` através de um `proxy`, modifique a seção `ALLUXIO_JAVA_OPTS` do arquivo
 `conf/alluxio-env.sh` para incluir:
@@ -62,7 +65,7 @@ Estes parâmetros de configuração também devem ser definidos para o Alluxio `
 estiver rodando em um `JVM` apartado do Alluxio `Master` e dos `Workers`. Veja
 [Configurando Aplicações Distrubuídas](#configurando-aplicações-distríbuidas)
 
-# Configurando Sua Aplicação
+## Configurando Sua Aplicação
 
 Quando estiver montando sua aplicação para utilizar o Alluxio, sua aplicação deverá ter que incluir
 o módulo `alluxio-core-client`. Se você estiver utilizando o [maven](https://maven.apache.org/),
@@ -70,7 +73,7 @@ você pode adicionar a dependência para sua aplicação com:
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
 
-## Habilitando o Hadoop S3 Client (ao invés do S3 client nativo)
+### Habilitando o Hadoop S3 Client (ao invés do S3 client nativo)
 
 O Alluxio provê um `client` nativo para se comunicar com `S3`. Por padrão, o `S3 client` nativo é
 utilizado quando o Alluxio está configurado para usar o `S3` como um sistema de armazenamento
@@ -95,7 +98,7 @@ A versão `jets3t 0.9.0` trabalha com a versão `Hadoop 2.3.0`. A versão `jets3
 com as versões anteriores do `Hadoop`. Para procurar a versão exato do `jets3t` para a sua versão
 do `Hadoop`, por favor, pesquise no [MvnRepository](http://mvnrepository.com/).
 
-## Configurando Aplicações Distribuídas
+### Configurando Aplicações Distribuídas
 
 Se você estiver usando um Alluxio `client` que roda apartado do Alluxio `Master` e dos `Workers`
 em um `JVM` separado), então você precisa ter certeza de que as suas credenciais `AWS` também
@@ -105,7 +108,7 @@ Por exemplo:
 
 {% include Configuring-Alluxio-with-S3/java-bash.md %}
 
-# Executando o Alluxio Localmente com S3
+## Executando o Alluxio Localmente com S3
 
 Depois que tudo estiver configurado, você pode iniciar o Alluxio localmente para ver se tudo
 funciona.

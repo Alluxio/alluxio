@@ -8,12 +8,13 @@ group: Resources
 * Table of Contents
 {:toc}
 
-# Unit testing goals
+## Unit testing goals
+
 1. Unit tests act as examples of how to use the code under test.
 2. Unit tests detect when an object breaks it's specification.
 3. Unit tests *don't* break when an object is refactored but still meets the same specification.
 
-# How to write a unit test
+## How to write a unit test
 
 1\. If creating an instance of the class takes some work, create a `@Before` method to perform common setup. The `@Before` method gets run automatically before each unit test. Only do general setup which will apply to every test. Test-specific setup should be done locally in the tests that need it. In this example, we are testing a `BlockMaster`, which depends on a journal, clock, and executor service. The executor service and journal we provide are real implementations, and the `TestClock` is a fake clock which can be controlled by unit tests.
 

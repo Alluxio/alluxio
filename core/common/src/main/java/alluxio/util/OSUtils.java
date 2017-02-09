@@ -44,6 +44,20 @@ public final class OSUtils {
   }
 
   /**
+   * @return true if current OS is MacOS
+   */
+  public static boolean isMacOS() {
+    return SystemUtils.IS_OS_MAC_OSX;
+  }
+
+  /**
+   * @return true if current OS is Linux
+   */
+  public static boolean isLinux() {
+    return SystemUtils.IS_OS_LINUX;
+  }
+
+  /**
    * @return true if current OS is AIX
    */
   public static boolean isAIX() {

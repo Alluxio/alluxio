@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 Fault Tolerance in Alluxio is based upon a multi-master approach where multiple master processes
 are running. One of these processes is elected the leader and is used by all workers and clients as the
 primary point of contact. The other masters act as standbys using the shared journal to ensure that

@@ -36,7 +36,8 @@ public enum PropertyKey {
   SITE_CONF_DIR(Name.SITE_CONF_DIR, "${user.home}/.alluxio/,/etc/alluxio/"),
   TEST_MODE(Name.TEST_MODE, false),
   VERSION(Name.VERSION, ProjectConstants.VERSION),
-  WEB_RESOURCES(Name.WEB_RESOURCES, String.format("${%s}/core/server/src/main/webapp", Name.HOME)),
+  WEB_RESOURCES(Name.WEB_RESOURCES,
+      String.format("${%s}/core/server/common/src/main/webapp", Name.HOME)),
   WEB_THREADS(Name.WEB_THREADS, 1),
   WORK_DIR(Name.WORK_DIR, String.format("${%s}", Name.HOME)),
   ZOOKEEPER_ADDRESS(Name.ZOOKEEPER_ADDRESS, null),
@@ -306,6 +307,9 @@ public enum PropertyKey {
   USER_LOCAL_READER_PACKET_SIZE_BYTES(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES, "8MB"),
   USER_LOCAL_WRITER_PACKET_SIZE_BYTES(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB"),
   USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, false),
+  USER_RPC_RETRY_BASE_SLEEP_MS(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50),
+  USER_RPC_RETRY_MAX_SLEEP_MS(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 10000),
+  USER_RPC_RETRY_MAX_NUM_RETRY(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 30),
 
   //
   // FUSE integration related properties
@@ -758,6 +762,12 @@ public enum PropertyKey {
         "alluxio.user.local.writer.packet.size.bytes";
     public static final String USER_PACKET_STREAMING_ENABLED =
         "alluxio.user.packet.streaming.enabled";
+    public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
+        "alluxio.user.rpc.retry.base.sleep.ms";
+    public static final String USER_RPC_RETRY_MAX_SLEEP_MS =
+        "alluxio.user.rpc.retry.max.sleep.ms";
+    public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
+        "alluxio.user.rpc.retry.max.num.retry";
 
     //
     // FUSE integration related properties
