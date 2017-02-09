@@ -5,7 +5,7 @@ group: Resources
 ---
 
 Alluxio exposes an
-[UnderFileSystem](https://github.com/alluxio/alluxio/blob/master/common/src/main/java/alluxio/underfs/UnderFileSystem.java)
+[UnderFileSystem](https://github.com/Alluxio/alluxio/blob/master/core/common/src/main/java/alluxio/underfs/UnderFileSystem.java)
 interface to enable any under storage to integrate with Alluxio. The current available under storage
 integrations can be found as submodules of the `underfs` module. To create a new module, the
 following components should be implemented:
@@ -14,7 +14,7 @@ following components should be implemented:
 under storage.
 
 * A corresponding implementation of the
-[UnderFileSystemFactory](https://github.com/alluxio/alluxio/blob/master/common/src/main/java/alluxio/underfs/UnderFileSystemFactory.java)
+[UnderFileSystemFactory](https://github.com/Alluxio/alluxio/blob/master/core/common/src/main/java/alluxio/underfs/UnderFileSystemFactory.java)
 interface which allows Alluxio to match path URIs to the UnderFileSystem implementation.
 
 * A META-INF/services file to register the new integration
