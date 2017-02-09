@@ -67,22 +67,5 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
         && res.contains("repairing path: " + "/testRoot/testDir/testFileB\n"));
     Assert.assertTrue(!mFileSystem.exists(new AlluxioURI("/testRoot/testDir")));
     Assert.assertTrue(!mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB")));
-
-    mOutput.reset();
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WriteType.CACHE_THROUGH, 20);
-    ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB")).getUfsPath();
-    ufs.deleteFile(ufsPath);
-    ufs.create("/testRoot/testDir/testFileB", CreateOptions.defaults().setCreateParent(true));
-    mFsShell.run("checkConsistency", "-r", "/testRoot");
-    res = mOutput.toString();
-    Assert.assertTrue(res.contains("/testRoot" + " have: " + "1 files inconsistent.\n")
-        && res.contains("repairing path: " + "/testRoot/testDir/testFileB\n"));
-    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
-        .getLength() == 0);
-
-    ufs.create("/testRoot/testDir/testFileC", CreateOptions.defaults().setCreateParent(true));
-    mFsShell.run("checkConsistency", "-r", "/testRoot");
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileC")));
   }
 }

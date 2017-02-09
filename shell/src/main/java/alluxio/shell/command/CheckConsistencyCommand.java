@@ -75,61 +75,56 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
     mFileSystem.listStatus(path, listOptions);
     CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
     List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(path, options);
+    if (inconsistentUris.isEmpty()) {
+      System.out.println(path + " is consistent with the under storage system.");
+    }
     if (!repairConsistency) {
-      if (inconsistentUris.isEmpty()) {
-        System.out.println(path + " is consistent with the under storage system.");
-      } else {
-        Collections.sort(inconsistentUris);
-        System.out.println("The following files are inconsistent:");
-        for (AlluxioURI uri : inconsistentUris) {
-          System.out.println(uri);
-        }
+      Collections.sort(inconsistentUris);
+      System.out.println("The following files are inconsistent:");
+      for (AlluxioURI uri : inconsistentUris) {
+        System.out.println(uri);
       }
     } else {
-      if (inconsistentUris.isEmpty()) {
-        System.out.println(path + " is consistent with the under storage system.");
-      } else {
-        Collections.sort(inconsistentUris);
-        System.out.println(path + " have: " + inconsistentUris.size() + " files inconsistent.");
-        List<AlluxioURI> dirInconsistencys = new ArrayList<AlluxioURI>();
-        for (int i = 0; i < inconsistentUris.size(); i++) {
-          URIStatus status = mFileSystem.getStatus(inconsistentUris.get(i));
-          if (status.isFolder()) {
-            dirInconsistencys.add(inconsistentUris.get(i));
-            continue;
-          }
-          System.out.println("repairing path: " + inconsistentUris.get(i));
-          DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
-          mFileSystem.delete(inconsistentUris.get(i), deleteOptions);
-          Closer closer = Closer.create();
-          try {
-            OpenFileOptions openFileOptions = OpenFileOptions.defaults()
-                .setReadType(ReadType.CACHE_PROMOTE);
-            if (mFileSystem.exists(inconsistentUris.get(i))) {
-              if (status.getInMemoryPercentage() == 100) {
-                FileInStream in = closer.register(mFileSystem.openFile(inconsistentUris.get(i),
-                    openFileOptions));
-                byte[] buf = new byte[8 * Constants.MB];
-                while (in.read(buf) != -1) {
-                }
+      Collections.sort(inconsistentUris);
+      System.out.println(path + " have: " + inconsistentUris.size() + " files inconsistent.");
+      List<AlluxioURI> dirInconsistencys = new ArrayList<AlluxioURI>();
+      for (int i = 0; i < inconsistentUris.size(); i++) {
+        URIStatus status = mFileSystem.getStatus(inconsistentUris.get(i));
+        if (status.isFolder()) {
+          dirInconsistencys.add(inconsistentUris.get(i));
+          continue;
+        }
+        System.out.println("repairing path: " + inconsistentUris.get(i));
+        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
+        mFileSystem.delete(inconsistentUris.get(i), deleteOptions);
+        Closer closer = Closer.create();
+        try {
+          OpenFileOptions openFileOptions = OpenFileOptions.defaults()
+              .setReadType(ReadType.CACHE_PROMOTE);
+          if (mFileSystem.exists(inconsistentUris.get(i))) {
+            if (status.getInMemoryPercentage() == 100) {
+              FileInStream in = closer.register(mFileSystem.openFile(inconsistentUris.get(i),
+                  openFileOptions));
+              byte[] buf = new byte[8 * Constants.MB];
+              while (in.read(buf) != -1) {
               }
             }
-          } catch (Exception e) {
-            throw closer.rethrow(e);
-          } finally {
-            closer.close();
           }
-          System.out.println(inconsistentUris.get(i) + " repaired");
-          System.out.println();
+        } catch (Exception e) {
+          throw closer.rethrow(e);
+        } finally {
+          closer.close();
         }
-        for (AlluxioURI uri : dirInconsistencys) {
-          DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true)
-              .setRecursive(true);
-          System.out.println("repairing path: " + uri);
-          mFileSystem.delete(uri, deleteOptions);
-          System.out.println(uri + "repaired");
-          System.out.println();
-        }
+        System.out.println(inconsistentUris.get(i) + " repaired");
+        System.out.println();
+      }
+      for (AlluxioURI uri : dirInconsistencys) {
+        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true)
+            .setRecursive(true);
+        System.out.println("repairing path: " + uri);
+        mFileSystem.delete(uri, deleteOptions);
+        System.out.println(uri + "repaired");
+        System.out.println();
       }
     }
   }
