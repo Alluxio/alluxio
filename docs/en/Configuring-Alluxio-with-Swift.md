@@ -58,8 +58,8 @@ value of `<swift-use-public>`  to `false`.
 
 ## Options for Swift Object Storage
 
-Using the Swift module makes Ceph Object Storage, using RadosGW, and IBM SoftLayer Object Storage as under storage
-options for Alluxio.
+Using the Swift module makes Ceph Object Storage and IBM SoftLayer Object Storage as under storage
+options for Alluxio. To use Ceph, the Rados Gateway module must be deployed. 
  
 ## Running Alluxio Locally with Swift
 
@@ -85,7 +85,7 @@ To stop Alluxio, you can run:
 
 # Running functional tests
 
-Configure your Swift account credetntials under `swiftTest` in `tests/pom.xml`, where `authMethodKey` should be
+Configure your Swift account credentials under `swiftTest` in `tests/pom.xml`, where `authMethodKey` should be
 `keystone` or `tempauth` or `swiftauth`. To run functional tests execute
 
 {% include Configuring-Alluxio-with-Swift/functional-tests.md %}
