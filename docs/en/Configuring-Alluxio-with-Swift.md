@@ -32,8 +32,7 @@ manually.
 ## Configuring Alluxio
 
 You need to configure Alluxio to use Swift as its under storage system by modifying
-`conf/alluxio-site.properties`. The first modification is to specify the Swift under storage system
-address. You specify it by modifying `conf/alluxio-site.properties` to include:
+`conf/alluxio-site.properties`. Modify `conf/alluxio-site.properties` to include:
 
 {% include Configuring-Alluxio-with-Swift/underfs-address.md %}
 
@@ -57,12 +56,10 @@ On the successful authentication, Keystone will return two access URLs: public a
 Alluxio is used inside company network and Swift is located on the same network it is adviced to set
 value of `<swift-use-public>`  to `false`.
 
+## Options for Swift Object Storage
 
-### Accessing IBM SoftLayer object store
-
-Using the Swift module also makes the IBM SoftLayer object store an option as an under storage
-system for Alluxio.  SoftLayer requires `<swift-auth-model>` to be configured as `swiftauth`
-
+Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage/object-storage/) and [IBM SoftLayer](http://www.softlayer.com/object-storage) Object Storage as under storage options for Alluxio. To use Ceph, the [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/) module must be deployed. 
+ 
 ## Running Alluxio Locally with Swift
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
@@ -85,9 +82,9 @@ To stop Alluxio, you can run:
 
 {% include Common-Commands/stop-alluxio.md %}
 
-## Running functional test with IBM SoftLayer
+# Running functional tests
 
-Configure your Swift or SoftLayer account in the `tests/pom.xml`, where `authMethodKey` should be
+Configure your Swift account credentials under `swiftTest` in `tests/pom.xml`, where `authMethodKey` should be
 `keystone` or `tempauth` or `swiftauth`. To run functional tests execute
 
 {% include Configuring-Alluxio-with-Swift/functional-tests.md %}
