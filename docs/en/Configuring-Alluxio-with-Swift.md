@@ -58,8 +58,7 @@ value of `<swift-use-public>`  to `false`.
 
 ## Options for Swift Object Storage
 
-Using the Swift module makes Ceph Object Storage and IBM SoftLayer Object Storage as under storage
-options for Alluxio. To use Ceph, the Rados Gateway module must be deployed. 
+Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage/object-storage/) and [IBM SoftLayer](http://www.softlayer.com/object-storage) Object Storage as under storage options for Alluxio. To use Ceph, the [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/) module must be deployed. 
  
 ## Running Alluxio Locally with Swift
 
