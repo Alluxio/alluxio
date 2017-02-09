@@ -6,10 +6,13 @@ group: Under Store
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 This guide describes how to configure Alluxio with [MapR-FS](https://www.mapr.com/products/mapr-fs)
 as the under storage system.
 
-# Compiling Alluxio with MapR Version
+## Compiling Alluxio with MapR Version
 
 Alluxio must be [compiled](Building-Alluxio-Master-Branch.html) with the correct MapR distribution
 to integrate with MapR-FS. Here are some values of `hadoop.version` for different MapR
@@ -43,7 +46,7 @@ distributions:
 </tr>
 </table>
 
-# Configuring Alluxio for MapR-FS
+## Configuring Alluxio for MapR-FS
 
 Once you have compiled Alluxio with the appropriate `hadoop.version` for your MapR distribution, you
 may have to configure Alluxio to recognize the MapR-FS scheme and URIs. Alluxio uses the HDFS client
@@ -66,7 +69,7 @@ be done by adding `-Dalluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///` to the co
 information, please read about [configurating applications for Alluxio](Configuration-Settings.html
 #application-settings).
 
-# Configuring Alluxio to use MapR-FS as Under File System
+## Configuring Alluxio to use MapR-FS as Under File System
 
 There are various ways to configure Alluxio to use MapR-FS as the Under File System. If you want to
 mount MapR-FS to the root of Alluxio, add the following to `conf/alluxio-site.properties`:
@@ -81,7 +84,7 @@ You can also mount a directory in MapR-FS to a directory in the Alluxio namespac
 $ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR-FS>/
 ```
 
-# Running Alluxio Locally with MapR-FS
+## Running Alluxio Locally with MapR-FS
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 

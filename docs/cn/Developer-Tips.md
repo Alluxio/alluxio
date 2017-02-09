@@ -5,7 +5,7 @@ nickname: 开发者指南
 group: Resources
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 该页面是一些面向Alluxio开发者的技巧和手册。
@@ -20,9 +20,9 @@ Alluxio使用Thrift来完成客户端与服务端的RPC通信。`.thrift`文件�
 
 {% include Developer-Tips/thriftGen.md %}
 
-### 更改协议缓冲区消息
+### 更改Protocol Buffer消息
 
-Alluxio使用协议缓冲区来读写日志消息。`.proto`文件被定义在`servers/src/proto/journal/`目录下，其用于为协议缓冲区消息自动生成Java定义。要需要修改这些消息，首先要[读取更新的消息类型](https://developers.google.com/protocol-buffers/docs/proto#updating)从而保证你的修改不会破坏向后兼容性。然后就是[安装protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
+Alluxio使用Protocol Buffer来读写日志消息。`.proto`文件被定义在`servers/src/proto/journal/`目录下，其用于为Protocol Buffer消息自动生成Java定义。要需要修改这些消息，首先要[读取更新的消息类型](https://developers.google.com/protocol-buffers/docs/proto#updating)从而保证你的修改不会破坏向后兼容性。然后就是[安装protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
 
 {% include Developer-Tips/install-protobuf.md %}
 
@@ -40,7 +40,7 @@ Alluxio使用协议缓冲区来读写日志消息。`.proto`文件被定义在`s
 <tr>
   <td>{{dscp.command}}</td>
   <td>{{dscp.args}}</td>
-  <td>{{site.data.table.cn.Developer-Tips.[dscp.command]}}</td>
+  <td>{{site.data.table.cn.Developer-Tips[dscp.command]}}</td>
 </tr>
 {% endfor %}
 </table>

@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class FileLocationOptions {
-  // Offset within file in bytes
+  // Offset within a file in bytes
   private long mOffset;
 
   /**

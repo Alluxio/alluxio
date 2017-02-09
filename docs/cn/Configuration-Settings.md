@@ -5,12 +5,12 @@ group: Features
 priority: 1
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 本页面介绍Alluxio的配置项，并提供了在不同环境下的推荐配置。
 
-# Alluxio配置
+## Alluxio配置
 
 Alluxio在运行时期会加载三种类型的配置源：
 
@@ -20,7 +20,7 @@ Alluxio在运行时期会加载三种类型的配置源：
 
 加载配置属性值的优先级从高到低依次为：应用配置（如果有），环境变量，属性文件以及默认值。
 
-## 应用配置 {#application-settings}
+### 应用配置 {#application-settings}
 
 Alluxio shell用户可以通过在命令行中添加`-Dkey=property`来指定某一个Alluxio配置项，例如
 
@@ -34,7 +34,7 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
 
 注意，这类配置是跟具体应用相关的，并且在每次运行一个应用或者命令（例如一个Spark作业）时都需要对其进行配置。
 
-## 环境变量 {#environment-variables}
+### 环境变量 {#environment-variables}
 
 有许多常用的Alluxio配置项可以通过以下的环境变量进行配置：
 
@@ -92,7 +92,7 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
 
 注意，`conf/alluxio-env.sh`是在你[启动Alluxio系统](Running-Alluxio-Locally.html)或者[运行Alluxio命令](Command-Line-Interface.html)时被加载，而不是被应用加载。
 
-## 属性文件 {#property-files}
+### 属性文件 {#property-files}
 
 除了以上这些提供基本设置的环境变量之外，Alluxio还为用户提供了一种更一般的方式，即通过属性文件来自定义所有支持的配置项。对于每个Alluxio部署站点，Alluxio服务器以及应用客户端都可以通过`alluxio-site.properties`文件覆盖默认属性值。在启动时，Alluxio会检查是否存在属性配置文件，如果存在，便会加载这些文件，并覆盖默认的属性值。启动程序将依次在`${HOME}/.alluxio/`，`/etc/alluxio/`（可以通过更改`alluxio.site.conf.dir`的默认值进行自定义）以及运行Alluxio的Java虚拟机的classpath中搜索该属性文件。
 
@@ -102,7 +102,7 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
 
 注意，一旦设置了，这些属性文件的配置项将在Alluxio服务器以及使用Alluxio客户端的作业中共享。
 
-# 附录 {#appendix}
+## 附录 {#appendix}
 
 所有Alluxio配置属性都属于以下六类之一：
 [共有配置项](#common-configuration)（由Master和Worker共享），
@@ -110,7 +110,7 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
 [用户配置项](#user-configuration)，[集群管理配置项](#cluster-management)（用于在诸如Mesos和YARN的集群管理器上运行Alluxio）
 以及[安全性配置项](#security-configuration)（由Master，Worker和用户共享）。
 
-## 共有配置项 {#common-configuration}
+### 共有配置项 {#common-configuration}
 
 共有配置项包含了不同组件共享的常量。
 
@@ -120,12 +120,12 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.common-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.common-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
-## Master配置项 {#master-configuration}
+### Master配置项 {#master-configuration}
 
 Master配置项指定master节点的信息，例如地址和端口号。
 
@@ -135,12 +135,12 @@ Master配置项指定master节点的信息，例如地址和端口号。
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.master-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.master-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
-## Worker配置项 {#worker-configuration}
+### Worker配置项 {#worker-configuration}
 
 Worker配置项指定worker节点的信息，例如地址和端口号。
 
@@ -150,13 +150,13 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.worker-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.worker-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
 
-## 用户配置项 {#user-configuration}
+### 用户配置项 {#user-configuration}
 
 用户配置项指定了文件系统访问的相关信息。
 
@@ -166,12 +166,12 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.user-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.user-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
-## 集群管理配置项 {#cluster-management}
+### 集群管理配置项 {#cluster-management}
 
 如果使用诸如Mesos和YARN的集群管理器运行Alluxio，还有额外的配置项。
 
@@ -181,12 +181,12 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.cluster-management.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.cluster-management[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
-## 安全性配置项 {#security-configuration}
+### 安全性配置项 {#security-configuration}
 
 安全性配置项指定了安全性相关的信息，如安全认证和文件权限。
 安全认证相关的配置同时适用于master、worker和用户。
@@ -199,11 +199,11 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.security-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.security-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
-## 配置多宿主网络 {#configure-multihomed-networks}
+### 配置多宿主网络 {#configure-multihomed-networks}
 
 Alluxio提供了一种使用多宿主网络的方式。如果你有多个NIC，并且想让Alluxio master监听所有的NIC，那么你可以将`alluxio.master.bind.host`设置为`0.0.0.0`，这样Alluxio client就可以通过任何一个NIC访问到master。其他以`bind.host`结尾的配置项也是类似的。

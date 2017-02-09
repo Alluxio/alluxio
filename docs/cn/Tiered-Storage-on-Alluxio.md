@@ -6,7 +6,7 @@ group: Features
 priority: 4
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 Alluxio支持分层存储，以便管理内存之外的其它存储类型。目前Alluxio支持这些存储类型(存储层)：
@@ -17,25 +17,25 @@ Alluxio支持分层存储，以便管理内存之外的其它存储类型。目�
 
 使用带分层存储的Alluxio使得Alluxio可以一次在系统中存储更多数据，因为内存容量在一些部署中非常有限。有了分层存储，Alluxio自动管理存放于不同存储层中的数据块，因此用户和管理员无需手动管理数据存放的位置。用户可以通过实现[分配策略](#allocators) and [回收策略](#evictors)指定自己的数据管理策略。另外，对分层存储进行手动控制也是可行的，参见[固定文件](#pinning-files)。
 
-# 使用分层存储
+## 使用分层存储
 
 引入分层存储后，Alluxio管理的数据块不只在内存中，可存放于任何可用的存储层。Alluxio使用*分配策略*和*回收策略*管理块的存放和移动。Alluxio根据I/O性能的高低从上到下配置存储层。因此，这种配置策略决定了最顶层存储是MEM，然后是SSD，最后是HDD。
 
-## 存储目录
+### 存储目录
 
 一个存储层至少有一个存储目录。目录是Alluxio数据块存放的文件路径。Alluxio支持单个存储层包含多个目录的配置，允许一个存储层有多个挂载点或存储设备。举例而言，如果Alluxio worker上有5个SSD设备，可以配置Alluxio在SSD层同时使用这5个SSD设备。详细配置请参考[下面](#enabling-and-configuring-tiered-storage)。[分配策略](#allocators)决定数据块文件存放的目录。
 
-## 写数据
+### 写数据
 
 用户写入新数据块时默认写在顶层存储(不想使用默认配置可以使用定制的分配策略)。如果顶层没有足够的空间存放数据块，回收策略会被触发并释放空间给新数据块。
 
-## 读数据
+### 读数据
 
 读取分层存储的数据块和标准Alluxio类似。Alluxio从存储位置读取数据块。如果Alluxio配置了多层存储，数据块不一定是从顶层读取，因为可能被透明地移到下层存储中。
 
 读取策略为AlluxioStorageType.PROMOTE时，Alluxio会确保数据在读取前先被移动到顶层存储中。通过显式的将热数据移到最高层,该策略也可以用于数据块的管理。
 
-### 固定文件
+#### 固定文件
 
 另一控制文件存放和移动的方法是是*固定(pin)*和*取消固定(unpin)*文件。文件被固定时，数据块不会从Alluxio的存储空间中移出。同时用户可以将固定文件的数据块移到顶层存储。
 
@@ -67,7 +67,7 @@ Alluxio使用分配策略选择新数据块的写入位置。Alluxio定义了分
 
 将来会有更多的分配策略可供选择。由于Alluxio支持自定义分配策略。你可以为自己的应用开发合适的分配策略。
 
-## 回收策略
+### 回收策略
 
 Alluxio使用回收策略决定当空间需要释放时，哪些数据块被移到低存储层。Alluxio支持自定义回收策略，已有的实现包括：
 
@@ -91,11 +91,11 @@ Alluxio使用回收策略决定当空间需要释放时，哪些数据块被移�
 
 使用同步移出时，推荐使用较小的块大小配置（64MB左右），以降低块移出的延迟。使用[空间预留器](#space-reserver)时，块大小不会影响移出延迟。
 
-## 空间预留器
+### 空间预留器
 
 空间预留器可以在存储空间被完全耗尽前试着在每一层预留一定比例的空间。用于改善突发写入的性能，也可以在回收策略连续运行时提高持续写入的边际性能增益。开启和配置空间预留器参见[配置部分](#enabling-and-configuring-tiered-storage)。
 
-# 开启和配置空间预留
+## 开启和配置空间预留
 
 在Alluxio中，使用[配置参数](Configuration-Settings.html)开启分层存储。默认情况下，Alluxio使用单层内存存储。使用如下配置参数可以指定Alluxio的额外存储层：
 
@@ -127,7 +127,7 @@ Alluxio使用回收策略决定当空间需要释放时，哪些数据块被移�
 
     alluxio.worker.tieredstore.reserver.enabled=false
 
-# 分层存储的参数配置
+## 分层存储的参数配置
 
 分层存储配置参数如下：
 
@@ -137,7 +137,7 @@ Alluxio使用回收策略决定当空间需要释放时，哪些数据块被移�
 <tr>
 <td>{{ item.parameter }}</td>
 <td>{{ item.defaultValue }}</td>
-<td>{{ site.data.table.cn.tiered-storage-configuration-parameters.[item.parameter] }}</td>
+<td>{{ site.data.table.cn.tiered-storage-configuration-parameters[item.parameter] }}</td>
 </tr>
 {% endfor %}
 </table>

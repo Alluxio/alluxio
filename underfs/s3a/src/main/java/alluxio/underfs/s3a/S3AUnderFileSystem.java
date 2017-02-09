@@ -319,6 +319,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       throws IOException {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
+    // In case key is root (empty string) do not normalize prefix
+    key = key.equals(PATH_SEPARATOR) ? "" : key;
     ListObjectsV2Request request =
         new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(key)
             .withDelimiter(delimiter).withMaxKeys(getListingChunkLength());

@@ -106,6 +106,9 @@ public final class HeartbeatThreadTest {
     }
   }
 
+  /**
+   * Executes a dummy heartbeat executor using {@link HeartbeatScheduler}.
+   */
   private class DummyHeartbeatTestCallable implements Callable<Void>  {
     private final String mThreadName;
 
@@ -140,6 +143,9 @@ public final class HeartbeatThreadTest {
     }
   }
 
+  /**
+   * The dummy heartbeat executor.
+   */
   private class DummyHeartbeatExecutor implements HeartbeatExecutor {
 
     private int mCounter = 0;

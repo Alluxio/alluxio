@@ -6,7 +6,7 @@ group: Features
 priority: 2
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 Alluxio可以利用*世系关系（Lineage）*达到很高的读写吞吐量，又不影响容错性，丢失的输出数据会通过重新运行生成该数据的作业来进行恢复。
@@ -61,7 +61,7 @@ Alluxio提供了Java版本的API来操作和访问世系关系信息。
 <tr>
   <td>{{record.parameter}}</td>
   <td>{{record.defaultvalue}}</td>
-  <td>{{site.data.table.cn.LineageParameter.[record.parameter]}}</td>
+  <td>{{site.data.table.cn.LineageParameter[record.parameter]}}</td>
 </tr>
 {% endfor %}
 </table>

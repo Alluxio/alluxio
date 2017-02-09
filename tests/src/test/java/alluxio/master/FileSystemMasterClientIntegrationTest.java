@@ -13,10 +13,13 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 
+import com.google.common.base.Throwables;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,7 +35,7 @@ import java.io.IOException;
 public final class FileSystemMasterClientIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.MASTER_RETRY, 30).build();
 
   @Test
   public void openClose() throws AlluxioException, IOException {
@@ -61,5 +64,27 @@ public final class FileSystemMasterClientIntegrationTest {
         mLocalAlluxioClusterResource.get().getMaster().getAddress());
     fsMasterClient.getStatus(new AlluxioURI("/doesNotExist"));
     fsMasterClient.close();
+  }
+
+  @Test(timeout = 300000)
+  public void masterUnavailable() throws Exception {
+    FileSystem fileSystem = mLocalAlluxioClusterResource.get().getClient();
+    mLocalAlluxioClusterResource.get().getMaster().stop();
+
+    Thread thread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          Thread.sleep(3000);
+          mLocalAlluxioClusterResource.get().getMaster().start();
+        } catch (InterruptedException e) {
+          throw Throwables.propagate(e);
+        }
+      }
+    });
+    thread.start();
+
+    fileSystem.listStatus(new AlluxioURI("/"));
+    thread.join();
   }
 }

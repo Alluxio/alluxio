@@ -6,8 +6,6 @@ group: Deploying Alluxio
 priority: 1
 ---
 
-# Run Alluxio Standalone on a Single Machine.
-
 The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 7 or above).
 
 Download the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:

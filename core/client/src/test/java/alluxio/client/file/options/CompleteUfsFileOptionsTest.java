@@ -15,32 +15,27 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.thrift.CompleteUfsFileTOptions;
+import alluxio.util.CommonUtils;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * Tests for the {@link CompleteUfsFileOptions} class.
  */
-@RunWith(PowerMockRunner.class)
-// Need to mock Permission to use CommonTestUtils#testEquals.
-@PrepareForTest(Permission.class)
 public final class CompleteUfsFileOptionsTest {
   private static final String TEST_USER = "test";
 
@@ -69,13 +64,9 @@ public final class CompleteUfsFileOptionsTest {
   @Test
   public void defaults() throws IOException {
     CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
-
-    Permission expectedPs = Permission.defaults().applyFileUMask();
-
-    Assert.assertEquals(TEST_USER, options.getPermission().getOwner());
-    Assert.assertEquals(TEST_USER, options.getPermission().getGroup());
-    Assert.assertEquals(expectedPs.getMode(), options.getPermission().getMode());
-    ConfigurationTestUtils.resetConfiguration();
+    Assert.assertEquals(TEST_USER, options.getOwner());
+    Assert.assertEquals(TEST_USER, options.getGroup());
+    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
   }
 
   /**
@@ -83,15 +74,19 @@ public final class CompleteUfsFileOptionsTest {
    */
   @Test
   public void fields() throws IOException {
-    CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
-    String owner = "test-owner";
-    String group = "test-group";
-    short mode = Constants.DEFAULT_FILE_SYSTEM_MODE;
-    options.setPermission(new Permission(owner, group, mode));
+    Random random = new Random();
+    String owner = CommonUtils.randomAlphaNumString(10);
+    String group = CommonUtils.randomAlphaNumString(10);
+    Mode mode = new Mode((short) random.nextInt());
 
-    Assert.assertEquals(owner, options.getPermission().getOwner());
-    Assert.assertEquals(group, options.getPermission().getGroup());
-    Assert.assertEquals(mode, options.getPermission().getMode().toShort());
+    CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
+    options.setOwner(owner);
+    options.setGroup(group);
+    options.setMode(mode);
+
+    Assert.assertEquals(owner, options.getOwner());
+    Assert.assertEquals(group, options.getGroup());
+    Assert.assertEquals(mode, options.getMode());
   }
 
   /**
@@ -99,17 +94,20 @@ public final class CompleteUfsFileOptionsTest {
    */
   @Test
   public void toThrift() throws IOException {
-    CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
-    String owner = "test-owner";
-    String group = "test-group";
-    short mode = Constants.DEFAULT_FILE_SYSTEM_MODE;
+    Random random = new Random();
+    String owner = CommonUtils.randomAlphaNumString(10);
+    String group = CommonUtils.randomAlphaNumString(10);
+    Mode mode = new Mode((short) random.nextInt());
 
-    options.setPermission(new Permission(owner, group, mode));
+    CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
+    options.setOwner(owner);
+    options.setGroup(group);
+    options.setMode(mode);
 
     CompleteUfsFileTOptions thriftOptions = options.toThrift();
     Assert.assertEquals(owner, thriftOptions.getOwner());
     Assert.assertEquals(group, thriftOptions.getGroup());
-    Assert.assertEquals(mode, thriftOptions.getMode());
+    Assert.assertEquals(mode.toShort(), thriftOptions.getMode());
   }
 
   @Test

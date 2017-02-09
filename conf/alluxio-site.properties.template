@@ -13,6 +13,7 @@
 # Details about all configuration properties http://www.alluxio.org/documentation/en/Configuration-Settings.html
 
 # Common properties
+# alluxio.master.hostname=localhost
 # alluxio.underfs.address=${alluxio.work.dir}/underFSStorage
 
 # Security properties
