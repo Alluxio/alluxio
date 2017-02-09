@@ -30,7 +30,6 @@ Each instance can report to zero or more sinks.
 * JmxSink: Registers metrics for viewing in a JMX console.
 * GraphiteSink: Sends metrics to a Graphite server.
 * MetricsServlet: Adds a servlet in Web UI to serve metrics data as JSON data.
-* GangliaSink: Sends metrics to Ganglia daemons.
 
 # Configuration
 The metrics system is configured via a configuration file that Alluxio expects to be present at
