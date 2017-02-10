@@ -6,10 +6,13 @@ group: Deploying Alluxio
 priority: 4
 ---
 
+* 内容列表
+{:toc}
+
 使用Alluxio自带的
 [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)脚本可以将Alluxio部署在Google计算引擎（GCE）上。该脚本允许你创建，配置以及撤销集群。
 
-# 前期准备
+## 前期准备
 
 **安装Vagrant和Google插件**
 
@@ -37,7 +40,7 @@ priority: 4
 
 {% include Running-Alluxio-on-GCE/install-pip.md %}
 
-# 启动集群
+## 启动集群
 
 要在GCE上运行Alluxio集群, 首先在 [Google Cloud](cloud.google.com) 上有一个计费账号，项目，服务账户和JSON服务账号的密钥。
 
@@ -69,7 +72,7 @@ priority: 4
 
 集群中的每个节点运行一个Alluxio worker, `AlluxioMaster` 节点上运行Alluxio master。
 
-# 访问集群
+## 访问集群
 
 **通过Web UI访问**
 
@@ -119,7 +122,7 @@ File System` 你应该能看到测试过程中写入到Alluxio的文件。
 
 {% include Running-Alluxio-on-GCE/ssh-other-node.md %}
 
-# 撤销集群
+## 撤销集群
 
 在 `deploy/vagrant` 目录下运行：
 

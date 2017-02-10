@@ -88,7 +88,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-server</artifactId>
+      <artifactId>alluxio-core-server-master</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
     </dependency>

@@ -37,10 +37,6 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-    </dependency>
-    <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
     </dependency>
@@ -54,6 +50,11 @@
     </dependency>
 
     <!-- Other Alluxio dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+        <artifactId>alluxio-core-protobuf</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>

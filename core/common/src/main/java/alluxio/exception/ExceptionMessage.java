@@ -177,6 +177,12 @@ public enum ExceptionMessage {
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   PERMISSION_DENIED("Permission denied: {0}"),
   SECURITY_IS_NOT_ENABLED("Security is not enabled"),
+  INVALID_MODE("Invalid mode {0}"),
+  INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),
+  INVALID_MODE_PERMISSIONS(
+      "Invalid mode {0} - contains invalid segment {1} which has invalid permissions {2}"),
+  INVALID_MODE_TARGETS(
+      "Invalid mode {0} - contains invalid segment {1} which has invalid targets {2}"),
 
   // yarn
   YARN_NOT_ENOUGH_HOSTS(

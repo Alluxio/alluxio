@@ -13,6 +13,7 @@ package alluxio.worker.netty;
 
 import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
@@ -95,6 +96,6 @@ public final class DataServerBlockReadHandlerTest extends DataServerReadHandlerT
     Protocol.ReadRequest readRequest =
         Protocol.ReadRequest.newBuilder().setId(1L).setOffset(offset).setLength(len).setLockId(1L)
             .setType(Protocol.RequestType.ALLUXIO_BLOCK).build();
-    return new RPCProtoMessage(readRequest, null);
+    return new RPCProtoMessage(new ProtoMessage(readRequest), null);
   }
 }

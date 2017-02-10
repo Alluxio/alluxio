@@ -170,7 +170,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
    * @return empty string if the request valid
    */
   private String validateRequest(RPCProtoMessage msg) {
-    Protocol.WriteRequest request = (Protocol.WriteRequest) msg.getMessage();
+    Protocol.WriteRequest request = msg.getMessage().getMessage();
     if (request.getId() != mRequest.mId) {
       return "The Ids do not match.";
     }

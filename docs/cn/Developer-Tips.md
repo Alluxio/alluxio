@@ -5,7 +5,7 @@ nickname: 开发者指南
 group: Resources
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 该页面是一些面向Alluxio开发者的技巧和手册。

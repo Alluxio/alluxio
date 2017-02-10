@@ -6,26 +6,29 @@ group: Frameworks
 priority: 1
 ---
 
+* 内容列表
+{:toc}
+
 该文档介绍如何让Alluxio与Apache Hadoop MapReduce一起运行，从而让你轻松地运行文件存储在Alluxio上的MapReduce程序。
 
-# 初始化设置
+## 初始化设置
 
 这部分的先决条件是你已安装了[Java](Java-Setup.html)。我们也假设你已经按照文档[本地模式](Running-Alluxio-Locally.html)或[集群](Running-Alluxio-on-a-Cluster.html)安装了Alluxio和Hadoop。
 为了运行一些简单的map-reduce实例，我们也推荐你下载根据你的hadoop版本对应的[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1)，或者如果你正在使用Hadoop 1，下载这个[examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1)。
 
-# 编译Alluxio客户端
+## 编译Alluxio客户端
 
 为了使Alluxio和你的Hadoop版本相对应，你必须重新编译Alluxio Client的Jar包，指明你的Hadoop版本。你可以在Alluxio目录下运行如下命令：
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/compile-Alluxio-Hadoop.md %}
 
-`<YOUR_HADOOP_VERSION>`版本支持很多不同的Hadoop发行版。例如：`mvn install -Dhadoop.version=2.7.1 -DskipTests`将会编译出适合Apache Hadoop 2.7.1版本的Alluxio。 
+`<YOUR_HADOOP_VERSION>`版本支持很多不同的Hadoop发行版。例如：`mvn install -Dhadoop.version=2.7.1 -DskipTests`将会编译出适合Apache Hadoop 2.7.1版本的Alluxio。
 请访问[构建Alluxio主分支](Building-Alluxio-Master-Branch.html#distro-support)页面来获取其他发行版本的支持信息。
 
 编译成功后，新的Alluxio客户端Jar包可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中发现;
 文档后续部分将会用到这个jar文件。
 
-# 配置Hadoop
+## 配置Hadoop
 
 首先, 确保在Hadoop的安装目录下的`conf`目录中有`core-site.xml`文件，并且已经加入了如下三个属性：
 
@@ -41,7 +44,7 @@ priority: 1
 
 注意，从Alluxio-1.3.0发布开始，要求将Alluxio客户端jar文件添加到`HADOOP_CLASSPATH`。因为安全选项默认开启，如果`HADOOP_CLASSPATH`不包含Alluxio客户端jar文件，那么在Alluxio上运行Hadoop MapReduce可能得到如下错误：“Failed to login: No Alluxio User is found.”。
 
-# 分发Alluxio客户端Jar包
+## 分发Alluxio客户端Jar包
 
 为了让MapRedude作业可以在Alluxio上读写文件，Alluxio客户端Jar包必须被分发到集群的所有节点上。这使得TaskTracker和JobClient包含所有与Alluxio进行交互访问所需要的可执行文件。
 
@@ -57,7 +60,7 @@ priority: 1
 另一种选择，在你的Hadoop部署中，把这个jar包添加到`mapreduce.application.classpath`系统属性，确保jar包在classpath上。
 为了在每个节点上安装Alluxio，将客户端Jar包`mapreduce.application.classpath`，该方法要注意的是所有Jar包必须再次安装，因为每个Jar包都更新到了最新版本。另一方面，当该Jar包已经在每个节点上的时候，就没有必要使用`-libjars`命令行选项了。
 
-# 在本地模式的Alluxio上运行Hadoop wordcount
+## 在本地模式的Alluxio上运行Hadoop wordcount
 
 首先，编译相应Hadoop版本的Alluxio：
 

@@ -15,6 +15,7 @@ import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.file.FileSystemWorker;
@@ -83,6 +84,6 @@ public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHand
       }
       buffer = new DataNettyBufferV2(buf);
     }
-    return new RPCProtoMessage(writeRequest, buffer);
+    return new RPCProtoMessage(new ProtoMessage(writeRequest), buffer);
   }
 }

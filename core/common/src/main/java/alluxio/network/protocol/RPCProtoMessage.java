@@ -14,14 +14,12 @@ package alluxio.network.protocol;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.primitives.Ints;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 
 import java.util.Arrays;
@@ -46,7 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class RPCProtoMessage extends RPCMessage {
-  private final MessageLite mMessage;
+  private final ProtoMessage mMessage;
   private final byte[] mMessageEncoded;
   private final DataBuffer mData;
 
@@ -56,7 +54,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param message the message
    * @param data the data which can be null. Ownership is taken by this class
    */
-  public RPCProtoMessage(MessageLite message, DataBuffer data) {
+  public RPCProtoMessage(ProtoMessage message, DataBuffer data) {
     if (data != null) {
       Preconditions
           .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannel),
@@ -79,7 +77,7 @@ public final class RPCProtoMessage extends RPCMessage {
    *
    * @param message the message
    */
-  public RPCProtoMessage(MessageLite message) {
+  public RPCProtoMessage(ProtoMessage message) {
     this(message, null);
   }
 
@@ -90,16 +88,11 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param prototype the prototype of the message used to identify the type of the message
    * @param data the data which can be null
    */
-  public RPCProtoMessage(byte[] serialized, MessageLite prototype, DataBuffer data) {
+  public RPCProtoMessage(byte[] serialized, ProtoMessage.Type prototype, DataBuffer data) {
     Preconditions
         .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannel),
             "Only DataNettyBufferV2 and DataFileChannel are allowed.");
-    try {
-      mMessage = prototype.getParserForType().parseFrom(serialized);
-    } catch (InvalidProtocolBufferException e) {
-      // Runtime exception will not kill the netty server.
-      throw Throwables.propagate(e);
-    }
+    mMessage = ProtoMessage.parseFrom(prototype, serialized);
     mMessageEncoded = Arrays.copyOf(serialized, serialized.length);
     if (data != null && data.getLength() > 0) {
       mData = data;
@@ -130,7 +123,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param prototype a message prototype used to infer the type of the message
    * @return the message decoded
    */
-  public static RPCProtoMessage decode(ByteBuf in, MessageLite prototype) {
+  public static RPCProtoMessage decode(ByteBuf in, ProtoMessage.Type prototype) {
     int length = in.readInt();
     byte[] serialized = new byte[length];
     in.readBytes(serialized);
@@ -140,16 +133,16 @@ public final class RPCProtoMessage extends RPCMessage {
 
   @Override
   public Type getType() {
-    if (mMessage instanceof Protocol.ReadRequest) {
-      return Type.RPC_READ_REQUEST;
+    switch (mMessage.getType()) {
+      case READ_REQUEST:
+        return RPCMessage.Type.RPC_READ_REQUEST;
+      case WRITE_REQUEST:
+        return RPCMessage.Type.RPC_WRITE_REQUEST;
+      case RESPONSE:
+        return RPCMessage.Type.RPC_RESPONSE;
+      default:
+        return RPCMessage.Type.RPC_UNKNOWN;
     }
-    if (mMessage instanceof Protocol.WriteRequest) {
-      return Type.RPC_WRITE_REQUEST;
-    }
-    if (mMessage instanceof Protocol.Response) {
-      return Type.RPC_RESPONSE;
-    }
-    return Type.RPC_UNKNOWN;
   }
 
   @Override
@@ -169,7 +162,7 @@ public final class RPCProtoMessage extends RPCMessage {
   /**
    * @return the message
    */
-  public MessageLite getMessage() {
+  public ProtoMessage getMessage() {
     return mMessage;
   }
 
@@ -197,7 +190,7 @@ public final class RPCProtoMessage extends RPCMessage {
       status = status.toBuilder().setCause(builder.build()).build();
     }
     Protocol.Response response = Protocol.Response.newBuilder().setStatus(status).build();
-    return new RPCProtoMessage(response, data);
+    return new RPCProtoMessage(new ProtoMessage(response), data);
   }
 
   /**
