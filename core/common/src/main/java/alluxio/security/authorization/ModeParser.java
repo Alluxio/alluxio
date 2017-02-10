@@ -14,6 +14,8 @@ package alluxio.security.authorization;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode.Bits;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -21,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author rvesse
  *
  */
+@ThreadSafe
 public final class ModeParser {
 
   private static final char[] VALID_TARGETS = { 'u', 'g', 'o', 'a' };
