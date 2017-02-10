@@ -6,12 +6,15 @@ group: Under Store
 priority: 0
 ---
 
+* Table of Contents
+{:toc}
+
 This guide describes how to configure Alluxio with [Amazon S3](https://aws.amazon.com/s3/) as the
 under storage system. Alluxio natively provides two different client implementations for accessing
 s3, aws-sdk-java-s3 through the s3a:// scheme (recommended for better performance) and jets3t
 through the s3n:// scheme.
 
-# Initial Setup
+## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
 [compile Alluxio](Building-Alluxio-Master-Branch.html), or
@@ -33,7 +36,7 @@ should also note the directory you want to use in that bucket, either by creatin
 the bucket, or using an existing one. For the purposes of this guide, the S3 bucket name is called
 `S3_BUCKET`, and the directory in that bucket is called `S3_DIRECTORY`.
 
-# Configuring Alluxio
+## Configuring Alluxio
 
 You need to configure Alluxio to use S3 as its under storage system by modifying
 `conf/alluxio-site.properties`. The first modification is to specify an **existing** S3
@@ -71,7 +74,7 @@ Alternatively, these configuration settings can be set in the `conf/alluxio-env.
 details about setting configuration parameters can be found in
 [Configuration Settings](Configuration-Settings.html#environment-variables).
 
-## Enabling Server Side Encryption
+### Enabling Server Side Encryption
 
 If you are using s3a, you may encrypt your data stored in S3. The encryption is only valid for data
 at rest in s3 and will be transferred in decrypted form when read by clients.
@@ -80,7 +83,7 @@ Enable this feature by configuring `conf/alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-S3/server-side-encryption-conf.md %}
 
-## Disable DNS-Buckets
+### Disable DNS-Buckets
 
 The underlying S3 library JetS3t can incorporate bucket names that are DNS-compatible into the host
 name of its requests. You can optionally configure this behavior in the `ALLUXIO_JAVA_OPTS` section
@@ -98,7 +101,7 @@ details.
 After these changes, Alluxio should be configured to work with S3 as its under storage system, and
 you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
 
-## Accessing S3 through a proxy
+### Accessing S3 through a proxy
 
 To communicate with S3 through a proxy, modify `conf/alluxio-site.properties` to include:
 
@@ -112,7 +115,7 @@ These configuration parameters may also need to be set for the Alluxio client if
 a separate JVM from the Alluxio Master and Workers. See
 [Configuring Distributed Applications](#configuring-distributed-applications)
 
-# Configuring Application Dependency
+## Configuring Application Dependency
 
 When building your application to use Alluxio, your application will have to include the
 `alluxio-core-client` module. If you are using [maven](https://maven.apache.org/), you can add the
@@ -124,7 +127,7 @@ Alternatively, you may copy `conf/alluxio-site.properties` (having the propertie
 credentials) to the classpath of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or
 append the path to this site properties file to the classpath.
 
-## Avoiding Conflicting Client Dependencies
+### Avoiding Conflicting Client Dependencies
 
 The jets3t and aws-sdk s3 clients all have dependencies on common libraries such as HTTP libraries.
 These dependencies are usually not in conflict with other projects, but in cases like using Apache
@@ -135,7 +138,7 @@ client operations to the under storage through Alluxio servers. See
 Alternatively you can manually resolve the conflicts when generating the MapReduce classpath and/or
 jars, keeping only the highest versions of each dependency.
 
-## Enabling the Hadoop S3 Client (instead of the native S3 client)
+### Enabling the Hadoop S3 Client (instead of the native S3 client)
 
 Alluxio provides a native client to communicate with S3. By default, the native S3 client is used
 when Alluxio is configured to use S3 as its under storage system.
@@ -158,7 +161,7 @@ The `jets3t` version `0.9.0` works for Hadoop version `2.3.0`. The `jets3t` vers
 work for older versions of Hadoop. To find the exact `jets3t` version for your Hadoop version,
 please refer to [MvnRepository](http://mvnrepository.com/).
 
-## Using a non-Amazon service provider
+### Using a non-Amazon service provider
 
 To use an S3 service provider other than "s3.amazonaws.com", modify `conf/alluxio-site.properties`
 to include:
@@ -175,7 +178,7 @@ the HTTP port for the provider, and remove the `alluxio.underfs.s3.endpoint.http
 If the HTTP or HTTPS port values are left unset, `<HTTP_PORT>` defaults to port 80, and
 `<HTTPS_PORT>` defaults to port 443.
 
-## Configuring Distributed Applications Runtime
+### Configuring Distributed Applications Runtime
 
 When I/O is delegated to Alluxio workers (i.e., Alluxio configuration
 `alluxio.user.ufs.operation.delegation` is true, which is false by default since Alluxio 1.1), you
@@ -187,7 +190,7 @@ process. For example:
 
 {% include Configuring-Alluxio-with-S3/java-bash.md %}
 
-# Running Alluxio Locally with S3
+## Running Alluxio Locally with S3
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
@@ -209,7 +212,7 @@ To stop Alluxio, you can run:
 
 {% include Common-Commands/stop-alluxio.md %}
 
-# S3 Access Control
+## S3 Access Control
 
 If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object
 storage.

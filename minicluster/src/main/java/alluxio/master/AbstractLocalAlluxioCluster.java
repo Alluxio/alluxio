@@ -23,7 +23,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.proxy.AlluxioProxy;
+import alluxio.proxy.AlluxioProxyService;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.LocalFileSystemCluster;
@@ -32,7 +32,6 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorkerService;
-import alluxio.worker.DefaultAlluxioWorker;
 
 import com.google.common.base.Joiner;
 import org.slf4j.Logger;
@@ -56,7 +55,7 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final int DEFAULT_BLOCK_SIZE_BYTES = Constants.KB;
   private static final long DEFAULT_WORKER_MEMORY_BYTES = 100 * Constants.MB;
 
-  protected AlluxioProxy mProxy;
+  protected AlluxioProxyService mProxy;
   protected List<AlluxioWorkerService> mWorkers;
 
   protected UnderFileSystemCluster mUfsCluster;
@@ -70,7 +69,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @param numWorkers the number of workers to run
    */
   public AbstractLocalAlluxioCluster(int numWorkers) {
-    mProxy = new AlluxioProxy();
+    mProxy = AlluxioProxyService.Factory.create();
     mNumWorkers = numWorkers;
   }
 
@@ -227,6 +226,7 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
     Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
     Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 1000);
 
     Configuration.set(PropertyKey.MASTER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.MASTER_WEB_BIND_HOST, mHostname);
@@ -247,8 +247,8 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
     Configuration.set(PropertyKey.WEB_THREADS, "1");
-    Configuration.set(PropertyKey.WEB_RESOURCES,
-        PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
+    Configuration.set(PropertyKey.WEB_RESOURCES, PathUtils
+        .concatPath(System.getProperty("user.dir"), "../core/server/common/src/main/webapp"));
 
     Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(0));
     Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
@@ -306,7 +306,7 @@ public abstract class AbstractLocalAlluxioCluster {
   protected void runWorkers() throws Exception {
     mWorkers = new ArrayList<>();
     for (int i = 0; i < mNumWorkers; i++) {
-      mWorkers.add(new DefaultAlluxioWorker());
+      mWorkers.add(AlluxioWorkerService.Factory.create());
     }
 
     for (final AlluxioWorkerService worker : mWorkers) {
@@ -348,7 +348,7 @@ public abstract class AbstractLocalAlluxioCluster {
    *
    * @return the proxy
    */
-  public AlluxioProxy getProxy() {
+  public AlluxioProxyService getProxy() {
     return mProxy;
   }
 

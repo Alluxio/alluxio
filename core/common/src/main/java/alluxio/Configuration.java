@@ -16,15 +16,18 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.OSUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -65,8 +68,7 @@ public final class Configuration {
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Map of properties. */
-  private static final ConcurrentHashMapV8<String, String> PROPERTIES =
-      new ConcurrentHashMapV8<>();
+  private static final ConcurrentHashMapV8<String, String> PROPERTIES = new ConcurrentHashMapV8<>();
 
   /** File to set customized properties for Alluxio server (both master and worker) and client. */
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
@@ -83,18 +85,7 @@ public final class Configuration {
    */
   public static void defaultInit() {
     // Load default
-    Properties defaultProps = new Properties();
-    for (PropertyKey key : PropertyKey.values()) {
-      String value = key.getDefaultValue();
-      if (value != null) {
-        defaultProps.setProperty(key.toString(), value);
-      }
-    }
-    // Override runtime default
-    defaultProps.setProperty(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL.toString(),
-        String.valueOf(ChannelType.defaultType()));
-    defaultProps.setProperty(PropertyKey.USER_NETWORK_NETTY_CHANNEL.toString(),
-        String.valueOf(ChannelType.defaultType()));
+    Properties defaultProps = createDefaultProps();
 
     // Load system properties
     Properties systemProps = new Properties();
@@ -131,6 +122,46 @@ public final class Configuration {
 
     Preconditions.checkState(validate());
     checkConfigurationValues();
+  }
+
+  /**
+   * @return default properties
+   */
+  private static Properties createDefaultProps() {
+    Properties defaultProps = new Properties();
+    // Load compile-time default
+    for (PropertyKey key : PropertyKey.values()) {
+      String value = key.getDefaultValue();
+      if (value != null) {
+        defaultProps.setProperty(key.toString(), value);
+      }
+    }
+
+    // Load run-time default
+    defaultProps.setProperty(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL.toString(),
+        String.valueOf(ChannelType.defaultType()));
+    defaultProps.setProperty(PropertyKey.USER_NETWORK_NETTY_CHANNEL.toString(),
+        String.valueOf(ChannelType.defaultType()));
+    // Set ramdisk volume according to OS type
+    if (OSUtils.isLinux()) {
+      defaultProps
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.toString(), "/mnt/ramdisk");
+    } else if (OSUtils.isMacOS()) {
+      defaultProps.setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.toString(),
+          "/Volumes/ramdisk");
+    }
+    // Set a reasonable default size for worker memory
+    try {
+      OperatingSystemMXBean operatingSystemMXBean =
+          (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+      long memSize = operatingSystemMXBean.getTotalPhysicalMemorySize();
+      defaultProps
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE.toString(), String.valueOf(memSize * 2 / 3));
+    } catch (Exception e) {
+      // The package com.sun.management may not be available on every platform.
+      // fallback to the compile-time default value
+    }
+    return defaultProps;
   }
 
   /**
@@ -448,8 +479,7 @@ public final class Configuration {
       Preconditions.checkState(containsKey(PropertyKey.ZOOKEEPER_ADDRESS),
           PreconditionMessage.ERR_ZK_ADDRESS_NOT_SET.toString(),
           PropertyKey.ZOOKEEPER_ADDRESS.toString());
-    }
-    if (containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
+    } else if (containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
       LOG.warn("{} is configured, but {} is set to false", PropertyKey.ZOOKEEPER_ADDRESS.toString(),
           PropertyKey.ZOOKEEPER_ENABLED.toString());
     }

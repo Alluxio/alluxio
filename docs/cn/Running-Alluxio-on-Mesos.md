@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 4
 ---
 
+* 内容列表
+{:toc}
+
 Alluxio能够通过Mesos进行部署，这样可以让Mesos对Alluxio使用的资源进行管理。具体来说，对于Alluxio master便是JVM进程需要的cpu和内存资源，而对于Alluxio worker来说除了这两者，还有ramdisk所需要的内存。
 
 ## Mesos版本

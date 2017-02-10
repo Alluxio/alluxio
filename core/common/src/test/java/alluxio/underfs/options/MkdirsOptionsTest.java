@@ -15,23 +15,19 @@ import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
+import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * Tests for the {@link MkdirsOptions} class.
  */
-@RunWith(PowerMockRunner.class)
-// Need to mock Permission to use CommonTestUtils#testEquals.
-@PrepareForTest(Permission.class)
 public final class MkdirsOptionsTest {
   /**
    * Tests for default {@link MkdirsOptions}.
@@ -40,14 +36,12 @@ public final class MkdirsOptionsTest {
   public void defaults() throws IOException {
     MkdirsOptions options = MkdirsOptions.defaults();
 
-    Permission expectedPs = Permission.defaults().applyDirectoryUMask();
     // Verify the default createParent is true.
     Assert.assertTrue(options.getCreateParent());
     // Verify that the owner and group are not set.
-    Assert.assertEquals("", options.getPermission().getOwner());
-    Assert.assertEquals("", options.getPermission().getGroup());
-    Assert.assertEquals(expectedPs.getMode().toShort(),
-        options.getPermission().getMode().toShort());
+    Assert.assertEquals("", options.getOwner());
+    Assert.assertEquals("", options.getGroup());
+    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
   }
 
   /**
@@ -64,15 +58,12 @@ public final class MkdirsOptionsTest {
 
     MkdirsOptions options = MkdirsOptions.defaults();
 
-    Permission expectedPs = Permission.defaults().applyDirectoryUMask();
-
     // Verify the default createParent is true.
     Assert.assertTrue(options.getCreateParent());
     // Verify that the owner and group are not set.
-    Assert.assertEquals("", options.getPermission().getOwner());
-    Assert.assertEquals("", options.getPermission().getGroup());
-    Assert.assertEquals(expectedPs.getMode().toShort(),
-        options.getPermission().getMode().toShort());
+    Assert.assertEquals("", options.getOwner());
+    Assert.assertEquals("", options.getGroup());
+    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
   }
 
   /**
@@ -80,14 +71,22 @@ public final class MkdirsOptionsTest {
    */
   @Test
   public void fields() {
-    boolean createParent = false;
-    Permission perm = Permission.defaults();
+    Random random = new Random();
+    boolean createParent = random.nextBoolean();
+    String owner = CommonUtils.randomAlphaNumString(10);
+    String group = CommonUtils.randomAlphaNumString(10);
+    Mode mode = new Mode((short) random.nextInt());
+
     MkdirsOptions options = MkdirsOptions.defaults();
     options.setCreateParent(createParent);
-    options.setPermission(perm);
+    options.setOwner(owner);
+    options.setGroup(group);
+    options.setMode(mode);
 
     Assert.assertEquals(createParent, options.getCreateParent());
-    Assert.assertEquals(perm, options.getPermission());
+    Assert.assertEquals(owner, options.getOwner());
+    Assert.assertEquals(group, options.getGroup());
+    Assert.assertEquals(mode, options.getMode());
   }
 
   @Test

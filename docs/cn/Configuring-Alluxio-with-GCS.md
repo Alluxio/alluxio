@@ -1,14 +1,17 @@
 ---
 layout: global
-title: 在GCS上配置Alluxio 
-nickname: Alluxio使用GCS 
+title: 在GCS上配置Alluxio
+nickname: Alluxio使用GCS
 group: Under Store
 priority: 0
 ---
 
+* 内容列表
+{:toc}
+
 该指南介绍如何配置Alluxio以使用[Google Cloud Storage](https://cloud.google.com/storage/)作为底层文件系统。
 
-# 初始步骤
+## 初始步骤
 
 首先，在你的机器上必须安装Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
@@ -25,7 +28,7 @@ priority: 0
 
 如果你刚接触GCS，请先阅读GCS[文档](https://cloud.google.com/storage/docs/overview)。
 
-# 配置Alluxio
+## 配置Alluxio
 
 为了配置Alluxio以使用GCS作为其底层文件系统，需要修改`conf/alluxio-env.sh`文件。第一个需要修改的地方就是指定一个已有的bucket以及bucket中的目录作为底层文件系统。你可以通过向`conf/alluxio-env.sh`文件添加以下代码来指定：
 
@@ -43,19 +46,19 @@ priority: 0
 
 执行完以上步骤后，Alluxio应该已经配置GCS作为其底层文件系统，然后你可以尝试[使用GCS本地运行Alluxio](#running-alluxio-locally-with-gcs).
 
-# 配置你的应用
+## 配置你的应用
 
 当使用Alluxio构建你的应用时，你的应用需要包含`alluxio-core-client`模块。如果你正在使用 [maven](https://maven.apache.org/)，你可以通过添加以下代码来添加你的应用的依赖：
 
 {% include Configuring-Alluxio-with-GCS/dependency.md %}
 
-## 配置分布式应用
+### 配置分布式应用
 
 如果你使用的Alluxio client并非运行在Alluxio Master 或者Workers上（在其他的JVM上），那需要确保为该JVM提供了Google证书。最简单的方法是在启动client JVM时添加如下选项。例如:
 
 {% include Configuring-Alluxio-with-GCS/java-bash.md %}
 
-# 使用GCS本地运行Alluxio
+## 使用GCS本地运行Alluxio
 
 完成所有的配置之后，你可以本地运行Alluxio,观察是否一切运行正常。
 

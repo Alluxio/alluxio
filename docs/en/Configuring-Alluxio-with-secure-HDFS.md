@@ -6,14 +6,17 @@ group: Under Store
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 This guide describes how to configure Alluxio with
 [secure HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)
 as the under storage system. Alluxio supports secure HDFS as the under filesystem, with
 [Kerberos](http://web.mit.edu/kerberos/) authentication.
 
-Note: Kerberos authentication with secure HDFS is not Alluxio internal authentication via Kerberos.
+> Note: Kerberos authentication with secure HDFS is not Alluxio internal authentication via Kerberos.
 
-# Initial Setup
+## Initial Setup
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either
@@ -41,7 +44,7 @@ If everything succeeds, you should see
 `alluxio-assemblies-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in the
 `assembly/target` directory. This is the jar file you can use to run both Alluxio Master and Worker.
 
-# Configuring Alluxio
+## Configuring Alluxio
 
 To run Alluxio binary, we must setup configuration files. Create your configuration file with `bootstrapConf` command.
 For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
@@ -59,17 +62,17 @@ or `hdfs://localhost:9000/alluxio/data` if only the HDFS directory `/alluxio/dat
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
-## HDFS configuration files 
+### HDFS configuration files
 To ensure Alluxio client picks up HDFS configurations in classpath, please copy secure HDFS configuration xml files
 (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to `${ALLUXIO_HOME}/conf/`
 
-## Kerberos configuration
+### Kerberos configuration
 Optionally, you can set jvm-level system properties for customized Kerberos configurations:
 `java.security.krb5.realm` and `java.security.krb5.kdc`. Those Kerberos configurations route java libraries to specified Kerberos realm and KDC server address.
 If both are set to empty, Kerberos library will respect
 the default Kerberos configuration on the machine. For example:
 
-* If you use Hadoop, you can add to `HADOOP_OPTS` in `{HADOOP_CONF_DIR}/hadoop-env.sh`. 
+* If you use Hadoop, you can add to `HADOOP_OPTS` in `{HADOOP_CONF_DIR}/hadoop-env.sh`.
 
 {% include Configuring-Alluxio-with-secure-HDFS/hadoop-opts.md %}
 
@@ -81,7 +84,7 @@ the default Kerberos configuration on the machine. For example:
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-opts.md %}
 
-## Alluxio server Kerberos credential
+### Alluxio server Kerberos credential
 Set the following Alluxio properties in `alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-properties-for-secure-hdfs-kerberos.md %}
@@ -90,7 +93,7 @@ Alternatively, these configuration settings can be set in the `conf/alluxio-env.
 details about setting configuration parameters can be found in
 [Configuration Settings](Configuration-Settings.html).
 
-# Running Alluxio Locally with secure HDFS
+## Running Alluxio Locally with secure HDFS
 
 Before this step, please make sure your HDFS cluster is running and the directory mounted to Alluxio exists.
 

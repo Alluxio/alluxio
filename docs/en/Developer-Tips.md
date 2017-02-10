@@ -10,7 +10,7 @@ group: Resources
 
 This page is a collection of tips and howtos geared towards developers of Alluxio.
 
-### Change a Thrift RPC definition
+## Change a Thrift RPC definition
 
 Alluxio uses thrift for RPC communication between clients and servers. The `.thrift`
 files defined in `common/src/thrift/` are used to auto-generate Java code for calling the
@@ -24,7 +24,7 @@ Then to regenerate the Java code, run
 
 {% include Developer-Tips/thriftGen.md %}
 
-### Change a Protocol Buffer Message
+## Change a Protocol Buffer Message
 
 Alluxio uses protocol buffers to read and write journal messages. The `.proto` files
 defined in `servers/src/proto/journal/` are used to auto-generate Java definitions for
@@ -40,7 +40,7 @@ Then to regenerate the Java code, run
 
 {% include Developer-Tips/protoGen.md %}
 
-### Full list of the commands in bin/alluxio
+## Full list of the commands in bin/alluxio
 
 Most commands in `bin/alluxio` are for developers. The following table explains the description and
 the syntax of each command.
@@ -52,7 +52,7 @@ the syntax of each command.
 <tr>
   <td>{{dscp.command}}</td>
   <td>{{dscp.args}}</td>
-  <td>{{site.data.table.en.Developer-Tips.[dscp.command]}}</td>
+  <td>{{site.data.table.en.Developer-Tips[dscp.command]}}</td>
 </tr>
 {% endfor %}
 </table>

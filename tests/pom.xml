@@ -62,7 +62,7 @@
       <artifactId>hadoop-minicluster</artifactId>
       <scope>test</scope>
 
-      <!-- Exclude the Jersey artifacts to prevent clashes with alluxio-core-server -->
+      <!-- Exclude the Jersey artifacts to prevent clashes with alluxio-core-server-master -->
       <!-- Exclude the jsp/servlet related dependencies to avoid troubles in web test -->
       <exclusions>
         <exclusion>
@@ -163,7 +163,7 @@
     <!-- Other projects' test-jars -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-server</artifactId>
+      <artifactId>alluxio-core-server-master</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
       <scope>test</scope>

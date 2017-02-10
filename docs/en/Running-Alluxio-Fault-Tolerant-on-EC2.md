@@ -6,12 +6,15 @@ group: Deploying Alluxio
 priority: 4
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio with Fault Tolerance can be deployed on Amazon EC2 using the
 [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio. The scripts let you create, configure, and destroy clusters that come automatically
 configured with Apache HDFS.
 
-# Prerequisites
+## Prerequisites
 
 **Install Vagrant and the AWS plugins**
 
@@ -41,7 +44,7 @@ in `deploy/vagrant` run:
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/install-pip.md %}
 
 
-# Launch a Cluster
+## Launch a Cluster
 
 To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
@@ -89,7 +92,7 @@ Note that the `<number of machines>` above should be larger than or equal to `Ma
 Each node of the cluster has an Alluxio worker and each master node has an Alluxio master. The leader
 is in one of the master nodes.
 
-# Access the cluster
+## Access the cluster
 
 **Access through Web UI**
 
@@ -170,7 +173,7 @@ From a node in the cluster, you can ssh to other nodes in the cluster without pa
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh-other-node.md %}
 
-# Destroy the cluster
+## Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run
 

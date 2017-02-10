@@ -6,10 +6,13 @@ group: Deploying Alluxio
 priority: 4
 ---
 
+* 内容列表
+{:toc}
+
 使用Alluxio自带的[Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)可以将带
 容错机制的Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及撤销集群，该集群自动配置了HDFS相关项。
 
-# 前期准备
+## 前期准备
 
 **安装Vagrant和AWS插件**
 
@@ -38,7 +41,7 @@ priority: 4
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/install-pip.md %}
 
 
-# 启动集群
+## 启动集群
 
 要在EC2上运行Alluxio集群，首先在[Amazon Web Services site](http://aws.amazon.com/)注册一个Amazon EC2帐号。
 
@@ -58,6 +61,8 @@ priority: 4
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/copy-ec2-yml.md %}
 
 在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
+
+在`deploy/vagrant/conf/ufs.yml`配置文件中，将`Type`的值设置为`hadoop`，或者指定一个`S3 bucket`给`Bucket`字段。
 
 在`deploy/vagrant/conf/alluxio.yml`配置文件中，将`Masters`设置为你想要的AlluxioMasters的数量，在容错
 模式下，`Masters`的值应该大于1。
@@ -149,7 +154,7 @@ worker进程。
 
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/ssh-other-node.md %}
 
-# 撤销集群
+## 撤销集群
 
 在`deploy/vagrant`目录下运行：
 

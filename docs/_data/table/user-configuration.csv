@@ -12,6 +12,7 @@ alluxio.user.file.master.client.threads,10
 alluxio.user.file.waitcompleted.poll.ms,1000
 alluxio.user.file.worker.client.threads,10
 alluxio.user.file.write.location.policy.class,alluxio.client.file.policy.LocalFirstPolicy
+alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes,0MB
 alluxio.user.file.readtype.default,CACHE_PROMOTE
 alluxio.user.file.writetype.default,MUST_CACHE
 alluxio.user.file.write.tier.default,0
@@ -26,3 +27,6 @@ alluxio.user.ufs.delegation.write.buffer.size.bytes,2MB
 alluxio.user.ufs.file.reader.class,alluxio.client.netty.&#8203;NettyUnderFileSystemFileReader
 alluxio.user.ufs.file.writer.class,alluxio.client.netty.&#8203;NettyUnderFileSystemFileWriter
 alluxio.user.packet.streaming.enabled,false
+alluxio.user.rpc.retry.base.sleep.ms,50
+alluxio.user.rpc.retry.max.sleep.ms,10000
+alluxio.user.rpc.retry.max.num.retry,30

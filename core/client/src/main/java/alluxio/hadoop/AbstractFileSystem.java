@@ -422,15 +422,22 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
-    Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
-    Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
+    // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
+    // configuration property, so the user doesn't need to specify the authority.
+    if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
+      Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
+    }
 
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addS3Credentials(conf);
     HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
-    mAlluxioHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
+
+    // HDFS doesn't allow the authority to be empty; it must be "/" instead.
+    String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
+    mAlluxioHeader = getScheme() + "://" + authority;
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
@@ -475,9 +482,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
     ConfUtils.mergeHadoopConfiguration(conf);
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort());
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
+    if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort());
+    }
 
     // These must be reset to pick up the change to the master address.
     // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.

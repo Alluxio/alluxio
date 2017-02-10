@@ -6,8 +6,6 @@ group: Deploying Alluxio
 priority: 1
 ---
 
-# 单机上独立运行Alluxio
-
 这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 7或更高版本)。
 
 下载Alluxio二进制发行版{{site.ALLUXIO_RELEASED_VERSION}}:

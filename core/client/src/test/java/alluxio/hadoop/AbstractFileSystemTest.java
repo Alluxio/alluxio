@@ -123,6 +123,23 @@ public class AbstractFileSystemTest {
   }
 
   /**
+   * Hadoop should be able to load uris like alluxio-ft:///path/to/file.
+   */
+  @Test
+  public void loadFaultTolerantSystemWhenUsingNoAuthority() throws Exception {
+    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+    if (HadoopClientTestUtils.isHadoop1x()) {
+      conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
+    }
+
+    URI uri = URI.create(Constants.HEADER_FT + "/tmp/path.txt");
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
+
+    final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
+  }
+
+  /**
    * Ensures that Hadoop loads the Alluxio file system when configured.
    */
   @Test
