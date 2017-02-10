@@ -296,7 +296,20 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets a local host name for the host this JVM is running on.
+   * Gets the local hostname to be used by the client. If this isn't configured, a non-loopback
+   * local hostname will be looked up.
+   *
+   * @return the local hostname for the client
+   */
+  public static String getClientHostName() {
+    if (Configuration.containsKey(PropertyKey.USER_HOSTNAME)) {
+      return Configuration.get(PropertyKey.USER_HOSTNAME);
+    }
+    return getLocalHostName();
+  }
+
+  /**
+   * Gets a local hostname for the host this JVM is running on.
    *
    * @return the local host name, which is not based on a loopback ip address
    */
