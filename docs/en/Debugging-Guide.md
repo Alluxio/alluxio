@@ -31,9 +31,7 @@ Java remote debugging technology can make it simple to debug Alluxio in source l
 
 ```properties
 ALLUXIO_MASTER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6600 $ALLUXIO_JAVA_OPTS"
-
 ALLUXIO_WORKER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6601 $ALLUXIO_JAVA_OPTS"
-
 ALLUXIO_PROXY_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6602 $ALLUXIO_JAVA_OPTS"
 ```
 
@@ -114,7 +112,7 @@ $ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 
 Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
 
-```bash
+```properties
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath
 {{site.ALLUXIO_CLIENT_JAR_PATH}}
