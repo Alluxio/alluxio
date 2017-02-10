@@ -10,7 +10,9 @@ priority: 2
 
 1. What is Alluxio?
 
-   [Alluxio](http://www.alluxio.org/), formerly Tachyon, is an open source, memory speed, virtual distributed storage. It enables any application to interact with any data from any storage system at memory speed.
+   [Alluxio](http://www.alluxio.org/), formerly Tachyon, is an open source, memory speed, virtual
+   distributed storage. It enables any application to interact with any data from any storage
+   system at memory speed.
 
 2. What platforms and Java versions does Alluxio run on?
 
@@ -20,8 +22,8 @@ priority: 2
 
    Yes, Once Alluxio is installed, the UI is available at `http://master_ip:19999`
 
-4. If I add new nodes to the cluster, will Alluxio re-balance / move the cached blocks to the
-newly added nodes in order to balance disk space utilization between the nodes?
+4. If I add new nodes to the cluster, will Alluxio re-balance / move the cached blocks to the newly
+added nodes in order to balance disk space utilization between the nodes?
 
    No, Currently re-balancing of data blocks in not available.
 
@@ -31,7 +33,9 @@ newly added nodes in order to balance disk space utilization between the nodes?
 
 6. What is under storage system and how many under storage systems are supported?
 
-   Alluxio uses under storage systems as its persistent storage system. It currently support [Amazon S3](Configuring-Alluxio-with-S3.html), [Swift](Configuring-Alluxio-with-Swift.html), [GCS](Configuring-Alluxio-with-GCS.html), [HDFS](Configuring-Alluxio-with-HDFS.html) and many more.
+   Alluxio uses under storage systems as its persistent storage system. It currently support [Amazon
+   S3](Configuring-Alluxio-with-S3.html), [Swift](Configuring-Alluxio-with-Swift.html), [GCS
+   ](Configuring-Alluxio-with-GCS.html), [HDFS](Configuring-Alluxio-with-HDFS.html) and many more.
 
 7. Can I easily add support to other under store systems?
 
@@ -40,42 +44,44 @@ newly added nodes in order to balance disk space utilization between the nodes?
 
 8. In which language is Alluxio developed?
 
-   Alluxio is primarily developed in Java and exposes Java-like File API's for other applications
-   to interact with. We are working on other language binding though.
+   Alluxio is primarily developed in Java and exposes Java-like File API's for other applications to
+   interact with. We are working on other language binding though.
 
 9. What happens if my data set does not fit in memory?
 
    Depends on the system setup, Alluxio may leverage local SSD and HDD. It keeps hot data in
-   Alluxio, and cold data in under storage systems. You can read more about tier storage setup at [here](Tiered-Storage-on-Alluxio.html).
+   Alluxio, and cold data in under storage systems. You can read more about tier storage setup at
+   [here](Tiered-Storage-on-Alluxio.html).
 
 10. Can I run Alluxio as a standalone for experimenting and validation?
 
-    Yes, Alluxio run in a stand-alone mode. Instructions are available
-    [here](Running-Alluxio-Locally.html).
+    Yes, Alluxio run in a stand-alone mode. Instructions are available [here](Running-Alluxio-
+    Locally.html).
 
 11. Can I run Alluxio in a cluster mode?
 
-    Yes, Alluxio can be run in a cluster mode. Instructions are available
-    [here](Running-Alluxio-on-a-Cluster.html).
+    Yes, Alluxio can be run in a cluster mode. Instructions are available [here](Running-Alluxio-
+    on-a-Cluster.html).
 
 12. Does Alluxio always needs HDFS?
 
-    No, Alluxio runs on different under storage systems like HDFS, Amazon S3, Swift, GlusterFS.    
+    No, Alluxio runs on different under storage systems like HDFS, Amazon S3, Swift, GlusterFS.
 
-13. Does Alluxio work along side with other Frameworks?
+13. Does Alluxio work alongside with other Frameworks?
 
-    Yes, Alluxio works with [Spark](Running-Spark-on-Alluxio.html), [Flink](Running-Flink-on-Alluxio.html), [Hadoop](Running-Hadoop-MapReduce-on-Alluxio.html), 
-    [HBase](Running-HBase-on-Alluxio.html), [HIVE](Running-HBase-on-Alluxio.html), etc.
+    Yes, Alluxio works with [Spark](Running-Spark-on-Alluxio.html), [Flink](Running-Flink-on-
+    Alluxio.html), [Hadoop](Running-Hadoop-MapReduce-on-Alluxio.html),  [HBase](Running-HBase-on-
+    Alluxio.html), [HIVE](Running-HBase-on-Alluxio.html), etc.
 
 14. How can I learn more about Alluxio?
 
-    You can read the recent [blogs](/resources/posts) and [presentations](/resources/posts).    
+    You can read the recent [blogs](/resources/posts) and [presentations](/resources/posts).
 
 15. Are there any meetups for Alluxio?
 
     Yes. We have started meetup group for Alluxio and please join
-    [http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/).
-    You can also find other Alluxio events at [here](/resources/events).
+    [http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/). You can also find other
+    Alluxio events at [here](/resources/events).
 
 16. What license is Alluxio under?
 
@@ -83,19 +89,19 @@ newly added nodes in order to balance disk space utilization between the nodes?
 
 17. How can I contribute to Alluxio?
 
-    Thank you for the interest to contribute. Please look into
-    [Contributing-to-Alluxio](/contribute).
-    Also, please look into some of the JIRA issues (marked for New Contributors)
-    [here](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20Alluxio%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
+    Thank you for the interest to contribute. Please look into [Contributing-to-
+    Alluxio](/contribute). Also, please look into some of the JIRA issues (marked for New
+    Contributors) [here](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20Alluxio%20AND%20l
+    abels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
 
 18. Where can I report issues or propose new features?
 
-    We use [JIRA](https://alluxio.atlassian.net/projects/ALLUXIO) to track development and issues. If you
-    would like to report an issue or propose a feature, post it to the JIRA Alluxio issue tracker. You
-    need to register before posting.
+    We use [JIRA](https://alluxio.atlassian.net/projects/ALLUXIO) to track development and issues.
+    If you would like to report an issue or propose a feature, post it to the JIRA Alluxio issue
+    tracker. You need to register before posting.
 
 19. Where can I get more help?
 
     For any questions related installation, contribution and comments please post an email to
-    [Alluxio User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). We
-    look forward to seeing you there.
+    [Alluxio User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
+    We look forward to seeing you there.
