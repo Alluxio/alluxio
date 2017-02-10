@@ -14,9 +14,9 @@ package alluxio.security.authorization;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode.Bits;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import org.apache.commons.lang3.StringUtils;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Parser for {@code Mode} instances.
