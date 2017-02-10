@@ -3036,25 +3036,25 @@ public final class File {
      */
     boolean getRecursive();
 
-    // optional bool alluxioOnly = 3;
+    // optional int64 op_time_ms = 3;
     /**
-     * <code>optional bool alluxioOnly = 3;</code>
-     */
-    boolean hasAlluxioOnly();
-    /**
-     * <code>optional bool alluxioOnly = 3;</code>
-     */
-    boolean getAlluxioOnly();
-
-    // optional int64 op_time_ms = 4;
-    /**
-     * <code>optional int64 op_time_ms = 4;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     boolean hasOpTimeMs();
     /**
-     * <code>optional int64 op_time_ms = 4;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     long getOpTimeMs();
+
+    // optional bool alluxioOnly = 4;
+    /**
+     * <code>optional bool alluxioOnly = 4;</code>
+     */
+    boolean hasAlluxioOnly();
+    /**
+     * <code>optional bool alluxioOnly = 4;</code>
+     */
+    boolean getAlluxioOnly();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.DeleteFileEntry}
@@ -3123,12 +3123,12 @@ public final class File {
             }
             case 24: {
               bitField0_ |= 0x00000004;
-              alluxioOnly_ = input.readBool();
+              opTimeMs_ = input.readInt64();
               break;
             }
             case 32: {
               bitField0_ |= 0x00000008;
-              opTimeMs_ = input.readInt64();
+              alluxioOnly_ = input.readBool();
               break;
             }
           }
@@ -3203,43 +3203,43 @@ public final class File {
       return recursive_;
     }
 
-    // optional bool alluxioOnly = 3;
-    public static final int ALLUXIOONLY_FIELD_NUMBER = 3;
-    private boolean alluxioOnly_;
+    // optional int64 op_time_ms = 3;
+    public static final int OP_TIME_MS_FIELD_NUMBER = 3;
+    private long opTimeMs_;
     /**
-     * <code>optional bool alluxioOnly = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
-    public boolean hasAlluxioOnly() {
+    public boolean hasOpTimeMs() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional bool alluxioOnly = 3;</code>
-     */
-    public boolean getAlluxioOnly() {
-      return alluxioOnly_;
-    }
-
-    // optional int64 op_time_ms = 4;
-    public static final int OP_TIME_MS_FIELD_NUMBER = 4;
-    private long opTimeMs_;
-    /**
-     * <code>optional int64 op_time_ms = 4;</code>
-     */
-    public boolean hasOpTimeMs() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <code>optional int64 op_time_ms = 4;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     public long getOpTimeMs() {
       return opTimeMs_;
     }
 
+    // optional bool alluxioOnly = 4;
+    public static final int ALLUXIOONLY_FIELD_NUMBER = 4;
+    private boolean alluxioOnly_;
+    /**
+     * <code>optional bool alluxioOnly = 4;</code>
+     */
+    public boolean hasAlluxioOnly() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional bool alluxioOnly = 4;</code>
+     */
+    public boolean getAlluxioOnly() {
+      return alluxioOnly_;
+    }
+
     private void initFields() {
       id_ = 0L;
       recursive_ = false;
-      alluxioOnly_ = false;
       opTimeMs_ = 0L;
+      alluxioOnly_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3260,10 +3260,10 @@ public final class File {
         output.writeBool(2, recursive_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBool(3, alluxioOnly_);
+        output.writeInt64(3, opTimeMs_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeInt64(4, opTimeMs_);
+        output.writeBool(4, alluxioOnly_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3284,11 +3284,11 @@ public final class File {
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(3, alluxioOnly_);
+          .computeInt64Size(3, opTimeMs_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(4, opTimeMs_);
+          .computeBoolSize(4, alluxioOnly_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3414,9 +3414,9 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000001);
         recursive_ = false;
         bitField0_ = (bitField0_ & ~0x00000002);
-        alluxioOnly_ = false;
-        bitField0_ = (bitField0_ & ~0x00000004);
         opTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        alluxioOnly_ = false;
         bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
@@ -3457,11 +3457,11 @@ public final class File {
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
-        result.alluxioOnly_ = alluxioOnly_;
+        result.opTimeMs_ = opTimeMs_;
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
         }
-        result.opTimeMs_ = opTimeMs_;
+        result.alluxioOnly_ = alluxioOnly_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3484,11 +3484,11 @@ public final class File {
         if (other.hasRecursive()) {
           setRecursive(other.getRecursive());
         }
-        if (other.hasAlluxioOnly()) {
-          setAlluxioOnly(other.getAlluxioOnly());
-        }
         if (other.hasOpTimeMs()) {
           setOpTimeMs(other.getOpTimeMs());
+        }
+        if (other.hasAlluxioOnly()) {
+          setAlluxioOnly(other.getAlluxioOnly());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -3583,68 +3583,68 @@ public final class File {
         return this;
       }
 
-      // optional bool alluxioOnly = 3;
-      private boolean alluxioOnly_ ;
+      // optional int64 op_time_ms = 3;
+      private long opTimeMs_ ;
       /**
-       * <code>optional bool alluxioOnly = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
-      public boolean hasAlluxioOnly() {
+      public boolean hasOpTimeMs() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>optional bool alluxioOnly = 3;</code>
-       */
-      public boolean getAlluxioOnly() {
-        return alluxioOnly_;
-      }
-      /**
-       * <code>optional bool alluxioOnly = 3;</code>
-       */
-      public Builder setAlluxioOnly(boolean value) {
-        bitField0_ |= 0x00000004;
-        alluxioOnly_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional bool alluxioOnly = 3;</code>
-       */
-      public Builder clearAlluxioOnly() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        alluxioOnly_ = false;
-        onChanged();
-        return this;
-      }
-
-      // optional int64 op_time_ms = 4;
-      private long opTimeMs_ ;
-      /**
-       * <code>optional int64 op_time_ms = 4;</code>
-       */
-      public boolean hasOpTimeMs() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <code>optional int64 op_time_ms = 4;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public long getOpTimeMs() {
         return opTimeMs_;
       }
       /**
-       * <code>optional int64 op_time_ms = 4;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public Builder setOpTimeMs(long value) {
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         opTimeMs_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 op_time_ms = 4;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public Builder clearOpTimeMs() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         opTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional bool alluxioOnly = 4;
+      private boolean alluxioOnly_ ;
+      /**
+       * <code>optional bool alluxioOnly = 4;</code>
+       */
+      public boolean hasAlluxioOnly() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional bool alluxioOnly = 4;</code>
+       */
+      public boolean getAlluxioOnly() {
+        return alluxioOnly_;
+      }
+      /**
+       * <code>optional bool alluxioOnly = 4;</code>
+       */
+      public Builder setAlluxioOnly(boolean value) {
+        bitField0_ |= 0x00000008;
+        alluxioOnly_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool alluxioOnly = 4;</code>
+       */
+      public Builder clearAlluxioOnly() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        alluxioOnly_ = false;
         onChanged();
         return this;
       }
@@ -12607,8 +12607,8 @@ public final class File {
       " \001(\003\"V\n\021CompleteFileEntry\022\021\n\tblock_ids\030\001" +
       " \003(\003\022\n\n\002id\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\022\n\nop_t" +
       "ime_ms\030\004 \001(\003\"Y\n\017DeleteFileEntry\022\n\n\002id\030\001 ",
-      "\001(\003\022\021\n\trecursive\030\002 \001(\010\022\023\n\013alluxioOnly\030\003 " +
-      "\001(\010\022\022\n\nop_time_ms\030\004 \001(\003\"-\n\025DeleteMountPo" +
+      "\001(\003\022\021\n\trecursive\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001" +
+      "(\003\022\023\n\013alluxioOnly\030\004 \001(\010\"-\n\025DeleteMountPo" +
       "intEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\326\002\n\023Inode" +
       "DirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030" +
       "\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state" +
@@ -12682,7 +12682,7 @@ public final class File {
           internal_static_alluxio_proto_journal_DeleteFileEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_DeleteFileEntry_descriptor,
-              new java.lang.String[] { "Id", "Recursive", "AlluxioOnly", "OpTimeMs", });
+              new java.lang.String[] { "Id", "Recursive", "OpTimeMs", "AlluxioOnly", });
           internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor =
             getDescriptor().getMessageTypes().get(5);
           internal_static_alluxio_proto_journal_DeleteMountPointEntry_fieldAccessorTable = new

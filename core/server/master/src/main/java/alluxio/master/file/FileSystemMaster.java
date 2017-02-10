@@ -58,6 +58,7 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
@@ -1248,9 +1249,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public void delete(AlluxioURI path, alluxio.master.file.options.DeleteOptions options)
-      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
-      InvalidPathException, AccessControlException {
+  public void delete(AlluxioURI path, DeleteOptions options) throws IOException,
+      FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
+      AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
     // Delete should lock the parent to remove the child inode.
     try (JournalContext journalContext = createJournalContext();
@@ -1275,17 +1276,15 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O error occurs
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private void deleteAndJournal(LockedInodePath inodePath, alluxio.master.file.options
-      .DeleteOptions deleteOptions, JournalContext journalContext)
-      throws InvalidPathException, FileDoesNotExistException, IOException,
-      DirectoryNotEmptyException {
+  private void deleteAndJournal(LockedInodePath inodePath, DeleteOptions deleteOptions,
+      JournalContext journalContext) throws InvalidPathException, FileDoesNotExistException,
+      IOException, DirectoryNotEmptyException {
     Inode<?> inode = inodePath.getInode();
     long fileId = inode.getId();
     long opTimeMs = System.currentTimeMillis();
     deleteInternal(inodePath, false, opTimeMs, deleteOptions);
-    DeleteFileEntry deleteFile =
-        DeleteFileEntry.newBuilder().setId(fileId).setRecursive(deleteOptions.isRecursive())
-            .setOpTimeMs(opTimeMs).build();
+    DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(fileId)
+        .setRecursive(deleteOptions.isRecursive()).setOpTimeMs(opTimeMs).build();
     appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build(), journalContext);
   }
 
@@ -1297,11 +1296,8 @@ public final class FileSystemMaster extends AbstractMaster {
     // Delete should lock the parent to remove the child inode.
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE_PARENT)) {
-      alluxio.master.file.options.DeleteOptions deleteOptions = alluxio.master.file.options
-          .DeleteOptions.defaults();
-      deleteOptions.setRecursive(entry.getRecursive());
-      deleteOptions.setAlluxioOnly(entry.getAlluxioOnly());
-      deleteInternal(inodePath, true, entry.getOpTimeMs(), deleteOptions);
+      deleteInternal(inodePath, true, entry.getOpTimeMs(), DeleteOptions.defaults()
+          .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -1309,8 +1305,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
-   * {@link #deleteInternal(LockedInodePath, boolean, long,
-   * alluxio.master.file.options.DeleteOptions)}.
+   * {@link #deleteInternal(LockedInodePath, boolean, long, DeleteOptions)}.
    *
    * @param inodePath the {@link LockedInodePath} to delete
    * @param replayed whether the operation is a result of replaying the journal
@@ -1322,8 +1317,7 @@ public final class FileSystemMaster extends AbstractMaster {
   private void deleteRecursiveInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, IOException, InvalidPathException {
     try {
-      deleteInternal(inodePath, replayed, opTimeMs,
-          alluxio.master.file.options.DeleteOptions.defaults().setRecursive(true));
+      deleteInternal(inodePath, replayed, opTimeMs, DeleteOptions.defaults().setRecursive(true));
     } catch (DirectoryNotEmptyException e) {
       throw new IllegalStateException(
           "deleteInternal should never throw DirectoryNotEmptyException when recursive is true", e);
@@ -1343,8 +1337,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
   private void deleteInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
-      alluxio.master.file.options.DeleteOptions deleteOptions) throws FileDoesNotExistException,
-      IOException, DirectoryNotEmptyException, InvalidPathException {
+      DeleteOptions deleteOptions) throws FileDoesNotExistException, IOException,
+      DirectoryNotEmptyException, InvalidPathException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
     if (!inodePath.fullPathExists()) {
@@ -3085,11 +3079,9 @@ public final class FileSystemMaster extends AbstractMaster {
                   // public delete method will lock the path, and check WRITE permission required at
                   // parent of file
                   if (inode.isDirectory()) {
-                    delete(path, alluxio.master.file.options.DeleteOptions.defaults()
-                        .setRecursive(true));
+                    delete(path, DeleteOptions.defaults().setRecursive(true));
                   } else {
-                    delete(path, alluxio.master.file.options.DeleteOptions.defaults()
-                        .setRecursive(false));
+                    delete(path, DeleteOptions.defaults().setRecursive(false));
                   }
                   break;
                 default:

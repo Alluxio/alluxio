@@ -37,8 +37,8 @@ message CompleteFileEntry {
 message DeleteFileEntry {
   optional int64 id = 1;
   optional bool recursive = 2;
-  optional bool alluxioOnly =3;
-  optional int64 op_time_ms = 4;
+  optional int64 op_time_ms = 3;
+  optional bool alluxioOnly = 4;
 }
 
 // next available id: 2
