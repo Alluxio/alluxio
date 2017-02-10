@@ -180,6 +180,25 @@ public final class FileSystemMasterTest {
 
     // verify the file is deleted
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    mFileSystemMaster.listStatus(uri,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+    mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1/file1"),
+        DeleteOptions.defaults().setAlluxioOnly(true));
+
+    // ufs file still exists
+    Assert.assertTrue(Files.exists(Paths.get(ufsMount.join("dir1").join("file1").getPath())));
+    // verify the file is deleted
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1/file1")));
   }
 
   /**
@@ -215,6 +234,21 @@ public final class FileSystemMasterTest {
 
     // verify the dir is deleted
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));
+
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1"),
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true));
+
+    // ufs directory still exists
+    Assert.assertTrue(Files.exists(Paths.get(ufsMount.join("dir1").getPath())));
+    // verify the directory is deleted
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1")));
   }
 
   /**
