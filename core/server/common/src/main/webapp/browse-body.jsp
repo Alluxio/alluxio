@@ -37,7 +37,7 @@
         <h1 class="text-error">
           <%= request.getAttribute("invalidPathError") %>
         </h1>
-        <div class="navbar" >
+        <div class="navbar">
           <div class="navbar-inner">
             <ul id="pathUl" class="nav nav-pills">
             </ul>
