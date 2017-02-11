@@ -182,7 +182,8 @@ public final class FileSystemAclIntegrationTest {
     String defaultGroup = fs.getGroup();
 
     Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
-    // Group can different because local FS user to group mapping can be different from that in Alluxio.
+    // Group can different because local FS user to group mapping can be different from that
+    // in Alluxio.
 
     Assert.assertNotEquals(defaultOwner, nonexistentOwner);
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
@@ -215,7 +216,8 @@ public final class FileSystemAclIntegrationTest {
     String defaultGroup = fs.getGroup();
 
     Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileB)));
-    // Group can different because local FS user to group mapping can be different from that in Alluxio.
+    // Group can different because local FS user to group mapping can be different from that
+    // in Alluxio.
 
     Assert.assertNotEquals(defaultOwner, nonexistentOwner);
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
@@ -248,7 +250,8 @@ public final class FileSystemAclIntegrationTest {
     String defaultGroup = fs.getGroup();
 
     Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileC)));
-    // Group can different because local FS user to group mapping can be different from that in Alluxio.
+    // Group can different because local FS user to group mapping can be different from that
+    // in Alluxio.
 
     Assert.assertNotEquals(defaultOwner, nonexistentOwner);
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
