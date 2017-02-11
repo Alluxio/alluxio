@@ -1,3 +1,10 @@
+/**
+ *
+ rebuild the browse page navigator pill like breadcrumbs.
+ *
+ @param {string} path current navigator path
+ *
+ */
 function rebuildNavPill(path) {
   if (path.length > 0 && path.charAt(path.length - 1) === '/') {
     path = path.substr(0, path.length - 1);
