@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Servlet that provides ajax request for browsing the file system.
+ * Servlet that provides ajax request for browsing the logs.
  */
 @ThreadSafe
 public final class WebInterfaceBrowseLogAjaxServlet extends HttpServlet {
