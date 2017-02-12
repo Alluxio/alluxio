@@ -11,9 +11,10 @@
 
 package alluxio;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Configurations properties constants. Please check and update Configuration-Settings.md file when
