@@ -10,4 +10,4 @@ CACHE:
   entire block will be cached by Alluxio space even if the client only reads a part of this block.
   Otherwise, a block will be cached only if it is fully read.
 NO_CACHE:
-  No replicas will be created.
+  Data is read without storing a copy of it in Alluxio.
