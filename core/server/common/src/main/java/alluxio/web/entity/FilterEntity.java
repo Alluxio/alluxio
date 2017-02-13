@@ -14,7 +14,7 @@ package alluxio.web.entity;
 /**
  * The web page grid filter entity.
  */
-public class FilterEntity {
+public final class FilterEntity {
   private String mField;
   private String mTerm;
 

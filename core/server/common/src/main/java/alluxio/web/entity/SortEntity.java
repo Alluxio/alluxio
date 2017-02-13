@@ -14,7 +14,7 @@ package alluxio.web.entity;
 /**
  * The web page grid sort entity.
  */
-public class SortEntity {
+public final class SortEntity {
   public static final String SORT_ASC = "asc";
   public static final String SORT_DESC = "desc";
   private String mField;

@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * The web page grid pagination options entity.
  */
-public class PaginationOptionsEntity {
+public final class PaginationOptionsEntity {
   private int mPageNumber;
   private int mPageSize;
   private List<SortEntity> mSorters = new ArrayList<>();

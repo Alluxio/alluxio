@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * The web page grid result entity.
  */
-public class PageResultEntity {
+public final class PageResultEntity {
   private int mTotalCount = 0;
   private List<UIFileInfo> mPageData = new ArrayList<>();
   private Map<String, Object> mArgumentMap = new HashMap<>();
