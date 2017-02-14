@@ -31,31 +31,31 @@ added nodes in order to balance disk space utilization between the nodes?
 
    Yes. Please see this [page](Running-Alluxio-Fault-Tolerant.html).
 
-6. What is under storage system and how many under storage systems are supported?
+6. What are under storage systems and how many under storage systems are supported?
 
-   Alluxio uses under storage systems as its persistent storage system. It currently support [Amazon
+   Alluxio uses under storage systems as its persistent storage system. It currently supports [Amazon
    S3](Configuring-Alluxio-with-S3.html), [Swift](Configuring-Alluxio-with-Swift.html), [GCS
    ](Configuring-Alluxio-with-GCS.html), [HDFS](Configuring-Alluxio-with-HDFS.html) and many more.
 
-7. Can I easily add support to other under store systems?
+7. Can I easily add support for other under store systems?
 
    Yes, in fact support for other under storages is in progress by many contributors. Here is the
    [introduction](Integrating-Under-Storage-Systems.html) to adding other under storage systems.
 
 8. In which language is Alluxio developed?
 
-   Alluxio is primarily developed in Java and exposes Java-like File API's for other applications to
-   interact with. We are working on other language binding though.
+   Alluxio is primarily developed in Java and exposes Java-like File APIs for other applications to
+   interact with. We are working on other language bindings though.
 
 9. What happens if my data set does not fit in memory?
 
    Depends on the system setup, Alluxio may leverage local SSD and HDD. It keeps hot data in
-   Alluxio, and cold data in under storage systems. You can read more about tier storage setup at
+   Alluxio, and cold data in under storage systems. You can read more about tiered storage setup 
    [here](Tiered-Storage-on-Alluxio.html).
 
-10. Can I run Alluxio as a standalone for experimenting and validation?
+10. Can I run Alluxio as a stand-alone system for experimenting and validation?
 
-    Yes, Alluxio run in a stand-alone mode. Instructions are available [here](Running-Alluxio-
+    Yes, Alluxio can run as a stand-alone system. Instructions are available [here](Running-Alluxio-
     Locally.html).
 
 11. Can I run Alluxio in a cluster mode?
@@ -63,25 +63,25 @@ added nodes in order to balance disk space utilization between the nodes?
     Yes, Alluxio can be run in a cluster mode. Instructions are available [here](Running-Alluxio-
     on-a-Cluster.html).
 
-12. Does Alluxio always needs HDFS?
+12. Does Alluxio always need HDFS?
 
-    No, Alluxio runs on different under storage systems like HDFS, Amazon S3, Swift, GlusterFS.
+    No, Alluxio runs on different under storage systems like HDFS, Amazon S3, Swift and GlusterFS.
 
 13. Does Alluxio work alongside with other Frameworks?
 
     Yes, Alluxio works with [Spark](Running-Spark-on-Alluxio.html), [Flink](Running-Flink-on-
     Alluxio.html), [Hadoop](Running-Hadoop-MapReduce-on-Alluxio.html),  [HBase](Running-HBase-on-
-    Alluxio.html), [HIVE](Running-HBase-on-Alluxio.html), etc.
+    Alluxio.html), [Hive](Running-Hive-with-Alluxio.html), etc.
 
 14. How can I learn more about Alluxio?
 
-    You can read the recent [blogs](/resources/posts) and [presentations](/resources/posts).
+    You can read the recent [blogs](/resources/posts) and [presentations](/resources/presentations).
 
 15. Are there any meetups for Alluxio?
 
     Yes. We have started meetup group for Alluxio and please join
-    [http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/). You can also find other
-    Alluxio events at [here](/resources/events).
+    [http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/). You can also find more
+    Alluxio events [here](/resources/events).
 
 16. What license is Alluxio under?
 
@@ -91,8 +91,7 @@ added nodes in order to balance disk space utilization between the nodes?
 
     Thank you for the interest to contribute. Please look into [Contributing-to-
     Alluxio](/contribute). Also, please look into some of the JIRA issues (marked for New
-    Contributors) [here](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20Alluxio%20AND%20l
-    abels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
+    Contributors) [here](https://alluxio.atlassian.net/browse/ALLUXIO-2532?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))
 
 18. Where can I report issues or propose new features?
 
