@@ -41,7 +41,7 @@
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-reflect</artifactId>
-      <version>${powermock.version}</version>
+      <scope>compile</scope>
     </dependency>
 
     <!-- Internal dependencies -->
