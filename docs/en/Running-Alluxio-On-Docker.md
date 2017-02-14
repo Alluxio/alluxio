@@ -49,20 +49,14 @@ $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
 
 ### Set up ramdisk to enable short-circuit reads
 
-When the Alluxio client runs local to an Alluxio worker, a shared ramdisk should be set
-up so that short-circuit reads can be used to read data at memory speed instead of
-network speed.
+When the Alluxio client runs on the same host as an Alluxio worker, a shared ramdisk
+should be set up so that short-circuit reads can be used to read data at memory speed
+instead of network speed.
 
 ```bash
-$ sudo mkdir /mnt/ramdisk && sudo mount -t ramfs -o size=10G tmpfs /mnt/ramdisk
-```
-
-Alternately, you can go to `conf/alluxio-site.properties` on the host system, set
-`alluxio.worker.memory.size` to the desired ramdisk size (e.g. `10GB`), then run
-`alluxio-mount.sh`. This will set up the ramdisk on the host system.
-
-```bash
-$ alluxio-mount.sh SudoMount local
+$ sudo mkdir /mnt/ramdisk
+$ sudo mount -t ramfs -o size=10G tmpfs /mnt/ramdisk
+$ sudo chmod a+w /mnt/ramdisk
 ```
 
 After mounting the ramdisk, restart Docker so that it is aware of the new mount point.
@@ -81,8 +75,11 @@ $ docker run -d --net=host alluxio master
 
 We need to tell the worker where to find the master. Set the `ALLUXIO_MASTER_HOSTNAME`
 environment variable to your machine's hostname when launching the worker Docker container.
-To enable short-circut reads, share the ramdisk with `-v /mnt/ramdisk:/mnt/ramdisk`, and
-specify its location and size to the worker.
+To enable short-circuit reads, share the ramdisk with `-v /mnt/ramdisk:/mnt/ramdisk`, and
+specify its location and size to the worker. `-v /mnt/ramdisk:/mnt/ramdisk` will mount the
+`/mnt/ramdisk` path on the host machine to the `/mnt/ramdisk` path in the worker container.
+This way, the data written by the Alluxio worker can be directly accessed from outside the
+container.
 
 ```bash
 $ docker run -d \
