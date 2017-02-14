@@ -1,9 +1,13 @@
 CACHE_PROMOTE:
   Data is moved to the highest tier in the worker where the data was read. If the data was not
-  in the Alluxio storage of the local worker, a replica will be added to the local Alluxio worker
-  for each completely read data block. This is the default read type.
+  in the Alluxio storage of the local worker, a replica will be added to the local Alluxio worker.
+  If `alluxio.user.file.cache.partially.read.block` is set to true, the entire block will be cached
+  by Alluxio space even if the client only reads a part of this block. Otherwise, a block will be
+  cached only if it is fully read.
 CACHE:
   If the data was not in the Alluxio storage of the local worker, a replica will be added to the
-  local Alluxio worker for each completely read data block.
+  local Alluxio worker. If `alluxio.user.file.cache.partially.read.block` is set to true, the
+  entire block will be cached by Alluxio space even if the client only reads a part of this block.
+  Otherwise, a block will be cached only if it is fully read.
 NO_CACHE:
-  No replicas will be created.
+  Data is read without storing a copy of it in Alluxio.

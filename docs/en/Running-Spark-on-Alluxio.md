@@ -6,6 +6,9 @@ group: Frameworks
 priority: 0
 ---
 
+* Table of Contents
+{:toc}
+
 This guide describes how to run [Apache Spark](http://spark-project.org/) on Alluxio. HDFS is used
 as an example of a distributed under storage system. Note that, Alluxio supports many other under
 storage systems in addition to HDFS and enables frameworks like Spark to read data from or write
@@ -87,11 +90,11 @@ Open your browser and check [http://localhost:19999/browse](http://localhost:199
 should be an output file `LICENSE2` which doubles each line in the file `LICENSE`. Also, the
 `LICENSE` file now appears in the Alluxio file system space.
 
-NOTE: Block caching on partial reads is enabled by default, but if you have turned off the option,
-it is possible that the `LICENSE` file is not in Alluxio storage (Not In-Memory). This is
-because Alluxio only stores fully read blocks, and if the file is too small, the Spark job will
-have each executor read a partial block. To avoid this behavior, you can specify the partition
-count in Spark. For this example, we would set it to 1 as there is only 1 block.
+> NOTE: Block caching on partial reads is enabled by default, but if you have turned off the option,
+> it is possible that the `LICENSE` file is not in Alluxio storage (Not In-Memory). This is
+> because Alluxio only stores fully read blocks, and if the file is too small, the Spark job will
+> have each executor read a partial block. To avoid this behavior, you can specify the partition
+> count in Spark. For this example, we would set it to 1 as there is only 1 block.
 
 {% include Running-Spark-on-Alluxio/alluxio-one-partition.md %}
 
@@ -137,8 +140,8 @@ in Spark WebUI below.
 
 ### Running Spark on YARN
 
-To maximize the amount of locality your Spark jobs attain, you should use as many 
-executors as possible, hopefully at least one executor per node. 
+To maximize the amount of locality your Spark jobs attain, you should use as many
+executors as possible, hopefully at least one executor per node.
 As with all methods of Alluxio deployment, there should also be an Alluxio worker on all computation nodes.
 
 When a Spark job is run on YARN, Spark launches its executors without taking data locality into account.
@@ -146,4 +149,4 @@ Spark will then correctly take data locality into account when deciding how to d
 executors. For example, if `host1` contains `blockA` and a job using `blockA` is launched on the YARN
 cluster with `--num-executors=1`, Spark might place the only executor on `host2` and have poor locality.
 However, if `--num-executors=2` and executors are started on `host1` and `host2`, Spark will be smart
-enough to prioritize placing the job on `host1`. 
+enough to prioritize placing the job on `host1`.

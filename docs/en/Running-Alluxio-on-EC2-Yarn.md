@@ -6,12 +6,15 @@ group: Deploying Alluxio
 priority: 5
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio can be started and managed by Apache YARN. This guide demonstrates how to launch Alluxio
 with YARN on EC2 machines using the
 [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio.
 
-# Prerequisites
+## Prerequisites
 
 **Install Vagrant and the AWS plugins**
 
@@ -40,7 +43,7 @@ in `deploy/vagrant` run:
 
 {% include Running-Alluxio-on-EC2-Yarn/install-pip.md %}
 
-# Launch a Cluster
+## Launch a Cluster
 
 To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
@@ -74,7 +77,7 @@ the script under `deploy/vagrant`:
 
 {% include Running-Alluxio-on-EC2-Yarn/launch-Alluxio.md %}
 
-# Access the cluster
+## Access the cluster
 
 **Access through Web UI**
 
@@ -107,7 +110,7 @@ For example, you can ssh into `AlluxioMaster` with:
 All software is installed under root directory, e.g. Alluxio is installed in `/alluxio`, Hadoop is
 installed in `/hadoop`.
 
-# Configure Alluxio integration with YARN
+## Configure Alluxio integration with YARN
 
 On our EC2 machines, YARN has been installed as a part of Hadoop version 2.4.1. Notice that, by
 default Alluxio binaries
@@ -125,7 +128,7 @@ worker), see [Configuration settings](Configuration-Settings.html). To ensure yo
 read by both the ApplicationMaster and Alluxio master/workers, put `alluxio-site.properties` in
 `~/.alluxio` under the home folders for any users that will launch an Alluxio client or server.
 
-# Start Alluxio
+## Start Alluxio
 
 If Yarn does not reside in HADOOP_HOME, set the environment variable YARN_HOME to the base path of Yarn.
 
@@ -152,7 +155,7 @@ The output of the above script may produce output like the following:
 From the output, we know the application ID to run Alluxio is
 **`application_1445469376652_0002`**. This application ID is needed to kill the application.
 
-# Test Alluxio
+## Test Alluxio
 
 You can run tests against Alluxio to check its health:
 
@@ -163,7 +166,7 @@ After the tests finish, visit Alluxio web UI at `http://ALLUXIO_MASTER_IP:19999`
 tests.
 
 
-# Stop Alluxio
+## Stop Alluxio
 
 Alluxio can be stopped by using the following YARN command where the application ID of Alluxio can
 be retrieved from either YARN web UI or the output of `alluxio-yarn.sh` as mentioned above. For
@@ -172,7 +175,7 @@ the application using:
 
 {% include Running-Alluxio-on-EC2-Yarn/kill-application.md %}
 
-# Destroy the cluster
+## Destroy the cluster
 
 Under `deploy/vagrant` directory in your local machine where EC2 machines are launched, you can run:
 
@@ -181,7 +184,7 @@ Under `deploy/vagrant` directory in your local machine where EC2 machines are la
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the EC2 instances are terminated.
 
-# Trouble Shooting
+## Trouble Shooting
 
 1 If you compile Alluxio with YARN integration using maven and see compilation errors like the
 following messages:

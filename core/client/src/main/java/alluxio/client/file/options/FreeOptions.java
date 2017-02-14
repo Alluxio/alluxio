@@ -12,7 +12,10 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.thrift.FreeTOptions;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -22,7 +25,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
+@JsonInclude(Include.NON_EMPTY)
 public final class FreeOptions {
+  private boolean mForced;
   private boolean mRecursive;
 
   /**
@@ -33,7 +38,16 @@ public final class FreeOptions {
   }
 
   private FreeOptions() {
+    mForced = false;
     mRecursive = false;
+  }
+
+  /**
+   * @return the forced flag value; if the object to be freed is pinned, the flag specifies
+   *         whether this object should still be freed
+   */
+  public boolean isForced() {
+    return mForced;
   }
 
   /**
@@ -42,6 +56,18 @@ public final class FreeOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * Sets the forced flag.
+   *
+   * @param forced the forced flag value; if the object to be freed is pinned, the flag specifies
+   *         whether this object should still be freed
+   * @return the updated options object
+   */
+  public FreeOptions setForced(boolean forced) {
+    mForced = forced;
+    return this;
   }
 
   /**
@@ -65,18 +91,27 @@ public final class FreeOptions {
       return false;
     }
     FreeOptions that = (FreeOptions) o;
-    return Objects.equal(mRecursive, that.mRecursive);
+    return Objects.equal(mForced, that.mForced) && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive);
+    return Objects.hashCode(mForced, mRecursive);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-        .add("recursive", mRecursive)
+    return Objects.toStringHelper(this).add("forced", mForced).add("recursive", mRecursive)
         .toString();
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public FreeTOptions toThrift() {
+    FreeTOptions options = new FreeTOptions();
+    options.setForced(mForced);
+    options.setRecursive(mRecursive);
+    return options;
   }
 }

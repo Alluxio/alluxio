@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
-import alluxio.security.authorization.Permission;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
@@ -88,11 +87,10 @@ public class AtomicFileOutputStream extends OutputStream {
           ExceptionMessage.FAILED_UFS_RENAME.getMessage(mTemporaryPath, mPermanentPath));
     }
 
-    // Preserve permissions in case delegation was used to create path
-    Permission perm = mOptions.getPermission();
-    if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
+    // Preserve owner and group in case delegation was used to create the path
+    if (!mOptions.getOwner().isEmpty() || !mOptions.getGroup().isEmpty()) {
       try {
-        mUfs.setOwner(mPermanentPath, perm.getOwner(), perm.getGroup());
+        mUfs.setOwner(mPermanentPath, mOptions.getOwner(), mOptions.getGroup());
       } catch (Exception e) {
         LOG.warn("Failed to update the ufs ownership, default values will be used. " + e);
       }

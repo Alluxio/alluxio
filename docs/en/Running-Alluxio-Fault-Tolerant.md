@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 Fault Tolerance in Alluxio is based upon a multi-master approach where multiple master processes
 are running. One of these processes is elected the leader and is used by all workers and clients as the
 primary point of contact. The other masters act as standbys using the shared journal to ensure that
@@ -79,7 +82,7 @@ Alluxio masters, workers, and clients. In `conf/alluxio-site.properties`, these 
 <tr>
   <td>{{item.PropertyName}}</td>
   <td>{{item.Value}}</td>
-  <td>{{site.data.table.en.java-options-for-fault-tolerance.[item.PropertyName]}}</td>
+  <td>{{site.data.table.en.java-options-for-fault-tolerance[item.PropertyName]}}</td>
 </tr>
 {% endfor %}
 </table>
@@ -131,8 +134,20 @@ does not have to be set for the workers.
 
 No additional configuration parameters are required for fault tolerant mode. As long as both:
 
-    alluxio.zookeeper.enabled=true
-    alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```
 
 are set appropriately for your client application, the application will be able to consult with
 ZooKeeper for the current leader master.
+
+#### HDFS API
+
+When communicating with fault-tolerant Alluxio using the HDFS API, use `alluxio-ft://` for the scheme
+instead of `alluxio://`. Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used
+instead for finding the Alluxio leader master.
+
+```
+hadoop fs -ls alluxio-ft:///directory
+```

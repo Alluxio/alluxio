@@ -6,11 +6,14 @@ group: Deploying Alluxio
 priority: 4
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio can be deployed on Google Compute Engine (GCE) using the
 [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with
 Alluxio. The scripts let you create, configure, and destroy clusters.
 
-# Prerequisites
+## Prerequisites
 
 **Install Vagrant and the Google plugin**
 
@@ -39,7 +42,7 @@ in `deploy/vagrant` run:
 
 {% include Running-Alluxio-on-GCE/install-pip.md %}
 
-# Launch a Cluster
+## Launch a Cluster
 
 To run an Alluxio cluster on GCE, you need a [Google Cloud](https://cloud.google.com) billing account, project, service account and JSON keys for the service account.
 
@@ -77,7 +80,7 @@ the script under `deploy/vagrant`:
 
 Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
 
-# Access the cluster
+## Access the cluster
 
 **Access through Web UI**
 
@@ -130,7 +133,7 @@ From a node in the cluster, you can ssh to other nodes in the cluster without pa
 
 {% include Running-Alluxio-on-GCE/ssh-other-node.md %}
 
-# Destroy the cluster
+## Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run:
 

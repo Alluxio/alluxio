@@ -23,7 +23,7 @@ have to manually manage the locations of the data. Users may specify their own d
 strategies by implementing [allocators](#allocators) and [evictors](#evictors). In addition, manual
 control over tier storage is possible, see [pinning files](#pinning-files).
 
-# Using Tiered Storage
+## Using Tiered Storage
 
 With the introduction of tiers, the data blocks managed by Alluxio are not necessarily in memory;
 blocks can be in any of the available tiers. To manage the placement and movement of the blocks,
@@ -31,7 +31,7 @@ Alluxio uses *allocators* and *evictors* to place and re-arrange blocks between 
 assumes that tiers are ordered from top to bottom based on I/O performance. Therefore, the typical
 tiered storage configuration defines the top tier to be MEM, followed by SSD, and finally HDD.
 
-## Storage Directories
+### Storage Directories
 
 A tier is made up of at least one storage directory. This directory is a file path where the Alluxio
 blocks should be stored. Alluxio supports configuring multiple directories for a single tier,
@@ -40,13 +40,13 @@ five SSD devices on your Alluxio worker, you can configure Alluxio to use all fi
 SSD tier. Configuration for this is described [below](#enabling-and-configuring-tiered-storage).
 Choosing which directory the data should placed is determined by the [allocators](#allocators).
 
-## Writing Data
+### Writing Data
 
 When a user writes a new block, it is written to the top tier by default (a custom allocator can be
 used if the default behavior is not desired). If there is not enough space for the block in the top
 tier, then the evictor is triggered in order to free space for the new block.
 
-## Reading Data
+### Reading Data
 
 Reading a data block with tiered storage is similar to standard Alluxio. Alluxio will simply read
 the block from where it is already stored. If Alluxio is configured with multiple tiers, then the
@@ -57,7 +57,7 @@ Reading data with the AlluxioStorageType.PROMOTE will ensure the data is first t
 top tier before it is read from the worker. This can also be used as a data management strategy by
 explicitly moving hot data to higher tiers.
 
-### Pinning Files
+#### Pinning Files
 
 Another way for a user to control the placement and movement of their files is to *pin* and *unpin*
 files. When a file is pinned, its blocks will not be evicted. However, users can still promote
@@ -74,7 +74,7 @@ Similarly, the file can be unpinned through:
 Since blocks of pinned files are no longer candidates for eviction, clients should make sure to
 unpin files when appropriate.
 
-## Allocators
+### Allocators
 
 Alluxio uses allocators for choosing locations for writing new blocks. Alluxio has a framework for
 customized allocators, but there are a few default implementations of allocators. Here are the
@@ -96,7 +96,7 @@ existing allocators in Alluxio:
 In the future, additional allocators will be available. Since Alluxio supports custom allocators,
 you can also develop your own allocator appropriate for your workload.
 
-## Evictors
+### Evictors
 
 Alluxio uses evictors for deciding which blocks to move to a lower tier, when space needs to be
 freed. Alluxio supports custom evictors, and implementations include:
@@ -127,7 +127,7 @@ When using synchronous eviction, it is recommended to use small block size (arou
 to reduce the latency of block eviction. When using the [space reserver](#space-reserver), block
 size does not affect eviction latency.
 
-## Space Reserver
+### Space Reserver
 
 Space reserver makes tiered storage try to reserve certain portion of space on each storage layer
 before all space on any given layer is consumed. It will improve the performance of bursty write,
@@ -135,7 +135,7 @@ but may also provide marginal performance gain for continuous writes when evicti
 running. See the [configuration section](#enabling-and-configuring-tiered-storage) for how to enable
 and configure the space reserver.
 
-# Enabling and Configuring Tiered Storage
+## Enabling and Configuring Tiered Storage
 
 Tiered storage can be enabled in Alluxio using
 [configuration parameters](Configuration-Settings.html). By default, Alluxio only enables a single,
@@ -179,7 +179,7 @@ Space reserver can be configured to be enabled or disabled through:
 
     alluxio.worker.tieredstore.reserver.enabled=false
 
-# Configuration Parameters For Tiered Storage
+## Configuration Parameters For Tiered Storage
 
 These are the configuration parameters for tiered storage.
 
@@ -189,7 +189,7 @@ These are the configuration parameters for tiered storage.
 <tr>
 <td>{{ item.parameter }}</td>
 <td>{{ item.defaultValue }}</td>
-<td>{{ site.data.table.en.tiered-storage-configuration-parameters.[item.parameter] }}</td>
+<td>{{ site.data.table.en.tiered-storage-configuration-parameters[item.parameter] }}</td>
 </tr>
 {% endfor %}
 </table>

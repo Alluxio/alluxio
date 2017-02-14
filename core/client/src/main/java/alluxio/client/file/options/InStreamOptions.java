@@ -125,7 +125,7 @@ public final class InStreamOptions {
   /**
    * Sets {@link #mSeekBufferSizeBytes}.
    * @param bufferSizeBytes the seek buffer size
-   * @return the updated ooptions object
+   * @return the updated options object
    */
   public InStreamOptions setSeekBufferSizeBytes(long bufferSizeBytes) {
     mSeekBufferSizeBytes = bufferSizeBytes;

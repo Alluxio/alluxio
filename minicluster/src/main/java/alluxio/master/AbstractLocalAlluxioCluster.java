@@ -226,6 +226,7 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
     Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
     Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 1000);
 
     Configuration.set(PropertyKey.MASTER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.MASTER_WEB_BIND_HOST, mHostname);
@@ -246,8 +247,8 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
     Configuration.set(PropertyKey.WEB_THREADS, "1");
-    Configuration.set(PropertyKey.WEB_RESOURCES,
-        PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
+    Configuration.set(PropertyKey.WEB_RESOURCES, PathUtils
+        .concatPath(System.getProperty("user.dir"), "../core/server/common/src/main/webapp"));
 
     Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(0));
     Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));

@@ -43,6 +43,9 @@ public final class DynamicResourcePoolTest {
     }
   }
 
+  /**
+   * The subclass of DynamicResourcePool to be tested.
+   */
   private static final class TestPool extends DynamicResourcePool<Resource> {
     private int mGcThresholdInSecs = 120;
     private int mCounter = 0;
@@ -50,11 +53,22 @@ public final class DynamicResourcePoolTest {
     private static final ScheduledExecutorService GC_EXECUTOR =
         new ScheduledThreadPoolExecutor(5, ThreadFactoryUtils.build("TestPool-%d", true));
 
+    /**
+     * Constructor of TestPool class.
+     *
+     * @param options the Options object to set ScheduledExecutorService object
+     * @param clock the object of Clock class
+     */
     public TestPool(Options options, ManualClock clock) {
       super(options.setGcExecutor(GC_EXECUTOR));
       mClock = clock;
     }
 
+    /**
+     * Constructor of TestPool class.
+     *
+     * @param options the Options object to set ScheduledExecutorService object
+     */
     public TestPool(Options options) {
       super(options.setGcExecutor(GC_EXECUTOR));
     }
@@ -85,6 +99,11 @@ public final class DynamicResourcePoolTest {
       return new Resource(mCounter++);
     }
 
+    /**
+     * Set the value representing the max value of Interval, managing when should Gc.
+     *
+     * @param gcThresholdInSecs the value of Gc Threshold Interval
+     */
     public void setGcThresholdInSecs(int gcThresholdInSecs) {
       mGcThresholdInSecs = gcThresholdInSecs;
     }
