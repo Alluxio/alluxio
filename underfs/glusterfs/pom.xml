@@ -30,6 +30,7 @@
   </properties>
 
   <dependencies>
+    <!-- External dependencies -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -67,6 +68,8 @@
         </exclusion>
       </exclusions>
     </dependency>
+
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
