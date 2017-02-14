@@ -60,7 +60,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class FileDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final UnderFileSystem mUfs;
+  private final UnderFileSystemManager mUfsManager;
 
   /** Block worker handler for access block info. */
   private final BlockWorker mBlockWorker;
@@ -84,15 +84,15 @@ public final class FileDataManager {
    * Creates a new instance of {@link FileDataManager}.
    *
    * @param blockWorker the block worker handle
-   * @param ufs the under file system to persist files to
+   * @param ufsManager the under file system manager
    * @param persistenceRateLimiter a per worker rate limiter to throttle async persistence
    */
-  public FileDataManager(BlockWorker blockWorker, UnderFileSystem ufs,
+  public FileDataManager(BlockWorker blockWorker, UnderFileSystemManager ufsManager,
       RateLimiter persistenceRateLimiter) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
-    mUfs = ufs;
+    mUfsManager = ufsManager;
     mPersistenceRateLimiter = persistenceRateLimiter;
   }
 
@@ -234,9 +234,10 @@ public final class FileDataManager {
 
     String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    OutputStream outputStream = mUfs.create(dstPath,
+    long outputFileId = mUfsManager.create(Sessions.CHECKPOINT_SESSION_ID, new AlluxioURI(dstPath),
         CreateOptions.defaults().setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
-            .setMode(new Mode((short) fileInfo.getMode())));
+        .setMode(new Mode((short) fileInfo.getMode())));
+    OutputStream outputStream = mUfsManager.getOutputStream(outputFileId);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     List<Throwable> errors = new ArrayList<>();
@@ -259,9 +260,11 @@ public final class FileDataManager {
         BufferUtils.fastCopy(inputChannel, outputChannel);
         reader.close();
       }
+      
+      outputStream.flush();
     } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
       errors.add(e);
-    } finally {
+    } finally {     
       // make sure all the locks are released
       for (long lockId : blockIdToLockId.values()) {
         try {
@@ -270,7 +273,19 @@ public final class FileDataManager {
           errors.add(e);
         }
       }
+      
+      // Complete/cancel file as appropriate
+      try {
+        if (errors.isEmpty()) {
+          mUfsManager.completeFile(outputFileId);
+        } else {
+          mUfsManager.cancelFile(outputFileId);
+        }
+      } catch (Throwable e) {
+        errors.add(e);
+      }
 
+      // Process any errors
       if (!errors.isEmpty()) {
         StringBuilder errorStr = new StringBuilder();
         errorStr.append("the blocks of file").append(fileId).append(" are failed to persist\n");
@@ -305,7 +320,8 @@ public final class FileDataManager {
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, mUfs);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsPath);
+    UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }
 
