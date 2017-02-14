@@ -199,6 +199,11 @@
         <version>2.6.6</version>
       </dependency>
       <dependency>
+        <groupId>com.github.serceman</groupId>
+        <artifactId>jnr-fuse</artifactId>
+        <version>0.3</version>
+      </dependency>
+      <dependency>
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>jsr305</artifactId>
         <version>3.0.0</version>
