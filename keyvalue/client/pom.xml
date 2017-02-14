@@ -30,6 +30,7 @@
   </properties>
 
   <dependencies>
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client</artifactId>
@@ -41,7 +42,7 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- Other projects' test-jars -->
+    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -153,7 +154,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.2</version>
         <executions>
           <execution>
             <id>uber-jar</id>
