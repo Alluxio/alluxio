@@ -10,9 +10,8 @@ priority: 0
 {:toc}
 
 This guide describes how to configure Alluxio with [Minio](https://minio.io/) as the
-under storage system. Alluxio natively provides two different client implementations for accessing
-Minio, aws-sdk-java-s3 through the s3a:// scheme (recommended for better performance) and jets3t
-through the s3n:// scheme.
+under storage system. Alluxio natively provides the s3a:// scheme (recommended for better performance). You can
+use this scheme to connect Alluxio with Minio server.
 
 ## Initial Setup
 
@@ -24,7 +23,7 @@ Then, if you haven't already done so, create your configuration file with `boots
 For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be
 set to `localhost`
 
-{% include Configuring-Alluxio-with-S3/bootstrapConf.md %}
+{% include Configuring-Alluxio-with-Minio/bootstrapConf.md %}
 
 Alternatively, you can also create the configuration file from the template and set the contents
 manually.
@@ -47,8 +46,9 @@ a new directory in the bucket, or using an existing one. For the purposes of thi
 
 You need to configure Alluxio to use Minio as its under storage system by modifying
 `conf/alluxio-site.properties`. The first modification is to specify an **existing** Minio
-bucket and directory as the under storage system. You specify it by modifying
-`conf/alluxio-site.properties` to include:
+bucket and directory as the under storage system.
+
+All the fields to be modified in `conf/alluxio-site.properties` file are listed here:
 
 {% include Configuring-Alluxio-with-Minio/minio.md %}
 
