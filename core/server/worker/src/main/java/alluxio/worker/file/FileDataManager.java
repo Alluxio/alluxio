@@ -260,11 +260,11 @@ public final class FileDataManager {
         BufferUtils.fastCopy(inputChannel, outputChannel);
         reader.close();
       }
-      
+
       outputStream.flush();
     } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
       errors.add(e);
-    } finally {     
+    } finally {
       // make sure all the locks are released
       for (long lockId : blockIdToLockId.values()) {
         try {
@@ -273,7 +273,7 @@ public final class FileDataManager {
           errors.add(e);
         }
       }
-      
+
       // Complete/cancel file as appropriate
       try {
         if (errors.isEmpty()) {

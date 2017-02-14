@@ -21,7 +21,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.thrift.FileSystemWorkerClientService;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -84,9 +83,9 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
     mWorkerId = workerId;
     mSessions = new Sessions();
     mUnderFileSystemManager = new UnderFileSystemManager();
-    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker), mUnderFileSystemManager,
-        RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
-
+    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker),
+        mUnderFileSystemManager, RateLimiter.create(
+            Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
