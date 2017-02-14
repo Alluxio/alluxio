@@ -32,6 +32,11 @@
   </properties>
 
   <dependencies>
+    <!-- External dependencies -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -49,15 +54,20 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
 
-    <!-- Other Alluxio dependencies -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-        <artifactId>alluxio-core-protobuf</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-protobuf</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-gcs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!--Add Alluxio underfs modules so by including the client uber jar, application can talk to different underfs.-->
@@ -93,30 +103,18 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-gcs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-   <dependency>
-      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-swift</artifactId>
       <version>${project.version}</version>
     </dependency>
 
-    <!-- Dependency for findbugs (SuppressFBWarnings) -->
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
-    </dependency>
-
-    <!-- Test Dependencies -->
+    <!-- External test dependencies -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava-testlib</artifactId>
-      <version>19.0</version>
       <scope>test</scope>
     </dependency>
 
-    <!-- Other projects' test-jars -->
+    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -214,14 +212,12 @@
         </dependency>
         <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-          <version>2.6.6</version>
+          <artifactId>jackson-core</artifactId>
           <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-          <version>2.6.6</version>
+          <artifactId>jackson-databind</artifactId>
           <scope>provided</scope>
         </dependency>
       </dependencies>
@@ -235,7 +231,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
         <executions>
           <execution>
             <goals>
@@ -253,7 +248,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.2</version>
         <executions>
           <execution>
             <id>uber-jar</id>
