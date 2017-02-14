@@ -182,6 +182,12 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Compile Scope -->
+      <dependency>
+        <groupId>com.beust</groupId>
+        <artifactId>jcommander</artifactId>
+        <version>1.48</version>
+      </dependency>
       <dependency>
         <groupId>com.qmino</groupId>
         <artifactId>miredot-annotations</artifactId>
@@ -197,11 +203,6 @@
         <groupId>com.google.protobuf</groupId>
         <artifactId>protobuf-java</artifactId>
         <version>${protobuf.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
-        <version>3.4</version>
       </dependency>
       <dependency>
         <groupId>commons-cli</groupId>
@@ -224,17 +225,11 @@
         <version>2.0.1</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.mesos</groupId>
-        <artifactId>mesos</artifactId>
-        <version>0.23.0</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.4</version>
       </dependency>
-      <dependency>
+     <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
         <version>${hadoop.version}</version>
@@ -272,6 +267,22 @@
           </exclusion>
         </exclusions>
       </dependency>
+     <dependency>
+        <groupId>org.apache.mesos</groupId>
+        <artifactId>mesos</artifactId>
+        <version>0.23.0</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.sling</groupId>
+        <artifactId>maven-jspc-plugin</artifactId>
+        <version>2.0.8</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.thrift</groupId>
         <artifactId>libthrift</artifactId>
@@ -293,13 +304,8 @@
         <artifactId>slf4j-log4j12</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.beust</groupId>
-        <artifactId>jcommander</artifactId>
-        <version>1.48</version>
-      </dependency>
 
-      <!-- Test Dependencies -->
+      <!-- Test Scope -->
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-test</artifactId>
@@ -319,12 +325,7 @@
         <scope>test</scope>
       </dependency>
 
-      <!--
-          Dependency for FindBugs Plugin. This enables @SuppressFBWarnings.
-          Note that this package can be unnecessary for runtime, and the
-          'provided' scope makes it available for compilation and test,
-          but not be packaged into the jar.
-        -->
+      <!-- Provided Scope -->
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>annotations</artifactId>
@@ -334,7 +335,7 @@
     </dependencies>
   </dependencyManagement>
 
-  <!-- Dependencies to add to all projects. These should all be in the test scope -->
+  <!-- Dependencies to add to all projects. These should all be in the test scope. -->
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -378,6 +379,21 @@
     <pluginManagement>
       <plugins>
         <plugin>
+          <groupId>com.mycila</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>2.9</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>2.17</version>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.2</version>
@@ -396,6 +412,41 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>1.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.4</version>
+          <configuration>
+            <excludes>
+              <exclude>**/log4j.properties</exclude>
+            </excludes>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.9</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>2.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>2.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.19.1</version>
           <configuration>
@@ -411,14 +462,19 @@
           </configuration>
         </plugin>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>2.4</version>
-          <configuration>
-            <excludes>
-              <exclude>**/log4j.properties</exclude>
-            </excludes>
-          </configuration>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>1.10</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>1.4.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>findbugs-maven-plugin</artifactId>
+          <version>3.0.2</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -427,12 +483,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.1</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.3</version>
         <configuration>
           <skipAssembly>true</skipAssembly>
         </configuration>
@@ -440,7 +494,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>2.3</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -453,7 +506,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9</version>
         <executions>
           <execution>
             <id>aggregate</id>
@@ -474,7 +526,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.10</version>
         <executions>
           <execution>
             <id>parse-hadoop-major-version</id>
@@ -496,7 +547,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>1.4</version>
         <executions>
           <execution>
             <id>enforce-versions</id>
@@ -518,7 +568,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
-        <version>3.0.2</version>
         <configuration>
           <excludeFilterFile>${findbugs.path}/findbugs-exclude.xml</excludeFilterFile>
           <!--
@@ -546,7 +595,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
         <configuration>
           <configLocation>${checkstyle.path}alluxio_checks.xml</configLocation>
           <suppressionsLocation>${checkstyle.path}suppressions.xml</suppressionsLocation>
@@ -573,7 +621,6 @@
       <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
-        <version>2.9</version>
         <configuration>
           <header>${license.header.path}HEADER.txt</header>
           <failIfMissing>true</failIfMissing>
@@ -635,7 +682,6 @@
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
-        <version>1.4.0</version>
         <inherited>false</inherited>
         <executions>
           <execution>
@@ -658,7 +704,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9</version>
         <configuration>
           <show>public</show>
         </configuration>
@@ -678,7 +723,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.9</version>
             <configuration>
               <additionalparam>-Xdoclint:none</additionalparam>
             </configuration>
@@ -798,7 +842,6 @@
             <plugin>
               <groupId>org.apache.sling</groupId>
               <artifactId>maven-jspc-plugin</artifactId>
-              <version>2.0.8</version>
               <executions>
                 <execution>
                   <phase>prepare-package</phase>
