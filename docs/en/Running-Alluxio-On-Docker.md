@@ -53,6 +53,8 @@ When the Alluxio client runs on the same host as an Alluxio worker, a shared ram
 should be set up so that short-circuit reads can be used to read data at memory speed
 instead of network speed.
 
+From the host machine:
+
 ```bash
 $ sudo mkdir /mnt/ramdisk
 $ sudo mount -t ramfs -o size=10G tmpfs /mnt/ramdisk
@@ -103,6 +105,13 @@ Now run Alluxio tests
 $ cd opt/alluxio*
 $ bin/alluxio runTests
 ```
+
+### Sharing ramdisk with clients
+
+Running the worker with `-v /mnt/ramdisk:/mnt/ramdisk` will make the worker's ramdisk
+available on the host for short-circuit client reads. To make this available to clients
+in other containers running on the same host, those containers should also be run with
+`-v /mnt/ramdisk:/mnt/ramdisk`.
 
 ## Configuration
 
