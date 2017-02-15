@@ -204,16 +204,6 @@
         <version>1.48</version>
       </dependency>
       <dependency>
-        <groupId>com.codahale.metrics</groupId>
-        <artifactId>metrics-core</artifactId>
-        <version>3.0.1</version>
-      </dependency>
-      <dependency>
-        <groupId>com.codahale.metrics</groupId>
-        <artifactId>metrics-json</artifactId>
-        <version>3.0.1</version>
-      </dependency>
-      <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
         <version>2.6.6</version>
@@ -245,8 +235,13 @@
       </dependency>
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
+        <artifactId>annotations</artifactId>
+        <version>3.0.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
         <artifactId>jsr305</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
       </dependency>
       <dependency>
         <groupId>com.qmino</groupId>
@@ -254,7 +249,6 @@
         <version>1.4.0</version>
       </dependency>
       <dependency>
-        <!-- using older version to match dependency version from Hadoop -->
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>14.0.1</version>
@@ -378,53 +372,41 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
         <version>${hadoop.version}</version>
-        <exclusions>
-          <!-- Exclude guava to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
-          <!-- Exclude jersey to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-          <!-- Exclude servlet-api to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-          </exclusion>
-          <!-- Exclude netty to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
-          <!-- Exclude guava to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
-          <!-- Exclude jersey to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with javax.ws.rs:javax.ws.rs-api. -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>*</artifactId>
+            <artifactId>jersey-core</artifactId>
           </exclusion>
-          <!-- Exclude servlet-api to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server. -->
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with javax.servlet:javax.servlet-api. -->
           <exclusion>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
           </exclusion>
-          <!-- Exclude netty to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with org.mortbay.jasper:apache-el. -->
           <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>jsp-api</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with org.eclipse.jetty:apache-jsp. -->
+          <exclusion>
+            <groupId>tomcat</groupId>
+            <artifactId>jasper-compiler</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with org.eclipse.jetty:apache-jsp. -->
+          <exclusion>
+            <groupId>tomcat</groupId>
+            <artifactId>jasper-runtime</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -434,25 +416,35 @@
         <version>${hadoop.version}</version>
         <type>test-jar</type>
         <exclusions>
-          <!-- Exclude guava to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
-          <!-- Exclude jersey to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with javax.ws.rs:javax.ws.rs-api. -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>*</artifactId>
+            <artifactId>jersey-core</artifactId>
           </exclusion>
-          <!-- Exclude servlet-api to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server. -->
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with javax.servlet:javax.servlet-api. -->
           <exclusion>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
           </exclusion>
-          <!-- Exclude netty to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with org.mortbay.jasper:apache-el. -->
           <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>jsp-api</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with org.eclipse.jetty:apache-jsp. -->
+          <exclusion>
+            <groupId>tomcat</groupId>
+            <artifactId>jasper-compiler</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with org.eclipse.jetty:apache-jsp. -->
+          <exclusion>
+            <groupId>tomcat</groupId>
+            <artifactId>jasper-runtime</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -461,25 +453,35 @@
         <artifactId>hadoop-hdfs</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
-          <!-- Exclude guava to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
-          <!-- Exclude jersey to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with javax.ws.rs:javax.ws.rs-api. -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>*</artifactId>
+            <artifactId>jersey-core</artifactId>
           </exclusion>
-          <!-- Exclude servlet-api to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server. -->
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with javax.servlet:javax.servlet-api. -->
           <exclusion>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
           </exclusion>
-          <!-- Exclude netty to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with org.mortbay.jasper:apache-el. -->
           <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>jsp-api</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with org.eclipse.jetty:apache-jsp. -->
+          <exclusion>
+            <groupId>tomcat</groupId>
+            <artifactId>jasper-compiler</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with org.eclipse.jetty:apache-jsp. -->
+          <exclusion>
+            <groupId>tomcat</groupId>
+            <artifactId>jasper-runtime</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -489,25 +491,35 @@
         <version>${hadoop.version}</version>
         <type>test-jar</type>
         <exclusions>
-          <!-- Exclude guava to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
-          <!-- Exclude jersey to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with javax.ws.rs:javax.ws.rs-api. -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>*</artifactId>
+            <artifactId>jersey-core</artifactId>
           </exclusion>
-          <!-- Exclude servlet-api to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server. -->
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with javax.servlet:javax.servlet-api. -->
           <exclusion>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
           </exclusion>
-          <!-- Exclude netty to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with org.mortbay.jasper:apache-el. -->
           <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>jsp-api</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with org.eclipse.jetty:apache-jsp. -->
+          <exclusion>
+            <groupId>tomcat</groupId>
+            <artifactId>jasper-compiler</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with org.eclipse.jetty:apache-jsp. -->
+          <exclusion>
+            <groupId>tomcat</groupId>
+            <artifactId>jasper-runtime</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -516,25 +528,20 @@
         <artifactId>hadoop-mapreduce-client-core</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
-          <!-- Exclude guava to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
-          <!-- Exclude jersey to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with javax.ws.rs:javax.ws.rs-api. -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>*</artifactId>
+            <artifactId>jersey-core</artifactId>
           </exclusion>
-          <!-- Exclude servlet-api to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server. -->
           <exclusion>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
           </exclusion>
-          <!-- Exclude netty to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with javax.servlet:javax.servlet-api. -->
           <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.servlet</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -543,26 +550,6 @@
         <artifactId>hadoop-minicluster</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
-          <!-- Exclude guava to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
-          <!-- Exclude jersey to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-          <!-- Exclude servlet-api to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-          </exclusion>
-          <!-- Exclude netty to avoid conflict with the version that Alluxio uses. -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
@@ -579,6 +566,13 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-common</artifactId>
         <version>${hadoop.version}</version>
+        <exclusions>
+          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server. -->
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -590,7 +584,7 @@
         <artifactId>mesos</artifactId>
         <version>0.23.0</version>
         <exclusions>
-          <!-- Exclude protobuf to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid version conflict with the direct dependency. -->
           <exclusion>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
@@ -607,7 +601,7 @@
         <artifactId>libthrift</artifactId>
         <version>${libthrift.version}</version>
         <exclusions>
-          <!-- Exclude slf4j-api to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid version conflict with the direct dependency. -->
           <exclusion>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -619,7 +613,12 @@
         <artifactId>zookeeper</artifactId>
         <version>3.4.5</version>
         <exclusions>
-          <!-- Exclude log4j to avoid conflict with the version that Alluxio uses. -->
+          <!-- Excluded to avoid implementation conflict with org.eclipse.jetty:apache-jsp. -->
+          <exclusion>
+            <groupId>org.jboss.netty</groupId>
+            <artifactId>netty</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict org.slf4j:slf4j-log4j12. -->
           <exclusion>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
@@ -775,14 +774,6 @@
         <artifactId>powermock-reflect</artifactId>
         <version>${powermock.version}</version>
         <scope>test</scope>
-      </dependency>
-
-      <!-- Provided scope -->
-      <dependency>
-        <groupId>com.google.code.findbugs</groupId>
-        <artifactId>annotations</artifactId>
-        <version>3.0.1</version>
-        <scope>provided</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -18,8 +18,6 @@ import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import org.apache.tomcat.InstanceManager;
-import org.apache.tomcat.SimpleInstanceManager;
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.server.Connector;
@@ -99,7 +97,6 @@ public abstract class WebServer {
     mWebAppContext.setWar(warPath.getAbsolutePath());
 
     mWebAppContext.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
-    mWebAppContext.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
 
     // Set the ContainerIncludeJarPattern so that jetty examines these
     // container-path jars for tlds, web-fragments etc.
