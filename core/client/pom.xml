@@ -339,11 +339,13 @@
               <goal>analyze-only</goal>
             </goals>
             <configuration>
-              <ignoredUnusedDeclaredDependencies>
-                <ignoredUnusedDeclaredDependency>com.google.guava:guava-testlib</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.alluxio</ignoredUnusedDeclaredDependency>
-              </ignoredUnusedDeclaredDependencies>
               <failOnWarning>true</failOnWarning>
+              <ignoredUnusedDeclaredDependencies>
+                <!-- This dependency is used through reflection. -->
+                <ignoredUnusedDeclaredDependency>com.google.guava:guava-testlib</ignoredUnusedDeclaredDependency>
+                <!-- These dependencies are used through service loader. -->
+                <ignoredUnusedDeclaredDependency>org.alluxio:alluxio-underfs-*</ignoredUnusedDeclaredDependency>
+              </ignoredUnusedDeclaredDependencies>
               <outputXML>true</outputXML>
             </configuration>
           </execution>
