@@ -84,7 +84,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
     mSessions = new Sessions();
     mUnderFileSystemManager = new UnderFileSystemManager();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker),
-        mUnderFileSystemManager, RateLimiter.create(
+        RateLimiter.create(
             Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
 
     // Setup AbstractMasterClient

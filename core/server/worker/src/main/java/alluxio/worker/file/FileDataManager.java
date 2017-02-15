@@ -24,13 +24,12 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.file.options.CompleteUfsFileOptions;
-import alluxio.worker.file.options.CreateUfsFileOptions;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -60,8 +59,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class FileDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final UnderFileSystemManager mUfsManager;
-
   /** Block worker handler for access block info. */
   private final BlockWorker mBlockWorker;
 
@@ -84,15 +81,12 @@ public final class FileDataManager {
    * Creates a new instance of {@link FileDataManager}.
    *
    * @param blockWorker the block worker handle
-   * @param ufsManager the under file system manager
    * @param persistenceRateLimiter a per worker rate limiter to throttle async persistence
    */
-  public FileDataManager(BlockWorker blockWorker, UnderFileSystemManager ufsManager,
-      RateLimiter persistenceRateLimiter) {
+  public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
-    mUfsManager = ufsManager;
     mPersistenceRateLimiter = persistenceRateLimiter;
   }
 
@@ -165,17 +159,8 @@ public final class FileDataManager {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
 
-    UnderFileSystem ufs = getUnderFileSystem(dstPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath);
     return ufs.isFile(dstPath);
-  }
-
-  /**
-   * Gets the under file system for the given path.
-   * @param dstPath Under file system path
-   * @return Under File System if supported
-   */
-  private UnderFileSystem getUnderFileSystem(String dstPath) {
-    return UnderFileSystem.Factory.get(dstPath);
   }
 
   /**
@@ -242,12 +227,11 @@ public final class FileDataManager {
     }
 
     String dstPath = prepareUfsFilePath(fileId);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    long outputFileId = mUfsManager.createFile(Sessions.CHECKPOINT_SESSION_ID,
-        new AlluxioURI(dstPath), CreateUfsFileOptions.defaults()
-          .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
-          .setMode(new Mode((short) fileInfo.getMode())));
-    OutputStream outputStream = mUfsManager.getOutputStream(outputFileId);
+    OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
+        .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
+        .setMode(new Mode((short) fileInfo.getMode())));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     List<Throwable> errors = new ArrayList<>();
@@ -270,8 +254,6 @@ public final class FileDataManager {
         BufferUtils.fastCopy(inputChannel, outputChannel);
         reader.close();
       }
-
-      outputStream.flush();
     } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
       errors.add(e);
     } finally {
@@ -282,19 +264,6 @@ public final class FileDataManager {
         } catch (BlockDoesNotExistException e) {
           errors.add(e);
         }
-      }
-
-      // Complete/cancel file as appropriate
-      try {
-        if (errors.isEmpty()) {
-          mUfsManager.completeFile(Sessions.CHECKPOINT_SESSION_ID, outputFileId,
-              CompleteUfsFileOptions.defaults().setOwner(fileInfo.getOwner())
-                .setGroup(fileInfo.getGroup()).setMode(new Mode((short) fileInfo.getMode())));
-        } else {
-          mUfsManager.cancelFile(Sessions.CHECKPOINT_SESSION_ID, outputFileId);
-        }
-      } catch (Throwable e) {
-        errors.add(e);
       }
 
       // Process any errors
@@ -332,7 +301,7 @@ public final class FileDataManager {
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = getUnderFileSystem(ufsPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsPath);
     UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }

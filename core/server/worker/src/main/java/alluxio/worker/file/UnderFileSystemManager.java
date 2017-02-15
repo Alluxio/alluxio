@@ -51,7 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 // TODO(calvin): Consider whether the manager or the agents should contain the execution logic
 @ThreadSafe
-public class UnderFileSystemManager {
+public final class UnderFileSystemManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Input stream agent session index
