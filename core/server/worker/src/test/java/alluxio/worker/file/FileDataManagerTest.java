@@ -60,6 +60,7 @@ import java.util.List;
     FileSystem.Factory.class})
 public final class FileDataManagerTest {
   private UnderFileSystem mUfs;
+  private UnderFileSystemManager mUfsManager;
   private BlockWorker mBlockWorker;
   private MockRateLimiter mMockRateLimiter;
   private FileDataManager mManager;
@@ -68,15 +69,18 @@ public final class FileDataManagerTest {
   @Before
   public void before() throws Exception {
     mUfs = Mockito.mock(UnderFileSystem.class);
+    mUfsManager = Mockito.mock(UnderFileSystemManager.class);
     mBlockWorker = Mockito.mock(BlockWorker.class);
     mMockRateLimiter =
         new MockRateLimiter(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
-    mManager = new FileDataManager(mBlockWorker, mUfs, mMockRateLimiter.getGuavaRateLimiter());
+    mManager = new FileDataManager(mBlockWorker, mUfsManager,
+        mMockRateLimiter.getGuavaRateLimiter());
 
     mMockFileSystem = PowerMockito.mock(FileSystem.class);
     PowerMockito.mockStatic(FileSystem.Factory.class);
     Mockito.when(FileSystem.Factory.get()).thenReturn(mMockFileSystem);
     Mockito.when(mUfs.isDirectory(Mockito.anyString())).thenReturn(true);
+    Mockito.when(UnderFileSystem.Factory.get(Mockito.anyString())).thenReturn(mUfs);
   }
 
   @After
@@ -125,7 +129,8 @@ public final class FileDataManagerTest {
     Configuration.set(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
     mMockRateLimiter =
         new MockRateLimiter(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
-    mManager = new FileDataManager(mBlockWorker, mUfs, mMockRateLimiter.getGuavaRateLimiter());
+    mManager = new FileDataManager(mBlockWorker, mUfsManager,
+        mMockRateLimiter.getGuavaRateLimiter());
 
     long fileId = 1;
     List<Long> blockIds = Lists.newArrayList(1L, 2L, 3L);
