@@ -1269,7 +1269,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * Writes to the journal.
    *
    * @param inodePath the path to delete
-   * @param deleteOptions the deletefile options
+   * @param deleteOptions the method options
    * @param journalContext the journal context
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the file does not exist
@@ -1330,7 +1330,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param inodePath the file {@link LockedInodePath}
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
-   * @param deleteOptions method optitions
+   * @param deleteOptions the method optitions
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws IOException if an I/O error is encountered
    * @throws InvalidPathException if the specified path is the root
