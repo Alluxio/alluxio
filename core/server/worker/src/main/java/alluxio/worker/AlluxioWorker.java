@@ -52,6 +52,20 @@ public final class AlluxioWorker {
       System.exit(1);
     }
 
+    if (Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE)
+            < Configuration.getBytes(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA)) {
+      System.out.println(String.format(
+          "Cannot run alluxio worker; the configure ramdisk size (%s=%s) is larger than "
+              + "the configured memory size (%s=%s). Please modify %s to be smaller than %s.",
+          PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA.toString(),
+          Configuration.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA),
+          PropertyKey.WORKER_MEMORY_SIZE.toString(),
+          Configuration.get(PropertyKey.WORKER_MEMORY_SIZE),
+          PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA.toString(),
+          PropertyKey.WORKER_MEMORY_SIZE.toString()));
+      System.exit(1);
+    }
+
     AlluxioWorkerService worker = AlluxioWorkerService.Factory.create();
     ServerUtils.run(worker, "Alluxio worker");
   }
