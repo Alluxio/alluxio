@@ -45,12 +45,12 @@
       <artifactId>miredot-annotations</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.ws.rs</groupId>
-      <artifactId>javax.ws.rs-api</artifactId>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.glassfish</groupId>
-      <artifactId>javax.servlet</artifactId>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.containers</groupId>
@@ -59,6 +59,10 @@
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -128,6 +132,10 @@
             </goals>
             <configuration>
               <failOnWarning>true</failOnWarning>
+              <ignoredUnusedDeclaredDependencies>
+                <!-- This dependency is used through reflection. -->
+                <ignoredUnusedDeclaredDependency>org.glassfish.jersey.media:jersey-media-json-jackson</ignoredUnusedDeclaredDependency>
+              </ignoredUnusedDeclaredDependencies>
               <outputXML>true</outputXML>
             </configuration>
           </execution>

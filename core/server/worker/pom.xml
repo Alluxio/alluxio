@@ -77,6 +77,18 @@
       <artifactId>libthrift</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-servlet-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
     </dependency>
@@ -87,14 +99,6 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.containers</groupId>
-      <artifactId>jersey-container-servlet-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-server</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -199,6 +203,8 @@
               <ignoredUnusedDeclaredDependencies>
                 <!-- This dependency is used through reflection. -->
                 <ignoredUnusedDeclaredDependency>com.google.guava:guava-testlib</ignoredUnusedDeclaredDependency>
+                <!-- This dependency is used through reflection. -->
+                <ignoredUnusedDeclaredDependency>org.glassfish.jersey.media:jersey-media-json-jackson</ignoredUnusedDeclaredDependency>
               </ignoredUnusedDeclaredDependencies>
               <outputXML>true</outputXML>
             </configuration>
