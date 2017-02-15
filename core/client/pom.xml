@@ -274,6 +274,28 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>analyze</id>
+            <goals>
+              <goal>analyze-only</goal>
+            </goals>
+            <configuration>
+              <failOnWarning>true</failOnWarning>
+              <ignoredUnusedDeclaredDependencies>
+                <!-- This dependency is used through reflection. -->
+                <ignoredUnusedDeclaredDependency>com.google.guava:guava-testlib</ignoredUnusedDeclaredDependency>
+                <!-- These dependencies are used through service loader. -->
+                <ignoredUnusedDeclaredDependency>org.alluxio:alluxio-underfs-*</ignoredUnusedDeclaredDependency>
+              </ignoredUnusedDeclaredDependencies>
+              <outputXML>true</outputXML>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <!-- Export test classes in a test-jar so that other projects can use them for testing -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -329,28 +351,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>analyze</id>
-            <goals>
-              <goal>analyze-only</goal>
-            </goals>
-            <configuration>
-              <failOnWarning>true</failOnWarning>
-              <ignoredUnusedDeclaredDependencies>
-                <!-- This dependency is used through reflection. -->
-                <ignoredUnusedDeclaredDependency>com.google.guava:guava-testlib</ignoredUnusedDeclaredDependency>
-                <!-- These dependencies are used through service loader. -->
-                <ignoredUnusedDeclaredDependency>org.alluxio:alluxio-underfs-*</ignoredUnusedDeclaredDependency>
-              </ignoredUnusedDeclaredDependencies>
-              <outputXML>true</outputXML>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
+   </plugins>
   </build>
 </project>

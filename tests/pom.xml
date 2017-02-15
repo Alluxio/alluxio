@@ -132,6 +132,11 @@
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
       <artifactId>powermock-reflect</artifactId>
       <scope>test</scope>
     </dependency>
@@ -530,6 +535,8 @@
                 <ignoredUnusedDeclaredDependency>org.apache.curator:curator-test</ignoredUnusedDeclaredDependency>
                 <!-- This dependency is used only for contractTest profile. -->
                 <ignoredUnusedDeclaredDependency>org.apache.hadoop:hadoop-common:test-jar</ignoredUnusedDeclaredDependency>
+                <!-- This dependency is used through reflection. -->
+                <ignoredUnusedDeclaredDependency>org.powermock:powermock-api-mockito</ignoredUnusedDeclaredDependency>
               </ignoredUnusedDeclaredDependencies>
               <outputXML>true</outputXML>
             </configuration>
