@@ -36,7 +36,6 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
-import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -52,7 +51,6 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -68,7 +66,6 @@ import java.util.List;
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
  * alluxio.security.authorization.permission.enabled=true.
  */
-@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2426")
 public final class PermissionCheckTest {
   private static final String TEST_SUPER_GROUP = "test-supergroup";
 
@@ -159,12 +156,11 @@ public final class PermissionCheckTest {
     LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
     // authentication
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "admin");
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER_ADMIN.getUser());
     // authorization
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         FakeUserGroupsMapping.class.getName());
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
 
     JournalFactory journalFactory =
@@ -179,7 +175,7 @@ public final class PermissionCheckTest {
     createDirAndFileForTest();
 
     mInodeTree = Mockito.mock(InodeTree.class);
-    Mockito.when(mInodeTree.getRootUserName()).thenReturn("admin");
+    Mockito.when(mInodeTree.getRootUserName()).thenReturn(TEST_USER_ADMIN.getUser());
   }
 
   @After
@@ -304,7 +300,8 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     CreateFileOptions options = CreateFileOptions.defaults().setRecursive(recursive)
         .setOwner(SecurityUtils.getOwnerFromThriftClient())
-        .setGroup(SecurityUtils.getGroupFromThriftClient());
+        .setGroup(SecurityUtils.getGroupFromThriftClient())
+        .setPersisted(true);
 
     long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), options);
 
