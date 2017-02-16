@@ -102,7 +102,7 @@ function mount_ramfs_linux() {
 
   echo "Formatting RamFS: ${TIER_PATH} (${MEM_SIZE})"
   if mount | grep ${TIER_PATH} > /dev/null; then
-    if [[ "${1}" == "SudoMount" ]]; then
+    if [[ "$1" == "SudoMount" ]]; then
       sudo umount -f ${TIER_PATH}
     else
       umount -f ${TIER_PATH}
@@ -115,7 +115,7 @@ function mount_ramfs_linux() {
     mkdir -p ${TIER_PATH}
   fi
 
-  if [[ "${1}" == "SudoMount" ]]; then
+  if [[ "$1" == "SudoMount" ]]; then
     sudo mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
   else
     mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
@@ -125,7 +125,7 @@ function mount_ramfs_linux() {
     exit 1
   fi
 
-  if [[ "${1}" == "SudoMount" ]]; then
+  if [[ "$1" == "SudoMount" ]]; then
     sudo chmod a+w ${TIER_PATH}
   else
     chmod a+w ${TIER_PATH}
@@ -169,9 +169,9 @@ function mount_ramfs_local() {
 }
 
 function main {
-  case "${1}" in
+  case "$1" in
     Mount|SudoMount)
-      case "${2}" in
+      case "$2" in
         ""|local)
           mount_ramfs_local $1
           ;;
