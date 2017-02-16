@@ -52,6 +52,7 @@ case ${service,,} in
     integration/docker/bin/alluxio-master.sh
     ;;
   worker)
+    export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
     bin/alluxio formatWorker
     integration/docker/bin/alluxio-worker.sh
     ;;
