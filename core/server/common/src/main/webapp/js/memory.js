@@ -7,13 +7,13 @@ function generateData($scope) {
       paginationOptions: JSON.stringify(paginationOptions)
     },
     success: function (json) {
-      $(".text-error").text(json.argumentMap.fatalError);
+      $(".text-error").html(json.argumentMap.fatalError);
       $scope.gridOptions.data = json.pageData;
       $scope.gridOptions.totalItems = json.totalCount;
       $scope.gridApi.grid.refresh();
     },
     error: function () {
-      alert("the path you input was not found.path=" + path);
+      alert("something wrong.");
     }
   });
 }

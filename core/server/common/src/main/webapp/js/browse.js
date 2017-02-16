@@ -48,7 +48,7 @@ function generateData(path) {
       path: path
     },
     success: function (json) {
-      $(".text-error").text(json.argumentMap.invalidPathError);
+      $(".text-error").html(json.argumentMap.invalidPathError);
       globalScope.gridOptions.data = json.pageData;
       globalScope.gridApi.grid.refresh();
       $("#pathInput").val(path);
