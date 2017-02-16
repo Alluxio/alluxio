@@ -114,6 +114,7 @@ public final class UnderFileSystemRegistry {
         return factory.create(path, ufsConf);
       } catch (Exception e) {
         errors.add(e);
+        LOG.warn("Failed to create ufs", e);
       }
     }
 
