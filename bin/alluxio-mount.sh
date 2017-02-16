@@ -99,10 +99,18 @@ function mount_ramfs_linux() {
     reduce alluxio.worker.memory.size in alluxio-site.properties" >&2
     exit 1
   fi
+  local mount_cmd="mount"
+  local umount_cmd="umount"
+  local chmod_cmd="chmod"
+  if [[ "${1}" == "SudoMount" ]]; then
+    mount_cmd="sudo mount"
+    umount_cmd="sudo umount"
+    chmod_cmd="sudo chmod"
+  fi
 
   echo "Formatting RamFS: ${TIER_PATH} (${MEM_SIZE})"
   if mount | grep ${TIER_PATH} > /dev/null; then
-    umount -f ${TIER_PATH}
+    ${umount_cmd} -f ${TIER_PATH}
     if [[ $? -ne 0 ]]; then
       echo "ERROR: umount RamFS ${TIER_PATH} failed" >&2
       exit 1
@@ -111,7 +119,17 @@ function mount_ramfs_linux() {
     mkdir -p ${TIER_PATH}
   fi
 
-  mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH} ; chmod a+w ${TIER_PATH} ;
+  ${mount_cmd} -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: mount RamFS ${TIER_PATH} failed" >&2
+    exit 1
+  fi
+
+  ${chmod_cmd} a+w ${TIER_PATH}
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: chmod RamFS ${TIER_PATH} failed" >&2
+    exit 1
+  fi
 }
 
 function mount_ramfs_mac() {
@@ -142,12 +160,7 @@ function mount_ramfs_local() {
     mount_ramfs_mac
   else
     # Assuming Linux
-    if [[ "$1" == "SudoMount" ]]; then
-      DECL_MOUNT_LINUX=$(declare -f mount_ramfs_linux)
-      sudo bash -c "MEM_SIZE=${MEM_SIZE};TIER_PATH=${TIER_PATH};${DECL_MOUNT_LINUX};mount_ramfs_linux"
-    else
-      mount_ramfs_linux
-    fi
+    mount_ramfs_linux ${1}
   fi
 }
 
@@ -156,10 +169,10 @@ function main {
     Mount|SudoMount)
       case "${2}" in
         ""|local)
-          mount_ramfs_local $1
+          mount_ramfs_local ${1}
           ;;
         workers)
-          ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-mount.sh $1
+          ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-mount.sh ${1}
           ;;
         *)
           echo -e ${USAGE} >&2
