@@ -68,7 +68,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 and run the format command without requiring sudo privileges to start Aluxio:
 
 ```bash
-$ ./bin/alluxio format NoMount
+$ ./bin/alluxio-start.sh local NoMount
 ```
 
 ## Verify Alluxio is running
