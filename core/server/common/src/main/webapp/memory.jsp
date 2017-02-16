@@ -26,9 +26,9 @@
 <script>
     var showPermissions = "<%= request.getAttribute("showPermissions")%>";
 </script>
-<link rel="stylesheet" href="css/ui-grid.css" type="text/css">
-<script src="js/angular.js"></script>
-<script src="js/ui-grid.js"></script>
+<link rel="stylesheet" href="build/node_modules/angular-ui-grid/ui-grid.min.css" type="text/css">
+<script src="build/node_modules/angular-ui-grid/node_modules/angular/angular.min.js"></script>
+<script src="build/node_modules/angular-ui-grid/ui-grid.min.js"></script>
 <script src="js/memory.js"></script>
 <div class="container-fluid">
   <jsp:include page="/header" />

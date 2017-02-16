@@ -587,6 +587,7 @@
             <exclude>**/src/main/resources/*</exclude>
             <exclude>**/src/main/webapp/css/*</exclude>
             <exclude>**/src/main/webapp/js/*</exclude>
+            <exclude>**/src/main/webapp/build/**</exclude>
             <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>

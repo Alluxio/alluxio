@@ -113,4 +113,30 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>exec-npm-install</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <workingDirectory>${project.basedir}/src/main/webapp/build</workingDirectory>
+              <executable>npm</executable>
+              <arguments>
+                <argument>install</argument>
+                <argument>angular-ui-grid</argument>
+              </arguments>
+            </configuration>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>
