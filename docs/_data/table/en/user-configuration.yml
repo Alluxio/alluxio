@@ -59,6 +59,8 @@ alluxio.user.file.seek.buffer.size.bytes:
   The file seek buffer size. This is only used when alluxio.user.file.cache.partially.read.block is enabled.
 alluxio.user.heartbeat.interval.ms:
   The interval (in milliseconds) between Alluxio worker's heartbeats
+alluxio.user.hostname:
+  The hostname to use for the client.
 alluxio.user.lineage.enabled:
   Flag to enable lineage feature.
 alluxio.user.lineage.master.client.threads:

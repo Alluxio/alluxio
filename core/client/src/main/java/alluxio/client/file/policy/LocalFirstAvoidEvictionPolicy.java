@@ -38,7 +38,7 @@ public final class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPol
    * Constructs a {@link LocalFirstAvoidEvictionPolicy}.
    */
   public LocalFirstAvoidEvictionPolicy() {
-    mLocalHostName = NetworkAddressUtils.getLocalHostName();
+    mLocalHostName = NetworkAddressUtils.getClientHostName();
   }
 
   @Override

@@ -59,7 +59,7 @@ public final class AlluxioBlockStore {
    */
   public static AlluxioBlockStore create() {
     return new AlluxioBlockStore(FileSystemContext.INSTANCE,
-        NetworkAddressUtils.getLocalHostName());
+        NetworkAddressUtils.getClientHostName());
   }
 
   /**
@@ -69,7 +69,7 @@ public final class AlluxioBlockStore {
    * @return the {@link AlluxioBlockStore} created
    */
   public static AlluxioBlockStore create(FileSystemContext context) {
-    return new AlluxioBlockStore(context, NetworkAddressUtils.getLocalHostName());
+    return new AlluxioBlockStore(context, NetworkAddressUtils.getClientHostName());
   }
 
   /**
