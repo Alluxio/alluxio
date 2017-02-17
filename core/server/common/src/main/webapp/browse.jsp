@@ -16,7 +16,7 @@
 <%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
 <%@ page import="static java.net.URLEncoder.encode" %>
 
-<html ng-app="app">
+<html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <jsp:include page="header-links.jsp" />

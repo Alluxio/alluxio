@@ -14,7 +14,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="alluxio.web.*" %>
 
-<html ng-app="app">
+<html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <jsp:include page="header-links.jsp" />
@@ -39,7 +39,7 @@
           <%= request.getAttribute("fatalError") %>
         </h1>
 
-        <div id="MainCtrl" ng-controller="MainCtrl">
+        <div ng-app="app" id="MainCtrl" ng-controller="MainCtrl">
           <div id="grid1" ui-grid="gridOptions" ui-grid-pagination ui-grid-resize-columns ui-grid-move-columns class="grid"></div>
           <button id='toggleFiltering' ng-click="toggleFiltering()" class="btn btn-success" style="margin-top: 5px;">Toggle Filtering</button>
         </div>
