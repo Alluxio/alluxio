@@ -18,7 +18,7 @@ To run in standalone mode, make sure that:
 
 * Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e., `alluxio.master.hostname=localhost`).
 
-* Set `alluxio.underfs.address` in `conf/alluxio-site.properties` is to a tmp directory in the local
+* Set `alluxio.underfs.address` in `conf/alluxio-site.properties` to a tmp directory in the local
 filesystem (e.g., `alluxio.underfs.address=/tmp`).
 
 * Remote login service is turned on so that `ssh localhost` can succeed. To avoid the need to
@@ -43,9 +43,9 @@ By default, on startup Alluxio will create a
 This step requires sudo privileges to perform "mount", "umount" and "chmod" operations. There are two approaches to achieve this:
 
 * Start Alluxio by a superuser, or
-* Give limited sudo privileges to the running user (e.g., "alluxio") by adding the following line to `/etc/sudoers`:
+* Give limited sudo privileges to the running user (e.g., "alluxio") by adding the following line to `/etc/sudoers` on Linux:
 `alluxio ALL=(ALL) NOPASSWD: /bin/mount * ramfs /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
-This allows user "alluxio" to mount, umount and chmod path `/mnt/ramdisk` with sudo privileges without typing the password, but nothing more.
+This allows Linux user "alluxio" to mount, umount and chmod path `/mnt/ramdisk` with sudo privileges without typing the password, but nothing else.
 See more detailed explanation about [Sudoer User Specifications](https://help.ubuntu.com/community/Sudoers#User_Specifications).
 
 With the proper user, run the following command to start Alluxio filesystem.
@@ -54,18 +54,17 @@ With the proper user, run the following command to start Alluxio filesystem.
 $ ./bin/alluxio-start.sh local
 ```
 
-
 ## Start Alluxio without sudo privileges
 
 Alternatively, if a RAMFS (e.g., `/path/to/ramdisk`) is already mounted by the system admin, you can specify the path in
-`conf/alluxio-site.properties` by
+`conf/alluxio-site.properties`:
 
 ```
 alluxio.worker.tieredstore.level0.alias=MEM
 alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 ```
 
-and run the format command without requiring sudo privileges to start Aluxio:
+and start Alluxio without requiring sudo privileges:
 
 ```bash
 $ ./bin/alluxio-start.sh local NoMount
