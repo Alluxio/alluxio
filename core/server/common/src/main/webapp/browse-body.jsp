@@ -24,9 +24,7 @@
 <script src="js/browse.js" ></script>
 
 <script>
-    var currentDir = "<%= request.getAttribute("currentPath").toString()%>";
     var base = "<%= (request.getAttribute("baseUrl") == null) ? "./browse" : request.getAttribute("baseUrl").toString() %>";
-    var showPermissions = "<%= request.getAttribute("showPermissions")%>";
 </script>
 
 <div class="container-fluid">

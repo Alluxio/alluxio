@@ -49,6 +49,11 @@ function generateData(path) {
     },
     success: function (json) {
       $(".text-error").html(json.argumentMap.invalidPathError);
+      if (!json.argumentMap.showPermissions) {
+        globalScope.gridOptions.columnDefs[4].visible = false;
+        globalScope.gridOptions.columnDefs[5].visible = false;
+        globalScope.gridOptions.columnDefs[6].visible = false;
+      }
       globalScope.gridOptions.data = json.pageData;
       globalScope.gridApi.grid.refresh();
       $("#pathInput").val(path);
@@ -88,11 +93,6 @@ function initGrid() {
           enableGridMenu: true,
           onRegisterApi: function (gridApi) {
             $scope.gridApi = gridApi;
-            if (!showPermissions) {
-              $scope.gridOptions.columnDefs[4].visible = false;
-              $scope.gridOptions.columnDefs[5].visible = false;
-              $scope.gridOptions.columnDefs[6].visible = false;
-            }
             $scope.gridOptions.columnDefs[7].visible = false;
 
           },
@@ -200,7 +200,7 @@ initGrid();
 
 $(document).ready(function () {
   if (base === "./browse") {
-    $("#pathInput").val(currentDir);
+    $("#pathInput").val("/");
     $("#goBtn").click(changeDir);
     $("#pathInput").keydown(function (e) {
       if (e.keyCode === 13) {

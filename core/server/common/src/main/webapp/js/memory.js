@@ -8,12 +8,17 @@ function generateData($scope) {
     },
     success: function (json) {
       $(".text-error").html(json.argumentMap.fatalError);
+      if (!json.argumentMap.showPermissions) {
+        $scope.gridOptions.columnDefs[3].visible = false;
+        $scope.gridOptions.columnDefs[4].visible = false;
+        $scope.gridOptions.columnDefs[5].visible = false;
+      }
       $scope.gridOptions.data = json.pageData;
       $scope.gridOptions.totalItems = json.totalCount;
       $scope.gridApi.grid.refresh();
     },
     error: function () {
-      alert("something wrong.");
+      alert("Something wrong.");
     }
   });
 }
@@ -39,12 +44,6 @@ function initGrid() {
           paginationPageSize: 25,
           onRegisterApi: function (gridApi) {
             $scope.gridApi = gridApi;
-
-            if (!showPermissions) {
-              $scope.gridOptions.columnDefs[3].visible = false;
-              $scope.gridOptions.columnDefs[4].visible = false;
-              $scope.gridOptions.columnDefs[5].visible = false;
-            }
 
             $scope.gridApi.core.on.sortChanged($scope, function (grid, sortColumns) {
               paginationOptions.sorters = []
@@ -141,7 +140,6 @@ function initGrid() {
               cellTooltip: cellValueTooltip
             }
           ],
-
         }
         $scope.toggleFiltering = function () {
           $scope.gridOptions.enableFiltering = !$scope.gridOptions.enableFiltering;
