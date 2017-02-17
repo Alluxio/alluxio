@@ -1,4 +1,3 @@
-<!doctype html>
 <%--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -11,6 +10,7 @@
     See the NOTICE file distributed with this work for information regarding copyright ownership.
 
 --%>
+<!doctype html>
 <%@ page import="java.util.*" %>
 <%@ page import="alluxio.web.*" %>
 <%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
