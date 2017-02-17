@@ -14,7 +14,6 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
