@@ -17,9 +17,9 @@
     <artifactId>alluxio-underfs</artifactId>
     <version>1.5.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-underfs-swift</artifactId>
-  <name>Alluxio Under File System - Swift</name>
-  <description>Swift Under File System implementation</description>
+  <artifactId>alluxio-underfs-stocator</artifactId>
+  <name>Alluxio Under File System - Stocator driver</name>
+  <description>Under File System implementation based on the Stocator object store driver</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -36,24 +36,13 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>3.1</version>
+      <groupId>com.ibm.stocator</groupId>
+      <artifactId>stocator</artifactId>
+      <version>1.0.7</version>
     </dependency>
     <dependency>
-      <groupId>org.javaswift</groupId>
-      <artifactId>joss</artifactId>
-      <version>0.9.14</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-core-asl</artifactId>
-      <version>${jackson.version}</version>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
     </dependency>
   </dependencies>
 </project>

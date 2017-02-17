@@ -101,6 +101,11 @@
       <artifactId>alluxio-underfs-swift</artifactId>
       <version>${project.version}</version>
     </dependency>
+   <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-stocator</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- Dependency for findbugs (SuppressFBWarnings) -->
     <dependency>

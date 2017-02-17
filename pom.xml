@@ -257,6 +257,21 @@
           </exclusion>
         </exclusions>
       </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <exclusions>
+               <exclusion>
+                   <groupId>javax.servlet</groupId>
+                   <artifactId>*</artifactId>
+               </exclusion>
+               <exclusion>
+                   <groupId>javax.servlet.jsp</groupId>
+                   <artifactId>*</artifactId>
+               </exclusion>
+            </exclusions>
+        </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-minicluster</artifactId>

@@ -83,7 +83,7 @@ public class BasicOperations implements Callable<Boolean> {
   private boolean readFile(FileSystem fileSystem)
       throws IOException, AlluxioException {
     boolean pass = true;
-    LOG.debug("Reading data...");
+    LOG.debug("Reading data...{}", mFilePath.toString());
     final long startTimeMs = CommonUtils.getCurrentMs();
     FileInStream is = fileSystem.openFile(mFilePath, mReadOptions);
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());
