@@ -1,4 +1,10 @@
 .ui-grid
 {
-	height:600px;
+    height:600px;
+}
+.ui-grid-pager-control input {
+    padding: 0px 10px;
+}
+.ui-grid-pager-control .ui-grid-pager-max-pages-number {
+    vertical-align: middle;
 }

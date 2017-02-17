@@ -199,7 +199,6 @@ var globalScope;
 initGrid();
 
 $(document).ready(function () {
-  $("input[type=number]").attr("style", "padding:0px 0px;");
   if (base === "./browse") {
     $("#pathInput").val(currentDir);
     $("#goBtn").click(changeDir);

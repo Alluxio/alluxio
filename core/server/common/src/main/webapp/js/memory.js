@@ -170,7 +170,6 @@ var paginationOptions = {
 initGrid();
 
 $(document).ready(function () {
-  $("input[type=number]").attr("style", "padding:0px 0px;");
   paginationOptions.pageSize = globalScope.gridOptions.paginationPageSize;
   generateData(globalScope);
 });
