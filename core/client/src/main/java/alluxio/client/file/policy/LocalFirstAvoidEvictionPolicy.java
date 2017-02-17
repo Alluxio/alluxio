@@ -43,7 +43,7 @@ public final class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPol
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) {
+      long blockId, long blockSizeBytes) {
     // try the local host first
     WorkerNetAddress localWorkerNetAddress = null;
     for (BlockWorkerInfo workerInfo : workerInfoList) {

@@ -39,6 +39,8 @@ public final class InStreamOptions {
    * is enabled.
    */
   private long mSeekBufferSizeBytes;
+  /** The maximum UFS read concurrency for one block on one Alluxio worker. */
+  private int mMaxUfsReadConcurrency;
 
   /**
    * @return the default {@link InStreamOptions}
@@ -77,6 +79,12 @@ public final class InStreamOptions {
   }
 
   /**
+   * @return the maximum UFS read concurrency
+   */
+  public int getMaxUfsReadConcurrency() {
+    return mMaxUfsReadConcurrency;
+  }
+  /**
    * @param policy the location policy to use when storing data to Alluxio
    * @return the updated options object
    */
@@ -94,6 +102,15 @@ public final class InStreamOptions {
    */
   public InStreamOptions setReadType(ReadType readType) {
     mReadType = readType;
+    return this;
+  }
+
+  /**
+   * @param maxUfsReadConcurrency the maximum UFS read concurrency
+   * @return the updated options object
+   */
+  public InStreamOptions setMaxUfsReadConcurrency(int maxUfsReadConcurrency) {
+    mMaxUfsReadConcurrency = maxUfsReadConcurrency;
     return this;
   }
 
@@ -144,7 +161,8 @@ public final class InStreamOptions {
     return Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mReadType, that.mReadType)
         && Objects.equal(mCachePartiallyReadBlock, that.mCachePartiallyReadBlock)
-        && Objects.equal(mSeekBufferSizeBytes, that.mSeekBufferSizeBytes);
+        && Objects.equal(mSeekBufferSizeBytes, that.mSeekBufferSizeBytes)
+        && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency);
   }
 
   @Override
@@ -154,13 +172,15 @@ public final class InStreamOptions {
             mLocationPolicy,
             mReadType,
             mCachePartiallyReadBlock,
-            mSeekBufferSizeBytes);
+            mSeekBufferSizeBytes,
+            mMaxUfsReadConcurrency);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("locationPolicy", mLocationPolicy)
         .add("readType", mReadType).add("cachePartiallyReadBlock", mCachePartiallyReadBlock)
-        .add("seekBufferSize", mSeekBufferSizeBytes).toString();
+        .add("seekBufferSize", mSeekBufferSizeBytes)
+        .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency).toString();
   }
 }

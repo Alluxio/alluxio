@@ -22,6 +22,7 @@ import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCBlockWriteRequest;
 import alluxio.network.protocol.RPCBlockWriteResponse;
 import alluxio.network.protocol.RPCResponse;
+import alluxio.network.protocol.RPCUFSBlockReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
@@ -113,6 +114,44 @@ final class BlockDataServerHandler {
       }
     }
   }
+
+  void handleUFSBlockReadRequest(final ChannelHandlerContext ctx, final RPCUFSBlockReadRequest req)
+      throws IOException {
+    final long blockId = req.getBlockId();
+    final long offset = req.getOffset();
+    final long len = req.getLength();
+    final long lockId = req.getLockId();
+    final long sessionId = req.getSessionId();
+
+    BlockReader reader = null;
+    DataBuffer buffer;
+    try {
+      req.validate();
+      reader = mWorker.readUfsBlock(sessionId, blockId);
+      buffer = getDataBuffer(req, reader, len);
+      Metrics.BYTES_READ_REMOTE.inc(buffer.getLength());
+      RPCBlockReadResponse resp =
+          new RPCBlockReadResponse(blockId, offset, len, buffer, RPCResponse.Status.SUCCESS);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(new ClosableResourceChannelListener(reader));
+      future.addListener(new ReleasableResourceChannelListener(buffer));
+      LOG.debug("Preparation for responding to remote block request for: {} done.", blockId);
+    } catch (Exception e) {
+      LOG.error("Exception reading block {}", blockId, e);
+      RPCBlockReadResponse resp;
+      if (e instanceof BlockDoesNotExistException) {
+        resp = RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.FILE_DNE);
+      } else {
+        resp = RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.UFS_READ_FAILED);
+      }
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+      if (reader != null) {
+        reader.close();
+      }
+    }
+  }
+
 
   /**
    * Handles a {@link RPCBlockWriteRequest} by writing the data through a {@link BlockWriter}

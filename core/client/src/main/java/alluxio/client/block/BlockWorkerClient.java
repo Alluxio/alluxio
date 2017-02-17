@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import alluxio.client.block.options.LockBlockOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.LockBlockResult;
@@ -96,11 +97,13 @@ public interface BlockWorkerClient extends Closeable {
    * unlocked.
    *
    * @param blockId the ID of the block
+   * @param options the lock block options
    * @return the path of the block file locked
    * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
-  LockBlockResult lockBlock(final long blockId) throws IOException, AlluxioException;
+  LockBlockResult lockBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException;
 
   /**
    * Promotes block back to the top StorageTier.

@@ -12,57 +12,57 @@
 package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.master.block.BlockId;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A policy that chooses the worker for the next block in a round-robin manner and skips workers
- * that do not have enough space. The policy returns null if no worker can be found.
+ * This policy maps blockId to a deterministic worker. If the worker does not have enough
+ * capacity to hold the block, it iterates the list of workers starting from the mapped index
+ * until the worker with enough capacity is found.
  */
 @NotThreadSafe
-public final class RoundRobinPolicy implements FileWriteLocationPolicy {
+public final class DeterministicHashPolicy implements FileWriteLocationPolicy {
   private List<BlockWorkerInfo> mWorkerInfoList;
-  private int mIndex;
+  private int mOffset;
   private boolean mInitialized = false;
 
   /**
-   * Constructs a new {@link RoundRobinPolicy}.
+   * Constructs a new {@link DeterministicHashPolicy}.
    */
-  public RoundRobinPolicy() {}
+  public DeterministicHashPolicy() {}
 
-  /**
-   * The policy uses the first fetch of worker info list as the base, and visits each of them in a
-   * round-robin manner in the subsequent calls. The policy doesn't assume the list of worker info
-   * in the subsequent calls has the same order from the first, and it will skip the workers that
-   * are no longer active.
-   *
-   * @param workerInfoList the info of the active workers
-   * @param blockId the block ID
-   * @param blockSizeBytes the size of the block in bytes
-   * @return the address of the worker to write to
-   */
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockId, long blockSizeBytes) {
     if (!mInitialized) {
       mWorkerInfoList = Lists.newArrayList(workerInfoList);
-      Collections.shuffle(mWorkerInfoList);
-      mIndex = 0;
+      Collections.sort(mWorkerInfoList, new Comparator<BlockWorkerInfo>() {
+        @Override
+        public int compare(BlockWorkerInfo o1, BlockWorkerInfo o2) {
+          return o1.getNetAddress().toString().compareToIgnoreCase(o2.getNetAddress().toString());
+        }
+      });
+      mOffset = (int) (BlockId.getContainerId(blockId) % (long) mWorkerInfoList.size());
       mInitialized = true;
     }
 
-    // at most try all the workers
+    // Try the next one if the worker mapped from the blockId doesn't work untill all the workers
+    // are examined.
+    int index =
+        (int) (mOffset + BlockId.getSequenceNumber(blockId) % (long) mWorkerInfoList.size());
     for (int i = 0; i < mWorkerInfoList.size(); i++) {
-      WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
+      WorkerNetAddress candidate = mWorkerInfoList.get(index).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
-      mIndex = (mIndex + 1) % mWorkerInfoList.size();
+      index = (index + 1) % mWorkerInfoList.size();
       if (workerInfo != null && workerInfo.getCapacityBytes() >= blockSizeBytes) {
         return candidate;
       }
@@ -90,25 +90,25 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof RoundRobinPolicy)) {
+    if (!(o instanceof DeterministicHashPolicy)) {
       return false;
     }
-    RoundRobinPolicy that = (RoundRobinPolicy) o;
+    DeterministicHashPolicy that = (DeterministicHashPolicy) o;
     return Objects.equal(mWorkerInfoList, that.mWorkerInfoList)
-        && Objects.equal(mIndex, that.mIndex)
+        && Objects.equal(mOffset, that.mOffset)
         && Objects.equal(mInitialized, that.mInitialized);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mWorkerInfoList, mIndex, mInitialized);
+    return Objects.hashCode(mWorkerInfoList, mOffset, mInitialized);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("workerInfoList", mWorkerInfoList)
-        .add("index", mIndex)
+        .add("offset", mOffset)
         .add("initialized", mInitialized)
         .toString();
   }

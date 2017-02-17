@@ -21,6 +21,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -28,7 +29,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.FileInfo;
@@ -40,6 +40,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.meta.UfsBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
@@ -98,6 +99,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /** Block Store manager. */
   private BlockStore mBlockStore;
   private WorkerNetAddress mAddress;
+
+  private final UfsBlockStore mUfsBlockStore;
+
   /**
    * The worker ID for this worker. This is initialized in {@link #init(WorkerNetAddress)} and may
    * be updated by the block sync thread if the master requests re-registration.
@@ -143,6 +147,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
 
+    mUfsBlockStore = new UfsBlockStore(mBlockStore);
     Metrics.registerGauges(this);
   }
 
@@ -286,18 +291,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public String createBlock(long sessionId, long blockId, String tierAlias, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
-    TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
-    String blockPath = createdBlock.getPath();
-    createBlockFile(blockPath);
-    return blockPath;
+    TempBlockMeta createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
+    return createdBlock.getPath();
   }
 
   @Override
   public void createBlockRemote(long sessionId, long blockId, String tierAlias, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
-    TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
-    createBlockFile(createdBlock.getPath());
+    TempBlockMeta createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
   }
 
   @Override
@@ -383,6 +385,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     return mBlockStore.getBlockReader(sessionId, blockId, lockId);
   }
 
+  public BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
+      throws BlockDoesNotExistException, IOException {
+    return mUfsBlockStore.getBlockReader(sessionId, blockId, offset, noCache);
+  }
+
   @Override
   public void removeBlock(long sessionId, long blockId)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
@@ -425,20 +432,20 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     }
   }
 
-  /**
-   * Creates a file to represent a block denoted by the given block path. This file will be owned
-   * by the Alluxio worker but have 777 permissions so processes under users different from the
-   * user that launched the Alluxio worker can read and write to the file. The tiered storage
-   * directory has the sticky bit so only the worker user can delete or rename files it creates.
-   *
-   * @param blockPath the block path to create
-   * @throws IOException if the file cannot be created in the tiered storage folder
-   */
-  private void createBlockFile(String blockPath) throws IOException {
-    FileUtils.createBlockPath(blockPath);
-    FileUtils.createFile(blockPath);
-    FileUtils.changeLocalFileToFullPermission(blockPath);
-    LOG.debug("Created new file block, block path: {}", blockPath);
+  @Override
+  public void openUfsBlock(UfsBlockMeta ufsBlockMeta, int maxConcurrency)
+      throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
+    mUfsBlockStore.acquireAccess(ufsBlockMeta, maxConcurrency);
+  }
+
+  @Override
+  public void closeUfsBlock(long sessionId, long blockId)
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      IOException, WorkerOutOfSpaceException {
+    if (mUfsBlockStore.finishAccess(sessionId, blockId)) {
+      commitBlock(sessionId, blockId);
+    }
+    mUfsBlockStore.releaseAccess(sessionId, blockId);
   }
 
   /**

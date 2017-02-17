@@ -15,6 +15,7 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -55,6 +56,10 @@ public final class LocalFileBlockWriter implements BlockWriter {
   @Override
   public long append(ByteBuffer inputBuf) throws IOException {
     return write(mLocalFileChannel.size(), inputBuf.duplicate());
+  }
+
+  public int transferFrom(ByteBuf buf) throws IOException {
+
   }
 
   @Override

@@ -11,6 +11,7 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -22,38 +23,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tests {@link SpecificHostPolicy}.
+ * Tests {@link DeterministicHashPolicy}.
  */
-public final class SpecificHostPolicyTest {
+public final class DeterministicHashPolicyTest {
   private static final int PORT = 1;
 
   /**
-   * Tests that the correct worker is returned when using the policy.
+   * Tests that the correct workers are chosen when round robin is used.
    */
   @Test
-  public void policy() {
-    SpecificHostPolicy policy = new SpecificHostPolicy("worker2");
+  public void getWorker() {
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    Assert.assertEquals("worker2",
-        policy.getWorkerForNextBlock(workerInfoList, 1, Constants.MB).getHost());
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 2 * (long) Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
+    DeterministicHashPolicy policy = new DeterministicHashPolicy();
+
+    Assert.assertNotEquals(
+        policy.getWorkerForNextBlock(workerInfoList, 1, 2 * (long) Constants.GB).getHost(),
+        policy.getWorkerForNextBlock(workerInfoList, 1, 2 * (long) Constants.GB).getHost());
   }
 
-  /**
-   * Tests that no worker is chosen when the worker specified in the policy is not part of the
-   * worker list.
-   */
   @Test
-  public void noMatchingHost() {
-    SpecificHostPolicy policy = new SpecificHostPolicy("worker3");
-    List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    Assert.assertNull(policy.getWorkerForNextBlock(workerInfoList, 1, Constants.MB));
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(DeterministicHashPolicy.class);
   }
 }

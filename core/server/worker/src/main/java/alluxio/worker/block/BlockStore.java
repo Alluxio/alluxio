@@ -60,8 +60,7 @@ interface BlockStore {
 
   /**
    * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
-   * location named after session id) to store its data. This method only creates meta
-   * data but adds NO data to this temporary location. The location can be a location with specific
+   * location named after session id) to store its data. The location can be a location with specific
    * tier and dir, or {@link BlockStoreLocation#anyTier()}, or
    * {@link BlockStoreLocation#anyDirInTier(String)}.
    * <p>
@@ -79,7 +78,7 @@ interface BlockStore {
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    */
-  TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
+  TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
       IOException;
 

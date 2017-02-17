@@ -35,6 +35,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class OpenFileOptions {
   private FileWriteLocationPolicy mLocationPolicy;
   private ReadType mReadType;
+  /** The maximum UFS read concurrency for one block on one Alluxio worker. */
+  private int mMaxUfsReadConcurrency;
 
   /**
    * @return the default {@link InStreamOptions}
@@ -56,6 +58,8 @@ public final class OpenFileOptions {
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+    mMaxUfsReadConcurrency =
+        Configuration.getInt(PropertyKey.USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT);
   }
 
   /**
@@ -78,6 +82,13 @@ public final class OpenFileOptions {
    */
   public ReadType getReadType() {
     return mReadType;
+  }
+
+  /**
+   * @return the maximum UFS read concurrency
+   */
+  public int getMaxUfsReadConcurrency() {
+    return mMaxUfsReadConcurrency;
   }
 
   /**
@@ -116,10 +127,20 @@ public final class OpenFileOptions {
   }
 
   /**
+   * @param maxUfsReadConcurrency the maximum UFS read concurrency
+   * @return the updated options object
+   */
+  public OpenFileOptions setMaxUfsReadConcurrency(int maxUfsReadConcurrency) {
+    mMaxUfsReadConcurrency = maxUfsReadConcurrency;
+    return this;
+  }
+
+  /**
    * @return the {@link InStreamOptions} representation of this object
    */
   public InStreamOptions toInStreamOptions() {
-    return InStreamOptions.defaults().setReadType(mReadType).setLocationPolicy(mLocationPolicy);
+    return InStreamOptions.defaults().setReadType(mReadType).setLocationPolicy(mLocationPolicy)
+        .setMaxUfsReadConcurrency(mMaxUfsReadConcurrency);
   }
 
   @Override
@@ -132,12 +153,13 @@ public final class OpenFileOptions {
     }
     OpenFileOptions that = (OpenFileOptions) o;
     return Objects.equal(mLocationPolicy, that.mLocationPolicy)
-        && Objects.equal(mReadType, that.mReadType);
+        && Objects.equal(mReadType, that.mReadType)
+        && Objects.equal(mMaxUfsReadConcurrency, this.mMaxUfsReadConcurrency);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLocationPolicy, mReadType);
+    return Objects.hashCode(mLocationPolicy, mReadType, mMaxUfsReadConcurrency);
   }
 
   @Override
@@ -145,6 +167,7 @@ public final class OpenFileOptions {
     return Objects.toStringHelper(this)
         .add("locationPolicy", mLocationPolicy)
         .add("readType", mReadType)
+        .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
         .toString();
   }
 }

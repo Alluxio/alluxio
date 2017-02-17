@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -21,6 +22,7 @@ import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.UfsBlockMeta;
 
 import java.io.IOException;
 import java.util.Set;
@@ -56,8 +58,9 @@ public interface BlockWorker extends Worker {
    * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    * @throws IOException if temporary block cannot be deleted
    */
-  void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+  void abortBlock(long sessionId, long blockId)
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      IOException;
 
   /**
    * Access the block for a given session. This should be called to update the evictor when
@@ -275,6 +278,9 @@ public interface BlockWorker extends Worker {
   BlockReader readBlockRemote(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
 
+  BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
+      throws BlockDoesNotExistException, IOException;
+
   /**
    * Frees a block from Alluxio managed space.
    *
@@ -343,4 +349,11 @@ public interface BlockWorker extends Worker {
    * @throws IOException if an I/O error occurs
    */
   FileInfo getFileInfo(long fileId) throws IOException;
+
+  void openUfsBlock(UfsBlockMeta ufsBlockMeta, int maxUfsReadConcurrency)
+      throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException;
+
+  void closeUfsBlock(long sessionId, long blockId)
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      IOException, WorkerOutOfSpaceException;
 }

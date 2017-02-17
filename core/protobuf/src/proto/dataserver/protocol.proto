@@ -43,6 +43,7 @@ message Status {
 enum RequestType {
   ALLUXIO_BLOCK = 0;
   UFS_FILE = 1;
+  UFS_BLOCK = 2;
 }
 
 // The read request.
@@ -57,6 +58,8 @@ message ReadRequest {
 
   optional int64 lock_id = 6;
   optional int64 session_id = 7;
+  // If set, do not try to cache the block locally when reading the data from the UFS.
+  optional bool no_cache = 8;
 }
 
 // The write request.

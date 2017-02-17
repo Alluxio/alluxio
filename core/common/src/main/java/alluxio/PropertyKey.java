@@ -306,6 +306,8 @@ public enum PropertyKey {
   // Deprecated. It will be removed in 2.0.0.
   USER_UFS_FILE_WRITER_CLASS(Name.USER_UFS_FILE_WRITER_CLASS,
       "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
+  USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT(Name.USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT, 5),
+  USER_UFS_BLOCK_OPEN_TIMEOUT_MS(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000),
   USER_LOCAL_READER_PACKET_SIZE_BYTES(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES, "8MB"),
   USER_LOCAL_WRITER_PACKET_SIZE_BYTES(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB"),
   USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, false),
@@ -761,6 +763,11 @@ public enum PropertyKey {
         "alluxio.user.ufs.file.reader.class";
     public static final String USER_UFS_FILE_WRITER_CLASS =
         "alluxio.user.ufs.file.writer.class";
+    public static final String USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT =
+        "alluxio.user.ufs.block.max.read.concurrency.default";
+    public static final String USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
+        "alluxio.user.ufs.block.open.timeout.ms";
+
     public static final String USER_LOCAL_READER_PACKET_SIZE_BYTES =
         "alluxio.user.local.reader.packet.size.bytes";
     public static final String USER_LOCAL_WRITER_PACKET_SIZE_BYTES =

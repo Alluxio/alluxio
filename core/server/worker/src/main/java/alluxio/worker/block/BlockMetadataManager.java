@@ -25,6 +25,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.meta.UFSBlockMeta;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -55,6 +56,8 @@ public final class BlockMetadataManager {
 
   /** A map from tier alias to {@link StorageTier}. */
   private final Map<String, StorageTier> mAliasToTiers;
+
+  private final Map<Long, UFSBlockMeta> mUFSBlockMetaMap = new HashMap<>();
 
   private BlockMetadataManager() {
     try {

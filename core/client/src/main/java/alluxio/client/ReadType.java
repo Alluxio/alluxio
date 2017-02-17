@@ -40,6 +40,11 @@ public enum ReadType {
    * storage, it will be promoted to the top storage layer.
    */
   CACHE_PROMOTE(3),
+  /**
+   * Read the file with UFS delegation on and cache it on the delegated worker. This read type
+   * does not move data between tiers of Alluxio Storage.
+   */
+  CACHE_ON_WORKER(4),
   ;
 
   private final int mValue;
@@ -73,7 +78,8 @@ public enum ReadType {
    * @return true if the read type is {@link #CACHE}, false otherwise
    */
   public boolean isCache() {
-    return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue;
+    return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue
+        || mValue == CACHE_ON_WORKER.mValue;
   }
 
   /**
