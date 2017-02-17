@@ -129,7 +129,7 @@ public abstract class WebServer {
   private List<ContainerInitializer> jspInitializers() {
     JettyJasperInitializer sci = new JettyJasperInitializer();
     ContainerInitializer initializer = new ContainerInitializer(sci, null);
-    List<ContainerInitializer> initializers = new ArrayList<ContainerInitializer>();
+    List<ContainerInitializer> initializers = new ArrayList<>();
     initializers.add(initializer);
     return initializers;
   }

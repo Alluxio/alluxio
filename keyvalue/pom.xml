@@ -23,8 +23,8 @@
   <description>Parent POM for Alluxio Key Value Store</description>
 
   <modules>
-    <module>common</module>
     <module>client</module>
+    <module>common</module>
     <module>server</module>
   </modules>
 
