@@ -55,7 +55,7 @@ function generateData(path) {
       rebuildNavPill(path);
     },
     error: function () {
-      alert("the path you input was not found.path=" + path);
+      alert("Path <" + path + "> was not found.");
     }
   });
 }
@@ -189,10 +189,7 @@ function initGrid() {
       }])
       .filter('pinned', function () {
         return function (input) {
-          if (input == true)
-            return "YES";
-          else
-            return "NO";
+          return input ? "YES" : "NO";
         };
       });
 }
