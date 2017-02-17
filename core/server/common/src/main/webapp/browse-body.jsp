@@ -50,7 +50,7 @@
         </div>
         <div ng-app="app" id="MainCtrl" ng-controller="MainCtrl">
           <div id="grid1" ui-grid="gridOptions" ui-grid-pagination ui-grid-resize-columns ui-grid-move-columns class="grid"></div>
-            <button id='toggleFiltering' ng-click="toggleFiltering()" class="btn btn-success" style="margin-top: 5px;">Toggle Filtering</button>
+            <button id='toggleFiltering' ng-click="toggleFiltering()" class="btn btn-success">Toggle Filtering</button>
           </div>
         </div>
     </div>
