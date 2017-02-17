@@ -150,6 +150,7 @@ public enum PropertyKey {
   MASTER_WEB_HOSTNAME(Name.MASTER_WEB_HOSTNAME, null),
   MASTER_WEB_PORT(Name.MASTER_WEB_PORT, 19999),
   MASTER_WHITELIST(Name.MASTER_WHITELIST, "/"),
+  MASTER_CONNECTION_TIMEOUT_MS(Name.MASTER_CONNECTION_TIMEOUT_MS, 0),
   MASTER_WORKER_THREADS_MAX(Name.MASTER_WORKER_THREADS_MAX, 2048),
   MASTER_WORKER_THREADS_MIN(Name.MASTER_WORKER_THREADS_MIN, 512),
   MASTER_WORKER_TIMEOUT_MS(Name.MASTER_WORKER_TIMEOUT_MS, 300000),
@@ -556,6 +557,8 @@ public enum PropertyKey {
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
+    public static final String MASTER_CONNECTION_TIMEOUT_MS =
+            "alluxio.master.connection.timeout.ms";
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
     public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout.ms";
