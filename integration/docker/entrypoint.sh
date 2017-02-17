@@ -19,6 +19,10 @@ fi
 
 service=$1
 
+# Docker will set this tmpfs up by default. It's size is configurable through the
+# --shm-size argument to docker run
+export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
+
 home=/opt/$(ls /opt | grep alluxio)
 cd ${home}
 
