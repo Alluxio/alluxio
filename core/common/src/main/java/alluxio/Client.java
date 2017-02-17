@@ -15,11 +15,15 @@ import alluxio.exception.ConnectionFailedException;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * Interface for a client in the Alluxio system.
  */
 public interface Client extends Closeable {
+
+  @Override
+  void close();
 
   /**
    * Connects with the remote.
@@ -30,9 +34,15 @@ public interface Client extends Closeable {
   void connect() throws IOException, ConnectionFailedException;
 
   /**
-   * Closes the connection, then queries and sets current remote address.
+   * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
+   * if the client has not connected with the remote for a while, for example.
    */
-  void resetConnection();
+  void disconnect();
+
+  /**
+   * @return the {@link InetSocketAddress} of the remote
+   */
+  InetSocketAddress getAddress();
 
   /**
    * Returns the connected status of the client.
@@ -42,8 +52,7 @@ public interface Client extends Closeable {
   boolean isConnected();
 
   /**
-   * Closes the connection with the remote permanently. This instance should be not be reused after
-   * closing.
+   * Closes the connection, then queries and sets current remote address.
    */
-  void close();
+  void resetConnection();
 }

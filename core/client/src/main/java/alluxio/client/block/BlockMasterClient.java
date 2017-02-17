@@ -23,7 +23,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A client to use for interacting with a Block Master.
+ * A client to use for interacting with a block master.
  */
 @ThreadSafe
 public interface BlockMasterClient extends Client {

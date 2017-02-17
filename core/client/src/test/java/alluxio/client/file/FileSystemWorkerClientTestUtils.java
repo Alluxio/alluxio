@@ -25,16 +25,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FileSystemWorkerClientTestUtils {
   /**
-   * Resets the {@link FileSystemWorkerClient#HEARTBEAT_CANCEL_POOL} by waiting for all the
-   * pending heartbeats.
+   * Resets the {@link RetryHandlingFileSystemWorkerClient#HEARTBEAT_CANCEL_POOL} by waiting for all
+   * the pending heartbeats.
    */
   public static void reset() {
     CommonUtils.waitFor("All active file system worker sessions are closed",
         new Function<Void, Boolean>() {
           @Override
           public Boolean apply(Void input) {
-            AtomicInteger numActiveSessions =
-                Whitebox.getInternalState(FileSystemWorkerClient.class, "NUM_ACTIVE_SESSIONS");
+            AtomicInteger numActiveSessions = Whitebox
+                .getInternalState(RetryHandlingFileSystemWorkerClient.class, "NUM_ACTIVE_SESSIONS");
             return numActiveSessions.intValue() == 0;
           }
         }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));

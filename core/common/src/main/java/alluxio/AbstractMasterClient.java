@@ -28,7 +28,7 @@ import javax.security.auth.Subject;
  * The base class for master clients.
  */
 @ThreadSafe
-public abstract class AbstractMasterClient extends AbstractClient {
+public abstract class AbstractMasterClient extends AbstractClient implements MasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -64,9 +64,6 @@ public abstract class AbstractMasterClient extends AbstractClient {
     mZkLeaderPath = zkLeaderPath;
   }
 
-  /**
-   * @return the {@link InetSocketAddress} of the master
-   */
   @Override
   public synchronized InetSocketAddress getAddress() {
     if (mZkLeaderPath == null) {
@@ -75,9 +72,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
     return NetworkAddressUtils.getLeaderAddressFromZK(mZkLeaderPath);
   }
 
-  /**
-   * @return the list containing all master addresses
-   */
+  @Override
   public synchronized List<InetSocketAddress> getMasterAddresses() {
     if (mZkLeaderPath == null) {
       return Lists.newArrayList(super.getAddress());

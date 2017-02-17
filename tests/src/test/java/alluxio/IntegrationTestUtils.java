@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.util.CommonUtils;
@@ -52,7 +53,7 @@ public final class IntegrationTestUtils {
   public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
       final AlluxioURI uri, int timeoutMs) {
 
-    try (FileSystemMasterClient client = new FileSystemMasterClient(null,
+    try (FileSystemMasterClient client = new RetryHandlingFileSystemMasterClient(null,
         localAlluxioClusterResource.get().getMaster().getAddress())) {
       CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override

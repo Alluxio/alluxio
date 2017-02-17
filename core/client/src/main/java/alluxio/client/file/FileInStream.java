@@ -77,7 +77,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected final FileWriteLocationPolicy mLocationPolicy;
   /** Total length of the file in bytes. */
   protected final long mFileLength;
-  /** File System context containing the {@link FileSystemMasterClient} pool. */
+  /** File system context containing the {@link FileSystemMasterClient} pool. */
   protected final FileSystemContext mContext;
   private final AlluxioBlockStore mBlockStore;
   /** File information. */

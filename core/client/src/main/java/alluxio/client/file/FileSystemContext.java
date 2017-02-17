@@ -347,7 +347,7 @@ public final class FileSystemContext implements Closeable {
     }
 
     long sessionId = IdUtils.getRandomNonNegativeLong();
-    return new FileSystemWorkerClient(mFileSystemWorkerClientPools.get(rpcAddress),
+    return new RetryHandlingFileSystemWorkerClient(mFileSystemWorkerClientPools.get(rpcAddress),
         mFileSystemWorkerClientHeartbeatPools.get(rpcAddress),
         address, sessionId);
   }

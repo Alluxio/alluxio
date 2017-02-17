@@ -25,11 +25,6 @@ import java.net.InetSocketAddress;
 public interface BlockWorkerClient extends Closeable {
 
   /**
-   * @return the address of the worker
-   */
-  WorkerNetAddress getWorkerNetAddress();
-
-  /**
    * Updates the latest block access time on the worker.
    *
    * @param blockId the ID of the block
@@ -64,6 +59,11 @@ public interface BlockWorkerClient extends Closeable {
    * @return the ID of the session
    */
   long getSessionId();
+
+  /**
+   * @return the address of the worker
+   */
+  WorkerNetAddress getWorkerNetAddress();
 
   /**
    * Locks the block, therefore, the worker will not evict the block from the memory until it is
@@ -135,10 +135,4 @@ public interface BlockWorkerClient extends Closeable {
    * @throws InterruptedException if this thread is interrupted
    */
   void sessionHeartbeat() throws IOException, InterruptedException;
-
-  /**
-   * Closes the client.
-   */
-  @Override
-  void close();
 }
