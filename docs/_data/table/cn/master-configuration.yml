@@ -64,3 +64,5 @@ alluxio.master.keytab.file:
   Alluxio master的Kerberos密钥表文件。
 alluxio.master.principal:
   Alluxio master的Kerberos主体。
+alluxio.master.connection.timeout.ms
+  Alluxio master设置Thrift的超时时间（单位：毫秒），超过该时间关闭连接,默认值是0,表示无时间限制
