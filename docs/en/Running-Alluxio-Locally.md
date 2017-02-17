@@ -44,7 +44,7 @@ This step requires sudo privileges to perform "mount", "umount" and "chmod" oper
 
 * Start Alluxio by a superuser, or
 * Give limited sudo privileges to the running user (e.g., "alluxio") by adding the following line to `/etc/sudoers` on Linux:
-`alluxio ALL=(ALL) NOPASSWD: /bin/mount * ramfs /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
+`alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
 This allows Linux user "alluxio" to mount, umount and chmod path `/mnt/ramdisk` with sudo privileges without typing the password, but nothing else.
 See more detailed explanation about [Sudoer User Specifications](https://help.ubuntu.com/community/Sudoers#User_Specifications).
 
