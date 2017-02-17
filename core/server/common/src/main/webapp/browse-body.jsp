@@ -27,7 +27,7 @@
     var base = "<%= (request.getAttribute("baseUrl") == null) ? "./browse" : request.getAttribute("baseUrl").toString() %>";
 </script>
 
-<div class="container-fluid">
+<div ng-app="app" class="container-fluid" id="MainCtrl" ng-controller="MainCtrl">
   <jsp:include page="/header" />
 
   <div class="container-fluid">
@@ -42,14 +42,12 @@
             </ul>
             <div id="pathNav" class="input-append pull-right path-nav">
               <input class="span12" id="pathInput" type="text" placeholder="Navigate to a directory">
-              <button class="btn" id="goBtn" type="button">Go</button>
+              <button class="btn" id="goBtn" type="button" ng-click="changeDir()">Go</button>
             </div>
           </div>
         </div>
-        <div ng-app="app" id="MainCtrl" ng-controller="MainCtrl">
-          <div id="grid1" ui-grid="gridOptions" ui-grid-pagination ui-grid-resize-columns ui-grid-move-columns class="grid"></div>
-            <button id='toggleFiltering' ng-click="toggleFiltering()" class="btn btn-success">Toggle Filtering</button>
-          </div>
+        <div id="grid1" ui-grid="gridOptions" ui-grid-pagination ui-grid-resize-columns ui-grid-move-columns class="grid"></div>
+          <button id='toggleFiltering' ng-click="toggleFiltering()" class="btn btn-success">Toggle Filtering</button>
         </div>
     </div>
   </div>

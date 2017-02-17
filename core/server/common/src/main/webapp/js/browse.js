@@ -1,87 +1,12 @@
-/**
- *
- rebuild the browse page navigator pill like breadcrumbs.
- *
- @param {string} path current navigator path
- *
- */
-function rebuildNavPill(path) {
-  if (path.length > 0 && path.charAt(path.length - 1) === '/') {
-    path = path.substr(0, path.length - 1);
-  }
-  var pathSeg = path.split("/");
-  if (path === "/")
-    pathSeg.length = 1;
-  if (pathSeg != null && pathSeg.length > 0) {
-    pathSeg[0] = "/";
-    $("#pathUl").children().remove();
-    var curPath = "";
-    $.each(pathSeg, function (index, value) {
-      if (value.length === 0)
-        return;
-      curPath += value;
-
-      var liNode = document.createElement("li");
-      var aNode = document.createElement("a");
-      $(aNode).attr("href", "javascript:void(0)");
-      $(aNode).attr("onClick", 'generateData("' + curPath + '")');
-      $(aNode).append(value);
-      if (index === pathSeg.length - 1) {
-        $(liNode).attr("class", "active");
-      }
-      liNode.appendChild(aNode);
-      $("#pathUl").append(liNode);
-
-      if (value !== "/") {
-        curPath += "/"
-      }
-    })
-  }
-}
-
-function generateData(path) {
-  $.ajax({
-    url: ajaxUrl,
-    type: 'post',
-    dataType: 'json',
-    data: {
-      path: path
-    },
-    success: function (json) {
-      $(".text-error").html(json.argumentMap.invalidPathError);
-      if (!json.argumentMap.showPermissions) {
-        globalScope.gridOptions.columnDefs[4].visible = false;
-        globalScope.gridOptions.columnDefs[5].visible = false;
-        globalScope.gridOptions.columnDefs[6].visible = false;
-      }
-      globalScope.gridOptions.data = json.pageData;
-      globalScope.gridApi.grid.refresh();
-      $("#pathInput").val(path);
-      rebuildNavPill(path);
-    },
-    error: function () {
-      alert("Path <" + path + "> was not found.");
-    }
-  });
-}
-
-function getInputPath() {
-  var path = $.trim($("#pathInput").val());
-  return path;
-}
-
-function changeDir() {
-  var path = getInputPath();
-  generateData(path);
-}
-
 function initGrid() {
   var app = angular.module(
       'app', ['ui.grid', 'ui.grid.pagination', 'ui.grid.resizeColumns', 'ui.grid.moveColumns']);
   app.controller(
       'MainCtrl',
-      ['$scope', '$http', 'uiGridConstants', function ($scope, $http, uiGridConstants) {
-        globalScope = $scope;
+      ['$scope', '$http', 'uiGridConstants', '$compile',
+        function ($scope, $http, uiGridConstants, $compile) {
+        var ajaxUrl = '/browse/jumpPath.ajax';
+
         function cellValueTooltip(row, col) {
           return $scope.gridApi.grid.getCellValue(row, col);
         }
@@ -94,7 +19,19 @@ function initGrid() {
           onRegisterApi: function (gridApi) {
             $scope.gridApi = gridApi;
             $scope.gridOptions.columnDefs[7].visible = false;
-
+            if (base === "./browse") {
+              $("#pathInput").val("/");
+              $("#pathInput").keydown(function (e) {
+                if (e.keyCode === 13) {
+                  $scope.changeDir();
+                }
+              });
+              $scope.generateData("/");
+            } else {
+              ajaxUrl = '/browse/browseLog.ajax';
+              $("#pathNav").hide();
+              $scope.generateData("");
+            }
           },
           columnDefs: [
             {
@@ -183,9 +120,81 @@ function initGrid() {
             var path = encodeURI(row.entity.absolutePath);
             window.open("./" + base + "?path=" + path);
           } else {
-            generateData(row.entity.absolutePath);
+            $scope.generateData(row.entity.absolutePath);
           }
-        }
+        };
+        $scope.changeDir = function () {
+          var path = $scope.getInputPath();
+          $scope.generateData(path);
+        };
+        /**
+         *
+         * rebuild the browse page navigator pill like breadcrumbs.
+         *
+         * @param {string} path current navigator path
+         *
+         */
+        $scope.rebuildNavPill = function (path) {
+          if (path.length > 0 && path.charAt(path.length - 1) === '/') {
+            path = path.substr(0, path.length - 1);
+          }
+          var pathSeg = path.split("/");
+          if (path === "/")
+            pathSeg.length = 1;
+          if (pathSeg != null && pathSeg.length > 0) {
+            pathSeg[0] = "/";
+            $("#pathUl").children().remove();
+            var curPath = "";
+            $.each(pathSeg, function (index, value) {
+              if (value.length === 0)
+                return;
+              curPath += value;
+              var liNode = document.createElement("li");
+              var aNode = document.createElement("a");
+              $(aNode).attr("href", "javascript:void(0)");
+              $(aNode).attr("ng-click", 'generateData("' + curPath + '")');
+              $(aNode).append(value);
+              if (index === pathSeg.length - 1) {
+                $(liNode).attr("class", "active");
+              }
+              liNode.appendChild(aNode);
+              $("#pathUl").append(liNode);
+              $compile($('#pathUl'))($scope);
+              if (value !== "/") {
+                curPath += "/"
+              }
+            })
+          }
+        };
+        $scope.generateData = function (path) {
+          $.ajax({
+            url: ajaxUrl,
+            type: 'post',
+            dataType: 'json',
+            data: {
+              path: path
+            },
+            success: function (json) {
+              $(".text-error").html(json.argumentMap.invalidPathError);
+              if (!json.argumentMap.showPermissions) {
+                $scope.gridOptions.columnDefs[4].visible = false;
+                $scope.gridOptions.columnDefs[5].visible = false;
+                $scope.gridOptions.columnDefs[6].visible = false;
+              }
+              $scope.gridOptions.data = json.pageData;
+              $scope.gridApi.grid.refresh();
+              $("#pathInput").val(path);
+              $scope.rebuildNavPill(path);
+            },
+            error: function () {
+              alert("Path <" + path + "> was not found.");
+            }
+          });
+        };
+        $scope.getInputPath = function () {
+          var path = $.trim($("#pathInput").val());
+          return path;
+        };
       }])
       .filter('pinned', function () {
         return function (input) {
@@ -194,23 +203,4 @@ function initGrid() {
       });
 }
 
-var ajaxUrl = '/browse/jumpPath.ajax';
-var globalScope;
 initGrid();
-
-$(document).ready(function () {
-  if (base === "./browse") {
-    $("#pathInput").val("/");
-    $("#goBtn").click(changeDir);
-    $("#pathInput").keydown(function (e) {
-      if (e.keyCode === 13) {
-        changeDir();
-      }
-    });
-  } else {
-    ajaxUrl = '/browse/browseLog.ajax';
-    $("#pathNav").hide();
-  }
-  generateData("");
-});
-
