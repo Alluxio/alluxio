@@ -155,10 +155,7 @@ function initGrid() {
       }])
       .filter('pinned', function () {
         return function (input) {
-          if (input == true)
-            return "YES";
-          else
-            return "NO";
+          return input ? "YES" : "NO";
         };
       });
 }

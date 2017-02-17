@@ -10,7 +10,7 @@ function rebuildNavPill(path) {
     path = path.substr(0, path.length - 1);
   }
   var pathSeg = path.split("/");
-  if (path == "/")
+  if (path === "/")
     pathSeg.length = 1;
   if (pathSeg != null && pathSeg.length > 0) {
     pathSeg[0] = "/";
@@ -26,7 +26,7 @@ function rebuildNavPill(path) {
       $(aNode).attr("href", "javascript:void(0)");
       $(aNode).attr("onClick", 'generateData("' + curPath + '")');
       $(aNode).append(value);
-      if (index == pathSeg.length - 1) {
+      if (index === pathSeg.length - 1) {
         $(liNode).attr("class", "active");
       }
       liNode.appendChild(aNode);
@@ -101,7 +101,7 @@ function initGrid() {
               field: 'name', name: "File Name",
               cellTemplate: '<nobr>' +
               '<i ng-if="row.entity.isDirectory" class="icon-folder-close"></i>' +
-              '<i ng-if="row.entity.isDirectory == false" class="icon-file"></i>' +
+              '<i ng-if="row.entity.isDirectory === false" class="icon-file"></i>' +
               '<a href="javascript:void(0)" ng-click=grid.appScope.goPath(row)>' +
               '{{row.entity.name}}</a>' +
               '</nobr>',
@@ -120,8 +120,8 @@ function initGrid() {
               name: "In-Memory",
               width: '6%',
               cellTemplate: '<div>' +
-              '<i ng-if="row.entity.inMemoryPercentage == 0" class="icon-hdd icon-white"></i>' +
-              '<i ng-if="row.entity.inMemoryPercentage != 0" class="icon-hdd icon-black"></i>' +
+              '<i ng-if="row.entity.inMemoryPercentage === 0" class="icon-hdd icon-white"></i>' +
+              '<i ng-if="row.entity.inMemoryPercentage !== 0" class="icon-hdd icon-black"></i>' +
               '{{row.entity.inMemoryPercentage}} %' +
               '</div>',
               cellTooltip: cellValueTooltip
@@ -205,7 +205,7 @@ $(document).ready(function () {
     $("#pathInput").val(currentDir);
     $("#goBtn").click(changeDir);
     $("#pathInput").keydown(function (e) {
-      if (e.keyCode == 13) {
+      if (e.keyCode === 13) {
         changeDir();
       }
     });
