@@ -57,7 +57,7 @@ From the host machine:
 
 ```bash
 $ sudo mkdir /mnt/ramdisk
-$ sudo mount -t ramfs -o size=10G tmpfs /mnt/ramdisk
+$ sudo mount -t ramfs -o size=10G ramfs /mnt/ramdisk
 $ sudo chmod a+w /mnt/ramdisk
 ```
 
@@ -108,10 +108,9 @@ $ bin/alluxio runTests
 
 ### Sharing ramdisk with clients
 
-Running the worker with `-v /mnt/ramdisk:/mnt/ramdisk` will make the worker's ramdisk
-available on the host for short-circuit client reads. To make this available to clients
-in other containers running on the same host, those containers should also be run with
-`-v /mnt/ramdisk:/mnt/ramdisk`.
+Running the worker with `-v /mnt/ramdisk:/mnt/ramdisk` shares the ramdisk between the worker
+and host. To make this ramdisk available to clients in other containers running on the same host, 
+those containers should also be run with `-v /mnt/ramdisk:/mnt/ramdisk`.
 
 ## Configuration
 
