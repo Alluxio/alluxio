@@ -112,7 +112,15 @@ function mount_ramfs_linux() {
       exit 1
     fi
   else
-    mkdir -p ${TIER_PATH}
+    if [[ "$1" == "SudoMount" ]]; then
+      sudo mkdir -p ${TIER_PATH}
+    else
+      mkdir -p ${TIER_PATH}
+    fi
+    if [[ $? -ne 0 ]]; then
+      echo "ERROR: mkdir ${TIER_PATH} failed" >&2
+      exit 1
+    fi
   fi
 
   if [[ "$1" == "SudoMount" ]]; then
