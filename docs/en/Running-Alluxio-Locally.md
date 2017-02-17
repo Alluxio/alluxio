@@ -40,12 +40,13 @@ $ ./bin/alluxio format
 
 By default, on startup Alluxio will create a
 [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage.
-This step requires sudo privileges to perform "mount", "umount" and "chmod" operations. There are two approaches to achieve this:
+This step requires sudo privileges to perform "mount", "umount", "mkdir" and "chmod" operations. There are two approaches to achieve this:
 
 * Start Alluxio by a superuser, or
 * Give limited sudo privileges to the running user (e.g., "alluxio") by adding the following line to `/etc/sudoers` on Linux:
-`alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
-This allows Linux user "alluxio" to mount, umount and chmod path `/mnt/ramdisk` with sudo privileges without typing the password, but nothing else.
+`alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/mkdir * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
+This allows Linux user "alluxio" to mount, umount, mkdir and chmod (assume they are in `/bin/`) a specific path `/mnt/ramdisk`
+with sudo privileges without typing the password, but nothing else.
 See more detailed explanation about [Sudoer User Specifications](https://help.ubuntu.com/community/Sudoers#User_Specifications).
 
 With the proper user, run the following command to start Alluxio filesystem.
