@@ -1314,10 +1314,11 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if the fileId is for the root directory
    * @throws IOException if an I/O error is encountered
    */
-  private void deleteRecursiveInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs)
-      throws FileDoesNotExistException, IOException, InvalidPathException {
+  private void deleteRecursiveInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
+      DeleteOptions deleteOptions) throws FileDoesNotExistException, IOException,
+      InvalidPathException {
     try {
-      deleteInternal(inodePath, replayed, opTimeMs, DeleteOptions.defaults().setRecursive(true));
+      deleteInternal(inodePath, replayed, opTimeMs, deleteOptions);
     } catch (DirectoryNotEmptyException e) {
       throw new IllegalStateException(
           "deleteInternal should never throw DirectoryNotEmptyException when recursive is true", e);
@@ -2656,7 +2657,8 @@ public final class FileSystemMaster extends AbstractMaster {
       // operations from being persisted in the UFS.
       long fileId = inode.getId();
       long opTimeMs = System.currentTimeMillis();
-      deleteRecursiveInternal(inodePath, true /* replayed */, opTimeMs);
+      deleteRecursiveInternal(inodePath, true /* replayed */, opTimeMs,
+          DeleteOptions.defaults().setRecursive(true));
       DeleteFileEntry deleteFile =
           DeleteFileEntry.newBuilder().setId(fileId).setRecursive(true).setOpTimeMs(opTimeMs)
               .build();

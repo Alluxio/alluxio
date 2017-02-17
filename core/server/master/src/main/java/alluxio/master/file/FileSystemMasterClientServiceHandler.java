@@ -278,8 +278,8 @@ public final class FileSystemMasterClientServiceHandler implements
       public Void call() throws AlluxioException, IOException {
         if (options == null) {
           // For Alluxio client v1.4 or earlier.
-          // NOTE, we try to be conservative here so early Alluxio clients will not be able to delete
-          // files in Alluxio only.
+          // NOTE, we try to be conservative here so early Alluxio clients will not be able to
+          // delete files in Alluxio only.
           mFileSystemMaster.delete(new AlluxioURI(path),
               DeleteOptions.defaults().setRecursive(recursive));
         } else {
