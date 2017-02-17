@@ -1,35 +1,15 @@
-function generateData($scope) {
-  $.ajax({
-    url: '/memory/getFiles.ajax',
-    type: 'post',
-    dataType: 'json',
-    data: {
-      paginationOptions: JSON.stringify(paginationOptions)
-    },
-    success: function (json) {
-      $(".text-error").html(json.argumentMap.fatalError);
-      if (!json.argumentMap.showPermissions) {
-        $scope.gridOptions.columnDefs[3].visible = false;
-        $scope.gridOptions.columnDefs[4].visible = false;
-        $scope.gridOptions.columnDefs[5].visible = false;
-      }
-      $scope.gridOptions.data = json.pageData;
-      $scope.gridOptions.totalItems = json.totalCount;
-      $scope.gridApi.grid.refresh();
-    },
-    error: function () {
-      alert("Something wrong.");
-    }
-  });
-}
-
 function initGrid() {
   var app = angular.module(
       'app', ['ui.grid', 'ui.grid.pagination', 'ui.grid.resizeColumns', 'ui.grid.moveColumns']);
   app.controller(
       'MainCtrl',
       ['$scope', '$http', 'uiGridConstants', function ($scope, $http, uiGridConstants) {
-        globalScope = $scope;
+        var paginationOptions = {
+          pageNumber: 1,
+          pageSize: 25,
+          sorters: [],
+          filters: []
+        };
         function cellValueTooltip(row, col) {
           return $scope.gridApi.grid.getCellValue(row, col);
         }
@@ -44,7 +24,6 @@ function initGrid() {
           paginationPageSize: 25,
           onRegisterApi: function (gridApi) {
             $scope.gridApi = gridApi;
-
             $scope.gridApi.core.on.sortChanged($scope, function (grid, sortColumns) {
               paginationOptions.sorters = []
               $.each(sortColumns, function (index, value) {
@@ -53,12 +32,12 @@ function initGrid() {
                   "direction": value.sort.direction
                 });
               });
-              generateData($scope);
+              $scope.generateData();
             });
             gridApi.pagination.on.paginationChanged($scope, function (newPage, pageSize) {
               paginationOptions.pageNumber = newPage;
               paginationOptions.pageSize = pageSize;
-              generateData($scope);
+              $scope.generateData();
             });
             $scope.gridApi.core.on.filterChanged($scope, function () {
               var grid = this.grid;
@@ -71,8 +50,10 @@ function initGrid() {
                   console.log(value.field + "'s filter: " + value.filters[0].term);
                 }
               });
-              generateData($scope);
+              $scope.generateData();
             });
+            paginationOptions.pageSize = $scope.gridOptions.paginationPageSize;
+            $scope.generateData();
           },
 
           columnDefs: [
@@ -148,6 +129,30 @@ function initGrid() {
         $scope.openFile = function (row) {
           var path = encodeURI(row.entity.absolutePath);
           window.open("./" + "browse" + "?path=" + path);
+        };
+        $scope.generateData = function() {
+          $.ajax({
+            url: '/memory/getFiles.ajax',
+            type: 'post',
+            dataType: 'json',
+            data: {
+              paginationOptions: JSON.stringify(paginationOptions)
+            },
+            success: function (json) {
+              $(".text-error").html(json.argumentMap.fatalError);
+              if (!json.argumentMap.showPermissions) {
+                $scope.gridOptions.columnDefs[3].visible = false;
+                $scope.gridOptions.columnDefs[4].visible = false;
+                $scope.gridOptions.columnDefs[5].visible = false;
+              }
+              $scope.gridOptions.data = json.pageData;
+              $scope.gridOptions.totalItems = json.totalCount;
+              $scope.gridApi.grid.refresh();
+            },
+            error: function () {
+              alert("Something wrong.");
+            }
+          });
         }
 
       }])
@@ -158,16 +163,4 @@ function initGrid() {
       });
 }
 
-var globalScope;
-var paginationOptions = {
-  pageNumber: 1,
-  pageSize: 25,
-  sorters: [],
-  filters: []
-};
 initGrid();
-
-$(document).ready(function () {
-  paginationOptions.pageSize = globalScope.gridOptions.paginationPageSize;
-  generateData(globalScope);
-});
