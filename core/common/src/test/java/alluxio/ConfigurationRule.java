@@ -54,6 +54,7 @@ public final class ConfigurationRule implements TestRule {
         try {
           statement.evaluate();
         } finally {
+          Configuration.defaultInit();
           for (Entry<PropertyKey, String> entry : originalValues.entrySet()) {
             Configuration.set(entry.getKey(), entry.getValue());
           }

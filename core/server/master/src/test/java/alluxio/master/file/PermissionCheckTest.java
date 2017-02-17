@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -45,6 +46,7 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
@@ -98,8 +100,15 @@ public final class PermissionCheckTest {
   private static final Mode TEST_FILE_MODE = new Mode((short) 0755);
 
   private FileSystemMaster mFileSystemMaster;
+  private BlockMaster mBlockMaster;
 
   private InodeTree mInodeTree;
+
+  @Rule
+  public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap.of(
+      PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName(),
+      PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP
+  ));
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -153,23 +162,18 @@ public final class PermissionCheckTest {
 
   @Before
   public void before() throws Exception {
-    LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
-    // authentication
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER_ADMIN.getUser());
-    // authorization
-    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-        FakeUserGroupsMapping.class.getName());
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
+    // set users
+    // TODO(binfan): use AuthenticatedUserRule after that class is refactored to
+    // AuthenticatedUserRule and LoginUserRule
+    AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
+    LoginUserTestUtils.resetLoginUser(TEST_USER_ADMIN.getUser());
 
     JournalFactory journalFactory =
         new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
-    BlockMaster blockMaster = new BlockMaster(journalFactory);
-
-    mFileSystemMaster = new FileSystemMaster(blockMaster, journalFactory);
-
-    blockMaster.start(true);
+    mBlockMaster = new BlockMaster(journalFactory);
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
+    mBlockMaster.start(true);
     mFileSystemMaster.start(true);
 
     createDirAndFileForTest();
@@ -180,8 +184,11 @@ public final class PermissionCheckTest {
 
   @After
   public void after() throws Exception {
+    mBlockMaster.stop();
+    mFileSystemMaster.stop();
     AuthenticatedClientUser.remove();
-    ConfigurationTestUtils.resetConfiguration();
+    LoginUserTestUtils.resetLoginUser();
+    GroupMappingServiceTestUtils.resetCache();
   }
 
   /**
