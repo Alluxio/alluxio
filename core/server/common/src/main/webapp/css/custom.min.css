@@ -8,3 +8,9 @@ a
 {
     color:rgb(0, 96, 214); /* The same shade of blue as the Alluxio logo. */
 }
+.path-nav
+{
+	margin: 5px;
+	margin-right: 45px;
+	width:600px;
+}
