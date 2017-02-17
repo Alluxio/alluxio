@@ -240,13 +240,15 @@ public final class FileSystemMasterTest {
     // Create ufs file
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
     mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
-
+    // load the dir1 to alluxio
+    mFileSystemMaster.listStatus(new AlluxioURI("/mnt/local"),
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
     mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1"),
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true));
-
     // ufs directory still exists
     Assert.assertTrue(Files.exists(Paths.get(ufsMount.join("dir1").getPath())));
     // verify the directory is deleted
+    Files.delete(Paths.get(ufsMount.join("dir1").getPath()));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1")));
   }

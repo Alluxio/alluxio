@@ -79,12 +79,18 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
       System.out.println(path + " is consistent with the under storage system.");
     }
     if (!repairConsistency) {
+      if (inconsistentUris.isEmpty()) {
+        return;
+      }
       Collections.sort(inconsistentUris);
       System.out.println("The following files are inconsistent:");
       for (AlluxioURI uri : inconsistentUris) {
         System.out.println(uri);
       }
     } else {
+      if (inconsistentUris.isEmpty()) {
+        return;
+      }
       Collections.sort(inconsistentUris);
       System.out.println(path + " have: " + inconsistentUris.size() + " files inconsistent.");
       List<AlluxioURI> dirInconsistencys = new ArrayList<AlluxioURI>();
