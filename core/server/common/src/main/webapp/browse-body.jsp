@@ -18,6 +18,7 @@
 <jsp:include page="header-scripts.jsp" />
 
 <link rel="stylesheet" href="build/node_modules/angular-ui-grid/ui-grid.min.css" type="text/css">
+<link rel="stylesheet" href="css/custom.ui-grid.css" type="text/css">
 <script src="build/node_modules/angular-ui-grid/node_modules/angular/angular.min.js"></script>
 <script src="build/node_modules/angular-ui-grid/ui-grid.min.js"></script>
 <script src="js/browse.js" ></script>
