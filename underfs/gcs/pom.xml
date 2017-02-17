@@ -101,7 +101,7 @@
               <relocations>
                 <relocation>
                   <pattern>org.jets3t</pattern>
-                  <shadedPattern>alluxio.org.jets3t</shadedPattern>
+                  <shadedPattern>alluxio-underfs-gcs.org.jets3t</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

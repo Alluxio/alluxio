@@ -18,8 +18,6 @@ import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
-import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -35,8 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -96,8 +92,6 @@ public abstract class WebServer {
     File warPath = new File(Configuration.get(PropertyKey.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
 
-    mWebAppContext.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
-
     // Set the ContainerIncludeJarPattern so that jetty examines these
     // container-path jars for tlds, web-fragments etc.
     // If you omit the jar that contains the jstl .tlds, the jsp engine will
@@ -124,14 +118,6 @@ public abstract class WebServer {
       handlers.addHandler(h);
     }
     mServer.setHandler(handlers);
-  }
-
-  private List<ContainerInitializer> jspInitializers() {
-    JettyJasperInitializer sci = new JettyJasperInitializer();
-    ContainerInitializer initializer = new ContainerInitializer(sci, null);
-    List<ContainerInitializer> initializers = new ArrayList<ContainerInitializer>();
-    initializers.add(initializer);
-    return initializers;
   }
 
   /**

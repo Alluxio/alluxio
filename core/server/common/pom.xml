@@ -43,30 +43,12 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
-      <!--
-          Newer versions of hadoop-client include the old javax.servlet:servlet-api jar.
-          This is excluded to prevent conflicts with the newer javax.servlet:javax.servlet-api jar.
-      -->
-      <exclusions>
-        <exclusion>
-          <groupId>javax.servlet</groupId>
-          <artifactId>servlet-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <!-- Needs to be included before apache-jsp for web UI to work. -->
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-jsp</artifactId>
       <type>jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>apache-jsp</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>apache-jstl</artifactId>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
