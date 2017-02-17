@@ -205,7 +205,7 @@ $(document).ready(function () {
   $(".ui-grid").attr("style", "height:600px;");
   $("input[type=number]").attr("style", "padding:0px 0px;");
   var parentPath = "";
-  if (base == "./browse") {
+  if (base === "./browse") {
     $("#pathInput").val(currentDir);
     $("#goBtn").click(changeDir);
     $("#pathInput").keydown(function (e) {
