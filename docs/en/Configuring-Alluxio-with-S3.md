@@ -61,8 +61,7 @@ contain your credentials.
 
 If you are using s3a, you can specify credentials in 4 ways, from highest to lowest priority:
 
-* Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and
-`AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable)
+* Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and `AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable)
 * System Properties `aws.accessKeyId` and `aws.secretKey`
 * Profile file containing credentials at `~/.aws/credentials`
 * AWS Instance profile credentials, if you are using an EC2 instance

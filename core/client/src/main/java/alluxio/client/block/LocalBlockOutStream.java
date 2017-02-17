@@ -62,7 +62,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       FileSystemContext context,
       OutStreamOptions options) throws IOException {
     super(blockId, blockSize, context);
-    if (!NetworkAddressUtils.getLocalHostName().equals(workerNetAddress.getHost())) {
+    if (!NetworkAddressUtils.getClientHostName().equals(workerNetAddress.getHost())) {
       throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerNetAddress));
     }
 

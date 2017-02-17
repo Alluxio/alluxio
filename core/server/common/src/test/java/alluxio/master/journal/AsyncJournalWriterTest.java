@@ -62,6 +62,11 @@ public class AsyncJournalWriterTest {
     mAsyncJournalWriter = new AsyncJournalWriter(mMockJournalWriter);
   }
 
+  /**
+   * Simulation for normal write and flush.
+   *
+   * @param batchingEnabled whether to use a batch flush or not
+   */
   public void writesAndFlushesInternal(boolean batchingEnabled) throws Exception {
     setupAsyncJournalWriter(batchingEnabled);
     int entries = 5;
@@ -92,6 +97,11 @@ public class AsyncJournalWriterTest {
     writesAndFlushesInternal(true);
   }
 
+  /**
+   * Simulates that exception occurs when writing {@link JournalEntry}.
+   *
+   * @param batchingEnabled whether to use a batch flush or not
+   */
   public void failedWriteInternal(boolean batchingEnabled) throws Exception {
     setupAsyncJournalWriter(batchingEnabled);
     int entries = 5;
@@ -140,6 +150,11 @@ public class AsyncJournalWriterTest {
     failedWriteInternal(true);
   }
 
+  /**
+   * Simulates that exception occurs when flush.
+   *
+   * @param batchingEnabled whether to use a batch flush or not
+   */
   public void failedFlushInternal(boolean batchingEnabled) throws Exception {
     setupAsyncJournalWriter(batchingEnabled);
     int entries = 5;

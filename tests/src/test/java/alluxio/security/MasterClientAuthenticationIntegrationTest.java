@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
 
 import org.junit.After;
@@ -118,6 +119,9 @@ public final class MasterClientAuthenticationIntegrationTest {
     LoginUserTestUtils.resetLoginUser();
   }
 
+  /**
+   * An authentication provider for {@link AuthType#CUSTOM}.
+   */
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     // The fullly qualified class name of this authentication provider. This is needed to configure
     // the alluxio cluster

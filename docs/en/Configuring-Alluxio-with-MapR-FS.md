@@ -54,7 +54,7 @@ to access MapR-FS, and by default is already configured to do so. However, if th
 been changed, you can enable the HDFS client to access MapR-FS URIs by adding the URI prefix
 `maprfs:///` to the configuration variable `alluxio.underfs.hdfs.prefixes` like below:
 
-```
+```properties
 alluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///
 ```
 
@@ -74,7 +74,7 @@ information, please read about [configurating applications for Alluxio](Configur
 There are various ways to configure Alluxio to use MapR-FS as the Under File System. If you want to
 mount MapR-FS to the root of Alluxio, add the following to `conf/alluxio-site.properties`:
 
-```
+```properties
 alluxio.underfs.address=maprfs:///<path in MapR-FS>/
 ```
 

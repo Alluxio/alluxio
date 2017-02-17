@@ -98,7 +98,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
   public static PacketOutStream createReplicatedPacketOutStream(FileSystemContext context,
       List<BlockWorkerClient> clients, long id, long length, int tier,
       Protocol.RequestType type) throws IOException {
-    String localHost = NetworkAddressUtils.getLocalHostName();
+    String localHost = NetworkAddressUtils.getClientHostName();
 
     List<PacketWriter> packetWriters = new ArrayList<>();
     for (BlockWorkerClient client : clients) {

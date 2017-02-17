@@ -10,12 +10,12 @@ priority: 4
 {:toc}
 
 ## Overview
+
 In addition to [Filesystem API](File-System-API.html) which allows applications to read, write or
 manage files, Alluxio also serves key-value system on top of Alluxio filesystem.
 Like files in Alluxio filesystem, the semantics of key-value system are also write-once:
 
-* Users can create a key-value store and insert key-value pairs into the store. A store becomes
-immutable after it is complete.
+* Users can create a key-value store and insert key-value pairs into the store. A store becomes immutable after it is complete.
 * Users can open key-value stores after they are complete.
 
 Each single key-value store is denoted by an AlluxioURI like `alluxio://path/my-kvstore`.
@@ -92,7 +92,6 @@ Alluxio provides an implementation of `InputFormat` for Hadoop MapReduce program
 a key-value store. It takes a key-value URI, and emits key-value pairs stored in the store:
 
 {% include Key-Value-Store-API/set-input-format.md %}
-
 
 ### MapReduce OutputFormat
 
