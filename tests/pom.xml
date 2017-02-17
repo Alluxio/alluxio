@@ -117,7 +117,7 @@
     <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-common</artifactId>
+      <artifactId>alluxio-core-client</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
