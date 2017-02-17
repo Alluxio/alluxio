@@ -76,5 +76,5 @@ alluxio.master.keytab.file:
   Kerberos keytab file for Alluxio master.
 alluxio.master.principal:
   Kerberos principal for Alluxio master.
-alluxio.master.connection.timeout.ms
+alluxio.master.connection.timeout.ms:
   Timeout (in milliseconds) between master and client，the default value is 0, that time is unlimited
