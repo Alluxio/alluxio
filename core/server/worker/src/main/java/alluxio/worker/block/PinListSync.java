@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.Constants;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.worker.file.FileSystemMasterClient;
 

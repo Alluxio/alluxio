@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;

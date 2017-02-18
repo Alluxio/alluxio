@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;

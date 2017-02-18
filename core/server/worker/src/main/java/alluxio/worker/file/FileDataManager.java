@@ -13,7 +13,6 @@ package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystem;

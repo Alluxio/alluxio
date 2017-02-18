@@ -12,7 +12,6 @@
 package alluxio.master.journal;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.util.CommonUtils;

@@ -11,7 +11,6 @@
 
 package alluxio.master.lineage.recompute;
 
-import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;

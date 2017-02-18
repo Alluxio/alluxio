@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
 

@@ -13,7 +13,6 @@ package alluxio.web;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;

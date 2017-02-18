@@ -11,7 +11,6 @@
 
 package alluxio.master.lineage.checkpoint;
 
-import alluxio.Constants;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.lineage.LineageMaster;

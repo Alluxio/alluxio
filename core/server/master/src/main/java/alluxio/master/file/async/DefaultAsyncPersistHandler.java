@@ -12,7 +12,6 @@
 package alluxio.master.file.async;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;

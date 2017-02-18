@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.Constants;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;

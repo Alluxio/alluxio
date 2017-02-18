@@ -11,7 +11,6 @@
 
 package alluxio.hadoop.mapreduce;
 
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;

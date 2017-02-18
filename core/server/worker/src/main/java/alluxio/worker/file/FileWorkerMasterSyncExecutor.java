@@ -12,7 +12,6 @@
 package alluxio.worker.file;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatExecutor;

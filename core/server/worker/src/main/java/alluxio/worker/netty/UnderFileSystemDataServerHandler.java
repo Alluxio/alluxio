@@ -11,7 +11,6 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Constants;
 import alluxio.network.protocol.RPCFileReadRequest;
 import alluxio.network.protocol.RPCFileReadResponse;
 import alluxio.network.protocol.RPCFileWriteRequest;

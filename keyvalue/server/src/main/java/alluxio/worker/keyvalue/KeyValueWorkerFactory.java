@@ -12,7 +12,6 @@
 package alluxio.worker.keyvalue;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;

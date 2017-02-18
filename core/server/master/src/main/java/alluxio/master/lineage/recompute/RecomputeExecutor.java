@@ -11,7 +11,6 @@
 
 package alluxio.master.lineage.recompute;
 
-import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;

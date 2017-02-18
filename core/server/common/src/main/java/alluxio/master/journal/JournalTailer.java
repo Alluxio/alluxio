@@ -11,7 +11,6 @@
 
 package alluxio.master.journal;
 
-import alluxio.Constants;
 import alluxio.master.Master;
 import alluxio.proto.journal.Journal.JournalEntry;
 

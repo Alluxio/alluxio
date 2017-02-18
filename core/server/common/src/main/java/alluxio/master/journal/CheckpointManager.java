@@ -11,7 +11,6 @@
 
 package alluxio.master.journal;
 
-import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 

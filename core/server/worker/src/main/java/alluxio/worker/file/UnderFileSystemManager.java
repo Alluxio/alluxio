@@ -12,7 +12,6 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.Seekable;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;

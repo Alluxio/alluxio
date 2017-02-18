@@ -12,7 +12,6 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;

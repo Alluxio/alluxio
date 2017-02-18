@@ -11,7 +11,6 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.ByteIOUtils;

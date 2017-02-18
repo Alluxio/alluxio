@@ -11,7 +11,6 @@
 
 package alluxio.master.lineage.checkpoint;
 
-import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.meta.FileSystemMasterView;

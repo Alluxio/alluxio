@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.collections.Pair;
 import alluxio.exception.BlockDoesNotExistException;

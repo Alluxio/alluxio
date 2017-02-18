@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
