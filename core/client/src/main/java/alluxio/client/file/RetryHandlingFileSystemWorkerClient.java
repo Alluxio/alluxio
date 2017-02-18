@@ -22,6 +22,7 @@ import alluxio.client.file.options.CompleteUfsFileOptions;
 import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.thrift.ThriftIOException;
@@ -29,6 +30,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -107,11 +109,13 @@ public final class RetryHandlingFileSystemWorkerClient
 
   private void init() throws IOException {
     // Register the session before any RPCs for this session start.
-    try {
-      sessionHeartbeat();
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
-    }
+    retryRPC(new RpcCallable<Void, FileSystemWorkerClientService.Client>() {
+      @Override
+      public Void call(FileSystemWorkerClientService.Client client) throws TException {
+        client.sessionHeartbeat(mSessionId, null);
+        return null;
+      }
+    });
 
     // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
     // from the pool while it is not running.
@@ -244,5 +248,16 @@ public final class RetryHandlingFileSystemWorkerClient
     } finally {
       mClientHeartbeatPool.release(client);
     }
+    Metrics.FILE_SYSTEM_WORKER_HEARTBEATS.inc();
+  }
+
+  /**
+   * Metrics related to the {@link RetryHandlingFileSystemWorkerClient}.
+   */
+  public static final class Metrics {
+    private static final Counter FILE_SYSTEM_WORKER_HEARTBEATS =
+        MetricsSystem.clientCounter("FileSystemWorkerHeartbeats");
+
+    private Metrics() {} // prevent instantiation
   }
 }

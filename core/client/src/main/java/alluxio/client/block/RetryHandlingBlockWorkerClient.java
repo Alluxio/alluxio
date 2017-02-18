@@ -112,11 +112,13 @@ public final class RetryHandlingBlockWorkerClient
   private void init() throws IOException {
     if (mSessionId != null) {
       // Register the session before any RPCs for this session start.
-      try {
-        sessionHeartbeat();
-      } catch (InterruptedException e) {
-        throw Throwables.propagate(e);
-      }
+      retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
+        @Override
+        public Void call(BlockWorkerClientService.Client client) throws TException {
+          client.sessionHeartbeat(mSessionId, null);
+          return null;
+        }
+      });
 
       // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
       // from the pool while it is not running.
@@ -212,7 +214,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public long getSessionId() {
-    Preconditions.checkNotNull(mSessionId, "SessionId is accessed when it is not supported");
+    Preconditions.checkNotNull(mSessionId, "Session ID is accessed when it is not supported");
     return mSessionId;
   }
 
@@ -335,7 +337,6 @@ public final class RetryHandlingBlockWorkerClient
     private static final Counter BLOCK_WORKER_HEATBEATS =
         MetricsSystem.clientCounter("BlockWorkerHeartbeats");
 
-    private Metrics() {
-    } // prevent instantiation
+    private Metrics() {} // prevent instantiation
   }
 }
