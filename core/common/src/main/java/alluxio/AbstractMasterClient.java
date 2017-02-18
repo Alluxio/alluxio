@@ -29,8 +29,6 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public abstract class AbstractMasterClient extends AbstractClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /**
    * Identifies the Zookeeper path to use for discovering the master address. This should be null
    * if Zookeeper is not being used.
