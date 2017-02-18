@@ -48,7 +48,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ThreadSafe
 public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(WebInterfaceWorkerBlockInfoServlet.class);
+
   private static final long serialVersionUID = 4148506607369321012L;
   private final transient BlockWorker mBlockWorker;
 
