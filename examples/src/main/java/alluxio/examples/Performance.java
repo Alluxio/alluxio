@@ -41,7 +41,7 @@ import java.nio.channels.FileChannel.MapMode;
  * Example to show the performance of Alluxio.
  */
 public final class Performance {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Performance.class);
 
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";

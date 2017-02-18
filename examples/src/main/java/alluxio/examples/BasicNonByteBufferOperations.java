@@ -47,7 +47,7 @@ import java.util.concurrent.Callable;
  * </p>
  */
 public final class BasicNonByteBufferOperations implements Callable<Boolean> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BasicNonByteBufferOperations.class);
 
   private final AlluxioURI mFilePath;
   private final ReadType mReadType;

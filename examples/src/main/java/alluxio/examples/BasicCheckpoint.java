@@ -33,7 +33,7 @@ import java.util.concurrent.Callable;
  * An example to show to how use Alluxio's API.
  */
 public class BasicCheckpoint implements Callable<Boolean> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BasicCheckpoint.class);
 
   private final String mFileFolder;
   private final int mNumFiles;
