@@ -72,8 +72,9 @@ import javax.security.auth.Subject;
  */
 @NotThreadSafe
 abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystem.class);
+
   public static final String FIRST_COM_PATH = "alluxio_dep/";
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // Always tell Hadoop that we have 3x replication.
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
   /** Lock for initializing the contexts, currently only one set of contexts is supported. */

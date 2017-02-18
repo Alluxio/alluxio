@@ -69,7 +69,7 @@ import javax.security.auth.Subject;
  * Tests for {@link AbstractFileSystem}.
  */
 public class AbstractFileSystemTest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemTest.class);
 
   private FileSystemContext mMockFileSystemContext;
   private FileSystemContext mMockFileSystemContextCustomized;

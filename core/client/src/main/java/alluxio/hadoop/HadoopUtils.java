@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class HadoopUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(HadoopUtils.class);
 
   /**
    * Given a {@link Path} path, it returns the path component of its URI, which has the form

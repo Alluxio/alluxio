@@ -38,8 +38,6 @@ import java.net.URISyntaxException;
  * {@link AbstractFileSystem} directly.
  */
 public class AlluxioFileSystem extends DelegateToFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /**
    * This constructor has the signature needed by
    * {@link AbstractFileSystem#createFileSystem(URI, Configuration)}

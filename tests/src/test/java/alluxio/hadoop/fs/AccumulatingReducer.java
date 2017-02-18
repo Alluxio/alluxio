@@ -40,10 +40,11 @@ import java.util.Iterator;
  * </ul>
  */
 public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, Text, Text, Text> {
+  private static final Logger LOG = LoggerFactory.getLogger(AccumulatingReducer.class);
+
   static final String VALUE_TYPE_LONG = "l:";
   static final String VALUE_TYPE_FLOAT = "f:";
   static final String VALUE_TYPE_STRING = "s:";
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   protected String mHostname;
 

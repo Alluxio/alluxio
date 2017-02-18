@@ -46,7 +46,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(HdfsFileInputStream.class);
+
   private static final boolean PACKET_STREAMING_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
 
