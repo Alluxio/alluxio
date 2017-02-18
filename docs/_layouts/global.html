@@ -59,10 +59,10 @@
                 {% for groupName in categories %}
                     <li class="dropdown">
                         {% if page.group == groupName %}
-                            <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{site.categoryInfo.[groupName].[page.lang]}}<b
+                            <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{site.categoryInfo[groupName][page.lang]}}<b
                                 class="caret"></b></a>
                         {% else %}
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{site.categoryInfo.[groupName].[page.lang]}}<b
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{site.categoryInfo[groupName][page.lang]}}<b
                                 class="caret"></b></a>
                         {% endif %}
 

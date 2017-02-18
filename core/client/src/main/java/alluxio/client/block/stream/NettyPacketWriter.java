@@ -15,23 +15,21 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
-import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +71,7 @@ public final class NettyPacketWriter implements PacketWriter {
   private final InetSocketAddress mAddress;
   private final long mId;
   private final long mSessionId;
+  private final int mTier;
   private final Protocol.RequestType mRequestType;
   private final long mLength;
 
@@ -109,25 +108,20 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param id the block ID or UFS file ID
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param sessionId the session ID
+   * @param tier the target tier
    * @param type the request type (block or UFS file)
    * @throws IOException it fails to acquire a netty channel
    */
   public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long id,
-      long length, long sessionId, Protocol.RequestType type) throws IOException {
+      long length, long sessionId, int tier, Protocol.RequestType type) throws IOException {
     mContext = context;
     mAddress = address;
     mSessionId = sessionId;
     mId = id;
     mRequestType = type;
     mLength = length;
-    mChannel = context.acquireNettyChannel(address);
-
-    ChannelPipeline pipeline = mChannel.pipeline();
-    if (!(pipeline.last() instanceof RPCMessageDecoder)) {
-      throw new RuntimeException(String
-          .format("Channel pipeline has unexpected handlers %s (expects RPCMessageDecoder).",
-              pipeline.last().getClass().getCanonicalName()));
-    }
+    mTier = tier;
+    mChannel = mContext.acquireNettyChannel(address);
     mChannel.pipeline().addLast(new PacketWriteHandler());
   }
 
@@ -175,17 +169,12 @@ public final class NettyPacketWriter implements PacketWriter {
       mLock.unlock();
     }
 
-    mChannel.eventLoop().submit(new Runnable() {
-      @Override
-      public void run() {
-        Protocol.WriteRequest writeRequest =
-            Protocol.WriteRequest.newBuilder().setId(mId).setOffset(offset).setSessionId(mSessionId)
-                .setType(mRequestType).build();
-        DataBuffer dataBuffer = new DataNettyBufferV2(buf);
-        mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, dataBuffer))
-            .addListener(new WriteListener(offset + len));
-      }
-    });
+    Protocol.WriteRequest writeRequest =
+        Protocol.WriteRequest.newBuilder().setId(mId).setOffset(offset).setSessionId(mSessionId)
+            .setTier(mTier).setType(mRequestType).build();
+    DataBuffer dataBuffer = new DataNettyBufferV2(buf);
+    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), dataBuffer))
+        .addListener(new WriteListener(offset + len));
   }
 
   @Override
@@ -271,7 +260,6 @@ public final class NettyPacketWriter implements PacketWriter {
     } finally {
       mLock.unlock();
       if (mChannel.isOpen()) {
-        Preconditions.checkState(mChannel.pipeline().last() instanceof PacketWriteHandler);
         mChannel.pipeline().removeLast();
       }
       mContext.releaseNettyChannel(mAddress, mChannel);
@@ -302,16 +290,11 @@ public final class NettyPacketWriter implements PacketWriter {
       mLock.unlock();
     }
     // Write the last packet.
-    mChannel.eventLoop().submit(new Runnable() {
-      @Override
-      public void run() {
-        Protocol.WriteRequest writeRequest =
-            Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
-                .setType(mRequestType).build();
-        mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, null))
-            .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-      }
-    });
+    Protocol.WriteRequest writeRequest =
+        Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
+            .setTier(mTier).setType(mRequestType).build();
+    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
+        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
   @Override
@@ -332,7 +315,7 @@ public final class NettyPacketWriter implements PacketWriter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
       RPCProtoMessage response = (RPCProtoMessage) msg;
-      Protocol.Status status = ((Protocol.Response) response.getMessage()).getStatus();
+      Protocol.Status status = response.getMessage().<Protocol.Response>getMessage().getStatus();
 
       if (!Status.isOk(status)) {
         throw new IOException(String
@@ -387,8 +370,7 @@ public final class NettyPacketWriter implements PacketWriter {
      */
     private boolean acceptMessage(Object msg) {
       if (msg instanceof RPCProtoMessage) {
-        MessageLite header = ((RPCProtoMessage) msg).getMessage();
-        return header instanceof Protocol.Response;
+        return ((RPCProtoMessage) msg).getMessage().getType() == ProtoMessage.Type.RESPONSE;
       }
       return false;
     }

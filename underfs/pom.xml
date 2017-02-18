@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.5.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs</artifactId>
   <packaging>pom</packaging>
@@ -23,31 +23,15 @@
   <description>Parent POM for different implementations of Alluxio under file system</description>
 
   <modules>
-    <module>local</module>
-    <module>hdfs</module>
+    <module>gcs</module>
     <module>glusterfs</module>
+    <module>hdfs</module>
+    <module>local</module>
     <module>oss</module>
-    <module>swift</module>
     <module>s3</module>
     <module>s3a</module>
-    <module>gcs</module>
+    <module>swift</module>
   </modules>
-
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>net.java.dev.jets3t</groupId>
-        <artifactId>jets3t</artifactId>
-        <version>0.8.1</version>
-      </dependency>
-      <dependency>
-        <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-s3</artifactId>
-        <version>${aws.amazonaws.version}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run

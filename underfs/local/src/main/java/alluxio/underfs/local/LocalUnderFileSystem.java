@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode;
-import alluxio.security.authorization.Permission;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
@@ -100,7 +99,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     }
     OutputStream stream = new FileOutputStream(path);
     try {
-      setMode(path, options.getPermission().getMode().toShort());
+      setMode(path, options.getMode().toShort());
     } catch (IOException e) {
       stream.close();
       throw e;
@@ -141,6 +140,13 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     path = stripPath(path);
     File file = new File(path);
     return file.isFile() && file.delete();
+  }
+
+  @Override
+  public boolean exists(String path) throws IOException {
+    path = stripPath(path);
+    File file = new File(path);
+    return file.exists();
   }
 
   @Override
@@ -236,13 +242,12 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     path = stripPath(path);
     File file = new File(path);
-    Permission perm = options.getPermission();
     if (!options.getCreateParent()) {
       if (file.mkdir()) {
-        setMode(file.getPath(), perm.getMode().toShort());
+        setMode(file.getPath(), options.getMode().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());
         try {
-          setOwner(file.getPath(), perm.getOwner(), perm.getGroup());
+          setOwner(file.getPath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
           LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
         }
@@ -261,13 +266,13 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     while (!dirsToMake.empty()) {
       File dirToMake = dirsToMake.pop();
       if (dirToMake.mkdir()) {
-        setMode(dirToMake.getAbsolutePath(), perm.getMode().toShort());
+        setMode(dirToMake.getAbsolutePath(), options.getMode().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());
         // Set the owner to the Alluxio client user to achieve permission delegation.
         // Alluxio server-side user is required to be a superuser. If it fails to set owner,
         // proceeds with mkdirs and print out an warning message.
         try {
-          setOwner(dirToMake.getAbsolutePath(), perm.getOwner(), perm.getGroup());
+          setOwner(dirToMake.getAbsolutePath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
           LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
         }

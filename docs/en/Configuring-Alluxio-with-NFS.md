@@ -5,11 +5,13 @@ nickname: Alluxio with NFS
 group: Under Store
 priority: 5
 ---
+* Table of Contents
+{:toc}
 
 This guide describes how to configure Alluxio with [NFS](http://nfs.sourceforge.net) as the under
 storage system.
 
-# Initial Setup
+## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
 [compile Alluxio](Building-Alluxio-Master-Branch.html), or
@@ -28,7 +30,7 @@ manually.
 
 {% include Configuring-Alluxio-with-NFS/copy-alluxio-env.md %}
 
-# Configuring Alluxio
+## Configuring Alluxio
 
 Assuming the NFS clients are co-located with Alluxio nodes, all the NFS shares are mounted at
 directory `/mnt/nfs`, the following environment variable assignment needs to be added to
@@ -36,7 +38,7 @@ directory `/mnt/nfs`, the following environment variable assignment needs to be 
 
 {% include Configuring-Alluxio-with-NFS/underfs-address.md %}
 
-# Running Alluxio with NFS
+## Running Alluxio with NFS
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 

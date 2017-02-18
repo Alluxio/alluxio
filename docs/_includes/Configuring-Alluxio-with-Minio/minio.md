@@ -1,0 +1,11 @@
+```properties
+alluxio.underfs.address=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
+alluxio.underfs.s3.disable.dns.buckets=true
+alluxio.underfs.s3a.inherit_acl=false
+alluxio.underfs.s3.proxy.https.only=<USE_HTTPS>
+alluxio.underfs.s3.endpoint.http.port=<MINIO_HTTP_PORT>
+alluxio.underfs.s3.endpoint.https.port=<MINIO_HTTPS_PORT>
+aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
+aws.secretKey=<MINIO_SECRET_KEY_ID>
+```

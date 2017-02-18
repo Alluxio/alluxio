@@ -6,6 +6,9 @@ group: Under Store
 priority: 4
 ---
 
+* 内容列表
+{:toc}
+
 该指南介绍如何配置Alluxio以使用[Aliyun OSS](http://www.aliyun.com/product/oss/?lang=en)作为底层文件系统。对象存储服务（OSS）是阿里云提供的一个大容量、安全、高可靠性的云存储服务。
 
 ## 初始步骤
@@ -32,7 +35,8 @@ priority: 4
 
 {% include Configuring-Alluxio-with-OSS/oss-access.md %}
 
-其中, `fs.oss.accessKeyId `和`fs.oss.accessKeySecret`分别对应于阿里云[AccessKeys管理界面](https://ak-console.aliyun.com/#/accesskey)中实际的`Access Key ID`和`Access Key Secret`，`fs.oss.endpoint`则是Bucket概述中所说的Bucket所在的范围，其可能的取值有`oss-us-west-1.aliyuncs.com `，`oss-cn-shanghai.aliyuncs.com`等。
+此处, `fs.oss.accessKeyId `和`fs.oss.accessKeySecret`分别为`Access Key ID`字符串和`Access Key Secret`字符串，均受阿里云[AccessKeys管理界面](https://ak-console.aliyun.com/#/accesskey)管理；`fs.oss.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`oss-us-west-1.aliyuncs.com `，`oss-cn-shanghai.aliyuncs.com`。
+([OSS Internet Endpoint](https://intl.aliyun.com/help/doc-detail/31837.htm))。
 
 如果你不太确定如何更改`conf/alluxio-env.sh`，有另外一个方法提供这些配置。可以在`conf/`目录下创建一个`alluxio-site.properties`文件，并在其中添加：
 
@@ -52,7 +56,7 @@ priority: 4
 
 {% include Common-Commands/start-alluxio.md %}
 
-该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
+该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master UI。
 
 接着，你可以运行一个简单的示例程序：
 

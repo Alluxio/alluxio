@@ -54,4 +54,16 @@ public final class ChmodCommandTest extends AbstractAlluxioShellTest {
     permission = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getMode();
     Assert.assertEquals((short) 0755, permission);
   }
+
+  @Test
+  public void chmodSymbolic() throws IOException, AlluxioException {
+    clearLoginUser();
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+    mFsShell.run("chmod", "a=rwx", "/testFile");
+    int permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
+    Assert.assertEquals((short) 0777, permission);
+    mFsShell.run("chmod", "u=rwx,go=rx", "/testFile");
+    permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
+    Assert.assertEquals((short) 0755, permission);
+  }
 }

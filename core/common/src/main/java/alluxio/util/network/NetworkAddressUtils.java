@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterInquireClient;
 import alluxio.PropertyKey;
+import alluxio.exception.PreconditionMessage;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -295,7 +296,20 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets a local host name for the host this JVM is running on.
+   * Gets the local hostname to be used by the client. If this isn't configured, a non-loopback
+   * local hostname will be looked up.
+   *
+   * @return the local hostname for the client
+   */
+  public static String getClientHostName() {
+    if (Configuration.containsKey(PropertyKey.USER_HOSTNAME)) {
+      return Configuration.get(PropertyKey.USER_HOSTNAME);
+    }
+    return getLocalHostName();
+  }
+
+  /**
+   * Gets a local hostname for the host this JVM is running on.
    *
    * @return the local host name, which is not based on a loopback ip address
    */
@@ -586,9 +600,13 @@ public final class NetworkAddressUtils {
    * @return InetSocketAddress the active master address retrieved from zookeeper
    */
   public static InetSocketAddress getLeaderAddressFromZK(String zkLeaderPath) {
-    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
-    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ELECTION_PATH));
-    MasterInquireClient masterInquireClient = MasterInquireClient.getClient(
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS),
+        PreconditionMessage.ERR_ZK_ADDRESS_NOT_SET.toString(),
+        PropertyKey.ZOOKEEPER_ADDRESS.toString());
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+        PropertyKey.ZOOKEEPER_ELECTION_PATH.toString());
+    MasterInquireClient masterInquireClient =
+        MasterInquireClient.getClient(
         Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
         Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH), zkLeaderPath);
     try {

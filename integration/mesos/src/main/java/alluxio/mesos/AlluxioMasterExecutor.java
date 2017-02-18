@@ -75,8 +75,7 @@ public class AlluxioMasterExecutor implements Executor {
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
 
-          // TODO(jiri): Consider handling Format.main() failures gracefully.
-          Format.main(new String[] {"master"});
+          Format.format("master");
           AlluxioMaster.main(new String[] {});
 
           status =
@@ -85,7 +84,7 @@ public class AlluxioMasterExecutor implements Executor {
 
           driver.sendStatusUpdate(status);
         } catch (Exception e) {
-          e.printStackTrace();
+          LOG.error("Error starting Alluxio master", e);
         }
       }
     }.start();

@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 4
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio can be deployed through Mesos. This allows Mesos to manage the resources used by Alluxio. For the Alluxio
 master this is just the cpu and memory needed by the JVM process. For the worker it is the same, but with the addition
 of the memory needed by the ramdisk.
@@ -31,7 +34,7 @@ $ /usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
 
 Alternately, you may specify the Alluxio ports in your `alluxio-site.properties` file like so:
 
-```bash
+```properties
 alluxio.master.port=31398
 alluxio.master.web.port=31399
 
@@ -75,7 +78,7 @@ Note that the tarball should be compiled with `-Pmesos`. Released Alluxio tarbal
 By default, the Alluxio Mesos framework will download the Java 7 jdk and use it to run Alluxio. If you would prefer
 to use whatever version of java is available on the Mesos executor, set the configuration property
 
-```
+```properties
 alluxio.integration.mesos.jdk.url=LOCAL
 ```
 

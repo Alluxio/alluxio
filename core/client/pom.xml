@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.5.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-client</artifactId>
   <packaging>jar</packaging>
@@ -32,6 +32,11 @@
   </properties>
 
   <dependencies>
+    <!-- External dependencies -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -49,10 +54,20 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
 
-    <!-- Other Alluxio dependencies -->
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-protobuf</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-gcs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!--Add Alluxio underfs modules so by including the client uber jar, application can talk to different underfs.-->
@@ -88,30 +103,18 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-gcs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-   <dependency>
-      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-swift</artifactId>
       <version>${project.version}</version>
     </dependency>
 
-    <!-- Dependency for findbugs (SuppressFBWarnings) -->
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
-    </dependency>
-
-    <!-- Test Dependencies -->
+    <!-- External test dependencies -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava-testlib</artifactId>
-      <version>19.0</version>
       <scope>test</scope>
     </dependency>
 
-    <!-- Other projects' test-jars -->
+    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -135,7 +138,6 @@
         <dependency>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-framework</artifactId>
-          <version>${apache.curator.version}</version>
           <exclusions>
             <exclusion>
               <groupId>org.jboss.netty</groupId>
@@ -155,68 +157,63 @@
       <!-- curator-recipies and hadoop-client are in scope provided, as they are provided by Apache Spark runtime. -->
       <dependencies>
         <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
           <groupId>org.apache.curator</groupId>
-          <artifactId>curator-framework</artifactId>
-          <version>${apache.curator.version}</version>
+          <artifactId>curator-client</artifactId>
           <scope>provided</scope>
           <exclusions>
             <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
               <groupId>com.google.guava</groupId>
               <artifactId>guava</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
             </exclusion>
           </exclusions>
         </dependency>
         <dependency>
           <groupId>org.apache.curator</groupId>
-          <artifactId>curator-client</artifactId>
-          <version>${apache.curator.version}</version>
+          <artifactId>curator-framework</artifactId>
           <scope>provided</scope>
           <exclusions>
             <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
               <groupId>com.google.guava</groupId>
               <artifactId>guava</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
             </exclusion>
           </exclusions>
         </dependency>
         <dependency>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-recipes</artifactId>
-          <version>${apache.curator.version}</version>
           <scope>provided</scope>
           <exclusions>
             <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
               <groupId>com.google.guava</groupId>
               <artifactId>guava</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
             </exclusion>
           </exclusions>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-client</artifactId>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-          <version>2.6.6</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-          <version>2.6.6</version>
           <scope>provided</scope>
         </dependency>
       </dependencies>
@@ -230,7 +227,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
         <executions>
           <execution>
             <goals>
@@ -239,10 +235,15 @@
           </execution>
         </executions>
       </plugin>
+      <!--In the uber client jar, both proto and thrift are shaded to avoid version conflicts due to external-->
+      <!--dependencies introduced by external applications. The protobuf dependency is shaded in the public client-->
+      <!--jar rather than in the uber client jar, this is because it is also depended by other libraries included in-->
+      <!--the uber jar, thus shading protobuf during the uber jar packaging will over-shade references of protobuf.-->
+      <!--Ideally, the thrift dependency should also be shaded in the public jar in the same way as shading protobuf,-->
+      <!--however, this will break compilation due to existing signatures referencing thrift shared among modules.-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.2</version>
         <executions>
           <execution>
             <id>uber-jar</id>
@@ -253,10 +254,6 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <relocations>
-                <relocation>
-                  <pattern>com.google.protobuf</pattern>
-                  <shadedPattern>shaded.alluxio.com.google.protobuf</shadedPattern>
-                </relocation>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
                   <shadedPattern>shaded.alluxio.org.apache.thrift</shadedPattern>

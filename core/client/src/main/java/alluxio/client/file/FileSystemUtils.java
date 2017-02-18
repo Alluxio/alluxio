@@ -19,6 +19,7 @@ import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -158,7 +159,8 @@ public final class FileSystemUtils {
           throw Throwables.propagate(e);
         }
       }
-    }, 20 * Constants.MINUTE_MS /* timeout */, Constants.SECOND_MS /* sleep interval */);
+    }, WaitForOptions.defaults().setTimeout(20 * Constants.MINUTE_MS)
+        .setInterval(Constants.SECOND_MS));
   }
 
   /**

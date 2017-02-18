@@ -34,7 +34,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
    * Constructs a {@link LocalFirstPolicy}.
    */
   public LocalFirstPolicy() {
-    mLocalHostName = NetworkAddressUtils.getLocalHostName();
+    mLocalHostName = NetworkAddressUtils.getClientHostName();
   }
 
   @Override

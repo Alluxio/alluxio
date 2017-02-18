@@ -6,12 +6,12 @@ group: Features
 priority: 1
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 Alluxio提供了访问数据的文件系统接口。Alluxio上的文件提供了一次写入的语义：文件全部被写入之后就不会改变，而且文件在写操作完成之前不能进行读操作。Alluxio提供了两种不同的文件系统API，本地API和兼容Hadoop的API。本地API具有更好的性能，而兼容Hadoop的API使用户可以灵活利用Alluxio，但没必要修改用Hadoop API写的代码。
 
-# 本地API
+## 本地API
 
 Alluxio提供了Java版的API来访问和修改Alluxio文件系统命名空间内的文件。所有资源都可以通过代表资源路径的`AlluxioURI`来访问。
 
@@ -45,7 +45,7 @@ Alluxio有两种存储类型：Alluxio管理的存储和底层存储。Alluxio�
 {% for readtype in site.data.table.ReadType %}
 <tr>
   <td>{{readtype.readtype}}</td>
-  <td>{{site.data.table.cn.ReadType.[readtype.readtype]}}</td>
+  <td>{{site.data.table.cn.ReadType[readtype.readtype]}}</td>
 </tr>
 {% endfor %}
 </table>
@@ -58,7 +58,7 @@ Alluxio有两种存储类型：Alluxio管理的存储和底层存储。Alluxio�
 {% for writetype in site.data.table.WriteType %}
 <tr>
   <td>{{writetype.writetype}}</td>
-  <td>{{site.data.table.cn.WriteType.[writetype.writetype]}}</td>
+  <td>{{site.data.table.cn.WriteType[writetype.writetype]}}</td>
 </tr>
 {% endfor %}
 </table>
@@ -93,6 +93,12 @@ Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.
 
 对存在的文件和目录进行的所有操作都需要用户指定`AlluxioURI`。利用`AlluxioURI`，用户可以使用`FileSystem`的方法来访问资源。
 
+### Write Tier
+
+Alluxio允许客户端在向本地worker写入数据块时选择偏好的存储层。目前这种策略偏好只存在于本地worker，不支持远程workers; 远程worker会将数据块写到最高存储层。
+
+默认情况下，数据写入顶层。 用户可以通过修改`alluxio.user.file.write.tier.default` [配置文件](Configuration-Settings.html)属性改变默认设置，或通过`FileSystem#createFile(AlluxioURI)`的API调用选项覆盖默认设置。
+
 ### 读数据
 
 `AlluxioURI`可被用于执行Alluxio FileSystem的操作，例如：修改文件元数据，如ttl或pin状态，或者通过获取一个输入流来读取文件。
@@ -101,7 +107,7 @@ Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.
 
 {% include File-System-API/read-file.md %}
 
-# REST API
+## REST API
 
 考虑到与其他语言的可移植性，Alluxio本地API也可以以REST API的形式通过HTTP代理访问。
 
@@ -111,7 +117,7 @@ HTTP代理是一个独立的服务器，可以通过`${ALLUXIO_HOME}/bin/alluxio
 
 使用HTTP代理会影响系统性能。特别是使用代理需要额外一跳来访问。为了获得最佳性能，建议在每个计算节点运行代理服务器和Alluxio worker进程。
 
-# Hadoop API
+## Hadoop API
 
 Alluxio有一个原生客户端的封装，其提供了兼容Hadoop的`FileSystem`接口。利用该客户端实例，Hadoop的文件操作将被转换为FileSystem操作。最新的`FileSystem`接口的文档可以在[这里](http://hadoop.apache.org/docs/current/api/org/apache/hadoop/fs/FileSystem.html)找到。
 

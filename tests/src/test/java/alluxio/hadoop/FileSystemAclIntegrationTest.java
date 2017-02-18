@@ -15,16 +15,18 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.oss.OSSUnderFileSystem;
 import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.underfs.swift.SwiftUnderFileSystem;
-import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;
@@ -74,6 +76,12 @@ public final class FileSystemAclIntegrationTest {
     o.close();
   }
 
+  /**
+   * Deletes files in the given filesystem.
+   *
+   * @param fs given filesystem
+   * @throws IOException
+   */
   public static void cleanup(org.apache.hadoop.fs.FileSystem fs) throws IOException {
     FileStatus[] statuses = fs.listStatus(new Path("/"));
     for (FileStatus f : statuses) {
@@ -174,7 +182,8 @@ public final class FileSystemAclIntegrationTest {
     String defaultGroup = fs.getGroup();
 
     Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
-    Assert.assertEquals(defaultGroup, sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
+    // Group can different because local FS user to group mapping can be different from that
+    // in Alluxio.
 
     Assert.assertNotEquals(defaultOwner, nonexistentOwner);
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
@@ -207,7 +216,8 @@ public final class FileSystemAclIntegrationTest {
     String defaultGroup = fs.getGroup();
 
     Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileB)));
-    Assert.assertEquals(defaultGroup, sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileB)));
+    // Group can different because local FS user to group mapping can be different from that
+    // in Alluxio.
 
     Assert.assertNotEquals(defaultOwner, nonexistentOwner);
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
@@ -240,7 +250,8 @@ public final class FileSystemAclIntegrationTest {
     String defaultGroup = fs.getGroup();
 
     Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileC)));
-    Assert.assertEquals(defaultGroup, sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileC)));
+    // Group can different because local FS user to group mapping can be different from that
+    // in Alluxio.
 
     Assert.assertNotEquals(defaultOwner, nonexistentOwner);
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
@@ -452,13 +463,15 @@ public final class FileSystemAclIntegrationTest {
 
     for (int value : permissionValues) {
       Path file = new Path("/loadFileMetadataMode" + value);
+      sTFS.delete(file, false);
       // Create a file directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, file);
-      sUfs.create(ufsPath).close();
-      sUfs.setMode(ufsPath, (short) value);
+      sUfs.create(ufsPath, CreateOptions.defaults().setOwner("testuser").setGroup("testgroup")
+          .setMode(new Mode((short) value))).close();
       Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, file)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
-      Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
+      Assert.assertEquals(new Mode((short) value).toString(),
+          new Mode(sTFS.getFileStatus(file).getPermission().toShort()).toString());
     }
   }
 
@@ -475,14 +488,17 @@ public final class FileSystemAclIntegrationTest {
         Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
 
     for (int value : permissionValues) {
-      Path file = new Path("/loadDirMetadataMode" + value);
+      Path dir = new Path("/loadDirMetadataMode" + value + "/");
+      sTFS.delete(dir, true);
       // Create a directory directly in UFS and set the corresponding mode.
-      String ufsPath = PathUtils.concatPath(sUfsRoot, file);
-      sUfs.mkdirs(ufsPath, MkdirsOptions.defaults().setCreateParent(false));
-      sUfs.setMode(ufsPath, (short) value);
-      Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, file)));
+      String ufsPath = PathUtils.concatPath(sUfsRoot, dir);
+      sUfs.mkdirs(ufsPath,
+          MkdirsOptions.defaults().setCreateParent(false).setOwner("testuser").setGroup("testgroup")
+              .setMode(new Mode((short) value)));
+      Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, dir)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
-      Assert.assertEquals((short) value, sTFS.getFileStatus(file).getPermission().toShort());
+      Assert.assertEquals(new Mode((short) value).toString(),
+          new Mode(sTFS.getFileStatus(dir).getPermission().toShort()).toString());
     }
   }
 
@@ -550,7 +566,7 @@ public final class FileSystemAclIntegrationTest {
 
   @Test
   public void objectStoreSetOwner() throws Exception {
-    Assume.assumeTrue(CommonUtils.isUfsObjectStorage(sUfsRoot));
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(sUfsRoot));
 
     Path fileA = new Path("/objectfileA");
     final String newOwner = "new-user1";

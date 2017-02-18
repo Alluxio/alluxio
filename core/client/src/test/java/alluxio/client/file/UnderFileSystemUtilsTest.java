@@ -12,7 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.wire.FileInfo;
@@ -50,7 +50,7 @@ public final class UnderFileSystemUtilsTest {
   final String mOwnerA = "ownerA";
   final String mOwnerB = "ownerB";
   final String mGroup = "group";
-  final short mMode = 777;
+  final Mode mMode = Mode.createFullAccess();
 
   // Test paths in UFS
   final String mUfsRoot = "/ufs";
@@ -163,16 +163,16 @@ public final class UnderFileSystemUtilsTest {
   }
 
   private MkdirsOptions createMkdirsOptions(String owner) {
-    return MkdirsOptions.defaults().setCreateParent(false)
-        .setPermission(new Permission(owner, mGroup, mMode));
+    return MkdirsOptions.defaults().setCreateParent(false).setOwner(owner).setGroup(mGroup)
+        .setMode(mMode);
   }
 
-  private URIStatus createStatus(String owner, String group, short mode, boolean isMountPoint) {
+  private URIStatus createStatus(String owner, String group, Mode mode, boolean isMountPoint) {
     FileInfo info = new FileInfo();
     info.setMountPoint(true);
     info.setOwner(owner);
     info.setGroup(group);
-    info.setMode(mode);
+    info.setMode(mode.toShort());
     info.setMountPoint(isMountPoint);
     return new URIStatus(info);
   }

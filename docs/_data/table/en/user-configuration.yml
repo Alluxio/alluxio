@@ -24,17 +24,6 @@ alluxio.user.file.buffer.bytes:
   The size of the file buffer to use for file system reads/writes.
 alluxio.user.file.master.client.threads:
   The number of threads used by a file master client to talk to the file master.
-alluxio.user.file.waitcompleted.poll.ms:
-  The time interval to poll a file for its completion status when using waitCompleted.
-alluxio.user.file.worker.client.threads:
-  How many threads to use for file worker clients to read from workers.
-alluxio.user.file.write.location.policy.class:
-  The default location policy for choosing workers for writing a file's blocks
-alluxio.user.file.write.tier.default:
-  The default policy for choosing a tier when writing a block. Valid options are `HIGHEST` (write
-  block to the highest tier), `SECOND_HIGHEST` (write block to the second highest, or top tier if
-  only tier exists), `LOWEST` (write to the lowest tier). This policy is only applicable when a
-  client is writing to a local worker.
 alluxio.user.file.readtype.default:
   Default read type when creating Alluxio files.
   Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage,
@@ -42,6 +31,22 @@ alluxio.user.file.readtype.default:
   `CACHE` (write data into highest tier of local Alluxio if data needs to be read from under
   storage), `NO_CACHE` (no data interaction with Alluxio, if the read is from Alluxio data
   migration or eviction will not occur).
+alluxio.user.file.waitcompleted.poll.ms:
+  The time interval to poll a file for its completion status when using waitCompleted.
+alluxio.user.file.worker.client.threads:
+  How many threads to use for file worker clients to read from workers.
+alluxio.user.file.write.location.policy.class:
+  The default location policy for choosing workers for writing a file's blocks
+alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes:
+  The portion of space reserved in worker when user use the LocalFirstAvoidEvictionPolicy class
+  as file write location policy, default 0 MB.
+alluxio.user.file.write.tier.default:
+  The default tier for choosing a where to write a block. Valid option is any integer. Non-negative
+  values identify tiers starting from top going down (0 identifies the first tier, 1 identifies the
+  second tier, and so on). If the provided value is greater than the number of tiers, it identifies
+  the last tier. Negative values identify tiers starting from the bottom going up (-1 identifies the
+  last tier, -2 identifies the second to last tier, and so on). If the absolute value of the
+  provided value is greater than the number of tiers, it identifies the first tier.
 alluxio.user.file.writetype.default:
   Default write type when creating Alluxio files.
   Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio),
@@ -54,6 +59,8 @@ alluxio.user.file.seek.buffer.size.bytes:
   The file seek buffer size. This is only used when alluxio.user.file.cache.partially.read.block is enabled.
 alluxio.user.heartbeat.interval.ms:
   The interval (in milliseconds) between Alluxio worker's heartbeats
+alluxio.user.hostname:
+  The hostname to use for the client.
 alluxio.user.lineage.enabled:
   Flag to enable lineage feature.
 alluxio.user.lineage.master.client.threads:
@@ -93,3 +100,12 @@ alluxio.user.ufs.file.writer.class:
 alluxio.user.packet.streaming.enabled:
   If set to true, the packet streaming data transfer protocol is used. Packet streaming is an experimental feature. It
   provides a more efficient data transfer mechanism.
+alluxio.user.rpc.retry.base.sleep.ms:
+  Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
+  the base time in milliseconds in the exponential backoff.
+alluxio.user.rpc.retry.max.sleep.ms:
+  Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
+  the maximum wait time in milliseconds in the backoff.
+alluxio.user.rpc.retry.max.num.retry:
+  Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
+  the maximum number of retries.

@@ -98,9 +98,7 @@ public enum ExceptionMessage {
 
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
-  NO_ENTRY_TYPE("Could not find entry type for journal entry. Unrecognized fields: {0}"),
   UNEXPECTED_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
-  UNKNOWN_JOURNAL_ENTRY_TYPE("Unknown journal entry type: {0}"),
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
@@ -114,6 +112,11 @@ public enum ExceptionMessage {
   PARENT_CREATION_FAILED("Unable to create parent directories for path {0}"),
 
   // file system master
+  CANNOT_FREE_NON_EMPTY_DIR("Cannot free directory {0} which is not empty. Please set "
+      + "the \"recursive\" flag of free operation to true"),
+  CANNOT_FREE_NON_PERSISTED_FILE("Cannot free file {0} which is not persisted"),
+  CANNOT_FREE_PINNED_FILE("Cannot free file {0} which is pinned. Please unpin it first or"
+      + " set the \"forced\" flag of free operation to true"),
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
   INODE_DOES_NOT_EXIST_RETRIES("inodeId {0,number,#} does not exist; too many retries"),
   NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
@@ -153,7 +156,7 @@ public enum ExceptionMessage {
   UNKNOWN_LINEAGE_FILE_STATE("Unknown LineageFileState: {0}"),
 
   // client
-  DIFFERENT_MASTER_ADDRESS("Master address {0} is different from that in client context {1}"),
+  DIFFERENT_MASTER_ADDRESS("Master address {0} is different from that in file system context {1}"),
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // configuration
@@ -174,6 +177,12 @@ public enum ExceptionMessage {
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   PERMISSION_DENIED("Permission denied: {0}"),
   SECURITY_IS_NOT_ENABLED("Security is not enabled"),
+  INVALID_MODE("Invalid mode {0}"),
+  INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),
+  INVALID_MODE_PERMISSIONS(
+      "Invalid mode {0} - contains invalid segment {1} which has invalid permissions {2}"),
+  INVALID_MODE_TARGETS(
+      "Invalid mode {0} - contains invalid segment {1} which has invalid targets {2}"),
 
   // yarn
   YARN_NOT_ENOUGH_HOSTS(

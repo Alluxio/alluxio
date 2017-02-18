@@ -70,24 +70,30 @@ alluxio.underfs.s3.proxy.https.only:
 alluxio.underfs.s3.proxy.port:
   Optionally, specify a proxy port for communicating with S3.
 alluxio.underfs.s3.threads.max:
-  The maximum number of threads to use for communicating with S3. Includes both threads for data
-  upload and metadata operations. This number should be at least as large as the max admin threads
-  plus max upload threads. The default is 22 which is the sum of the default admin and upload
-  thread pool sizes.
+  The maximum number of threads to use for communicating with S3 and the maximum number of
+  concurrent connections to S3. Includes both threads for data upload and metadata operations. This
+  number should be at least as large as the max admin threads plus max upload threads. The default
+  is 40 which is the sum of the default admin and upload thread pool sizes.
 alluxio.underfs.s3.admin.threads.max:
   The maximum number of threads to use for metadata operations when communicating with S3. These
   operations may be fairly concurrent and frequent but should not take much time to process.
   The default is 20.
 alluxio.underfs.s3.upload.threads.max:
   The maximum number of threads to use for uploading data to S3 for multipart uploads. These
-  operations can be fairly expensive, however having too many threads may cause bandwidth starvation
-  for some threads causing errors. The default value is 2.
+  operations can be fairly expensive, so multiple threads are encouraged. However, this also splits
+  the bandwidth between threads, meaning the overall latency for completing an upload will be higher
+  for more threads. The default value is 20.
 alluxio.underfs.s3.disable.dns.buckets:
   Optionally, specify to make all S3 requests path style. The default value is false.
 alluxio.underfs.s3a.consistency.timeout.ms:
   The duration to wait for metadata consistency from the under storage. This is only used by
   internal Alluxio operations which should be successful, but may appear unsuccessful due to
   eventual consistency. The default value is 60000 milliseconds (1 minute).
+alluxio.underfs.s3a.request.timeout.ms:
+  The timeout for a single request to S3. Infinity if set to 0. Setting this property to a non-zero
+  value can improve performance by avoiding the long tail of requests to S3. For very slow
+  connections to S3, consider increasing this value or setting it to 0. The default value is 60000
+  milliseconds (1 minute).
 alluxio.underfs.s3a.secure.http.enabled:
   Whether or not to use HTTPS protocol when communicating with s3. The default value is false.
 alluxio.underfs.s3a.server.side.encryption.enabled:

@@ -19,6 +19,7 @@ import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioMasterInfo;
@@ -105,6 +106,12 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getLostWorkers() throws Exception {
+    List<WorkerInfo> lostWorkersInfo = getInfo(NO_PARAMS).getLostWorkers();
+    Assert.assertEquals(0, lostWorkersInfo.size());
+  }
+
+  @Test
   public void getMetrics() throws Exception {
     Assert.assertEquals(Long.valueOf(0), getInfo(NO_PARAMS).getMetrics()
         .get("master.CompleteFileOps"));
@@ -161,7 +168,12 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getUfsCapacity() throws Exception {
     Capacity ufsCapacity = getInfo(NO_PARAMS).getUfsCapacity();
-    Assert.assertTrue(ufsCapacity.getTotal() > 0);
+    if (UnderFileSystemUtils.isObjectStorage(mFileSystemMaster.getUfsAddress())) {
+      // Object storage ufs capacity is always invalid.
+      Assert.assertEquals(-1, ufsCapacity.getTotal());
+    } else {
+      Assert.assertTrue(ufsCapacity.getTotal() > 0);
+    }
   }
 
   @Test

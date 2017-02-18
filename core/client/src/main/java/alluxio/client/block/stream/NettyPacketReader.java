@@ -15,21 +15,20 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
-import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataNettyBufferV2;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,19 +122,14 @@ public final class NettyPacketReader implements PacketReader {
     mBytesToRead = len;
     mRequestType = type;
 
-    mChannel = context.acquireNettyChannel(address);
+    mChannel = mContext.acquireNettyChannel(address);
 
-    ChannelPipeline pipeline = mChannel.pipeline();
-    if (!(pipeline.last() instanceof RPCMessageDecoder)) {
-      throw new RuntimeException(String.format("Channel pipeline has unexpected handlers %s.",
-          pipeline.last().getClass().getCanonicalName()));
-    }
     mChannel.pipeline().addLast(new PacketReadHandler());
 
     Protocol.ReadRequest readRequest =
         Protocol.ReadRequest.newBuilder().setId(id).setOffset(offset).setLength(len)
             .setLockId(lockId).setSessionId(sessionId).setType(type).build();
-    mChannel.writeAndFlush(new RPCProtoMessage(readRequest))
+    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(readRequest)))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
@@ -145,7 +139,7 @@ public final class NettyPacketReader implements PacketReader {
   }
 
   @Override
-  public ByteBuf readPacket() throws IOException {
+  public DataBuffer readPacket() throws IOException {
     Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
     ByteBuf buf = null;
     mLock.lock();
@@ -181,7 +175,7 @@ public final class NettyPacketReader implements PacketReader {
           }
           mPosToRead += buf.readableBytes();
           Preconditions.checkState(mPosToRead - mStart <= mBytesToRead);
-          return buf;
+          return new DataNettyBufferV2(buf);
         }
       }
     } catch (Throwable e) {
@@ -212,7 +206,7 @@ public final class NettyPacketReader implements PacketReader {
           Protocol.ReadRequest cancelRequest =
               Protocol.ReadRequest.newBuilder().setId(mId).setCancel(true).setType(mRequestType)
                   .build();
-          mChannel.writeAndFlush(new RPCProtoMessage(cancelRequest))
+          mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(cancelRequest)))
               .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         }
       } catch (InterruptedException e) {
@@ -222,7 +216,7 @@ public final class NettyPacketReader implements PacketReader {
 
       while (true) {
         try {
-          ByteBuf buf = readPacket();
+          DataBuffer buf = readPacket();
           // A null packet indicates the end of the stream.
           if (buf == null) {
             return;
@@ -241,7 +235,6 @@ public final class NettyPacketReader implements PacketReader {
       }
     } finally {
       if (mChannel.isOpen()) {
-        Preconditions.checkState(mChannel.pipeline().last() instanceof PacketReadHandler);
         mChannel.pipeline().removeLast();
 
         // Make sure "autoread" is on before realsing the channel.
@@ -281,7 +274,7 @@ public final class NettyPacketReader implements PacketReader {
           msg.getClass().getCanonicalName(), msg);
 
       RPCProtoMessage response = (RPCProtoMessage) msg;
-      Protocol.Status status = ((Protocol.Response) response.getMessage()).getStatus();
+      Protocol.Status status = response.getMessage().<Protocol.Response>getMessage().getStatus();
       if (!Status.isOk(status)) {
         ctx.fireExceptionCaught(new IOException(String
             .format("Failed to read block %d from %s with status %s.", mId, mAddress,
@@ -343,8 +336,7 @@ public final class NettyPacketReader implements PacketReader {
      */
     private boolean acceptMessage(Object msg) {
       if (msg instanceof RPCProtoMessage) {
-        MessageLite header = ((RPCProtoMessage) msg).getMessage();
-        return header instanceof Protocol.Response;
+        return ((RPCProtoMessage) msg).getMessage().getType() == ProtoMessage.Type.RESPONSE;
       }
       return false;
     }
@@ -361,8 +353,10 @@ public final class NettyPacketReader implements PacketReader {
    * Resumes the underlying packet reader.
    */
   private void resume() {
-    mChannel.config().setAutoRead(true);
-    mChannel.read();
+    if (!mChannel.config().isAutoRead()) {
+      mChannel.config().setAutoRead(true);
+      mChannel.read();
+    }
   }
 
   /**

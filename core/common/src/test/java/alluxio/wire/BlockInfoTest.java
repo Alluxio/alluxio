@@ -21,6 +21,11 @@ import java.util.Random;
 
 public class BlockInfoTest {
 
+  /**
+   * Test to convert between a BlockInfo type and a json type.
+   *
+   * @throws Exception if an error occurs during convert between BlockInfo type and json type
+   */
   @Test
   public void json() throws Exception {
     BlockInfo blockInfo = createRandom();
@@ -29,6 +34,9 @@ public class BlockInfoTest {
     checkEquality(blockInfo, other);
   }
 
+  /**
+   * Test to convert between a thrift type and a wire type.
+   */
   @Test
   public void thrift() {
     BlockInfo blockInfo = createRandom();
@@ -36,6 +44,12 @@ public class BlockInfoTest {
     checkEquality(blockInfo, other);
   }
 
+  /**
+   * Check if the two BlockInfo object are equal.
+   *
+   * @param a the first BlockInfo object to be checked
+   * @param b the second BlockInfo object to be checked
+   */
   public void checkEquality(BlockInfo a, BlockInfo b) {
     Assert.assertEquals(a.getBlockId(), b.getBlockId());
     Assert.assertEquals(a.getLength(), b.getLength());
@@ -43,6 +57,11 @@ public class BlockInfoTest {
     Assert.assertEquals(a, b);
   }
 
+  /**
+   * Randomly create a BlockInfo object.
+   *
+   * @return the created BlockInfo object
+   */
   public static BlockInfo createRandom() {
     BlockInfo result = new BlockInfo();
     Random random = new Random();

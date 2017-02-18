@@ -5,7 +5,7 @@ nickname: 开发者向导
 group: Resources
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 感谢您对Alluxio的兴趣！我们非常感谢任何的新特性或者修复的贡献。

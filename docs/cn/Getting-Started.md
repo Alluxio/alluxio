@@ -5,6 +5,9 @@ group: User Guide
 priority: 0
 ---
 
+* 内容列表
+{:toc}
+
 体验Alluxio最简单的方式是单机本地安装。在这个快速上手指南里，我们会引导你在本地机器上安装Alluxio，挂载样本数据，对Alluxio中的数据执行一些基本操作。具体来说，包括:
 
 * 下载和配置Alluxio
@@ -20,7 +23,7 @@ priority: 0
 为了接下来的快速上手指南，你需要:
 
 * Mac OS X或Linux
-* Java 7或更新版本
+* [Java 7或更新版本](Java-Setup.html)
 * **[奖励]** AWS账户和秘钥
 
 ### 安装SSH(Mac OS X)

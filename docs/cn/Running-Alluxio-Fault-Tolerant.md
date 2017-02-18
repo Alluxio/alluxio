@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 3
 ---
 
+* 内容列表
+{:toc}
+
 Alluxio的容错通过多master实现。同一时刻，有多个master进程运行。其中一个被选举为leader，作为所有worker和
 client的通信首选。其余master进入备用状态，和leader共享日志，以确保和leader维护着同样的文件系统元数据并在
 leader失效时迅速接管leader的工作。
@@ -47,7 +50,7 @@ Alluxio使用共享文件系统存放日志。所有master必须能够从共享�
 举个例子，如果使用HDFS共享日志，记下NameNode的地址和端口，下面配置Alluxio时会用到。
 
 ## 配置Alluxio
-Zookeeper和共享文件系统都正常运行时，需要在每个主机上配置好`alluxio-env.sh`。
+Zookeeper和共享文件系统都正常运行时，需要在每个主机上配置好`alluxio-site.properties`。
 
 ### 外部可见地址
 
@@ -56,7 +59,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### 配置容错的Alluxio
 
-实现Alluxio上的容错，需要为Alluxio master、worker和client添加额外的配置。在`conf/alluxio-env.sh`中，以
+实现Alluxio上的容错，需要为Alluxio master、worker和client添加额外的配置。在`conf/alluxio-site.properties`中，以
 下java选项需要设置：
 
 <table class="table">
@@ -65,7 +68,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 <tr>
   <td>{{item.PropertyName}}</td>
   <td>{{item.Value}}</td>
-  <td>{{site.data.table.cn.java-options-for-fault-tolerance.[item.PropertyName]}}</td>
+  <td>{{site.data.table.cn.java-options-for-fault-tolerance[item.PropertyName]}}</td>
 </tr>
 {% endfor %}
 </table>
@@ -83,11 +86,11 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### Master配置
 
-除了以上配置，Alluxio master需要额外的配置，以下变量需在`conf/alluxio-env.sh`中正确设置：
+除了以上配置，Alluxio master需要额外的配置，以下变量需在`conf/alluxio-site.properties`中正确设置：
 
-    export ALLUXIO_MASTER_HOSTNAME=[externally visible address of this machine]
+   alluxio.master.hostname=[externally visible address of this machine]
 
-同样，指定正确的日志文件夹需在`ALLUXIO_JAVA_OPTS`中设置`alluxio.master.journal.folder`，举例而言，如果
+同样，指定正确的日志文件夹需在`conf/alluxio-site.properties`中设置`alluxio.master.journal.folder`，举例而言，如果
 使用HDFS来存放日志，可以添加：
 
     -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
@@ -97,7 +100,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### Worker配置
 
-只要以上参数配置正确，worker就可以咨询ZooKeeper，找到当前应当连接的master。所以，worker无需设置`ALLUXIO_MASTER_HOSTNAME`。
+只要以上参数配置正确，worker就可以咨询ZooKeeper，找到当前应当连接的master。所以，worker无需设置`alluxio.master.hostname`。
 
 > 注意: 当在容错模式下运行Alluxio, worker的默认心跳超时时间可能太短。
 > 为了能在master进行故障转移时正确处理master的状态，建议将worker的默认心跳超时时间设置的长点。
@@ -112,3 +115,11 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
     -Dalluxio.zookeeper.address=[zookeeper_hostname]:2181
 
 在client应用中正确设置，应用可以咨询ZooKeeper获取当前 leader master。
+
+#### HDFS API
+
+如果使用HDFS API与容错模式的Alluxio通信，使用`alluxio-ft://`模式来代替`alluxio://`。在URL中的所有主机名都将被忽略，相应地，`alluxio.zookeeper.address`配置会被读取，从而寻找Alluxio leader master。
+
+```bash
+hadoop fs -ls alluxio-ft:///directory
+```

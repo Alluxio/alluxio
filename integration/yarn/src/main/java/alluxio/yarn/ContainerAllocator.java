@@ -105,9 +105,12 @@ public final class ContainerAllocator {
    */
   public List<Container> allocateContainers() throws Exception {
     for (int attempt = 0; attempt < MAX_WORKER_CONTAINER_REQUEST_ATTEMPTS; attempt++) {
+      LOG.debug("Attempt {} of {} to allocate containers",
+          attempt, MAX_WORKER_CONTAINER_REQUEST_ATTEMPTS);
       int numContainersToRequest = mTargetNumContainers - mAllocatedContainerHosts.size();
+      LOG.debug("Requesting {} containers", numContainersToRequest);
       mOutstandingContainerRequestsLatch = new CountDownLatch(numContainersToRequest);
-      requestContainers(numContainersToRequest);
+      requestContainers();
       // Wait for all outstanding requests to be responded to before beginning the next round.
       mOutstandingContainerRequestsLatch.await();
       if (mAllocatedContainerHosts.size() == mTargetNumContainers) {
@@ -137,8 +140,7 @@ public final class ContainerAllocator {
     mOutstandingContainerRequestsLatch.countDown();
   }
 
-  private void requestContainers(int numContainersToRequest) throws Exception {
-    LOG.info("Requesting {} {} containers", numContainersToRequest, mContainerName);
+  private void requestContainers() throws Exception {
     String[] hosts;
     boolean relaxLocality;
     // YARN requires that priority for relaxed-locality requests is different from strict-locality.
@@ -152,6 +154,9 @@ public final class ContainerAllocator {
       relaxLocality = true;
       priority = Priority.newInstance(101);
     }
+
+    int numContainersToRequest = mTargetNumContainers - mAllocatedContainers.size();
+    LOG.info("Requesting {} {} containers", numContainersToRequest, mContainerName);
 
     if (hosts.length * mMaxContainersPerHost < numContainersToRequest) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_HOSTS

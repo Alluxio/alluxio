@@ -24,6 +24,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -135,6 +136,23 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     int bytesRead = mUfs.open(testFile).read(buf);
     Assert.assertTrue(bytesRead == TEST_BYTES.length);
     Assert.assertTrue(Arrays.equals(buf, TEST_BYTES));
+  }
+
+  /**
+   * Tests that no bytes are read from an empty file.
+   */
+  @Test
+  public void createOpenEmpty() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    createEmptyFile(testFile);
+    byte[] buf = new byte[0];
+    int bytesRead = mUfs.open(testFile).read(buf);
+    // TODO(adit): Consider making the return value uniform across UFSs
+    if (mUfs instanceof HdfsUnderFileSystem) {
+      Assert.assertTrue(bytesRead == -1);
+    } else {
+      Assert.assertTrue(bytesRead == 0);
+    }
   }
 
   /**

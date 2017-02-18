@@ -233,6 +233,10 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.cleanup(fs);
   }
 
+  /**
+   * Writes into files, then calculates and collects the write test statistics.
+   * @throws Exception if has error
+   */
   public static void writeTest() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());

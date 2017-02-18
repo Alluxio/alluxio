@@ -52,12 +52,13 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param client the block worker client
    * @param id the ID
    * @param length the block or file length
+   * @param tier the target tier
    * @return the {@link PacketOutStream} created
    * @throws IOException if it fails to create the object
    */
   public static PacketOutStream createLocalPacketOutStream(BlockWorkerClient client,
-      long id, long length) throws IOException {
-    PacketWriter packetWriter = LocalFilePacketWriter.create(client, id);
+      long id, long length, int tier) throws IOException {
+    PacketWriter packetWriter = LocalFilePacketWriter.create(client, id, tier);
     return new PacketOutStream(packetWriter, length);
   }
 
@@ -69,15 +70,16 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param sessionId the session ID
    * @param id the ID (block ID or UFS file ID)
    * @param length the block or file length
+   * @param tier the target tier
    * @param type the request type (either block write or UFS file write)
    * @return the {@link PacketOutStream} created
    * @throws IOException if it fails to create the object
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      InetSocketAddress address, long sessionId, long id, long length, Protocol.RequestType type)
-      throws IOException {
+      InetSocketAddress address, long sessionId, long id, long length, int tier,
+      Protocol.RequestType type) throws IOException {
     NettyPacketWriter packetWriter =
-        new NettyPacketWriter(context, address, id, length, sessionId, type);
+        new NettyPacketWriter(context, address, id, length, sessionId, tier, type);
     return new PacketOutStream(packetWriter, length);
   }
 
@@ -88,22 +90,23 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param clients a list of block worker clients
    * @param id the ID (block ID or UFS file ID)
    * @param length the block or file length
+   * @param tier the target tier
    * @param type the request type (either block write or UFS file write)
    * @return the {@link PacketOutStream} created
    * @throws IOException if it fails to create the object
    */
   public static PacketOutStream createReplicatedPacketOutStream(FileSystemContext context,
-      List<BlockWorkerClient> clients, long id, long length,
+      List<BlockWorkerClient> clients, long id, long length, int tier,
       Protocol.RequestType type) throws IOException {
-    String localHost = NetworkAddressUtils.getLocalHostName();
+    String localHost = NetworkAddressUtils.getClientHostName();
 
     List<PacketWriter> packetWriters = new ArrayList<>();
     for (BlockWorkerClient client : clients) {
       if (client.getWorkerNetAddress().getHost().equals(localHost)) {
-        packetWriters.add(LocalFilePacketWriter.create(client, id));
+        packetWriters.add(LocalFilePacketWriter.create(client, id, tier));
       } else {
         packetWriters.add(new NettyPacketWriter(context, client.getDataServerAddress(), id, length,
-            client.getSessionId(), type));
+            client.getSessionId(), tier, type));
       }
     }
     return new PacketOutStream(packetWriters, length);
@@ -250,23 +253,26 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
       return;
     }
 
-    if (mCurrentPacket.readableBytes() > 0) {
-      if (mCurrentPacket.writableBytes() == 0 || lastPacket) {
-        try {
+    if (mCurrentPacket.writableBytes() == 0 || lastPacket) {
+      try {
+        if (mCurrentPacket.readableBytes() > 0) {
           for (PacketWriter packetWriter : mPacketWriters) {
-            packetWriter.writePacket(mCurrentPacket.asReadOnly().retainedDuplicate());
+            mCurrentPacket.retain();
+            packetWriter.writePacket(mCurrentPacket.duplicate());
           }
-        } finally {
-          // We increment the refcount explicitly for every packet writer. So we need to release
-          // here.
-          mCurrentPacket.release();
+        } else {
+          Preconditions.checkState(lastPacket);
         }
-        mCurrentPacket = null;
+      } finally {
+        // If the packet has bytes to read, we increment its refcount explicitly for every packet
+        // writer. So we need to release here. If the packet has no bytes to read, then it has
+        // to be the last packet. It needs to be released as well.
+        mCurrentPacket.release();
       }
-      if (!lastPacket) {
-        mCurrentPacket = allocateBuffer();
-      }
-      return;
+      mCurrentPacket = null;
+    }
+    if (!lastPacket) {
+      mCurrentPacket = allocateBuffer();
     }
   }
 

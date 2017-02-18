@@ -11,7 +11,7 @@ priority: 1
 This page explains the configuration system of Alluxio and also provides recommendation on how to customize the configuration
 for Alluxio in different contexts.
 
-# Configuration in Alluxio
+## Configuration in Alluxio
 
 Alluxio runtime respects three sources of configuration settings:
 
@@ -24,11 +24,10 @@ Note that, configuration set through environment variables may not be realized b
 [supported Alluxio configuration properties](#appendix). Configuration in those files can be respected by Alluxio servers,
 as well as applications.
 
-
 The priority to load property values, from the highest to the lowest, is
 application settings (if any), environment variables, property files and the defaults.
 
-## Application settings
+### Application settings
 
 Alluxio shell users can use `-Dkey=property` to specify an Alluxio configuration value in commandline. For example,
 
@@ -43,12 +42,9 @@ Hadoop MapReduce users can set `"-Dkey=property"` in `hadoop jar` command-lines 
 
 Note that, setting Alluxio configuration in this way is application specific and required for each job or command.
 
-## Environment variables
+### Environment variables
 
-> When you want to
-> [start Alluxio server processes](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html)
-> with your specific configuration tuning, it is often fast and easy to set environment variables to customize basic Alluxio configuration.
-> However, these environment variables will not affect application processes like Spark or MapReduce that use Alluxio as a client.
+> When you want to [start Alluxio server processes](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html) with your specific configuration tuning, it is often fast and easy to set environment variables to customize basic Alluxio configuration. However, these environment variables will not affect application processes like Spark or MapReduce that use Alluxio as a client.
 
 
 Alluxio supports a few basic and very frequently used configuration properties via the environment variables in
@@ -110,11 +106,9 @@ Alternatively, you can create one from a template we provided in the source code
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-## Property files
+### Property files
 
-> Alluxio site property file `alluxio-site.properties` can overwrite Alluxio configuration regardless the JVM is an Alluxio server process or a job using Alluxio client.
-> For the site property file to be loaded, either the parent directory of this file is a part of the classpath of your target JVM process, or the file is in one of the pre-defined paths.
-
+> Alluxio site property file `alluxio-site.properties` can overwrite Alluxio configuration regardless the JVM is an Alluxio server process or a job using Alluxio client. For the site property file to be loaded, either the parent directory of this file is a part of the classpath of your target JVM process, or the file is in one of the pre-defined paths.
 
 Using Alluxio supported environment variables has two limitations:
 first it only provides basic Alluxio settings, and second it does not affect non-Alluxio JVMs like Spark or MapReduce.
@@ -148,7 +142,8 @@ Alternatively, with access to paths like `/etc/`, one can copy the site properti
 across processes regardless the JVM is an Alluxio server or a job using Alluxio client.
 
 
-# Appendix
+## Appendix
+
 All Alluxio configuration properties fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration),
@@ -156,7 +151,7 @@ All Alluxio configuration properties fall into one of the six categories:
 Alluxio with cluster managers like Mesos and YARN), and
 [Security specific](#security-configuration) (shared by Master, Worker, and User).
 
-## Common Configuration
+### Common Configuration
 
 The common configuration contains constants shared by different components.
 
@@ -166,12 +161,12 @@ The common configuration contains constants shared by different components.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.common-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.common-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
-## Master Configuration
+### Master Configuration
 
 The master configuration specifies information regarding the master node, such as the address and
 the port number.
@@ -182,12 +177,12 @@ the port number.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.master-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.master-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
-## Worker Configuration
+### Worker Configuration
 
 The worker configuration specifies information regarding the worker nodes, such as the address and
 the port number.
@@ -198,13 +193,13 @@ the port number.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.worker-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.worker-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
 
-## User Configuration
+### User Configuration
 
 The user configuration specifies values regarding file system access.
 
@@ -214,15 +209,14 @@ The user configuration specifies values regarding file system access.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.user-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.user-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
-## Cluster Management
+### Cluster Management
 
-When running Alluxio with cluster managers like Mesos and YARN, Alluxio has additional
-configuration options.
+When running Alluxio with cluster managers like Mesos and YARN, Alluxio has additional configuration options.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
@@ -230,17 +224,14 @@ configuration options.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.cluster-management.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.cluster-management[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
-## Security Configuration
+### Security Configuration
 
-The security configuration specifies information regarding the security features,
-such as authentication and file permission. Properties for authentication take effect for master,
-worker, and user. Properties for file permission only take effect for master.
-See [Security](Security.html) for more information about security features.
+The security configuration specifies information regarding the security features, such as authentication and file permission. Properties for authentication take effect for master, worker, and user. Properties for file permission only take effect for master. See [Security](Security.html) for more information about security features.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
@@ -248,15 +239,11 @@ See [Security](Security.html) for more information about security features.
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.security-configuration.[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.security-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
 
-## Configure multihomed networks
+### Configure Multihomed Networks
 
-Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more
-than one NICs and you want your Alluxio master to listen on all NICs, you can specify
-`alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node
-from connecting to any of its NIC. This is also the same case for other properties suffixed with
-`bind.host`.
+Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more than one NICs and you want your Alluxio master to listen on all NICs, you can specify `alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node from connecting to any of its NIC. This is also the same case for other properties suffixed with `bind.host`.

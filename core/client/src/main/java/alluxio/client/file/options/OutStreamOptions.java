@@ -20,14 +20,12 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
-import alluxio.security.authorization.Permission;
 import alluxio.util.CommonUtils;
+import alluxio.util.SecurityUtils;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -41,8 +39,11 @@ public final class OutStreamOptions {
   private long mTtl;
   private TtlAction mTtlAction;
   private FileWriteLocationPolicy mLocationPolicy;
+  private int mWriteTier;
   private WriteType mWriteType;
-  private Permission mPermission;
+  private String mOwner;
+  private String mGroup;
+  private Mode mMode;
   private String mUfsPath;
 
   /**
@@ -64,14 +65,11 @@ public final class OutStreamOptions {
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+    mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    mPermission = Permission.defaults();
-    try {
-      // Set user and group from user login module, and apply default file UMask.
-      mPermission.applyFileUMask().setOwnerFromLoginModule();
-    } catch (IOException e) {
-      // Fall through to system property approach
-    }
+    mOwner = SecurityUtils.getOwnerFromLoginModule();
+    mGroup = SecurityUtils.getGroupFromLoginModule();
+    mMode = Mode.defaults().applyFileUMask();
   }
 
   /**
@@ -118,10 +116,24 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the permission
+   * @return the owner
    */
-  public Permission getPermission() {
-    return mPermission;
+  public String getOwner() {
+    return mOwner;
+  }
+
+  /**
+   * @return the group
+   */
+  public String getGroup() {
+    return mGroup;
+  }
+
+  /**
+   * @return the mode
+   */
+  public Mode getMode() {
+    return mMode;
   }
 
   /**
@@ -129,6 +141,13 @@ public final class OutStreamOptions {
    */
   public String getUfsPath() {
     return mUfsPath;
+  }
+
+  /**
+   * @return the write tier
+   */
+  public int getWriteTier() {
+    return mWriteTier;
   }
 
   /**
@@ -181,6 +200,17 @@ public final class OutStreamOptions {
   }
 
   /**
+   * Sets the write tier.
+   *
+   * @param writeTier the write tier to use for this operation
+   * @return the updated options object
+   */
+  public OutStreamOptions setWriteTier(int writeTier) {
+    mWriteTier = writeTier;
+    return this;
+  }
+
+  /**
    * Sets the {@link WriteType}.
    *
    * @param writeType the {@link WriteType} to use for this operation. This will override both the
@@ -202,27 +232,29 @@ public final class OutStreamOptions {
   }
 
   /**
-   * Sets the {@link Permission}.
-   *
-   * @param perm the permission
-   * @return the updated options object
+   * @param owner the owner to set
+   * @return the updated object
    */
-  // TODO(binfan): remove or deprecate this method
-  public OutStreamOptions setPermission(Permission perm) {
-    mPermission = perm;
+  public OutStreamOptions setOwner(String owner) {
+    mOwner = owner;
     return this;
   }
 
   /**
-   * Sets the mode in {@link Permission}.
-   *
+   * @param group the group to set
+   * @return the updated object
+   */
+  public OutStreamOptions setGroup(String group) {
+    mGroup = group;
+    return this;
+  }
+
+  /**
    * @param mode the permission
    * @return the updated options object
    */
   public OutStreamOptions setMode(Mode mode) {
-    if (mode != null) {
-      mPermission.setMode(mode);
-    }
+    mMode = mode;
     return this;
   }
 
@@ -239,9 +271,12 @@ public final class OutStreamOptions {
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && mWriteTier == that.mWriteTier
         && Objects.equal(mWriteType, that.mWriteType)
         && Objects.equal(mUfsPath, that.mUfsPath)
-        && Objects.equal(mPermission, that.mPermission);
+        && Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mGroup, that.mGroup)
+        && Objects.equal(mMode, that.mMode);
   }
 
   @Override
@@ -250,9 +285,12 @@ public final class OutStreamOptions {
         mTtl,
         mTtlAction,
         mLocationPolicy,
+        mWriteTier,
         mWriteType,
         mUfsPath,
-        mPermission);
+        mOwner,
+        mGroup,
+        mMode);
   }
 
   @Override
@@ -260,10 +298,13 @@ public final class OutStreamOptions {
     return Objects.toStringHelper(this)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("ttl", mTtl)
-        .add("mTtlAction", mTtlAction)
+        .add("ttlAction", mTtlAction)
         .add("locationPolicy", mLocationPolicy)
+        .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
-        .add("permission", mPermission)
+        .add("owner", mOwner)
+        .add("group", mGroup)
+        .add("mode", mMode)
         .add("ufsPath", mUfsPath)
         .toString();
   }

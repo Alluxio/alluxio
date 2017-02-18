@@ -18,12 +18,20 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalFactory;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
 
 import java.io.IOException;
 
 public class MasterTestUtils {
+
+  /**
+   * Creates a new {@link FileSystemMaster} from journal.
+   *
+   * @return a new FileSystemMaster
+   * @throws IOException
+   */
   public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
@@ -35,6 +43,12 @@ public class MasterTestUtils {
     return fsMaster;
   }
 
+  /**
+   * Creates a new standby {@link FileSystemMaster} from journal.
+   *
+   * @return a new FileSystemMaster
+   * @throws IOException
+   */
   public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
@@ -58,6 +72,6 @@ public class MasterTestUtils {
         return master.getStartupConsistencyCheck().getStatus()
             == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE;
       }
-    }, Constants.MINUTE_MS);
+    }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
   }
 }

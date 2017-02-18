@@ -23,9 +23,9 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.AbstractMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.RenameOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalProtoUtils;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue.CompletePartitionEntry;
 import alluxio.proto.journal.KeyValue.CompleteStoreEntry;
@@ -41,8 +41,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Message;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,22 +107,21 @@ public final class KeyValueMaster extends AbstractMaster {
 
   @Override
   public synchronized void processJournalEntry(JournalEntry entry) throws IOException {
-    Message innerEntry = JournalProtoUtils.unwrap(entry);
     try {
-      if (innerEntry instanceof CreateStoreEntry) {
-        createStoreFromEntry((CreateStoreEntry) innerEntry);
-      } else if (innerEntry instanceof CompletePartitionEntry) {
-        completePartitionFromEntry((CompletePartitionEntry) innerEntry);
-      } else if (innerEntry instanceof CompleteStoreEntry) {
-        completeStoreFromEntry((CompleteStoreEntry) innerEntry);
-      } else if (innerEntry instanceof DeleteStoreEntry) {
-        deleteStoreFromEntry((DeleteStoreEntry) innerEntry);
-      } else if (innerEntry instanceof RenameStoreEntry) {
-        renameStoreFromEntry((RenameStoreEntry) innerEntry);
-      } else if (innerEntry instanceof MergeStoreEntry) {
-        mergeStoreFromEntry((MergeStoreEntry) innerEntry);
+      if (entry.hasCreateStore()) {
+        createStoreFromEntry(entry.getCreateStore());
+      } else if (entry.hasCompletePartition()) {
+        completePartitionFromEntry(entry.getCompletePartition());
+      } else if (entry.hasCompleteStore()) {
+        completeStoreFromEntry(entry.getCompleteStore());
+      } else if (entry.hasDeleteStore()) {
+        deleteStoreFromEntry(entry.getDeleteStore());
+      } else if (entry.hasRenameStore()) {
+        renameStoreFromEntry(entry.getRenameStore());
+      } else if (entry.hasMergeStore()) {
+        mergeStoreFromEntry(entry.getMergeStore());
       } else {
-        throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
+        throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
       }
     } catch (AlluxioException e) {
       throw new RuntimeException(e);
@@ -162,7 +159,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * Marks a partition complete and adds it to an incomplete key-value store.
    *
    * @param path URI of the key-value store
-   * @param info information of this completed parition
+   * @param info information of this completed partition
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    * @throws InvalidPathException if the path is invalid
@@ -338,7 +335,7 @@ public final class KeyValueMaster extends AbstractMaster {
     long oldFileId = getFileId(oldUri);
     checkIsCompletePartition(oldFileId, oldUri);
     try {
-      mFileSystemMaster.rename(oldUri, newUri);
+      mFileSystemMaster.rename(oldUri, newUri, RenameOptions.defaults());
     } catch (FileAlreadyExistsException e) {
       throw new FileAlreadyExistsException(
           String.format("failed to rename store:the path %s has been used", newUri), e);
@@ -382,7 +379,8 @@ public final class KeyValueMaster extends AbstractMaster {
     // Rename fromUri to "toUri/%s-%s" % (last component of fromUri, UUID).
     // NOTE: rename does not change the existing block IDs.
     mFileSystemMaster.rename(fromUri, new AlluxioURI(PathUtils.concatPath(toUri.toString(),
-        String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))));
+        String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))),
+        RenameOptions.defaults());
     mergeStoreInternal(fromFileId, toFileId);
 
     writeJournalEntry(newMergeStoreEntry(fromFileId, toFileId));
@@ -428,8 +426,8 @@ public final class KeyValueMaster extends AbstractMaster {
   private JournalEntry newCompletePartitionEntry(long fileId, PartitionInfo info) {
     CompletePartitionEntry completePartition =
         CompletePartitionEntry.newBuilder().setStoreId(fileId).setBlockId(info.getBlockId())
-            .setKeyStartBytes(ByteString.copyFrom(info.bufferForKeyStart()))
-            .setKeyLimitBytes(ByteString.copyFrom(info.bufferForKeyLimit()))
+            .setKeyStart(new String(info.bufferForKeyStart().array()))
+            .setKeyLimit(new String(info.bufferForKeyLimit().array()))
             .setKeyCount(info.getKeyCount()).build();
     return JournalEntry.newBuilder().setCompletePartition(completePartition).build();
   }

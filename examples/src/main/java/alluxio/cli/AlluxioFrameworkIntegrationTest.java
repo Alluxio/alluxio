@@ -22,12 +22,13 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
@@ -99,8 +100,7 @@ public final class AlluxioFrameworkIntegrationTest {
     try {
       startAlluxioFramework(env);
       LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
-      String masterHostName =
-          Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
+      String masterHostName = NetworkAddressUtils.getLocalHostName();
       int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
       InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
       try (final BlockMasterClient client = new RetryHandlingBlockMasterClient(null,
@@ -120,7 +120,7 @@ public final class AlluxioFrameworkIntegrationTest {
                   throw Throwables.propagate(e);
                 }
               }
-            }, 15 * Constants.MINUTE_MS);
+            }, WaitForOptions.defaults().setTimeout(15 * Constants.MINUTE_MS));
       }
       LOG.info("Worker registered");
       basicAlluxioTests();

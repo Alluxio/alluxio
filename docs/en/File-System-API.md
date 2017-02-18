@@ -16,7 +16,7 @@ compatible API. The native API provides better performance, while the Hadoop com
 users the flexibility of leveraging Alluxio without having to modify existing code written using
 Hadoop's API.
 
-# Native API
+## Native API
 
 Alluxio provides a Java like API for accessing and modifying files in the Alluxio namespace. All
 resources are specified through a `AlluxioURI` which represents the path to the resource.
@@ -62,7 +62,7 @@ over the under storage system.
 {% for readtype in site.data.table.ReadType %}
 <tr>
   <td>{{readtype.readtype}}</td>
-  <td>{{site.data.table.en.ReadType.[readtype.readtype]}}</td>
+  <td>{{site.data.table.en.ReadType[readtype.readtype]}}</td>
 </tr>
 {% endfor %}
 </table>
@@ -75,14 +75,14 @@ Below is a table of the expected behaviors of `WriteType`
 {% for writetype in site.data.table.WriteType %}
 <tr>
   <td>{{writetype.writetype}}</td>
-  <td>{{site.data.table.en.WriteType.[writetype.writetype]}}</td>
+  <td>{{site.data.table.en.WriteType[writetype.writetype]}}</td>
 </tr>
 {% endfor %}
 </table>
 
 ### Location policy
 
-Alluxio provides location policy to choose which workers to store the blocks of a file. 
+Alluxio provides location policy to choose which workers to store the blocks of a file.
 
 Using Alluxio's Java API, users can set the policy in `CreateFileOptions` for writing files and `OpenFileOptions` for reading files into
 Alluxio.
@@ -116,18 +116,9 @@ Alluxio allows a client to select a tier preference when writing blocks to a loc
 this policy preference exists only for local workers, not remote workers; remote workers will write
 blocks to the highest tier.
 
-
-Below is a table of the expected behaviors of the different `WriteTier` options:
-<table class="table table-striped">
-<tr><th>Write Tier</th><th>Behavior</th>
-</tr>
-{% for writetier in site.data.table.WriteTier %}
-<tr>
-  <td>{{writetier.writetier}}</td>
-  <td>{{site.data.table.en.WriteTier.[writetier.writetier]}}</td>
-</tr>
-{% endfor %}
-</table>
+By default, data is written to the top tier. Users can modify the default setting through the
+`alluxio.user.file.write.tier.default` [configuration](Configuration-Settings.html) property or
+override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
 
 ### Accessing an existing file in Alluxio
 
@@ -143,7 +134,7 @@ For example, to read a file:
 
 {% include File-System-API/read-file.md %}
 
-# REST API
+## REST API
 
 For portability with other languages, the Alluxio native API is also accessible via an HTTP proxy in
 the form of a REST API.
@@ -158,7 +149,7 @@ There are performance implications of using the HTTP proxy. In particular, using
 extra hop. For optimal performance, it is recommended to run the proxy server an Alluxio worker on each
 compute node.
 
-# Hadoop API
+## Hadoop API
 
 Alluxio has a wrapper of the native client which provides the Hadoop compatible `FileSystem`
 interface. With this client, Hadoop file operations will be translated to FileSystem

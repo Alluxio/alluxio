@@ -40,7 +40,7 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
   private long mBlockId;
   private boolean mClosed;
 
-  // TODO(binfan): take parition id as input
+  // TODO(binfan): take partition id as input
   /**
    * Constructs {@link BaseKeyValuePartitionReader} given a block id.
    *

@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -85,6 +86,20 @@ public final class UnderFileSystemUtils {
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * Returns whether the given ufs address indicates a object storage ufs.
+   * @param ufsAddress the ufs address
+   * @return true if the under file system is a object storage; false otherwise
+   */
+  public static boolean isObjectStorage(String ufsAddress) {
+    return ufsAddress.startsWith(Constants.HEADER_S3)
+        || ufsAddress.startsWith(Constants.HEADER_S3N)
+        || ufsAddress.startsWith(Constants.HEADER_S3A)
+        || ufsAddress.startsWith(Constants.HEADER_GCS)
+        || ufsAddress.startsWith(Constants.HEADER_SWIFT)
+        || ufsAddress.startsWith(Constants.HEADER_OSS);
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation

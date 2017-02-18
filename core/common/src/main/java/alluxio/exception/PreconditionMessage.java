@@ -50,6 +50,7 @@ public enum PreconditionMessage {
       "Failed to remove agent %d from ufs manager's internal state."),
   ERR_UNEXPECTED_EOF("Reached EOF unexpectedly."),
   ERR_WRITE_BUFFER_NULL("Cannot write a null input buffer"),
+  ERR_ZK_ADDRESS_NOT_SET("Cannot get leader address from zookeeper; %s is not set"),
   FILE_TO_PERSIST_MUST_BE_COMPLETE("File being persisted must be complete"),
   FILE_WRITE_LOCATION_POLICY_UNSPECIFIED("The location policy is not specified"),
   GCS_BUCKET_MUST_BE_SET("The %s system property must be set to use the GCSUnderStorageCluster"),
@@ -64,7 +65,6 @@ public enum PreconditionMessage {
   REMOTE_CLIENT_BUT_LOCAL_HOSTNAME(
       "Acquire Remote Worker Client cannot not be called with local hostname"),
   S3_BUCKET_MUST_BE_SET("The %s system property must be set to use the S3UnderStorageCluster"),
-  TTL_ONLY_FOR_FILE("TTL can only be set for files"),
   URI_HOST_NULL("URI hostname must not be null"),
   URI_PORT_NULL("URI port must not be null"),
   URI_KEY_VALUE_STORE_NULL("URI of key-value store must not be null"),

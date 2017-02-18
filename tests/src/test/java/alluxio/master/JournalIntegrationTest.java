@@ -43,6 +43,7 @@ import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -141,9 +142,9 @@ public class JournalIntegrationTest {
       JournalWriter writer = journal.getNewWriter();
       writer.getCheckpointOutputStream(0).close();
       // Flush multiple times, without writing to the log.
-      writer.getEntryOutputStream().flush();
-      writer.getEntryOutputStream().flush();
-      writer.getEntryOutputStream().flush();
+      writer.flushEntryStream();
+      writer.flushEntryStream();
+      writer.flushEntryStream();
       UnderFileStatus[] paths = UnderFileSystem.Factory.get(journalFolder)
           .listStatus(journal.getCompletedDirectory());
       // Make sure no new empty files were created.
@@ -502,7 +503,7 @@ public class JournalIntegrationTest {
             return false;
           }
         }
-      }, 60 * Constants.SECOND_MS);
+      }, WaitForOptions.defaults().setTimeout(60 * Constants.SECOND_MS));
     } finally {
       fsMaster.stop();
     }

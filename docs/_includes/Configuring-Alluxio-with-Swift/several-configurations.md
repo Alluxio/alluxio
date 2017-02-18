@@ -1,4 +1,4 @@
-```bash
+```properties
 fs.swift.user=<swift-user>
 fs.swift.tenant=<swift-tenant>
 fs.swift.password=<swift-user-password>

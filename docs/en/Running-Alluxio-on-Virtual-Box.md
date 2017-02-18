@@ -6,12 +6,15 @@ group: Deploying Alluxio
 priority: 2
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio can be deployed on [VirtualBox](https://www.virtualbox.org/) on your local machine
 using the [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)
 that come with Alluxio. The scripts let you create, configure, and destroy clusters that come
 automatically configured with HDFS.
 
-# Prerequisites
+## Prerequisites
 
 **Install VirtualBox**
 
@@ -40,7 +43,7 @@ in `deploy/vagrant` run:
 
 {% include Running-Alluxio-on-Virtual-Box/install-pip.md %}
 
-# Launch a Cluster
+## Launch a Cluster
 
 Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem by running the script
 under `deploy/vagrant`:
@@ -49,7 +52,7 @@ under `deploy/vagrant`:
 
 Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs an Alluxio master.
 
-# Access the cluster
+## Access the cluster
 
 **Access through Web UI**
 
@@ -91,7 +94,7 @@ From a node in the cluster, you can ssh to other nodes in the cluster without pa
 
 {% include Running-Alluxio-on-Virtual-Box/ssh-other-node.md %}
 
-# Destroy the cluster
+## Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run:
 

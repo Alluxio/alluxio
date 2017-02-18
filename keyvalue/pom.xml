@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.5.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-keyvalue</artifactId>
   <packaging>pom</packaging>
@@ -23,8 +23,8 @@
   <description>Parent POM for Alluxio Key Value Store</description>
 
   <modules>
-    <module>common</module>
     <module>client</module>
+    <module>common</module>
     <module>server</module>
   </modules>
 
