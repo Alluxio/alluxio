@@ -39,6 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class GreedyEvictor implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private List<BlockMeta> victimBlocks;
 
   /**
    * Creates a new instance of {@link GreedyEvictor}.

@@ -39,16 +39,16 @@ public final class DynamicResourcePoolTest {
     /**
      * Constructor of Resource class.
      *
-     * @param i the number represent the Resource entity
+     * @param i the number represent the current capacity of Resource
      */
     public Resource(Integer i) {
       mInteger = i;
     }
 
     /**
-     * Set the the number representing Resource entity and return Resource Object.
+     * Set the the number representing current capacity of Resource and return Resource Object.
      *
-     * @param i
+     * @param i the value of member variable represent the current capacity of Resource
      * @return the Resource object
      */
     public Resource setInteger(Integer i) {
