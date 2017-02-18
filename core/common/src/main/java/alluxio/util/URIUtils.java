@@ -31,11 +31,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class URIUtils {
-  private URIUtils() {} // prevent instantiation
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   public static final char QUERY_SEPARATOR = '&';
   public static final char QUERY_KEY_VALUE_SEPARATOR = '=';
+
+  private URIUtils() {} // prevent instantiation
 
   /**
    * Generates a query string from a {@link Map <String, String>} of key/value pairs.

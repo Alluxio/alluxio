@@ -60,7 +60,7 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public abstract class ThriftClientPool<T extends AlluxioService.Client>
     extends DynamicResourcePool<T> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ThriftClientPool.class);
 
   private final TransportProvider mTransportProvider;
   private final String mServiceName;

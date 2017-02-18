@@ -33,7 +33,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BufferUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BufferUtils.class);
+
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
 

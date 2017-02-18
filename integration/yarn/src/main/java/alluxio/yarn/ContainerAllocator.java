@@ -35,7 +35,8 @@ import java.util.concurrent.CountDownLatch;
  * A class for negotiating with YARN to allocate containers.
  */
 public final class ContainerAllocator {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ContainerAllocator.class);
+
   private static final int MAX_WORKER_CONTAINER_REQUEST_ATTEMPTS = 20;
 
   private final String mContainerName;

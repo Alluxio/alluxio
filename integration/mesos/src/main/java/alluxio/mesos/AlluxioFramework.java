@@ -38,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class AlluxioFramework {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioFramework.class);
 
   @Parameter(names = {"-m", "--mesos"}, description = "Mesos master location, e.g. localhost:5050")
   private String mMesosMaster;

@@ -29,7 +29,7 @@ import java.util.Properties;
  * Utilities for working with Alluxio configurations.
  */
 public final class ConfigurationUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUtils.class);
 
   private ConfigurationUtils() {} // prevent instantiation
 

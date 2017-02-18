@@ -36,7 +36,7 @@ public interface GroupMappingService {
    * Factory for creating a new instance.
    */
   class Factory {
-    private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+    private static final Logger LOG = LoggerFactory.getLogger(GroupMappingService.Factory.class);
 
     // TODO(chaomin): maintain a map from SECURITY_GROUP_MAPPING_CLASS name to cachedGroupMapping.
     // Currently the single global cached GroupMappingService assumes that there is no dynamic
