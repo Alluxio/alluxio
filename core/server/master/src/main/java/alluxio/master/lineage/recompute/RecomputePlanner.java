@@ -35,7 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class RecomputePlanner {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(RecomputePlanner.class);
 
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;

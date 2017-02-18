@@ -44,7 +44,7 @@ import java.util.Set;
  * the corresponding worker polls.
  */
 public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultAsyncPersistHandler.class);
 
   private final FileSystemMasterView mFileSystemMasterView;
 

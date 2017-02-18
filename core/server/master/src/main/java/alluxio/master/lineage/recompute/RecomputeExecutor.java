@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class RecomputeExecutor implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(RecomputeExecutor.class);
 
   private static final int DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE = 10;
   private final RecomputePlanner mPlanner;

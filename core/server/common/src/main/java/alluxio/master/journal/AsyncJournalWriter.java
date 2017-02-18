@@ -32,8 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class AsyncJournalWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private final JournalWriter mJournalWriter;
   private final ConcurrentLinkedQueue<JournalEntry> mQueue;
   /** Represents the count of entries added to the journal queue. */

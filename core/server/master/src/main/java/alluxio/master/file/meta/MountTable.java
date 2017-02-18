@@ -47,9 +47,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MountTable implements JournalCheckpointStreamable {
-  public static final String ROOT = "/";
+  private static final Logger LOG = LoggerFactory.getLogger(MountTable.class);
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  public static final String ROOT = "/";
 
   private final ReentrantReadWriteLock mLock;
   private final Lock mReadLock;

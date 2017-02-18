@@ -28,7 +28,7 @@ import java.util.Set;
  * This class is a Thrift handler for meta master RPCs.
  */
 public final class MetaMasterClientServiceHandler implements MetaMasterClientService.Iface {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(MetaMasterClientServiceHandler.class);
 
   private final AlluxioMasterService mAlluxioMaster;
 

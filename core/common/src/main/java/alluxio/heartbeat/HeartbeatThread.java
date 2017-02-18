@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class HeartbeatThread implements Runnable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(HeartbeatThread.class);
 
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;

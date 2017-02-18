@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(LocalAlluxioCluster.class);
 
   private LocalAlluxioMaster mMaster;
 

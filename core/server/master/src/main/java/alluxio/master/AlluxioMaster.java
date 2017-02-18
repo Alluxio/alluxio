@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class AlluxioMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioMaster.class);
 
   /**
    * Starts the Alluxio master.

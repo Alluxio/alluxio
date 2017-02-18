@@ -42,7 +42,7 @@ public interface AsyncPersistHandler {
    */
   @ThreadSafe
   class Factory {
-    public static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+    public static final Logger LOG = LoggerFactory.getLogger(AsyncPersistHandler.Factory.class);
 
     private Factory() {} // prevent instantiation
 

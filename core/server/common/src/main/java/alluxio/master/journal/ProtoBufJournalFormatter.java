@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ProtoBufJournalFormatter implements JournalFormatter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ProtoBufJournalFormatter.class);
 
   /**
    * Constructs a new {@link ProtoBufJournalFormatter}.

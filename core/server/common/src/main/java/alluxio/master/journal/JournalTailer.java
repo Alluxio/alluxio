@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class JournalTailer {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(JournalTailer.class);
 
   /** The master to apply all the journal entries to. */
   private final Master mMaster;

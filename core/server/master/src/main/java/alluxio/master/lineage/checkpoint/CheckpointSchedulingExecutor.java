@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class CheckpointSchedulingExecutor implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(CheckpointSchedulingExecutor.class);
 
   private final LineageMaster mLineageMaster;
   private final FileSystemMaster mFileSystemMaster;

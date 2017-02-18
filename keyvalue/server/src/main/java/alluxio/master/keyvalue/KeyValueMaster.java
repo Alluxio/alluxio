@@ -60,7 +60,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueMaster extends AbstractMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final FileSystemMaster mFileSystemMaster;
 
   /** Map from file id of a complete store to the list of partitions in this store. */

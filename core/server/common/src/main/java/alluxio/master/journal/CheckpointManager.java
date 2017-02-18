@@ -39,7 +39,7 @@ import java.io.IOException;
  * </pre>
  */
 public final class CheckpointManager {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(CheckpointManager.class);
 
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;

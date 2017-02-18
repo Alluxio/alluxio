@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class JournalTailerThread extends Thread {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(JournalTailerThread.class);
 
   /** The master to apply the journal entries to. */
   private final Master mMaster;
