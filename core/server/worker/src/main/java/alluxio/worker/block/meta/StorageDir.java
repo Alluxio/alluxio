@@ -43,7 +43,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class StorageDir {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(StorageDir.class);
+
   private final long mCapacityBytes;
   /** A map from block id to block metadata. */
   private Map<Long, BlockMeta> mBlockIdToBlockMap;

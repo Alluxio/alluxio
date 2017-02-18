@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DataServerMessage {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(DataServerMessage.class);
 
   // The size of the prefix of the header: frame length (long), messageType (int)
   private static final int HEADER_PREFIX_LENGTH = 12;

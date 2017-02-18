@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class UnderFileSystemDataServerHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemDataServerHandler.class);
 
   /** Filesystem worker which handles file level operations for the worker. */
   private final FileSystemWorker mWorker;

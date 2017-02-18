@@ -28,7 +28,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class SessionCleaner implements Runnable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(SessionCleaner.class);
+
   /** The object which supports cleaning up sessions. */
   private final SessionCleanupCallback mSessionCleanupCallback;
   /** Milliseconds between each check. */

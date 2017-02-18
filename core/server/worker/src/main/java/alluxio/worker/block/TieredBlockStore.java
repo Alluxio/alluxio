@@ -81,7 +81,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class TieredBlockStore implements BlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
+
   private static final int MAX_RETRIES =
           Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
 

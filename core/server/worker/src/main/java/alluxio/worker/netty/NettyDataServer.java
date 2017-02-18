@@ -43,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class NettyDataServer implements DataServer {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(NettyDataServer.class);
 
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;

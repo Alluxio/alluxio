@@ -39,7 +39,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class SpaceReserver implements HeartbeatExecutor  {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(SpaceReserver.class);
+
   private final BlockWorker mBlockWorker;
 
   /** Association between storage tier aliases and ordinals for the worker. */

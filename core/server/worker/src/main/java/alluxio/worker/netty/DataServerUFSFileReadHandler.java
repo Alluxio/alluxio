@@ -36,8 +36,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DataServerUFSFileReadHandler extends DataServerReadHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final FileSystemWorker mWorker;
 

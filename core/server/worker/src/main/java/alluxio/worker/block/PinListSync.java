@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class PinListSync implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PinListSync.class);
 
   /** Block worker handle responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
