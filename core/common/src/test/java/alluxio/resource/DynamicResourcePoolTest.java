@@ -30,7 +30,8 @@ import java.util.concurrent.TimeoutException;
 public final class DynamicResourcePoolTest {
 
   /**
-   * Resource class used to be test DynamicResourcePool.
+   * Resource class used to test {@link DynamicResourcePool} and referenced by
+   * {@link DynamicResourcePool}.
    */
   private static final class Resource {
     private Integer mInteger = 0;
@@ -40,16 +41,16 @@ public final class DynamicResourcePoolTest {
     /**
      * Constructor of Resource class.
      *
-     * @param i the number represent the current capacity of Resource
+     * @param i the number represents the current capacity of Resource
      */
     public Resource(Integer i) {
       mInteger = i;
     }
 
     /**
-     * Set the the number representing current capacity of Resource and return Resource Object.
+     * Sets the the number representing current capacity of Resource and returns Resource Object.
      *
-     * @param i the value of member variable represent the current capacity of Resource
+     * @param i the value of member variable represents the current capacity of Resource
      * @return the Resource object
      */
     public Resource setInteger(Integer i) {
