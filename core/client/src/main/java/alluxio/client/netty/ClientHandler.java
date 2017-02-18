@@ -11,7 +11,6 @@
 
 package alluxio.client.netty;
 
-import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;

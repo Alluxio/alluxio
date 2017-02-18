@@ -12,7 +12,6 @@
 package alluxio.client.netty;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.network.protocol.RPCMessage;

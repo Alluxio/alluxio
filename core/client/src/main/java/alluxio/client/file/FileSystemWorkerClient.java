@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AbstractThriftClient;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CloseUfsFileOptions;

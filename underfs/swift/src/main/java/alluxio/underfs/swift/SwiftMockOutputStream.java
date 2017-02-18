@@ -11,7 +11,6 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.Constants;
 import alluxio.util.io.PathUtils;
 
 import org.javaswift.joss.model.Account;

@@ -11,7 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.Constants;
 import alluxio.client.RemoteBlockWriter;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
@@ -21,8 +20,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 

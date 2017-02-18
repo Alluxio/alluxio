@@ -12,7 +12,6 @@
 package alluxio.client.block.stream;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.network.protocol.RPCProtoMessage;

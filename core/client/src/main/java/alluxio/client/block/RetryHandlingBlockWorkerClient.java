@@ -13,7 +13,6 @@ package alluxio.client.block;
 
 import alluxio.AbstractThriftClient;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.AlluxioException;

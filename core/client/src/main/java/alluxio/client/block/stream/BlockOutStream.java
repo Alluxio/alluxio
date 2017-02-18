@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Constants;
 import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.client.block.BlockWorkerClient;
@@ -22,8 +21,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;

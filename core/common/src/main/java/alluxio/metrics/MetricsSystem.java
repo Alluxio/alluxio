@@ -12,7 +12,6 @@
 package alluxio.metrics;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.metrics.sink.Sink;
 import alluxio.util.network.NetworkAddressUtils;

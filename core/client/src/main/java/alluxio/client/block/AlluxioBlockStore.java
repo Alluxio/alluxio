@@ -11,7 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;

@@ -11,7 +11,6 @@
 
 package alluxio.underfs.swift.http;
 
-import alluxio.Constants;
 import alluxio.underfs.swift.SwiftOutputStream;
 
 import org.javaswift.joss.model.Access;

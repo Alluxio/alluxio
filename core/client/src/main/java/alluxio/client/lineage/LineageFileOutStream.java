@@ -12,16 +12,12 @@
 package alluxio.client.lineage;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 

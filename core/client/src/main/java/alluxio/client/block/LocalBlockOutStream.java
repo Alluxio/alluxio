@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
@@ -25,8 +24,6 @@ import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

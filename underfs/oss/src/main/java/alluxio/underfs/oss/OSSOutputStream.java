@@ -11,7 +11,6 @@
 
 package alluxio.underfs.oss;
 
-import alluxio.Constants;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.OSSClient;
