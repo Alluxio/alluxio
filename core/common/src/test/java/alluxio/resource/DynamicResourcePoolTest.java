@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class DynamicResourcePoolTest {
+
   /**
    * Resource class used to be test DynamicResourcePool.
    */
