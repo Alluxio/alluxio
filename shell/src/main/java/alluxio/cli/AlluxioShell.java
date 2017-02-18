@@ -44,7 +44,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class AlluxioShell implements Closeable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioShell.class);
+
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
       .put("lsr", new String[] {"ls", "-R"})
       .put("rmr", new String[] {"rm", "-R"})

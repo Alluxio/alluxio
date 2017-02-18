@@ -161,11 +161,11 @@ public final class JournalCrashTest {
       mIsStopped = isStopped;
     }
   }
+  private static final Logger LOG = LoggerFactory.getLogger(JournalCrashTest.class);
 
   // The two Exit Codes are used to tell script if the test runs well.
   private static final int EXIT_FAILED = 1;
   private static final int EXIT_SUCCESS = 0;
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static CreateFileOptions sCreateFileOptions = null;
   private static List<ClientThread> sClientThreadList = null;
