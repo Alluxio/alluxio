@@ -13,7 +13,6 @@ package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.WriteType;
@@ -161,6 +160,7 @@ public final class JournalCrashTest {
       mIsStopped = isStopped;
     }
   }
+
   private static final Logger LOG = LoggerFactory.getLogger(JournalCrashTest.class);
 
   // The two Exit Codes are used to tell script if the test runs well.

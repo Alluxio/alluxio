@@ -11,8 +11,6 @@
 
 package alluxio.hadoop.fs;
 
-import alluxio.Constants;
-
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;

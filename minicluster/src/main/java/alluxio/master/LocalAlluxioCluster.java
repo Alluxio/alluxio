@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AlluxioWorkerService;

@@ -12,7 +12,6 @@
 package alluxio.cli;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.shell.command.ShellCommand;

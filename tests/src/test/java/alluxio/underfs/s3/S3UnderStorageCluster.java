@@ -11,7 +11,6 @@
 
 package alluxio.underfs.s3;
 
-import alluxio.Constants;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
