@@ -12,7 +12,6 @@
 package alluxio.security.group;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;

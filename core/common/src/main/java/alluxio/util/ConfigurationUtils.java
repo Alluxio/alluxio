@@ -12,7 +12,6 @@
 package alluxio.util;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 

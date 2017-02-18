@@ -11,8 +11,6 @@
 
 package alluxio.network.protocol;
 
-import alluxio.Constants;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;

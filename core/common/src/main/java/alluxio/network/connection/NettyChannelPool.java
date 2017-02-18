@@ -12,7 +12,6 @@
 package alluxio.network.connection;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.util.ThreadFactoryUtils;
 

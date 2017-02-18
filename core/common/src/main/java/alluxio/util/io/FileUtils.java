@@ -12,7 +12,6 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.exception.InvalidPathException;
 
 import org.slf4j.Logger;

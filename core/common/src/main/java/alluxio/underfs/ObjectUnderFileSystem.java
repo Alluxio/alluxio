@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.options.CreateOptions;

@@ -11,7 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.Constants;
 import alluxio.master.block.BlockId;
 
 import org.slf4j.Logger;

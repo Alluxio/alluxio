@@ -11,7 +11,6 @@
 
 package alluxio.heartbeat;
 
-import alluxio.Constants;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;

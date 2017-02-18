@@ -11,7 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.IdUtils;

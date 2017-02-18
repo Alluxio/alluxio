@@ -11,7 +11,6 @@
 
 package alluxio.worker;
 
-import alluxio.Constants;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 

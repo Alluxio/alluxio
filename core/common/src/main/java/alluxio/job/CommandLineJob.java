@@ -11,7 +11,6 @@
 
 package alluxio.job;
 
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.wire.CommandLineJobInfo;
 import alluxio.wire.JobConfInfo;

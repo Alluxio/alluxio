@@ -11,7 +11,6 @@
 
 package alluxio.heartbeat;
 
-import alluxio.Constants;
 import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
 import alluxio.time.Sleeper;

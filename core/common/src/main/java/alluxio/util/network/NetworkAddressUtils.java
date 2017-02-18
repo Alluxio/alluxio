@@ -13,7 +13,6 @@ package alluxio.util.network;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.MasterInquireClient;
 import alluxio.PropertyKey;
 import alluxio.exception.PreconditionMessage;
