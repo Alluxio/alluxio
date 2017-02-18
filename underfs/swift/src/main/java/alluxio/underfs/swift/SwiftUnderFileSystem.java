@@ -53,7 +53,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(SwiftUnderFileSystem.class);
 
   /** Regexp for Swift container ACL separator, including optional whitespaces. */
   private static final String ACL_SEPARATOR_REGEXP = "\\s*,\\s*";

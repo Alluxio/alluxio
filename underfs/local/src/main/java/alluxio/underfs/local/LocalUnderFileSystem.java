@@ -60,7 +60,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class LocalUnderFileSystem extends BaseUnderFileSystem
     implements AtomicFileOutputStreamCallback {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(LocalUnderFileSystem.class);
 
   /**
    * Constructs a new {@link LocalUnderFileSystem}.

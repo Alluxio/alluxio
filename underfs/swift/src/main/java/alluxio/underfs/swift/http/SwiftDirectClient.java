@@ -31,7 +31,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class SwiftDirectClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(SwiftDirectClient.class);
+
   private static final int HTTP_READ_TIMEOUT = 100 * 1000;
   private static final int HTTP_CHUNK_STREAMING = 8 * 1024 * 1024;
 

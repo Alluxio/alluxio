@@ -45,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ObjectUnderFileSystem.class);
 
   /** Default maximum length for a single listing query. */
   private static final int DEFAULT_MAX_LISTING_CHUNK_LENGTH = 1000;

@@ -58,7 +58,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class HdfsUnderFileSystem extends BaseUnderFileSystem
     implements AtomicFileOutputStreamCallback {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
+
   private static final int MAX_TRY = 5;
   // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)

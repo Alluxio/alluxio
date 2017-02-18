@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(SwiftUnderFileSystemFactory.class);
 
   /**
    * Constructs a new {@link SwiftUnderFileSystemFactory}.

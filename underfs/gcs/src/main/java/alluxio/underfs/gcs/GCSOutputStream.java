@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class GCSOutputStream extends OutputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(GCSOutputStream.class);
 
   /** Bucket name of the Alluxio GCS bucket. */
   private final String mBucketName;

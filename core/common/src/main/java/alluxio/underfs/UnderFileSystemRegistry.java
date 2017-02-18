@@ -69,9 +69,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UnderFileSystemRegistry {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemRegistry.class);
 
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private static boolean sInit = false;
 
   // prevent instantiation

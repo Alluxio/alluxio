@@ -36,8 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class SwiftMockOutputStream extends OutputStream {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(SwiftMockOutputStream.class);
 
   private final File mFile;
 
