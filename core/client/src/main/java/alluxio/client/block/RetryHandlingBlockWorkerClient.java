@@ -57,7 +57,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingBlockWorkerClient
     extends AbstractThriftClient<BlockWorkerClientService.Client> implements BlockWorkerClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(RetryHandlingBlockWorkerClient.class);
+
   private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
       Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
       ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));

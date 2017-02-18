@@ -53,7 +53,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public class BaseFileSystem implements FileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
+
   protected final FileSystemContext mFileSystemContext;
 
   /**

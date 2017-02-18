@@ -33,7 +33,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitionReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(ByteBufferKeyValuePartitionReader.class);
 
   private Index mIndex;
   private PayloadReader mPayloadReader;

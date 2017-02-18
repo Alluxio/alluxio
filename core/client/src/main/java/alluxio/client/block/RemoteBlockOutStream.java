@@ -35,8 +35,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class RemoteBlockOutStream extends BufferedBlockOutStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private final RemoteBlockWriter mRemoteWriter;
   private final BlockWorkerClient mBlockWorkerClient;
   private final Closer mCloser;

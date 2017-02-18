@@ -42,7 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class NettyRemoteBlockReader implements RemoteBlockReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(NettyRemoteBlockReader.class);
 
   private final FileSystemContext mContext;
   /** A reference to read response so we can explicitly release the resource after reading. */

@@ -34,8 +34,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private KeyValueWorkerClient mClient;
   private long mBlockId;
   private boolean mClosed;

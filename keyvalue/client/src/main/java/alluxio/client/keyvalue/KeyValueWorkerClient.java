@@ -38,8 +38,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueWorkerClient extends AbstractClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private KeyValueWorkerClientService.Client mClient = null;
 
   /**

@@ -37,8 +37,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class BlockOutStream extends FilterOutputStream implements BoundedStream, Cancelable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private final long mBlockId;
   private final long mBlockSize;
   private final Closer mCloser;

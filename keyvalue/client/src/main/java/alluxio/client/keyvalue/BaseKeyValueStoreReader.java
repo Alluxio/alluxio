@@ -34,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 class BaseKeyValueStoreReader implements KeyValueStoreReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BaseKeyValueStoreReader.class);
 
   private final InetSocketAddress mMasterAddress = FileSystemContext.INSTANCE.getMasterAddress();
   private final KeyValueMasterClient mMasterClient;

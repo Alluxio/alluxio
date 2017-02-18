@@ -44,7 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class NettyUnderFileSystemFileWriter implements UnderFileSystemFileWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(NettyUnderFileSystemFileWriter.class);
 
   private final FileSystemContext mContext;
 

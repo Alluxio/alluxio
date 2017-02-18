@@ -62,7 +62,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class NettyPacketReader implements PacketReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(NettyPacketReader.class);
+
   private static final boolean CANCEL_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_NETWORK_NETTY_READER_CANCEL_ENABLED);
   private static final int MAX_PACKETS_IN_FLIGHT =

@@ -44,7 +44,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public abstract class AbstractLineageClient implements LineageClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractLineageClient.class);
+
   protected LineageContext mContext;
 
   /**

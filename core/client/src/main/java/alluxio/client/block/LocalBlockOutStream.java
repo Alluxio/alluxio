@@ -40,7 +40,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class LocalBlockOutStream extends BufferedBlockOutStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final Closer mCloser;
   private final BlockWorkerClient mBlockWorkerClient;
   private final LocalFileBlockWriter mWriter;

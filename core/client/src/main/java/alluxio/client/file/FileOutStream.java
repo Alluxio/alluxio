@@ -60,7 +60,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @NotThreadSafe
 public class FileOutStream extends AbstractOutStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(FileOutStream.class);
 
   /** Used to manage closeable resources. */
   private final Closer mCloser;

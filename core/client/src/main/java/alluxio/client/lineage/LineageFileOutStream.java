@@ -34,8 +34,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public class LineageFileOutStream extends FileOutStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /**
    * Creates a new file output stream when lineage is enabled.
    *

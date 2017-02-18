@@ -33,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ClientHandler.class);
 
   /**
    * The interface for listeners to implement to receive callbacks when messages are received.

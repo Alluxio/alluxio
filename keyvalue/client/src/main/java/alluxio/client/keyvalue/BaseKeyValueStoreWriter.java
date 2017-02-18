@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BaseKeyValueStoreWriter.class);
 
   private final FileSystem mFileSystem = FileSystem.Factory.get();
   private final KeyValueMasterClient mMasterClient;
