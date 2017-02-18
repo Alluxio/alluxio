@@ -16,7 +16,6 @@ import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 
@@ -37,8 +36,8 @@ public final class FileSystemMasterClientIntegrationTest {
 
   @Test
   public void openClose() throws AlluxioException, IOException {
-    FileSystemMasterClient fsMasterClient = new RetryHandlingFileSystemMasterClient(
-        mLocalAlluxioClusterResource.get().getMaster().getAddress());
+    FileSystemMasterClient fsMasterClient = FileSystemMasterClient.Factory
+        .create(mLocalAlluxioClusterResource.get().getMaster().getAddress());
     AlluxioURI file = new AlluxioURI("/file");
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
@@ -58,8 +57,8 @@ public final class FileSystemMasterClientIntegrationTest {
     // This test was created to show that an infinite loop occurs.
     // The timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
-    FileSystemMasterClient fsMasterClient = new RetryHandlingFileSystemMasterClient(
-        mLocalAlluxioClusterResource.get().getMaster().getAddress());
+    FileSystemMasterClient fsMasterClient = FileSystemMasterClient.Factory
+        .create(mLocalAlluxioClusterResource.get().getMaster().getAddress());
     fsMasterClient.getStatus(new AlluxioURI("/doesNotExist"));
     fsMasterClient.close();
   }

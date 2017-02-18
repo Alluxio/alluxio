@@ -18,7 +18,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.ServerUtils;
-import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
+import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
@@ -364,7 +364,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * Resets the client pools to the original state.
    */
   protected void resetClientPools() {
-    RetryHandlingBlockWorkerClientTestUtils.reset();
+    BlockWorkerClientTestUtils.reset();
     FileSystemWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }

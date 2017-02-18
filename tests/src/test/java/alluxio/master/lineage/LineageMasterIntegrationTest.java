@@ -20,7 +20,6 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.lineage.AlluxioLineage;
@@ -223,7 +222,7 @@ public class LineageMasterIntegrationTest {
   }
 
   private FileSystemMasterClient getFileSystemMasterClient() {
-    return new RetryHandlingFileSystemMasterClient(null,
-        mLocalAlluxioClusterResource.get().getMaster().getAddress());
+    return FileSystemMasterClient.Factory
+        .create(mLocalAlluxioClusterResource.get().getMaster().getAddress());
   }
 }

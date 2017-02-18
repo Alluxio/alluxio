@@ -19,7 +19,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
-import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
+import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
@@ -65,7 +65,7 @@ public class JournalShutdownIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
-    RetryHandlingBlockWorkerClientTestUtils.reset();
+    BlockWorkerClientTestUtils.reset();
     FileSystemWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }

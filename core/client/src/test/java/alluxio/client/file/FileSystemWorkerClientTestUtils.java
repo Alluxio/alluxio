@@ -25,10 +25,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FileSystemWorkerClientTestUtils {
   /**
-   * Resets the {@link RetryHandlingFileSystemWorkerClient#HEARTBEAT_CANCEL_POOL} by waiting for all
-   * the pending heartbeats.
+   * Resets the static {@link FileSystemWorkerClient} state.
    */
   public static void reset() {
+    // reset the heartbeat pool by waiting for all the pending heartbeats
     CommonUtils.waitFor("All active file system worker sessions are closed",
         new Function<Void, Boolean>() {
           @Override

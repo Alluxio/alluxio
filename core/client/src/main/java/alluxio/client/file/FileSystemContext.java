@@ -17,7 +17,6 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.BlockWorkerThriftClientPool;
-import alluxio.client.block.RetryHandlingBlockWorkerClient;
 import alluxio.client.netty.NettyClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -305,7 +304,7 @@ public final class FileSystemContext implements Closeable {
       }
     }
 
-    return new RetryHandlingBlockWorkerClient(mBlockWorkerClientPools.get(rpcAddress),
+    return BlockWorkerClient.Factory.create(mBlockWorkerClientPools.get(rpcAddress),
         mBlockWorkerClientHeartbeatPools.get(rpcAddress), address, sessionId);
   }
 
@@ -347,9 +346,8 @@ public final class FileSystemContext implements Closeable {
     }
 
     long sessionId = IdUtils.getRandomNonNegativeLong();
-    return new RetryHandlingFileSystemWorkerClient(mFileSystemWorkerClientPools.get(rpcAddress),
-        mFileSystemWorkerClientHeartbeatPools.get(rpcAddress),
-        address, sessionId);
+    return FileSystemWorkerClient.Factory.create(mFileSystemWorkerClientPools.get(rpcAddress),
+        mFileSystemWorkerClientHeartbeatPools.get(rpcAddress), address, sessionId);
   }
 
   /**

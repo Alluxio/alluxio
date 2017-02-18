@@ -51,7 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 // TODO(calvin): Session logic can be abstracted
 @ThreadSafe
-public class RetryHandlingFileSystemWorkerClient
+public final class RetryHandlingFileSystemWorkerClient
     extends AbstractThriftClient<FileSystemWorkerClientService.Client>
     implements FileSystemWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -74,10 +74,10 @@ public class RetryHandlingFileSystemWorkerClient
   /** Address of the data server on the worker. */
   private final InetSocketAddress mWorkerDataServerAddress;
 
-  private final ScheduledFuture<?> mHeartbeat;
+  private ScheduledFuture<?> mHeartbeat;
 
   /**
-   * Constructor for a client that communicates with the {@link FileSystemWorkerClientService}.
+   * Factory method for {@link RetryHandlingFileSystemWorkerClient}.
    *
    * @param clientPool the client pool
    * @param clientHeartbeatPool the client pool for heartbeat
@@ -85,17 +85,27 @@ public class RetryHandlingFileSystemWorkerClient
    * @param sessionId the session id to use, this should be unique
    * @throws IOException if it fails to register the session with the worker specified
    */
-  public RetryHandlingFileSystemWorkerClient(
+  protected static RetryHandlingFileSystemWorkerClient create(
       FileSystemWorkerThriftClientPool clientPool,
-      FileSystemWorkerThriftClientPool clientHeartbeatPool,
-      WorkerNetAddress workerNetAddress, final long sessionId)
-      throws IOException {
+      FileSystemWorkerThriftClientPool clientHeartbeatPool, WorkerNetAddress workerNetAddress,
+      long sessionId) throws IOException {
+    RetryHandlingFileSystemWorkerClient client =
+        new RetryHandlingFileSystemWorkerClient(clientPool, clientHeartbeatPool, workerNetAddress,
+            sessionId);
+    client.init();
+    return client;
+  }
+
+  private RetryHandlingFileSystemWorkerClient(FileSystemWorkerThriftClientPool clientPool,
+      FileSystemWorkerThriftClientPool clientHeartbeatPool, WorkerNetAddress workerNetAddress,
+      long sessionId) {
     mClientPool = clientPool;
     mClientHeartbeatPool = clientHeartbeatPool;
-
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
+  }
 
+  private void init() throws IOException {
     // Register the session before any RPCs for this session start.
     try {
       sessionHeartbeat();
@@ -113,7 +123,7 @@ public class RetryHandlingFileSystemWorkerClient
             } catch (InterruptedException e) {
               // do nothing
             } catch (Exception e) {
-              LOG.error("Failed to heartbeat for session " + sessionId, e);
+              LOG.error("Failed to heartbeat for session " + mSessionId, e);
             }
           }
         }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),

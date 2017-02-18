@@ -52,22 +52,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   private FileSystemMasterClientService.Client mClient = null;
 
   /**
-   * Creates a new file system master client.
+   * Creates a new {@link RetryHandlingFileSystemMasterClient} instance.
    *
    * @param subject the subject
    * @param masterAddress the master address
    */
-  public RetryHandlingFileSystemMasterClient(Subject subject, InetSocketAddress masterAddress) {
+  protected RetryHandlingFileSystemMasterClient(Subject subject, InetSocketAddress masterAddress) {
     super(subject, masterAddress);
-  }
-
-  /**
-   * Creates a new file system master client.
-   *
-   * @param masterAddress the master address
-   */
-  public RetryHandlingFileSystemMasterClient(InetSocketAddress masterAddress) {
-    super(null, masterAddress);
   }
 
   @Override

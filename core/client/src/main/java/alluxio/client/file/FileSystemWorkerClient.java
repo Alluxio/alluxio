@@ -18,6 +18,7 @@ import alluxio.client.file.options.CompleteUfsFileOptions;
 import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -27,6 +28,31 @@ import java.net.InetSocketAddress;
  * Interface for an Alluxio block worker client.
  */
 public interface FileSystemWorkerClient extends Closeable {
+
+  /**
+   * Factory for {@link FileSystemWorkerClient}.
+   */
+  class Factory {
+
+    private Factory() {} // prevent instantiation
+
+    /**
+     * Factory method for {@link FileSystemWorkerClient}.
+     *
+     * @param clientPool the client pool
+     * @param clientHeartbeatPool the client pool for heartbeat
+     * @param workerNetAddress the worker address to connect to
+     * @param sessionId the session id to use, this should be unique
+     * @return new {@link FileSystemWorkerClient} instance
+     * @throws IOException if it fails to register the session with the worker specified
+     */
+    public static FileSystemWorkerClient create(FileSystemWorkerThriftClientPool clientPool,
+        FileSystemWorkerThriftClientPool clientHeartbeatPool, WorkerNetAddress workerNetAddress,
+        long sessionId) throws IOException {
+      return RetryHandlingFileSystemWorkerClient
+          .create(clientPool, clientHeartbeatPool, workerNetAddress, sessionId);
+    }
+  }
 
   /**
    * Cancels the file currently being written with the specified id. This file must have also

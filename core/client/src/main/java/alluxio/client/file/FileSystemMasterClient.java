@@ -26,12 +26,31 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.List;
 
 /**
  * A client to use for interacting with a file system master.
  */
 public interface FileSystemMasterClient extends MasterClient {
+
+  /**
+   * Factory for {@link FileSystemWorkerClient}.
+   */
+  class Factory {
+
+    private Factory() {} // prevent instantiation
+
+    /**
+     * Factory method for {@link FileSystemMasterClient}.
+     *
+     * @param masterAddress the master address
+     * @return a new {@link FileSystemMasterClient} instance
+     */
+    public static FileSystemMasterClient create(InetSocketAddress masterAddress) {
+      return new RetryHandlingFileSystemMasterClient(null, masterAddress);
+    }
+  }
 
   /**
    * Checks the consistency of Alluxio metadata against the under storage for all files and
