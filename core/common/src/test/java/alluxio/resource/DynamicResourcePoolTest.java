@@ -30,8 +30,7 @@ import java.util.concurrent.TimeoutException;
 public final class DynamicResourcePoolTest {
 
   /**
-   * Resource class used to test {@link DynamicResourcePool} and referenced by
-   * {@link DynamicResourcePool}.
+   * Resource class used to test {@link DynamicResourcePool}.
    */
   private static final class Resource {
     private Integer mInteger = 0;
