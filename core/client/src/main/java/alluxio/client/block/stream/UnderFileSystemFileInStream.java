@@ -41,8 +41,9 @@ public final class UnderFileSystemFileInStream extends FilterInputStream
    */
   public UnderFileSystemFileInStream(FileSystemContext context, InetSocketAddress address,
       long ufsFileId, long length) {
-    super(PacketInStream.createNettyPacketInStream(context, address, ufsFileId, -1, -1, length,
-        Protocol.RequestType.UFS_FILE));
+    super(PacketInStream
+        .createNettyPacketInStream(context, address, ufsFileId, -1, -1, length, false,
+            Protocol.RequestType.UFS_FILE));
     mInStream = (PacketInStream) in;
   }
 

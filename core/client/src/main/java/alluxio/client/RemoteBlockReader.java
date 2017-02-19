@@ -55,4 +55,19 @@ public interface RemoteBlockReader extends Closeable {
    */
   ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
       long length, long lockId, long sessionId) throws IOException;
+
+  /**
+   * Reads a UFS block with a offset and length.
+   *
+   * @param address the {@link InetSocketAddress} of the data server
+   * @param blockId the id of the block trying to read
+   * @param offset the offset of the block
+   * @param length the length the client wants to read
+   * @param sessionId the session id of the client
+   * @param noCache do not cache the data read from UFS in the Alluxio worker if set
+   * @return a byte buffer containing the remote data block
+   * @throws IOException if the remote server is not reachable or responds with failures
+   */
+  ByteBuffer readUfsBlock(InetSocketAddress address, long blockId, long offset, long length,
+      long sessionId, boolean noCache) throws IOException;
 }

@@ -22,12 +22,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * This represents an RPC request to read a block from a DataServer.
  */
 @ThreadSafe
-public final class RPCUFSBlockReadRequest extends RPCRequest {
+public final class RPCUfsBlockReadRequest extends RPCRequest {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
-  private final long mLockId;
   private final long mSessionId;
+  private final boolean mNoCache;
 
   /**
    * Constructs a new RPC request to read a block from a DataServer.
@@ -35,15 +35,15 @@ public final class RPCUFSBlockReadRequest extends RPCRequest {
    * @param blockId the id of the block
    * @param offset the block offset to begin reading at
    * @param length the number of bytes to read
-   * @param lockId the id of the block lock that is held by the client
    * @param sessionId the id of the client session
+   * @param noCache
    */
-  public RPCUFSBlockReadRequest(long blockId, long offset, long length, long lockId, long sessionId) {
+  public RPCUfsBlockReadRequest(long blockId, long offset, long length, long sessionId, boolean noCache) {
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
-    mLockId = lockId;
     mSessionId = sessionId;
+    mNoCache = noCache;
   }
 
   @Override
@@ -52,24 +52,25 @@ public final class RPCUFSBlockReadRequest extends RPCRequest {
   }
 
   /**
-   * Decodes the input {@link ByteBuf} into a {@link RPCBlockReadRequest} object and returns it.
+   * Decodes the input {@link ByteBuf} into a {@link RPCUfsBlockReadRequest} object and returns it.
    *
    * @param in the input {@link ByteBuf}
    * @return The decoded RPCBlockReadRequest object
    */
-  public static RPCBlockReadRequest decode(ByteBuf in) {
+  public static RPCUfsBlockReadRequest decode(ByteBuf in) {
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();
-    long lockId = in.readLong();
     long sessionId = in.readLong();
-    return new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId);
+    boolean noCache = in.readBoolean();
+    return new RPCUfsBlockReadRequest(blockId, offset, length, sessionId, noCache);
   }
 
   @Override
   public int getEncodedLength() {
-    // 5 longs (mBLockId, mOffset, mLength, mLockId, mSessionId)
-    return Longs.BYTES * 5;
+    // 4 longs (mBLockId, mOffset, mLength, mSessionId) and 1 boolean (boolean takes 1 byte in
+    // netty).
+    return Longs.BYTES * 4 + 1;
   }
 
   @Override
@@ -77,21 +78,21 @@ public final class RPCUFSBlockReadRequest extends RPCRequest {
     out.writeLong(mBlockId);
     out.writeLong(mOffset);
     out.writeLong(mLength);
-    out.writeLong(mLockId);
     out.writeLong(mSessionId);
+    out.writeBoolean(mNoCache);
   }
 
   @Override
   public void validate() {
     Preconditions.checkState(mOffset >= 0, "Offset cannot be negative: %s", mOffset);
-    Preconditions.checkState(mLength >= 0 || mLength == -1,
-        "Length cannot be negative (except for -1): %s", mLength);
+    Preconditions
+        .checkState(mLength >= 0, "Length cannot be negative (except for -1): %s", mLength);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("blockId", mBlockId).add("offset", mOffset)
-        .add("length", mLength).add("lockId", mLockId).add("sessionId", mSessionId).toString();
+        .add("length", mLength).add("sessionId", mSessionId).add("noCache", mNoCache).toString();
   }
 
   /**
@@ -116,16 +117,16 @@ public final class RPCUFSBlockReadRequest extends RPCRequest {
   }
 
   /**
-   * @return the id of the lock
-   */
-  public long getLockId() {
-    return mLockId;
-  }
-
-  /**
    * @return the id of the session
    */
   public long getSessionId() {
     return mSessionId;
+  }
+
+  /**
+   * @return true if noCache is set
+   */
+  public boolean getNoCache() {
+    return mNoCache;
   }
 }

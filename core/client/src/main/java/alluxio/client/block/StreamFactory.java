@@ -18,6 +18,7 @@ import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -120,5 +121,29 @@ public final class StreamFactory {
       return new alluxio.client.block.RemoteBlockInStream(blockId, blockSize, address, context,
           options);
     }
+  }
+
+  public static InputStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
+      long blockId, long blockSize, long blockStart, WorkerNetAddress address,
+      InStreamOptions options) throws IOException {
+    InputStream inputStream;
+    if (PACKET_STREAMING_ENABLED) {
+      inputStream = BlockInStream
+          .createUfsBlockInStream(context, ufsPath, blockId, blockSize, blockStart, address,
+              options);
+    } else {
+      inputStream = UfsBlockInStream
+          .createUfsBlockInStream(context, ufsPath, blockId, blockSize, blockStart, address,
+              options);
+    }
+
+    if (inputStream == null) {
+      if (address.getHost().equals(NetworkAddressUtils.getLocalHostName())) {
+        inputStream = createLocalBlockInStream(context, blockId, blockSize, address, options);
+      } else {
+        inputStream = createRemoteBlockInStream(context, blockId, blockSize, address, options);
+      }
+    }
+    return inputStream;
   }
 }

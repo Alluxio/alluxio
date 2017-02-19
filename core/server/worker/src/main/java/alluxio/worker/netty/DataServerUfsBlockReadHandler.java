@@ -66,7 +66,13 @@ public final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
 
     @Override
     public void close() {
-      // No need to close the block reader since it will be closed when the client finishes reading.
+      if (mBlockReader != null)  {
+        try {
+          mBlockReader.close();
+        } catch (Exception e) {
+          LOG.warn("Failed to close block reader for block {}.", mId);
+        }
+      }
     }
   }
 

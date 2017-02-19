@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.client.RemoteBlockReader;
+import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
@@ -73,7 +74,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
 
     try {
       mBlockWorkerClient = mCloser.register(mContext.createBlockWorkerClient(workerNetAddress));
-      LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
+      LockBlockResult result = mBlockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults());
       mLockId = result.getLockId();
     } catch (AlluxioException e) {
       mCloser.close();

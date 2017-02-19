@@ -20,6 +20,7 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
+import alluxio.network.protocol.RPCUfsBlockReadRequest;
 import alluxio.worker.AlluxioWorkerService;
 
 import com.google.common.base.Preconditions;
@@ -82,6 +83,9 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
           assert msg instanceof RPCFileWriteRequest;
           mUnderFileSystemHandler.handleFileWriteRequest(ctx, (RPCFileWriteRequest) msg);
           break;
+        case RPC_UFS_BLOCK_READ_REQUEST:
+          assert msg instanceof RPCUfsBlockReadRequest;
+          mBlockHandler.handleUfsBlockReadRequest(ctx, (RPCUfsBlockReadRequest) msg);
         case RPC_ERROR_RESPONSE:
           assert msg instanceof RPCErrorResponse;
           LOG.error("Received an error response from the client: " + msg.toString());

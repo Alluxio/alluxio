@@ -22,7 +22,7 @@ import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCBlockWriteRequest;
 import alluxio.network.protocol.RPCBlockWriteResponse;
 import alluxio.network.protocol.RPCResponse;
-import alluxio.network.protocol.RPCUFSBlockReadRequest;
+import alluxio.network.protocol.RPCUfsBlockReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
@@ -115,26 +115,30 @@ final class BlockDataServerHandler {
     }
   }
 
-  void handleUFSBlockReadRequest(final ChannelHandlerContext ctx, final RPCUFSBlockReadRequest req)
+  public void handleUfsBlockReadRequest(final ChannelHandlerContext ctx, final RPCUfsBlockReadRequest req)
       throws IOException {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
-    final long lockId = req.getLockId();
     final long sessionId = req.getSessionId();
+    final boolean noCache = req.getNoCache();
 
     BlockReader reader = null;
-    DataBuffer buffer;
+    DataBuffer buffer = null;
     try {
       req.validate();
-      reader = mWorker.readUfsBlock(sessionId, blockId);
-      buffer = getDataBuffer(req, reader, len);
-      Metrics.BYTES_READ_REMOTE.inc(buffer.getLength());
+      reader = mWorker.readUfsBlock(sessionId, blockId, offset, noCache);
+      ByteBuffer data = reader.read(offset, len);
+      if (data != null && data.remaining() > 0) {
+        buffer = new DataByteBuffer(data, data.remaining());
+        Metrics.BYTES_READ_UFS.inc(buffer.getLength());
+      }
       RPCBlockReadResponse resp =
           new RPCBlockReadResponse(blockId, offset, len, buffer, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(new ClosableResourceChannelListener(reader));
-      future.addListener(new ReleasableResourceChannelListener(buffer));
+      if (buffer != null) {
+        future.addListener(new ReleasableResourceChannelListener(buffer));
+      }
       LOG.debug("Preparation for responding to remote block request for: {} done.", blockId);
     } catch (Exception e) {
       LOG.error("Exception reading block {}", blockId, e);
@@ -146,12 +150,8 @@ final class BlockDataServerHandler {
       }
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
-      if (reader != null) {
-        reader.close();
-      }
     }
   }
-
 
   /**
    * Handles a {@link RPCBlockWriteRequest} by writing the data through a {@link BlockWriter}
@@ -263,6 +263,7 @@ final class BlockDataServerHandler {
    */
   private static final class Metrics {
     private static final Counter BYTES_READ_REMOTE = MetricsSystem.workerCounter("BytesReadRemote");
+    private static final Counter BYTES_READ_UFS = MetricsSystem.workerCounter("BytesReadUFS");
     private static final Counter BYTES_WRITTEN_REMOTE =
         MetricsSystem.workerCounter("BytesWrittenRemote");
 

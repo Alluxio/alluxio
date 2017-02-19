@@ -124,7 +124,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       lockBlockResult = blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults());
       PacketInStream inStream = closer.register(PacketInStream
           .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
-              lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
+              lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize, false,
               Protocol.RequestType.ALLUXIO_BLOCK));
       return new BlockInStream(inStream, blockId, blockWorkerClient, options);
     } catch (Exception e) {
@@ -156,7 +156,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    */
   // TODO(peis): Remove create{Local/Remote}BlockInStream and use this one instead.
   public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
-      long blockId, long blockSize, long blockStart, boolean isLocal,
+      long blockId, long blockSize, long blockStart,
       WorkerNetAddress workerNetAddress, InStreamOptions options) throws IOException {
     Closer closer = Closer.create();
 
@@ -183,26 +183,17 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
         }
       }
 
-      PacketInStream inStream;
       if (lockBlockResult.getLockId() >= 0) {
         // The block is in Alluxio.
-        if (isLocal) {
-          inStream = closer.register(PacketInStream
-              .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
-        } else {
-          inStream = closer.register(PacketInStream
-              .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
-                  lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
-                  Protocol.RequestType.ALLUXIO_BLOCK));
-        }
+        return null;
       } else {
         // The block is not in Alluxio and we have gained access to the UFS.
-        inStream = closer.register(PacketInStream
+        PacketInStream inStream = closer.register(PacketInStream
             .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
                 lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
-                Protocol.RequestType.UFS_BLOCK));
+                !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK));
+        return new BlockInStream(inStream, blockId, blockWorkerClient, options);
       }
-      return new BlockInStream(inStream, blockId, blockWorkerClient, options);
     } catch (Exception e) {
       if (lockBlockResult != null) {
         blockWorkerClient.unlockBlock(blockId);

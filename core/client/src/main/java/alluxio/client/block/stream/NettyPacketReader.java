@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
@@ -77,6 +78,7 @@ public final class NettyPacketReader implements PacketReader {
   private final long mId;
   private final long mStart;
   private final long mBytesToRead;
+  private final boolean mNoCache;
 
   // TODO(peis): Investigate whether we can remove this lock. The main reason to keep this lock
   // is to protect mPacketReaderException.
@@ -106,12 +108,13 @@ public final class NettyPacketReader implements PacketReader {
    * @param len the length to read
    * @param lockId the lock ID
    * @param sessionId the session ID
+   * @param noCache do not cache the block to the Alluxio worker if read from UFS when this is set
    * @param type the request type (block or UFS file)
    * @throws IOException if it fails to acquire a netty channel
    */
   private NettyPacketReader(FileSystemContext context, InetSocketAddress address, long id,
-      long offset, long len, long lockId, long sessionId, Protocol.RequestType type)
-      throws IOException {
+      long offset, long len, long lockId, long sessionId, boolean noCache,
+      Protocol.RequestType type) throws IOException {
     Preconditions.checkArgument(offset >= 0 && len > 0);
 
     mContext = context;
@@ -121,6 +124,7 @@ public final class NettyPacketReader implements PacketReader {
     mPosToRead = offset;
     mBytesToRead = len;
     mRequestType = type;
+    mNoCache = noCache;
 
     mChannel = mContext.acquireNettyChannel(address);
 
@@ -205,7 +209,7 @@ public final class NettyPacketReader implements PacketReader {
         if (remaining() > 0) {
           Protocol.ReadRequest cancelRequest =
               Protocol.ReadRequest.newBuilder().setId(mId).setCancel(true).setType(mRequestType)
-                  .build();
+                  .setNoCache(mNoCache).build();
           mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(cancelRequest)))
               .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         }
@@ -368,6 +372,7 @@ public final class NettyPacketReader implements PacketReader {
     private final long mId;
     private final long mLockId;
     private final long mSessionId;
+    private final boolean mNoCache;
     private final Protocol.RequestType mRequestType;
 
     /**
@@ -381,19 +386,20 @@ public final class NettyPacketReader implements PacketReader {
      * @param type the request type
      */
     public Factory(FileSystemContext context, InetSocketAddress address, long id, long lockId,
-        long sessionId, Protocol.RequestType type) {
+        long sessionId, boolean noCache, Protocol.RequestType type) {
       mContext = context;
       mAddress = address;
       mId = id;
       mLockId = lockId;
       mSessionId = sessionId;
+      mNoCache = noCache;
       mRequestType = type;
     }
 
     @Override
     public PacketReader create(long offset, long len) throws IOException {
       return new NettyPacketReader(mContext, mAddress, mId, offset, len, mLockId, mSessionId,
-          mRequestType);
+          mNoCache, mRequestType);
     }
   }
 }
