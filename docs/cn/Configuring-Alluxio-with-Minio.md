@@ -17,7 +17,7 @@ Alluxio本地提供了s3a:// scheme(建议使用以获取更好的性能)。您�
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 然后，如果你还没有配置文件，可通过`bootstrapConf`命令创建。
-例如，如果你是在本机运行Alluxio，那么在以下的命令中`<ALLUXIO_MASTER_HOSTNAME>`应该设置为`localhost`：
+例如，如果你是在本机运行Alluxio，那么`<ALLUXIO_MASTER_HOSTNAME>`应该设置为`localhost`。
 
 {% include Configuring-Alluxio-with-Minio/bootstrapConf.md %}
 
