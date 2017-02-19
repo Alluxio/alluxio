@@ -72,7 +72,7 @@ priority: 1
 
 {% include Common-Commands/stop-alluxio.md %}
 
-# 运行功能测试
+## 运行功能测试
 
 
 在`tests/pom.xml`配置`swiftTest`下的Swift账户凭据，其中`authMethodKey`的值应为`keystone`、`tempauth`或`swiftauth`，要进行功能测试，运行：
