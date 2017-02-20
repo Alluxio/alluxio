@@ -916,7 +916,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
      * @param subDirectories the sub-directories for pre-populating an object store
      */
     ObjectStorePreConfig(String baseDirectoryKey, String[] childrenFiles,
-                         String[] subDirectories) {
+        String[] subDirectories) {
       mBaseDirectoryPath = baseDirectoryKey;
       mFileNames = childrenFiles;
       mSubDirectoryNames = subDirectories;
