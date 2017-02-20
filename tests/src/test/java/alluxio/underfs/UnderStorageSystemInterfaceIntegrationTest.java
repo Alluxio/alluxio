@@ -827,21 +827,41 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     return new LargeDirectoryConfig(topLevelDirectory, children);
   }
 
-  // Test configuration for pagination tests
+  /**
+   * Tests configuration for pagination tests.
+   */
   private class LargeDirectoryConfig {
     private String mTopLevelDirectory;
-    // Children for top level directory
+    /**
+     * Children for top level directory
+     */
     private String[] mChildren;
 
+    /**
+     * Constructs {@link LargeDirectoryConfig} to test configuration for pagination tests.
+     *
+     * @param topLevelDirectory the top level directory of the directory tree for pagination tests
+     * @param children the children files of the directory tree for pagination tests
+     */
     LargeDirectoryConfig(String topLevelDirectory, String[] children) {
       mTopLevelDirectory = topLevelDirectory;
       mChildren = children;
     }
 
+    /**
+     * Gets the top level directory of the directory tree for pagination tests.
+     *
+     * @return the top level directory of the directory tree for pagination tests
+     */
     public String getTopLevelDirectory() {
       return mTopLevelDirectory;
     }
 
+    /**
+     * Gets the children files of the directory tree for pagination tests.
+     *
+     * @return the children files of the directory tree for pagination tests
+     */
     public String[] getChildren() {
       return mChildren;
     }
@@ -899,12 +919,21 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     return new ObjectStorePreConfig(baseDirectoryPath, childrenFiles, subDirectories);
   }
 
-  // Test configuration for pre-populating an object store
+  /**
+   * Tests configuration for pre-populating an object store.
+   */
   private class ObjectStorePreConfig {
     private String mBaseDirectoryPath;
     private String[] mSubDirectoryNames;
     private String[] mFileNames;
 
+    /**
+     * Constructs {@link ObjectStorePreConfig} to test configuration for pre-populating an object store.
+     *
+     * @param baseDirectoryKey the base directory key for pre-populating of an object store
+     * @param childrenFiles the children files for pre-populating an object store
+     * @param subDirectories the sub-directories for pre-populating an object store
+     */
     ObjectStorePreConfig(String baseDirectoryKey, String[] childrenFiles,
         String[] subDirectories) {
       mBaseDirectoryPath = baseDirectoryKey;
@@ -912,14 +941,29 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       mSubDirectoryNames = subDirectories;
     }
 
+    /**
+     * Gets base directory path for pre-populating an object store.
+     *
+     * @return base directory path for pre-populating an object store
+     */
     public String getBaseDirectoryPath() {
       return mBaseDirectoryPath;
     }
 
+    /**
+     * Gets filenames for pre-populating an object store.
+     *
+     * @return filenames for pre-populating an object store
+     */
     public String[] getFileNames() {
       return mFileNames;
     }
 
+    /**
+     * Gets names of sub-directories for pre-populating an object store.
+     *
+     * @return names of sub-directories for pre-populating an object store
+     */
     public String[] getSubDirectoryNames() {
       return mSubDirectoryNames;
     }
