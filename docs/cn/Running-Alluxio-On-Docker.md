@@ -72,8 +72,7 @@ docker run -d --net=host alluxio master
 ## 运行Alluxio worker
 
 我们需要让worker知道master的位置，在启动worker Docker容器时设置`ALLUXIO_MASTER_HOSTNAME`环境变量为你的主机的主机名。为了允许快速短路读取，
-通过`-v /mnt/ramdisk:/mnt/ramdisk`来给worker指定给定位置和大小的共享虚拟内存。`-v /mnt/ramdisk:/mnt/ramdisk`命令将主机路径`/mnt/ramdisk`挂载到worker容器路
-径`/mnt/ramdisk`。这样，Alluxio worker 可以直接从容器外部写入数据。
+通过`-v /mnt/ramdisk:/mnt/ramdisk`来给worker指定给定位置和大小的共享虚拟内存。`-v /mnt/ramdisk:/mnt/ramdisk`命令将主机路径`/mnt/ramdisk`挂载到worker容器路径`/mnt/ramdisk`。这样，Alluxio worker 可以直接从容器外部写入数据。
 
 ```bash
 $ docker run -d \
@@ -101,8 +100,7 @@ bin/alluxio runTests
 
 ### 客户端之间共享虚拟内存
 
-带`-v /mnt/ramdisk:/mnt/ramdisk`命令启动的客户端与主机共享虚拟内存。为了使同一台主机上其他容器内的客户端使用当前机器的虚拟内存，这些容器需要带
-`-v /mnt/ramdisk:/mnt/ramdisk`命令启动。
+带`-v /mnt/ramdisk:/mnt/ramdisk`命令启动的客户端与主机共享虚拟内存。为了使同一台主机上其他容器内的客户端使用当前机器的虚拟内存，这些容器需要带`-v /mnt/ramdisk:/mnt/ramdisk`命令启动。
 
 # 配置
 
@@ -116,9 +114,6 @@ docker run -d --net=host -e ALLUXIO_MASTER_HOSTNAME=ec2-203-0-113-25.compute-1.a
 
 # 配置worker内存大小
 
-When the ramdisk folder isn't specified, the Docker worker container will use the
-tmpfs mounted at `/dev/shm`. To set the size of the worker memory to `50GB`, you can specify
-`--shm-size 50G` and configure the Alluxio worker to use `50GB`. The full command would look like
 当未指定虚拟内存文件夹时，worker Docker容器会使用挂载在`/dev/shm`上的tmpfs。若要配置worker的内存大小为`50GB`，可以指定`--shm-size 50G`，完整的docker命令如下：
 
 ```bash
