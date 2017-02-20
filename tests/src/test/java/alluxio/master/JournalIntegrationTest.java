@@ -688,7 +688,6 @@ public class JournalIntegrationTest {
     // the alluxio cluster
     public static final String FULL_CLASS_NAME =
         "alluxio.master.JournalIntegrationTest$FakeUserGroupsMapping";
-    /** The HashMap maps user to groups. */
     private HashMap<String, String> mUserGroups = new HashMap<>();
 
     /**
