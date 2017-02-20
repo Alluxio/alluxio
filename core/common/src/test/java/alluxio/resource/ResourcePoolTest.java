@@ -20,7 +20,7 @@ import org.mockito.Mockito;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Unit test for {@code ResourcePool} class.
+ * Test Unit for {@code ResourcePool} class.
  */
 public class ResourcePoolTest {
 
@@ -31,13 +31,13 @@ public class ResourcePoolTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   /**
-   * The class providing some methods for testing.
+   * Test unit for {@code ResourcePool} class.
    */
   class TestResourcePool extends ResourcePool<Integer> {
     int mPort = 0;
 
     /**
-     * Test a {@code ResourcePool} instance with a specified capacity.
+     * Creates a {@code ResourcePool} instance with a specified capacity.
      *
      * @param maxCapacity the maximum of resources in this pool
      */
@@ -46,7 +46,7 @@ public class ResourcePoolTest {
     }
 
     /**
-     * Test a {@code ResourcePool} instance with a specified capacity and blocking queue.
+     * Creates a {@code ResourcePool} instance with a specified capacity and blocking queue.
      *
      * @param maxCapacity the maximum of resources in this pool
      * @param resources blocking queue to use
