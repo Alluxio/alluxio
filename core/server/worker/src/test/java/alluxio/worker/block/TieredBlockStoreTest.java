@@ -310,26 +310,26 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests the {@link TieredBlockStore#createBlockMeta(long, long, BlockStoreLocation, long)} method
+   * Tests the {@link TieredBlockStore#createBlock(long, long, BlockStoreLocation, long)} method
    * to work without eviction.
    */
   @Test
   public void createBlockMetaWithoutEviction() throws Exception {
-    TempBlockMeta tempBlockMeta = mBlockStore.createBlockMeta(SESSION_ID1, TEMP_BLOCK_ID,
+    TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
         mTestDir1.toBlockStoreLocation(), 1);
     Assert.assertEquals(1, tempBlockMeta.getBlockSize());
     Assert.assertEquals(mTestDir1, tempBlockMeta.getParentDir());
   }
 
   /**
-   * Tests the {@link TieredBlockStore#createBlockMeta(long, long, BlockStoreLocation, long)} method
+   * Tests the {@link TieredBlockStore#createBlock(long, long, BlockStoreLocation, long)} method
    * to work with eviction.
    */
   @Test
   public void createBlockMetaWithEviction() throws Exception {
     TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
-    TempBlockMeta tempBlockMeta = mBlockStore.createBlockMeta(SESSION_ID1, TEMP_BLOCK_ID,
+    TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
         mTestDir1.toBlockStoreLocation(), mTestDir1.getCapacityBytes());
     // Expect BLOCK_ID1 evicted from mTestDir1
     Assert.assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
@@ -353,12 +353,12 @@ public final class TieredBlockStoreTest {
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
-    mBlockStore.createBlockMeta(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
+    mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
 
     // Expect createBlockMeta to succeed after unlocking this block.
     mBlockStore.unlockBlock(lockId);
-    mBlockStore.createBlockMeta(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
+    mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
     Assert.assertEquals(0, mTestDir1.getAvailableBytes());
   }

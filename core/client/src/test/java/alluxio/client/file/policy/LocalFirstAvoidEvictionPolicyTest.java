@@ -42,7 +42,7 @@ public class LocalFirstAvoidEvictionPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     Assert.assertEquals(localhostName,
-        policy.getWorkerForNextBlock(workerInfoList, 1, Constants.MB).getHost());
+        policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
   /**
@@ -58,7 +58,7 @@ public class LocalFirstAvoidEvictionPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.MB, Constants.MB));
     Assert.assertEquals("worker1",
-        policy.getWorkerForNextBlock(workerInfoList, 1, Constants.MB).getHost());
+        policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
   /**
@@ -74,7 +74,7 @@ public class LocalFirstAvoidEvictionPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, Constants.MB));
     Assert.assertEquals(localhostName,
-        policy.getWorkerForNextBlock(workerInfoList, 1, Constants.GB).getHost());
+        policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost());
   }
 
   @Test

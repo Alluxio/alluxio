@@ -552,8 +552,7 @@ public class FileInStreamTest {
         InStreamOptions.defaults().setReadType(ReadType.CACHE).setLocationPolicy(policy), mContext);
     mTestStream.read();
     Mockito.verify(policy)
-        .getWorkerForNextBlock(Mockito.anyListOf(BlockWorkerInfo.class), Mockito.anyLong(),
-            Mockito.anyLong());
+        .getWorkerForNextBlock(Mockito.anyListOf(BlockWorkerInfo.class), Mockito.anyLong());
   }
 
   /**

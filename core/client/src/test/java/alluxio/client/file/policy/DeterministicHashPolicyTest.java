@@ -43,8 +43,8 @@ public final class DeterministicHashPolicyTest {
     DeterministicHashPolicy policy = new DeterministicHashPolicy();
 
     Assert.assertNotEquals(
-        policy.getWorkerForNextBlock(workerInfoList, 1, 2 * (long) Constants.GB).getHost(),
-        policy.getWorkerForNextBlock(workerInfoList, 1, 2 * (long) Constants.GB).getHost());
+        policy.getWorkerForBlock(workerInfoList, 1, 2 * (long) Constants.GB).getHost(),
+        policy.getWorkerForBlock(workerInfoList, 1, 2 * (long) Constants.GB).getHost());
   }
 
   @Test

@@ -39,7 +39,7 @@ public final class SpecificHostPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     Assert.assertEquals("worker2",
-        policy.getWorkerForNextBlock(workerInfoList, 1, Constants.MB).getHost());
+        policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
   /**
@@ -54,6 +54,6 @@ public final class SpecificHostPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    Assert.assertNull(policy.getWorkerForNextBlock(workerInfoList, 1, Constants.MB));
+    Assert.assertNull(policy.getWorkerForNextBlock(workerInfoList, Constants.MB));
   }
 }

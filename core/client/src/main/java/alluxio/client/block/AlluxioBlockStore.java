@@ -224,7 +224,7 @@ public final class AlluxioBlockStore {
     FileWriteLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     try {
-      address = locationPolicy.getWorkerForNextBlock(getWorkerInfoList(), blockId, blockSize);
+      address = locationPolicy.getWorkerForNextBlock(getWorkerInfoList(), blockSize);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }

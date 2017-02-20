@@ -38,10 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * storage client.
  */
 @NotThreadSafe
-public final class UnderStoreBlockInStream extends BlockInStream implements PositionedReadable {
-  private static final boolean PACKET_STREAMING_ENABLED =
-      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
-
+public final class UnderStoreBlockInStream extends BlockInStream {
   /**
    * The block size of the file. See {@link #getLength()} for more length information.
    */
@@ -160,34 +157,6 @@ public final class UnderStoreBlockInStream extends BlockInStream implements Posi
       Metrics.BYTES_READ_UFS.inc(bytesRead);
     }
     return bytesRead;
-  }
-
-  @Override
-  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    Preconditions.checkState(PACKET_STREAMING_ENABLED,
-        "PositionedReadable interface is implemented only if packet streaming is enabled.");
-
-    if (pos >= mLength) {
-      return -1;
-    }
-
-    if (mUnderStoreStream instanceof PositionedReadable) {
-      return ((PositionedReadable) mUnderStoreStream).positionedRead(pos, b, off, len);
-    }
-    if (mUnderStoreStream instanceof org.apache.hadoop.fs.PositionedReadable) {
-      return ((org.apache.hadoop.fs.PositionedReadable) mUnderStoreStream).read(pos, b, off, len);
-    }
-
-    // This happens only when UFS delegation is off and the UFS is not HDFS.
-    synchronized (this) {
-      long oldPos = mPos;
-      try {
-        seek(pos);
-        return mUnderStoreStream.read(b, off, len);
-      } finally {
-        seek(oldPos);
-      }
-    }
   }
 
   @Override

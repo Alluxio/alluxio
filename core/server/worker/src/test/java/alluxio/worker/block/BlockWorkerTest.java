@@ -204,7 +204,7 @@ public class BlockWorkerTest {
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
+    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
@@ -227,7 +227,7 @@ public class BlockWorkerTest {
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
+    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
@@ -249,7 +249,7 @@ public class BlockWorkerTest {
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
+    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,

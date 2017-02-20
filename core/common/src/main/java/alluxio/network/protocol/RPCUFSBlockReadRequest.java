@@ -38,7 +38,8 @@ public final class RPCUfsBlockReadRequest extends RPCRequest {
    * @param sessionId the id of the client session
    * @param noCache
    */
-  public RPCUfsBlockReadRequest(long blockId, long offset, long length, long sessionId, boolean noCache) {
+  public RPCUfsBlockReadRequest(long blockId, long offset, long length, long sessionId,
+      boolean noCache) {
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
