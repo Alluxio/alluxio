@@ -30,13 +30,27 @@ public class ResourcePoolTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * The class providing some methods for testing.
+   */
   class TestResourcePool extends ResourcePool<Integer> {
     int mPort = 0;
 
+    /**
+     * Test a {@code ResourcePool} instance with a specified capacity.
+     *
+     * @param maxCapacity the maximum of resources in this pool
+     */
     public TestResourcePool(int maxCapacity) {
       super(maxCapacity);
     }
 
+    /**
+     * Test a {@code ResourcePool} instance with a specified capacity and blocking queue.
+     *
+     * @param maxCapacity the maximum of resources in this pool
+     * @param resources blocking queue to use
+     */
     public TestResourcePool(int maxCapacity, ConcurrentLinkedQueue<Integer> resources) {
       super(maxCapacity, resources);
     }
