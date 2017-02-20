@@ -681,7 +681,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test class implements {@link GroupMappingService} to provide user-to-groups mapping.
+   * Test class implements {@link GroupMappingService} providing user-to-groups mapping.
    */
   public static class FakeUserGroupsMapping implements GroupMappingService {
     // The fullly qualified class name of this group mapping service. This is needed to configure
