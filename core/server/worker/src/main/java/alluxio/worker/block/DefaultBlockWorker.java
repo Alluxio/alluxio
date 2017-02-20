@@ -207,6 +207,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
         for (long session : mSessions.getTimedOutSessions()) {
           mSessions.removeSession(session);
           mBlockStore.cleanupSession(session);
+          mUfsBlockStore.cleanupSession(session);
         }
       }
     });
@@ -442,7 +443,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
-    if (mUfsBlockStore.finishAccess(sessionId, blockId)) {
+    if (mUfsBlockStore.cleanup(sessionId, blockId)) {
       commitBlock(sessionId, blockId);
     }
     mUfsBlockStore.releaseAccess(sessionId, blockId);

@@ -12,7 +12,7 @@
 package alluxio.client;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.netty.NettyRemoteBlockReader;
+import alluxio.client.netty.NettyUfsBlockReader;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -20,39 +20,41 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 /**
- * The interface to read remote block from data server.
+ * The interface to read an under file system file through a worker's data server.
  */
-public interface RemoteBlockReader extends Closeable {
+public interface UfsBlockReader extends Closeable {
 
   /**
-   * The factory for the {@link RemoteBlockReader}.
+   * The factory for the {@link UfsBlockReader}.
    */
   class Factory {
+
     private Factory() {} // prevent instantiation
 
     /**
-     * Factory for {@link RemoteBlockReader}.
+     * Factory for {@link UfsBlockReader}.
      *
      * @param context the file system context
-     * @return a new instance of {@link RemoteBlockReader}
+     * @return a new instance of {@link UfsBlockReader}
      */
-    public static RemoteBlockReader create(FileSystemContext context) {
-      return new NettyRemoteBlockReader(context);
+    public static UfsBlockReader create(FileSystemContext context) {
+      return new NettyUfsBlockReader(context);
     }
   }
 
   /**
-   * Reads a remote block with a offset and length.
+   * Reads a UFS block with a offset and length.
    *
    * @param address the {@link InetSocketAddress} of the data server
    * @param blockId the id of the block trying to read
    * @param offset the offset of the block
    * @param length the length the client wants to read
-   * @param lockId the acquired block lock id
    * @param sessionId the session id of the client
+   * @param noCache do not cache the data read from UFS in the Alluxio worker if set
    * @return a byte buffer containing the remote data block
    * @throws IOException if the remote server is not reachable or responds with failures
    */
-  ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
-      long length, long lockId, long sessionId) throws IOException;
+  ByteBuffer read(InetSocketAddress address, long blockId, long offset, long length,
+      long sessionId, boolean noCache) throws IOException;
 }
+

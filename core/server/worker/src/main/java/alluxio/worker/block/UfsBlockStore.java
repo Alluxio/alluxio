@@ -55,7 +55,7 @@ public final class UfsBlockStore {
     mAlluxioBlockStore = alluxioBlockStore;
   }
 
-  // acquire --> finish --> release
+  // acquire --> cleanup --> release
 
   public void acquireAccess(UfsBlockMeta blockMeta, int maxConcurrency) throws
       BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
@@ -101,7 +101,7 @@ public final class UfsBlockStore {
    * @return
    * @throws BlockDoesNotExistException
    */
-  public boolean finishAccess(long sessionId, long blockId)
+  public boolean cleanup(long sessionId, long blockId)
       throws BlockDoesNotExistException, IOException {
     UfsBlockMeta blockMeta;
     mLock.lock();
@@ -157,7 +157,6 @@ public final class UfsBlockStore {
    */
   public void cleanupSession(long sessionId) {
     Set<Long> blockIds;
-    List<UfsBlockMeta> blocks;
     mLock.lock();
     try {
       blockIds = mSessionIdToBlockIds.get(sessionId);
@@ -173,7 +172,7 @@ public final class UfsBlockStore {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
         // in Alluxio block store because they will be cleanup by the session cleaner in the
         // Alluxio block store.
-        finishAccess(sessionId, blockId);
+        cleanup(sessionId, blockId);
         releaseAccess(sessionId, blockId);
       } catch (Exception e) {
         LOG.warn("Failed to cleanup UFS block {}, session {}.", blockId, sessionId);
@@ -204,11 +203,6 @@ public final class UfsBlockStore {
     }
     return new UfsBlockReader(blockMeta, offset, noCache, mAlluxioBlockStore);
   }
-
-  public BlockWriter getBlockWriter(long sessionId, long blockId) {
-    throw new NotImplementedException("");
-  }
-
 
   private static class Key {
     private final long mSessionId;

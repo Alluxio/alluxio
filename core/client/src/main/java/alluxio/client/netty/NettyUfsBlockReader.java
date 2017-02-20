@@ -11,15 +11,16 @@
 
 package alluxio.client.netty;
 
-import alluxio.client.RemoteBlockReader;
+import alluxio.Constants;
+import alluxio.client.UfsBlockReader;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
+import alluxio.network.protocol.RPCUfsBlockReadRequest;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Throwables;
@@ -37,30 +38,30 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Read data from remote data server using Netty.
+ * Read data from UFS on a data server using Netty.
  */
 @NotThreadSafe
-public final class NettyRemoteBlockReader implements RemoteBlockReader {
-  private static final Logger LOG = LoggerFactory.getLogger(NettyRemoteBlockReader.class);
+public final class NettyUfsBlockReader implements UfsBlockReader {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final FileSystemContext mContext;
   /** A reference to read response so we can explicitly release the resource after reading. */
   private RPCBlockReadResponse mReadResponse = null;
 
   /**
-   * Creates a new {@link NettyRemoteBlockReader}.
+   * Creates a new {@link NettyUfsBlockReader}.
    * @param context the file system context
    */
-  public NettyRemoteBlockReader(FileSystemContext context) {
+  public NettyUfsBlockReader(FileSystemContext context) {
     mContext = context;
   }
 
   @Override
-  public ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
-      long length, long lockId, long sessionId) throws IOException {
+  public ByteBuffer read(InetSocketAddress address, long blockId, long offset,
+      long length, long sessionId, boolean noCache) throws IOException {
     Channel channel = null;
     ClientHandler clientHandler = null;
-    Metrics.NETTY_BLOCK_READ_OPS.inc();
+    Metrics.NETTY_UFS_BLOCK_READ_OPS.inc();
     try {
       channel = mContext.acquireNettyChannel(address);
       if (!(channel.pipeline().last() instanceof ClientHandler)) {
@@ -71,7 +72,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       clientHandler.addListener(listener);
 
       ChannelFuture channelFuture = channel
-          .writeAndFlush(new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId));
+          .writeAndFlush(new RPCUfsBlockReadRequest(blockId, offset, length, sessionId, noCache));
       channelFuture = channelFuture.sync();
       if (channelFuture.isDone() && !channelFuture.isSuccess()) {
         LOG.error("Failed to write to %s for block %d with error %s.", address.toString(), blockId,
@@ -84,7 +85,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       switch (response.getType()) {
         case RPC_BLOCK_READ_RESPONSE:
           RPCBlockReadResponse blockResponse = (RPCBlockReadResponse) response;
-          LOG.debug("Data {} from remote machine {} received", blockId, address);
+          LOG.debug("Data {} from machine {} received", blockId, address);
 
           RPCResponse.Status status = blockResponse.getStatus();
           if (status == RPCResponse.Status.SUCCESS) {
@@ -102,7 +103,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
               .getMessage(response.getType(), RPCMessage.Type.RPC_BLOCK_READ_RESPONSE));
       }
     } catch (Exception e) {
-      Metrics.NETTY_BLOCK_READ_FAILURES.inc();
+      Metrics.NETTY_UFS_BLOCK_READ_FAILURES.inc();
       try {
         if (channel != null) {
           channel.close().sync();
@@ -135,14 +136,14 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
   }
 
   /**
-   * Class that contains metrics about {@link NettyRemoteBlockReader}.
+   * Class that contains metrics about {@link NettyUfsBlockReader}.
    */
   @ThreadSafe
   private static final class Metrics {
-    private static final Counter NETTY_BLOCK_READ_OPS =
-        MetricsSystem.clientCounter("NettyBlockReadOps");
-    private static final Counter NETTY_BLOCK_READ_FAILURES =
-        MetricsSystem.clientCounter("NettyBlockReadFailures");
+    private static final Counter NETTY_UFS_BLOCK_READ_OPS =
+        MetricsSystem.clientCounter("NettyUFSBlockReadOps");
+    private static final Counter NETTY_UFS_BLOCK_READ_FAILURES =
+        MetricsSystem.clientCounter("NettyUFSBlockReadFailures");
 
     private Metrics() {} // prevent instantiation
   }

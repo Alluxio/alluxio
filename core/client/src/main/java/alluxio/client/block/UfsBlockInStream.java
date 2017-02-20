@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.Locatable;
-import alluxio.client.RemoteBlockReader;
+import alluxio.client.UfsBlockReader;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -54,8 +54,8 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
   private final BlockWorkerClient mBlockWorkerClient;
   /** The file system context which provides block worker clients. */
   private final FileSystemContext mContext;
-  /** {@link RemoteBlockReader} for this instance. */
-  private RemoteBlockReader mReader;
+  /** {@link UfsBlockReader} for this instance. */
+  private UfsBlockReader mReader;
 
   /**
    * Creates a new remote block input stream.
@@ -192,12 +192,12 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
     int bytesLeft = toRead;
 
     if (mReader == null) {
-      mReader = mCloser.register(RemoteBlockReader.Factory.create(mContext));
+      mReader = mCloser.register(UfsBlockReader.Factory.create(mContext));
     }
 
     while (bytesLeft > 0) {
       ByteBuffer data = mReader
-          .readUfsBlock(mBlockWorkerClient.getDataServerAddress(), mBlockId, getPosition(),
+          .read(mBlockWorkerClient.getDataServerAddress(), mBlockId, getPosition(),
               bytesLeft, mBlockWorkerClient.getSessionId(), mNoCache);
       int bytesRead = data.remaining();
       data.get(b, off, bytesRead);
