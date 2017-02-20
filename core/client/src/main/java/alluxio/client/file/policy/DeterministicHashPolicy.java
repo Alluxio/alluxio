@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * until the worker with enough capacity is found.
  */
 @NotThreadSafe
-public final class DeterministicHashPolicy implements FileWriteLocationPolicy {
+public final class DeterministicHashPolicy implements BlockLocationPolicy {
   private List<BlockWorkerInfo> mWorkerInfoList;
   private int mOffset;
   private boolean mInitialized = false;
@@ -41,7 +41,7 @@ public final class DeterministicHashPolicy implements FileWriteLocationPolicy {
   public DeterministicHashPolicy() {}
 
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
+  public WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockId, long blockSizeBytes) {
     if (!mInitialized) {
       mWorkerInfoList = Lists.newArrayList(workerInfoList);

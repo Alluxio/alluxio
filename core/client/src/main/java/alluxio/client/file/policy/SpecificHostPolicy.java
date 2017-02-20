@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * hostname found.
  */
 @ThreadSafe
-public final class SpecificHostPolicy implements FileWriteLocationPolicy {
+public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private final String mHostname;
 
   /**
@@ -38,7 +38,7 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy {
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockId, long blockSizeBytes) {
+      long blockSizeBytes) {
     // find the first worker matching the host name
     for (BlockWorkerInfo info : workerInfoList) {
       if (info.getNetAddress().getHost().equals(mHostname)) {
@@ -46,6 +46,12 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList, long blockId,
+      long blockSizeBytes) {
+    return getWorkerForNextBlock(workerInfoList, blockSizeBytes);
   }
 
   @Override

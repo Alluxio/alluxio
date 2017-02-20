@@ -32,8 +32,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * to store the block, for the values mCapacityBytes minus mUsedBytes is not the available bytes.
  */
 @ThreadSafe
-public final class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPolicy {
+public final class LocalFirstAvoidEvictionPolicy
+    implements FileWriteLocationPolicy, BlockLocationPolicy {
   private String mLocalHostName;
+
   /**
    * Constructs a {@link LocalFirstAvoidEvictionPolicy}.
    */
@@ -43,7 +45,7 @@ public final class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPol
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockId, long blockSizeBytes) {
+      long blockSizeBytes) {
     // try the local host first
     WorkerNetAddress localWorkerNetAddress = null;
     for (BlockWorkerInfo workerInfo : workerInfoList) {
@@ -67,6 +69,12 @@ public final class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPol
       return shuffledWorkers.get(0).getNetAddress();
     }
     return localWorkerNetAddress;
+  }
+
+  @Override
+  public WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList, long blockId,
+      long blockSizeBytes) {
+    return getWorkerForNextBlock(workerInfoList, blockSizeBytes);
   }
 
   /**

@@ -13,18 +13,11 @@ package alluxio.client.file.policy;
 
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.FileOutStream;
 import alluxio.wire.WorkerNetAddress;
 
 /**
  * <p>
- * Interface for the location policy of which workers a file's blocks are written into. A location
- * policy instance is used only once per file write.
- * </p>
- *
- * <p>
- * The {@link FileOutStream} calls {@link #getWorkerForNextBlock} to decide which worker to write
- * the next block per block write.
+ * Interface for determine the Alluxio worker location to serve a block write or UFS block read.
  * </p>
  *
  * <p>
@@ -32,15 +25,15 @@ import alluxio.wire.WorkerNetAddress;
  * </p>
  */
 @PublicApi
-// TODO(peis): Deprecate this and use BlockLocationPolicy
-public interface FileWriteLocationPolicy {
+public interface BlockLocationPolicy {
   /**
    * Gets the worker's host name for the next block to write to.
    *
    * @param workerInfoList the info of the active workers
+   * @param blockId the block ID
    * @param blockSizeBytes the size of the block in bytes
    * @return the address of the worker to write to, null if no worker can be selected
    */
-  WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
+  WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList, long blockId,
       long blockSizeBytes);
 }

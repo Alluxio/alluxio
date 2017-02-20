@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * it randomly picks a worker from the active workers list for each block write.
  */
 @ThreadSafe
-public final class LocalFirstPolicy implements FileWriteLocationPolicy {
+public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private String mLocalHostName;
 
   /**
@@ -39,7 +39,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockId, long blockSizeBytes) {
+      long blockSizeBytes) {
     // first try the local host
     for (BlockWorkerInfo workerInfo : workerInfoList) {
       if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)
@@ -57,6 +57,12 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList, long blockId,
+      long blockSizeBytes) {
+    return getWorkerForNextBlock(workerInfoList, blockSizeBytes);
   }
 
   @Override

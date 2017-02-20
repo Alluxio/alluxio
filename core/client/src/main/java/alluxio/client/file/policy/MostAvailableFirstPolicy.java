@@ -23,7 +23,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * worker is qualified.
  */
 @ThreadSafe
-public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
+public final class MostAvailableFirstPolicy
+    implements FileWriteLocationPolicy, BlockLocationPolicy {
 
   /**
    * Constructs a new {@link MostAvailableFirstPolicy}.
@@ -32,7 +33,7 @@ public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockId, long blockSizeBytes) {
+      long blockSizeBytes) {
     long mostAvailableBytes = -1;
     WorkerNetAddress result = null;
     for (BlockWorkerInfo workerInfo : workerInfoList) {
@@ -42,6 +43,12 @@ public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
       }
     }
     return result;
+  }
+
+  @Override
+  public WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList, long blockId,
+      long blockSizeBytes) {
+    return getWorkerForNextBlock(workerInfoList, blockSizeBytes);
   }
 
   @Override

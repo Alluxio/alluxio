@@ -58,8 +58,9 @@ public final class LocalFileBlockWriter implements BlockWriter {
     return write(mLocalFileChannel.size(), inputBuf.duplicate());
   }
 
+  @Override
   public int transferFrom(ByteBuf buf) throws IOException {
-
+    return buf.readBytes(mLocalFileChannel, buf.readableBytes());
   }
 
   @Override
