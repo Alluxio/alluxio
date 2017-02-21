@@ -39,8 +39,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class provides a streaming API to read a block in Alluxio. The data will be transferred
- * through an Alluxio worker's dataserver to the client.
+ * This class provides a streaming API to read a UFS block from an Alluxio worker. The data will
+ * be transferred through an Alluxio worker's dataserver to the client.
  */
 @NotThreadSafe
 public final class UfsBlockInStream extends BufferedBlockInStream implements Locatable {
@@ -59,33 +59,18 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
   private UfsBlockReader mReader;
 
   /**
-   * Creates a new remote block input stream.
+   * Creates a UFS block in stream.
    *
-   * @param blockId the block id
-   * @param context the file system context to use for acquiring worker and master clients
-   * @param options the instream options
-   * @throws IOException if the block is not available on the remote worker
+   * @param context the file system context
+   * @param ufsPath the UFS path
+   * @param blockId the block ID
+   * @param blockSize the block size
+   * @param blockStart the start position of the block in the UFS file
+   * @param workerNetAddress the worker network address
+   * @param options the in stream options
+   * @return the {@link UfsBlockInStream} instance
+   * @throws IOException if it fails to create {@link UfsBlockInStream}
    */
-  private UfsBlockInStream(FileSystemContext context, long blockId, long blockSize,
-      BlockWorkerClient blockWorkerClient, InStreamOptions options)
-      throws IOException {
-    super(blockId, blockSize);
-
-    mContext = context;
-    mCloser = Closer.create();
-    mBlockWorkerClient = blockWorkerClient;
-    mCloser.register(blockWorkerClient);
-    mCloser.register(new Closeable() {
-      @Override
-      public void close() throws IOException {
-        mBlockWorkerClient.unlockBlock(mBlockId);
-      }
-    });
-    mNoCache = !options.getAlluxioStorageType().isStore();
-    mLocal = blockWorkerClient.getDataServerAddress().getHostName()
-        .equals(NetworkAddressUtils.getLocalHostName());
-  }
-
   public static UfsBlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
       long blockId, long blockSize, long blockStart, WorkerNetAddress workerNetAddress,
       InStreamOptions options) throws IOException {
@@ -127,6 +112,35 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
     }
   }
 
+  /**
+   * Creates a new UFS block input stream.
+   *
+   * @param context the file system context
+   * @param blockId the block ID
+   * @param blockSize the block size
+   * @param blockWorkerClient the block worker client
+   * @param options the instream options
+   * @throws IOException if the block is not available on the remote worker
+   */
+  private UfsBlockInStream(FileSystemContext context, long blockId, long blockSize,
+      BlockWorkerClient blockWorkerClient, InStreamOptions options) throws IOException {
+    super(blockId, blockSize);
+
+    mContext = context;
+    mCloser = Closer.create();
+    mBlockWorkerClient = blockWorkerClient;
+    mCloser.register(blockWorkerClient);
+    mCloser.register(new Closeable() {
+      @Override
+      public void close() throws IOException {
+        mBlockWorkerClient.unlockBlock(mBlockId);
+      }
+    });
+    mNoCache = !options.getAlluxioStorageType().isStore();
+    mLocal = blockWorkerClient.getDataServerAddress().getHostName()
+        .equals(NetworkAddressUtils.getLocalHostName());
+  }
+
   @Override
   public void seek(long pos) throws IOException {
     super.seek(pos);
@@ -146,6 +160,7 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
     mCloser.close();
   }
 
+  @Override
   public InetSocketAddress location() {
     return mBlockWorkerClient.getDataServerAddress();
   }
@@ -178,7 +193,7 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
   }
 
   /**
-   * Reads a portion of the block from the remote worker.
+   * Reads a portion of the UFS block from the Alluxio worker.
    *
    * @param b the byte array to write the data to
    * @param off the offset in the array to write to
@@ -213,11 +228,11 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
    */
   @ThreadSafe
   private static final class Metrics {
-    private static final Counter BLOCKS_READ_UFS =
-        MetricsSystem.clientCounter("BlocksReadUFS");
+    private static final Counter BLOCKS_READ_UFS = MetricsSystem.clientCounter("BlocksReadUFS");
     private static final Counter BYTES_READ_UFS = MetricsSystem.clientCounter("BytesReadUFS");
     private static final Counter SEEKS_UFS = MetricsSystem.clientCounter("SeeksUFS");
 
-    private Metrics() {} // prevent instantiation
+    private Metrics() {
+    } // prevent instantiation
   }
 }

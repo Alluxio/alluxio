@@ -115,19 +115,27 @@ final class BlockDataServerHandler {
     }
   }
 
-  public void handleUfsBlockReadRequest(final ChannelHandlerContext ctx, final RPCUfsBlockReadRequest req)
-      throws IOException {
+  /**
+   * Handles a {@link RPCUfsBlockReadRequest} by reading the data through a {@link BlockReader}
+   * provided by the block worker. This method assumes the data is available in the UFS
+   * returns an error status if the data is not available.
+   *
+   * @param ctx The context of this request which handles the result of this operation
+   * @param req The initiating {@link RPCBlockReadRequest}
+   * @throws IOException if an I/O error occurs when reading the data requested
+   */
+  public void handleUfsBlockReadRequest(final ChannelHandlerContext ctx,
+      final RPCUfsBlockReadRequest req) throws IOException {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
     final long sessionId = req.getSessionId();
     final boolean noCache = req.getNoCache();
 
-    BlockReader reader = null;
-    DataBuffer buffer = null;
     try {
+      DataBuffer buffer = null;
       req.validate();
-      reader = mWorker.readUfsBlock(sessionId, blockId, offset, noCache);
+      BlockReader reader = mWorker.readUfsBlock(sessionId, blockId, offset, noCache);
       ByteBuffer data = reader.read(offset, len);
       if (data != null && data.remaining() > 0) {
         buffer = new DataByteBuffer(data, data.remaining());

@@ -350,9 +350,32 @@ public interface BlockWorker extends Worker {
    */
   FileInfo getFileInfo(long fileId) throws IOException;
 
+  /**
+   * Opens a UFS block.
+   *
+   * @param ufsBlockMeta the UFS block meta data
+   * @param maxUfsReadConcurrency the maximum UFS block read concurrency
+   * @throws BlockAlreadyExistsException if the UFS block already exists in the
+   *         {@link UfsBlockStore}
+   * @throws UfsBlockAccessTokenUnavailableException if there are too many clients accessing the
+   *         UFS block
+   */
   void openUfsBlock(UfsBlockMeta ufsBlockMeta, int maxUfsReadConcurrency)
       throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException;
 
+  /**
+   * Closes a UFS block for a client session. It also commits the block to Alluxio block store
+   * if the UFS block has been cached successfully.
+   *
+   * @param sessionId the session ID
+   * @param blockId the block ID
+   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
+   *         because the block exists in the Alluxio block store
+   * @throws BlockDoesNotExistException if the UFS block does not exist in the {@link UfsBlockStore}
+   * @throws InvalidWorkerStateException the worker is not in a valid state
+   * @throws IOException if any I/O related errors occur
+   * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
+   */
   void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException;

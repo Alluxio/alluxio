@@ -84,7 +84,6 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
     LockBlockResult lockBlockResult = null;
     try {
       blockWorkerClient = closer.register(context.createBlockWorkerClient(workerNetAddress));
-      lockBlockResult = blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults());
       PacketInStream inStream = closer.register(PacketInStream
           .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
       blockWorkerClient.accessBlock(blockId);
@@ -157,7 +156,6 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
-  // TODO(peis): Remove create{Local/Remote}BlockInStream and use this one instead.
   public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
       long blockId, long blockSize, long blockStart,
       WorkerNetAddress workerNetAddress, InStreamOptions options) throws IOException {

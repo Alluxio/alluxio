@@ -34,39 +34,70 @@ public final class LockBlockOptions {
     return new LockBlockOptions();
   }
 
+  /**
+   * Creates a {@link LockBlockOptions} instance.
+   */
   private LockBlockOptions() {}
 
+  /**
+   * @return the UFS path
+   */
   public String getUfsPath() {
     return mUfsPath;
   }
 
+  /**
+   * @return the block offset in the UFS file
+   */
   public long getOffset() {
     return mOffset;
   }
 
+  /**
+   * @return the UFS block size
+   */
   public long getBlockSize() {
     return mBlockSize;
   }
 
+  /**
+   * @return the maximum UFS read concurrency
+   */
   public int getMaxUfsReadConcurrency() {
     return mMaxUfsReadConcurrency;
   }
 
+  /**
+   * @param ufsPath the UFS path to set
+   * @return the updated options object
+   */
   public LockBlockOptions setUfsPath(String ufsPath) {
     mUfsPath = ufsPath;
     return this;
   }
 
+  /**
+   * @param offset the UFS block offset to set
+   * @return the updated options object
+   */
   public LockBlockOptions setOffset(long offset) {
     mOffset = offset;
     return this;
   }
 
+  /**
+   * @param blockSize the UFS block size to set
+   * @return the updated options object
+   */
   public LockBlockOptions setBlockSize(long blockSize) {
     mBlockSize = blockSize;
     return this;
   }
 
+  /**
+   * @param maxUfsReadConcurrency the maximum UFS read concurrency
+   * @return the updated options object
+   */
   public LockBlockOptions setMaxUfsReadConcurrency(int maxUfsReadConcurrency) {
     mMaxUfsReadConcurrency = maxUfsReadConcurrency;
     return this;
@@ -101,6 +132,11 @@ public final class LockBlockOptions {
         .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency).toString();
   }
 
+  /**
+   * Converts the object to a {@link LockBlockTOptions} object.
+   *
+   * @return the thrift lock block options
+   */
   public LockBlockTOptions toThrift() {
     LockBlockTOptions options = new LockBlockTOptions();
     options.setUfsPath(mUfsPath);

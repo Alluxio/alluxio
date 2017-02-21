@@ -123,6 +123,19 @@ public final class StreamFactory {
     }
   }
 
+  /**
+   * Creates an {@link InputStream} for a UFS block.
+   *
+   * @param context the file system context
+   * @param ufsPath the UFS path
+   * @param blockId the block ID
+   * @param blockSize the block size
+   * @param blockStart the start position of the block in the UFS file
+   * @param address the worker network address
+   * @param options the in stream options
+   * @return the input stream
+   * @throws IOException if it fails to create the input stream
+   */
   public static InputStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
       long blockId, long blockSize, long blockStart, WorkerNetAddress address,
       InStreamOptions options) throws IOException {

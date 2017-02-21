@@ -19,7 +19,7 @@ import io.netty.buffer.ByteBuf;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This represents an RPC request to read a block from a DataServer.
+ * This represents an RPC request to read a UFS block from a DataServer.
  */
 @ThreadSafe
 public final class RPCUfsBlockReadRequest extends RPCRequest {

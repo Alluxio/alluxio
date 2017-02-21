@@ -27,7 +27,7 @@ import alluxio.wire.WorkerNetAddress;
 @PublicApi
 public interface BlockLocationPolicy {
   /**
-   * Gets the worker's host name for the next block to write to.
+   * Gets the worker's host name for serve operations requested for the block.
    *
    * @param workerInfoList the info of the active workers
    * @param blockId the block ID
