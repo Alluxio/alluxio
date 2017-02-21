@@ -17,7 +17,6 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -25,24 +24,31 @@ import java.io.IOException;
  * Utilities for handling RPC calls.
  */
 public final class RpcUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(RpcUtils.class);
 
   /**
    * Calls the given {@link RpcCallable} and handles any exceptions thrown.
    *
    * @param callable the callable to call
    * @param <T> the return type of the callable
+   * @param logger the logger to use for this call
    * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
    */
-  public static <T> T call(RpcCallable<T> callable) throws AlluxioTException {
+  public static <T> T call(RpcCallable<T> callable, Logger logger) throws AlluxioTException {
     try {
-      return callable.call();
+      if (logger.isDebugEnabled()) { // Avoid expensive debug calls in critical path if disabled
+        logger.debug("Enter: {}", callable.getCallInfo());
+        T ret = callable.call();
+        logger.debug("Exit: {}", callable.getCallInfo());
+        return ret;
+      } else {
+        return callable.call();
+      }
     } catch (AlluxioException e) {
-      LOG.debug("Internal Alluxio error when running rpc", e);
+      logger.debug("Internal Error: {}", callable.getCallInfo(), e);
       throw e.toThrift();
     } catch (Exception e) {
-      LOG.error("Unexpected error running rpc", e);
+      logger.error("Unexpected Error: {}", callable.getCallInfo(), e);
       throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
@@ -52,22 +58,30 @@ public final class RpcUtils {
    *
    * @param callable the callable to call
    * @param <T> the return type of the callable
+   * @param logger the logger to use for this call
    * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
    * @throws ThriftIOException if the callable throws an IOException
    */
-  public static <T> T call(RpcCallableThrowsIOException<T> callable)
+  public static <T> T call(RpcCallableThrowsIOException<T> callable, Logger logger)
       throws AlluxioTException, ThriftIOException {
     try {
-      return callable.call();
+      if (logger.isDebugEnabled()) { // Avoid expensive debug calls in critical path if disabled
+        logger.debug("Enter: {}", callable.getCallInfo());
+        T ret = callable.call();
+        logger.debug("Exit: {}", callable.getCallInfo());
+        return ret;
+      } else {
+        return callable.call();
+      }
     } catch (AlluxioException e) {
-      LOG.debug("Internal Alluxio error when running rpc", e);
+      logger.debug("Internal Error: {}", callable.getCallInfo(), e);
       throw e.toThrift();
     } catch (IOException e) {
-      LOG.warn("I/O error when running rpc", e);
+      logger.debug("I/O Error: {}", callable.getCallInfo(), e);
       throw new ThriftIOException(e.getMessage());
     } catch (Exception e) {
-      LOG.error("Unexpected error running rpc", e);
+      logger.error("Unexpected Error: {}", callable.getCallInfo(), e);
       throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
@@ -85,6 +99,11 @@ public final class RpcUtils {
      * @throws AlluxioException if an expected exception occurs in the Alluxio system
      */
     T call() throws AlluxioException;
+
+    /**
+     * @return printable call information in the format: "[Call Name]. arg1:value1, arg2:value2 ..."
+     */
+    String getCallInfo();
   }
 
   /**
@@ -101,6 +120,11 @@ public final class RpcUtils {
      * @throws IOException if an exception is thrown when interacting with the underlying system
      */
     T call() throws AlluxioException, IOException;
+
+    /**
+     * @return printable call information in the format: "[Call Name]. arg1:value1, arg2:value2 ..."
+     */
+    String getCallInfo();
   }
 
   private RpcUtils() {} // prevent instantiation
