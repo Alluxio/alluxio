@@ -74,10 +74,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public long getServiceVersion() {
-    LOG.debug("Enter GetServiceVersion.");
-    long ret = Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION;
-    LOG.debug("Exit GetServiceVersion.");
-    return ret;
+    return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION;
   }
 
   @Override
@@ -96,7 +93,7 @@ public final class FileSystemMasterClientServiceHandler implements
         return uris;
       }
     });
-    LOG.debug("Exit CheckConsistency. path:{} options:{}", path, options);
+    LOG.debug("Exit CheckConsistency. path:{}, options:{}", path, options);
     return ret;
   }
 
@@ -335,7 +332,7 @@ public final class FileSystemMasterClientServiceHandler implements
         return null;
       }
     });
-    LOG.debug("Exit Rename. path:{}, recursive:{}", srcPath, dstPath);
+    LOG.debug("Exit Rename. srcPath:{}, dstPath:{}", srcPath, dstPath);
   }
 
   @Override
