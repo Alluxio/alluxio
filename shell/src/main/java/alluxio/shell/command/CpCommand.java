@@ -83,7 +83,7 @@ public final class CpCommand extends AbstractShellCommand {
         && "file".equals(srcPath.getScheme())) {
       List<File> srcFiles = AlluxioShellUtils.getFiles(srcPath.getPath());
       if (srcFiles.size() == 0) {
-        throw new IOException("Local path " + srcPath + " does not exist.");
+        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
       }
       if (srcPath.getPath().contains(AlluxioURI.WILDCARD)) {
         copyFromLocalWildcard(srcFiles, dstPath);
@@ -95,7 +95,7 @@ public final class CpCommand extends AbstractShellCommand {
       File dstFile = new File(dstPath.getPath());
       List<AlluxioURI> srcPaths = AlluxioShellUtils.getAlluxioURIs(mFileSystem, srcPath);
       if (srcPaths.size() == 0) {
-        throw new IOException(srcPath.getPath() + " does not exist.");
+        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
       }
       if (srcPath.containsWildcard()) {
         copyWildcardToLocal(srcPaths, dstFile);
