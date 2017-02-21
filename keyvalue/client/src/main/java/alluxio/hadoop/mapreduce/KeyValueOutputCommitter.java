@@ -11,7 +11,6 @@
 
 package alluxio.hadoop.mapreduce;
 
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
@@ -37,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public final class KeyValueOutputCommitter extends FileOutputCommitter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(KeyValueOutputCommitter.class);
 
   private static final KeyValueSystem KEY_VALUE_SYSTEM = KeyValueSystem.Factory.create();
 

@@ -12,7 +12,6 @@
 package alluxio.examples;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.cli.CliUtils;
 import alluxio.client.file.FileInStream;
@@ -33,7 +32,7 @@ import java.util.concurrent.Callable;
  * An example to show to how use Alluxio's API.
  */
 public class BasicCheckpoint implements Callable<Boolean> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BasicCheckpoint.class);
 
   private final String mFileFolder;
   private final int mNumFiles;

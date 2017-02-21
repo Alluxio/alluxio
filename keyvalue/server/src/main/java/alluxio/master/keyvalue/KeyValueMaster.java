@@ -42,8 +42,6 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.thrift.TProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,7 +58,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueMaster extends AbstractMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final FileSystemMaster mFileSystemMaster;
 
   /** Map from file id of a complete store to the list of partitions in this store. */

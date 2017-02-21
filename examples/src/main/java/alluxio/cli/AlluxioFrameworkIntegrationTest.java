@@ -45,10 +45,11 @@ import java.util.Map.Entry;
  * running locally.
  */
 public final class AlluxioFrameworkIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioFrameworkIntegrationTest.class);
+
   private static final String JDK_URL =
       "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-macosx-x64.tar.gz";
   private static final String JDK_PATH = "jdk1.7.0_79.jdk/Contents/Home";
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Parameter(names = {"-m", "--mesos"}, required = true,
       description = "Address for locally-running Mesos, e.g. localhost:5050")

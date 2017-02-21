@@ -11,7 +11,6 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.Constants;
 import alluxio.util.io.PathUtils;
 
 import org.javaswift.joss.model.Account;
@@ -36,8 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class SwiftMockOutputStream extends OutputStream {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(SwiftMockOutputStream.class);
 
   private final File mFile;
 

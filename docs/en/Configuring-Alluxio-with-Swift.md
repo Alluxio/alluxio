@@ -82,7 +82,7 @@ To stop Alluxio, you can run:
 
 {% include Common-Commands/stop-alluxio.md %}
 
-# Running functional tests
+## Running functional tests
 
 Configure your Swift account credentials under `swiftTest` in `tests/pom.xml`, where `authMethodKey` should be
 `keystone` or `tempauth` or `swiftauth`. To run functional tests execute

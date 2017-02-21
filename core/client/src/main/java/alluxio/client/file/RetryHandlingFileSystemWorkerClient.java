@@ -34,6 +34,7 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
@@ -51,11 +52,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 // TODO(calvin): Session logic can be abstracted
 @ThreadSafe
-public final class RetryHandlingFileSystemWorkerClient
+public class RetryHandlingFileSystemWorkerClient
     extends AbstractThriftClient<FileSystemWorkerClientService.Client>
     implements FileSystemWorkerClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemWorkerClient.class);
   private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
       Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_THREADS),
       ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));

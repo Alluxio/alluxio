@@ -15,8 +15,6 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -29,8 +27,6 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public abstract class AbstractMasterClient extends AbstractClient implements MasterClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /**
    * Identifies the Zookeeper path to use for discovering the master address. This should be null
    * if Zookeeper is not being used.

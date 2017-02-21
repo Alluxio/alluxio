@@ -11,8 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.Constants;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +27,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ShellUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(ShellUtils.class);
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** a Unix command to set permission. */
   public static final String SET_PERMISSION_COMMAND = "chmod";
 
