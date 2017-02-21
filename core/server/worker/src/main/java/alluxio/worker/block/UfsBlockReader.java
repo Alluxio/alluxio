@@ -46,9 +46,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UfsBlockReader implements BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(UfsBlockReader.class);
-
   private static final long FILE_BUFFER_SIZE = Configuration.getBytes(
       PropertyKey.WORKER_FILE_BUFFER_SIZE);
+
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
@@ -56,13 +56,25 @@ public final class UfsBlockReader implements BlockReader {
   private final boolean mNoCache;
   private final BlockStore mAlluxioBlockStore;
 
-  private InputStream mUFSInputStream;
+  private InputStream mUfsInputStream;
   private BlockWriter mBlockWriter;
   private boolean mClosed;
 
-  /** The position within the block. */
-  private long mPos;
+  /** The position of mUfsInputStream (if not null) is blockStart + mPos. */
+  private long mInStreamPos;
+  /** The position of mBlockWriter if not null is mPos. */
+  private long mBlockWriterPos;
 
+  /**
+   * Creates an instance of {@link UfsBlockReader}.
+   *
+   * @param blockMeta the block meta
+   * @param offset the offset within the block (NOT the file)
+   * @param noCache do not cache the block
+   * @param alluxioBlockStore the Alluxio block store
+   * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
+   * @throws IOException if an I/O related error occur
+   */
   public UfsBlockReader(UfsBlockMeta blockMeta, long offset, boolean noCache,
       BlockStore alluxioBlockStore)
       throws BlockDoesNotExistException, IOException {
@@ -76,12 +88,9 @@ public final class UfsBlockReader implements BlockReader {
     }
     mAlluxioBlockStore = alluxioBlockStore;
     mNoCache = noCache;
-    mPos = 0;
 
     updateUfsInputStream(offset);
     updateBlockWriter(offset);
-    mPos = offset;
-    mClosed = false;
 
     mBlockMeta.setBlockReader(this);
   }
@@ -99,11 +108,8 @@ public final class UfsBlockReader implements BlockReader {
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkState(!mClosed);
-    if (offset > 0) {
-      updateBlockWriter(offset);
-      updateUfsInputStream(offset);
-      mPos = offset;
-    }
+    updateBlockWriter(offset);
+    updateUfsInputStream(offset);
 
     long bytesToRead = Math.min(length, mBlockMeta.getBlockSize() - offset);
     if (bytesToRead <= 0) {
@@ -111,51 +117,64 @@ public final class UfsBlockReader implements BlockReader {
     }
     byte[] data = new byte[(int) bytesToRead];
     int bytesRead = 0;
-    if (mUFSInputStream != null) {
+    if (mUfsInputStream != null) {
       while (bytesRead < bytesToRead) {
-        int read = mUFSInputStream.read(data, bytesRead, (int) (bytesToRead - bytesRead));
+        int read = mUfsInputStream.read(data, bytesRead, (int) (bytesToRead - bytesRead));
         if (read == -1) {
           break;
         }
         bytesRead += read;
       }
     }
+    mInStreamPos += bytesRead;
 
     // We should always read the number of bytes as expected since the UFS file length (hence block
     // size) should be always accurate.
     Preconditions.checkState(bytesRead == bytesRead,
         "Not enough bytes have been read [bytesRead: {}, bytesToRead: {}] from the UFS file: {}.",
         bytesRead, bytesToRead, mBlockMeta.getUfsPath());
-    ByteBuffer buffer = ByteBuffer.wrap(data, 0, bytesRead);
-    if (mBlockWriter != null) {
+    if (mBlockWriter != null && mBlockWriterPos < mInStreamPos) {
+      Preconditions.checkState(mBlockWriterPos >= offset);
+      ByteBuffer buffer = ByteBuffer
+          .wrap(data, (int) (mBlockWriterPos - offset), (int) (mInStreamPos - mBlockWriterPos));
       mBlockWriter.append(buffer.duplicate());
+      mBlockWriterPos = mInStreamPos;
     }
-    mPos = bytesRead;
-    return buffer;
+    return ByteBuffer.wrap(data, 0, bytesRead);
   }
 
+  /**
+   * This interface is supposed to be used for sequence block reads.
+   *
+   * @param buf the byte buffer
+   * @return the number of bytes read, -1 if it reaches EOF and none was read
+   * @throws IOException if any I/O errors occur when reading the block
+   */
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
+    if (mUfsInputStream == null) {
+      return -1;
+    }
     int bytesRead = 0;
     ByteBuf bufCopy = buf.duplicate();
     bufCopy.readerIndex(bufCopy.writerIndex());
-    if (mUFSInputStream != null) {
-      bytesRead = buf.writeBytes(mUFSInputStream, buf.writableBytes());
-    }
+    bytesRead = buf.writeBytes(mUfsInputStream, buf.writableBytes());
 
     if (bytesRead <= 0) {
       return bytesRead;
     }
+
+    mInStreamPos += bytesRead;
 
     bufCopy.writerIndex(buf.writerIndex());
     if (mBlockWriter != null) {
       while (bufCopy.readableBytes() > 0) {
         mBlockWriter.transferFrom(bufCopy);
       }
+      mBlockWriterPos += bytesRead;
     }
 
-    mPos += bytesRead;
     return bytesRead;
   }
 
@@ -181,8 +200,8 @@ public final class UfsBlockReader implements BlockReader {
       if (mBlockWriter != null) {
         closer.register(mBlockWriter);
       }
-      if (mUFSInputStream != null) {
-        closer.register(mUFSInputStream);
+      if (mUfsInputStream != null) {
+        closer.register(mUfsInputStream);
       }
       closer.close();
 
@@ -199,36 +218,57 @@ public final class UfsBlockReader implements BlockReader {
     return mClosed;
   }
 
+  /**
+   * @return true if the whole block is read and cached to the temporary block location
+   */
   private boolean isBlockCached() {
-    return mBlockWriter != null && mPos == mBlockMeta.getBlockSize();
+    return mBlockWriter != null && mBlockWriterPos == mBlockMeta.getBlockSize();
   }
 
+  /**
+   * Updates the UFS input stream given an offset to read.
+   *
+   * @param offset the read offset
+   * @throws IOException any I/O errors occur while updating the input stream
+   */
   private void updateUfsInputStream(long offset) throws IOException {
-    if (offset >= mBlockMeta.getBlockSize() || offset != mPos) {
-      mUFSInputStream.close();
-      mUFSInputStream = null;
+    if ((mUfsInputStream != null) && (offset >= mBlockMeta.getBlockSize()
+        || offset != mInStreamPos)) {
+      mUfsInputStream.close();
+      mUfsInputStream = null;
+      mInStreamPos = -1;
     }
 
-    if (mUFSInputStream == null && offset < mBlockMeta.getBlockSize()) {
+    if (mUfsInputStream == null && offset < mBlockMeta.getBlockSize()) {
       UnderFileSystem ufs = UnderFileSystem.Factory.get(mBlockMeta.getUfsPath());
-      mUFSInputStream = ufs.open(mBlockMeta.getUfsPath(),
+      mUfsInputStream = ufs.open(mBlockMeta.getUfsPath(),
           OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
+      mInStreamPos = offset;
     }
   }
 
+  /**
+   * Updates the block writer given an offset to read. The offset is beyond the current
+   * position of the block writer, the block writer will be aborted.
+   *
+   * @param offset the read offset
+   * @throws IOException any I/O errors occur while updating the input stream
+   */
   private void updateBlockWriter(long offset) {
     try {
-      if (offset != mPos && mBlockWriter != null) {
+      if (mBlockWriter != null && offset > mBlockWriterPos) {
         mBlockWriter.close();
         mBlockWriter = null;
         mAlluxioBlockStore.abortBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
+        mBlockWriterPos = -1;
       }
-      if (offset == 0 && !mNoCache) {
+      if (mBlockWriter == null && offset == 0 && !mNoCache) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
         String blockPath = mAlluxioBlockStore
             .createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(), loc, FILE_BUFFER_SIZE)
             .getPath();
         mBlockWriter = new LocalFileBlockWriter(blockPath);
+        mBlockWriterPos = 0;
       }
     } catch (Exception e) {
       LOG.warn("Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]",

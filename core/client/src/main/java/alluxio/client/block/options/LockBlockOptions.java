@@ -108,7 +108,7 @@ public final class LockBlockOptions {
     if (this == o) {
       return true;
     }
-    if (! (o instanceof LockBlockOptions)) {
+    if (!(o instanceof LockBlockOptions)) {
       return false;
     }
     LockBlockOptions that = (LockBlockOptions) o;

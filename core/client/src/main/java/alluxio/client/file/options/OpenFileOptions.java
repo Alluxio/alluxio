@@ -17,7 +17,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.BlockLocationPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.thrift.BlockLocation;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -116,6 +115,7 @@ public final class OpenFileOptions {
   }
 
   /**
+   * @param policy the block location policy for the UFS read
    * @return the UFS read location policy
    */
   @JsonIgnore
@@ -178,7 +178,8 @@ public final class OpenFileOptions {
     OpenFileOptions that = (OpenFileOptions) o;
     return Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mReadType, that.mReadType)
-        && Objects.equal(mMaxUfsReadConcurrency, this.mMaxUfsReadConcurrency);
+        && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency)
+        && Objects.equal(mUfsReadLocationPolicy, that.mUfsReadLocationPolicy);
   }
 
   @Override
@@ -192,6 +193,7 @@ public final class OpenFileOptions {
         .add("locationPolicy", mLocationPolicy)
         .add("readType", mReadType)
         .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
+        .add("ufsReadLocationPolicy", mUfsReadLocationPolicy)
         .toString();
   }
 }

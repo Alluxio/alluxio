@@ -11,7 +11,6 @@
 
 package alluxio.client.netty;
 
-import alluxio.Constants;
 import alluxio.client.UfsBlockReader;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ExceptionMessage;

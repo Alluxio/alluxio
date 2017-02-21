@@ -37,6 +37,7 @@ import alluxio.wire.WorkerNetAddress;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -77,7 +78,7 @@ public class RemoteBlockInStreamIntegrationTest {
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER});
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
+       IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
     return list;
   }
 
@@ -131,9 +132,9 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       if (k == 0) {
-        Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
       } else {
-        Assert.assertFalse(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertNotEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
       }
 
       is = mFileSystem.openFile(uri, mReadCache);
@@ -149,7 +150,7 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
 
       is = mFileSystem.openFile(uri, mReadCache);
       ret = new byte[k];
@@ -164,7 +165,7 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
     }
   }
 
@@ -424,7 +425,7 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertEquals(k / 2, is.skip(k / 2));
       Assert.assertEquals(k / 2, is.read());
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
 
       if (k >= 3) {
         is = mFileSystem.openFile(uri, mReadCache);

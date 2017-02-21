@@ -42,7 +42,7 @@ public final class DeterministicHashPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
     DeterministicHashPolicy policy = new DeterministicHashPolicy();
 
-    Assert.assertNotEquals(
+    Assert.assertEquals(
         policy.getWorkerForBlock(workerInfoList, 1, 2 * (long) Constants.GB).getHost(),
         policy.getWorkerForBlock(workerInfoList, 1, 2 * (long) Constants.GB).getHost());
   }

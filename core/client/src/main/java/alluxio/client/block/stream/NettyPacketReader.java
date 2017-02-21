@@ -13,14 +13,13 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -383,6 +382,7 @@ public final class NettyPacketReader implements PacketReader {
      * @param id the block ID or UFS ID
      * @param lockId the lock ID
      * @param sessionId the session ID
+     * @param noCache if set, the block won't be cached in Alluxio if the block is a UFS block
      * @param type the request type
      */
     public Factory(FileSystemContext context, InetSocketAddress address, long id, long lockId,

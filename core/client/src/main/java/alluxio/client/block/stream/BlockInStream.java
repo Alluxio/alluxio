@@ -255,14 +255,15 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
     mBlockWorkerClient = blockWorkerClient;
 
     mCloser = Closer.create();
-    mCloser.register(mInputStream);
+    // Closer closes the closeables in LIFO order.
+    mCloser.register(mBlockWorkerClient);
     mCloser.register(new Closeable() {
       @Override
       public void close() throws IOException {
         mBlockWorkerClient.unlockBlock(mBlockId);
       }
     });
-    mCloser.register(mBlockWorkerClient);
+    mCloser.register(mInputStream);
     mLocal = blockWorkerClient.getDataServerAddress().getHostName()
         .equals(NetworkAddressUtils.getClientHostName());
   }

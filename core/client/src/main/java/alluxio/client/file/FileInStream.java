@@ -165,7 +165,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
     updateStreams();
-    if (mCurrentCacheStream != null && mShouldCachePartiallyReadBlock) {
+    if (mShouldCachePartiallyReadBlock) {
       readCurrentBlockToEnd();
     }
     if (mCurrentBlockInStream != null) {
@@ -681,20 +681,18 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     // mPos is not updated here.
     updateStreams();
 
-    if (mCurrentCacheStream != null) {
-      // Cache till pos if seeking forward within the current block. Otherwise cache the whole
-      // block.
-      readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
+    // Cache till pos if seeking forward within the current block. Otherwise cache the whole
+    // block.
+    readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
 
-      // Early return if we are at pos already. This happens if we seek forward with caching
-      // enabled for this block.
-      if (mPos == pos) {
-        return;
-      }
-      // The early return above guarantees that we won't close an incomplete cache stream.
-      Preconditions.checkState(mCurrentCacheStream == null || cacheStreamRemaining() == 0);
-      closeOrCancelCacheStream();
+    // Early return if we are at pos already. This happens if we seek forward with caching
+    // enabled for this block.
+    if (mPos == pos) {
+      return;
     }
+    // The early return above guarantees that we won't close an incomplete cache stream.
+    Preconditions.checkState(mCurrentCacheStream == null || cacheStreamRemaining() == 0);
+    closeOrCancelCacheStream();
 
     // If seeks within the current block, directly seeks to pos if we are not yet there.
     // If seeks outside the current block, seek to the beginning of that block first, then
@@ -711,14 +709,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     } else {
       mPos = pos / mBlockSize * mBlockSize;
       updateStreams();
-      if (mCurrentCacheStream != null) {
-        readCurrentBlockToPos(pos);
-      } else if (mCurrentBlockInStream != null) {
-        mPos = pos;
-        inStreamSeek(mPos % mBlockSize);
-      } else {
-        Preconditions.checkState(remaining() == 0);
-      }
+      readCurrentBlockToPos(pos);
     }
   }
 
@@ -730,8 +721,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @throws IOException if read or cache write fails
    */
   private void readCurrentBlockToPos(long pos) throws IOException {
-    Preconditions.checkNotNull(mCurrentBlockInStream);
-    Preconditions.checkNotNull(mCurrentCacheStream);
+    if (mCurrentBlockInStream == null) {
+      return;
+    }
     long len = Math.min(pos - mPos, inStreamRemaining());
     if (len <= 0) {
       return;

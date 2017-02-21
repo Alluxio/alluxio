@@ -223,10 +223,10 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
-  public LockBlockResult lockBlock(final long blockId, final LockBlockOptions options) throws IOException, AlluxioException {
+  public LockBlockResult lockBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException {
     return retryRPC(
-        new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService
-            .Client>() {
+        new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService.Client>() {
           @Override
           public LockBlockResult call(BlockWorkerClientService.Client client)
               throws AlluxioTException, TException {

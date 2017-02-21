@@ -11,11 +11,8 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.Seekable;
-import alluxio.client.PositionedReadable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
