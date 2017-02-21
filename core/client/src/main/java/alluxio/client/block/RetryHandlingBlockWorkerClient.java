@@ -74,7 +74,7 @@ public final class RetryHandlingBlockWorkerClient
   private final WorkerNetAddress mWorkerNetAddress;
   private final InetSocketAddress mRpcAddress;
 
-  private ScheduledFuture<?> mHeartbeat = null;
+  private ScheduledFuture<?> mHeartbeat;
 
   /**
    * Factory method for {@link RetryHandlingBlockWorkerClient}.
@@ -128,7 +128,7 @@ public final class RetryHandlingBlockWorkerClient
               } catch (InterruptedException e) {
                 // Do nothing.
               } catch (Exception e) {
-                LOG.error("Failed to heartbeat for session " + mSessionId, e);
+                LOG.error("Failed to heartbeat for session {}", mSessionId, e);
               }
             }
           }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),

@@ -103,7 +103,7 @@ public final class AlluxioFrameworkIntegrationTest {
       String masterHostName = NetworkAddressUtils.getLocalHostName();
       int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
       InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
-      try (final BlockMasterClient client = BlockMasterClient.Factory.create(masterAddress)) {
+      try (final BlockMasterClient client = BlockMasterClient.Factory.create(null, masterAddress)) {
         CommonUtils.waitFor("Alluxio worker to register with master",
             new Function<Void, Boolean>() {
               @Override

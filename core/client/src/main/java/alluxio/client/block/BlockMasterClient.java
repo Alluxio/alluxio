@@ -22,6 +22,7 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * A client to use for interacting with a block master.
@@ -39,11 +40,12 @@ public interface BlockMasterClient extends Client {
     /**
      * Factory method for {@link BlockMasterClient}.
      *
+     * @param subject the parent subject, set to null if not present
      * @param masterAddress the master address
      * @return a new {@link BlockMasterClient} instance
      */
-    public static BlockMasterClient create(InetSocketAddress masterAddress) {
-      return new RetryHandlingBlockMasterClient(null, masterAddress);
+    public static BlockMasterClient create(Subject subject, InetSocketAddress masterAddress) {
+      return RetryHandlingBlockMasterClient.create(subject, masterAddress);
     }
   }
 

@@ -95,7 +95,7 @@ public class DataServerIntegrationTest {
 
     mBlockWorkerClient = FileSystemContext.INSTANCE
         .createBlockWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress());
-    mBlockMasterClient = BlockMasterClient.Factory.create(
+    mBlockMasterClient = BlockMasterClient.Factory.create(null,
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
             mLocalAlluxioClusterResource.get().getMasterRpcPort()));
   }

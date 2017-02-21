@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
- * Interface for an Alluxio block worker client.
+ * Interface for an Alluxio file system worker client.
  */
 public interface FileSystemWorkerClient extends Closeable {
 
