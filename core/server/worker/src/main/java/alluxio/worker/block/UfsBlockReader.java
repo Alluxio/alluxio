@@ -145,6 +145,7 @@ public final class UfsBlockReader implements BlockReader {
       return bytesRead;
     }
 
+    bufCopy.writerIndex(buf.writerIndex());
     if (mBlockWriter != null) {
       while (bufCopy.readableBytes() > 0) {
         mBlockWriter.transferFrom(bufCopy);

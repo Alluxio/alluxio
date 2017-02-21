@@ -32,6 +32,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
 
+import java.io.Closeable;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -210,13 +211,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
 
   @Override
   public void close() throws IOException {
-    try {
-      mCloser.close();
-    } catch (Throwable e) { // must catch Throwable
-      mCloser.rethrow(e); // IOException will be thrown as-is
-    } finally {
-      mBlockWorkerClient.unlockBlock(mBlockId);
-    }
+    mCloser.close();
   }
 
   @Override
@@ -263,6 +258,12 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
 
     mCloser = Closer.create();
     mCloser.register(mInputStream);
+    mCloser.register(new Closeable() {
+      @Override
+      public void close() throws IOException {
+        mBlockWorkerClient.unlockBlock(mBlockId);
+      }
+    });
     mCloser.register(mBlockWorkerClient);
     mLocal = blockWorkerClient.getDataServerAddress().getHostName()
         .equals(NetworkAddressUtils.getClientHostName());
