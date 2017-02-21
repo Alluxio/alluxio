@@ -79,7 +79,8 @@ public final class CpCommand extends AbstractShellCommand {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
-    if (dstPath.getScheme() == null && "file".equals(srcPath.getScheme())) {
+    if ((dstPath.getScheme() == null || "alluxio".equals(dstPath.getScheme()))
+        && "file".equals(srcPath.getScheme())) {
       List<File> srcFiles = AlluxioShellUtils.getFiles(srcPath.getPath());
       if (srcFiles.size() == 0) {
         throw new IOException("Local path " + srcPath + " does not exist.");
@@ -89,13 +90,13 @@ public final class CpCommand extends AbstractShellCommand {
       } else {
         copyFromLocal(new File(srcPath.getPath()), dstPath);
       }
-    } else if (srcPath.getScheme() == null && "file".equals(dstPath.getScheme())) {
-      File dstFile = new File(args[1]);
+    } else if ((srcPath.getScheme() == null || "alluxio".equals(srcPath.getScheme()))
+        && "file".equals(dstPath.getScheme())) {
+      File dstFile = new File(dstPath.getPath());
       List<AlluxioURI> srcPaths = AlluxioShellUtils.getAlluxioURIs(mFileSystem, srcPath);
       if (srcPaths.size() == 0) {
         throw new IOException(srcPath.getPath() + " does not exist.");
       }
-
       if (srcPath.containsWildcard()) {
         copyWildcardToLocal(srcPaths, dstFile);
       } else {
@@ -107,14 +108,12 @@ public final class CpCommand extends AbstractShellCommand {
         throw new FileDoesNotExistException(
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath.getPath()));
       }
-
       if (srcPath.containsWildcard()) {
         copyWildcard(srcPaths, dstPath, cl.hasOption("R"));
       } else {
         copy(srcPath, dstPath, cl.hasOption("R"));
       }
     }
-
   }
 
   /**
