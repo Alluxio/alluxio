@@ -115,7 +115,7 @@ public final class CpCommand extends AbstractShellCommand {
         copy(srcPath, dstPath, cl.hasOption("R"));
       }
     } else {
-      System.out.println("Scheme must be file or alluxio.");
+      System.out.println("Scheme must be file or alluxio and only support one file scheme.");
     }
   }
 
