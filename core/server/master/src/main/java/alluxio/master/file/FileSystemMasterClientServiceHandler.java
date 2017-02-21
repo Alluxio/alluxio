@@ -74,7 +74,10 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public long getServiceVersion() {
-    return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION;
+    LOG.debug("Enter GetServiceVersion.");
+    long ret = Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION;
+    LOG.debug("Exit GetServiceVersion.");
+    return ret;
   }
 
   @Override
