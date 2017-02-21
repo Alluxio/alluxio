@@ -85,7 +85,7 @@ public final class CpCommand extends AbstractShellCommand {
       if (srcFiles.size() == 0) {
         throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
       }
-      if (srcPath.getPath().contains(AlluxioURI.WILDCARD)) {
+      if (srcPath.containsWildcard()) {
         copyFromLocalWildcard(srcFiles, dstPath);
       } else {
         copyFromLocal(new File(srcPath.getPath()), dstPath);
