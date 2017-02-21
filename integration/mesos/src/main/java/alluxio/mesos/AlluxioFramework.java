@@ -12,7 +12,6 @@
 package alluxio.mesos;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 
 import com.beust.jcommander.JCommander;

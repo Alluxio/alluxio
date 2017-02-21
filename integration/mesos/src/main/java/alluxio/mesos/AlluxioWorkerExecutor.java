@@ -11,7 +11,6 @@
 
 package alluxio.mesos;
 
-import alluxio.Constants;
 import alluxio.cli.Format;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.worker.AlluxioWorker;

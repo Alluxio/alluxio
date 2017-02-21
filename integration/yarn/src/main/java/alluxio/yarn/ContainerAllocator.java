@@ -11,7 +11,6 @@
 
 package alluxio.yarn;
 
-import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 
 import com.google.common.collect.ConcurrentHashMultiset;
