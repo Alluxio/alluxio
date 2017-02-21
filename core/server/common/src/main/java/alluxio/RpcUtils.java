@@ -28,13 +28,13 @@ public final class RpcUtils {
   /**
    * Calls the given {@link RpcCallable} and handles any exceptions thrown.
    *
+   * @param logger the logger to use for this call
    * @param callable the callable to call
    * @param <T> the return type of the callable
-   * @param logger the logger to use for this call
    * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
    */
-  public static <T> T call(RpcCallable<T> callable, Logger logger) throws AlluxioTException {
+  public static <T> T call(Logger logger, RpcCallable<T> callable) throws AlluxioTException {
     try {
       if (logger.isDebugEnabled()) { // Avoid expensive debug calls in critical path if disabled
         logger.debug("Enter: {}", callable.getCallInfo());
@@ -56,14 +56,14 @@ public final class RpcUtils {
   /**
    * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown.
    *
+   * @param logger the logger to use for this call
    * @param callable the callable to call
    * @param <T> the return type of the callable
-   * @param logger the logger to use for this call
    * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
    * @throws ThriftIOException if the callable throws an IOException
    */
-  public static <T> T call(RpcCallableThrowsIOException<T> callable, Logger logger)
+  public static <T> T call(Logger logger, RpcCallableThrowsIOException<T> callable)
       throws AlluxioTException, ThriftIOException {
     try {
       if (logger.isDebugEnabled()) { // Avoid expensive debug calls in critical path if disabled
