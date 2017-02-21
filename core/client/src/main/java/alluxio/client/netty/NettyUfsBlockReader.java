@@ -42,7 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class NettyUfsBlockReader implements UfsBlockReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(NettyUfsBlockReader.class);
 
   private final FileSystemContext mContext;
   /** A reference to read response so we can explicitly release the resource after reading. */

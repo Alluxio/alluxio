@@ -41,7 +41,7 @@ import javax.annotation.concurrent.GuardedBy;
  * releaseAccess(sessionId, blockId)
  */
 public final class UfsBlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(UfsBlockStore.class);
 
   private final ReentrantLock mLock = new ReentrantLock();
   @GuardedBy("mLock")

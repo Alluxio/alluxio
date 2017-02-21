@@ -45,7 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UfsBlockReader implements BlockReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(UfsBlockReader.class);
 
   private static final long FILE_BUFFER_SIZE = Configuration.getBytes(
       PropertyKey.WORKER_FILE_BUFFER_SIZE);

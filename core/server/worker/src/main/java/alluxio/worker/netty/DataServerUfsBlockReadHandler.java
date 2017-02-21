@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(DataServerUfsBlockReadHandler.class);
 
   /** The Block Worker. */
   private final BlockWorker mWorker;
