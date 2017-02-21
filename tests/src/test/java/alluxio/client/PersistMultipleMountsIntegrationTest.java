@@ -34,11 +34,11 @@ import org.junit.rules.TemporaryFolder;
  */
 public final class PersistMultipleMountsIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
-  private String mUfsRoot;
-  private UnderFileSystem mUfs;
-
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
+
+  private String mUfsRoot;
+  private UnderFileSystem mUfs;
   private String mMountedUfsRoot;
   private UnderFileSystem mMountedUfs;
 
@@ -51,8 +51,7 @@ public final class PersistMultipleMountsIntegrationTest
     mUfs = UnderFileSystem.Factory.get(mUfsRoot);
 
     mMountedUfsRoot = mTempFolder.getRoot().toURI().toString();
-    mFileSystem.mount(new AlluxioURI("/mounted"),
-        new AlluxioURI(mMountedUfsRoot));
+    mFileSystem.mount(new AlluxioURI("/mounted"), new AlluxioURI(mMountedUfsRoot));
     mMountedUfs = UnderFileSystem.Factory.get(mMountedUfsRoot);
   }
 
