@@ -46,7 +46,17 @@ public interface FileSystemMasterClient extends MasterClient {
     /**
      * Factory method for {@link FileSystemMasterClient}.
      *
-     * @param subject the parent subject, set to null if not present
+     * @param masterAddress the master address
+     * @return a new {@link FileSystemMasterClient} instance
+     */
+    public static FileSystemMasterClient create(InetSocketAddress masterAddress) {
+      return create(null, masterAddress);
+    }
+
+    /**
+     * Factory method for {@link FileSystemMasterClient}.
+     *
+     * @param subject the parent subject
      * @param masterAddress the master address
      * @return a new {@link FileSystemMasterClient} instance
      */

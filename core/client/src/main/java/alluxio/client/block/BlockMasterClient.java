@@ -40,7 +40,17 @@ public interface BlockMasterClient extends Client {
     /**
      * Factory method for {@link BlockMasterClient}.
      *
-     * @param subject the parent subject, set to null if not present
+     * @param masterAddress the master address
+     * @return a new {@link BlockMasterClient} instance
+     */
+    public static BlockMasterClient create(InetSocketAddress masterAddress) {
+      return create(null, masterAddress);
+    }
+
+    /**
+     * Factory method for {@link BlockMasterClient}.
+     *
+     * @param subject the parent subject
      * @param masterAddress the master address
      * @return a new {@link BlockMasterClient} instance
      */
