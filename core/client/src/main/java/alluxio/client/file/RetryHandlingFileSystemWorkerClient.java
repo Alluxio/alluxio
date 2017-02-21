@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AbstractThriftClient;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CloseUfsFileOptions;
@@ -34,7 +33,6 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
@@ -52,7 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 // TODO(calvin): Session logic can be abstracted
 @ThreadSafe
-public class RetryHandlingFileSystemWorkerClient
+public final class RetryHandlingFileSystemWorkerClient
     extends AbstractThriftClient<FileSystemWorkerClientService.Client>
     implements FileSystemWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemWorkerClient.class);
