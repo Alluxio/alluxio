@@ -204,8 +204,6 @@ public final class BlockLockManager {
     synchronized (mSharedMapsLock) {
       Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
       if (sessionLockIds == null) {
-        LOG.warn("Attempted to unlock block {} with session {}, but the session has not taken"
-            + " any block locks", blockId, sessionId);
         return;
       }
       for (long lockId : sessionLockIds) {

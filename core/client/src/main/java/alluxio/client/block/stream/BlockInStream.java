@@ -86,6 +86,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       lockBlockResult = blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults());
       PacketInStream inStream = closer.register(PacketInStream
           .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
+      blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockId, blockWorkerClient, options);
     } catch (Exception e) {
       if (lockBlockResult != null) {
@@ -126,6 +127,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
           .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
               lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize, false,
               Protocol.RequestType.ALLUXIO_BLOCK));
+      blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockId, blockWorkerClient, options);
     } catch (Exception e) {
       if (lockBlockResult != null) {
@@ -186,14 +188,13 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       if (lockBlockResult.getLockId() >= 0) {
         // The block is in Alluxio.
         return null;
-      } else {
-        // The block is not in Alluxio and we have gained access to the UFS.
-        PacketInStream inStream = closer.register(PacketInStream
-            .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
-                lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
-                !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK));
-        return new BlockInStream(inStream, blockId, blockWorkerClient, options);
       }
+      // The block is not in Alluxio and we have gained access to the UFS.
+      PacketInStream inStream = closer.register(PacketInStream
+          .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
+              lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
+              !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK));
+      return new BlockInStream(inStream, blockId, blockWorkerClient, options);
     } catch (Exception e) {
       if (lockBlockResult != null) {
         blockWorkerClient.unlockBlock(blockId);
@@ -210,11 +211,11 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
   @Override
   public void close() throws IOException {
     try {
-      mBlockWorkerClient.unlockBlock(mBlockId);
-    } catch (Throwable e) { // must catch Throwable
-      throw mCloser.rethrow(e); // IOException will be thrown as-is
-    } finally {
       mCloser.close();
+    } catch (Throwable e) { // must catch Throwable
+      mCloser.rethrow(e); // IOException will be thrown as-is
+    } finally {
+      mBlockWorkerClient.unlockBlock(mBlockId);
     }
   }
 
@@ -253,7 +254,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @throws IOException if it fails to create an instance
    */
   private BlockInStream(PacketInStream inputStream, long blockId,
-      BlockWorkerClient blockWorkerClient, InStreamOptions options) throws IOException {
+      BlockWorkerClient blockWorkerClient, InStreamOptions options) {
     super(inputStream);
 
     mInputStream = inputStream;
@@ -263,13 +264,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
     mCloser = Closer.create();
     mCloser.register(mInputStream);
     mCloser.register(mBlockWorkerClient);
-    try {
-      mLocal = blockWorkerClient.getDataServerAddress().getHostName()
-          .equals(NetworkAddressUtils.getClientHostName());
-      mBlockWorkerClient.accessBlock(blockId);
-    } catch (IOException e) {
-      mCloser.close();
-      throw e;
-    }
+    mLocal = blockWorkerClient.getDataServerAddress().getHostName()
+        .equals(NetworkAddressUtils.getClientHostName());
   }
 }

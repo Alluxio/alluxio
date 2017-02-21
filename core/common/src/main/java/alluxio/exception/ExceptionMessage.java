@@ -100,10 +100,10 @@ public enum ExceptionMessage {
   UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION(
       "UFS block {0,number,#} from UFS file {1} exists for session {2,number,#}"),
   UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE(
-      "Failed to acquire a access token ({number,#} active) for the UFS block {1,number,#} "
+      "Failed to acquire a access token ({0,number,#} active) for the UFS block {1,number,#} "
           + "(filename: {2})."),
   UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION(
-      "UFS block {0,number,#} does not exist for session {2,number,#}"),
+      "UFS block {0,number,#} does not exist for session {1,number,#}"),
 
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),

@@ -138,7 +138,7 @@ public final class UfsBlockReader implements BlockReader {
     ByteBuf bufCopy = buf.duplicate();
     bufCopy.readerIndex(bufCopy.writerIndex());
     if (mUFSInputStream != null) {
-      bytesRead = buf.writeBytes(mUFSInputStream, bytesRead);
+      bytesRead = buf.writeBytes(mUFSInputStream, buf.writableBytes());
     }
 
     if (bytesRead <= 0) {
@@ -150,6 +150,7 @@ public final class UfsBlockReader implements BlockReader {
         mBlockWriter.transferFrom(bufCopy);
       }
     }
+    mPos += bytesRead;
     return bytesRead;
   }
 

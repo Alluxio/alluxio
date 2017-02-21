@@ -79,7 +79,7 @@ public final class UfsBlockMeta {
   }
 
   public BlockReader getBlockReader() {
-    if (mBlockReader.isClosed()) {
+    if (mBlockReader != null && mBlockReader.isClosed()) {
       mBlockReader = null;
     }
     return mBlockReader;

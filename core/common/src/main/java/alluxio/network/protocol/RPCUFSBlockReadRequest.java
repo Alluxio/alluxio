@@ -36,7 +36,7 @@ public final class RPCUfsBlockReadRequest extends RPCRequest {
    * @param offset the block offset to begin reading at
    * @param length the number of bytes to read
    * @param sessionId the id of the client session
-   * @param noCache
+   * @param noCache do not cache the block if set
    */
   public RPCUfsBlockReadRequest(long blockId, long offset, long length, long sessionId,
       boolean noCache) {

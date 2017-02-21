@@ -68,6 +68,7 @@ public final class UfsBlockStore {
         throw new BlockAlreadyExistsException(ExceptionMessage.UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION,
             blockId, blockMeta.getUfsPath(), sessionId);
       }
+      mBlocks.put(key, blockMeta);
       Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
       if (sessionIds != null && sessionIds.size() >= maxConcurrency) {
         throw new UfsBlockAccessTokenUnavailableException(
@@ -83,6 +84,7 @@ public final class UfsBlockStore {
       Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);
       if (blockIds == null) {
         blockIds = new HashSet<>();
+        mSessionIdToBlockIds.put(sessionId, blockIds);
       }
       blockIds.add(blockId);
     } finally {
@@ -249,6 +251,12 @@ public final class UfsBlockStore {
     @Override
     public int hashCode() {
       return Objects.hashCode(mBlockId, mSessionId);
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this).add("blockId", mBlockId).add("sessionId", mSessionId)
+          .toString();
     }
   }
 }
