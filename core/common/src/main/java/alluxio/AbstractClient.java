@@ -45,7 +45,6 @@ import javax.security.auth.Subject;
 // TODO(peis): Consolidate this to ThriftClientPool.
 @ThreadSafe
 public abstract class AbstractClient implements Client {
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The pattern of exception message when client and server transport frame sizes do not match. */
@@ -62,7 +61,6 @@ public abstract class AbstractClient implements Client {
       Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
 
   protected final String mMode;
-
   protected InetSocketAddress mAddress = null;
   protected TProtocol mProtocol = null;
 
@@ -172,9 +170,8 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    int maxConnectsTry = Configuration.getInt(PropertyKey.MASTER_RETRY);
-    RetryPolicy retry =
-        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, maxConnectsTry);
+    RetryPolicy retryPolicy =
+        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     while (!mClosed) {
       mAddress = getAddress();
       LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
@@ -203,8 +200,8 @@ public abstract class AbstractClient implements Client {
         }
         throw e;
       } catch (TTransportException e) {
-        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to " + getServiceName() + " "
-            + mMode + " @ " + mAddress + " : " + e.getMessage());
+        LOG.warn("Failed to connect ({}) to {} {} @ {}: {}", retryPolicy.getRetryCount(),
+            getServiceName(), mMode, mAddress, e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
           // Do not retry if socket timeout.
           String message = "Thrift transport open times out. Please check whether the "
@@ -213,14 +210,14 @@ public abstract class AbstractClient implements Client {
           throw new IOException(message, e);
         }
         // TODO(peis): Consider closing the connection here as well.
-        if (!retry.attemptRetry()) {
+        if (!retryPolicy.attemptRetry()) {
           break;
         }
       }
     }
     // Reaching here indicates that we did not successfully connect.
     throw new ConnectionFailedException("Failed to connect to " + getServiceName() + " " + mMode
-        + " @ " + mAddress + " after " + (retry.getRetryCount()) + " attempts");
+        + " @ " + mAddress + " after " + (retryPolicy.getRetryCount()) + " attempts");
   }
 
   /**

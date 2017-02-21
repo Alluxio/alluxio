@@ -32,7 +32,8 @@ import java.io.IOException;
 public final class FileSystemMasterClientIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.MASTER_RETRY, 30).build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, 30).build();
 
   @Test
   public void openClose() throws AlluxioException, IOException {

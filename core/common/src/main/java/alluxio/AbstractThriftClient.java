@@ -100,7 +100,7 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
    *         side IOException occurred.
    */
   protected <V> V retryRPC(RpcCallable<V, C> rpc) throws IOException {
-    TException exception = null;
+    TException exception;
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     do {
@@ -118,7 +118,7 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
         }
         exception = new TException(ae);
       } catch (TException e) {
-        LOG.error(e.getMessage(), e);
+        LOG.warn(e.getMessage(), e);
         closeClient(client);
         exception = e;
       } finally {

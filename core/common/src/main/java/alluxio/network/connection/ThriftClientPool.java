@@ -11,7 +11,9 @@
 
 package alluxio.network.connection;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.DynamicResourcePool;
@@ -21,6 +23,7 @@ import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -73,8 +76,12 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
   @GuardedBy("this")
   private Long mServerVersionFound = null;
 
-  private static final int CONNECTION_OPEN_RETRY_BASE_SLEEP_MS = 50;
-  private static final int CONNECTION_OPEN_RETRY_MAX = 5;
+  private static final int BASE_SLEEP_MS =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+  private static final int MAX_SLEEP_MS =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+  private static final int RPC_MAX_NUM_RETRY =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
 
   /**
    * The patterns of exception message when client and server transport frame sizes do not match
@@ -143,10 +150,12 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
     TProtocol binaryProtocol = new TBinaryProtocol(transport);
     T client = createThriftClient(new TMultiplexedProtocol(binaryProtocol, mServiceName));
 
-    RetryPolicy retry =
-        new ExponentialBackoffRetry(CONNECTION_OPEN_RETRY_BASE_SLEEP_MS, Constants.SECOND_MS,
-            CONNECTION_OPEN_RETRY_MAX);
-    while (true) {
+    TException exception;
+    RetryPolicy retryPolicy =
+        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
+    do {
+      LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
+          RuntimeConstants.VERSION, mServiceName, mAddress);
       try {
         if (!transport.isOpen()) {
           transport.open();
@@ -154,10 +163,9 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
         if (transport.isOpen()) {
           checkVersion(client);
         }
+        LOG.info("Client registered with {} @ {}", mServiceName, mAddress);
+        return client;
       } catch (TTransportException e) {
-        LOG.error(
-            "Failed to connect (" + retry.getRetryCount() + ") to " + getServiceNameForLogging()
-                + " @ " + mAddress, e);
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
           // Do not retry if socket timeout.
           String message = "Thrift transport open times out. Please check whether the "
@@ -165,14 +173,15 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
               + "is not able to connect to servers with SIMPLE security mode.";
           throw new IOException(message, e);
         }
-        if (!retry.attemptRetry()) {
-          throw new IOException(e);
-        }
+        LOG.warn("Failed to connect ({}) to {} @ {}: {}", retryPolicy.getRetryCount(), mServiceName,
+            mAddress, e.getMessage());
+        exception = e;
       }
-      break;
-    }
-    LOG.info("Created a new thrift client {}", client.toString());
-    return client;
+    } while (retryPolicy.attemptRetry());
+
+    LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
+    Preconditions.checkNotNull(exception);
+    throw new IOException(exception);
   }
 
   /**

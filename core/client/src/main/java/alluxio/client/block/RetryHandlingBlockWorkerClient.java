@@ -130,7 +130,7 @@ public final class RetryHandlingBlockWorkerClient
               } catch (InterruptedException e) {
                 // Do nothing.
               } catch (Exception e) {
-                LOG.error("Failed to heartbeat for session " + mSessionId, e);
+                LOG.warn("Failed to heartbeat for session " + mSessionId, e);
               }
             }
           }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
