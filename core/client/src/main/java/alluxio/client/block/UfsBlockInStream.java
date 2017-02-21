@@ -30,6 +30,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -72,8 +73,14 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
 
     mContext = context;
     mCloser = Closer.create();
-    mCloser.register(blockWorkerClient);
     mBlockWorkerClient = blockWorkerClient;
+    mCloser.register(blockWorkerClient);
+    mCloser.register(new Closeable() {
+      @Override
+      public void close() throws IOException {
+        mBlockWorkerClient.unlockBlock(mBlockId);
+      }
+    });
     mNoCache = !options.getAlluxioStorageType().isStore();
     mLocal = blockWorkerClient.getDataServerAddress().getHostName()
         .equals(NetworkAddressUtils.getLocalHostName());
@@ -135,14 +142,8 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
     if (mBlockIsRead) {
       Metrics.BLOCKS_READ_UFS.inc();
     }
-    try {
-      mBlockWorkerClient.unlockBlock(mBlockId);
-    } catch (Throwable e) { // must catch Throwable
-      throw mCloser.rethrow(e); // IOException will be thrown as-is
-    } finally {
-      mClosed = true;
-      mCloser.close();
-    }
+    mClosed = true;
+    mCloser.close();
   }
 
   public InetSocketAddress location() {

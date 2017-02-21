@@ -132,7 +132,7 @@ public final class NettyPacketReader implements PacketReader {
 
     Protocol.ReadRequest readRequest =
         Protocol.ReadRequest.newBuilder().setId(id).setOffset(offset).setLength(len)
-            .setLockId(lockId).setSessionId(sessionId).setType(type).build();
+            .setLockId(lockId).setSessionId(sessionId).setType(type).setNoCache(noCache).build();
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(readRequest)))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }

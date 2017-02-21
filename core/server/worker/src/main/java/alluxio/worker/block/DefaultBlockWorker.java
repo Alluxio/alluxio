@@ -410,8 +410,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   // TODO(calvin): Remove when lock and reads are separate operations.
-  public void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    mBlockStore.unlockBlock(sessionId, blockId);
+  public boolean unlockBlock(long sessionId, long blockId) {
+    return mBlockStore.unlockBlock(sessionId, blockId);
   }
 
   @Override

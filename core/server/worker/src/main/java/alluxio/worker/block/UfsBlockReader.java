@@ -99,8 +99,11 @@ public final class UfsBlockReader implements BlockReader {
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkState(!mClosed);
-    updateBlockWriter(offset);
-    updateUfsInputStream(offset);
+    if (offset > 0) {
+      updateBlockWriter(offset);
+      updateUfsInputStream(offset);
+      mPos = offset;
+    }
 
     long bytesToRead = Math.min(length, mBlockMeta.getBlockSize() - offset);
     if (bytesToRead <= 0) {
@@ -127,7 +130,7 @@ public final class UfsBlockReader implements BlockReader {
     if (mBlockWriter != null) {
       mBlockWriter.append(buffer.duplicate());
     }
-    mPos += bytesRead;
+    mPos = bytesRead;
     return buffer;
   }
 
@@ -151,6 +154,7 @@ public final class UfsBlockReader implements BlockReader {
         mBlockWriter.transferFrom(bufCopy);
       }
     }
+
     mPos += bytesRead;
     return bytesRead;
   }

@@ -324,8 +324,9 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Boolean>() {
       @Override
       public Boolean call() throws AlluxioException, IOException {
-        mWorker.unlockBlock(sessionId, blockId);
-        mWorker.closeUfsBlock(sessionId, blockId);
+        if (!mWorker.unlockBlock(sessionId, blockId)) {
+          mWorker.closeUfsBlock(sessionId, blockId);
+        }
         return true;
       }
 

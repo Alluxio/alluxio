@@ -152,10 +152,8 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    mLockManager.unlockBlock(sessionId, blockId);
-
-    // Release the UFS read and commit the block.
+  public boolean unlockBlock(long sessionId, long blockId) {
+    return mLockManager.unlockBlock(sessionId, blockId);
   }
 
   @Override

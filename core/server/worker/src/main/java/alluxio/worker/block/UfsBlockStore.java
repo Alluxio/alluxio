@@ -108,7 +108,10 @@ public final class UfsBlockStore {
     UfsBlockMeta blockMeta;
     mLock.lock();
     try {
-      blockMeta = getBlockMeta(sessionId, blockId);
+      blockMeta = mBlocks.get(new Key(sessionId, blockId));
+      if (blockMeta == null) {
+        return false;
+      }
     } finally {
       mLock.unlock();
     }
@@ -121,8 +124,13 @@ public final class UfsBlockStore {
     Key key = new Key(sessionId, blockId);
     UfsBlockMeta blockMeta = mBlocks.get(key);
     if (blockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,
-          blockId, sessionId);
+      try {
+        throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,
+            blockId, sessionId);
+      } catch (Throwable e) {
+        LOG.error("UFS Block does not exist.", e);
+        throw e;
+      }
     }
     return blockMeta;
   }

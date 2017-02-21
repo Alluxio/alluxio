@@ -322,10 +322,10 @@ public interface BlockWorker extends Worker {
    *
    * @param sessionId the session id
    * @param blockId the block id
-   * @throws BlockDoesNotExistException if block id cannot be found
+   * @return false if it fails to unlock due to the lock is not found
    */
   // TODO(calvin): Remove when lock and reads are separate operations.
-  void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+  boolean unlockBlock(long sessionId, long blockId);
 
   /**
    * Handles the heartbeat from a client.

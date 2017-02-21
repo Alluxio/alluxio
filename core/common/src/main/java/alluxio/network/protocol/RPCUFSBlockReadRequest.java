@@ -49,7 +49,7 @@ public final class RPCUfsBlockReadRequest extends RPCRequest {
 
   @Override
   public Type getType() {
-    return Type.RPC_BLOCK_READ_REQUEST;
+    return Type.RPC_UFS_BLOCK_READ_REQUEST;
   }
 
   /**

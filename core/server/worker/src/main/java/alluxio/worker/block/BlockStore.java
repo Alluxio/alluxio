@@ -54,9 +54,9 @@ interface BlockStore {
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
-   * @throws BlockDoesNotExistException if block id can not be found, for example, evicted already
+   * @return false if it fails to unlock due to the lock is not found
    */
-  void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+  boolean unlockBlock(long sessionId, long blockId);
 
   /**
    * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
