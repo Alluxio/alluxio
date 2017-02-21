@@ -11,7 +11,6 @@
 
 package alluxio.master.lineage.checkpoint;
 
-import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.meta.FileSystemMasterView;
@@ -33,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class CheckpointLatestPlanner implements CheckpointPlanner {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(CheckpointLatestPlanner.class);
 
   /**
    * Creates a new instance of {@link CheckpointLatestPlanner}, which does not use the lineage store

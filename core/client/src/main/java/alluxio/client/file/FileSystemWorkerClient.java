@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AbstractThriftClient;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CloseUfsFileOptions;
@@ -54,7 +53,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class FileSystemWorkerClient
     extends AbstractThriftClient<FileSystemWorkerClientService.Client> implements Closeable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemWorkerClient.class);
 
   private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
       Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_THREADS),
