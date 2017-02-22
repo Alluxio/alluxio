@@ -11,7 +11,6 @@
 
 package alluxio.client.file;
 
-import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
@@ -19,10 +18,11 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockInStream;
 import alluxio.client.block.BufferedBlockOutStream;
+import alluxio.client.block.StreamFactory;
 import alluxio.client.block.TestBufferedBlockInStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
+import alluxio.client.block.UfsBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.util.ClientMockUtils;
@@ -55,7 +55,9 @@ import java.util.List;
  * Tests for the {@link FileInStream} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class, UnderFileSystem.class})
+@PrepareForTest(
+    {FileSystemContext.class, AlluxioBlockStore.class, UnderFileSystem.class, StreamFactory.class,
+        UfsBlockInStream.class})
 public class FileInStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
@@ -64,7 +66,6 @@ public class FileInStreamTest {
 
   private AlluxioBlockStore mBlockStore;
   private FileSystemContext mContext;
-  private FileSystemWorkerClient mWorkerClient;
   private FileInfo mInfo;
   private URIStatus mStatus;
 
@@ -95,6 +96,9 @@ public class FileInStreamTest {
     mBlockStore = Mockito.mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
+    PowerMockito.when(mBlockStore.getWorkerInfoList()).thenReturn(new ArrayList<BlockWorkerInfo>());
+    Mockito.mock(StreamFactory.class);
+    PowerMockito.mockStatic(StreamFactory.class);
 
     // Set up BufferedBlockInStreams and caching streams
     mCacheStreams = new ArrayList<>();
@@ -125,13 +129,6 @@ public class FileInStreamTest {
     }
     mInfo.setBlockIds(blockIds);
     mStatus = new URIStatus(mInfo);
-
-    // Worker file client mocking
-    mWorkerClient = PowerMockito.mock(FileSystemWorkerClient.class);
-    Mockito.when(mContext.createFileSystemWorkerClient()).thenReturn(mWorkerClient);
-    Mockito.when(
-        mWorkerClient.openUfsFile(Mockito.any(AlluxioURI.class),
-            Mockito.any(OpenUfsFileOptions.class))).thenReturn(1L);
 
     mTestStream =
         new FileInStream(mStatus, InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
@@ -465,9 +462,13 @@ public class FileInStreamTest {
     Mockito.when(mBlockStore.getInStream(Mockito.eq(1L), Mockito.any(InStreamOptions.class)))
         .thenThrow(new IOException("test IOException"));
     if (mDelegateUfsOps) {
+      UfsBlockInStream inStream = PowerMockito.mock(UfsBlockInStream.class);
+      PowerMockito.when(StreamFactory
+          .createUfsBlockInStream(Mockito.any(FileSystemContext.class), Mockito.anyString(),
+              Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong(),
+              Mockito.any(WorkerNetAddress.class), Mockito.any(InStreamOptions.class)))
+          .thenReturn(inStream);
       mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
-      Mockito.verify(mWorkerClient)
-          .openUfsFile(new AlluxioURI(mStatus.getUfsPath()), OpenUfsFileOptions.defaults());
     } else {
       UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));
       InputStream stream = Mockito.mock(InputStream.class);

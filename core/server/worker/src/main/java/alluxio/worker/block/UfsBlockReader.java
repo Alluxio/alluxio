@@ -12,7 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -46,12 +45,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UfsBlockReader implements BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(UfsBlockReader.class);
-  private static final long FILE_BUFFER_SIZE = Configuration.getBytes(
-      PropertyKey.WORKER_FILE_BUFFER_SIZE);
 
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
+  private final long mFileBufferSize;
   private final UfsBlockMeta mBlockMeta;
   private final boolean mNoCache;
   private final BlockStore mAlluxioBlockStore;
@@ -78,6 +76,7 @@ public final class UfsBlockReader implements BlockReader {
   public UfsBlockReader(UfsBlockMeta blockMeta, long offset, boolean noCache,
       BlockStore alluxioBlockStore)
       throws BlockDoesNotExistException, IOException {
+    mFileBufferSize = Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     UnderFileSystem ufs = UnderFileSystem.Factory.get(blockMeta.getUfsPath());
     ufs.connectFromWorker(
@@ -88,9 +87,8 @@ public final class UfsBlockReader implements BlockReader {
     }
     mAlluxioBlockStore = alluxioBlockStore;
     mNoCache = noCache;
-
-    updateUfsInputStream(offset);
-    updateBlockWriter(offset);
+    mInStreamPos = -1;
+    mBlockWriterPos = -1;
 
     mBlockMeta.setBlockReader(this);
   }
@@ -130,7 +128,7 @@ public final class UfsBlockReader implements BlockReader {
 
     // We should always read the number of bytes as expected since the UFS file length (hence block
     // size) should be always accurate.
-    Preconditions.checkState(bytesRead == bytesRead,
+    Preconditions.checkState(bytesRead == bytesToRead,
         "Not enough bytes have been read [bytesRead: {}, bytesToRead: {}] from the UFS file: {}.",
         bytesRead, bytesToRead, mBlockMeta.getUfsPath());
     if (mBlockWriter != null && mBlockWriterPos < mInStreamPos) {
@@ -154,7 +152,8 @@ public final class UfsBlockReader implements BlockReader {
   public int transferTo(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
     if (mUfsInputStream == null) {
-      return -1;
+      updateUfsInputStream(0);
+      updateBlockWriter(0);
     }
     int bytesRead = 0;
     ByteBuf bufCopy = buf.duplicate();
@@ -265,7 +264,7 @@ public final class UfsBlockReader implements BlockReader {
       if (mBlockWriter == null && offset == 0 && !mNoCache) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
         String blockPath = mAlluxioBlockStore
-            .createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(), loc, FILE_BUFFER_SIZE)
+            .createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(), loc, mFileBufferSize)
             .getPath();
         mBlockWriter = new LocalFileBlockWriter(blockPath);
         mBlockWriterPos = 0;

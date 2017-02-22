@@ -37,7 +37,6 @@ import alluxio.wire.WorkerNetAddress;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -78,7 +77,7 @@ public class RemoteBlockInStreamIntegrationTest {
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER});
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-       IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
     return list;
   }
 

@@ -60,8 +60,8 @@ interface BlockStore {
 
   /**
    * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
-   * location named after session id) to store its data. The location can be a location with specific
-   * tier and dir, or {@link BlockStoreLocation#anyTier()}, or
+   * location named after session id) to store its data. The location can be a location with
+   * specific tier and dir, or {@link BlockStoreLocation#anyTier()}, or
    * {@link BlockStoreLocation#anyDirInTier(String)}.
    * <p>
    * Before commit, all the data written to this block will be stored in the temp path and the block

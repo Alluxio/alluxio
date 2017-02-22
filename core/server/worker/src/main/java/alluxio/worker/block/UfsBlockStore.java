@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.Constants;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -36,9 +35,9 @@ import javax.annotation.concurrent.GuardedBy;
  * This class manages the virtual blocks in the UFS for delegated UFS read/write.
  *
  * The usage pattern:
- * acquireAccess(blockMeta, maxConcurrency)
- * cleanup(sessionId, blockId)
- * releaseAccess(sessionId, blockId)
+ *  acquireAccess(blockMeta, maxConcurrency)
+ *  cleanup(sessionId, blockId)
+ *  releaseAccess(sessionId, blockId)
  */
 public final class UfsBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(UfsBlockStore.class);
@@ -87,7 +86,6 @@ public final class UfsBlockStore {
         throw new BlockAlreadyExistsException(ExceptionMessage.UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION,
             blockId, blockMeta.getUfsPath(), sessionId);
       }
-      mBlocks.put(key, blockMeta);
       Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
       if (sessionIds != null && sessionIds.size() >= maxConcurrency) {
         throw new UfsBlockAccessTokenUnavailableException(
@@ -99,6 +97,8 @@ public final class UfsBlockStore {
         mBlockIdToSessionIds.put(blockId, sessionIds);
       }
       sessionIds.add(sessionId);
+
+      mBlocks.put(key, blockMeta);
 
       Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);
       if (blockIds == null) {
@@ -195,11 +195,13 @@ public final class UfsBlockStore {
   /**
    * Creates a UFS block reader for a UFS block.
    *
-   * @param sessionId the session ID
-   * @param blockId the block ID
-   * @param offset the offset within the block (NOT the file)
+   * @param sessionId the client session ID that requested this read
+   * @param blockId the ID of the block to read
+   * @param offset the read offset within the block (NOT the file)
+   * @param noCache if set, do not try to cache the block in the Alluxio worker
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the UFS block does not exist in the {@link UfsBlockStore}
+   * @throws IOException if any I/O errors occur
    */
   public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
       boolean noCache) throws BlockDoesNotExistException, IOException {

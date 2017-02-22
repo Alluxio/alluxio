@@ -57,7 +57,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, Configuration.class,
-    UnderFileSystem.class, BlockWorker.class, Sessions.class})
+    UnderFileSystem.class, BlockWorker.class, Sessions.class, UfsBlockStore.class})
 public class BlockWorkerTest {
 
   /** Rule to create a new temporary folder during each test. */
@@ -66,6 +66,7 @@ public class BlockWorkerTest {
 
   private BlockMasterClient mBlockMasterClient;
   private BlockStore mBlockStore;
+  private UfsBlockStore mUfsBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
   private Random mRandom;
   private Sessions mSessions;
@@ -79,6 +80,7 @@ public class BlockWorkerTest {
     mRandom = new Random();
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mBlockStore = PowerMockito.mock(BlockStore.class);
+    mUfsBlockStore = PowerMockito.mock(UfsBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mSessions = PowerMockito.mock(Sessions.class);
 
@@ -104,6 +106,11 @@ public class BlockWorkerTest {
   @After
   public void after() throws IOException {
     ConfigurationTestUtils.resetConfiguration();
+  }
+
+  @Test
+  public void openUfsBlock() throws Exception {
+
   }
 
   /**

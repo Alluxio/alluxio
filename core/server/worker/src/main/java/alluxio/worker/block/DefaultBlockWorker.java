@@ -300,7 +300,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void createBlockRemote(long sessionId, long blockId, String tierAlias, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
-    TempBlockMeta createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
+    mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
   }
 
   @Override
@@ -386,6 +386,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     return mBlockStore.getBlockReader(sessionId, blockId, lockId);
   }
 
+  @Override
   public BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
       throws BlockDoesNotExistException, IOException {
     return mUfsBlockStore.getBlockReader(sessionId, blockId, offset, noCache);

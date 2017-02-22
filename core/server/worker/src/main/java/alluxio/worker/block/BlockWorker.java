@@ -278,6 +278,17 @@ public interface BlockWorker extends Worker {
   BlockReader readBlockRemote(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
 
+  /**
+   * Gets a block reader to read a UFS block. This method is only called by the data server.
+   *
+   * @param sessionId the client session ID
+   * @param blockId the ID of the UFS block to read
+   * @param offset the offset within the block
+   * @param noCache if set, do not try to cache the block in the Alluxio worker
+   * @return the block reader instance
+   * @throws BlockDoesNotExistException if the block does not exist in the UFS block store
+   * @throws IOException if any I/O related errors occur
+   */
   BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
       throws BlockDoesNotExistException, IOException;
 
