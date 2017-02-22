@@ -44,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class S3OutputStream extends OutputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(S3OutputStream.class);
 
   /** Bucket name of the Alluxio S3 bucket. */
   private final String mBucketName;

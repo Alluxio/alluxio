@@ -27,6 +27,8 @@ import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -58,6 +60,8 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public abstract class ThriftClientPool<T extends AlluxioService.Client>
     extends DynamicResourcePool<T> {
+  private static final Logger LOG = LoggerFactory.getLogger(ThriftClientPool.class);
+
   private final TransportProvider mTransportProvider;
   private final String mServiceName;
   private final long mServiceVersion;

@@ -680,6 +680,9 @@ public class JournalIntegrationTest {
     fsMaster.stop();
   }
 
+  /**
+   * Test class implements {@link GroupMappingService} providing user-to-groups mapping.
+   */
   public static class FakeUserGroupsMapping implements GroupMappingService {
     // The fullly qualified class name of this group mapping service. This is needed to configure
     // the alluxio cluster
@@ -688,6 +691,10 @@ public class JournalIntegrationTest {
 
     private HashMap<String, String> mUserGroups = new HashMap<>();
 
+    /**
+     * Constructor of {@link FakeUserGroupsMapping} to put the user and groups in user-to-groups
+     * HashMap.
+     */
     public FakeUserGroupsMapping() {
       mUserGroups.put("alluxio", "supergroup");
       mUserGroups.put("user1", "group1");
