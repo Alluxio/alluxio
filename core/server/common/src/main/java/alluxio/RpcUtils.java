@@ -111,9 +111,7 @@ public final class RpcUtils {
   }
 
   /**
-   * An interface representing a callable which can only throw Alluxio exceptions. The toString
-   * method of classes implementing this interface should be in the format "CallName.
-   * arg1:value1, arg2:value2, ...".
+   * An interface representing a callable which can only throw Alluxio exceptions.
    *
    * @param <T> the return type of the callable
    */
@@ -128,9 +126,7 @@ public final class RpcUtils {
   }
 
   /**
-   * An interface representing a callable which can only throw Alluxio or IO exceptions. The
-   * toString method of classes implementing this interface should be in the format "CallName.
-   * arg1:value1, arg2:value2, ...".
+   * An interface representing a callable which can only throw Alluxio or IO exceptions.
    *
    * @param <T> the return type of the callable
    */
