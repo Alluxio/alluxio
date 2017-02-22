@@ -34,6 +34,8 @@ import org.junit.rules.TemporaryFolder;
  */
 public final class PersistMultipleMountsIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
+  private static final String MOUNT_PATH = "/mounted";
+
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
 
@@ -51,7 +53,7 @@ public final class PersistMultipleMountsIntegrationTest
     mUfs = UnderFileSystem.Factory.get(mUfsRoot);
 
     mMountedUfsRoot = mTempFolder.getRoot().toURI().toString();
-    mFileSystem.mount(new AlluxioURI("/mounted"), new AlluxioURI(mMountedUfsRoot));
+    mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(mMountedUfsRoot));
     mMountedUfs = UnderFileSystem.Factory.get(mMountedUfsRoot);
   }
 
@@ -84,7 +86,7 @@ public final class PersistMultipleMountsIntegrationTest
       return;
     }
     String path = PathUtils.uniqPath();
-    AlluxioURI filePath = new AlluxioURI("/mounted" + path);
+    AlluxioURI filePath = new AlluxioURI(MOUNT_PATH + path);
     FileOutStream os = mFileSystem.createFile(filePath,
         CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
     os.write((byte) 0);
