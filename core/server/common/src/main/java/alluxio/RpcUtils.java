@@ -36,19 +36,15 @@ public final class RpcUtils {
    */
   public static <T> T call(Logger logger, RpcCallable<T> callable) throws AlluxioTException {
     try {
-      if (logger.isDebugEnabled()) { // Avoid expensive debug calls in critical path if disabled
-        logger.debug("Enter: {}", callable.getCallInfo());
-        T ret = callable.call();
-        logger.debug("Exit: {}", callable.getCallInfo());
-        return ret;
-      } else {
-        return callable.call();
-      }
+      logger.debug("Enter: {}", callable);
+      T ret = callable.call();
+      logger.debug("Exit: {}", callable);
+      return ret;
     } catch (AlluxioException e) {
-      logger.debug("Internal Error: {}", callable.getCallInfo(), e);
+      logger.debug("Internal Error: {}", callable, e);
       throw e.toThrift();
     } catch (Exception e) {
-      logger.error("Unexpected Error: {}", callable.getCallInfo(), e);
+      logger.error("Unexpected Error: {}", callable, e);
       throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
@@ -66,22 +62,18 @@ public final class RpcUtils {
   public static <T> T call(Logger logger, RpcCallableThrowsIOException<T> callable)
       throws AlluxioTException, ThriftIOException {
     try {
-      if (logger.isDebugEnabled()) { // Avoid expensive debug calls in critical path if disabled
-        logger.debug("Enter: {}", callable.getCallInfo());
-        T ret = callable.call();
-        logger.debug("Exit: {}", callable.getCallInfo());
-        return ret;
-      } else {
-        return callable.call();
-      }
+      logger.debug("Enter: {}", callable);
+      T ret = callable.call();
+      logger.debug("Exit: {}", callable);
+      return ret;
     } catch (AlluxioException e) {
-      logger.debug("Internal Error: {}", callable.getCallInfo(), e);
+      logger.debug("Internal Error: {}", callable, e);
       throw e.toThrift();
     } catch (IOException e) {
-      logger.debug("I/O Error: {}", callable.getCallInfo(), e);
+      logger.debug("I/O Error: {}", callable, e);
       throw new ThriftIOException(e.getMessage());
     } catch (Exception e) {
-      logger.error("Unexpected Error: {}", callable.getCallInfo(), e);
+      logger.error("Unexpected Error: {}", callable, e);
       throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
@@ -99,11 +91,6 @@ public final class RpcUtils {
      * @throws AlluxioException if an expected exception occurs in the Alluxio system
      */
     T call() throws AlluxioException;
-
-    /**
-     * @return printable call information in the format: "[Call Name]. arg1:value1, arg2:value2 ..."
-     */
-    String getCallInfo();
   }
 
   /**
@@ -120,11 +107,6 @@ public final class RpcUtils {
      * @throws IOException if an exception is thrown when interacting with the underlying system
      */
     T call() throws AlluxioException, IOException;
-
-    /**
-     * @return printable call information in the format: "[Call Name]. arg1:value1, arg2:value2 ..."
-     */
-    String getCallInfo();
   }
 
   private RpcUtils() {} // prevent instantiation
