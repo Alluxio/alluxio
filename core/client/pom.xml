@@ -232,7 +232,7 @@
     <!-- in the maven command line. -->
     <profile>
       <id>presto</id>
-      <!-- The dependencies are the same as the default dependencies, except that curator-client, curator-framework, -->
+      <!-- We are excluding guava, jackson-databind and jackson-core are in scope provided, as they are provided by Presto runtime. -->
       <dependencies>
         <dependency>
           <groupId>com.google.guava</groupId>
