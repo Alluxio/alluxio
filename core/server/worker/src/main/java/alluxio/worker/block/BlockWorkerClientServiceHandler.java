@@ -80,7 +80,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
       @Override
       public String toString() {
-        return String.format("AccessBlock. blockId:%s", blockId);
+        return String.format("AccessBlock: blockId=%s", blockId);
       }
     });
   }
@@ -107,7 +107,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
       @Override
       public String toString() {
-        return String.format("CacheBlock. sessionId:%s, blockId:%s", sessionId, blockId);
+        return String.format("CacheBlock: sessionId=%s, blockId=%s", sessionId, blockId);
       }
     });
   }
@@ -133,7 +133,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
       @Override
       public String toString() {
-        return String.format("CancelBlock. sessionId:%s, blockId:%s", sessionId, blockId);
+        return String.format("CancelBlock: sessionId=%s, blockId=%s", sessionId, blockId);
       }
     });
   }
@@ -158,7 +158,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
       @Override
       public String toString() {
-        return String.format("LockBlock. sessionId:%s, blockId:%s", sessionId, blockId);
+        return String.format("LockBlock: sessionId=%s, blockId=%s", sessionId, blockId);
       }
     });
   }
@@ -186,7 +186,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
       @Override
       public String toString() {
-        return String.format("PromoteBlock. blockId:%s", blockId);
+        return String.format("PromoteBlock: blockId=%s", blockId);
       }
     });
   }
@@ -210,7 +210,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
       @Override
       public String toString() {
-        return String.format("RemoveBlock. blockId:%s", blockId);
+        return String.format("RemoveBlock: blockId=%s", blockId);
       }
     });
   }
@@ -242,8 +242,8 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
       @Override
       public String toString() {
-        return String.format("RequestBlockLocation. sessionId:%s, blockId:%s, initialBytes:%s, "
-            + "writeTier:%s", sessionId, blockId, initialBytes, writeTier);
+        return String.format("RequestBlockLocation: sessionId=%s, blockId=%s, initialBytes=%s, "
+            + "writeTier=%s", sessionId, blockId, initialBytes, writeTier);
       }
     });
   }
@@ -285,7 +285,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
       @Override
       public String toString() {
-        return String.format("RequestSpace. sessionId:%s, blockId:%s, requestBytes:%s", sessionId,
+        return String.format("RequestSpace: sessionId=%s, blockId=%s, requestBytes=%s", sessionId,
             blockId, requestBytes);
       }
     });
@@ -313,7 +313,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
       @Override
       public String toString() {
-        return String.format("UnlockBlock. sessionId:%s, blockId:%s", sessionId, blockId);
+        return String.format("UnlockBlock: sessionId=%s, blockId=%s", sessionId, blockId);
       }
     });
   }

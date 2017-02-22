@@ -83,7 +83,7 @@ public final class FileSystemWorkerClientServiceHandler
 
       @Override
       public String toString() {
-        return String.format("CancelUfsFile. sessionId:%s, tempUfsFileId:%s, options:%s",
+        return String.format("CancelUfsFile: sessionId=%s, tempUfsFileId=%s, options=%s",
             sessionId, tempUfsFileId, options);
       }
     });
@@ -110,7 +110,7 @@ public final class FileSystemWorkerClientServiceHandler
 
       @Override
       public String toString() {
-        return String.format("CloseUfsFile. sessionId:%s, tempUfsFileId:%s, options:%s",
+        return String.format("CloseUfsFile: sessionId=%s, tempUfsFileId=%s, options=%s",
             sessionId, tempUfsFileId, options);
       }
     });
@@ -138,7 +138,7 @@ public final class FileSystemWorkerClientServiceHandler
 
       @Override
       public String toString() {
-        return String.format("CompleteUfsFile. sessionId:%s, tempUfsFileId:%s, options:%s",
+        return String.format("CompleteUfsFile: sessionId=%s, tempUfsFileId=%s, options=%s",
             sessionId, tempUfsFileId, options);
       }
     });
@@ -168,7 +168,7 @@ public final class FileSystemWorkerClientServiceHandler
 
       @Override
       public String toString() {
-        return String.format("CreateUfsFile. sessionId:%s, ufsUri:%s, options:%s", sessionId,
+        return String.format("CreateUfsFile: sessionId=%s, ufsUri=%s, options=%s", sessionId,
             ufsUri, options);
       }
     });
@@ -195,7 +195,7 @@ public final class FileSystemWorkerClientServiceHandler
 
       @Override
       public String toString() {
-        return String.format("OpenUfsFile. sessionId:%s, ufsUri:%s, options:%s", sessionId, ufsUri,
+        return String.format("OpenUfsFile: sessionId=%s, ufsUri=%s, options=%s", sessionId, ufsUri,
             options);
       }
     });

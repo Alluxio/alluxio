@@ -94,7 +94,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("CheckConsistency. path:%s, options:%s", path, options);
+        return String.format("CheckConsistency: path=%s, options=%s", path, options);
       }
     });
   }
@@ -111,7 +111,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("CompleteFile. path:%s, options:%s", path, options);
+        return String.format("CompleteFile: path=%s, options=%s", path, options);
       }
     });
   }
@@ -129,7 +129,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("CreateDirectory. path:%s, options:%s", path, options);
+        return String.format("CreateDirectory: path=%s, options=%s", path, options);
       }
     });
   }
@@ -146,7 +146,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("CreateFile. path:%s, options:%s", path, options);
+        return String.format("CreateFile: path=%s, options=%s", path, options);
       }
     });
   }
@@ -171,7 +171,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("Free. path:%s, recursive:%s, options:%s", path, recursive, options);
+        return String.format("Free: path=%s, recursive=%s, options=%s", path, recursive, options);
       }
     });
   }
@@ -198,7 +198,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("GetFileBlockInfoList. path:%s", path);
+        return String.format("GetFileBlockInfoList: path=%s", path);
       }
     });
   }
@@ -213,7 +213,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("GetNewBlockIdForFile. path:%s", path);
+        return String.format("GetNewBlockIdForFile: path=%s", path);
       }
     });
   }
@@ -228,7 +228,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("GetStatus. path:%s", path);
+        return String.format("GetStatus: path=%s", path);
       }
     });
   }
@@ -249,7 +249,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("GetStatusInternal. fileId:%s", fileId);
+        return String.format("GetStatusInternal: fileId=%s", fileId);
       }
     });
   }
@@ -270,7 +270,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("GetUfsAddress.");
+        return String.format("GetUfsAddress");
       }
     });
   }
@@ -291,7 +291,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("ListStatus. path:%s, options:%s", path, options);
+        return String.format("ListStatus: path=%s, options=%s", path, options);
       }
     });
   }
@@ -314,7 +314,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("LoadMetadata. alluxioPath:%s, recursive:%s", alluxioPath, recursive);
+        return String.format("LoadMetadata: alluxioPath=%s, recursive=%s", alluxioPath, recursive);
       }
     });
   }
@@ -332,7 +332,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("Mount. alluxioPath:%s, ufsPath:%s, options:%s", alluxioPath, ufsPath,
+        return String.format("Mount: alluxioPath=%s, ufsPath=%s, options=%s", alluxioPath, ufsPath,
             options);
       }
     });
@@ -351,7 +351,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("Remove. path:%s, recursive:%s", path, recursive);
+        return String.format("Remove: path=%s, recursive=%s", path, recursive);
       }
     });
   }
@@ -369,7 +369,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("Rename. srcPath:%s, dstPath:%s", srcPath, dstPath);
+        return String.format("Rename: srcPath=%s, dstPath=%s", srcPath, dstPath);
       }
     });
   }
@@ -385,7 +385,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("ScheduleAsyncPersist. path:%s", path);
+        return String.format("ScheduleAsyncPersist: path=%s", path);
       }
     });
   }
@@ -403,7 +403,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("SetAttribute. path:%s, options:%s", path, options);
+        return String.format("SetAttribute: path=%s, options=%s", path, options);
       }
     });
   }
@@ -419,7 +419,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
       @Override
       public String toString() {
-        return String.format("Unmount. alluxioPath:%s", alluxioPath);
+        return String.format("Unmount: alluxioPath=%s", alluxioPath);
       }
     });
   }
