@@ -70,6 +70,7 @@ public final class UfsBlockReader implements BlockReader {
    * @param offset the position within the block to start the read
    * @param noCache do not cache the block
    * @param alluxioBlockStore the Alluxio block store
+   * @return the block reader
    * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
    * @throws IOException if an I/O related error occur
    */
