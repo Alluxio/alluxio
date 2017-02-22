@@ -74,7 +74,7 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public void cancelUfsFile(final long sessionId, final long tempUfsFileId,
       final CancelUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<Void>() {
+    RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
         mWorker.cancelUfsFile(sessionId, tempUfsFileId);
@@ -101,7 +101,7 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public void closeUfsFile(final long sessionId, final long tempUfsFileId,
       final CloseUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<Void>() {
+    RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
         mWorker.closeUfsFile(sessionId, tempUfsFileId);
@@ -129,7 +129,7 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public long completeUfsFile(final long sessionId, final long tempUfsFileId,
       final CompleteUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    long ret = RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
+    long ret = RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
         return mWorker
@@ -159,7 +159,7 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public long createUfsFile(final long sessionId, final String ufsUri,
       final CreateUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
+    return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
         return mWorker
@@ -187,7 +187,7 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public long openUfsFile(final long sessionId, final String ufsUri,
       final OpenUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
+    return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
         return mWorker.openUfsFile(sessionId, new AlluxioURI(ufsUri));
