@@ -327,7 +327,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   @Override
   public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
       throws AlluxioTException {
-    RpcUtils.call(new RpcCallable<Void>() {
+    RpcUtils.call(LOG, new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioException {
         mWorker.sessionHeartbeat(sessionId);
