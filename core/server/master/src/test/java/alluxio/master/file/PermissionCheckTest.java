@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.SetAndRestoreConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
@@ -572,34 +573,36 @@ public final class PermissionCheckTest {
   @Test
   public void readNotExecuteDir() throws Exception {
     // set unmask
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033");
+    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033")) {
+      String dir = PathUtils.concatPath(TEST_DIR_URI, "/notExecuteDir");
+      // create dir "/testDir/notExecuteDir" [user1, group1, drwxr--r--]
+      verifyCreateDirectory(TEST_USER_1, dir, false);
+      verifyRead(TEST_USER_1, dir, false);
 
-    String dir = PathUtils.concatPath(TEST_DIR_URI, "/notExecuteDir");
-    // create dir "/testDir/notExecuteDir" [user1, group1, drwxr--r--]
-    verifyCreateDirectory(TEST_USER_1, dir, false);
-    verifyRead(TEST_USER_1, dir, false);
-
-    mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.EXECUTE, dir, "notExecuteDir")));
-    verifyGetFileInfoOrList(TEST_USER_2, dir, false);
+      mThrown.expect(AccessControlException.class);
+      mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+          toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.EXECUTE, dir, "notExecuteDir")));
+      verifyGetFileInfoOrList(TEST_USER_2, dir, false);
+    }
   }
 
   private String createUnreadableFileOrDir(boolean isFile) throws Exception {
     // set unmask
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
-
-    String fileOrDir = PathUtils.concatPath(TEST_DIR_URI, "/onlyReadByUser1");
-    if (isFile) {
-      // create file "/testDir/onlyReadByUser1" [user1, group1, -rw-------]
-      verifyCreateFile(TEST_USER_1, fileOrDir, false);
-      verifyRead(TEST_USER_1, fileOrDir, true);
-    } else {
-      // create dir "/testDir/onlyReadByUser1" [user1, group1, drwx--x--x]
-      verifyCreateDirectory(TEST_USER_1, fileOrDir, false);
-      verifyRead(TEST_USER_1, fileOrDir, false);
+    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066")) {
+      String fileOrDir = PathUtils.concatPath(TEST_DIR_URI, "/onlyReadByUser1");
+      if (isFile) {
+        // create file "/testDir/onlyReadByUser1" [user1, group1, -rw-------]
+        verifyCreateFile(TEST_USER_1, fileOrDir, false);
+        verifyRead(TEST_USER_1, fileOrDir, true);
+      } else {
+        // create dir "/testDir/onlyReadByUser1" [user1, group1, drwx--x--x]
+        verifyCreateDirectory(TEST_USER_1, fileOrDir, false);
+        verifyRead(TEST_USER_1, fileOrDir, false);
+      }
+      return fileOrDir;
     }
-    return fileOrDir;
   }
 
   private void verifyRead(TestUser user, String path, boolean isFile) throws Exception {
@@ -633,31 +636,33 @@ public final class PermissionCheckTest {
   @Test
   public void setStateSuccess() throws Exception {
     // set unmask
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
+    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000")) {
+      String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
+      verifyCreateFile(TEST_USER_1, file, false);
+      SetAttributeOptions expect = getNonDefaultSetState();
+      SetAttributeOptions result = verifySetState(TEST_USER_2, file, expect);
 
-    String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
-    verifyCreateFile(TEST_USER_1, file, false);
-    SetAttributeOptions expect = getNonDefaultSetState();
-    SetAttributeOptions result = verifySetState(TEST_USER_2, file, expect);
-
-    Assert.assertEquals(expect.getTtl(), result.getTtl());
-    Assert.assertEquals(expect.getTtlAction(), result.getTtlAction());
-    Assert.assertEquals(expect.getPinned(), result.getPinned());
+      Assert.assertEquals(expect.getTtl(), result.getTtl());
+      Assert.assertEquals(expect.getTtlAction(), result.getTtlAction());
+      Assert.assertEquals(expect.getPinned(), result.getPinned());
+    }
   }
 
   @Test
   public void setStateFail() throws Exception {
     // set unmask
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
+    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066")) {
+      String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
+      verifyCreateFile(TEST_USER_1, file, false);
+      SetAttributeOptions expect = getNonDefaultSetState();
 
-    String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
-    verifyCreateFile(TEST_USER_1, file, false);
-    SetAttributeOptions expect = getNonDefaultSetState();
-
-    mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, file, "testState1")));
-    verifySetState(TEST_USER_2, file, expect);
+      mThrown.expect(AccessControlException.class);
+      mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+          toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, file, "testState1")));
+      verifySetState(TEST_USER_2, file, expect);
+    }
   }
 
   private SetAttributeOptions getNonDefaultSetState() {
@@ -693,16 +698,17 @@ public final class PermissionCheckTest {
   @Test
   public void completeFileFail() throws Exception {
     // set unmask
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
+    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066")) {
+      String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
+      verifyCreateFile(TEST_USER_1, file, false);
+      CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
 
-    String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
-    verifyCreateFile(TEST_USER_1, file, false);
-    CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
-
-    mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, file, "testComplete1")));
-    verifyCompleteFile(TEST_USER_2, file, expect);
+      mThrown.expect(AccessControlException.class);
+      mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+          toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, file, "testComplete1")));
+      verifyCompleteFile(TEST_USER_2, file, expect);
+    }
   }
 
   private CompleteFileOptions getNonDefaultCompleteFileOptions() {
@@ -738,29 +744,31 @@ public final class PermissionCheckTest {
   @Test
   public void freeFileFail() throws Exception {
     // set unmask
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
+    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066")) {
+      String file = PathUtils.concatPath(TEST_DIR_URI, "testComplete1");
+      verifyCreateFile(TEST_USER_1, file, false);
 
-    String file = PathUtils.concatPath(TEST_DIR_URI, "testComplete1");
-    verifyCreateFile(TEST_USER_1, file, false);
-
-    mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, file, "testComplete1")));
-    verifyFree(TEST_USER_2, file, false);
+      mThrown.expect(AccessControlException.class);
+      mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+          toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, file, "testComplete1")));
+      verifyFree(TEST_USER_2, file, false);
+    }
   }
 
   @Test
   public void freeNonNullDirectoryFail() throws Exception {
     // set unmask
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
+    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066")) {
+      String file = PathUtils.concatPath(TEST_DIR_URI + "/testComplete1");
+      verifyCreateFile(TEST_USER_1, file, false);
 
-    String file = PathUtils.concatPath(TEST_DIR_URI + "/testComplete1");
-    verifyCreateFile(TEST_USER_1, file, false);
-
-    mThrown.expect(AccessControlException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, file, "testComplete1")));
-    verifyFree(TEST_USER_2, file, false);
+      mThrown.expect(AccessControlException.class);
+      mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+          toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, file, "testComplete1")));
+      verifyFree(TEST_USER_2, file, false);
+    }
   }
 
   private void verifyFree(TestUser user, String path, boolean recursive) throws Exception {
