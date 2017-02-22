@@ -12,7 +12,6 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.cli.CliUtils;
 import alluxio.client.keyvalue.KeyValueIterator;
@@ -32,7 +31,7 @@ import java.util.concurrent.Callable;
  * Tests whether two key-value stores contain the same set of key-value pairs.
  */
 public final class SameKeyValueStoresTest implements Callable<Boolean> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(SameKeyValueStoresTest.class);
 
   private final AlluxioURI mStoreUri1;
   private final AlluxioURI mStoreUri2;

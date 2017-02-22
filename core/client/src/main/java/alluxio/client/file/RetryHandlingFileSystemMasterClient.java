@@ -57,7 +57,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
    * @param subject the subject
    * @param masterAddress the master address
    */
-  protected RetryHandlingFileSystemMasterClient(Subject subject, InetSocketAddress masterAddress) {
+  protected static RetryHandlingFileSystemMasterClient create(Subject subject,
+      InetSocketAddress masterAddress) {
+    return new RetryHandlingFileSystemMasterClient(subject, masterAddress);
+  }
+
+  private RetryHandlingFileSystemMasterClient(Subject subject, InetSocketAddress masterAddress) {
     super(subject, masterAddress);
   }
 

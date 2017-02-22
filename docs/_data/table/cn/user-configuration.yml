@@ -43,6 +43,8 @@ alluxio.user.file.seek.buffer.size.bytes:
   在文件seek操作中使用的缓存大小。这个选项只在 `alluxio.user.file.cache.partially.read.block` 打开的时候有效。
 alluxio.user.heartbeat.interval.ms:
   Alluxio worker的心跳时间间隔（单位：毫秒）。
+alluxio.user.hostname:
+  给alluxio客户端使用的主机名。
 alluxio.user.lineage.enabled:
   是否启用lineage。
 alluxio.user.lineage.master.client.threads:

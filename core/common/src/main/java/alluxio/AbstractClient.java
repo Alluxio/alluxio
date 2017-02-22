@@ -45,7 +45,7 @@ import javax.security.auth.Subject;
 // TODO(peis): Consolidate this to ThriftClientPool.
 @ThreadSafe
 public abstract class AbstractClient implements Client {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
 
   /** The pattern of exception message when client and server transport frame sizes do not match. */
   private static final Pattern FRAME_SIZE_EXCEPTION_PATTERN =

@@ -70,7 +70,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
   @Override
   protected FileSystemMasterClient createNewResource() {
     FileSystemMasterClient client =
-        new RetryHandlingFileSystemMasterClient(mSubject, mMasterAddress);
+        RetryHandlingFileSystemMasterClient.create(mSubject, mMasterAddress);
     mClientList.add(client);
     return client;
   }

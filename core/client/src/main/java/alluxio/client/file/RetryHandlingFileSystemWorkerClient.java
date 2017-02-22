@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AbstractThriftClient;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CloseUfsFileOptions;
@@ -56,8 +55,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RetryHandlingFileSystemWorkerClient
     extends AbstractThriftClient<FileSystemWorkerClientService.Client>
     implements FileSystemWorkerClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemWorkerClient.class);
   private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
       Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_THREADS),
       ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
@@ -127,7 +125,7 @@ public final class RetryHandlingFileSystemWorkerClient
             } catch (InterruptedException e) {
               // do nothing
             } catch (Exception e) {
-              LOG.error("Failed to heartbeat for session " + mSessionId, e);
+              LOG.warn("Failed to heartbeat for session {}", mSessionId, e);
             }
           }
         }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),

@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
+import javax.security.auth.Subject;
+
 /**
  * A client to use for interacting with a file system master.
  */
@@ -48,7 +50,18 @@ public interface FileSystemMasterClient extends MasterClient {
      * @return a new {@link FileSystemMasterClient} instance
      */
     public static FileSystemMasterClient create(InetSocketAddress masterAddress) {
-      return new RetryHandlingFileSystemMasterClient(null, masterAddress);
+      return create(null, masterAddress);
+    }
+
+    /**
+     * Factory method for {@link FileSystemMasterClient}.
+     *
+     * @param subject the parent subject
+     * @param masterAddress the master address
+     * @return a new {@link FileSystemMasterClient} instance
+     */
+    public static FileSystemMasterClient create(Subject subject, InetSocketAddress masterAddress) {
+      return RetryHandlingFileSystemMasterClient.create(subject, masterAddress);
     }
   }
 

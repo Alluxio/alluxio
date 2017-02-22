@@ -13,7 +13,6 @@ package alluxio.util.network;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.MasterInquireClient;
 import alluxio.PropertyKey;
 import alluxio.exception.PreconditionMessage;
@@ -47,13 +46,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class NetworkAddressUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(NetworkAddressUtils.class);
+
   public static final String WILDCARD_ADDRESS = "0.0.0.0";
 
   /**
    * Checks if the underlying OS is Windows.
    */
   public static final boolean WINDOWS = OSUtils.isWindows();
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static String sLocalHost;
   private static String sLocalIP;

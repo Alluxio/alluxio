@@ -37,7 +37,7 @@ import java.util.concurrent.Callable;
  * read the store afterwards.
  */
 public final class KeyValueStoreOperations implements Callable<Boolean> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(KeyValueStoreOperations.class);
 
   private final int mPartitionLength = Constants.MB;
   private final int mNumKeyValuePairs = 10;
