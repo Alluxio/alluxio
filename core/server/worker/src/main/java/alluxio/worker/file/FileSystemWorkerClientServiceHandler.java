@@ -211,7 +211,7 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
       throws AlluxioTException {
-    RpcUtils.call(new RpcUtils.RpcCallable<Void>() {
+    RpcUtils.call(LOG, new RpcUtils.RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioException {
         mWorker.sessionHeartbeat(sessionId);
