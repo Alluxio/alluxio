@@ -22,8 +22,6 @@ import alluxio.thrift.Command;
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -40,7 +38,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockMasterClient extends AbstractMasterClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockMasterWorkerService.Client mClient = null;
 
   /**

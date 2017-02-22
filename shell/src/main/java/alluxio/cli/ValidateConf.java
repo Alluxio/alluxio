@@ -12,7 +12,6 @@
 package alluxio.cli;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +23,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ValidateConf {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ValidateConf.class);
 
   /**
    * Console program that validates the configuration.
