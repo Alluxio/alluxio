@@ -25,14 +25,18 @@ import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.UfsBlockAccessTokenUnavailableException;
+import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.meta.UfsBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,7 +61,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, Configuration.class,
-    UnderFileSystem.class, BlockWorker.class, Sessions.class, UfsBlockStore.class})
+    UnderFileSystem.class, BlockWorker.class, Sessions.class})
 public class BlockWorkerTest {
 
   /** Rule to create a new temporary folder during each test. */
@@ -66,7 +70,6 @@ public class BlockWorkerTest {
 
   private BlockMasterClient mBlockMasterClient;
   private BlockStore mBlockStore;
-  private UfsBlockStore mUfsBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
   private Random mRandom;
   private Sessions mSessions;
@@ -80,7 +83,6 @@ public class BlockWorkerTest {
     mRandom = new Random();
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mBlockStore = PowerMockito.mock(BlockStore.class);
-    mUfsBlockStore = PowerMockito.mock(UfsBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mSessions = PowerMockito.mock(Sessions.class);
 
@@ -110,7 +112,35 @@ public class BlockWorkerTest {
 
   @Test
   public void openUfsBlock() throws Exception {
+    long blockId = mRandom.nextLong();
+    for (int i = 0; i < 10; i++) {
+      long sessionId = i + 1;
+      UfsBlockMeta meta =
+          UfsBlockMeta.fromLockBlockOptions(sessionId, blockId, new LockBlockTOptions());
+      mBlockWorker.openUfsBlock(meta, 10);
+    }
+    UfsBlockMeta meta =
+        UfsBlockMeta.fromLockBlockOptions(12, blockId, new LockBlockTOptions());
+    try {
+      mBlockWorker.openUfsBlock(meta, 10);
+      Assert.fail();
+    } catch (UfsBlockAccessTokenUnavailableException e) {
+      // expected.
+    }
+  }
 
+  @Test
+  public void closeUfsBlock() throws Exception {
+    long blockId = mRandom.nextLong();
+    for (int i = 0; i < 10; i++) {
+      long sessionId = i + 1;
+      UfsBlockMeta meta =
+          UfsBlockMeta.fromLockBlockOptions(sessionId, blockId, new LockBlockTOptions());
+      mBlockWorker.openUfsBlock(meta, 10);
+      mBlockWorker.closeUfsBlock(sessionId, blockId);
+    }
+    UfsBlockMeta meta = UfsBlockMeta.fromLockBlockOptions(12, blockId, new LockBlockTOptions());
+    mBlockWorker.openUfsBlock(meta, 10);
   }
 
   /**

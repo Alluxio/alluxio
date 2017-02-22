@@ -215,7 +215,7 @@ public final class UfsBlockStore {
     } finally {
       mLock.unlock();
     }
-    return new UfsBlockReader(blockMeta, offset, noCache, mAlluxioBlockStore);
+    return UfsBlockReader.create(blockMeta, offset, noCache, mAlluxioBlockStore);
   }
 
   /**

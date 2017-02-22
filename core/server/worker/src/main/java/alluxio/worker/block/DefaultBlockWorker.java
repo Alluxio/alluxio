@@ -100,7 +100,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private BlockStore mBlockStore;
   private WorkerNetAddress mAddress;
 
-  private final UfsBlockStore mUfsBlockStore;
+  private UfsBlockStore mUfsBlockStore;
 
   /**
    * The worker ID for this worker. This is initialized in {@link #init(WorkerNetAddress)} and may

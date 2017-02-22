@@ -64,33 +64,58 @@ public final class UfsBlockReader implements BlockReader {
   private long mBlockWriterPos;
 
   /**
-   * Creates an instance of {@link UfsBlockReader}.
+   * Creates an instance of {@link UfsBlockReader} and initializes it with a reading offset.
    *
    * @param blockMeta the block meta
-   * @param offset the offset within the block (NOT the file)
+   * @param offset the position within the block to start the read
    * @param noCache do not cache the block
    * @param alluxioBlockStore the Alluxio block store
    * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
    * @throws IOException if an I/O related error occur
    */
-  public UfsBlockReader(UfsBlockMeta blockMeta, long offset, boolean noCache,
-      BlockStore alluxioBlockStore)
-      throws BlockDoesNotExistException, IOException {
+  public static UfsBlockReader create(UfsBlockMeta blockMeta, long offset, boolean noCache,
+      BlockStore alluxioBlockStore) throws BlockDoesNotExistException, IOException {
+    UfsBlockReader ufsBlockReader =
+        new UfsBlockReader(blockMeta, noCache, alluxioBlockStore);
+    ufsBlockReader.init(offset);
+    return ufsBlockReader;
+  }
+
+  /**
+   * Creates an instance of {@link UfsBlockReader}.
+   *
+   * @param blockMeta the block meta
+   * @param noCache do not cache the block
+   * @param alluxioBlockStore the Alluxio block store
+   */
+  private UfsBlockReader(UfsBlockMeta blockMeta, boolean noCache, BlockStore alluxioBlockStore) {
     mFileBufferSize = Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(blockMeta.getUfsPath());
-    ufs.connectFromWorker(
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-    if (!ufs.isFile(blockMeta.getUfsPath())) {
-      throw new BlockDoesNotExistException(
-          ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(blockMeta.getUfsPath()));
-    }
     mAlluxioBlockStore = alluxioBlockStore;
     mNoCache = noCache;
     mInStreamPos = -1;
     mBlockWriterPos = -1;
-
     mBlockMeta.setBlockReader(this);
+  }
+
+  /**
+   * Initializes the reader.
+   *
+   * @param offset the position within the block to start the read
+   * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
+   * @throws IOException if an I/O related error occur
+   */
+  private void init(long offset) throws BlockDoesNotExistException, IOException {
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mBlockMeta.getUfsPath());
+    ufs.connectFromWorker(
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
+    if (!ufs.isFile(mBlockMeta.getUfsPath())) {
+      throw new BlockDoesNotExistException(
+          ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mBlockMeta.getUfsPath()));
+    }
+
+    updateUfsInputStream(offset);
+    updateBlockWriter(offset);
   }
 
   @Override
@@ -152,8 +177,7 @@ public final class UfsBlockReader implements BlockReader {
   public int transferTo(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
     if (mUfsInputStream == null) {
-      updateUfsInputStream(0);
-      updateBlockWriter(0);
+      return -1;
     }
     int bytesRead = 0;
     ByteBuf bufCopy = buf.duplicate();
