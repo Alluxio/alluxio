@@ -6,12 +6,12 @@ group: Deploying Alluxio
 priority: 3
 ---
 
-Alluxio can be deployed on Amazon EC2 using the
-[Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with
-Alluxio. The scripts let you create, configure, and destroy clusters that come automatically
-configured with [Amazon S3](https://s3.amazonaws.com/).
+* Table of Contents
+{:toc}
 
-# Prerequisites
+Alluxio can be deployed on Amazon EC2 using the [Vagrant scripts](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant) that come with Alluxio. The scripts let you create, configure, and destroy clusters that come automatically configured with [Amazon S3](https://s3.amazonaws.com/).
+
+## Prerequisites
 
 **Install Vagrant and the AWS plugins**
 
@@ -40,7 +40,7 @@ in `deploy/vagrant` run:
 
 {% include Running-Alluxio-on-EC2/install-pip.md %}
 
-# Launch a Cluster
+## Launch a Cluster
 
 To run an Alluxio cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/).
@@ -94,7 +94,7 @@ the script under `deploy/vagrant`:
 
 Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
 
-# Access the cluster
+## Access the cluster
 
 **Access through Web UI**
 
@@ -112,6 +112,7 @@ You can also monitor the instances state through
 Make sure that you are in the console for the region where you started the cluster.
 
 Here are some scenarios when you may want to check the console:
+
  - When the cluster creation fails, check EC2 instances status/logs.
  - After the cluster is destroyed, confirm EC2 instances are terminated.
  - When you no longer need the cluster, make sure EC2 instances are NOT costing you extra money.
@@ -145,7 +146,7 @@ From a node in the cluster, you can ssh to other nodes in the cluster without pa
 
 {% include Running-Alluxio-on-EC2/ssh-other-node.md %}
 
-# Destroy the cluster
+## Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run:
 

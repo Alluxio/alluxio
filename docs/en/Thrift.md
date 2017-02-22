@@ -3,17 +3,19 @@ layout: global
 title: Thrift
 ---
 
-# Mac OS X
+* Table of Contents
+{:toc}
+
+## Mac OS X
 
 Before you can get [Apache Thift](http://thrift.apache.org) installed, you will first need to setup
 command-line support.  To do this, you will need to:
 
 Install Xcode from the Mac App Store
 
-Launch Xcode, open the Preferences, select Downloads, and install
-    the “Command Line Tools for Xcode” component.
+Launch Xcode, open the Preferences, select Downloads, and install the “Command Line Tools for Xcode” component.
 
-## Homebrew
+### Homebrew
 
 This section explains how to install Apache Thrift via [Homebrew](http://brew.sh/).
 
@@ -35,7 +37,7 @@ Install Thrift
 
 {% include Thrift/install-Thrift-brew.md %}
 
-## MacPorts
+### MacPorts
 
 This section explains how to install Apache Thrift via [MacPorts](http://macports.org).
 
@@ -69,11 +71,11 @@ You may change CXXFLAGS. Here we include `/usr/include/4.2.1` for `std::tr1` on 
 `/opt/local/lib` for libraries installed by port. Without the `-I`, the installation may fail with
 `tr1/functional not found`. Without the `-L`, the installation may fail during linking.
 
-# Linux
+## Linux
 
 [Reference](http://thrift.apache.org/docs/install/)
 
-## Debian/Ubuntu
+### Debian/Ubuntu
 
 The following command installs all the required tools and libraries to
 build and install the Apache Thrift compiler on a Debian/Ubuntu Linux
@@ -96,7 +98,7 @@ Debian Lenny Users need some packages from backports:
 
 {% include Thrift/build-Thrift-ubuntu.md %}
 
-## CentOS
+### CentOS
 
 The following steps can be used to setup a CentOS 6.4 system.
 
@@ -112,9 +114,9 @@ Download and install Apache Thrift source:
 
 {% include Thrift/download-install-Thrift.md %}
 
-# Generate Java files from Thrift
+## Generate Java files from Thrift
 
-Alluxio defines a its RPC services using the thrift file located in in:
+Alluxio defines a its RPC services using the thrift file located in:
 
     ./common/src/thrift/alluxio.thrift
 

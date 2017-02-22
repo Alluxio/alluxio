@@ -30,18 +30,10 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-    </dependency>
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-keyvalue-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-keyvalue-client</artifactId>
+      <artifactId>alluxio-core-protobuf</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -57,6 +49,16 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-worker</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-keyvalue-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-keyvalue-client</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

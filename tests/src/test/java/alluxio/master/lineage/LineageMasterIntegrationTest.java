@@ -222,7 +222,7 @@ public class LineageMasterIntegrationTest {
   }
 
   private FileSystemMasterClient getFileSystemMasterClient() {
-    return new FileSystemMasterClient(null,
-        mLocalAlluxioClusterResource.get().getMaster().getAddress());
+    return FileSystemMasterClient.Factory
+        .create(mLocalAlluxioClusterResource.get().getMaster().getAddress());
   }
 }

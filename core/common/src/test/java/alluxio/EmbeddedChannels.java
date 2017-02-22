@@ -37,6 +37,9 @@ public final class EmbeddedChannels {
       pipeline().removeFirst();
     }
 
+    /**
+     * Removes first ChannelHandler and adds a new ChannelHandler to pipeline.
+     */
     public void finishChannelCreation() {
       pipeline().removeFirst();
       pipeline().addLast(new LastInboundHandler());

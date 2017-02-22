@@ -33,23 +33,24 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>annotations</artifactId>
     </dependency>
     <dependency>
       <groupId>com.qmino</groupId>
       <artifactId>miredot-annotations</artifactId>
-      <version>1.4.0</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.containers</groupId>
       <artifactId>jersey-container-servlet-core</artifactId>
-      <version>${jersey.version}</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jackson</artifactId>
-      <version>${jersey.version}</version>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -73,7 +74,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava-testlib</artifactId>
-      <version>19.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -101,7 +101,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
         <executions>
           <execution>
             <goals>

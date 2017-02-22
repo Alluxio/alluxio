@@ -31,6 +31,7 @@
   </properties>
 
   <dependencies>
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-master</artifactId>
@@ -48,7 +49,27 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-examples</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-keyvalue-server</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-shell</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-gcs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-glusterfs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -58,7 +79,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-glusterfs</artifactId>
+      <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -73,27 +94,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-gcs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-swift</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-local</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-examples</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-shell</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -143,7 +144,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.2</version>
         <executions>
           <execution>
             <id>uber-jar</id>
@@ -176,7 +176,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.3</version>
         <inherited>false</inherited>
         <configuration>
           <skipAssembly>false</skipAssembly>

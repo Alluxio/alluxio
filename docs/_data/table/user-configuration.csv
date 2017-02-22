@@ -17,6 +17,7 @@ alluxio.user.file.readtype.default,CACHE_PROMOTE
 alluxio.user.file.writetype.default,MUST_CACHE
 alluxio.user.file.write.tier.default,0
 alluxio.user.heartbeat.interval.ms,1000
+alluxio.user.hostname,determined by localhost lookup
 alluxio.user.lineage.enabled,false
 alluxio.user.lineage.master.client.threads,10
 alluxio.user.network.netty.timeout.ms,30000
@@ -27,3 +28,6 @@ alluxio.user.ufs.delegation.write.buffer.size.bytes,2MB
 alluxio.user.ufs.file.reader.class,alluxio.client.netty.&#8203;NettyUnderFileSystemFileReader
 alluxio.user.ufs.file.writer.class,alluxio.client.netty.&#8203;NettyUnderFileSystemFileWriter
 alluxio.user.packet.streaming.enabled,false
+alluxio.user.rpc.retry.base.sleep.ms,50
+alluxio.user.rpc.retry.max.sleep.ms,10000
+alluxio.user.rpc.retry.max.num.retry,30

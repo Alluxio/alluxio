@@ -6,9 +6,12 @@ group: Under Store
 priority: 3
 ---
 
+* 内容列表
+{:toc}
+
 该指南给出了使用说明以配置[HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)作为Alluxio的底层文件系统。
 
-# 初始步骤
+## 初始步骤
 
 要在一组机器上运行一个Alluxio集群，需要在每台机器上部署Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
@@ -24,7 +27,7 @@ priority: 3
 
 如果一切正常，在`assembly/target`目录中应当能看到`alluxio-assemblies-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件，使用该jar文件即可运行Alluxio Master和Worker。
 
-# 配置Alluxio
+## 配置Alluxio
 
 要运行Alluxio二进制包，一定要先创建配置文件，你可以使用`bootstrapConf` 命令来创建自己的配置文件。
 举个例子，假如你正在本地运行Alluxio，那么就应该把`ALLUXIO_MASTER_HOSTNAME`设置为`localhost`
@@ -39,7 +42,7 @@ priority: 3
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 
-## 使用HDFS namenode HA模式配置Alluxio
+### 使用HDFS namenode HA模式配置Alluxio
 
 如果HDFS的namenode以HA模式运行，那么应该正确配置Alluxio的服务端和客户端以访问HDFS。
 
@@ -51,7 +54,8 @@ priority: 3
 
 接下来，对于Alluxio客户端，`alluxio.underfs.hdfs.configuration`也应该设置为hadoop属性文件`hdfs-site.xml`（或者`core-site.xml`）。
 
-# 配置Alluxio和HDFS之间的权限映射
+
+### 配置Alluxio和HDFS之间的权限映射
 
 自v1.3以来，Alluxio默认支持文件系统[用户和权限检查](Security.html)。为了确保HDFS中包括用户，组和模式的文件/目录的权限信息与Alluxio一致，启动Alluxio master和worker进程的用户**要求**是以下任一情况：
 
@@ -61,7 +65,7 @@ priority: 3
 
 注意，上面设置的用户只是启动Alluxio master和worker进程的标识。一旦Alluxio服务器启动，就**不必**使用此用户运行Alluxio客户端应用程序。
 
-# 使用HDFS在本地运行Alluxio
+## 使用HDFS在本地运行Alluxio
 
 在开始本步骤之前，请确保HDFS集群已经启动运行并且映射到Alluxio根目录下的HDFS目录已经存在。
 

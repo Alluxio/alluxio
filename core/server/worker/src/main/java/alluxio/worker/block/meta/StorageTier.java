@@ -12,7 +12,6 @@
 package alluxio.worker.block.meta;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.WorkerStorageTierAssoc;
@@ -41,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class StorageTier {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(StorageTier.class);
 
   /** Alias value of this tier in tiered storage. */
   private final String mTierAlias;

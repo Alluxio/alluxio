@@ -11,8 +11,6 @@
 
 package alluxio.network.protocol;
 
-import alluxio.Constants;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -32,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ChannelHandler.Sharable
 @ThreadSafe
 public final class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(RPCMessageDecoder.class);
 
   /**
    * Constructs a new {@link RPCMessageDecoder}.

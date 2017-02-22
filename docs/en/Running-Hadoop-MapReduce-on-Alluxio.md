@@ -6,10 +6,13 @@ group: Frameworks
 priority: 1
 ---
 
+* Table of Contents
+{:toc}
+
 This guide describes how to get Alluxio running with Apache Hadoop MapReduce, so that you can easily
 run your MapReduce programs with files stored on Alluxio.
 
-# Initial Setup
+## Initial Setup
 
 The prerequisite for this part is that you have [Java](Java-Setup.html). We also assume that you
 have set up Alluxio and Hadoop in accordance to these guides
@@ -18,7 +21,7 @@ In order to run some simple map-reduce examples, we also recommend you download 
 [map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1) based on your hadoop version,
 or if you are using Hadoop 1, this [examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1).
 
-# Compiling the Alluxio Client
+## Compiling the Alluxio Client
 
 In order to use Alluxio with your version of Hadoop, you will have to re-compile the Alluxio client
 jar, specifying your Hadoop version. You can do this by running the following in your Alluxio
@@ -35,7 +38,7 @@ information about support for other distributions.
 After the compilation succeeds, the new Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`
 This is the jar that you should use for the rest of this guide.
 
-# Configuring Hadoop
+## Configuring Hadoop
 
 Add the following three properties to `core-site.xml` file in your Hadoop installation
 `conf` directory:
@@ -56,7 +59,7 @@ Since this release security is enabled by default, if the `$HADOOP_CLASSPATH` do
 client jar, running MapReduce on Alluxio might result in "Failed to login: No Alluxio User is
 found." error.
 
-# Distributing the Alluxio Client Jar
+## Distributing the Alluxio Client Jar
 
 In order for the MapReduce job to be able to read and write files in Alluxio, the Alluxio client jar
 must be distributed to all the nodes in the cluster. This allows the TaskTracker and JobClient to
@@ -87,7 +90,7 @@ to ensure this jar is on the classpath.
 Note that the jars must be installed again for each update to a new release. On the other hand, when the jar is
 already on every node, then the `-libjars` command line option is not needed.
 
-## Avoiding Conflicting Client Dependencies
+### Avoiding Conflicting Client Dependencies
 
 It may be the case that the under storage library you are using will have dependency conflicts with
 Hadoop. For example using the S3A client to talk to S3 requires higher versions of several libraries
@@ -97,7 +100,7 @@ through Alluxio servers. See [Configuration Settings](Configuration-Settings.htm
 the Alluxio configuration. Alternatively you can manually resolve the conflicts when generating the
 MapReduce classpath and/or jars, keeping only the highest versions of each dependency.
 
-# Running Hadoop wordcount with Alluxio Locally
+## Running Hadoop wordcount with Alluxio Locally
 
 First, compile Alluxio with the appropriate Hadoop version:
 

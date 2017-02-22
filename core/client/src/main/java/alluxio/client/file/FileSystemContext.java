@@ -17,7 +17,6 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.BlockWorkerThriftClientPool;
-import alluxio.client.block.RetryHandlingBlockWorkerClient;
 import alluxio.client.netty.NettyClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -26,6 +25,7 @@ import alluxio.network.connection.NettyChannelPool;
 import alluxio.resource.CloseableResource;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -139,15 +139,7 @@ public final class FileSystemContext implements Closeable {
    * Initializes the context. Only called in the factory methods and reset.
    */
   private void init() {
-    String masterHostname;
-    if (Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
-      masterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
-    } else {
-      masterHostname = NetworkAddressUtils.getLocalHostName();
-    }
-    int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
-    mMasterAddress = new InetSocketAddress(masterHostname, masterPort);
-
+    mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(mParentSubject, mMasterAddress);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterAddress);
   }
@@ -312,7 +304,7 @@ public final class FileSystemContext implements Closeable {
       }
     }
 
-    return new RetryHandlingBlockWorkerClient(mBlockWorkerClientPools.get(rpcAddress),
+    return BlockWorkerClient.Factory.create(mBlockWorkerClientPools.get(rpcAddress),
         mBlockWorkerClientHeartbeatPools.get(rpcAddress), address, sessionId);
   }
 
@@ -354,9 +346,8 @@ public final class FileSystemContext implements Closeable {
     }
 
     long sessionId = IdUtils.getRandomNonNegativeLong();
-    return new FileSystemWorkerClient(mFileSystemWorkerClientPools.get(rpcAddress),
-        mFileSystemWorkerClientHeartbeatPools.get(rpcAddress),
-        address, sessionId);
+    return FileSystemWorkerClient.Factory.create(mFileSystemWorkerClientPools.get(rpcAddress),
+        mFileSystemWorkerClientHeartbeatPools.get(rpcAddress), address, sessionId);
   }
 
   /**
@@ -407,7 +398,8 @@ public final class FileSystemContext implements Closeable {
     if (mHasLocalWorker == null) {
       List<WorkerNetAddress> addresses = getWorkerAddresses();
       if (!addresses.isEmpty()) {
-        mHasLocalWorker = addresses.get(0).getHost().equals(NetworkAddressUtils.getLocalHostName());
+        mHasLocalWorker =
+            addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName());
       } else {
         mHasLocalWorker = false;
       }
@@ -437,7 +429,7 @@ public final class FileSystemContext implements Closeable {
     // Convert the worker infos into net addresses, if there are local addresses, only keep those
     List<WorkerNetAddress> workerNetAddresses = new ArrayList<>();
     List<WorkerNetAddress> localWorkerNetAddresses = new ArrayList<>();
-    String localHostname = NetworkAddressUtils.getLocalHostName();
+    String localHostname = NetworkAddressUtils.getClientHostName();
     for (WorkerInfo info : infos) {
       WorkerNetAddress netAddress = info.getAddress();
       if (netAddress.getHost().equals(localHostname)) {

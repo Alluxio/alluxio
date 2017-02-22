@@ -190,7 +190,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
     mCloser.register(mBlockWorkerClient);
     try {
       mLocal = blockWorkerClient.getDataServerAddress().getHostName()
-          .equals(NetworkAddressUtils.getLocalHostName());
+          .equals(NetworkAddressUtils.getClientHostName());
       mBlockWorkerClient.accessBlock(blockId);
     } catch (IOException e) {
       mCloser.close();

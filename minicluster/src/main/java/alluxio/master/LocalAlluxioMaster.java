@@ -37,14 +37,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(LocalAlluxioMaster.class);
 
   private final String mHostname;
 
   private final String mJournalFolder;
-
-  private final AlluxioMasterService mAlluxioMaster;
-  private final Thread mMasterThread;
 
   private final Supplier<String> mClientSupplier = new Supplier<String>() {
     @Override
@@ -54,25 +51,12 @@ public final class LocalAlluxioMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
+  private AlluxioMasterService mAlluxioMaster;
+  private Thread mMasterThread;
+
   private LocalAlluxioMaster() throws IOException {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
     mJournalFolder = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    mAlluxioMaster = AlluxioMasterService.Factory.create();
-
-    Runnable runMaster = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          mAlluxioMaster.start();
-        } catch (Exception e) {
-          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
-          LOG.error("Start master error", e);
-          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
-        }
-      }
-    };
-
-    mMasterThread = new Thread(runMaster);
   }
 
   /**
@@ -108,6 +92,21 @@ public final class LocalAlluxioMaster {
    * Starts the master.
    */
   public void start() {
+    mAlluxioMaster = AlluxioMasterService.Factory.create();
+    Runnable runMaster = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          mAlluxioMaster.start();
+        } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+          LOG.error("Start master error", e);
+          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
+        }
+      }
+    };
+
+    mMasterThread = new Thread(runMaster);
     mMasterThread.start();
   }
 
@@ -131,7 +130,6 @@ public final class LocalAlluxioMaster {
 
     System.clearProperty("alluxio.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
-
   }
 
   /**

@@ -46,7 +46,8 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(binfan): move logic outside and make this a simple wrapper.
 @ThreadSafe
 public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(KeyValueWorkerClientServiceHandler.class);
 
   /** BlockWorker handler for access block info. */
   private final BlockWorker mBlockWorker;

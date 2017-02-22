@@ -12,7 +12,6 @@
 package alluxio.worker.netty;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -49,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class BlockDataServerHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BlockDataServerHandler.class);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;

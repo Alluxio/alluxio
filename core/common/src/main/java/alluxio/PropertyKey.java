@@ -150,6 +150,7 @@ public enum PropertyKey {
   MASTER_WEB_HOSTNAME(Name.MASTER_WEB_HOSTNAME, null),
   MASTER_WEB_PORT(Name.MASTER_WEB_PORT, 19999),
   MASTER_WHITELIST(Name.MASTER_WHITELIST, "/"),
+  MASTER_CONNECTION_TIMEOUT_MS(Name.MASTER_CONNECTION_TIMEOUT_MS, 0),
   MASTER_WORKER_THREADS_MAX(Name.MASTER_WORKER_THREADS_MAX, 2048),
   MASTER_WORKER_THREADS_MIN(Name.MASTER_WORKER_THREADS_MIN, 512),
   MASTER_WORKER_TIMEOUT_MS(Name.MASTER_WORKER_TIMEOUT_MS, 300000),
@@ -277,6 +278,7 @@ public enum PropertyKey {
   USER_FILE_WRITE_TYPE_DEFAULT(Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE"),
   USER_FILE_WRITE_TIER_DEFAULT(Name.USER_FILE_WRITE_TIER_DEFAULT, Constants.FIRST_TIER),
   USER_HEARTBEAT_INTERVAL_MS(Name.USER_HEARTBEAT_INTERVAL_MS, 1000),
+  USER_HOSTNAME(Name.USER_HOSTNAME, null),
   USER_LINEAGE_ENABLED(Name.USER_LINEAGE_ENABLED, false),
   USER_LINEAGE_MASTER_CLIENT_THREADS(Name.USER_LINEAGE_MASTER_CLIENT_THREADS, 10),
   USER_NETWORK_NETTY_CHANNEL(Name.USER_NETWORK_NETTY_CHANNEL, null),
@@ -307,6 +309,9 @@ public enum PropertyKey {
   USER_LOCAL_READER_PACKET_SIZE_BYTES(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES, "8MB"),
   USER_LOCAL_WRITER_PACKET_SIZE_BYTES(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB"),
   USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, false),
+  USER_RPC_RETRY_BASE_SLEEP_MS(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50),
+  USER_RPC_RETRY_MAX_SLEEP_MS(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 10000),
+  USER_RPC_RETRY_MAX_NUM_RETRY(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 30),
 
   //
   // FUSE integration related properties
@@ -552,6 +557,8 @@ public enum PropertyKey {
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
+    public static final String MASTER_CONNECTION_TIMEOUT_MS =
+            "alluxio.master.connection.timeout.ms";
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
     public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout.ms";
@@ -722,6 +729,7 @@ public enum PropertyKey {
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
     public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval.ms";
+    public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LINEAGE_ENABLED = "alluxio.user.lineage.enabled";
     public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
         "alluxio.user.lineage.master.client.threads";
@@ -759,6 +767,12 @@ public enum PropertyKey {
         "alluxio.user.local.writer.packet.size.bytes";
     public static final String USER_PACKET_STREAMING_ENABLED =
         "alluxio.user.packet.streaming.enabled";
+    public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
+        "alluxio.user.rpc.retry.base.sleep.ms";
+    public static final String USER_RPC_RETRY_MAX_SLEEP_MS =
+        "alluxio.user.rpc.retry.max.sleep.ms";
+    public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
+        "alluxio.user.rpc.retry.max.num.retry";
 
     //
     // FUSE integration related properties

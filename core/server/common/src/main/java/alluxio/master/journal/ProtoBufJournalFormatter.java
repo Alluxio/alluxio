@@ -11,10 +11,9 @@
 
 package alluxio.master.journal;
 
-import alluxio.Constants;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.proto.journal.Journal.JournalEntry;
 
-import com.google.protobuf.CodedInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ProtoBufJournalFormatter implements JournalFormatter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ProtoBufJournalFormatter.class);
 
   /**
    * Constructs a new {@link ProtoBufJournalFormatter}.
@@ -57,7 +56,7 @@ public final class ProtoBufJournalFormatter implements JournalFormatter {
           return null;
         }
         // All journal entries start with their size in bytes written as a varint.
-        int size = CodedInputStream.readRawVarint32(firstByte, inputStream);
+        int size = ProtoUtils.readRawVarint32(firstByte, inputStream);
         byte[] buffer = size <= mBuffer.length ? mBuffer : new byte[size];
         // Total bytes read so far for journal entry.
         int totalBytesRead = 0;

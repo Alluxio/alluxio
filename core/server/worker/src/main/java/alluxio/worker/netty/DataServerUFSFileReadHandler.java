@@ -11,7 +11,6 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Constants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -22,8 +21,6 @@ import alluxio.worker.file.FileSystemWorker;
 import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,8 +33,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DataServerUFSFileReadHandler extends DataServerReadHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final FileSystemWorker mWorker;
 
@@ -82,7 +77,7 @@ public final class DataServerUFSFileReadHandler extends DataServerReadHandler {
     if (!super.acceptMessage(object)) {
       return false;
     }
-    Protocol.ReadRequest request = (Protocol.ReadRequest) ((RPCProtoMessage) object).getMessage();
+    Protocol.ReadRequest request = ((RPCProtoMessage) object).getMessage().getMessage();
     return request.getType() == Protocol.RequestType.UFS_FILE;
   }
 

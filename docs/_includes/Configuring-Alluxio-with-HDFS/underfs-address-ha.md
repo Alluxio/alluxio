@@ -1,3 +1,3 @@
-```bash
+```properties
 alluxio.underfs.address=hdfs://nameservice/
 ```

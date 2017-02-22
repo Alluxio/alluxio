@@ -12,7 +12,6 @@
 package alluxio.worker.netty;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -49,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(DataServerReadHandler.class);
 
   private static final long PACKET_SIZE =
       Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
@@ -131,7 +130,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
       ctx.fireChannelRead(object);
       return;
     }
-    Protocol.ReadRequest msg = (Protocol.ReadRequest) ((RPCProtoMessage) object).getMessage();
+    Protocol.ReadRequest msg = ((RPCProtoMessage) object).getMessage().getMessage();
 
     String error = validateReadRequest(msg);
     if (!error.isEmpty()) {
