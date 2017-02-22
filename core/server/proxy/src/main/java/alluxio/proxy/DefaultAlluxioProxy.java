@@ -12,7 +12,6 @@
 package alluxio.proxy;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -31,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DefaultAlluxioProxy implements AlluxioProxyService {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultAlluxioProxy.class);
 
   /** The web server. */
   private WebServer mWebServer = null;

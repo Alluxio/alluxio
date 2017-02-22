@@ -21,21 +21,20 @@ import org.powermock.reflect.Whitebox;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Test utils for {@link RetryHandlingBlockWorkerClient}.
+ * Test utils for {@link BlockWorkerClient}.
  */
-public class RetryHandlingBlockWorkerClientTestUtils {
+public class BlockWorkerClientTestUtils {
   /**
-   * Resets the {@link RetryHandlingBlockWorkerClient#HEARTBEAT_CANCEL_POOL} by waiting for all the
-   * pending heartbeats.
+   * Resets the static {@link BlockWorkerClient} state.
    */
   public static void reset() {
+    // reset the heartbeat pool by waiting for all the pending heartbeats
     CommonUtils
         .waitFor("All active block worker sessions are closed", new Function<Void, Boolean>() {
           @Override
           public Boolean apply(Void input) {
             AtomicInteger numActiveHeartbeats = Whitebox
-                .getInternalState(RetryHandlingBlockWorkerClient.class,
-                    "NUM_ACTIVE_SESSIONS");
+                .getInternalState(RetryHandlingBlockWorkerClient.class, "NUM_ACTIVE_SESSIONS");
             return numActiveHeartbeats.intValue() == 0;
           }
         }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));

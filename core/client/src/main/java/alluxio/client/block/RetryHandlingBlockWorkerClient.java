@@ -13,7 +13,6 @@ package alluxio.client.block;
 
 import alluxio.AbstractThriftClient;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.AlluxioException;
@@ -57,7 +56,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingBlockWorkerClient
     extends AbstractThriftClient<BlockWorkerClientService.Client> implements BlockWorkerClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(RetryHandlingBlockWorkerClient.class);
+
   private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
       Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
       ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
@@ -74,32 +74,43 @@ public final class RetryHandlingBlockWorkerClient
   private final WorkerNetAddress mWorkerNetAddress;
   private final InetSocketAddress mRpcAddress;
 
-  private final ScheduledFuture<?> mHeartbeat;
+  private ScheduledFuture<?> mHeartbeat;
 
   /**
-   * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session ID is
-   * required when using this client. For example, if you only call RPCs like promote, a session
-   * ID is not required.
+   * Factory method for {@link RetryHandlingBlockWorkerClient}.
    *
-   * @param clientPool the block worker client pool
-   * @param clientHeartbeatPool the block worker client heartbeat pool
-   * @param workerNetAddress to worker's location
-   * @param sessionId the ID of the session
+   * @param clientPool the client pool
+   * @param clientHeartbeatPool the client pool for heartbeat
+   * @param workerNetAddress the worker address to connect to
+   * @param sessionId the session id to use, this should be unique
    * @throws IOException if it fails to register the session with the worker specified
    */
-  public RetryHandlingBlockWorkerClient(
+  protected static RetryHandlingBlockWorkerClient create(
       BlockWorkerThriftClientPool clientPool,
       BlockWorkerThriftClientPool clientHeartbeatPool,
-      WorkerNetAddress workerNetAddress, final Long sessionId)
-      throws IOException {
+      WorkerNetAddress workerNetAddress,
+      Long sessionId) throws IOException {
+    RetryHandlingBlockWorkerClient client =
+        new RetryHandlingBlockWorkerClient(clientPool, clientHeartbeatPool, workerNetAddress,
+            sessionId);
+    client.init();
+    return client;
+  }
+
+  private RetryHandlingBlockWorkerClient(
+      BlockWorkerThriftClientPool clientPool,
+      BlockWorkerThriftClientPool clientHeartbeatPool,
+      WorkerNetAddress workerNetAddress, final Long sessionId) {
     mClientPool = clientPool;
     mClientHeartbeatPool = clientHeartbeatPool;
-    mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
-
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
+    mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
-    if (sessionId != null) {
+  }
+
+  private void init() throws IOException {
+    if (mSessionId != null) {
       // Register the session before any RPCs for this session start.
       try {
         sessionHeartbeat();
@@ -117,15 +128,13 @@ public final class RetryHandlingBlockWorkerClient
               } catch (InterruptedException e) {
                 // Do nothing.
               } catch (Exception e) {
-                LOG.error("Failed to heartbeat for session " + sessionId, e);
+                LOG.error("Failed to heartbeat for session {}", mSessionId, e);
               }
             }
           }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
           Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
 
       NUM_ACTIVE_SESSIONS.incrementAndGet();
-    } else {
-      mHeartbeat = null;
     }
   }
 

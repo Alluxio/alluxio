@@ -71,7 +71,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LineageMaster extends AbstractMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(LineageMaster.class);
 
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
