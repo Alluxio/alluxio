@@ -14,6 +14,7 @@ package alluxio.client.file.options;
 import alluxio.AuthenticatedUserRule;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
+import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -24,22 +25,45 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.security.authorization.Mode;
+import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 /**
  * Tests for the {@link OutStreamOptions} class.
  */
 public class OutStreamOptionsTest {
+  /**
+   * A mapping from a user to its corresponding group.
+   */
+  // TODO(binfan): create MockUserGroupsMapping class
+  public static class FakeUserGroupsMapping implements GroupMappingService {
+
+    public FakeUserGroupsMapping() {}
+
+    @Override
+    public List<String> getGroups(String user) throws IOException {
+      return Lists.newArrayList("test_group");
+    }
+  }
+
   @Rule
-  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("test");
+  public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap.of(
+      PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName()
+  ));
+
+  @Rule
+  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("test_user");
 
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.
@@ -57,8 +81,8 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(alluxioType, options.getAlluxioStorageType());
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    Assert.assertEquals("test", options.getOwner());
-    Assert.assertEquals("", options.getGroup());
+    Assert.assertEquals("test_user", options.getOwner());
+    Assert.assertEquals("test_group", options.getGroup());
     Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
