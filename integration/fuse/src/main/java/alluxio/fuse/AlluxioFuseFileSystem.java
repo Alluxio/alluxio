@@ -16,7 +16,6 @@ import static jnr.constants.platform.OpenFlags.O_WRONLY;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -58,7 +57,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 final class AlluxioFuseFileSystem extends FuseStubFS {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
+
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final long[] UID_AND_GID = AlluxioFuseUtils.getUidAndGid();
 

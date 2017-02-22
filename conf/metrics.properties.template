@@ -61,14 +61,6 @@
 #   unit      seconds       Units of poll period
 #   prefix    EMPTY STRING  Prefix to prepend to metric name
 
-# alluxio.metrics.sink.GangliaSink
-#   Name:     Default:      Description:
-#   host      NONE          Hostname of Ganglia gmond
-#   port      8649          Port of Ganglia gmond
-#   period    10            Poll period
-#   unit      seconds       Units of poll period
-#   ttl       1             time to live value
-
 ## Examples
 # Enable JmxSink by class name
 # sink.jmx.class=alluxio.metrics.sink.JmxSink
@@ -92,10 +84,3 @@
 # Polling directory for CsvSink
 # sink.csv.directory=/tmp/
 
-# Enable GangliaSink
-# sink.ganglia.class=alluxio.metrics.sink.GangliaSink
-# sink.ganglia.host=localhost
-# sink.ganglia.port=8649
-# sink.ganglia.period=10
-# sink.ganglia.unit=seconds
-# sink.ganglia.ttl=1

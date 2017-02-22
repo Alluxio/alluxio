@@ -12,7 +12,6 @@
 package alluxio.hadoop;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 
 import org.apache.hadoop.io.DefaultStringifier;
@@ -30,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ConfUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfUtils.class);
 
   private ConfUtils() {} // Prevent instantiation.
 

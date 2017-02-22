@@ -60,6 +60,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
 public class InodeTree implements JournalCheckpointStreamable {
+  private static final Logger LOG = LoggerFactory.getLogger(InodeTree.class);
+
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
 
@@ -88,7 +90,6 @@ public class InodeTree implements JournalCheckpointStreamable {
     WRITE_PARENT,
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Only the root inode should have the empty string as its name. */
   private static final String ROOT_INODE_NAME = "";
   /** Number of retries when trying to lock a path, from a given id. */

@@ -15,6 +15,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AlluxioWorkerService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -35,6 +38,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
+  private static final Logger LOG = LoggerFactory.getLogger(LocalAlluxioCluster.class);
+
   private LocalAlluxioMaster mMaster;
 
   /**

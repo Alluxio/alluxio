@@ -65,9 +65,8 @@ The `checkConsistency` command compares Alluxio and under storage metadata for a
 
 If the `-r` option is used, the checkConsistency command will repair all inconsistent files and directories
 under the given path. If an inconsistent file or directory exists only in under storage, its metadata will
-be added to Alluxio. If an inconsistent file exists in Alluxio, but its data is not fully present in Alluxio, its
-metadata will be loaded to Alluxio again. Lastly, if an inconsistent file exists in Alluxio and its data is fully
-present in Alluxio, its metadata and data will be loaded to Alluxio again.
+be added to Alluxio. If an inconsistent file exists in Alluxio and its data is fully present in Alluxio, its metadata
+will be loaded to Alluxio again.
 
 NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates
 to files or directories in the subtree cannot be completed until this command completes.

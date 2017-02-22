@@ -11,8 +11,6 @@
 
 package alluxio.util.io;
 
-import alluxio.Constants;
-
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +31,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BufferUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BufferUtils.class);
+
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
 

@@ -57,7 +57,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DefaultAlluxioWorker implements AlluxioWorkerService {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultAlluxioWorker.class);
 
   /** The worker serving blocks. */
   private BlockWorker mBlockWorker;

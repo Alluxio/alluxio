@@ -35,7 +35,8 @@ public final class LineageFileOutStreamTest {
   @Test
   public void persistHandledByMaster() throws Exception {
     FileSystemContext context = PowerMockito.mock(FileSystemContext.class);
-    FileSystemMasterClient client = PowerMockito.mock(FileSystemMasterClient.class);
+    FileSystemMasterClient
+        client = PowerMockito.mock(FileSystemMasterClient.class);
     Mockito.when(context.acquireMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(client));
 

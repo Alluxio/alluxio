@@ -26,8 +26,7 @@ priority: 1
 
 ## 配置Alluxio
 
-如果你需要将Swift用作Alluxio的底层存储系统，你需要编辑`conf/alluxio-site.properties`来配置Alluxio。
-首先就是要指定Swift底层文件系统的地址。编辑`conf/alluxio-site.properties`，添加：
+如果你需要将Swift用作Alluxio的底层存储系统，你需要修改`conf/alluxio-site.properties`，在其中添加：
 
 {% include Configuring-Alluxio-with-Swift/underfs-address.md %}
 
@@ -49,10 +48,9 @@ priority: 1
 认证成功以后，Keystone会返回两个访问URL: 公开的 和 私有的。如果Alluxio用在公司内部网，并且Swift位于同样的网络中，那么建议设置`<swift-use-public>`的值为`false`。
 
 
-### 访问IBM SoftLayer对象存储
+## Swift对象存储选项
 
-使用Swift模块也使得IBM SoftLayer对象存储可以作为Alluxio底层存储系统的一种选择。
-SoftLayer需要将`<swift-auth-model>`设置为`swiftauth`。
+使用Swift模块使得Alluxio能使用[Ceph Object Storage](https://ceph.com/ceph-storage/object-storage/)以及[IBM SoftLayer](http://www.softlayer.com/object-storage)对象存储作为底层存储。若要使用Ceph，必须部署[Rados Gateway](http://docs.ceph.com/docs/master/radosgw/)模块。
 
 ## 在本地Swift上运行Alluxio
 
@@ -74,9 +72,10 @@ SoftLayer需要将`<swift-auth-model>`设置为`swiftauth`。
 
 {% include Common-Commands/stop-alluxio.md %}
 
-## 对IBM SoftLayer进行功能测试
+## 运行功能测试
 
-在`tests/pom.xml`配置你的Swift或者SoftLayer账户，其中`authMethodKey`的值应为`keystone`、`tempauth`或`swiftauth`，要进行功能测试，运行：
+
+在`tests/pom.xml`配置`swiftTest`下的Swift账户凭据，其中`authMethodKey`的值应为`keystone`、`tempauth`或`swiftauth`，要进行功能测试，运行：
 
 {% include Configuring-Alluxio-with-Swift/functional-tests.md %}
 

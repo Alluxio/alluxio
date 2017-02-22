@@ -21,6 +21,8 @@ import alluxio.underfs.options.DeleteOptions;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.InputStream;
+
 public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
   /**
    * Tests the check consistency shell command correctly identifies a consistent subtree.
@@ -72,6 +74,9 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB")).getUfsPath();
     ufs.deleteFile(ufsPath);
     ufs.create(ufsPath);
+    InputStream inputStream = ufs.open(ufsPath);
+    byte[] bytes = {1,2,3};
+    inputStream.read(bytes);
     mOutput.reset();
     mFsShell.run("checkConsistency", "-r", "/testRoot");
     res = mOutput.toString();

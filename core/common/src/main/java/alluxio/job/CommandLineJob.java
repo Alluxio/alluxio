@@ -11,7 +11,6 @@
 
 package alluxio.job;
 
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.wire.CommandLineJobInfo;
 import alluxio.wire.JobConfInfo;
@@ -38,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class CommandLineJob extends Job {
   private static final long serialVersionUID = 1655996721855899996L;
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(CommandLineJob.class);
 
   private final String mCommand;
 

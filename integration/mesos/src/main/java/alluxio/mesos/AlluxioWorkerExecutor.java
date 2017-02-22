@@ -11,7 +11,6 @@
 
 package alluxio.mesos;
 
-import alluxio.Constants;
 import alluxio.cli.Format;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.worker.AlluxioWorker;
@@ -31,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class AlluxioWorkerExecutor implements Executor {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerExecutor.class);
 
   /**
    * Creates a new {@link AlluxioWorkerExecutor}.

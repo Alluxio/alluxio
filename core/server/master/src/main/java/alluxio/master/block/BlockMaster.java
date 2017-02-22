@@ -78,7 +78,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class BlockMaster extends AbstractMaster implements ContainerIdGenerable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BlockMaster.class);
   /**
    * The number of container ids to 'reserve' before having to journal container id state. This
    * allows the master to return container ids within the reservation, without having to write to
