@@ -18,6 +18,7 @@ import alluxio.client.file.options.CompleteUfsFileOptions;
 import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.Closeable;
@@ -123,8 +124,9 @@ public interface FileSystemWorkerClient extends Closeable {
    * Sends a session heartbeat to the worker. This renews the client's lease on resources such as
    * temporary files.
    *
+   * @param retryPolicy the retry policy to use
    * @throws IOException if an I/O error occurs
-   * @throws InterruptedException if the heartbeat is interrupted
+   * @throws InterruptedException if this thread is interrupted
    */
-  void sessionHeartbeat() throws IOException, InterruptedException;
+  void sessionHeartbeat(RetryPolicy retryPolicy) throws IOException, InterruptedException;
 }

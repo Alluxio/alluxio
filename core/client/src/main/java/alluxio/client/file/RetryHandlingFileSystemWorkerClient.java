@@ -22,6 +22,9 @@ import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.thrift.ThriftIOException;
@@ -30,6 +33,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -107,13 +111,13 @@ public final class RetryHandlingFileSystemWorkerClient
 
   private void init() throws IOException {
     // Register the session before any RPCs for this session start.
-    retryRPC(new RpcCallable<Void, FileSystemWorkerClientService.Client>() {
-      @Override
-      public Void call(FileSystemWorkerClientService.Client client) throws TException {
-        client.sessionHeartbeat(mSessionId, null);
-        return null;
-      }
-    });
+    ExponentialBackoffRetry retryPolicy =
+        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
+    try {
+      sessionHeartbeat(retryPolicy);
+    } catch (InterruptedException e) {
+      Throwables.propagate(e);
+    }
 
     // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
     // from the pool while it is not running.
@@ -121,7 +125,7 @@ public final class RetryHandlingFileSystemWorkerClient
           @Override
           public void run() {
             try {
-              sessionHeartbeat();
+              sessionHeartbeat(new CountingRetry(0));
             } catch (InterruptedException e) {
               // do nothing
             } catch (Exception e) {
@@ -232,21 +236,28 @@ public final class RetryHandlingFileSystemWorkerClient
   }
 
   @Override
-  public void sessionHeartbeat() throws IOException, InterruptedException {
-    FileSystemWorkerClientService.Client client = mClientHeartbeatPool.acquire();
-    try {
-      client.sessionHeartbeat(mSessionId, null);
-    } catch (AlluxioTException e) {
-      throw Throwables.propagate(e);
-    } catch (ThriftIOException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      client.getOutputProtocol().getTransport().close();
-      throw new IOException(e);
-    } finally {
-      mClientHeartbeatPool.release(client);
-    }
-    Metrics.FILE_SYSTEM_WORKER_HEARTBEATS.inc();
+  public void sessionHeartbeat(RetryPolicy retryPolicy) throws IOException, InterruptedException {
+    TException exception;
+    do {
+      FileSystemWorkerClientService.Client client = mClientHeartbeatPool.acquire();
+      try {
+        client.sessionHeartbeat(mSessionId, null);
+        Metrics.FILE_SYSTEM_WORKER_HEARTBEATS.inc();
+        return;
+      } catch (AlluxioTException | ThriftIOException e) {
+        exception = e;
+        LOG.warn(e.getMessage());
+      } catch (TException e) {
+        client.getOutputProtocol().getTransport().close();
+        exception = e;
+        LOG.warn(e.getMessage());
+      } finally {
+        mClientHeartbeatPool.release(client);
+      }
+    } while (retryPolicy.attemptRetry());
+    LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
+    Preconditions.checkNotNull(exception);
+    throw new IOException(exception);
   }
 
   /**

@@ -19,6 +19,9 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricsSystem;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.ThriftIOException;
@@ -112,13 +115,13 @@ public final class RetryHandlingBlockWorkerClient
   private void init() throws IOException {
     if (mSessionId != null) {
       // Register the session before any RPCs for this session start.
-      retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
-        @Override
-        public Void call(BlockWorkerClientService.Client client) throws TException {
-          client.sessionHeartbeat(mSessionId, null);
-          return null;
-        }
-      });
+      ExponentialBackoffRetry retryPolicy =
+          new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
+      try {
+        sessionHeartbeat(retryPolicy);
+      } catch (InterruptedException e) {
+        Throwables.propagate(e);
+      }
 
       // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
       // from the pool while it is not running.
@@ -126,7 +129,7 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public void run() {
               try {
-                sessionHeartbeat();
+                sessionHeartbeat(new CountingRetry(0));
               } catch (InterruptedException e) {
                 // Do nothing.
               } catch (Exception e) {
@@ -313,21 +316,28 @@ public final class RetryHandlingBlockWorkerClient
    * @throws InterruptedException if heartbeat is interrupted
    */
   @Override
-  public void sessionHeartbeat() throws IOException, InterruptedException {
-    BlockWorkerClientService.Client client = mClientHeartbeatPool.acquire();
-    try {
-      client.sessionHeartbeat(getSessionId(), null);
-    } catch (AlluxioTException e) {
-      throw Throwables.propagate(e);
-    } catch (ThriftIOException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      client.getOutputProtocol().getTransport().close();
-      throw new IOException(e);
-    } finally {
-      mClientHeartbeatPool.release(client);
-    }
-    Metrics.BLOCK_WORKER_HEATBEATS.inc();
+  public void sessionHeartbeat(RetryPolicy retryPolicy) throws IOException, InterruptedException {
+    TException exception;
+    do {
+      BlockWorkerClientService.Client client = mClientHeartbeatPool.acquire();
+      try {
+        client.sessionHeartbeat(getSessionId(), null);
+        Metrics.BLOCK_WORKER_HEATBEATS.inc();
+        return;
+      } catch (AlluxioTException | ThriftIOException e) {
+        exception = e;
+        LOG.warn(e.getMessage());
+      } catch (TException e) {
+        client.getOutputProtocol().getTransport().close();
+        exception = e;
+        LOG.warn(e.getMessage());
+      } finally {
+        mClientHeartbeatPool.release(client);
+      }
+    } while (retryPolicy.attemptRetry());
+    LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
+    Preconditions.checkNotNull(exception);
+    throw new IOException(exception);
   }
 
   /**
