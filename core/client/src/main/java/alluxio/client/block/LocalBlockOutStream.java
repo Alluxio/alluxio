@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
@@ -25,8 +24,6 @@ import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -40,7 +37,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class LocalBlockOutStream extends BufferedBlockOutStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final Closer mCloser;
   private final BlockWorkerClient mBlockWorkerClient;
   private final LocalFileBlockWriter mWriter;
@@ -62,7 +58,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       FileSystemContext context,
       OutStreamOptions options) throws IOException {
     super(blockId, blockSize, context);
-    if (!NetworkAddressUtils.getLocalHostName().equals(workerNetAddress.getHost())) {
+    if (!NetworkAddressUtils.getClientHostName().equals(workerNetAddress.getHost())) {
       throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerNetAddress));
     }
 

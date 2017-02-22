@@ -61,6 +61,9 @@ public final class MockFileOutStream extends FileOutStream {
     mStream.write(b, off, len);
   }
 
+  /**
+   * @return the bytes that have been written to the output stream
+   */
   public byte[] toByteArray() {
     return mStream.toByteArray();
   }

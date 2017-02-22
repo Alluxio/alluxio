@@ -249,4 +249,16 @@ public class NetworkAddressUtilsTest {
     Assert.assertEquals(
         NetworkAddressUtils.getFqdnHost(new WorkerNetAddress().setHost("localhost")), "localhost");
   }
+
+  @Test
+  public void getConfiguredClientHostname() {
+    Configuration.set(PropertyKey.USER_HOSTNAME, "clienthost");
+    Assert.assertEquals("clienthost", NetworkAddressUtils.getClientHostName());
+  }
+
+  @Test
+  public void getDefaultClientHostname() {
+    Assert.assertEquals(NetworkAddressUtils.getLocalHostName(),
+        NetworkAddressUtils.getClientHostName());
+  }
 }

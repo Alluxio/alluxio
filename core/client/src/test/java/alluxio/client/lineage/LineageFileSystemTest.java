@@ -55,7 +55,8 @@ public final class LineageFileSystemTest {
     FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
 
-    FileSystemMasterClient fileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    FileSystemMasterClient
+        fileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     Mockito.when(fileSystemContext.acquireMasterClient()).thenReturn(fileSystemMasterClient);
     Mockito.when(fileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class)))
         .thenReturn(new URIStatus(new FileInfo()));

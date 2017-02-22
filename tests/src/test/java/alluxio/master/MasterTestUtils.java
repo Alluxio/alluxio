@@ -43,6 +43,12 @@ public class MasterTestUtils {
     return fsMaster;
   }
 
+  /**
+   * Creates a new standby {@link FileSystemMaster} from journal.
+   *
+   * @return a new FileSystemMaster
+   * @throws IOException
+   */
   public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);

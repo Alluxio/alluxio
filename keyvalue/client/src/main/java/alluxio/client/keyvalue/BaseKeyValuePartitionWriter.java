@@ -18,8 +18,6 @@ import alluxio.client.AbstractOutStream;
 import alluxio.util.io.ByteIOUtils;
 
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -40,8 +38,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** Handle to write to the underlying file. */
   private final AbstractOutStream mFileOutStream;
   /** Number of key-value pairs added. */

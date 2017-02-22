@@ -17,6 +17,7 @@ alluxio.user.file.readtype.default,CACHE_PROMOTE
 alluxio.user.file.writetype.default,MUST_CACHE
 alluxio.user.file.write.tier.default,0
 alluxio.user.heartbeat.interval.ms,1000
+alluxio.user.hostname,determined by localhost lookup
 alluxio.user.lineage.enabled,false
 alluxio.user.lineage.master.client.threads,10
 alluxio.user.network.netty.timeout.ms,30000

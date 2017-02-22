@@ -30,19 +30,39 @@ public final class MockRateLimiter {
   private final RateLimiter mRateLimiter;
   private final FakeSleepingTicker mTicker;
 
+  /**
+   * Constructs {@link MockRateLimiter}.
+   *
+   * @param permitsPerSecond the rate of the returned {@code RateLimiter}, measured in
+   *        how many permits become available per second
+   */
   public MockRateLimiter(double permitsPerSecond) {
     mTicker = new FakeSleepingTicker();
     mRateLimiter = RateLimiter.create(mTicker, permitsPerSecond);
   }
 
+  /**
+   * Gets Guava RateLimiter.
+   *
+   * @return Guava RateLimiter
+   */
   public RateLimiter getGuavaRateLimiter() {
     return mRateLimiter;
   }
 
+  /**
+   * Sleeps in milliseconds.
+   *
+   * @param millis the number of milliseconds
+   */
   public void sleepMillis(int millis) {
     mTicker.sleepMillis(millis);
   }
 
+  /**
+   * Reads events and clears.
+   * @return the list of events
+   */
   public List<String> readEventsAndClear() {
     return mTicker.readEventsAndClear();
   }
