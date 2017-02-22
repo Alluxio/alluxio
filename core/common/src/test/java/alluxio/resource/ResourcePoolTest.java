@@ -20,7 +20,7 @@ import org.mockito.Mockito;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Test Unit for {@code ResourcePool} class.
+ * Unit test for {@code ResourcePool} class.
  */
 public class ResourcePoolTest {
 
@@ -31,7 +31,7 @@ public class ResourcePoolTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   /**
-   * Test unit for {@code ResourcePool} class.
+   * Constructor for {@code ResourcePool} class.
    */
   class TestResourcePool extends ResourcePool<Integer> {
     int mPort = 0;
