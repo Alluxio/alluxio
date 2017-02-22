@@ -72,8 +72,9 @@ public final class RpcUtils {
   }
 
   /**
-   * Calls the given {@link RpcCallable} and handles any exceptions thrown. This method also logs
-   * enter and exit when debug level logging is enabled.
+   * Calls the given {@link RpcCallable} and handles any exceptions thrown. The callable should
+   * implement a toString with the following format: "CallName: arg1=value1, arg2=value2,...".
+   * The toString will be used to log enter and exit information with debug logging is enabled.
    *
    * @param logger the logger to use for this call
    * @param callable the callable to call
@@ -89,8 +90,10 @@ public final class RpcUtils {
   }
 
   /**
-   * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown. This
-   * method also logs enter and exit when debug level logging is enabled.
+   * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown. The
+   * callable should implement a toString with the following format:
+   * "CallName: arg1=value1, arg2=value2,...". The toString will be used to log enter and exit
+   * information with debug logging is enabled.
    *
    * @param logger the logger to use for this call
    * @param callable the callable to call
