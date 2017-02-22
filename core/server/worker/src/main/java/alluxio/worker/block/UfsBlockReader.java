@@ -295,7 +295,9 @@ public final class UfsBlockReader implements BlockReader {
         mBlockWriterPos = 0;
       }
     } catch (Exception e) {
-      LOG.warn("Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]",
+      // This can happen when there are concurrent UFS readers.
+      LOG.debug(
+          "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]",
           mBlockMeta.getBlockId(), mBlockMeta.getUfsPath(), offset, e);
       mBlockWriter = null;
     }

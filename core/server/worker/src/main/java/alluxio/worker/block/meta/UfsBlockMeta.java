@@ -46,7 +46,6 @@ public final class UfsBlockMeta {
      * @param sessionId the session ID
      * @param blockId the block ID
      * @param options the thrift lock options
-     * @return the {@link UfsBlockMeta}
      */
     public ConstMeta(long sessionId, long blockId, LockBlockTOptions options) {
       mSessionId = sessionId;

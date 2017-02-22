@@ -29,6 +29,8 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -44,6 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class UfsBlockInStream extends BufferedBlockInStream implements Locatable {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsBlockReader.class);
   private static final long UFS_BLOCK_OPEN_RETRY_INTERVAL_MS = Constants.SECOND_MS;
 
   /** Used to manage closeable resources. */
@@ -93,6 +96,9 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
           if (System.currentTimeMillis() >= timeout) {
             throw e;
           }
+          LOG.debug(
+              "Failed to acquire a UFS read token because of concurrency for block {} in file {}",
+              blockId, blockId);
           CommonUtils.sleepMs(UFS_BLOCK_OPEN_RETRY_INTERVAL_MS);
         }
       }
