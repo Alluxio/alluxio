@@ -17,6 +17,7 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -24,9 +25,31 @@ import java.io.IOException;
  * Utilities for handling RPC calls.
  */
 public final class RpcUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(RpcUtils.class);
 
   /**
    * Calls the given {@link RpcCallable} and handles any exceptions thrown.
+   *
+   * @param callable the callable to call
+   * @param <T> the return type of the callable
+   * @return the return value from calling the callable
+   * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
+   */
+  public static <T> T call(RpcCallable<T> callable) throws AlluxioTException {
+    try {
+      return callable.call();
+    } catch (AlluxioException e) {
+      LOG.debug("Internal Error: {}", callable, e);
+      throw e.toThrift();
+    } catch (Exception e) {
+      LOG.error("Unexpected Error: {}", callable, e);
+      throw new UnexpectedAlluxioException(e).toThrift();
+    }
+  }
+
+  /**
+   * Calls the given {@link RpcCallable} and handles any exceptions thrown. This method also logs
+   * enter and exit when debug level logging is enabled.
    *
    * @param logger the logger to use for this call
    * @param callable the callable to call
@@ -50,7 +73,8 @@ public final class RpcUtils {
   }
 
   /**
-   * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown.
+   * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown. This
+   * method also logs enter and exit when debug level logging is enabled.
    *
    * @param logger the logger to use for this call
    * @param callable the callable to call
