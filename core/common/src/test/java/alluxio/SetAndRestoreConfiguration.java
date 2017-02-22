@@ -22,7 +22,7 @@ import java.util.Set;
  * An AutoCloseable which temporarily modifies configuration when it is constructed and
  * restores the property when it is closed.
  */
-public final class SetAndRestoreConfiguration implements AutoCloseable  {
+public final class SetAndRestoreConfiguration implements AutoCloseable {
   private final Map<PropertyKey, String> mOriginalValues = new HashMap<>();
   private final Set<PropertyKey> mOriginalNullKeys = new HashSet<>();
 
