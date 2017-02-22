@@ -132,7 +132,7 @@
               <relocations>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
+                  <shadedPattern>${project.artifactId}.org.apache.thrift</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>
