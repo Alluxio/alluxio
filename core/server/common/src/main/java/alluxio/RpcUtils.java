@@ -46,23 +46,6 @@ public final class RpcUtils {
   }
 
   /**
-   * Calls the given {@link RpcCallable} and handles any exceptions thrown. This method also logs
-   * enter and exit when debug level logging is enabled.
-   *
-   * @param logger the logger to use for this call
-   * @param callable the callable to call
-   * @param <T> the return type of the callable
-   * @return the return value from calling the callable
-   * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
-   */
-  public static <T> T callAndLog(Logger logger, RpcCallable<T> callable) throws AlluxioTException {
-    logger.debug("Enter: {}", callable);
-    T ret = call(logger, callable);
-    logger.debug("Exit (OK): {}", callable);
-    return ret;
-  }
-
-  /**
    * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown.
    *
    * @param logger the logger to use for this call
@@ -86,6 +69,23 @@ public final class RpcUtils {
       logger.error("Exit (Error): {}", callable, e);
       throw new UnexpectedAlluxioException(e).toThrift();
     }
+  }
+
+  /**
+   * Calls the given {@link RpcCallable} and handles any exceptions thrown. This method also logs
+   * enter and exit when debug level logging is enabled.
+   *
+   * @param logger the logger to use for this call
+   * @param callable the callable to call
+   * @param <T> the return type of the callable
+   * @return the return value from calling the callable
+   * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
+   */
+  public static <T> T callAndLog(Logger logger, RpcCallable<T> callable) throws AlluxioTException {
+    logger.debug("Enter: {}", callable);
+    T ret = call(logger, callable);
+    logger.debug("Exit (OK): {}", callable);
+    return ret;
   }
 
   /**
