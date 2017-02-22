@@ -12,20 +12,15 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.ReadType;
-import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ListStatusOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.LoadMetadataType;
 
-import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
@@ -86,7 +81,7 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
       System.out.println(path + " has: " + inconsistentUris.size() + " inconsistent files.");
       List<AlluxioURI> inconsistentDirs = new ArrayList<AlluxioURI>();
       for (int i = 0; i < inconsistentUris.size(); i++) {
-        AlluxioURI inconsistentUri = inconsistentDirs.get(i);
+        AlluxioURI inconsistentUri = inconsistentUris.get(i);
         URIStatus status = mFileSystem.getStatus(inconsistentUri);
         if (status.isFolder()) {
           inconsistentDirs.add(inconsistentUri);
@@ -95,8 +90,10 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
         System.out.println("repairing path: " + inconsistentUri);
         DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
         mFileSystem.delete(inconsistentUri, deleteOptions);
-        mFileSystem.listStatus(inconsistentUri,ListStatusOptions.defaults()
-            .setLoadMetadataType(LoadMetadataType.Always));
+        if (mFileSystem.exists(inconsistentUri)) {
+          mFileSystem.listStatus(inconsistentUri, ListStatusOptions.defaults()
+              .setLoadMetadataType(LoadMetadataType.Always));
+        }
         System.out.println(inconsistentUri + " repaired");
         System.out.println();
       }
