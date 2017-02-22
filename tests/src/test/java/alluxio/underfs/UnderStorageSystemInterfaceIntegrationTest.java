@@ -827,21 +827,35 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     return new LargeDirectoryConfig(topLevelDirectory, children);
   }
 
-  // Test configuration for pagination tests
+  /**
+   * Test configuration for pagination tests.
+   */
   private class LargeDirectoryConfig {
     private String mTopLevelDirectory;
     // Children for top level directory
     private String[] mChildren;
 
+    /**
+     * Constructs {@link LargeDirectoryConfig} for pagination tests.
+     *
+     * @param topLevelDirectory the top level directory of the directory tree for pagination tests
+     * @param children the children files of the directory tree for pagination tests
+     */
     LargeDirectoryConfig(String topLevelDirectory, String[] children) {
       mTopLevelDirectory = topLevelDirectory;
       mChildren = children;
     }
 
+    /**
+     * @return the top level directory of the directory tree for pagination tests
+     */
     public String getTopLevelDirectory() {
       return mTopLevelDirectory;
     }
 
+    /**
+     * @return the children files of the directory tree for pagination tests
+     */
     public String[] getChildren() {
       return mChildren;
     }
