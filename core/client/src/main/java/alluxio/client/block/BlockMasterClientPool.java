@@ -71,6 +71,6 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    return new RetryHandlingBlockMasterClient(mSubject, mMasterAddress);
+    return RetryHandlingBlockMasterClient.create(mSubject, mMasterAddress);
   }
 }

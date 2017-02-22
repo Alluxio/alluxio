@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -104,8 +103,7 @@ public final class AlluxioFrameworkIntegrationTest {
       String masterHostName = NetworkAddressUtils.getLocalHostName();
       int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
       InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
-      try (final BlockMasterClient client = new RetryHandlingBlockMasterClient(null,
-          masterAddress)) {
+      try (final BlockMasterClient client = BlockMasterClient.Factory.create(masterAddress)) {
         CommonUtils.waitFor("Alluxio worker to register with master",
             new Function<Void, Boolean>() {
               @Override
