@@ -21,13 +21,7 @@ import java.io.IOException;
  * This class represents the metadata of a UFS block.
  */
 public final class UfsBlockMeta {
-  private final long mSessionId;
-  private final long mBlockId;
-  private final String mUfsPath;
-  /** The offset in bytes of the first byte of the block in its corresponding UFS file. */
-  private final long mOffset;
-  /** The block size in bytes. */
-  private final long mBlockSize;
+  private ConstMeta mConstMeta;
 
   /** The set of session IDs to be committed. */
   private boolean mCommitPending;
@@ -35,66 +29,76 @@ public final class UfsBlockMeta {
   private BlockWriter mBlockWriter;
 
   /**
-   * Creates {@link UfsBlockMeta} from a {@link LockBlockTOptions}.
-   *
-   * @param sessionId the session ID
-   * @param blockId the block ID
-   * @param options the thrift lock options
-   * @return the {@link UfsBlockMeta}
+   * The constant metadata of this UFS block.
    */
-  public static UfsBlockMeta fromLockBlockOptions(long sessionId, long blockId,
-      LockBlockTOptions options) {
-    return new UfsBlockMeta(sessionId, blockId, options);
+  public static final class ConstMeta {
+    public final long mSessionId;
+    public final long mBlockId;
+    public final String mUfsPath;
+    /** The offset in bytes of the first byte of the block in its corresponding UFS file. */
+    public final long mOffset;
+    /** The block size in bytes. */
+    public final long mBlockSize;
+
+    /**
+     * Creates {@link UfsBlockMeta.ConstMeta} from a {@link LockBlockTOptions}.
+     *
+     * @param sessionId the session ID
+     * @param blockId the block ID
+     * @param options the thrift lock options
+     * @return the {@link UfsBlockMeta}
+     */
+    public ConstMeta(long sessionId, long blockId, LockBlockTOptions options) {
+      mSessionId = sessionId;
+      mBlockId = blockId;
+      mUfsPath = options.getUfsPath();
+      mOffset = options.getOffset();
+      mBlockSize = options.getBlockSize();
+    }
   }
 
   /**
    * Creates a {@link UfsBlockMeta}.
    *
-   * @param sessionId the session ID
-   * @param blockId the block ID
-   * @param options the thrift lock block options
+   * @param meta the constant metadata of this UFS block
    */
-  private UfsBlockMeta(long sessionId, long blockId, LockBlockTOptions options) {
-    mSessionId = sessionId;
-    mBlockId = blockId;
-    mUfsPath = options.getUfsPath();
-    mOffset = options.getOffset();
-    mBlockSize = options.getBlockSize();
+  public UfsBlockMeta(ConstMeta meta) {
+    mConstMeta = meta;
   }
 
   /**
    * @return the session ID
    */
   public long getSessionId() {
-    return mSessionId;
+    return mConstMeta.mSessionId;
   }
 
   /**
    * @return the block ID
    */
   public long getBlockId() {
-    return mBlockId;
+    return mConstMeta.mBlockId;
   }
 
   /**
    * @return the UFS path
    */
   public String getUfsPath() {
-    return mUfsPath;
+    return mConstMeta.mUfsPath;
   }
 
   /**
    * @return the offset of the block in the UFS file
    */
   public long getOffset() {
-    return mOffset;
+    return mConstMeta.mOffset;
   }
 
   /**
    * @return the block size in bytes
    */
   public long getBlockSize() {
-    return mBlockSize;
+    return mConstMeta.mBlockSize;
   }
 
   /**

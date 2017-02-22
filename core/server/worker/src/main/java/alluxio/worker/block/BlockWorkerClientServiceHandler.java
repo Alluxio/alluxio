@@ -162,8 +162,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
           if (options.isSetUfsPath() && !options.getUfsPath().isEmpty()) {
             // When the block does not exist in Alluxio but exists in UFS, try to open the UFS
             // block.
-            mWorker.openUfsBlock(
-                UfsBlockMeta.fromLockBlockOptions(sessionId, blockId, options),
+            mWorker.openUfsBlock(new UfsBlockMeta.ConstMeta(sessionId, blockId, options),
                 options.getMaxUfsReadConcurrency());
             return new LockBlockResult(lockId, "");
           } else {

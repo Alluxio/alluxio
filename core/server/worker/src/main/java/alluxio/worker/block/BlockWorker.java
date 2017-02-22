@@ -364,14 +364,14 @@ public interface BlockWorker extends Worker {
   /**
    * Opens a UFS block.
    *
-   * @param ufsBlockMeta the UFS block meta data
+   * @param ufsBlockMetaConst the UFS block constant meta data
    * @param maxUfsReadConcurrency the maximum UFS block read concurrency
    * @throws BlockAlreadyExistsException if the UFS block already exists in the
    *         {@link UfsBlockStore}
    * @throws UfsBlockAccessTokenUnavailableException if there are too many clients accessing the
    *         UFS block
    */
-  void openUfsBlock(UfsBlockMeta ufsBlockMeta, int maxUfsReadConcurrency)
+  void openUfsBlock(UfsBlockMeta.ConstMeta ufsBlockMetaConst, int maxUfsReadConcurrency)
       throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException;
 
   /**

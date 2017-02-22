@@ -115,12 +115,11 @@ public class BlockWorkerTest {
     long blockId = mRandom.nextLong();
     for (int i = 0; i < 10; i++) {
       long sessionId = i + 1;
-      UfsBlockMeta meta =
-          UfsBlockMeta.fromLockBlockOptions(sessionId, blockId, new LockBlockTOptions());
+      UfsBlockMeta.ConstMeta meta =
+          new UfsBlockMeta.ConstMeta(sessionId, blockId, new LockBlockTOptions());
       mBlockWorker.openUfsBlock(meta, 10);
     }
-    UfsBlockMeta meta =
-        UfsBlockMeta.fromLockBlockOptions(12, blockId, new LockBlockTOptions());
+    UfsBlockMeta.ConstMeta meta = new UfsBlockMeta.ConstMeta(12, blockId, new LockBlockTOptions());
     try {
       mBlockWorker.openUfsBlock(meta, 10);
       Assert.fail();
@@ -134,12 +133,12 @@ public class BlockWorkerTest {
     long blockId = mRandom.nextLong();
     for (int i = 0; i < 10; i++) {
       long sessionId = i + 1;
-      UfsBlockMeta meta =
-          UfsBlockMeta.fromLockBlockOptions(sessionId, blockId, new LockBlockTOptions());
+      UfsBlockMeta.ConstMeta meta =
+          new UfsBlockMeta.ConstMeta(sessionId, blockId, new LockBlockTOptions());
       mBlockWorker.openUfsBlock(meta, 10);
       mBlockWorker.closeUfsBlock(sessionId, blockId);
     }
-    UfsBlockMeta meta = UfsBlockMeta.fromLockBlockOptions(12, blockId, new LockBlockTOptions());
+    UfsBlockMeta.ConstMeta meta = new UfsBlockMeta.ConstMeta(12, blockId, new LockBlockTOptions());
     mBlockWorker.openUfsBlock(meta, 10);
   }
 

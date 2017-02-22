@@ -67,16 +67,17 @@ public final class UfsBlockStore {
 
   /**
    * Acquires access for a UFS block given a {@link UfsBlockMeta} and the limit on the maximum
-   * concurrent accessors on the block.
+   * concurrency on the block.
    *
-   * @param blockMeta the block meta
+   * @param blockMetaConst the constant block meta
    * @param maxConcurrency the maximum concurrency
    * @throws BlockAlreadyExistsException if the block already exists for a session ID
    * @throws UfsBlockAccessTokenUnavailableException if there are too many concurrent sessions
    *         accessing the block
    */
-  public void acquireAccess(UfsBlockMeta blockMeta, int maxConcurrency) throws
+  public void acquireAccess(UfsBlockMeta.ConstMeta blockMetaConst, int maxConcurrency) throws
       BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
+    UfsBlockMeta blockMeta = new UfsBlockMeta(blockMetaConst);
     long sessionId = blockMeta.getSessionId();
     long blockId = blockMeta.getBlockId();
     mLock.lock();

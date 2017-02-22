@@ -435,9 +435,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void openUfsBlock(UfsBlockMeta ufsBlockMeta, int maxConcurrency)
+  public void openUfsBlock(UfsBlockMeta.ConstMeta ufsBlockMetaConst, int maxConcurrency)
       throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
-    mUfsBlockStore.acquireAccess(ufsBlockMeta, maxConcurrency);
+    mUfsBlockStore.acquireAccess(ufsBlockMetaConst, maxConcurrency);
   }
 
   @Override

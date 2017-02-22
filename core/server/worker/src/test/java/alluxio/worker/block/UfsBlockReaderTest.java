@@ -69,7 +69,7 @@ public final class UfsBlockReaderTest {
     options.setOffset(TEST_BLOCK_SIZE);
     options.setUfsPath(testFilePath);
 
-    mUfsBlockMeta = UfsBlockMeta.fromLockBlockOptions(SESSION_ID, BLOCK_ID, options);
+    mUfsBlockMeta = new UfsBlockMeta(new UfsBlockMeta.ConstMeta(SESSION_ID, BLOCK_ID, options));
   }
 
   @Test
@@ -156,7 +156,7 @@ public final class UfsBlockReaderTest {
   }
 
   @Test
-  public void transferParitalBlock() throws Exception {
+  public void transferPartialBlock() throws Exception {
     mReader = UfsBlockReader.create(mUfsBlockMeta, 0, false, mAlluxioBlockStore);
     ByteBuf buf =
         PooledByteBufAllocator.DEFAULT.buffer((int) TEST_BLOCK_SIZE / 2, (int) TEST_BLOCK_SIZE / 2);
