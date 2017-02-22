@@ -73,6 +73,31 @@ public final class RpcUtils {
   }
 
   /**
+   * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown.
+   *
+   * @param callable the callable to call
+   * @param <T> the return type of the callable
+   * @return the return value from calling the callable
+   * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
+   * @throws ThriftIOException if the callable throws an IOException
+   */
+  public static <T> T call(RpcCallableThrowsIOException<T> callable)
+      throws AlluxioTException, ThriftIOException {
+    try {
+      return callable.call();
+    } catch (AlluxioException e) {
+      LOG.debug("Internal Error: {}", callable, e);
+      throw e.toThrift();
+    } catch (IOException e) {
+      LOG.debug("I/O Error: {}", callable, e);
+      throw new ThriftIOException(e.getMessage());
+    } catch (Exception e) {
+      LOG.error("Unexpected Error: {}", callable, e);
+      throw new UnexpectedAlluxioException(e).toThrift();
+    }
+  }
+
+  /**
    * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown. This
    * method also logs enter and exit when debug level logging is enabled.
    *
