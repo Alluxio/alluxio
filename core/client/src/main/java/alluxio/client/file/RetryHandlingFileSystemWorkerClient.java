@@ -255,7 +255,6 @@ public final class RetryHandlingFileSystemWorkerClient
         mClientHeartbeatPool.release(client);
       }
     } while (retryPolicy.attemptRetry());
-    LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
     Preconditions.checkNotNull(exception);
     throw new IOException(exception);
   }

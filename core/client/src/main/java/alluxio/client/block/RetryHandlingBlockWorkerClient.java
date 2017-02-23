@@ -321,7 +321,7 @@ public final class RetryHandlingBlockWorkerClient
     do {
       BlockWorkerClientService.Client client = mClientHeartbeatPool.acquire();
       try {
-        client.sessionHeartbeat(getSessionId(), null);
+        client.sessionHeartbeat(mSessionId, null);
         Metrics.BLOCK_WORKER_HEATBEATS.inc();
         return;
       } catch (AlluxioTException | ThriftIOException e) {
@@ -335,7 +335,6 @@ public final class RetryHandlingBlockWorkerClient
         mClientHeartbeatPool.release(client);
       }
     } while (retryPolicy.attemptRetry());
-    LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
     Preconditions.checkNotNull(exception);
     throw new IOException(exception);
   }
