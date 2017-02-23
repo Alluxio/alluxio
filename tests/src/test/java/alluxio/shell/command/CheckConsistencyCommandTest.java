@@ -22,6 +22,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
   /**
@@ -73,10 +74,9 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
         WriteType.CACHE_THROUGH, 20);
     ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB")).getUfsPath();
     ufs.deleteFile(ufsPath);
-    ufs.create(ufsPath);
-    InputStream inputStream = ufs.open(ufsPath);
+    OutputStream outputStream = ufs.create(ufsPath);
     byte[] bytes = {1, 2, 3};
-    inputStream.read(bytes);
+    outputStream.write(bytes);
     mOutput.reset();
     mFsShell.run("checkConsistency", "-r", "/testRoot");
     res = mOutput.toString();
