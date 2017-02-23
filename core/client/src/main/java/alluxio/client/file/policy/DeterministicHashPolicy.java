@@ -58,7 +58,7 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
     // Try the next one if the worker mapped from the blockId doesn't work untill all the workers
     // are examined.
     int index =
-        (int) (mOffset + BlockId.getSequenceNumber(blockId) % (long) mWorkerInfoList.size());
+        (int) ((mOffset + BlockId.getSequenceNumber(blockId)) % (long) mWorkerInfoList.size());
     for (int i = 0; i < mWorkerInfoList.size(); i++) {
       WorkerNetAddress candidate = mWorkerInfoList.get(index).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
