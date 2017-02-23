@@ -120,7 +120,7 @@ public final class RetryHandlingBlockWorkerClient
       try {
         sessionHeartbeat(retryPolicy);
       } catch (InterruptedException e) {
-        Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
 
       // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
