@@ -129,7 +129,7 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public long completeUfsFile(final long sessionId, final long tempUfsFileId,
       final CompleteUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    long ret = RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
+    return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
         return mWorker
@@ -142,7 +142,6 @@ public final class FileSystemWorkerClientServiceHandler
             sessionId, tempUfsFileId, options);
       }
     });
-    return ret;
   }
 
   /**

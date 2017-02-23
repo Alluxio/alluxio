@@ -341,7 +341,6 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public void remove(final String path, final boolean recursive)
       throws AlluxioTException, ThriftIOException {
-    LOG.debug("Enter Remove. path:{}, recursive:{}", path, recursive);
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
