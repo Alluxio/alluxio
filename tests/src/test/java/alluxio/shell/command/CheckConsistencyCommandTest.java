@@ -21,7 +21,6 @@ import alluxio.underfs.options.DeleteOptions;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 
 public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
