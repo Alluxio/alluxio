@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.exception.AlluxioException;
+import alluxio.retry.RetryPolicy;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
@@ -156,8 +157,9 @@ public interface BlockWorkerClient extends Closeable {
    * Sends a session heartbeat to the worker. This renews the client's lease on resources such as
    * locks and temporary files.
    *
+   * @param retryPolicy the retry policy to use
    * @throws IOException if an I/O error occurs
    * @throws InterruptedException if this thread is interrupted
    */
-  void sessionHeartbeat() throws IOException, InterruptedException;
+  void sessionHeartbeat(RetryPolicy retryPolicy) throws IOException, InterruptedException;
 }

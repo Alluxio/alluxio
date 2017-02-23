@@ -233,7 +233,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
-    Configuration.set(PropertyKey.MASTER_RETRY, "3");
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "3");
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
