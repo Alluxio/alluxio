@@ -21,7 +21,6 @@ import alluxio.underfs.options.DeleteOptions;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 
 public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
@@ -77,13 +76,14 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     OutputStream outputStream = ufs.create(ufsPath);
     byte[] bytes = {1, 2, 3};
     outputStream.write(bytes);
+    outputStream.close();
     mOutput.reset();
     mFsShell.run("checkConsistency", "-r", "/testRoot");
     res = mOutput.toString();
     Assert.assertTrue(res.contains("/testRoot" + " has: " + "1 inconsistent files.\n")
         && res.contains("repairing path: " + "/testRoot/testDir/testFileB\n"));
-    Assert.assertTrue(!mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB")));
-    Assert.assertTrue(20 != mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB")));
+    Assert.assertTrue(3 == mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
         .getLength());
   }
 }
