@@ -11,7 +11,6 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Constants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -39,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DataServerBlockReadHandler extends DataServerReadHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(DataServerBlockReadHandler.class);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
@@ -100,7 +99,7 @@ public final class DataServerBlockReadHandler extends DataServerReadHandler {
     if (!super.acceptMessage(object)) {
       return false;
     }
-    Protocol.ReadRequest request = (Protocol.ReadRequest) ((RPCProtoMessage) object).getMessage();
+    Protocol.ReadRequest request = ((RPCProtoMessage) object).getMessage().getMessage();
     return request.getType() == Protocol.RequestType.ALLUXIO_BLOCK;
   }
 

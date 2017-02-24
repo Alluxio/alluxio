@@ -6,9 +6,12 @@ group: Under Store
 priority: 2
 ---
 
+* 内容列表
+{:toc}
+
 该指南介绍如何配置Alluxio以使用[GlusterFS](http://www.gluster.org/)作为底层文件系统。
 
-# 初始步骤
+## 初始步骤
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
@@ -20,13 +23,13 @@ priority: 2
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-# 配置Alluxio
+## 配置Alluxio
 
 假定GlusterFS bricks与Alluxio部署在同样的节点上，且GlusterFS volume挂载在`/alluxio_vol`，那以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中：
 
 {% include Configuring-Alluxio-with-GlusterFS/underfs-address.md %}
 
-# 使用GlusterFS在本地运行Alluxio
+## 使用GlusterFS在本地运行Alluxio
 
 配置完成后，你可以在本地启动Alluxio，观察是否一切运行正常
 

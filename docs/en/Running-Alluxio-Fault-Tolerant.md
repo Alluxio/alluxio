@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 Fault Tolerance in Alluxio is based upon a multi-master approach where multiple master processes
 are running. One of these processes is elected the leader and is used by all workers and clients as the
 primary point of contact. The other masters act as standbys using the shared journal to ensure that
@@ -131,8 +134,10 @@ does not have to be set for the workers.
 
 No additional configuration parameters are required for fault tolerant mode. As long as both:
 
-    alluxio.zookeeper.enabled=true
-    alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```
 
 are set appropriately for your client application, the application will be able to consult with
 ZooKeeper for the current leader master.
@@ -143,6 +148,6 @@ When communicating with fault-tolerant Alluxio using the HDFS API, use `alluxio-
 instead of `alluxio://`. Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used
 instead for finding the Alluxio leader master.
 
-```bash
+```
 hadoop fs -ls alluxio-ft:///directory
 ```

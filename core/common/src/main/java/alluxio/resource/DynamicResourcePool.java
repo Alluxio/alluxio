@@ -47,7 +47,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class DynamicResourcePool<T> implements Pool<T> {
-  protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(DynamicResourcePool.class);
 
   /**
    * A wrapper on the resource to include the last time at which it was used.

@@ -32,11 +32,19 @@
   </properties>
 
   <dependencies>
+    <!-- External dependencies -->
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-reflect</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client</artifactId>
@@ -67,13 +75,8 @@
       <artifactId>alluxio-core-server-worker</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-reflect</artifactId>
-      <version>${powermock.version}</version>
-    </dependency>
 
-    <!-- Other projects' test-jars -->
+    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client</artifactId>
@@ -88,7 +91,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-server</artifactId>
+      <artifactId>alluxio-core-server-master</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
     </dependency>

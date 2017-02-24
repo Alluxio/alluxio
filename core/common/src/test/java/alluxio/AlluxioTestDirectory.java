@@ -26,7 +26,7 @@ import java.util.UUID;
  * class initialization it deletes files and directories older than the maximum age.
  */
 public final class AlluxioTestDirectory {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioTestDirectory.class);
 
   private static final int MAX_FILE_AGE_HOURS = 1;
 

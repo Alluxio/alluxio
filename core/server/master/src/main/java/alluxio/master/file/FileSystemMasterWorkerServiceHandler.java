@@ -21,6 +21,8 @@ import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
@@ -33,6 +35,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class FileSystemMasterWorkerServiceHandler
     implements FileSystemMasterWorkerService.Iface {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(FileSystemMasterWorkerServiceHandler.class);
+
   private final FileSystemMaster mFileSystemMaster;
 
   /**
@@ -52,7 +57,7 @@ public final class FileSystemMasterWorkerServiceHandler
 
   @Override
   public FileInfo getFileInfo(final long fileId) throws AlluxioTException {
-    return RpcUtils.call(new RpcUtils.RpcCallable<FileInfo>() {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<FileInfo>() {
       @Override
       public FileInfo call() throws AlluxioException {
         return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
@@ -62,7 +67,7 @@ public final class FileSystemMasterWorkerServiceHandler
 
   @Override
   public Set<Long> getPinIdList() throws AlluxioTException {
-    return RpcUtils.call(new RpcUtils.RpcCallable<Set<Long>>() {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<Set<Long>>() {
       @Override
       public Set<Long> call() throws AlluxioException {
         return mFileSystemMaster.getPinIdList();
@@ -73,7 +78,7 @@ public final class FileSystemMasterWorkerServiceHandler
   @Override
   public FileSystemCommand heartbeat(final long workerId, final List<Long> persistedFiles)
       throws AlluxioTException {
-    return RpcUtils.call(new RpcUtils.RpcCallable<FileSystemCommand>() {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<FileSystemCommand>() {
       @Override
       public FileSystemCommand call() throws AlluxioException {
         return mFileSystemMaster.workerHeartbeat(workerId, persistedFiles);

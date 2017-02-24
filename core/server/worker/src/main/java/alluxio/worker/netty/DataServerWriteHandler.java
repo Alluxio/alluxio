@@ -12,7 +12,6 @@
 package alluxio.worker.netty;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -55,7 +54,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(DataServerWriteHandler.class);
 
   private static final int MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS);
@@ -170,7 +169,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
    * @return empty string if the request valid
    */
   private String validateRequest(RPCProtoMessage msg) {
-    Protocol.WriteRequest request = (Protocol.WriteRequest) msg.getMessage();
+    Protocol.WriteRequest request = msg.getMessage().getMessage();
     if (request.getId() != mRequest.mId) {
       return "The Ids do not match.";
     }

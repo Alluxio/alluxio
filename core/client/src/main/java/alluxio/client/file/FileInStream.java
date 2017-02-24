@@ -60,7 +60,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class FileInStream extends InputStream implements BoundedStream, Seekable,
     PositionedReadable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(FileInStream.class);
 
   private static final boolean PACKET_STREAMING_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
@@ -77,7 +77,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected final FileWriteLocationPolicy mLocationPolicy;
   /** Total length of the file in bytes. */
   protected final long mFileLength;
-  /** File System context containing the {@link FileSystemMasterClient} pool. */
+  /** File system context containing the {@link FileSystemMasterClient} pool. */
   protected final FileSystemContext mContext;
   private final AlluxioBlockStore mBlockStore;
   /** File information. */
@@ -423,9 +423,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         // server unreachable due to network partition, server busy due to alluxio worker is
         // busy, timeout due to congested network etc). But we want to proceed since we want
         // the user to continue reading when one Alluxio worker is having trouble.
-        LOG.info(
-            "Closing or cancelling the cache stream encountered IOExecption {}, reading from the "
-                + "regular stream won't be affected.", e.getMessage());
+        LOG.info("Closing or cancelling the cache stream encountered IOException {}, reading from "
+            + "the regular stream won't be affected.", e.getMessage());
       }
     }
     mCurrentCacheStream = null;

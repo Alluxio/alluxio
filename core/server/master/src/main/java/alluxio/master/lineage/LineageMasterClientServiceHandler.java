@@ -28,6 +28,8 @@ import alluxio.thrift.TTtlAction;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,6 +42,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LineageMasterClientServiceHandler implements LineageMasterClientService.Iface {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(LineageMasterClientServiceHandler.class);
+
   private final LineageMaster mLineageMaster;
 
   /**
@@ -60,7 +65,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   @Override
   public long createLineage(final List<String> inputFiles, final List<String> outputFiles,
       final CommandLineJobInfo jobInfo) throws AlluxioTException, ThriftIOException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<Long>() {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
         // deserialization
@@ -82,7 +87,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   @Override
   public boolean deleteLineage(final long lineageId, final boolean cascade)
       throws AlluxioTException {
-    return RpcUtils.call(new RpcCallable<Boolean>() {
+    return RpcUtils.call(LOG, new RpcCallable<Boolean>() {
       @Override
       public Boolean call() throws AlluxioException {
         return mLineageMaster.deleteLineage(lineageId, cascade);
@@ -94,7 +99,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   public long reinitializeFile(final String path, final long blockSizeBytes, final long ttl,
       final TTtlAction ttlAction)
       throws AlluxioTException {
-    return RpcUtils.call(new RpcCallable<Long>() {
+    return RpcUtils.call(LOG, new RpcCallable<Long>() {
       @Override
       public Long call() throws AlluxioException {
         return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl,
@@ -105,7 +110,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
 
   @Override
   public void reportLostFile(final String path) throws AlluxioTException {
-    RpcUtils.call(new RpcCallable<Void>() {
+    RpcUtils.call(LOG, new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioException {
         mLineageMaster.reportLostFile(path);
@@ -116,7 +121,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
 
   @Override
   public List<LineageInfo> getLineageInfoList() throws AlluxioTException {
-    return RpcUtils.call(new RpcCallable<List<LineageInfo>>() {
+    return RpcUtils.call(LOG, new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws AlluxioException {
         List<LineageInfo> result = new ArrayList<>();

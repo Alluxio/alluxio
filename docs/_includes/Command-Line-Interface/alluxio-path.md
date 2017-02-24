@@ -1,1 +1,3 @@
-    alluxio://<master node address>:<master node port>/<path>
+```properties
+alluxio://<master node address>:<master node port>/<path>
+```properties

@@ -10,24 +10,24 @@ priority: 1
 
 Existem dois tipos de parâmetros de configuração para o Alluxio:
 
-1. [Propriedades de Configuração](#propriedades-de-configuração) são utilizadas para configurar 
+1. [Propriedades de Configuração](#propriedades-de-configuração) são utilizadas para configurar
 definições de tempo de execução do sistema do Alluxio e
-2. [Propriedades de ambiente do sistema](#propriedades-ambiente-do-sistema) controlam as opções do `Java VM` 
+2. [Propriedades de ambiente do sistema](#propriedades-ambiente-do-sistema) controlam as opções do `Java VM`
 para rodar o Alluxio assim como algumas definições básicas.
 
-# Propriedades de Configuração
+## Propriedades de Configuração
 
 Na inicialização, Alluxio carrega as propriedades de configuração de um arquivo padrão (e opcionalmente
 as configuração específicas).
 
-1. Os valores padrões das propriedades de configuração do Alluxio são definidos em 
-`alluxio-default.properties`. Este arquivo pode ser localizado no código fonte do Alluxio e é tipicamente 
+1. Os valores padrões das propriedades de configuração do Alluxio são definidos em
+`alluxio-default.properties`. Este arquivo pode ser localizado no código fonte do Alluxio e é tipicamente
 distribuído com os binários do Alluxio. Nós não recomendamos que usuários iniciantes alterem este
 arquivo diretamente.
 
-2. Cada implantação de local e aplicação `client` também pode sobrescrever os valores padrões de 
+2. Cada implantação de local e aplicação `client` também pode sobrescrever os valores padrões de
 propriedades no arquivo `alluxio-site.properties`. Atente que este arquivo **deve estar definido no
-CLASSPATH** do `Java VM` em que o Alluxio estiver rodando. A maneira mais simples é de definir as 
+CLASSPATH** do `Java VM` em que o Alluxio estiver rodando. A maneira mais simples é de definir as
 configurações de arquivo local no diretório `$ALLUXIO_HOME/conf`.
 
 Todas as propriedades de configuração do Alluxio se enquadram em seis categorias:
@@ -37,7 +37,7 @@ Todas as propriedades de configuração do Alluxio se enquadram em seis categori
 para rodar o Alluxio com gerenciados de `cluster` como `Mesos` e `YARN`) e
 [Específica de Segurança](#configurações-de-segurança) (compartilhado pelo Master, Worker e Usuário).
 
-## Configurações Comum
+### Configurações Comum
 
 As configurações comum contém constantes compartilhadas por componentes diferentes.
 
@@ -52,7 +52,7 @@ As configurações comum contém constantes compartilhadas por componentes difer
 {% endfor %}
 </table>
 
-## Configurações do Master
+### Configurações do Master
 
 A configuração do `master` especifica informações referentes ao nó `master`, como o endereço e número da porta.
 
@@ -67,7 +67,7 @@ A configuração do `master` especifica informações referentes ao nó `master`
 {% endfor %}
 </table>
 
-## Configurações do Worker
+### Configurações do Worker
 
 A configuração do `worker` especifica informações referentes ao nó `woeker`, como o endereço e número da porta.
 
@@ -83,7 +83,7 @@ A configuração do `worker` especifica informações referentes ao nó `woeker`
 </table>
 
 
-## Configurações do Usuário
+### Configurações do Usuário
 
 A configuração do `worker` especifica informações referentes ao acesso do `file system`.
 
@@ -98,7 +98,7 @@ A configuração do `worker` especifica informações referentes ao acesso do `f
 {% endfor %}
 </table>
 
-## Gerenciamento do Cluster
+### Gerenciamento do Cluster
 
 Quando o Alluxio roda com gerenciadores de `cluster` como `Mesos` e `YARN`, o Alluxio possui
 opções de configuração adicionais.
@@ -114,7 +114,7 @@ opções de configuração adicionais.
 {% endfor %}
 </table>
 
-## Configurações de Segurança
+### Configurações de Segurança
 
 As configurações de segurança especificam informações relacionadas as funcionalidades de segurança,
 como autenticação e permissão de arquivo. As propriedades para autenticação tem efeito para o `master`,
@@ -132,7 +132,7 @@ a página [Segurança](Security.html) para maiores informações sobre funcional
 {% endfor %}
 </table>
 
-## Configure multihomed networks
+### Configure multihomed networks
 
 Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more
 than one NICs and you want your Alluxio master to listen on all NICs, you can specify
@@ -140,7 +140,7 @@ than one NICs and you want your Alluxio master to listen on all NICs, you can sp
 from connecting to any of its NIC. This is also the same case for other properties suffixed with
 `bind.host`.
 
-# Propriedades Ambiente do Sistema
+## Propriedades Ambiente do Sistema
 
 Para executar o Alluxio, também é requerido que algumas variáveis de ambiente do sistema estejam
 definidas corretamente, por padrão, estas são configuradas no arquivo `conf/alluxio-env.sh`. Se
@@ -150,19 +150,19 @@ código fonte utilizando.
 {% include Common-Commands/copy-alluxio-env.md %}
 
 Existem algumas propriedades de configuração frequentemente utilizadas no Alluxio que podem ser
-definidas através de variáveis de ambiente. Estas podem ser definidas através do terminal ou 
+definidas através de variáveis de ambiente. Estas podem ser definidas através do terminal ou
 modificadas dos valores padrões especificados em `conf/alluxio-env.sh`.
 
 * `$ALLUXIO_MASTER_HOSTNAME`: endereço do Alluxio `master`, o padrão é o servidor local.
-* `$ALLUXIO_UNDERFS_ADDRESS`: endereço do `under storage system`, o padrão é 
+* `$ALLUXIO_UNDERFS_ADDRESS`: endereço do `under storage system`, o padrão é
 `${ALLUXIO_HOME}/underFSStorage` que é o `file system` local.
 * `$ALLUXIO_JAVA_OPTS`: opções de `Java VM` para ambos `Master` e `Worker`.
 * `$ALLUXIO_MASTER_JAVA_OPTS`: opções adicionais de `Java VM` para configuração do `Master`.
 * `$ALLUXIO_WORKER_JAVA_OPTS`: opções adicionais de `Java VM` para configuração do `Worker`. Atente que,
-por padrão, o `ALLUXIO_JAVA_OPTS` está incluído em ambos os `ALLUXIO_MASTER_JAVA_OPTS` e 
+por padrão, o `ALLUXIO_JAVA_OPTS` está incluído em ambos os `ALLUXIO_MASTER_JAVA_OPTS` e
 `ALLUXIO_WORKER_JAVA_OPTS`.
 
-Por exemplo, se você quiser conectar o Alluxio no `HDFS` executando no servidor local e 
+Por exemplo, se você quiser conectar o Alluxio no `HDFS` executando no servidor local e
 habilitar a depuração remota do `Java` na porta 7001, você pode utilizar:
 
 {% include Configuration-Settings/more-conf.md %}

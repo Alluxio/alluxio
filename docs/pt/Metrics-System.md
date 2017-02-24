@@ -8,14 +8,14 @@ priority: 3
 * Table of Contents
 {:toc}
 
-As métricas provem uma idéia do que está acontecendo com o `cluster`. Estas são um recurso inestimável 
+As métricas provem uma idéia do que está acontecendo com o `cluster`. Estas são um recurso inestimável
 para monitoração e depuração. Alluxio possui um sistema configurável de métricas baseado no  
 [Coda Hale Metrics Library](https://github.com/dropwizard/metrics). No sistema de métricas, as métricas
-origens são as métricas geradas e as métricas filtros consomem os registros gerados pelas métricas origens. 
+origens são as métricas geradas e as métricas filtros consomem os registros gerados pelas métricas origens.
 O sistema de métricas elege periodicamente métricas origens e passa seus registros para as métricas filtros.
 
 As métricas do Alluxio são particionadas em diferentes instâncias correspondendo aos componentes do Alluxio.
-Dentre cada instância, os usuários podem configurar um conjunto de filtros para quais as métricas serão 
+Dentre cada instância, os usuários podem configurar um conjunto de filtros para quais as métricas serão
 relatar. As seguintes instâncias estão suportadas atualmente:
 
 * Master: O processo master independente do Alluxio.
@@ -29,19 +29,19 @@ Cada instância pode relatar entre zero ou mais filtros.
 * GraphiteSink: Envia métricas para um servidor Graphite.
 * MetricsServlet: Adiciona um servlet dentro da Web UI para disponibilizar as métricas como dados JSON.
 
-Algumas métricas como `BytesReadLocal` dependem de dados coletados a partir de um `client heartbeat`. 
+Algumas métricas como `BytesReadLocal` dependem de dados coletados a partir de um `client heartbeat`.
 Para pegar uma métrica preciso, é esperado que o `client` feche o `AlluxioFileSystem client`depois de
 utiliza-lo.
 
-# Configuração
-O sistema de métricas é configurado através de um arquivo de configuração que o Alluxio espera estar 
+## Configuração
+O sistema de métricas é configurado através de um arquivo de configuração que o Alluxio espera estar
 presente em `$ALLUXIO_HOME/conf/metrics.properties`. Um local personalizado pode ser especificado na
-propriedade de configuração `alluxio.metrics.conf.file`. Alluxio prove um arquivo 
-(metrics.properties.template) dentro do diretório `conf` que possui todos as propriedades de 
-configuração. Por padrão, `MetricsServlet` é habilitado e você pode enviar requisições `HTTP` 
+propriedade de configuração `alluxio.metrics.conf.file`. Alluxio prove um arquivo
+(metrics.properties.template) dentro do diretório `conf` que possui todos as propriedades de
+configuração. Por padrão, `MetricsServlet` é habilitado e você pode enviar requisições `HTTP`
 "/metrics/json" para pegar uma imagem de todas as métricas registradas em formato JSON.
 
-# Métricas Suportadas
+## Métricas Suportadas
 
 As métricas são classificadas como:
 
@@ -51,9 +51,9 @@ As métricas são classificadas como:
 
 A seguir são informados os detalhes das métricas disponíveis.
 
-## Master
+### Master
 
-### Geral
+#### Geral
 
 * CapacityTotal: Capacidade total de `file system` em `bytes`.
 * CapacityUsed: Capacidade utilizada de `file system` em `bytes`.
@@ -64,7 +64,7 @@ A seguir são informados os detalhes das métricas disponíveis.
 * UfsCapacityFree: Capacidade disponível do `under file system` em `bytes`.
 * Workers: Número de `workers`.
 
-### Operações Lógicas
+#### Operações Lógicas
 
 * DirectoriesCreated: Número total de diretórios criados.
 * FileBlockInfosGot: Número total da informação de blocos de arquivos retornados.
@@ -80,7 +80,7 @@ A seguir são informados os detalhes das métricas disponíveis.
 * PathsRenamed: Número total de arquivos e diretórios renomeados.
 * PathsUnmounted: Número total de diretórios desmontados.
 
-### Invocações RPC
+#### Invocações RPC
 
 * CompleteFileOps: Número total de operações `CompleteFile`.
 * CreateDirectoryOps: Número total de operações `CreateDirectory`.
@@ -95,15 +95,15 @@ A seguir são informados os detalhes das métricas disponíveis.
 * SetAttributeOps: Número total de operações `SetAttribute`.
 * UnmountOps: Número total de operações `Unmount`.
 
-## Worker
+### Worker
 
-### Geral
+#### Geral
 
 * CapacityTotal: Capacidade total do `worker` em `bytes`.
 * CapacityUsed: Capacidade utilizada do `worker` em `bytes`.
 * CapacityFree: Capacidade dispon[ivel do `worker` em `bytes`.
 
-### Operações Lógicas
+#### Operações Lógicas
 
 * BlocksAccessed: Número total de blocos acessados.
 * BlocksCached: Número total de blocos em `cache`.

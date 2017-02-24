@@ -11,7 +11,6 @@
 
 package alluxio.master.journal;
 
-import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.base.Preconditions;
@@ -32,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class JournalReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(JournalReader.class);
 
   private final Journal mJournal;
   /** The UFS where the journal is being written to. */

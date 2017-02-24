@@ -3,7 +3,10 @@ layout: global
 title: Java安装
 ---
 
-# Mac OSX
+* 内容列表
+{:toc}
+
+#$ Mac OSX
 
 1.  从[Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)下载最新版的Java JDK。
 2.  从浏览器的下载窗口或者文件浏览器中双击.dmg文件来启动它。
@@ -13,7 +16,7 @@ title: Java安装
 6.  窗口会显示"Installer is trying to install new software. Type your password to allow this."以管理员身份登录，输入密码，然后点击**Install Software**。
 7.  软件安装完成后会出现一个确认窗口。点击ReadMe获取更多的安装信息。
 
-# Linux
+#$ Linux
 
 1.  从[Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)下载最新版本的Java JDK。
 2.  将目录转换到JDK将要安装的位置。将.tar.gz压缩包移动到当前目录。

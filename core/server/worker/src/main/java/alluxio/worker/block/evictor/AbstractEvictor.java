@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.collections.Pair;
 import alluxio.exception.BlockDoesNotExistException;
@@ -38,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class AbstractEvictor extends AbstractBlockStoreEventListener implements Evictor {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractEvictor.class);
   protected final Allocator mAllocator;
   protected BlockMetadataManagerView mManagerView;
 
