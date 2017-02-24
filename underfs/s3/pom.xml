@@ -22,11 +22,13 @@
   <description>S3 Under File System implementation</description>
 
   <properties>
-    <!-- These need to be defined here as well as in the parent pom so that mvn can run
-         properly from sub-project directories -->
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
+    <shading.prefix>alluxio.underfs.s3</shading.prefix>
   </properties>
 
   <dependencies>
@@ -85,23 +87,10 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <artifactSet>
-                <includes>
-                  <include>net.java.dev.jets3t</include>
-                </includes>
-              </artifactSet>
-              <filters>
-                <filter>
-                  <artifact>net.java.dev.jets3t:jets3t</artifact>
-                  <includes>
-                    <include>org/jets3t/**</include>
-                  </includes>
-                </filter>
-              </filters>
               <relocations>
                 <relocation>
                   <pattern>org.jets3t</pattern>
-                  <shadedPattern>${project.artifactId}.org.jets3t</shadedPattern>
+                  <shadedPattern>${shading.prefix}.org.jets3t</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

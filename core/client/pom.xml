@@ -23,12 +23,14 @@
   <description>Client of Alluxio core</description>
 
   <properties>
-    <!-- These need to be defined here as well as in the parent pom so that mvn can run
-         properly from sub-project directories -->
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
     <failIfNoTests>false</failIfNoTests>
+    <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
+    <shading.prefix>alluxio.core.client</shading.prefix>
   </properties>
 
   <dependencies>
@@ -204,7 +206,7 @@
               <relocations>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>${project.artifactId}.org.apache.thrift</shadedPattern>
+                  <shadedPattern>${shading.prefix}.org.apache.thrift</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>
