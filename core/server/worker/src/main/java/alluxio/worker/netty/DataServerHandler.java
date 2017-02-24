@@ -64,46 +64,51 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   public void channelRead0(final ChannelHandlerContext ctx, final RPCMessage msg)
       throws IOException {
     LOG.debug("Enter: {}", msg);
-    switch (msg.getType()) {
-      case RPC_BLOCK_READ_REQUEST:
-        assert msg instanceof RPCBlockReadRequest;
-        mBlockHandler.handleBlockReadRequest(ctx, (RPCBlockReadRequest) msg);
-        break;
-      case RPC_BLOCK_WRITE_REQUEST:
-        assert msg instanceof RPCBlockWriteRequest;
-        mBlockHandler.handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
-        break;
-      case RPC_FILE_READ_REQUEST:
-        assert msg instanceof RPCFileReadRequest;
-        mUnderFileSystemHandler.handleFileReadRequest(ctx, (RPCFileReadRequest) msg);
-        break;
-      case RPC_FILE_WRITE_REQUEST:
-        assert msg instanceof RPCFileWriteRequest;
-        mUnderFileSystemHandler.handleFileWriteRequest(ctx, (RPCFileWriteRequest) msg);
-        break;
-      case RPC_ERROR_RESPONSE:
-        assert msg instanceof RPCErrorResponse;
-        LOG.error("Received an error response from the client: " + msg.toString());
-        break;
-      case RPC_READ_REQUEST:
-      case RPC_WRITE_REQUEST:
-      case RPC_RESPONSE:
-        assert msg instanceof RPCProtoMessage;
-        ctx.fireChannelRead(msg);
-        break;
-      default:
-        RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
-        ctx.writeAndFlush(resp);
-        // TODO(peis): Fix this. We should not throw an exception here.
-        throw new IllegalArgumentException(
-            "No handler implementation for rpc msg type: " + msg.getType());
+    try {
+      switch (msg.getType()) {
+        case RPC_BLOCK_READ_REQUEST:
+          assert msg instanceof RPCBlockReadRequest;
+          mBlockHandler.handleBlockReadRequest(ctx, (RPCBlockReadRequest) msg);
+          break;
+        case RPC_BLOCK_WRITE_REQUEST:
+          assert msg instanceof RPCBlockWriteRequest;
+          mBlockHandler.handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
+          break;
+        case RPC_FILE_READ_REQUEST:
+          assert msg instanceof RPCFileReadRequest;
+          mUnderFileSystemHandler.handleFileReadRequest(ctx, (RPCFileReadRequest) msg);
+          break;
+        case RPC_FILE_WRITE_REQUEST:
+          assert msg instanceof RPCFileWriteRequest;
+          mUnderFileSystemHandler.handleFileWriteRequest(ctx, (RPCFileWriteRequest) msg);
+          break;
+        case RPC_ERROR_RESPONSE:
+          assert msg instanceof RPCErrorResponse;
+          LOG.error("Received an error response from the client: " + msg.toString());
+          break;
+        case RPC_READ_REQUEST:
+        case RPC_WRITE_REQUEST:
+        case RPC_RESPONSE:
+          assert msg instanceof RPCProtoMessage;
+          ctx.fireChannelRead(msg);
+          break;
+        default:
+          RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
+          ctx.writeAndFlush(resp);
+          // TODO(peis): Fix this. We should not throw an exception here.
+          throw new IllegalArgumentException(
+              "No handler implementation for rpc msg type: " + msg.getType());
+      }
+    } catch (IOException e) {
+      LOG.warn("Exit (Error): {}", msg, e);
+      // Rethrow the exception to use Netty's control flow.
+      throw e;
     }
     LOG.debug("Exit (OK): {}", msg);
   }
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    LOG.warn("Exception thrown while processing request", cause);
     // TODO(peis): This doesn't have to be decode error, it can also be any network errors such as
     // connection reset. Fix this ALLUXIO-2235.
     RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.DECODE_ERROR);
