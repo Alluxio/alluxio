@@ -134,6 +134,8 @@ public abstract class AbstractAlluxioShellTest {
           return "Copied " + command[1] + " to " + command[2] + "\n";
         case "copyToLocal":
           return "Copied " + command[1] + " to " + command[2] + "\n";
+        case "cp":
+          return "Copied " + command[1] + " to " + command[2] + "\n";
         default:
           return null;
       }
