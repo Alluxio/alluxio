@@ -95,9 +95,11 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
         default:
           RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
           ctx.writeAndFlush(resp);
+          IllegalArgumentException e =
+              new IllegalArgumentException("No handler implementation for " + msg.getType());
+          LOG.warn("Exit (Error): {}", msg, e);
           // TODO(peis): Fix this. We should not throw an exception here.
-          throw new IllegalArgumentException(
-              "No handler implementation for rpc msg type: " + msg.getType());
+          throw e;
       }
     } catch (IOException e) {
       LOG.warn("Exit (Error): {}", msg, e);
