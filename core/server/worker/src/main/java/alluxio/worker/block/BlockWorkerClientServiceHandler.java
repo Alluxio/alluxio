@@ -71,15 +71,18 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    */
   @Override
   public void accessBlock(final long blockId) throws AlluxioTException {
-    LOG.debug("Enter AccessBlock. blockId:{}", blockId);
-    RpcUtils.call(new RpcCallable<Void>() {
+    RpcUtils.callAndLog(LOG, new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioException {
         mWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
         return null;
       }
+
+      @Override
+      public String toString() {
+        return String.format("AccessBlock: blockId=%s", blockId);
+      }
     });
-    LOG.debug("Exit AccessBlock. blockId:{}", blockId);
   }
 
   /**
@@ -95,15 +98,18 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   @Override
   public void cacheBlock(final long sessionId, final long blockId)
       throws AlluxioTException, ThriftIOException {
-    LOG.debug("Enter CacheBlock. sessionId:{}, blockId:{}", sessionId, blockId);
-    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+    RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
         mWorker.commitBlock(sessionId, blockId);
         return null;
       }
+
+      @Override
+      public String toString() {
+        return String.format("CacheBlock: sessionId=%s, blockId=%s", sessionId, blockId);
+      }
     });
-    LOG.debug("Exit CacheBlock. sessionId:{}, blockId:{}", sessionId, blockId);
   }
 
   /**
@@ -118,15 +124,18 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   @Override
   public void cancelBlock(final long sessionId, final long blockId)
       throws AlluxioTException, ThriftIOException {
-    LOG.debug("Enter CancelBlock. sessionId:{}, blockId:{}", sessionId, blockId);
-    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+    RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
         mWorker.abortBlock(sessionId, blockId);
         return null;
       }
+
+      @Override
+      public String toString() {
+        return String.format("CancelBlock: sessionId=%s, blockId=%s", sessionId, blockId);
+      }
     });
-    LOG.debug("Exit CancelBlock. sessionId:{}, blockId:{}", sessionId, blockId);
   }
 
   /**
@@ -140,16 +149,18 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   @Override
   public LockBlockResult lockBlock(final long blockId, final long sessionId)
       throws AlluxioTException {
-    LOG.debug("Enter LockBlock. sessionId:{}, blockId:{}", sessionId, blockId);
-    LockBlockResult ret = RpcUtils.call(new RpcCallable<LockBlockResult>() {
+    return RpcUtils.callAndLog(LOG, new RpcCallable<LockBlockResult>() {
       @Override
       public LockBlockResult call() throws AlluxioException {
         long lockId = mWorker.lockBlock(sessionId, blockId);
         return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
       }
+
+      @Override
+      public String toString() {
+        return String.format("LockBlock: sessionId=%s, blockId=%s", sessionId, blockId);
+      }
     });
-    LOG.debug("Exit LockBlock. sessionId:{}, blockId:{}", sessionId, blockId);
-    return ret;
   }
 
   /**
@@ -165,17 +176,19 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   // TODO(calvin): This may be better as void.
   @Override
   public boolean promoteBlock(final long blockId) throws AlluxioTException, ThriftIOException {
-    LOG.debug("Enter PromoteBlock. blockId:{}", blockId);
-    boolean ret = RpcUtils.call(new RpcCallableThrowsIOException<Boolean>() {
+    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Boolean>() {
       @Override
       public Boolean call() throws AlluxioException, IOException {
         // TODO(calvin): Make the top level configurable.
         mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
         return true;
       }
+
+      @Override
+      public String toString() {
+        return String.format("PromoteBlock: blockId=%s", blockId);
+      }
     });
-    LOG.debug("Exit PromoteBlock. blockId:{}", blockId);
-    return ret;
   }
 
   /**
@@ -188,15 +201,18 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    */
   @Override
   public void removeBlock(final long blockId) throws AlluxioTException, ThriftIOException {
-    LOG.debug("Enter RemoveBlock. blockId:{}", blockId);
-    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+    RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
         mWorker.removeBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId);
         return null;
       }
+
+      @Override
+      public String toString() {
+        return String.format("RemoveBlock: blockId=%s", blockId);
+      }
     });
-    LOG.debug("Exit RemoveBlock. blockId:{}", blockId);
   }
 
   /**
@@ -217,18 +233,19 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   @Override
   public String requestBlockLocation(final long sessionId, final long blockId,
       final long initialBytes, final int writeTier) throws AlluxioTException, ThriftIOException {
-    LOG.debug("Enter RequestBlockLocation. sessionId:{}, blockId:{}, initialBytes:{}, writeTier:{}",
-        sessionId, blockId, initialBytes, writeTier);
-    String ret = RpcUtils.call(new RpcCallableThrowsIOException<String>() {
+    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<String>() {
       @Override
       public String call() throws AlluxioException, IOException {
         return mWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(writeTier),
             initialBytes);
       }
+
+      @Override
+      public String toString() {
+        return String.format("RequestBlockLocation: sessionId=%s, blockId=%s, initialBytes=%s, "
+            + "writeTier=%s", sessionId, blockId, initialBytes, writeTier);
+      }
     });
-    LOG.debug("Exit RequestBlockLocation. sessionId:{}, blockId:{}, initialBytes:{}, writeTier:{}",
-        sessionId, blockId, initialBytes, writeTier);
-    return ret;
   }
 
   /**
@@ -245,9 +262,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   @Override
   public boolean requestSpace(final long sessionId, final long blockId, final long requestBytes)
       throws AlluxioTException, ThriftIOException {
-    LOG.debug("Enter RequestSpace. sessionId:{}, blockId:{}, requestBytes:{}", sessionId, blockId,
-        requestBytes);
-    boolean ret = RpcUtils.call(new RpcCallable<Boolean>() {
+    return RpcUtils.callAndLog(LOG, new RpcCallable<Boolean>() {
       @Override
       public Boolean call() throws AlluxioException {
         try {
@@ -267,10 +282,13 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
           throw e;
         }
       }
+
+      @Override
+      public String toString() {
+        return String.format("RequestSpace: sessionId=%s, blockId=%s, requestBytes=%s", sessionId,
+            blockId, requestBytes);
+      }
     });
-    LOG.debug("Exit RequestSpace. sessionId:{}, blockId:{}, requestBytes:{}", sessionId, blockId,
-        requestBytes);
-    return ret;
   }
 
   /**
@@ -286,16 +304,18 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   // TODO(andrew): This should return void
   @Override
   public boolean unlockBlock(final long blockId, final long sessionId) throws AlluxioTException {
-    LOG.debug("Enter UnlockBlock. sessionId:{}, blockId:{}", sessionId, blockId);
-    boolean ret = RpcUtils.call(new RpcCallable<Boolean>() {
+    return RpcUtils.callAndLog(LOG, new RpcCallable<Boolean>() {
       @Override
       public Boolean call() throws AlluxioException {
         mWorker.unlockBlock(sessionId, blockId);
         return true;
       }
+
+      @Override
+      public String toString() {
+        return String.format("UnlockBlock: sessionId=%s, blockId=%s", sessionId, blockId);
+      }
     });
-    LOG.debug("Exit UnlockBlock. sessionId:{}, blockId:{}", sessionId, blockId);
-    return ret;
   }
 
   /**
@@ -307,7 +327,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   @Override
   public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
       throws AlluxioTException {
-    RpcUtils.call(new RpcCallable<Void>() {
+    RpcUtils.call(LOG, new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioException {
         mWorker.sessionHeartbeat(sessionId);
