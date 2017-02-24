@@ -63,6 +63,7 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   @Override
   public void channelRead0(final ChannelHandlerContext ctx, final RPCMessage msg)
       throws IOException {
+    LOG.debug("Enter: {}", msg);
     switch (msg.getType()) {
       case RPC_BLOCK_READ_REQUEST:
         assert msg instanceof RPCBlockReadRequest;
@@ -97,6 +98,7 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
         throw new IllegalArgumentException(
             "No handler implementation for rpc msg type: " + msg.getType());
     }
+    LOG.debug("Exit (OK): {}", msg);
   }
 
   @Override
