@@ -44,15 +44,14 @@ public final class UnderFileSystemBlockStore {
 
   private final ReentrantLock mLock = new ReentrantLock();
   @GuardedBy("mLock")
-  /** Maps from the {@link Key} to the {@link UnderFileSystemBlockMeta}. */ private final
-  Map<Key, UnderFileSystemBlockMeta>
-      mBlocks = new HashMap<>();
+  /** Maps from the {@link Key} to the {@link UnderFileSystemBlockMeta}. */
+  private final Map<Key, UnderFileSystemBlockMeta> mBlocks = new HashMap<>();
   @GuardedBy("mLock")
-  /** Maps from the session ID to the block IDs. */ private final Map<Long, Set<Long>>
-      mSessionIdToBlockIds = new HashMap<>();
+  /** Maps from the session ID to the block IDs. */
+  private final Map<Long, Set<Long>> mSessionIdToBlockIds = new HashMap<>();
   @GuardedBy("mLock")
-  /** Maps from the block ID to the session IDs. */ private final Map<Long, Set<Long>>
-      mBlockIdToSessionIds = new HashMap<>();
+  /** Maps from the block ID to the session IDs. */
+  private final Map<Long, Set<Long>> mBlockIdToSessionIds = new HashMap<>();
 
   /** The Alluxio block store. */
   private final BlockStore mAlluxioBlockStore;
