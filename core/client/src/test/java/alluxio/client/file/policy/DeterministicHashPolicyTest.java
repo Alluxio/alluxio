@@ -44,12 +44,14 @@ public final class DeterministicHashPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker4")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
 
-    DeterministicHashPolicy policy = new DeterministicHashPolicy();
+    DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory
+        .create("alluxio.client.file.policy.DeterministicHashPolicy");
     Assert.assertEquals(
         policy.getWorkerForBlock(workerInfoList, 1, 2 * (long) Constants.GB).getHost(),
         policy.getWorkerForBlock(workerInfoList, 1, 2 * (long) Constants.GB).getHost());
 
-    DeterministicHashPolicy policy2 = new DeterministicHashPolicy(2);
+    DeterministicHashPolicy policy2 = (DeterministicHashPolicy) BlockLocationPolicy.Factory
+        .create("alluxio.client.file.policy.DeterministicHashPolicy@2");
     Set<String> addresses1 = new HashSet<>();
     Set<String> addresses2 = new HashSet<>();
     for (int i = 0; i < 1000; i++) {
