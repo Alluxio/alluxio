@@ -11,26 +11,19 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.client.Locatable;
-import alluxio.client.UfsBlockReader;
+import alluxio.client.UnderFileSystemBlockReader;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -45,24 +38,26 @@ import javax.annotation.concurrent.ThreadSafe;
  * be transferred through an Alluxio worker's dataserver to the client.
  */
 @NotThreadSafe
-public final class UfsBlockInStream extends BufferedBlockInStream implements Locatable {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsBlockReader.class);
-  private static final long UFS_BLOCK_OPEN_RETRY_INTERVAL_MS = Constants.SECOND_MS;
-
+public final class UnderFileSystemBlockInStream extends BufferedBlockInStream implements Locatable {
   /** Used to manage closeable resources. */
   private final Closer mCloser;
+  /** If set, the block will not be cached into Alluxio because of this read. */
   private final boolean mNoCache;
+  /** Whether we are reading from a local Alluxio worker or a remote one. */
   private final boolean mLocal;
 
   /** Client to communicate with the remote worker. */
   private final BlockWorkerClient mBlockWorkerClient;
   /** The file system context which provides block worker clients. */
   private final FileSystemContext mContext;
-  /** {@link UfsBlockReader} for this instance. */
-  private UfsBlockReader mReader;
+  /** {@link UnderFileSystemBlockReader} for this instance. */
+  private UnderFileSystemBlockReader mReader;
 
   /**
-   * Creates a UFS block in stream.
+   * Creates an instance of {@link UnderFileSystemBlockInStream}. It keeps polling the worker
+   * until the block is cached to Alluxio or it successfully acquires a UFS read token. If
+   * the block is cached to Alluxio, it returns an {@link BufferedBlockInStream} that reads from
+   * Alluxio.
    *
    * @param context the file system context
    * @param ufsPath the UFS path
@@ -71,44 +66,42 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
    * @param blockStart the start position of the block in the UFS file
    * @param workerNetAddress the worker network address
    * @param options the in stream options
-   * @return the {@link UfsBlockInStream} instance
-   * @throws IOException if it fails to create {@link UfsBlockInStream}
+   * @return the {@link UnderFileSystemBlockInStream} instance or the {@link BufferedBlockOutStream}
+   *         that reads from Alluxio directly
+   * @throws IOException if it fails to create {@link UnderFileSystemBlockInStream}
    */
-  public static UfsBlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
-      long blockId, long blockSize, long blockStart, WorkerNetAddress workerNetAddress,
+  public static BufferedBlockInStream create(FileSystemContext context, String ufsPath,
+      final long blockId, long blockSize, long blockStart, WorkerNetAddress workerNetAddress,
       InStreamOptions options) throws IOException {
     Closer closer = Closer.create();
     try {
-      BlockWorkerClient blockWorkerClient =
+      final BlockWorkerClient blockWorkerClient =
           closer.register(context.createBlockWorkerClient(workerNetAddress));
-      LockBlockResult result;
       LockBlockOptions lockBlockOptions =
           LockBlockOptions.defaults().setUfsPath(ufsPath).setOffset(blockStart)
               .setBlockSize(blockSize).setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency());
-
-      long timeout = System.currentTimeMillis() + Configuration
-          .getLong(PropertyKey.USER_UFS_BLOCK_OPEN_TIMEOUT_MS);
-      while (true) {
-        try {
-          result = blockWorkerClient.lockBlock(blockId, lockBlockOptions);
-          break;
-        } catch (UfsBlockAccessTokenUnavailableException e) {
-          if (System.currentTimeMillis() >= timeout) {
-            throw e;
-          }
-          LOG.debug(
-              "Failed to acquire a UFS read token because of concurrency for block {} in file {}",
-              blockId, blockId);
-          CommonUtils.sleepMs(UFS_BLOCK_OPEN_RETRY_INTERVAL_MS);
+      LockBlockResult result = blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions);
+      closer.register(new Closeable() {
+        @Override
+        public void close() throws IOException {
+          blockWorkerClient.unlockBlock(blockId);
+        }
+      });
+      if (LockBlockResult.isBlockCachedInAlluxio(result)) {
+        boolean local = blockWorkerClient.getDataServerAddress().getHostName()
+            .equals(NetworkAddressUtils.getLocalHostName());
+        if (local) {
+          return LocalBlockInStream
+              .createWithBlockLocked(blockWorkerClient, blockId, blockSize, result.getBlockPath(),
+                  options);
+        } else {
+          return RemoteBlockInStream
+              .createWithBlockLocked(context, blockWorkerClient, blockId, blockSize,
+                  result.getLockId(), options);
         }
       }
-      if (result.getLockId() >= 0) {
-        // The block exists in the Alluxio now.
-        blockWorkerClient.unlockBlock(blockId);
-        closer.close();
-        return null;
-      }
-      return new UfsBlockInStream(context, blockId, blockSize, blockWorkerClient, options);
+      return new UnderFileSystemBlockInStream(context, blockId, blockSize, blockWorkerClient,
+          options);
     } catch (AlluxioException e) {
       closer.close();
       throw new IOException(e);
@@ -119,17 +112,16 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
   }
 
   /**
-   * Creates a new UFS block input stream.
+   * Creates a new UFS block input stream. This requires the block to be locked beforehand.
    *
    * @param context the file system context
    * @param blockId the block ID
    * @param blockSize the block size
    * @param blockWorkerClient the block worker client
    * @param options the instream options
-   * @throws IOException if the block is not available on the remote worker
    */
-  private UfsBlockInStream(FileSystemContext context, long blockId, long blockSize,
-      BlockWorkerClient blockWorkerClient, InStreamOptions options) throws IOException {
+  private UnderFileSystemBlockInStream(FileSystemContext context, long blockId, long blockSize,
+      BlockWorkerClient blockWorkerClient, InStreamOptions options) {
     super(blockId, blockSize);
 
     mContext = context;
@@ -179,13 +171,13 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
   @Override
   protected void bufferedRead(int len) throws IOException {
     mBuffer.clear();
-    int bytesRead = readFromUfs(mBuffer.array(), 0, len);
+    int bytesRead = readFromUnderFileSystem(mBuffer.array(), 0, len);
     mBuffer.limit(bytesRead);
   }
 
   @Override
   protected int directRead(byte[] b, int off, int len) throws IOException {
-    return readFromUfs(b, off, len);
+    return readFromUnderFileSystem(b, off, len);
   }
 
   /**
@@ -207,22 +199,23 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
    * @return the number of bytes successfully read
    * @throws IOException if an error occurs reading the data
    */
-  private int readFromUfs(byte[] b, int off, int len) throws IOException {
+  private int readFromUnderFileSystem(byte[] b, int off, int len) throws IOException {
     // We read at most len bytes, but if mPos + len exceeds the length of the block, we only
     // read up to the end of the block.
     int toRead = (int) Math.min(len, remaining());
     int bytesLeft = toRead;
 
     if (mReader == null) {
-      mReader = mCloser.register(UfsBlockReader.Factory.create(mContext));
+      mReader = mCloser.register(UnderFileSystemBlockReader.Factory.create(mContext));
     }
 
     while (bytesLeft > 0) {
       ByteBuffer data = mReader
-          .read(mBlockWorkerClient.getDataServerAddress(), mBlockId, getPosition(),
-              bytesLeft, mBlockWorkerClient.getSessionId(), mNoCache);
+          .read(mBlockWorkerClient.getDataServerAddress(), mBlockId, getPosition(), bytesLeft,
+              mBlockWorkerClient.getSessionId(), mNoCache);
       int bytesRead = data.remaining();
       data.get(b, off, bytesRead);
+      off += bytesRead;
       bytesLeft -= bytesRead;
     }
 
@@ -230,7 +223,7 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
   }
 
   /**
-   * Class that contains metrics about UfsBlockInStream.
+   * Class that contains metrics about UnderFileSystemBlockInStream.
    */
   @ThreadSafe
   private static final class Metrics {
@@ -238,7 +231,6 @@ public final class UfsBlockInStream extends BufferedBlockInStream implements Loc
     private static final Counter BYTES_READ_UFS = MetricsSystem.clientCounter("BytesReadUFS");
     private static final Counter SEEKS_UFS = MetricsSystem.clientCounter("SeeksUFS");
 
-    private Metrics() {
-    } // prevent instantiation
+    private Metrics() {} // prevent instantiation
   }
 }

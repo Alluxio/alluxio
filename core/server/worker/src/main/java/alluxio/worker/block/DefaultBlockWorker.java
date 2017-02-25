@@ -40,7 +40,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.meta.UfsBlockMeta;
+import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
@@ -100,7 +100,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private BlockStore mBlockStore;
   private WorkerNetAddress mAddress;
 
-  private UfsBlockStore mUfsBlockStore;
+  private UnderFileSystemBlockStore mUnderFileSystemBlockStore;
 
   /**
    * The worker ID for this worker. This is initialized in {@link #init(WorkerNetAddress)} and may
@@ -147,7 +147,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
 
-    mUfsBlockStore = new UfsBlockStore(mBlockStore);
+    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore);
     Metrics.registerGauges(this);
   }
 
@@ -207,7 +207,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
         for (long session : mSessions.getTimedOutSessions()) {
           mSessions.removeSession(session);
           mBlockStore.cleanupSession(session);
-          mUfsBlockStore.cleanupSession(session);
+          mUnderFileSystemBlockStore.cleanupSession(session);
         }
       }
     });
@@ -389,7 +389,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @Override
   public BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
       throws BlockDoesNotExistException, IOException {
-    return mUfsBlockStore.getBlockReader(sessionId, blockId, offset, noCache);
+    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset, noCache);
   }
 
   @Override
@@ -435,19 +435,20 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void openUfsBlock(UfsBlockMeta.ConstMeta ufsBlockMetaConst, int maxConcurrency)
+  public void openUfsBlock(UnderFileSystemBlockMeta.ConstMeta ufsBlockMetaConst,
+      int maxConcurrency)
       throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
-    mUfsBlockStore.acquireAccess(ufsBlockMetaConst, maxConcurrency);
+    mUnderFileSystemBlockStore.acquireAccess(ufsBlockMetaConst, maxConcurrency);
   }
 
   @Override
   public void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
-    if (mUfsBlockStore.cleanup(sessionId, blockId)) {
+    if (mUnderFileSystemBlockStore.cleanup(sessionId, blockId)) {
       commitBlock(sessionId, blockId);
     }
-    mUfsBlockStore.releaseAccess(sessionId, blockId);
+    mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
   }
 
   /**

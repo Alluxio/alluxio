@@ -11,7 +11,7 @@
 
 package alluxio.client.netty;
 
-import alluxio.client.UfsBlockReader;
+import alluxio.client.UnderFileSystemBlockReader;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricsSystem;
@@ -19,7 +19,7 @@ import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
-import alluxio.network.protocol.RPCUfsBlockReadRequest;
+import alluxio.network.protocol.RPCUnderFileSystemBlockReadRequest;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Throwables;
@@ -40,18 +40,18 @@ import javax.annotation.concurrent.ThreadSafe;
  * Read data from UFS on a data server using Netty.
  */
 @NotThreadSafe
-public final class NettyUfsBlockReader implements UfsBlockReader {
-  private static final Logger LOG = LoggerFactory.getLogger(NettyUfsBlockReader.class);
+public final class NettyUnderFileSystemBlockReader implements UnderFileSystemBlockReader {
+  private static final Logger LOG = LoggerFactory.getLogger(NettyUnderFileSystemBlockReader.class);
 
   private final FileSystemContext mContext;
   /** A reference to read response so we can explicitly release the resource after reading. */
   private RPCBlockReadResponse mReadResponse = null;
 
   /**
-   * Creates a new {@link NettyUfsBlockReader}.
+   * Creates a new {@link NettyUnderFileSystemBlockReader}.
    * @param context the file system context
    */
-  public NettyUfsBlockReader(FileSystemContext context) {
+  public NettyUnderFileSystemBlockReader(FileSystemContext context) {
     mContext = context;
   }
 
@@ -70,8 +70,8 @@ public final class NettyUfsBlockReader implements UfsBlockReader {
       SingleResponseListener listener = new SingleResponseListener();
       clientHandler.addListener(listener);
 
-      ChannelFuture channelFuture = channel
-          .writeAndFlush(new RPCUfsBlockReadRequest(blockId, offset, length, sessionId, noCache));
+      ChannelFuture channelFuture = channel.writeAndFlush(
+          new RPCUnderFileSystemBlockReadRequest(blockId, offset, length, sessionId, noCache));
       channelFuture = channelFuture.sync();
       if (channelFuture.isDone() && !channelFuture.isSuccess()) {
         LOG.error("Failed to write to %s for block %d with error %s.", address.toString(), blockId,
@@ -135,7 +135,7 @@ public final class NettyUfsBlockReader implements UfsBlockReader {
   }
 
   /**
-   * Class that contains metrics about {@link NettyUfsBlockReader}.
+   * Class that contains metrics about {@link NettyUnderFileSystemBlockReader}.
    */
   @ThreadSafe
   private static final class Metrics {

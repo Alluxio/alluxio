@@ -207,7 +207,7 @@ public abstract class RPCMessage implements EncodedMessage {
       case RPC_RESPONSE:
         return RPCProtoMessage.decode(in, ProtoMessage.Type.RESPONSE);
       case RPC_UFS_BLOCK_READ_REQUEST:
-        return RPCUfsBlockReadRequest.decode(in);
+        return RPCUnderFileSystemBlockReadRequest.decode(in);
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }

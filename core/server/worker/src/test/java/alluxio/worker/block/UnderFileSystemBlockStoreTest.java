@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.thrift.LockBlockTOptions;
-import alluxio.worker.block.meta.UfsBlockMeta;
+import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,14 +22,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
-public final class UfsBlockStoreTest {
+public final class UnderFileSystemBlockStoreTest {
   private static final long TEST_BLOCK_SIZE = 1024;
   private static final long BLOCK_ID = 2;
 
   private BlockStore mAlluxioBlockStore;
   private LockBlockTOptions mLockBlockTOptions;
 
-  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -47,16 +46,16 @@ public final class UfsBlockStoreTest {
 
   @Test
   public void acquireAccess() throws Exception {
-    UfsBlockStore blockStore = new UfsBlockStore(mAlluxioBlockStore);
+    UnderFileSystemBlockStore blockStore = new UnderFileSystemBlockStore(mAlluxioBlockStore);
     for (int i = 0; i < 5; i++) {
-      UfsBlockMeta.ConstMeta constMeta =
-          new UfsBlockMeta.ConstMeta(i + 1, BLOCK_ID, mLockBlockTOptions);
+      UnderFileSystemBlockMeta.ConstMeta constMeta =
+          new UnderFileSystemBlockMeta.ConstMeta(i + 1, BLOCK_ID, mLockBlockTOptions);
       blockStore.acquireAccess(constMeta, 5);
     }
 
     try {
-      UfsBlockMeta.ConstMeta constMeta =
-          new UfsBlockMeta.ConstMeta(6, BLOCK_ID, mLockBlockTOptions);
+      UnderFileSystemBlockMeta.ConstMeta constMeta =
+          new UnderFileSystemBlockMeta.ConstMeta(6, BLOCK_ID, mLockBlockTOptions);
       blockStore.acquireAccess(constMeta, 5);
       Assert.fail();
     } catch (UfsBlockAccessTokenUnavailableException e) {
@@ -66,15 +65,16 @@ public final class UfsBlockStoreTest {
 
   @Test
   public void releaseAccess() throws Exception {
-    UfsBlockStore blockStore = new UfsBlockStore(mAlluxioBlockStore);
+    UnderFileSystemBlockStore blockStore = new UnderFileSystemBlockStore(mAlluxioBlockStore);
     for (int i = 0; i < 5; i++) {
-      UfsBlockMeta.ConstMeta constMeta =
-          new UfsBlockMeta.ConstMeta(i + 1, BLOCK_ID, mLockBlockTOptions);
+      UnderFileSystemBlockMeta.ConstMeta constMeta =
+          new UnderFileSystemBlockMeta.ConstMeta(i + 1, BLOCK_ID, mLockBlockTOptions);
       blockStore.acquireAccess(constMeta, 5);
       blockStore.releaseAccess(constMeta.mSessionId, constMeta.mBlockId);
     }
 
-    UfsBlockMeta.ConstMeta constMeta = new UfsBlockMeta.ConstMeta(6, BLOCK_ID, mLockBlockTOptions);
+    UnderFileSystemBlockMeta.ConstMeta constMeta =
+        new UnderFileSystemBlockMeta.ConstMeta(6, BLOCK_ID, mLockBlockTOptions);
     blockStore.acquireAccess(constMeta, 5);
   }
 }

@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.client.block.UfsBlockInStream;
+import alluxio.client.block.UnderFileSystemBlockInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -39,10 +39,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Integration tests for {@link alluxio.client.block.UfsBlockInStream}.
+ * Integration tests for {@link alluxio.client.block.UnderFileSystemBlockInStream}.
  */
-public class UfsBlockInStreamIntegrationTest {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsBlockInStreamIntegrationTest.class);
+public class UnderFileSystemBlockInStreamIntegrationTest {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(UnderFileSystemBlockInStreamIntegrationTest.class);
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
@@ -70,7 +71,7 @@ public class UfsBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link UfsBlockInStream#read()}. Read from underfs.
+   * Tests {@link UnderFileSystemBlockInStream#read()}. Read from underfs.
    */
   @Test
   public void read() throws Exception {
@@ -131,7 +132,7 @@ public class UfsBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link UfsBlockInStream#read()} concurrency. Read from underfs.
+   * Tests {@link UnderFileSystemBlockInStream#read()} concurrency. Read from underfs.
    */
   @Test
   public void concurrentUfsRead() throws Exception {
@@ -187,7 +188,7 @@ public class UfsBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link UfsBlockInStream#seek(long)}.
+   * Tests {@link UnderFileSystemBlockInStream#seek(long)}.
    */
   @Test
   public void seek() throws Exception {
@@ -210,7 +211,7 @@ public class UfsBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link UfsBlockInStream#skip(long)}.
+   * Tests {@link UnderFileSystemBlockInStream#skip(long)}.
    */
   @Test
   public void skip() throws Exception {

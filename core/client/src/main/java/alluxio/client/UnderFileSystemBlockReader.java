@@ -12,7 +12,7 @@
 package alluxio.client;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.netty.NettyUfsBlockReader;
+import alluxio.client.netty.NettyUnderFileSystemBlockReader;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -22,32 +22,32 @@ import java.nio.ByteBuffer;
 /**
  * The interface to read an under file system file through a worker's data server.
  */
-public interface UfsBlockReader extends Closeable {
+public interface UnderFileSystemBlockReader extends Closeable {
 
   /**
-   * The factory for the {@link UfsBlockReader}.
+   * The factory for the {@link UnderFileSystemBlockReader}.
    */
   class Factory {
 
     private Factory() {} // prevent instantiation
 
     /**
-     * Factory for {@link UfsBlockReader}.
+     * Factory for {@link UnderFileSystemBlockReader}.
      *
      * @param context the file system context
-     * @return a new instance of {@link UfsBlockReader}
+     * @return a new instance of {@link UnderFileSystemBlockReader}
      */
-    public static UfsBlockReader create(FileSystemContext context) {
-      return new NettyUfsBlockReader(context);
+    public static UnderFileSystemBlockReader create(FileSystemContext context) {
+      return new NettyUnderFileSystemBlockReader(context);
     }
   }
 
   /**
-   * Reads a UFS block with a offset and length.
+   * Reads a block from UFS with a offset and length.
    *
    * @param address the {@link InetSocketAddress} of the data server
    * @param blockId the id of the block trying to read
-   * @param offset the offset of the block
+   * @param offset the offset within the block (not file)
    * @param length the length the client wants to read
    * @param sessionId the session id of the client
    * @param noCache do not cache the data read from UFS in the Alluxio worker if set

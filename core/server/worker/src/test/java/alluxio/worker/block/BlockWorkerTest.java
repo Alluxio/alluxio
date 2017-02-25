@@ -32,7 +32,7 @@ import alluxio.util.io.PathUtils;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.meta.UfsBlockMeta;
+import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import org.junit.After;
@@ -111,15 +111,16 @@ public class BlockWorkerTest {
   }
 
   @Test
-  public void openUfsBlock() throws Exception {
+  public void openUnderFileSystemBlock() throws Exception {
     long blockId = mRandom.nextLong();
     for (int i = 0; i < 10; i++) {
       long sessionId = i + 1;
-      UfsBlockMeta.ConstMeta meta =
-          new UfsBlockMeta.ConstMeta(sessionId, blockId, new LockBlockTOptions());
+      UnderFileSystemBlockMeta.ConstMeta meta =
+          new UnderFileSystemBlockMeta.ConstMeta(sessionId, blockId, new LockBlockTOptions());
       mBlockWorker.openUfsBlock(meta, 10);
     }
-    UfsBlockMeta.ConstMeta meta = new UfsBlockMeta.ConstMeta(12, blockId, new LockBlockTOptions());
+    UnderFileSystemBlockMeta.ConstMeta meta =
+        new UnderFileSystemBlockMeta.ConstMeta(12, blockId, new LockBlockTOptions());
     try {
       mBlockWorker.openUfsBlock(meta, 10);
       Assert.fail();
@@ -129,16 +130,17 @@ public class BlockWorkerTest {
   }
 
   @Test
-  public void closeUfsBlock() throws Exception {
+  public void closeUnderFileSystemBlock() throws Exception {
     long blockId = mRandom.nextLong();
     for (int i = 0; i < 10; i++) {
       long sessionId = i + 1;
-      UfsBlockMeta.ConstMeta meta =
-          new UfsBlockMeta.ConstMeta(sessionId, blockId, new LockBlockTOptions());
+      UnderFileSystemBlockMeta.ConstMeta meta =
+          new UnderFileSystemBlockMeta.ConstMeta(sessionId, blockId, new LockBlockTOptions());
       mBlockWorker.openUfsBlock(meta, 10);
       mBlockWorker.closeUfsBlock(sessionId, blockId);
     }
-    UfsBlockMeta.ConstMeta meta = new UfsBlockMeta.ConstMeta(12, blockId, new LockBlockTOptions());
+    UnderFileSystemBlockMeta.ConstMeta meta =
+        new UnderFileSystemBlockMeta.ConstMeta(12, blockId, new LockBlockTOptions());
     mBlockWorker.openUfsBlock(meta, 10);
   }
 

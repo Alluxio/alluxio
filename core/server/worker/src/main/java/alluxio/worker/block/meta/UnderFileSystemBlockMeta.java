@@ -20,7 +20,7 @@ import java.io.IOException;
 /**
  * This class represents the metadata of a UFS block.
  */
-public final class UfsBlockMeta {
+public final class UnderFileSystemBlockMeta {
   private ConstMeta mConstMeta;
 
   /** The set of session IDs to be committed. */
@@ -34,14 +34,14 @@ public final class UfsBlockMeta {
   public static final class ConstMeta {
     public final long mSessionId;
     public final long mBlockId;
-    public final String mUfsPath;
+    public final String mUnderFileSystemPath;
     /** The offset in bytes of the first byte of the block in its corresponding UFS file. */
     public final long mOffset;
     /** The block size in bytes. */
     public final long mBlockSize;
 
     /**
-     * Creates {@link UfsBlockMeta.ConstMeta} from a {@link LockBlockTOptions}.
+     * Creates {@link UnderFileSystemBlockMeta.ConstMeta} from a {@link LockBlockTOptions}.
      *
      * @param sessionId the session ID
      * @param blockId the block ID
@@ -50,18 +50,18 @@ public final class UfsBlockMeta {
     public ConstMeta(long sessionId, long blockId, LockBlockTOptions options) {
       mSessionId = sessionId;
       mBlockId = blockId;
-      mUfsPath = options.getUfsPath();
+      mUnderFileSystemPath = options.getUfsPath();
       mOffset = options.getOffset();
       mBlockSize = options.getBlockSize();
     }
   }
 
   /**
-   * Creates a {@link UfsBlockMeta}.
+   * Creates a {@link UnderFileSystemBlockMeta}.
    *
    * @param meta the constant metadata of this UFS block
    */
-  public UfsBlockMeta(ConstMeta meta) {
+  public UnderFileSystemBlockMeta(ConstMeta meta) {
     mConstMeta = meta;
   }
 
@@ -82,8 +82,8 @@ public final class UfsBlockMeta {
   /**
    * @return the UFS path
    */
-  public String getUfsPath() {
-    return mConstMeta.mUfsPath;
+  public String getUnderFileSystemPath() {
+    return mConstMeta.mUnderFileSystemPath;
   }
 
   /**

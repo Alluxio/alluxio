@@ -58,12 +58,12 @@ public final class OpenFileOptions {
       mLocationPolicy = CommonUtils.createNewClassInstance(
           Configuration.<FileWriteLocationPolicy>getClass(
               PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
-      mUfsReadLocationPolicy = CommonUtils.createNewClassInstance(
-          Configuration.<BlockLocationPolicy>getClass(
-              PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory
+        .create(Configuration.get(PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY));
     mMaxUfsReadConcurrency =
         Configuration.getInt(PropertyKey.USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT);
   }

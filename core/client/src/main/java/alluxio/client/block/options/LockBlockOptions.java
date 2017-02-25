@@ -18,7 +18,7 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for locking block.
+ * Method options for locking blocks.
  */
 @NotThreadSafe
 public final class LockBlockOptions {

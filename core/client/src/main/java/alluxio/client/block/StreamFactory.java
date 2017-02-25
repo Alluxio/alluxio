@@ -18,7 +18,6 @@ import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -97,7 +96,7 @@ public final class StreamFactory {
     if (PACKET_STREAMING_ENABLED) {
       return BlockInStream.createLocalBlockInStream(blockId, blockSize, address, context, options);
     } else {
-      return new alluxio.client.block.LocalBlockInStream(blockId, blockSize, address, context,
+      return alluxio.client.block.LocalBlockInStream.create(blockId, blockSize, address, context,
           options);
     }
   }
@@ -118,13 +117,15 @@ public final class StreamFactory {
     if (PACKET_STREAMING_ENABLED) {
       return BlockInStream.createRemoteBlockInStream(blockId, blockSize, address, context, options);
     } else {
-      return new alluxio.client.block.RemoteBlockInStream(blockId, blockSize, address, context,
+      return alluxio.client.block.RemoteBlockInStream.create(blockId, blockSize, address, context,
           options);
     }
   }
 
   /**
-   * Creates an {@link InputStream} for a UFS block.
+   * Creates an {@link InputStream} read a block from UFS if that block is in UFS but not in
+   * Alluxio. If the block is cached to Alluxio while it attempts to create the {@link InputStream}
+   * that reads from UFS, it returns a {@link InputStream} that reads from Aluxio instead.
    *
    * @param context the file system context
    * @param ufsPath the UFS path
@@ -139,24 +140,13 @@ public final class StreamFactory {
   public static InputStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
       long blockId, long blockSize, long blockStart, WorkerNetAddress address,
       InStreamOptions options) throws IOException {
-    InputStream inputStream;
     if (PACKET_STREAMING_ENABLED) {
-      inputStream = BlockInStream
+      return BlockInStream
           .createUfsBlockInStream(context, ufsPath, blockId, blockSize, blockStart, address,
               options);
     } else {
-      inputStream = UfsBlockInStream
-          .createUfsBlockInStream(context, ufsPath, blockId, blockSize, blockStart, address,
-              options);
+      return alluxio.client.block.UnderFileSystemBlockInStream
+          .create(context, ufsPath, blockId, blockSize, blockStart, address, options);
     }
-
-    if (inputStream == null) {
-      if (address.getHost().equals(NetworkAddressUtils.getLocalHostName())) {
-        inputStream = createLocalBlockInStream(context, blockId, blockSize, address, options);
-      } else {
-        inputStream = createRemoteBlockInStream(context, blockId, blockSize, address, options);
-      }
-    }
-    return inputStream;
   }
 }

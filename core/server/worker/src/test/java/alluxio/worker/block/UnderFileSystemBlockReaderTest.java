@@ -16,10 +16,11 @@ import alluxio.PropertyKey;
 import alluxio.thrift.LockBlockTOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.meta.UfsBlockMeta;
+import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,15 +35,15 @@ import java.nio.ByteBuffer;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({TempBlockMeta.class})
-public final class UfsBlockReaderTest {
+public final class UnderFileSystemBlockReaderTest {
   private static final long TEST_BLOCK_SIZE = 1024;
   private static final long SESSION_ID = 1;
   private static final long BLOCK_ID = 2;
 
-  private UfsBlockReader mReader;
+  private UnderFileSystemBlockReader mReader;
   private BlockStore mAlluxioBlockStore;
   private TempBlockMeta mTempBlockMeta;
-  private UfsBlockMeta mUfsBlockMeta;
+  private UnderFileSystemBlockMeta mUnderFileSystemBlockMeta;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -69,48 +70,58 @@ public final class UfsBlockReaderTest {
     options.setOffset(TEST_BLOCK_SIZE);
     options.setUfsPath(testFilePath);
 
-    mUfsBlockMeta = new UfsBlockMeta(new UfsBlockMeta.ConstMeta(SESSION_ID, BLOCK_ID, options));
+    mUnderFileSystemBlockMeta = new UnderFileSystemBlockMeta(
+        new UnderFileSystemBlockMeta.ConstMeta(SESSION_ID, BLOCK_ID, options));
+  }
+
+  @After
+  public void after() throws Exception {
+    Configuration.defaultInit();
   }
 
   @Test
   public void readFullBlock() throws Exception {
-    mReader = UfsBlockReader.create(mUfsBlockMeta, 0, false, mAlluxioBlockStore);
+    mReader =
+        UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false, mAlluxioBlockStore);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
 
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE, buffer));
 
     mReader.close();
-    Assert.assertTrue(mUfsBlockMeta.getCommitPending());
+    Assert.assertTrue(mUnderFileSystemBlockMeta.getCommitPending());
   }
 
   @Test
   public void readPartialBlock() throws Exception {
-    mReader = UfsBlockReader.create(mUfsBlockMeta, 0, false, mAlluxioBlockStore);
+    mReader =
+        UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false, mAlluxioBlockStore);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE - 1);
 
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE - 1, buffer));
 
     mReader.close();
-    Assert.assertFalse(mUfsBlockMeta.getCommitPending());
+    Assert.assertFalse(mUnderFileSystemBlockMeta.getCommitPending());
   }
 
   @Test
   public void offset() throws Exception {
-    mReader = UfsBlockReader.create(mUfsBlockMeta, 0, false, mAlluxioBlockStore);
+    mReader =
+        UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false, mAlluxioBlockStore);
     ByteBuffer buffer = mReader.read(2, TEST_BLOCK_SIZE - 2);
 
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE + 2, (int) TEST_BLOCK_SIZE - 2, buffer));
 
     mReader.close();
-    Assert.assertFalse(mUfsBlockMeta.getCommitPending());
+    Assert.assertFalse(mUnderFileSystemBlockMeta.getCommitPending());
   }
 
   @Test
   public void readOverlap() throws Exception {
-    mReader = UfsBlockReader.create(mUfsBlockMeta, 2, false, mAlluxioBlockStore);
+    mReader =
+        UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 2, false, mAlluxioBlockStore);
     ByteBuffer buffer = mReader.read(2, TEST_BLOCK_SIZE - 2);
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE + 2, (int) TEST_BLOCK_SIZE - 2, buffer));
@@ -124,22 +135,24 @@ public final class UfsBlockReaderTest {
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE + 3, (int) TEST_BLOCK_SIZE - 3, buffer));
 
     mReader.close();
-    Assert.assertTrue(mUfsBlockMeta.getCommitPending());
+    Assert.assertTrue(mUnderFileSystemBlockMeta.getCommitPending());
   }
 
   @Test
   public void noCache() throws Exception {
-    mReader = UfsBlockReader.create(mUfsBlockMeta, 0, true, mAlluxioBlockStore);
+    mReader =
+        UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, true, mAlluxioBlockStore);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE, buffer));
     mReader.close();
-    Assert.assertFalse(mUfsBlockMeta.getCommitPending());
+    Assert.assertFalse(mUnderFileSystemBlockMeta.getCommitPending());
   }
 
   @Test
   public void transferFullBlock() throws Exception {
-    mReader = UfsBlockReader.create(mUfsBlockMeta, 0, false, mAlluxioBlockStore);
+    mReader =
+        UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false, mAlluxioBlockStore);
     ByteBuf buf =
         PooledByteBufAllocator.DEFAULT.buffer((int) TEST_BLOCK_SIZE * 2, (int) TEST_BLOCK_SIZE * 2);
     try {
@@ -149,7 +162,7 @@ public final class UfsBlockReaderTest {
           .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE,
               buf.nioBuffer()));
       mReader.close();
-      Assert.assertTrue(mUfsBlockMeta.getCommitPending());
+      Assert.assertTrue(mUnderFileSystemBlockMeta.getCommitPending());
     } finally {
       buf.release();
     }
@@ -157,7 +170,8 @@ public final class UfsBlockReaderTest {
 
   @Test
   public void transferPartialBlock() throws Exception {
-    mReader = UfsBlockReader.create(mUfsBlockMeta, 0, false, mAlluxioBlockStore);
+    mReader =
+        UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false, mAlluxioBlockStore);
     ByteBuf buf =
         PooledByteBufAllocator.DEFAULT.buffer((int) TEST_BLOCK_SIZE / 2, (int) TEST_BLOCK_SIZE / 2);
     try {
@@ -167,7 +181,7 @@ public final class UfsBlockReaderTest {
           .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE / 2,
               buf.nioBuffer()));
       mReader.close();
-      Assert.assertFalse(mUfsBlockMeta.getCommitPending());
+      Assert.assertFalse(mUnderFileSystemBlockMeta.getCommitPending());
     } finally {
       buf.release();
     }

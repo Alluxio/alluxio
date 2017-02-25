@@ -59,16 +59,14 @@ public final class InStreamOptions {
       mLocationPolicy = CommonUtils.createNewClassInstance(
           Configuration.<FileWriteLocationPolicy>getClass(
               PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
-      mUfsReadLocationPolicy = CommonUtils.createNewClassInstance(
-          Configuration.<BlockLocationPolicy>getClass(
-              PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory
+        .create(Configuration.get(PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY));
     mCachePartiallyReadBlock =
         Configuration.getBoolean(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
-    mSeekBufferSizeBytes =
-        Configuration.getBytes(PropertyKey.USER_FILE_SEEK_BUFFER_SIZE_BYTES);
+    mSeekBufferSizeBytes = Configuration.getBytes(PropertyKey.USER_FILE_SEEK_BUFFER_SIZE_BYTES);
     mMaxUfsReadConcurrency =
         Configuration.getInt(PropertyKey.USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT);
   }

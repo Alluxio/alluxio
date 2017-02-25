@@ -16,7 +16,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.meta.UfsBlockMeta;
+import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
@@ -39,34 +39,36 @@ import javax.annotation.concurrent.GuardedBy;
  *  cleanup(sessionId, blockId)
  *  releaseAccess(sessionId, blockId)
  */
-public final class UfsBlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsBlockStore.class);
+public final class UnderFileSystemBlockStore {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockStore.class);
 
   private final ReentrantLock mLock = new ReentrantLock();
   @GuardedBy("mLock")
-  /** Maps from the {@link Key} to the {@link UfsBlockMeta}. */
-  private final Map<Key, UfsBlockMeta> mBlocks = new HashMap<>();
+  /** Maps from the {@link Key} to the {@link UnderFileSystemBlockMeta}. */ private final
+  Map<Key, UnderFileSystemBlockMeta>
+      mBlocks = new HashMap<>();
   @GuardedBy("mLock")
-  /** Maps from the session ID to the block IDs. */
-  private final Map<Long, Set<Long>> mSessionIdToBlockIds = new HashMap<>();
+  /** Maps from the session ID to the block IDs. */ private final Map<Long, Set<Long>>
+      mSessionIdToBlockIds = new HashMap<>();
   @GuardedBy("mLock")
-  /** Maps from the block ID to the session IDs. */
-  private final Map<Long, Set<Long>> mBlockIdToSessionIds = new HashMap<>();
+  /** Maps from the block ID to the session IDs. */ private final Map<Long, Set<Long>>
+      mBlockIdToSessionIds = new HashMap<>();
 
   /** The Alluxio block store. */
   private final BlockStore mAlluxioBlockStore;
 
   /**
-   * Creates an instance of {@link UfsBlockStore}.
+   * Creates an instance of {@link UnderFileSystemBlockStore}.
    *
    * @param alluxioBlockStore the Alluxio block store
    */
-  public UfsBlockStore(BlockStore alluxioBlockStore) {
+  public UnderFileSystemBlockStore(BlockStore alluxioBlockStore) {
     mAlluxioBlockStore = alluxioBlockStore;
   }
 
   /**
-   * Acquires access for a UFS block given a {@link UfsBlockMeta} and the limit on the maximum
+   * Acquires access for a UFS block given a {@link UnderFileSystemBlockMeta} and the limit on
+   * the maximum
    * concurrency on the block.
    *
    * @param blockMetaConst the constant block meta
@@ -75,9 +77,9 @@ public final class UfsBlockStore {
    * @throws UfsBlockAccessTokenUnavailableException if there are too many concurrent sessions
    *         accessing the block
    */
-  public void acquireAccess(UfsBlockMeta.ConstMeta blockMetaConst, int maxConcurrency) throws
-      BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
-    UfsBlockMeta blockMeta = new UfsBlockMeta(blockMetaConst);
+  public void acquireAccess(UnderFileSystemBlockMeta.ConstMeta blockMetaConst, int maxConcurrency)
+      throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
+    UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(blockMetaConst);
     long sessionId = blockMeta.getSessionId();
     long blockId = blockMeta.getBlockId();
     mLock.lock();
@@ -85,13 +87,13 @@ public final class UfsBlockStore {
       Key key = new Key(sessionId, blockId);
       if (mBlocks.containsKey(key)) {
         throw new BlockAlreadyExistsException(ExceptionMessage.UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION,
-            blockId, blockMeta.getUfsPath(), sessionId);
+            blockId, blockMeta.getUnderFileSystemPath(), sessionId);
       }
       Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
       if (sessionIds != null && sessionIds.size() >= maxConcurrency) {
         throw new UfsBlockAccessTokenUnavailableException(
             ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE, sessionIds.size(), blockId,
-            blockMeta.getUfsPath());
+            blockMeta.getUnderFileSystemPath());
       }
       if (sessionIds == null) {
         sessionIds = new HashSet<>();
@@ -113,7 +115,8 @@ public final class UfsBlockStore {
   }
 
   /**
-   * Cleans up the block reader or writer.
+   * Cleans up the block reader or writer and checks whether it is necessary to commit the block
+   * to Alluxio block store.
    *
    * During UFS block read, this is triggered when the block is unlocked.
    * During UFS block write, this is triggered when the UFS block is committed.
@@ -124,7 +127,7 @@ public final class UfsBlockStore {
    * @throws IOException if it fails to clean up
    */
   public boolean cleanup(long sessionId, long blockId) throws IOException {
-    UfsBlockMeta blockMeta;
+    UnderFileSystemBlockMeta blockMeta;
     mLock.lock();
     try {
       blockMeta = mBlocks.get(new Key(sessionId, blockId));
@@ -164,7 +167,7 @@ public final class UfsBlockStore {
   }
 
   /**
-   * Cancels all the block information (e.g. block reader/writer) that belongs to this session.
+   * Cleans up all the block information(e.g. block reader/writer) that belongs to this session.
    *
    * @param sessionId the session ID
    */
@@ -194,19 +197,21 @@ public final class UfsBlockStore {
   }
 
   /**
-   * Creates a UFS block reader for a UFS block.
+   * Creates a block reader that reads from UFS and optionally caches the block to the Alluxio
+   * block store.
    *
    * @param sessionId the client session ID that requested this read
    * @param blockId the ID of the block to read
    * @param offset the read offset within the block (NOT the file)
    * @param noCache if set, do not try to cache the block in the Alluxio worker
    * @return the block reader instance
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the {@link UfsBlockStore}
+   * @throws BlockDoesNotExistException if the UFS block does not exist in the
+   * {@link UnderFileSystemBlockStore}
    * @throws IOException if any I/O errors occur
    */
   public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
       boolean noCache) throws BlockDoesNotExistException, IOException {
-    final UfsBlockMeta blockMeta;
+    final UnderFileSystemBlockMeta blockMeta;
     mLock.lock();
     try {
       blockMeta = getBlockMeta(sessionId, blockId);
@@ -216,21 +221,22 @@ public final class UfsBlockStore {
     } finally {
       mLock.unlock();
     }
-    return UfsBlockReader.create(blockMeta, offset, noCache, mAlluxioBlockStore);
+    return UnderFileSystemBlockReader.create(blockMeta, offset, noCache, mAlluxioBlockStore);
   }
 
   /**
-   * Gets the {@link UfsBlockMeta} for a session ID and block ID pair.
+   * Gets the {@link UnderFileSystemBlockMeta} for a session ID and block ID pair.
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @return the {@link UfsBlockMeta} instance
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the {@link UfsBlockStore}
+   * @return the {@link UnderFileSystemBlockMeta} instance
+   * @throws BlockDoesNotExistException if the UFS block does not exist in the
+   * {@link UnderFileSystemBlockStore}
    */
-  private UfsBlockMeta getBlockMeta(long sessionId, long blockId)
+  private UnderFileSystemBlockMeta getBlockMeta(long sessionId, long blockId)
       throws BlockDoesNotExistException {
     Key key = new Key(sessionId, blockId);
-    UfsBlockMeta blockMeta = mBlocks.get(key);
+    UnderFileSystemBlockMeta blockMeta = mBlocks.get(key);
     if (blockMeta == null) {
       try {
         throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,

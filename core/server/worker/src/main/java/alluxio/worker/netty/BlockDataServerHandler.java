@@ -22,7 +22,7 @@ import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCBlockWriteRequest;
 import alluxio.network.protocol.RPCBlockWriteResponse;
 import alluxio.network.protocol.RPCResponse;
-import alluxio.network.protocol.RPCUfsBlockReadRequest;
+import alluxio.network.protocol.RPCUnderFileSystemBlockReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
@@ -116,16 +116,16 @@ final class BlockDataServerHandler {
   }
 
   /**
-   * Handles a {@link RPCUfsBlockReadRequest} by reading the data through a {@link BlockReader}
-   * provided by the block worker. This method assumes the data is available in the UFS
-   * returns an error status if the data is not available.
+   * Handles a {@link RPCUnderFileSystemBlockReadRequest} by reading the data through a
+   * {@link BlockReader} provided by the block worker. This method assumes the data is available
+   * in the UFS returns an error status if the data is not available.
    *
    * @param ctx The context of this request which handles the result of this operation
    * @param req The initiating {@link RPCBlockReadRequest}
    * @throws IOException if an I/O error occurs when reading the data requested
    */
-  public void handleUfsBlockReadRequest(final ChannelHandlerContext ctx,
-      final RPCUfsBlockReadRequest req) throws IOException {
+  public void handleUnderFileSystemBlockReadRequest(final ChannelHandlerContext ctx,
+      final RPCUnderFileSystemBlockReadRequest req) throws IOException {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();

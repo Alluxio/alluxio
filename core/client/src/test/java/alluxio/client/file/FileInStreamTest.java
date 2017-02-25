@@ -21,7 +21,7 @@ import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.StreamFactory;
 import alluxio.client.block.TestBufferedBlockInStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
-import alluxio.client.block.UfsBlockInStream;
+import alluxio.client.block.UnderFileSystemBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -57,7 +57,7 @@ import java.util.List;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(
     {FileSystemContext.class, AlluxioBlockStore.class, UnderFileSystem.class, StreamFactory.class,
-        UfsBlockInStream.class})
+        UnderFileSystemBlockInStream.class})
 public class FileInStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
@@ -462,7 +462,7 @@ public class FileInStreamTest {
     Mockito.when(mBlockStore.getInStream(Mockito.eq(1L), Mockito.any(InStreamOptions.class)))
         .thenThrow(new IOException("test IOException"));
     if (mDelegateUfsOps) {
-      UfsBlockInStream inStream = PowerMockito.mock(UfsBlockInStream.class);
+      UnderFileSystemBlockInStream inStream = PowerMockito.mock(UnderFileSystemBlockInStream.class);
       PowerMockito.when(StreamFactory
           .createUfsBlockInStream(Mockito.any(FileSystemContext.class), Mockito.anyString(),
               Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong(),

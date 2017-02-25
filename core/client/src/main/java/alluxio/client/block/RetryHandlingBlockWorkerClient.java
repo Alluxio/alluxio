@@ -13,11 +13,13 @@ package alluxio.client.block;
 
 import alluxio.AbstractThriftClient;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.CountingRetry;
@@ -26,6 +28,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.ThriftIOException;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
@@ -234,6 +237,27 @@ public final class RetryHandlingBlockWorkerClient
                 .fromThrift(client.lockBlock(blockId, getSessionId(), options.toThrift()));
           }
         });
+  }
+
+  @Override
+  public LockBlockResult lockUfsBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException {
+    long retryInterval = Constants.SECOND_MS;
+    long timeout = System.currentTimeMillis() + Configuration
+        .getLong(PropertyKey.USER_UFS_BLOCK_OPEN_TIMEOUT_MS);
+    while (true) {
+      try {
+        return lockBlock(blockId, options);
+      } catch (UfsBlockAccessTokenUnavailableException e) {
+        if (System.currentTimeMillis() >= timeout) {
+          throw e;
+        }
+        LOG.debug(
+            "Failed to acquire a UFS read token because of contention for block {} in file {}",
+            blockId, blockId);
+        CommonUtils.sleepMs(retryInterval);
+      }
+    }
   }
 
   @Override

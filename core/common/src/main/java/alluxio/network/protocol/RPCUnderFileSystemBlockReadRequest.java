@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This represents an RPC request to read a UFS block from a DataServer.
  */
 @ThreadSafe
-public final class RPCUfsBlockReadRequest extends RPCRequest {
+public final class RPCUnderFileSystemBlockReadRequest extends RPCRequest {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
@@ -38,7 +38,7 @@ public final class RPCUfsBlockReadRequest extends RPCRequest {
    * @param sessionId the id of the client session
    * @param noCache do not cache the block if set
    */
-  public RPCUfsBlockReadRequest(long blockId, long offset, long length, long sessionId,
+  public RPCUnderFileSystemBlockReadRequest(long blockId, long offset, long length, long sessionId,
       boolean noCache) {
     mBlockId = blockId;
     mOffset = offset;
@@ -53,18 +53,19 @@ public final class RPCUfsBlockReadRequest extends RPCRequest {
   }
 
   /**
-   * Decodes the input {@link ByteBuf} into a {@link RPCUfsBlockReadRequest} object and returns it.
+   * Decodes the input {@link ByteBuf} into a {@link RPCUnderFileSystemBlockReadRequest} object
+   * and returns it.
    *
    * @param in the input {@link ByteBuf}
    * @return The decoded RPCBlockReadRequest object
    */
-  public static RPCUfsBlockReadRequest decode(ByteBuf in) {
+  public static RPCUnderFileSystemBlockReadRequest decode(ByteBuf in) {
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();
     long sessionId = in.readLong();
     boolean noCache = in.readBoolean();
-    return new RPCUfsBlockReadRequest(blockId, offset, length, sessionId, noCache);
+    return new RPCUnderFileSystemBlockReadRequest(blockId, offset, length, sessionId, noCache);
   }
 
   @Override

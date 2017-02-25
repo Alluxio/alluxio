@@ -98,11 +98,25 @@ public interface BlockWorkerClient extends Closeable {
    *
    * @param blockId the ID of the block
    * @param options the lock block options
-   * @return the path of the block file locked
+   * @return the lock block result
    * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
   LockBlockResult lockBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException;
+
+  /**
+   * A wrapper over {@link BlockWorkerClient#lockBlock(long, LockBlockOptions)} to lock a block
+   * that is not in Alluxio but in UFS. It retries if it fails to lock because of contention for
+   * the block on the worker.
+   *
+   * @param blockId the block ID
+   * @param options the lock block options
+   * @return the lock block result
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio error occurs
+   */
+  LockBlockResult lockUfsBlock(final long blockId, final LockBlockOptions options)
       throws IOException, AlluxioException;
 
   /**
