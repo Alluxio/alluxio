@@ -16,6 +16,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
@@ -64,16 +65,9 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     try {
       client = closer.register(context.createBlockWorkerClient(workerNetAddress));
       result = client.lockBlock(blockId, LockBlockOptions.defaults());
-    } catch (AlluxioException e) {
-      closer.close();
-      throw new IOException(e);
-    } catch (IOException e) {
-      try {
-        closer.close();
-      } catch (IOException ee) {
-        // Ignore.
-      }
-      throw e;
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
     }
     return new LocalBlockInStream(client, blockId, blockSize, result.getBlockPath(),
         options);
@@ -121,11 +115,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     try {
       mReader = mCloser.register(new LocalFileBlockReader(path));
     } catch (IOException e) {
-      try {
-        mCloser.close();
-      } catch (IOException ee) {
-        // Ignore.
-      }
+      CommonUtils.closeCloserIgnoreException(mCloser);
       throw e;
     }
   }
@@ -151,10 +141,10 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       throw mCloser.rethrow(e); // IOException will be thrown as-is
     } finally {
       mClosed = true;
-      mCloser.close();
       if (mBuffer != null && mBuffer.isDirect()) {
         BufferUtils.cleanDirectBuffer(mBuffer);
       }
+      mCloser.close();
     }
   }
 

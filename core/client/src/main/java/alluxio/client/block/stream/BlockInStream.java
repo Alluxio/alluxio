@@ -20,7 +20,9 @@ import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
@@ -87,13 +89,9 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
           .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockId, blockWorkerClient, options);
-    } catch (Exception e) {
-      closer.close();
-      if (e instanceof IOException) {
-        throw (IOException) e;
-      } else {
-        throw new IOException(e);
-      }
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
     }
   }
 
@@ -129,13 +127,9 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
               Protocol.RequestType.ALLUXIO_BLOCK));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockId, blockWorkerClient, options);
-    } catch (Exception e) {
-      closer.close();
-      if (e instanceof IOException) {
-        throw (IOException) e;
-      } else {
-        throw new IOException(e);
-      }
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
     }
   }
 
@@ -192,13 +186,9 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
                 !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK));
       }
       return new BlockInStream(inStream, blockId, blockWorkerClient, options);
-    } catch (Exception e) {
-      closer.close();
-      if (e instanceof IOException) {
-        throw (IOException) e;
-      } else {
-        throw new IOException(e);
-      }
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
     }
   }
 

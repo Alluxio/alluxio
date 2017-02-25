@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
@@ -68,12 +69,9 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     try {
       client = closer.register(context.createBlockWorkerClient(workerNetAddress));
       result = client.lockBlock(blockId, LockBlockOptions.defaults());
-    } catch (AlluxioException e) {
-      closer.close();
-      throw new IOException(e);
-    } catch (IOException e) {
-      closer.close();
-      throw e;
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
     }
 
     return new RemoteBlockInStream(context, client, blockId, blockSize, result.getLockId(),
