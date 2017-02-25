@@ -524,7 +524,8 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   public void copyFromLocalWildcardNotDir() throws IOException, AlluxioException {
     String localTestDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     String alluxioTestDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", "file://" +  localTestDir + "/*/foo*", alluxioTestDir + "/foobar4");
+    int ret = mFsShell.run("cp", "file://" +  localTestDir + "/*/foo*", alluxioTestDir
+                           + "/foobar4");
     Assert.assertEquals(-1, ret);
   }
 
