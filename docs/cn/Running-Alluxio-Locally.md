@@ -36,12 +36,12 @@ $ ./bin/alluxio format
 ## 以sudo权限启动Alluxio
 
 默认情况下，Alluxio在启动时会创建一个[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)作为自己的内存数据存储。
-这个步骤需要sudo权限来执行“mount”，“umount”和“chmod”等操作。有两种方式来实现：
+这个步骤需要sudo权限来执行“mount”，“umount”，“mkdir”和“chmod”等操作。有两种方式来实现：
 
 * 以超级用户的身份启动Alluxio，或者
 * 给运行Alluxio的用户（例如“alluxio”）有限的sudo权限。在Linux系统上，可以向`/etc/sudoers`文件添加如下的一行内容来实现：
-`alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
-这将允许Linux用户“alluxio”以sudo权限进行mount，umount，在`/mnt/ramdisk`路径上执行chmod等操作而不需要输入密码，但并不给“alluxio“用户赋予其他的sudo权限。
+`alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/mkdir * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
+这将允许Linux用户“alluxio”以sudo权限进行mount，umount，在具体路径`/mnt/ramdisk`上执行chmod等操作（假设操作命令在 `/bin/`目录下）而不需要输入密码，但并不给“alluxio”用户赋予其他的sudo权限。
 更详细的解释可以参考[Sudoer用户技术说明](https://help.ubuntu.com/community/Sudoers#User_Specifications)。
 
 以适当的用户身份，运行如下的命令来启动Alluxio文件系统。
