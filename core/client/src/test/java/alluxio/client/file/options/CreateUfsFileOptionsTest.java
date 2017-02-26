@@ -47,7 +47,7 @@ public final class CreateUfsFileOptionsTest {
   @Rule
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
       .of(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, IdentityUserGroupsMapping.class.getName()));
-  
+
   /**
    * Tests that building a {@link CreateUfsFileOptions} with the defaults works.
    */
