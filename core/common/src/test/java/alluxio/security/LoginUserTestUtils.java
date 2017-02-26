@@ -42,9 +42,7 @@ public final class LoginUserTestUtils {
    */
   public static void resetLoginUser(String user) throws IOException {
     synchronized (LoginUser.class) {
-      resetLoginUser();
-      Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, user);
-      LoginUser.get();
+      Whitebox.setInternalState(LoginUser.class, "sLoginUser", new User(user));
     }
   }
 }
