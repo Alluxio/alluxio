@@ -11,9 +11,6 @@
 
 package alluxio.security;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
