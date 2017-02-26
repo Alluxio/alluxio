@@ -11,32 +11,34 @@
 
 package alluxio;
 
+import alluxio.security.LoginUser;
 import alluxio.security.LoginUserTestUtils;
+import alluxio.security.User;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * An AutoCloseable which temporarily modifies process login user when it is
  * constructed and restores the previous login user when it is closed.
  */
+@ThreadSafe
 public final class SetAndRestoreLoginUser implements AutoCloseable {
-  private String mPreviousLoginUser = null;
+  private User mPreviousLoginUser = null;
 
   /**
    * @param user User name to set
    */
   public SetAndRestoreLoginUser(String user) throws Exception {
-    if (Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME)) {
-      mPreviousLoginUser = Configuration.get(PropertyKey.SECURITY_LOGIN_USERNAME);
-    }
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, user);
+    mPreviousLoginUser = LoginUser.get();
+    LoginUserTestUtils.resetLoginUser(user);
   }
 
   @Override
   public void close() throws Exception {
     if (mPreviousLoginUser != null) {
-      Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, mPreviousLoginUser);
+      LoginUserTestUtils.resetLoginUser(mPreviousLoginUser.getName());
     } else {
-      Configuration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
+      LoginUserTestUtils.resetLoginUser();
     }
-    LoginUserTestUtils.resetLoginUser();
   }
 }

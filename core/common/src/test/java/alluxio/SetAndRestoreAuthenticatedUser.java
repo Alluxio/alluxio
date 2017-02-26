@@ -14,10 +14,13 @@ package alluxio;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * An AutoCloseable which temporarily modifies authenticated user on server side when it is
  * constructed and restores the authenticated user when it is closed.
  */
+@ThreadSafe
 public final class SetAndRestoreAuthenticatedUser implements AutoCloseable {
   private final User mPreviousUser;
 

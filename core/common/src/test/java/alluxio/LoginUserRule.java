@@ -15,11 +15,14 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * A rule for login an Alluxio user during a test suite. It sets
  * {@link PropertyKey#SECURITY_LOGIN_USERNAME} to the specified user name during the lifetime
  * of this rule.
  */
+@NotThreadSafe
 public final class LoginUserRule implements TestRule {
   private final String mUser;
 

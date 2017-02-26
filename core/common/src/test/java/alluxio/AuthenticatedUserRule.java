@@ -15,12 +15,15 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * A rule for login an Alluxio user during a test suite.
  * It sets {@link alluxio.security.authentication.AuthenticatedClientUser}
  * to the specified user name during the lifetime
  * of this rule. Note: setting the user only takes effect within the caller thread.
  */
+@NotThreadSafe
 public final class AuthenticatedUserRule implements TestRule {
   private final String mUser;
 
