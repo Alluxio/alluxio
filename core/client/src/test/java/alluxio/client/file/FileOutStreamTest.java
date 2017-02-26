@@ -24,10 +24,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
-import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
@@ -46,7 +46,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -81,7 +80,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     UnderFileSystem.class, UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
   @Rule
-  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("Test");
+  public LoginUserRule mLoginUser = new LoginUserRule("Test");
 
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
@@ -106,7 +105,6 @@ public class FileOutStreamTest {
    */
   @Before
   public void before() throws Exception {
-    LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
     ClientTestUtils.setSmallBufferSizes();
 
