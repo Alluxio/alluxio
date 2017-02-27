@@ -12,23 +12,16 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
-import alluxio.Configuration;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
-import alluxio.security.GroupMappingServiceTestUtils;
-import alluxio.security.LoginUserTestUtils;
-import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 

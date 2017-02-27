@@ -84,7 +84,7 @@ public final class PermissionCheckTest {
   private static final TestUser TEST_USER_1 = new TestUser("user1", "group1");
   private static final TestUser TEST_USER_2 = new TestUser("user2", "group2");
   private static final TestUser TEST_USER_3 = new TestUser("user3", "group1");
-  private static final TestUser TEST_USER_SUPERGROUP = new TestUser("user4", "test-supergroup");
+  private static final TestUser TEST_USER_SUPERGROUP = new TestUser("user4", TEST_SUPER_GROUP);
 
   /*
    * The file structure for testing is:
@@ -900,8 +900,9 @@ public final class PermissionCheckTest {
           SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setMode(mode)
               .setRecursive(recursive);
       mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
-
-      AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
+    }
+    try (SetAndRestoreAuthenticatedUser u = new SetAndRestoreAuthenticatedUser(
+        TEST_USER_ADMIN.getUser())) {
       FileInfo fileInfo =
           mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(path)));
       if (owner != null) {
