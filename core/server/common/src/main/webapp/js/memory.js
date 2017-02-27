@@ -32,12 +32,12 @@ function initGrid() {
                   "direction": value.sort.direction
                 });
               });
-              $scope.generateData();
+              $scope.generateData(false);
             });
             gridApi.pagination.on.paginationChanged($scope, function (newPage, pageSize) {
               paginationOptions.pageNumber = newPage;
               paginationOptions.pageSize = pageSize;
-              $scope.generateData();
+              $scope.generateData(false);
             });
             $scope.gridApi.core.on.filterChanged($scope, function () {
               var grid = this.grid;
@@ -50,10 +50,10 @@ function initGrid() {
                   console.log(value.field + "'s filter: " + value.filters[0].term);
                 }
               });
-              $scope.generateData();
+              $scope.generateData(false);
             });
             paginationOptions.pageSize = $scope.gridOptions.paginationPageSize;
-            $scope.generateData();
+            $scope.generateData(true);
           },
 
           columnDefs: [
@@ -130,13 +130,14 @@ function initGrid() {
           var path = encodeURI(row.entity.absolutePath);
           window.open("./" + "browse" + "?path=" + path);
         };
-        $scope.generateData = function() {
+        $scope.generateData = function(refresh) {
           $.ajax({
             url: '/memory/getFiles.ajax',
             type: 'post',
             dataType: 'json',
             data: {
-              paginationOptions: JSON.stringify(paginationOptions)
+              paginationOptions: JSON.stringify(paginationOptions),
+              refresh:refresh
             },
             success: function (json) {
               $(".text-error").html(json.argumentMap.fatalError);

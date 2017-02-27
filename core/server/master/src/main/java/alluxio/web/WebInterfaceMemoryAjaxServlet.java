@@ -56,6 +56,7 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
   private static final transient Map<String, String> FILE_INFO_SPECIAL_FIELD_MAP = new HashMap<>();
   private static final long serialVersionUID = -8262727381905167368L;
   private final transient AlluxioMasterService mMaster;
+  private List<UIFileInfo> mFileInfos = new ArrayList<>();
 
   static {
     Method[] methods = UIFileInfo.class.getMethods();
@@ -116,7 +117,7 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
 
     List<AlluxioURI> inMemoryFiles = mMaster.getFileSystemMaster().getInMemoryFiles();
     // Collections.sort(inMemoryFiles);
-
+    boolean refresh = Boolean.parseBoolean(request.getParameter("refresh"));
     String paginationOptions = request.getParameter("paginationOptions");
     ObjectMapper mapper = new ObjectMapper();
     final PaginationOptionsEntity paginationOptionsEntity = mapper.readValue(paginationOptions,
@@ -124,33 +125,34 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
     if (paginationOptionsEntity == null) {
       return;
     }
-    //get all fullInMemory fileInfo;
-    List<UIFileInfo> fileInfos = new ArrayList<>();
-    for (AlluxioURI file : inMemoryFiles) {
-      try {
-        long fileId = mMaster.getFileSystemMaster().getFileId(file);
-        FileInfo fileInfo = mMaster.getFileSystemMaster().getFileInfo(fileId);
-        if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
-          fileInfos.add(new UIFileInfo(fileInfo));
+    if (refresh) {
+      //get all fullInMemory fileInfo;
+      for (AlluxioURI file : inMemoryFiles) {
+        try {
+          long fileId = mMaster.getFileSystemMaster().getFileId(file);
+          FileInfo fileInfo = mMaster.getFileSystemMaster().getFileInfo(fileId);
+          if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
+            mFileInfos.add(new UIFileInfo(fileInfo));
+          }
+        } catch (FileDoesNotExistException e) {
+          pageResultEntity.getArgumentMap().put("fatalError", "Error: File does not exist "
+              + e.getLocalizedMessage());
+          response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
+          return;
+        } catch (AccessControlException e) {
+          pageResultEntity.getArgumentMap().put("permissionError",
+              "Error: File " + file + " cannot be accessed " + e.getMessage());
+          response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
+          return;
         }
-      } catch (FileDoesNotExistException e) {
-        pageResultEntity.getArgumentMap().put("fatalError", "Error: File does not exist "
-            + e.getLocalizedMessage());
-        response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
-        return;
-      } catch (AccessControlException e) {
-        pageResultEntity.getArgumentMap().put("permissionError",
-            "Error: File " + file + " cannot be accessed " + e.getMessage());
-        response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
-        return;
       }
     }
-    request.setAttribute("inMemoryFileNum", fileInfos.size());
+    request.setAttribute("inMemoryFileNum", mFileInfos.size());
 
     //sort
     if (paginationOptionsEntity.getSorters() != null
         && paginationOptionsEntity.getSorters().size() > 0) {
-      Collections.sort(fileInfos, new Comparator<UIFileInfo>() {
+      Collections.sort(mFileInfos, new Comparator<UIFileInfo>() {
         @Override
         public int compare(UIFileInfo o1, UIFileInfo o2) {
           try {
@@ -195,9 +197,10 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
     }
     //filter
     List<FilterEntity> filterEntityList = paginationOptionsEntity.getFilters();
+    List<UIFileInfo> fileInfos = mFileInfos;
     if (filterEntityList != null && filterEntityList.size() > 0) {
-
-      Iterator<UIFileInfo> uiFileInfoIter = fileInfos.iterator();
+      fileInfos = new ArrayList<>();
+      Iterator<UIFileInfo> uiFileInfoIter = mFileInfos.iterator();
       while (uiFileInfoIter.hasNext()) {
         boolean filterPassed = true;
         UIFileInfo uiFileInfo = uiFileInfoIter.next();
@@ -229,7 +232,9 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
           }
         }
         if (!filterPassed) {
-          uiFileInfoIter.remove();
+          continue;
+        } else {
+          fileInfos.add(uiFileInfo);
         }
       }
     }
