@@ -125,6 +125,9 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
     if (paginationOptionsEntity == null) {
       return;
     }
+
+    StringBuffer fatalErrorMsgSb = new StringBuffer();
+    StringBuffer permissionErrorMsgSb = new StringBuffer();
     if (refresh) {
       //get all fullInMemory fileInfo;
       for (AlluxioURI file : inMemoryFiles) {
@@ -135,18 +138,17 @@ public final class WebInterfaceMemoryAjaxServlet extends HttpServlet {
             mFileInfos.add(new UIFileInfo(fileInfo));
           }
         } catch (FileDoesNotExistException e) {
-          pageResultEntity.getArgumentMap().put("fatalError", "Error: File does not exist "
-              + e.getLocalizedMessage());
+          fatalErrorMsgSb.append("Error: File "+ file + " does not exist "
+              + e.getLocalizedMessage() + "<p>");
           response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
-          return;
         } catch (AccessControlException e) {
-          pageResultEntity.getArgumentMap().put("permissionError",
-              "Error: File " + file + " cannot be accessed " + e.getMessage());
-          response.getWriter().write(mapper.writeValueAsString(pageResultEntity));
-          return;
+          permissionErrorMsgSb.append("Error: File " + file + " cannot be accessed "
+              + e.getMessage() + "<p>");
         }
       }
     }
+    pageResultEntity.getArgumentMap().put("fatalError", fatalErrorMsgSb.toString());
+    pageResultEntity.getArgumentMap().put("permissionError", permissionErrorMsgSb.toString());
     request.setAttribute("inMemoryFileNum", mFileInfos.size());
 
     //sort
