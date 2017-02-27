@@ -51,12 +51,6 @@ public final class WebInterfaceBrowseAjaxServlet extends HttpServlet {
 
   private static final long serialVersionUID = 7251644350146133763L;
   private final transient AlluxioMasterService mMaster;
-  private static final FilenameFilter LOG_FILE_FILTER = new FilenameFilter() {
-    @Override
-    public boolean accept(File dir, String name) {
-      return name.toLowerCase().endsWith(".log");
-    }
-  };
 
   /**
    * Creates a new instance of {@link WebInterfaceBrowseLogAjaxServlet}.
