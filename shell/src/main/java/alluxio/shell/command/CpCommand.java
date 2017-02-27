@@ -311,7 +311,7 @@ public final class CpCommand extends AbstractShellCommand {
       AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
       try {
         copyPath(srcFile, newURI);
-        System.out.println("Copied " + "file://" + srcFile.getPath() + " to " + dstPath);
+        System.out.println("Copied " + srcFile.getPath() + " to " + dstPath);
       } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage());
         if (!mFileSystem.exists(newURI)) {
@@ -367,7 +367,7 @@ public final class CpCommand extends AbstractShellCommand {
     } else {
       copyPath(srcFile, dstPath);
     }
-    System.out.println("Copied " + "file://" + srcFile.getPath() + " to " + dstPath);
+    System.out.println("Copied " + srcFile.getPath() + " to " + dstPath);
   }
 
   /**
@@ -551,7 +551,7 @@ public final class CpCommand extends AbstractShellCommand {
         throw new IOException(
             "Failed to rename " + tmpDst.getPath() + " to destination " + dstFile.getPath());
       }
-      System.out.println("Copied " + srcPath + " to " + "file://" + dstFile.getPath());
+      System.out.println("Copied " + srcPath + " to " + dstFile.getPath());
     } finally {
       tmpDst.delete();
     }

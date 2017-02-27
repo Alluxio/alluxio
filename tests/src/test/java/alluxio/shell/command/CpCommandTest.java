@@ -376,7 +376,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     // Copying a directory to a destination directory which exists and doesn't contain the copied
     // directory.
     mFileSystem.createDirectory(new AlluxioURI("/dstDir"));
-    int ret = mFsShell.run("cp", "file://" +  srcOuterDir.getPath(), "/dstDir");
+    int ret = mFsShell.run("cp", "file://" + srcOuterDir.getPath(), "/dstDir");
     Assert.assertEquals(0, ret);
     AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
     AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
@@ -389,7 +389,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     // directory.
     mFileSystem.createDirectory(new AlluxioURI("/dstDir1"));
     mFileSystem.createDirectory(new AlluxioURI("/dstDir1/innerDir"));
-    int ret1 = mFsShell.run("cp", "file://" +  srcOuterDir.getPath(), "/dstDir1");
+    int ret1 = mFsShell.run("cp", "file://" + srcOuterDir.getPath(), "/dstDir1");
     Assert.assertEquals(-1, ret1);
     dstURI1 = new AlluxioURI("/dstDir1/srcFile1");
     dstURI2 = new AlluxioURI("/dstDir1/innerDir/srcFile2");
@@ -410,7 +410,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     fos.close();
     mFsShell.run("cp", "file://" +  testFile.getAbsolutePath(), "/testFile");
     Assert.assertEquals(
-        getCommandOutput(new String[] {"cp", "file://" +  testFile.getAbsolutePath(), "/testFile"}),
+        getCommandOutput(new String[] {"cp", testFile.getAbsolutePath(), "/testFile"}),
         mOutput.toString());
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
@@ -437,7 +437,8 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     // Write the first file
     String[] cmd1 = {"cp", "file://" +  testFile1.getPath(), alluxioFilePath.getPath()};
     mFsShell.run(cmd1);
-    Assert.assertEquals(getCommandOutput(cmd1), mOutput.toString());
+    Assert.assertEquals(getCommandOutput(
+        new String[]{"cp", testFile1.getPath(), alluxioFilePath.getPath()}), mOutput.toString());
     mOutput.reset();
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
@@ -462,9 +463,9 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     generateFileContent("/testDir/testDirInner/testFile2",
         BufferUtils.getIncreasingByteArray(10, 20));
 
-    mFsShell.run("cp", "file://" +  testFile.getParent(), "/testDir");
+    mFsShell.run("cp", "file://" + testFile.getParent(), "/testDir");
     Assert.assertEquals(
-        getCommandOutput(new String[]{"cp", "file://" +  testFile.getParent(), "/testDir"}),
+        getCommandOutput(new String[]{"cp", testFile.getParent(), "/testDir"}),
         mOutput.toString());
     AlluxioURI uri1 = new AlluxioURI("/testDir/testFile");
     AlluxioURI uri2 = new AlluxioURI("/testDir/testDirInner/testFile2");
@@ -486,9 +487,9 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     String alluxioURI = "alluxio://" + mLocalAlluxioCluster.getHostname() + ":"
         + mLocalAlluxioCluster.getMasterRpcPort() + "/destFileURI";
     // when
-    mFsShell.run("cp", "file://" +  testFile.getPath(), alluxioURI);
+    mFsShell.run("cp", "file://" + testFile.getPath(), alluxioURI);
     String cmdOut =
-        getCommandOutput(new String[]{"cp", "file://" +  testFile.getPath(), alluxioURI});
+        getCommandOutput(new String[]{"cp", testFile.getPath(), alluxioURI});
     // then
     Assert.assertEquals(cmdOut, mOutput.toString());
     AlluxioURI uri = new AlluxioURI("/destFileURI");
@@ -615,7 +616,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     mFsShell.run("cp", "/testFile",
         "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     Assert.assertEquals(getCommandOutput(new String[] {"cp", "/testFile",
-        "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testFile"}), mOutput.toString());
+        mLocalAlluxioCluster.getAlluxioHome() + "/testFile"}), mOutput.toString());
     fileReadTest("/testFile", 10);
   }
 }
