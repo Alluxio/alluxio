@@ -39,8 +39,6 @@
         <div class="navbar">
           <div class="navbar-inner">
             <ul id="pathUl" class="nav nav-pills">
-              <nav path="/" name="/"></nav>
-              <nav class="active" path="/test" name="test"></nav>
             </ul>
             <div id="pathNav" class="input-append pull-right path-nav">
               <input class="span12" id="pathInput" type="text" placeholder="Navigate to a directory">
