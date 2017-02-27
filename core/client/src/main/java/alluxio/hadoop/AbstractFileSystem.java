@@ -424,9 +424,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     // NOTE, switch the context class loader to the one used to load this class which is not
     // necessary the system default class loader especially when it is loaded by reflection
-    // from hadoop. This ensures all Alluxio classes are loaded by the same
-    // class loader and prevents "java.io.IOException: Failed to login: No Alluxio User is found"
-    // (see ALLUXIO-2556)
+    // from hadoop CLI -libjars or from Spark by setting "extraClassPath" properties.
+    // This ensures all Alluxio classes are loaded by the same class loader and prevents
+    // "java.io.IOException: Failed to login: No Alluxio User is found" (see ALLUXIO-2556).
     Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 
     // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
