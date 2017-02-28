@@ -90,10 +90,7 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
         System.out.println("repairing path: " + inconsistentUri);
         DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
         mFileSystem.delete(inconsistentUri, deleteOptions);
-        if (mFileSystem.exists(inconsistentUri)) {
-          mFileSystem.listStatus(inconsistentUri, ListStatusOptions.defaults()
-              .setLoadMetadataType(LoadMetadataType.Always));
-        }
+        mFileSystem.exists(inconsistentUri);
         System.out.println(inconsistentUri + " repaired");
         System.out.println();
       }
