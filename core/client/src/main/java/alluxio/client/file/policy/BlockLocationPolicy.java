@@ -16,9 +16,15 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
+
 /**
  * <p>
  * Interface for determining the Alluxio worker location to serve a block write or UFS block read.
+ * </p>
+ *
+ * <p>
+ * {@link alluxio.client.file.FileInStream} uses this to determine where to read a UFS block.
  * </p>
  *
  * <p>
@@ -48,10 +54,8 @@ public interface BlockLocationPolicy {
      */
     public static BlockLocationPolicy create(String policyClassNameWithShard) {
       String[] parts = policyClassNameWithShard.split("@");
-      if (parts.length > 2) {
-        throw new IllegalArgumentException(
-            String.format("%s is a illegal block location policy name.", policyClassNameWithShard));
-      }
+      Preconditions.checkArgument(parts.length <= 2 && parts.length >= 1,
+          "%s is a illegal block location policy name.", policyClassNameWithShard);
       Integer numShards = 1;
       if (parts.length == 2) {
         numShards = Integer.valueOf(parts[1]);
@@ -71,7 +75,7 @@ public interface BlockLocationPolicy {
   }
 
   /**
-   * Gets the worker's host name for serving operations requested for the block.
+   * Gets the worker's network address for serving operations requested for the block.
    *
    * @param workerInfoList the info of the active workers
    * @param blockId the block ID
