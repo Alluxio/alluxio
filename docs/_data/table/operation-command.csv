@@ -19,6 +19,7 @@ load,"load ""path"""
 loadMetadata,"loadMetadata ""path"""
 location,"location ""path"""
 ls,"ls ""path"""
+masterInfo,masterInfo
 mkdir,"mkdir ""path1"" ... ""pathn"""
 mount,"mount ""path"" ""uri"""
 mv,"mv ""source"" ""destination"""

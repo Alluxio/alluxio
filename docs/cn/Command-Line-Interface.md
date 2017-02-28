@@ -238,6 +238,14 @@ fs命令中的所有“路径”都应该以以下开头：
 
 {% include Command-Line-Interface/ls.md %}
 
+### masterInfo
+
+`masterInfo`命令打印与Alluxio master相关的信息。如果Alluxio运行在单master模式下，`masterInfo`命令会打印出该master的地址；如果Alluxio运行在多master容错模式下，`masterInfo`命令会打印出当前的leader master、所有master以及Zookeeper的地址。
+
+使用举例：使用`masterInfo`命令可以打印与Alluxio master相关的信息。
+
+{% include Command-Line-Interface/masterInfo.md %}
+
 ### mkdir
 
 `mkdir`命令在Alluxio中创建一个新的文件夹。该命令可以递归创建不存在的父目录。注意在该文件夹中的某个文件被持久化到底层文件系统之前，该文件夹不会在底层文件系统中被创建。对一个无效的或者已存在的路径使用`mkdir`命令会失败。
