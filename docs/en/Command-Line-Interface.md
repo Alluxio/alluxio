@@ -246,7 +246,7 @@ For example, `ls` can be used to browse the file system.
 ### masterInfo
 
 The `masterInfo` command prints information regarding master fault tolerance such as leader address, list of master addresses, and the configured Zookeeper address. If Alluxio is running in single
-master mode, `masterInfo` will prints the master address. If Alluxio is running in fault tolerance mode,
+master mode, `masterInfo` will print the master address. If Alluxio is running in fault tolerance mode,
 the leader address, list of master addresses and the configured Zookeeper address will be printed.
 
 For example, `masterInfo` can be used to print information regarding master fault tolerance.
