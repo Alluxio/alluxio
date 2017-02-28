@@ -105,4 +105,12 @@ public final class LockBlockResult implements Serializable {
     return Objects.toStringHelper(this).add("lockId", mLockId).add("blockPath", mBlockPath)
         .toString();
   }
+
+  /**
+   * @param result the lock block result
+   * @return true if the block is in cached in Alluxio
+   */
+  public static boolean isBlockCachedInAlluxio(LockBlockResult result) {
+    return result.getLockId() >= 0;
+  }
 }

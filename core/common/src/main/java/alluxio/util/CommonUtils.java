@@ -17,6 +17,7 @@ import alluxio.util.ShellUtils.ExitCodeException;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -352,6 +353,33 @@ public final class CommonUtils {
       e = e.getCause();
     }
     return e;
+  }
+
+  /**
+   * Closes a closer and ignores the IOException if it throws one.
+   *
+   * @param closer the closer
+   */
+  public static void closeCloserIgnoreException(Closer closer) {
+    try {
+      closer.close();
+    } catch (IOException e) {
+      // Ignore.
+    }
+  }
+
+  /**
+   * Casts a {@link Throwable} to an {@link IOException}.
+   *
+   * @param e the throwable
+   * @return the IO exception
+   */
+  public static IOException castToIOException(Throwable e) {
+    if (e instanceof  IOException) {
+      return (IOException) e;
+    } else {
+      return new IOException(e);
+    }
   }
 
   private CommonUtils() {} // prevent instantiation
