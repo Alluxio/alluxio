@@ -409,6 +409,21 @@
           </exclusion>
           <!-- Excluded to avoid issues with the web UI -->
           <exclusion>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jsp-2.1</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid issues with the web UI -->
+          <exclusion>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jsp-api-2.1</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid issues with the web UI -->
+          <exclusion>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>servlet-api</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid issues with the web UI -->
+          <exclusion>
             <groupId>tomcat</groupId>
             <artifactId>jasper-runtime</artifactId>
           </exclusion>
