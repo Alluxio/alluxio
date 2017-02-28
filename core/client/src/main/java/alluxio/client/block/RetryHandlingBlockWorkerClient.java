@@ -324,9 +324,13 @@ public final class RetryHandlingBlockWorkerClient
         client.sessionHeartbeat(mSessionId, null);
         Metrics.BLOCK_WORKER_HEATBEATS.inc();
         return;
-      } catch (AlluxioTException | ThriftIOException e) {
-        exception = e;
+      } catch (AlluxioTException e) {
+        AlluxioException ae = AlluxioException.fromThrift(e);
+        LOG.warn(ae.getMessage());
+        throw new IOException(ae);
+      } catch (ThriftIOException e) {
         LOG.warn(e.getMessage());
+        throw new IOException(e);
       } catch (TException e) {
         client.getOutputProtocol().getTransport().close();
         exception = e;
