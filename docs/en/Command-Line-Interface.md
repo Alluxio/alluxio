@@ -243,6 +243,16 @@ For example, `ls` can be used to browse the file system.
 
 `ls` loads the metadata for immedidate children of a directory.
 
+### masterInfo
+
+The `masterInfo` command prints information regarding master fault tolerance such as leader address, list of master addresses, and the configured Zookeeper address. If Alluxio is running in single
+master mode, `masterInfo` will print the master address. If Alluxio is running in fault tolerance mode,
+the leader address, list of master addresses and the configured Zookeeper address will be printed.
+
+For example, `masterInfo` can be used to print information regarding master fault tolerance.
+
+{% include Command-Line-Interface/masterInfo.md %}
+
 ### mkdir
 
 The `mkdir` command creates a new directory in Alluxio space. It is recursive and will create any nonexistent parent directories. Note that the created directory will not be created in the under storage system until a file in the directory is persisted to the underlying storage. Using `mkdir` on an invalid or already existing path will fail.
