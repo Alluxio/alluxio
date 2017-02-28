@@ -110,7 +110,7 @@ public final class UnderFileSystemRegistry {
     for (UnderFileSystemFactory factory : factories) {
       try {
         // Use the factory to create the actual client for the Under File System
-        return factory.create(path, ufsConf);
+        return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
       } catch (Exception e) {
         errors.add(e);
         LOG.warn("Failed to create ufs", e);
