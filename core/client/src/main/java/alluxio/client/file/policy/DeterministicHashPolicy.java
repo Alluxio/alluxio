@@ -12,7 +12,6 @@
 package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.master.block.BlockId;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
@@ -30,20 +29,23 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This policy maps blockId to several deterministic Alluxio workers. The number of workers a block
  * can be mapped to can be passed through the constructor. The default is 1. It skips the workers
- * that doesn not have enough capacity to hold the block.
+ * that do not have enough capacity to hold the block.
  */
 @NotThreadSafe
 public final class DeterministicHashPolicy implements BlockLocationPolicy {
+  /** The default number of shards to serve a block. */
+  private static final int DEFAULT_NUM_SHARDS = 1;
+  private final int mShards;
   private final Random mRandom = new Random();
   private List<BlockWorkerInfo> mWorkerInfoList;
-  private int mOffset;
   private boolean mInitialized = false;
-  private int mShards = 1;
 
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
    */
-  public DeterministicHashPolicy() {}
+  public DeterministicHashPolicy() {
+    this(DEFAULT_NUM_SHARDS);
+  }
 
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
@@ -66,15 +68,13 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
           return o1.getNetAddress().toString().compareToIgnoreCase(o2.getNetAddress().toString());
         }
       });
-      mOffset = (int) (BlockId.getContainerId(blockId) % (long) mWorkerInfoList.size());
       mInitialized = true;
     }
 
     List<WorkerNetAddress> workers = new ArrayList<>();
     // Try the next one if the worker mapped from the blockId doesn't work until all the workers
     // are examined.
-    int index =
-        (int) ((mOffset + BlockId.getSequenceNumber(blockId)) % (long) mWorkerInfoList.size());
+    int index = (int) (blockId % (long) mWorkerInfoList.size());
     for (int i = 0; i < mWorkerInfoList.size(); i++) {
       WorkerNetAddress candidate = mWorkerInfoList.get(index).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
@@ -114,21 +114,19 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
     }
     DeterministicHashPolicy that = (DeterministicHashPolicy) o;
     return Objects.equal(mWorkerInfoList, that.mWorkerInfoList)
-        && Objects.equal(mOffset, that.mOffset)
         && Objects.equal(mInitialized, that.mInitialized)
         && Objects.equal(mShards, that.mShards);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mWorkerInfoList, mOffset, mInitialized, mShards);
+    return Objects.hashCode(mWorkerInfoList, mInitialized, mShards);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("workerInfoList", mWorkerInfoList)
-        .add("offset", mOffset)
         .add("initialized", mInitialized)
         .add("shards", mShards)
         .toString();

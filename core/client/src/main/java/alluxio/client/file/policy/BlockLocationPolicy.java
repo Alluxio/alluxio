@@ -18,7 +18,7 @@ import alluxio.wire.WorkerNetAddress;
 
 /**
  * <p>
- * Interface for determine the Alluxio worker location to serve a block write or UFS block read.
+ * Interface for determining the Alluxio worker location to serve a block write or UFS block read.
  * </p>
  *
  * <p>
@@ -71,7 +71,7 @@ public interface BlockLocationPolicy {
   }
 
   /**
-   * Gets the worker's host name for serve operations requested for the block.
+   * Gets the worker's host name for serving operations requested for the block.
    *
    * @param workerInfoList the info of the active workers
    * @param blockId the block ID
