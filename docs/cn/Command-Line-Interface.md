@@ -240,9 +240,9 @@ fs命令中的所有“路径”都应该以以下开头：
 
 ### masterInfo
 
-`masterInfo`命令打印与Alluxio master相关的信息。如果Alluxio运行在单master模式下，`masterInfo`命令会打印出该master的地址；如果Alluxio运行在多master容错模式下，`masterInfo`命令会打印出当前的leader master、所有master以及Zookeeper的地址。
+`masterInfo`命令打印与Alluxio master容错相关的信息，例如leader的地址、所有master的地址列表以及配置的Zookeeper地址。如果Alluxio运行在单master模式下，`masterInfo`命令会打印出该master的地址；如果Alluxio运行在多master容错模式下，`masterInfo`命令会打印出当前的leader地址、所有master的地址列表以及Zookeeper的地址。
 
-使用举例：使用`masterInfo`命令可以打印与Alluxio master相关的信息。
+使用举例：使用`masterInfo`命令可以打印与Alluxio master容错相关的信息。
 
 {% include Command-Line-Interface/masterInfo.md %}
 

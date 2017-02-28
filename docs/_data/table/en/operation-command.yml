@@ -47,7 +47,7 @@ lsr:
   Recursively list all the files and directories under the given path with information such
   as size.
 masterInfo:
-  Prints the relative information of the Alluxio masters.
+  Prints information regarding master fault tolerance such as leader address, list of master addresses, and the configured Zookeeper address.
 mkdir:
   Create directory(ies) under the given paths, along with any necessary parent directories. Multiple paths separated by spaces or tabs. This
   command will fail if any of the given paths already exist.
