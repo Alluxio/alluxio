@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
+import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -149,7 +150,7 @@ public final class AlluxioBlockStoreTest {
 
     File mTestFile = mTestFolder.newFile("testFile");
     // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
-    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID, LockBlockOptions.defaults())).thenReturn(
         new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
     InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
@@ -172,7 +173,7 @@ public final class AlluxioBlockStoreTest {
 
     File mTestFile = mTestFolder.newFile("testFile");
     // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
-    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID, LockBlockOptions.defaults())).thenReturn(
         new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
     InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());

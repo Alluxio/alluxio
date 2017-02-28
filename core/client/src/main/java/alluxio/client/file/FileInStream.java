@@ -24,11 +24,14 @@ import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
+import alluxio.client.block.StreamFactory;
 import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.client.file.policy.BlockLocationPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.client.file.policy.options.BlockLocationPolicyGetWorkerOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -64,6 +67,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   private static final boolean PACKET_STREAMING_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
+  private static final boolean PASSIVE_CACHE_DISABLED =
+      Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_DISABLED);
 
   /** The instream options. */
   private final InStreamOptions mInStreamOptions;
@@ -74,7 +79,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /** Standard block size in bytes of the file, guaranteed for all but the last block. */
   protected final long mBlockSize;
   /** The location policy for CACHE type of read into Alluxio. */
-  protected final FileWriteLocationPolicy mLocationPolicy;
+  protected final FileWriteLocationPolicy mCacheLocationPolicy;
+  /** The location policy to find worker to serve UFS block reads when delegation is on. */
+  private final BlockLocationPolicy mUfsReadLocationPolicy;
   /** Total length of the file in bytes. */
   protected final long mFileLength;
   /** File system context containing the {@link FileSystemMasterClient} pool. */
@@ -140,11 +147,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
     mClosed = false;
-    mLocationPolicy = options.getLocationPolicy();
+    mCacheLocationPolicy = options.getLocationPolicy();
     if (mShouldCache) {
       Preconditions.checkNotNull(options.getLocationPolicy(),
           PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     }
+    mUfsReadLocationPolicy = options.getUfsReadLocationPolicy();
+    Preconditions.checkNotNull(mUfsReadLocationPolicy,
+        PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
+
     int seekBufferSizeBytes = Math.max((int) options.getSeekBufferSizeBytes(), 1);
     mSeekBuffer = new byte[seekBufferSizeBytes];
     mBlockStore = AlluxioBlockStore.create(context);
@@ -157,7 +168,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
     updateStreams();
-    if (mCurrentCacheStream != null && mShouldCachePartiallyReadBlock) {
+    if (mShouldCachePartiallyReadBlock) {
       readCurrentBlockToEnd();
     }
     if (mCurrentBlockInStream != null) {
@@ -339,19 +350,28 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @return the {@link InputStream} for the UFS
    * @throws IOException if the stream cannot be created
    */
-  protected InputStream createUnderStoreBlockInStream(long blockStart, long length, String path)
-      throws IOException {
-    return new UnderStoreBlockInStream(mContext, blockStart, length, mBlockSize,
-        getUnderStoreStreamFactory(path, mContext));
+  protected InputStream createUnderStoreBlockInStream(long blockId, long blockStart, long length,
+      String path) throws IOException {
+    if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
+      try {
+        WorkerNetAddress address = mUfsReadLocationPolicy.getWorkerForBlock(
+            BlockLocationPolicyGetWorkerOptions.defaults()
+                .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
+                .setBlockSize(length));
+        return StreamFactory
+            .createUfsBlockInStream(mContext, path, blockId, length, blockStart, address,
+                mInStreamOptions);
+      } catch (AlluxioException e) {
+        throw new IOException(e);
+      }
+    } else {
+      return new UnderStoreBlockInStream(mContext, blockStart, length, mBlockSize,
+          getUnderStoreStreamFactory(path));
+    }
   }
 
-  protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path, FileSystemContext
-      context) throws IOException {
-    if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
-      return new DelegatedUnderStoreStreamFactory(context, path);
-    } else {
-      return new DirectUnderStoreStreamFactory(path);
-    }
+  protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path) throws IOException {
+    return new DirectUnderStoreStreamFactory(path);
   }
 
   /**
@@ -488,7 +508,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // The following two function handle negative currentBlockId (i.e. the end of file)
       // correctly.
       updateBlockInStream(currentBlockId);
-      updateCacheStream(currentBlockId);
+      if (!PASSIVE_CACHE_DISABLED) {
+        updateCacheStream(currentBlockId);
+      }
       mStreamBlockId = currentBlockId;
     }
   }
@@ -540,7 +562,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
 
     try {
-      WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
+      WorkerNetAddress address = mCacheLocationPolicy.getWorkerForNextBlock(
           mBlockStore.getWorkerInfoList(), getBlockSizeAllocation(mPos));
       // If we reach here, we need to cache.
       mCurrentCacheStream =
@@ -600,7 +622,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         throw e;
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
-      return createUnderStoreBlockInStream(blockStart, getBlockSize(blockStart),
+      return createUnderStoreBlockInStream(blockId, blockStart, getBlockSize(blockStart),
           mStatus.getUfsPath());
     }
   }
@@ -641,20 +663,18 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     // mPos is not updated here.
     updateStreams();
 
-    if (mCurrentCacheStream != null) {
-      // Cache till pos if seeking forward within the current block. Otherwise cache the whole
-      // block.
-      readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
+    // Cache till pos if seeking forward within the current block. Otherwise cache the whole
+    // block.
+    readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
 
-      // Early return if we are at pos already. This happens if we seek forward with caching
-      // enabled for this block.
-      if (mPos == pos) {
-        return;
-      }
-      // The early return above guarantees that we won't close an incomplete cache stream.
-      Preconditions.checkState(mCurrentCacheStream == null || cacheStreamRemaining() == 0);
-      closeOrCancelCacheStream();
+    // Early return if we are at pos already. This happens if we seek forward with caching
+    // enabled for this block.
+    if (mPos == pos) {
+      return;
     }
+    // The early return above guarantees that we won't close an incomplete cache stream.
+    Preconditions.checkState(mCurrentCacheStream == null || cacheStreamRemaining() == 0);
+    closeOrCancelCacheStream();
 
     // If seeks within the current block, directly seeks to pos if we are not yet there.
     // If seeks outside the current block, seek to the beginning of that block first, then
@@ -671,14 +691,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     } else {
       mPos = pos / mBlockSize * mBlockSize;
       updateStreams();
-      if (mCurrentCacheStream != null) {
-        readCurrentBlockToPos(pos);
-      } else if (mCurrentBlockInStream != null) {
-        mPos = pos;
-        inStreamSeek(mPos % mBlockSize);
-      } else {
-        Preconditions.checkState(remaining() == 0);
-      }
+      readCurrentBlockToPos(pos);
     }
   }
 
@@ -690,8 +703,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @throws IOException if read or cache write fails
    */
   private void readCurrentBlockToPos(long pos) throws IOException {
-    Preconditions.checkNotNull(mCurrentBlockInStream);
-    Preconditions.checkNotNull(mCurrentCacheStream);
+    if (mCurrentBlockInStream == null) {
+      return;
+    }
     long len = Math.min(pos - mPos, inStreamRemaining());
     if (len <= 0) {
       return;
