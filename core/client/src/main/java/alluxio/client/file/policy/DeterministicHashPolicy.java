@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -71,13 +72,21 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
       mInitialized = true;
     }
 
+    // The worker information (e.g. capacity) in the blockWorkerInfoMap can be more up-to-date
+    // than those in mWorkerInfoList. We assume that the worker information is more likely to
+    // change than the worker network address.
+    HashMap<WorkerNetAddress, BlockWorkerInfo> blockWorkerInfoMap = new HashMap<>();
+    for (BlockWorkerInfo workerInfo : workerInfoList) {
+      blockWorkerInfoMap.put(workerInfo.getNetAddress(), workerInfo);
+    }
+
     List<WorkerNetAddress> workers = new ArrayList<>();
     // Try the next one if the worker mapped from the blockId doesn't work until all the workers
     // are examined.
     int index = (int) (blockId % (long) mWorkerInfoList.size());
     for (int i = 0; i < mWorkerInfoList.size(); i++) {
       WorkerNetAddress candidate = mWorkerInfoList.get(index).getNetAddress();
-      BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
+      BlockWorkerInfo workerInfo = blockWorkerInfoMap.get(candidate);
       if (workerInfo != null && workerInfo.getCapacityBytes() >= blockSizeBytes) {
         workers.add(candidate);
         if (workers.size() >= mShards) {
@@ -87,21 +96,6 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
       index = (index + 1) % mWorkerInfoList.size();
     }
     return workers.isEmpty() ? null : workers.get(mRandom.nextInt(workers.size()));
-  }
-
-  /**
-   * @param workerInfoList the list of worker info
-   * @param address the address to look for
-   * @return the worker info in the list that matches the host name, null if not found
-   */
-  private BlockWorkerInfo findBlockWorkerInfo(Iterable<BlockWorkerInfo> workerInfoList,
-      WorkerNetAddress address) {
-    for (BlockWorkerInfo info : workerInfoList) {
-      if (info.getNetAddress().equals(address)) {
-        return info;
-      }
-    }
-    return null;
   }
 
   @Override
