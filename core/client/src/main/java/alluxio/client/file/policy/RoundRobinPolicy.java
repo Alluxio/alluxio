@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * that do not have enough space. The policy returns null if no worker can be found.
  */
 @NotThreadSafe
-public final class RoundRobinPolicy implements FileWriteLocationPolicy {
+public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private List<BlockWorkerInfo> mWorkerInfoList;
   private int mIndex;
   private boolean mInitialized = false;
@@ -67,6 +67,12 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList, long blockId,
+      long blockSizeBytes) {
+    return getWorkerForNextBlock(workerInfoList, blockSizeBytes);
   }
 
   /**

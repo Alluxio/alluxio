@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * hostname found.
  */
 @ThreadSafe
-public final class SpecificHostPolicy implements FileWriteLocationPolicy {
+public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private final String mHostname;
 
   /**
@@ -46,6 +46,12 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList, long blockId,
+      long blockSizeBytes) {
+    return getWorkerForNextBlock(workerInfoList, blockSizeBytes);
   }
 
   @Override
