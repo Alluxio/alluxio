@@ -12,18 +12,20 @@
 package alluxio.client.block;
 
 import alluxio.client.RemoteBlockReader;
+import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 
+import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -37,10 +39,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RemoteBlockInStream extends BufferedBlockInStream {
   /** Used to manage closeable resources. */
   private final Closer mCloser;
-  /** The address of the worker to read the data from. */
-  private final WorkerNetAddress mWorkerNetAddress;
-  /** mWorkerNetAddress converted to an InetSocketAddress. */
-  private final InetSocketAddress mWorkerInetSocketAddress;
   /** The returned lock id after acquiring the block lock. */
   private final Long mLockId;
 
@@ -59,29 +57,69 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @param workerNetAddress the worker address
    * @param context the file system context to use for acquiring worker and master clients
    * @param options the instream options
+   * @return the {@link RemoteBlockInStream} created
    * @throws IOException if the block is not available on the remote worker
    */
-  public RemoteBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress,
-      FileSystemContext context, InStreamOptions options) throws IOException {
-    super(blockId, blockSize);
-    mWorkerNetAddress = workerNetAddress;
-    mWorkerInetSocketAddress =
-        new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
-
-    mContext = context;
-    mCloser = Closer.create();
-
+  public static RemoteBlockInStream create(long blockId, long blockSize,
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
+      throws IOException {
+    Closer closer = Closer.create();
+    BlockWorkerClient client;
+    LockBlockResult result;
     try {
-      mBlockWorkerClient = mCloser.register(mContext.createBlockWorkerClient(workerNetAddress));
-      LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
-      mLockId = result.getLockId();
-    } catch (AlluxioException e) {
-      mCloser.close();
-      throw new IOException(e);
-    } catch (IOException e) {
-      mCloser.close();
-      throw e;
+      client = closer.register(context.createBlockWorkerClient(workerNetAddress));
+      result = client.lockBlock(blockId, LockBlockOptions.defaults());
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
     }
+
+    return new RemoteBlockInStream(context, client, blockId, blockSize, result.getLockId(),
+        options);
+  }
+
+  /**
+   * Creates a new remote block input stream with the blocked being locked beforehand.
+   *
+   * @param context the file system context
+   * @param client the block worker client
+   * @param blockId the block ID
+   * @param blockSize the block size
+   * @param lockId the lock ID
+   * @param options the input stream options
+   * @return the {@link RemoteBlockInStream} created
+   */
+  public static RemoteBlockInStream createWithBlockLocked(FileSystemContext context,
+      BlockWorkerClient client, long blockId, long blockSize, long lockId,
+      InStreamOptions options) {
+    return new RemoteBlockInStream(context, client, blockId, blockSize, lockId, options);
+  }
+
+  /**
+   * Creates a new remote block input stream with the blocked being locked beforehand.
+   *
+   * @param context the file system context
+   * @param client the block worker client
+   * @param blockId the block ID
+   * @param blockSize the block size
+   * @param lockId the lock ID
+   * @param options the input stream options
+   */
+  private RemoteBlockInStream(FileSystemContext context, BlockWorkerClient client, long blockId,
+      long blockSize, long lockId, InStreamOptions options) {
+    super(blockId, blockSize);
+    mContext = context;
+    mBlockWorkerClient = client;
+    mLockId = lockId;
+
+    mCloser = Closer.create();
+    mCloser.register(mBlockWorkerClient);
+    mCloser.register(new Closeable() {
+      @Override
+      public void close() throws IOException {
+        mBlockWorkerClient.unlockBlock(mBlockId);
+      }
+    });
   }
 
   @Override
@@ -96,15 +134,16 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       return;
     }
 
-    if (mBlockIsRead) {
-      Metrics.BLOCKS_READ_REMOTE.inc();
-    }
     try {
-      mBlockWorkerClient.unlockBlock(mBlockId);
-    } catch (Throwable e) { // must catch Throwable
-      throw mCloser.rethrow(e); // IOException will be thrown as-is
+      if (mBlockIsRead) {
+        mBlockWorkerClient.accessBlock(mBlockId);
+        Metrics.BLOCKS_READ_REMOTE.inc();
+      }
+    } catch (Throwable e) {
+      mCloser.rethrow(e);
     } finally {
       mClosed = true;
+      // The block is unlocked by this.
       mCloser.close();
     }
   }
@@ -135,7 +174,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @return the {@link WorkerNetAddress} from which this RemoteBlockInStream is reading
    */
   public WorkerNetAddress getWorkerNetAddress() {
-    return mWorkerNetAddress;
+    return mBlockWorkerClient.getWorkerNetAddress();
   }
 
   /**
@@ -158,10 +197,12 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     }
 
     while (bytesLeft > 0) {
-      ByteBuffer data = mReader.readRemoteBlock(mWorkerInetSocketAddress, mBlockId, getPosition(),
-          bytesLeft, mLockId, mBlockWorkerClient.getSessionId());
+      ByteBuffer data = mReader
+          .readRemoteBlock(mBlockWorkerClient.getDataServerAddress(), mBlockId, getPosition(),
+              bytesLeft, mLockId, mBlockWorkerClient.getSessionId());
       int bytesRead = data.remaining();
       data.get(b, off, bytesRead);
+      off += bytesRead;
       bytesLeft -= bytesRead;
     }
 

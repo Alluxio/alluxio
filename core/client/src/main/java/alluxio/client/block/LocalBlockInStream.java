@@ -11,10 +11,12 @@
 
 package alluxio.client.block;
 
+import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
@@ -23,6 +25,7 @@ import alluxio.worker.block.io.LocalFileBlockReader;
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -39,8 +42,6 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
   private final Closer mCloser;
   /** Client to communicate with the local worker. */
   private final BlockWorkerClient mBlockWorkerClient;
-  /** The block store context which provides block worker clients. */
-  private final FileSystemContext mContext;
   /** The file reader to read a local block. */
   private final LocalFileBlockReader mReader;
 
@@ -52,23 +53,69 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * @param workerNetAddress the address of the local worker
    * @param context the file system context
    * @param options the instream options
+   * @return the {@link LocalBlockInStream} instance
    * @throws IOException if I/O error occurs
    */
-  public LocalBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress,
-      FileSystemContext context, InStreamOptions options) throws IOException {
+  public static LocalBlockInStream create(long blockId, long blockSize,
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
+      throws IOException {
+    Closer closer = Closer.create();
+    BlockWorkerClient client;
+    LockBlockResult result;
+    try {
+      client = closer.register(context.createBlockWorkerClient(workerNetAddress));
+      result = client.lockBlock(blockId, LockBlockOptions.defaults());
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
+    }
+    return new LocalBlockInStream(client, blockId, blockSize, result.getBlockPath(),
+        options);
+  }
+
+  /**
+   * Creates a local block input stream. It requires the block to be locked before calling this.
+   *
+   * @param client the block worker client
+   * @param blockId the block id
+   * @param blockSize the size of the block
+   * @param path the block file path
+   * @param options the instream options
+   * @return the {@link LocalBlockInStream} instance
+   * @throws IOException if I/O error occurs
+   */
+  public static LocalBlockInStream createWithBlockLocked(BlockWorkerClient client, long blockId,
+      long blockSize, String path, InStreamOptions options) throws IOException {
+    return new LocalBlockInStream(client, blockId, blockSize, path, options);
+  }
+
+  /**
+   * Creates a local block input stream. It requires the block to be locked before calling this.
+   *
+   * @param client the block worker client
+   * @param blockId the block id
+   * @param blockSize the size of the block
+   * @param path the block file path
+   * @param options the instream options
+   * @throws IOException if I/O error occurs
+   */
+  private LocalBlockInStream(BlockWorkerClient client, long blockId,
+      long blockSize, String path, InStreamOptions options) throws IOException {
     super(blockId, blockSize);
-    mContext = context;
+    mBlockWorkerClient = client;
 
     mCloser = Closer.create();
+    mCloser.register(client);
+    mCloser.register(new Closeable() {
+      @Override
+      public void close() throws IOException {
+        mBlockWorkerClient.unlockBlock(mBlockId);
+      }
+    });
     try {
-      mBlockWorkerClient = mCloser.register(mContext.createBlockWorkerClient(workerNetAddress));
-      LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
-      mReader = mCloser.register(new LocalFileBlockReader(result.getBlockPath()));
-    } catch (AlluxioException e) {
-      mCloser.close();
-      throw new IOException(e);
+      mReader = mCloser.register(new LocalFileBlockReader(path));
     } catch (IOException e) {
-      mCloser.close();
+      CommonUtils.closeCloserIgnoreException(mCloser);
       throw e;
     }
   }
@@ -89,15 +136,15 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
         mBlockWorkerClient.accessBlock(mBlockId);
         Metrics.BLOCKS_READ_LOCAL.inc();
       }
-      mBlockWorkerClient.unlockBlock(mBlockId);
+      // Note that the block is unlocked by closing mCloser.
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is
     } finally {
       mClosed = true;
-      mCloser.close();
       if (mBuffer != null && mBuffer.isDirect()) {
         BufferUtils.cleanDirectBuffer(mBuffer);
       }
+      mCloser.close();
     }
   }
 

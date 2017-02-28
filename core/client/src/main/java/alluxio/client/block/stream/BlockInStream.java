@@ -17,15 +17,19 @@ import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
 
+import java.io.Closeable;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,29 +70,28 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
-  public static BlockInStream createLocalBlockInStream(long blockId, long blockSize,
+  public static BlockInStream createLocalBlockInStream(final long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
       throws IOException {
     Closer closer = Closer.create();
-
-    BlockWorkerClient blockWorkerClient = null;
-    LockBlockResult lockBlockResult = null;
     try {
-      blockWorkerClient = closer.register(context.createBlockWorkerClient(workerNetAddress));
-      lockBlockResult = blockWorkerClient.lockBlock(blockId);
+      final BlockWorkerClient blockWorkerClient =
+          closer.register(context.createBlockWorkerClient(workerNetAddress));
+      LockBlockResult lockBlockResult =
+          blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults());
+      closer.register(new Closeable() {
+        @Override
+        public void close() throws IOException {
+          blockWorkerClient.unlockBlock(blockId);
+        }
+      });
       PacketInStream inStream = closer.register(PacketInStream
           .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
+      blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockId, blockWorkerClient, options);
-    } catch (Exception e) {
-      if (lockBlockResult != null) {
-        blockWorkerClient.unlockBlock(blockId);
-      }
-      closer.close();
-      if (e instanceof IOException) {
-        throw (IOException) e;
-      } else {
-        throw new IOException(e);
-      }
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
     }
   }
 
@@ -103,44 +106,95 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
-  public static BlockInStream createRemoteBlockInStream(long blockId, long blockSize,
+  public static BlockInStream createRemoteBlockInStream(final long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
     throws IOException {
     Closer closer = Closer.create();
-
-    BlockWorkerClient blockWorkerClient = null;
-    LockBlockResult lockBlockResult = null;
     try {
-      blockWorkerClient =
+      final BlockWorkerClient blockWorkerClient =
           closer.register(context.createBlockWorkerClient(workerNetAddress));
-      lockBlockResult = blockWorkerClient.lockBlock(blockId);
+      LockBlockResult lockBlockResult =
+          blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults());
+      closer.register(new Closeable() {
+        @Override
+        public void close() throws IOException {
+          blockWorkerClient.unlockBlock(blockId);
+        }
+      });
       PacketInStream inStream = closer.register(PacketInStream
           .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
-              lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
+              lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize, false,
               Protocol.RequestType.ALLUXIO_BLOCK));
+      blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockId, blockWorkerClient, options);
-    } catch (Exception e) {
-      if (lockBlockResult != null) {
-        blockWorkerClient.unlockBlock(blockId);
-      }
-      closer.close();
-      if (e instanceof IOException) {
-        throw (IOException) e;
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
+    }
+  }
+
+  /**
+   * Creates an instance of remote {@link BlockInStream} that reads a block from UFS from a remote
+   * worker.
+   *
+   * @param context the file system context
+   * @param ufsPath the UFS path
+   * @param blockId the block ID
+   * @param blockSize the block size
+   * @param blockStart the position at which the block starts in the file
+   * @param workerNetAddress the worker network address
+   * @param options the options
+   * @throws IOException if it fails to create an instance
+   * @return the {@link BlockInStream} created
+   */
+  public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
+      final long blockId, long blockSize, long blockStart,
+      WorkerNetAddress workerNetAddress, InStreamOptions options) throws IOException {
+    Closer closer = Closer.create();
+    try {
+      final BlockWorkerClient blockWorkerClient =
+          closer.register(context.createBlockWorkerClient(workerNetAddress));
+      LockBlockOptions lockBlockOptions =
+          LockBlockOptions.defaults().setUfsPath(ufsPath).setOffset(blockStart)
+              .setBlockSize(blockSize).setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency());
+
+      LockBlockResult lockBlockResult = blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions);
+      closer.register(new Closeable() {
+        @Override
+        public void close() throws IOException {
+          blockWorkerClient.unlockBlock(blockId);
+        }
+      });
+      PacketInStream inStream;
+      if (LockBlockResult.isBlockCachedInAlluxio(lockBlockResult)) {
+        boolean local = blockWorkerClient.getDataServerAddress().getHostName()
+            .equals(NetworkAddressUtils.getLocalHostName());
+        if (local) {
+          inStream = closer.register(PacketInStream
+              .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
+        } else {
+          inStream = closer.register(PacketInStream
+              .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
+                  lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize, false,
+                  Protocol.RequestType.ALLUXIO_BLOCK));
+        }
+        blockWorkerClient.accessBlock(blockId);
       } else {
-        throw new IOException(e);
+        inStream = closer.register(PacketInStream
+            .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
+                lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
+                !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK));
       }
+      return new BlockInStream(inStream, blockId, blockWorkerClient, options);
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
     }
   }
 
   @Override
   public void close() throws IOException {
-    try {
-      mBlockWorkerClient.unlockBlock(mBlockId);
-    } catch (Throwable e) { // must catch Throwable
-      throw mCloser.rethrow(e); // IOException will be thrown as-is
-    } finally {
-      mCloser.close();
-    }
+    mCloser.close();
   }
 
   @Override
@@ -178,7 +232,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @throws IOException if it fails to create an instance
    */
   private BlockInStream(PacketInStream inputStream, long blockId,
-      BlockWorkerClient blockWorkerClient, InStreamOptions options) throws IOException {
+      BlockWorkerClient blockWorkerClient, InStreamOptions options) {
     super(inputStream);
 
     mInputStream = inputStream;
@@ -186,15 +240,16 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
     mBlockWorkerClient = blockWorkerClient;
 
     mCloser = Closer.create();
-    mCloser.register(mInputStream);
+    // Closer closes the closeables in LIFO order.
     mCloser.register(mBlockWorkerClient);
-    try {
-      mLocal = blockWorkerClient.getDataServerAddress().getHostName()
-          .equals(NetworkAddressUtils.getClientHostName());
-      mBlockWorkerClient.accessBlock(blockId);
-    } catch (IOException e) {
-      mCloser.close();
-      throw e;
-    }
+    mCloser.register(new Closeable() {
+      @Override
+      public void close() throws IOException {
+        mBlockWorkerClient.unlockBlock(mBlockId);
+      }
+    });
+    mCloser.register(mInputStream);
+    mLocal = blockWorkerClient.getDataServerAddress().getHostName()
+        .equals(NetworkAddressUtils.getClientHostName());
   }
 }
