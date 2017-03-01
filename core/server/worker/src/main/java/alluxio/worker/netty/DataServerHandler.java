@@ -100,7 +100,8 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
       }
     } catch (IllegalArgumentException | IOException e) {
       LOG.warn("Error processing message {}, Error={}", msg, e.getMessage());
-      LOG.debug("Exit (Error): {}", msg, e);
+      LOG.debug("Error processing message {}", msg, e);
+      LOG.debug("Exit (Error): {}, Error={}", msg, e.getMessage());
       // Rethrow the exception to use Netty's control flow.
       throw e;
     }
