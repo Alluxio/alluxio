@@ -60,7 +60,7 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   }
 
   @Override
-  public WorkerNetAddress getWorkerForBlock(BlockLocationPolicyGetWorkerOptions options) {
+  public WorkerNetAddress getWorker(BlockLocationPolicyGetWorkerOptions options) {
     if (!mInitialized) {
       mWorkerInfoList = Lists.newArrayList(options.getBlockWorkerInfos());
       Collections.sort(mWorkerInfoList, new Comparator<BlockWorkerInfo>() {

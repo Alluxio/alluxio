@@ -68,5 +68,5 @@ public interface BlockLocationPolicy {
    * @param options the options to get a block worker network address for a block
    * @return the address of the worker to write to, null if no worker can be selected
    */
-  WorkerNetAddress getWorkerForBlock(BlockLocationPolicyGetWorkerOptions options);
+  WorkerNetAddress getWorker(BlockLocationPolicyGetWorkerOptions options);
 }
