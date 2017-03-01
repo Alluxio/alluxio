@@ -141,6 +141,7 @@ public final class TieredBlockStore implements BlockStore {
     if (hasBlock) {
       return lockId;
     }
+
     mLockManager.unlockBlock(lockId);
     throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
   }
@@ -151,8 +152,8 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    mLockManager.unlockBlock(sessionId, blockId);
+  public boolean unlockBlock(long sessionId, long blockId) {
+    return mLockManager.unlockBlock(sessionId, blockId);
   }
 
   @Override
@@ -178,13 +179,14 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
+  public TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize)
           throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i++) {
       TempBlockMeta tempBlockMeta =
           createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
       if (tempBlockMeta != null) {
+        createBlockFile(tempBlockMeta.getPath());
         return tempBlockMeta;
       }
       if (i < MAX_RETRIES) {
@@ -794,6 +796,22 @@ public final class TieredBlockStore implements BlockStore {
     } finally {
       mLockManager.unlockBlock(lockId);
     }
+  }
+
+  /**
+   * Creates a file to represent a block denoted by the given block path. This file will be owned
+   * by the Alluxio worker but have 777 permissions so processes under users different from the
+   * user that launched the Alluxio worker can read and write to the file. The tiered storage
+   * directory has the sticky bit so only the worker user can delete or rename files it creates.
+   *
+   * @param blockPath the block path to create
+   * @throws IOException if the file cannot be created in the tiered storage folder
+   */
+  private void createBlockFile(String blockPath) throws IOException {
+    FileUtils.createBlockPath(blockPath);
+    FileUtils.createFile(blockPath);
+    FileUtils.changeLocalFileToFullPermission(blockPath);
+    LOG.debug("Created new file block, block path: {}", blockPath);
   }
 
   /**

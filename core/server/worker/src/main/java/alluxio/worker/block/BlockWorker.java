@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -21,6 +22,7 @@ import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import java.io.IOException;
 import java.util.Set;
@@ -56,8 +58,9 @@ public interface BlockWorker extends Worker {
    * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    * @throws IOException if temporary block cannot be deleted
    */
-  void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+  void abortBlock(long sessionId, long blockId)
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      IOException;
 
   /**
    * Access the block for a given session. This should be called to update the evictor when
@@ -276,6 +279,20 @@ public interface BlockWorker extends Worker {
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
 
   /**
+   * Gets a block reader to read a UFS block. This method is only called by the data server.
+   *
+   * @param sessionId the client session ID
+   * @param blockId the ID of the UFS block to read
+   * @param offset the offset within the block
+   * @param noCache if set, do not try to cache the block in the Alluxio worker
+   * @return the block reader instance
+   * @throws BlockDoesNotExistException if the block does not exist in the UFS block store
+   * @throws IOException if any I/O related errors occur
+   */
+  BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
+      throws BlockDoesNotExistException, IOException;
+
+  /**
    * Frees a block from Alluxio managed space.
    *
    * @param sessionId the id of the client
@@ -316,10 +333,10 @@ public interface BlockWorker extends Worker {
    *
    * @param sessionId the session id
    * @param blockId the block id
-   * @throws BlockDoesNotExistException if block id cannot be found
+   * @return false if it fails to unlock due to the lock is not found
    */
   // TODO(calvin): Remove when lock and reads are separate operations.
-  void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+  boolean unlockBlock(long sessionId, long blockId);
 
   /**
    * Handles the heartbeat from a client.
@@ -343,4 +360,34 @@ public interface BlockWorker extends Worker {
    * @throws IOException if an I/O error occurs
    */
   FileInfo getFileInfo(long fileId) throws IOException;
+
+  /**
+   * Opens a block.
+   *
+   * @param ufsBlockMetaConst the UFS block constant meta data
+   * @param maxUfsReadConcurrency the maximum UFS block read concurrency
+   * @throws BlockAlreadyExistsException if the UFS block already exists in the
+   *         {@link UfsBlockStore}
+   * @throws UfsBlockAccessTokenUnavailableException if there are too many clients accessing the
+   *         UFS block
+   */
+  void openUfsBlock(UnderFileSystemBlockMeta.ConstMeta ufsBlockMetaConst, int maxUfsReadConcurrency)
+      throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException;
+
+  /**
+   * Closes a UFS block for a client session. It also commits the block to Alluxio block store
+   * if the UFS block has been cached successfully.
+   *
+   * @param sessionId the session ID
+   * @param blockId the block ID
+   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
+   *         because the block exists in the Alluxio block store
+   * @throws BlockDoesNotExistException if the UFS block does not exist in the {@link UfsBlockStore}
+   * @throws InvalidWorkerStateException the worker is not in a valid state
+   * @throws IOException if any I/O related errors occur
+   * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
+   */
+  void closeUfsBlock(long sessionId, long blockId)
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      IOException, WorkerOutOfSpaceException;
 }
