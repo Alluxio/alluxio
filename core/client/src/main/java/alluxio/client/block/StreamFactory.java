@@ -123,9 +123,9 @@ public final class StreamFactory {
   }
 
   /**
-   * Creates an {@link InputStream} read a block from UFS if that block is in UFS but not in
+   * Creates an {@link InputStream} to read a block from UFS if that block is in UFS but not in
    * Alluxio. If the block is cached to Alluxio while it attempts to create the {@link InputStream}
-   * that reads from UFS, it returns a {@link InputStream} that reads from Aluxio instead.
+   * that reads from UFS, it returns an {@link InputStream} that reads from Aluxio instead.
    *
    * @param context the file system context
    * @param ufsPath the UFS path

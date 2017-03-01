@@ -168,6 +168,7 @@ public final class RetryHandlingBlockWorkerClient
         @Override
         public void run() {
           mHeartbeat.cancel(true);
+          mHeartbeat = null;
           NUM_ACTIVE_SESSIONS.decrementAndGet();
         }
       });
@@ -252,9 +253,8 @@ public final class RetryHandlingBlockWorkerClient
         if (System.currentTimeMillis() >= timeout) {
           throw e;
         }
-        LOG.debug(
-            "Failed to acquire a UFS read token because of contention for block {} in file {}",
-            blockId, blockId);
+        LOG.debug("Failed to acquire a UFS read token because of contention for block {} with "
+            + "LockBlockOptions {}", blockId, options);
         CommonUtils.sleepMs(retryInterval);
       }
     }
