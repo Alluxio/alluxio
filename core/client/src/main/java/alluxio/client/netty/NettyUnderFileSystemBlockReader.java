@@ -74,7 +74,7 @@ public final class NettyUnderFileSystemBlockReader implements UnderFileSystemBlo
           new RPCUnderFileSystemBlockReadRequest(blockId, offset, length, sessionId, noCache));
       channelFuture = channelFuture.sync();
       if (channelFuture.isDone() && !channelFuture.isSuccess()) {
-        LOG.error("Failed to write to %s for block %d with error %s.", address.toString(), blockId,
+        LOG.error("Failed to read from %s for block %d with error %s.", address.toString(), blockId,
             channelFuture.cause());
         throw new IOException(channelFuture.cause());
       }
@@ -124,7 +124,7 @@ public final class NettyUnderFileSystemBlockReader implements UnderFileSystemBlo
   /**
    * {@inheritDoc}
    *
-   * Release the underlying buffer of previous/current read response.
+   * Releases the underlying buffer of previous/current read response.
    */
   @Override
   public void close() throws IOException {
