@@ -37,10 +37,10 @@ public final class RpcUtils {
     try {
       return callable.call();
     } catch (AlluxioException e) {
-      logger.debug("Exit (Error): {}", callable, e);
+      logger.debug("{}, Error={}", callable, e.getMessage());
       throw e.toThrift();
     } catch (Exception e) {
-      logger.error("Exit (Error): {}", callable, e);
+      logger.error("{}", callable, e);
       throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
@@ -60,13 +60,14 @@ public final class RpcUtils {
     try {
       return callable.call();
     } catch (AlluxioException e) {
-      logger.debug("Exit (Error): {}", callable, e);
+      logger.debug("{}, Error={}", callable, e.getMessage());
       throw e.toThrift();
     } catch (IOException e) {
-      logger.debug("Exit (Error): {}", callable, e);
+      logger.warn("{}, Error={}", callable, e.getMessage());
+      logger.debug("{}", callable, e);
       throw new ThriftIOException(e.getMessage());
     } catch (Exception e) {
-      logger.error("Exit (Error): {}", callable, e);
+      logger.error("{}", callable, e);
       throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
@@ -84,9 +85,14 @@ public final class RpcUtils {
    */
   public static <T> T callAndLog(Logger logger, RpcCallable<T> callable) throws AlluxioTException {
     logger.debug("Enter: {}", callable);
-    T ret = call(logger, callable);
-    logger.debug("Exit (OK): {}", callable);
-    return ret;
+    try {
+      T ret = call(logger, callable);
+      logger.debug("Exit (OK): {}", callable);
+      return ret;
+    } catch (AlluxioTException e) {
+      logger.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
+      throw e;
+    }
   }
 
   /**
@@ -105,9 +111,14 @@ public final class RpcUtils {
   public static <T> T callAndLog(Logger logger, RpcCallableThrowsIOException<T> callable)
       throws AlluxioTException, ThriftIOException {
     logger.debug("Enter: {}", callable);
-    T ret = call(logger, callable);
-    logger.debug("Exit (OK): {}", callable);
-    return ret;
+    try {
+      T ret = call(logger, callable);
+      logger.debug("Exit (OK): {}", callable);
+      return ret;
+    } catch (AlluxioTException | ThriftIOException e) {
+      logger.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
+      throw e;
+    }
   }
 
   /**
