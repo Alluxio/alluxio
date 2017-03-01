@@ -67,6 +67,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   private static final boolean PACKET_STREAMING_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
+  private static final boolean PASSIVE_CACHE_DISABLED =
+      Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_DISABLED);
 
   /** The instream options. */
   private final InStreamOptions mInStreamOptions;
@@ -525,7 +527,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // The following two function handle negative currentBlockId (i.e. the end of file)
       // correctly.
       updateBlockInStream(currentBlockId);
-      updateCacheStream(currentBlockId);
+      if (!PASSIVE_CACHE_DISABLED) {
+        updateCacheStream(currentBlockId);
+      }
       mStreamBlockId = currentBlockId;
     }
   }
