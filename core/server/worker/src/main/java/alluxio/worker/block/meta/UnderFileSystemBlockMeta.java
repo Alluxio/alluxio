@@ -18,10 +18,10 @@ import alluxio.worker.block.io.BlockWriter;
 import java.io.IOException;
 
 /**
- * This class represents the metadata of a UFS block.
+ * This class represents the metadata of a block that is in UFS.
  */
 public final class UnderFileSystemBlockMeta {
-  private ConstMeta mConstMeta;
+  private final ConstMeta mConstMeta;
 
   /** The set of session IDs to be committed. */
   private boolean mCommitPending;
