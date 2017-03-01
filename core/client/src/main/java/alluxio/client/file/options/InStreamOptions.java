@@ -73,7 +73,7 @@ public final class InStreamOptions {
         Configuration.getBoolean(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
     mSeekBufferSizeBytes = Configuration.getBytes(PropertyKey.USER_FILE_SEEK_BUFFER_SIZE_BYTES);
     mMaxUfsReadConcurrency =
-        Configuration.getInt(PropertyKey.USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT);
+        Configuration.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX);
   }
 
   /**

@@ -92,7 +92,7 @@ public class RemoteBlockInStreamIntegrationTest {
         .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, dataServer)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType)
         .setProperty(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100")
-        .setProperty(PropertyKey.USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT, 2)
+        .setProperty(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX, 2)
         .build();
   }
 

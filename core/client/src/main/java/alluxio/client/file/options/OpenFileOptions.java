@@ -70,7 +70,7 @@ public final class OpenFileOptions {
                 .getInt(PropertyKey.USER_UFS_FILE_READ_DETERMINISTIC_HASH_POLICY_NUM_SHARDS));
     mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
     mMaxUfsReadConcurrency =
-        Configuration.getInt(PropertyKey.USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT);
+        Configuration.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX);
   }
 
   /**
