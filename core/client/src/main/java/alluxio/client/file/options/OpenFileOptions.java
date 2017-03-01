@@ -110,6 +110,13 @@ public final class OpenFileOptions {
   }
 
   /**
+   * @return the location policy class name of the UFS read location policy
+   */
+  public String getUfsReadLocationPolicyClass() {
+    return mUfsReadLocationPolicy.getClass().getCanonicalName();
+  }
+
+  /**
    * @param locationPolicy the location policy to use when storing data to Alluxio
    * @return the updated options object
    */
@@ -140,8 +147,17 @@ public final class OpenFileOptions {
       mLocationPolicy = CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
       return this;
     } catch (Exception e) {
-      Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * @param className the location policy class to determine where to read a UFS block
+   * @return the updated options object
+   */
+  public OpenFileOptions setUfsReadLocationPolicyClass(String className) {
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory
+        .create(BlockLocationPolicyCreateOptions.defaults().setLocationPolicyClassName(className));
     return this;
   }
 

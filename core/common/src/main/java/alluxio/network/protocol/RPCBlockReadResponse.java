@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * This represents the response of a {@link RPCBlockReadRequest}.
  *
- * Since 1.4.1, this also represents the response of a {@link RPCUnderFileSystemBlockReadRequest}.
+ * Since 1.5.0, this also represents the response of a {@link RPCUnderFileSystemBlockReadRequest}.
  */
 @ThreadSafe
 public final class RPCBlockReadResponse extends RPCResponse {

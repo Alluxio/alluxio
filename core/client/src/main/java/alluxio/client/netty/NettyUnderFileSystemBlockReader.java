@@ -22,7 +22,6 @@ import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.RPCUnderFileSystemBlockReadRequest;
 
 import com.codahale.metrics.Counter;
-import com.google.common.base.Throwables;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
@@ -108,7 +107,7 @@ public final class NettyUnderFileSystemBlockReader implements UnderFileSystemBlo
           channel.close().sync();
         }
       } catch (InterruptedException ee) {
-        throw Throwables.propagate(ee);
+        throw new RuntimeException(ee);
       }
       throw new IOException(e);
     } finally {

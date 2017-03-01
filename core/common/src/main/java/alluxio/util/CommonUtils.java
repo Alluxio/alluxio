@@ -375,7 +375,7 @@ public final class CommonUtils {
    * @return the IO exception
    */
   public static IOException castToIOException(Throwable e) {
-    if (e instanceof  IOException) {
+    if (e instanceof IOException) {
       return (IOException) e;
     } else {
       return new IOException(e);
