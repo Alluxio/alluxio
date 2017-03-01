@@ -319,7 +319,7 @@ public enum PropertyKey {
   USER_RPC_RETRY_BASE_SLEEP_MS(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50),
   USER_RPC_RETRY_MAX_SLEEP_MS(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 5000),
   USER_RPC_RETRY_MAX_NUM_RETRY(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20),
-  USER_FILE_PASSIVE_CACHE_DISABLED(Name.USER_FILE_PASSIVE_CACHE_DISABLED, false),
+  USER_FILE_PASSIVE_CACHE_ENABLED(Name.USER_FILE_PASSIVE_CACHE_ENABLED, false),
 
   //
   // FUSE integration related properties
@@ -790,7 +790,7 @@ public enum PropertyKey {
         "alluxio.user.rpc.retry.max.sleep.ms";
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
         "alluxio.user.rpc.retry.max.num.retry";
-    public static final String USER_FILE_PASSIVE_CACHE_DISABLED =
+    public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.disabled";
 
     //

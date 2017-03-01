@@ -32,7 +32,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class InStreamOptions {
-  // TODO(peis): Rename this to mCacheLocationPolicy in 2.0.
   private FileWriteLocationPolicy mLocationPolicy;
   private ReadType mReadType;
   /** Cache incomplete blocks if Alluxio is configured to store blocks in Alluxio storage. */
