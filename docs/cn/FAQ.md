@@ -6,7 +6,7 @@ group: User Guide
 priority: 2
 ---
 
-## Alluxio Frequently Asked Questions.
+## Alluxio 常见问题
 
 1. 什么是Alluxio?
 
