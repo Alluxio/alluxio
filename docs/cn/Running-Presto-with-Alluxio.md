@@ -13,7 +13,7 @@ priority: 2
 开始之前你需要安装好[Java](Java-Setup.html)，Java 版本要求在1.8以上，同时使用[本地模式](Running-Alluxio-Locally.html)
 或[集群模式](Running-Alluxio-on-a-Cluster.html)构建好Alluxio。
 
-Alluxio客户端须要䅂Presto㤫具体配置文件一起编译。在顶层目录'alluxio'是用下面的命令编译整个项目
+Alluxio客户端需要和Presto的具体配置文件一起编译。在顶层目录'alluxio'下使用下面的命令编译整个项目
 
 ```bash
 mvn clean package -Ppresto -DskipTests
