@@ -46,7 +46,7 @@ Alluxio's logging behavior can be fully configured through the `log4j.properties
 `conf` folder.
 
 By default, Alluxio logs to files in the `logs` directory which can be modified by setting the
-`alluxio.logs.dir` configuration value. Each Alluxio process (Master, Worker, Clients, FUSE, Proxy)
+`alluxio.logs.dir` system property. Each Alluxio process (Master, Worker, Clients, FUSE, Proxy)
 logs to a different file.
 
 ### Remote Logging
@@ -85,7 +85,7 @@ the existing properties with:
 log4j.appender.MASTER_LOGGER=org.apache.log4j.net.SocketAppender
 log4j.appender.MASTER_LOGGER.Port=<PORT>
 log4j.appender.MASTER_LOGGER.RemoteHost=<HOSTNAME_OF_LOG_SERVER>
-log4j.appender.MASTER_LOGGER.ReconnectionDelay=<MILlIS_TO_WAIT_BEFORE_RECONNECTION_ATTEMPT>
+log4j.appender.MASTER_LOGGER.ReconnectionDelay=<MILLIS_TO_WAIT_BEFORE_RECONNECTION_ATTEMPT>
 log4j.appender.MASTER_LOGGER.layout=org.apache.log4j.PatternLayout
 log4j.appender.MASTER_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```
@@ -105,7 +105,7 @@ log4j.rootLogger=INFO, ${alluxio.logger.type}_SOCKET, ${alluxio.logger.type}_FIL
 log4j.appender.MASTER_LOGGER_SOCKET=org.apache.log4j.net.SocketAppender
 log4j.appender.MASTER_LOGGER_SOCKET.Port=<PORT>
 log4j.appender.MASTER_LOGGER_SOCKET.RemoteHost=<HOSTNAME_OF_LOG_SERVER>
-log4j.appender.MASTER_LOGGER_SOCKET.ReconnectionDelay=<MILlIS_TO_WAIT_BEFORE_RECONNECTION_ATTEMPT>
+log4j.appender.MASTER_LOGGER_SOCKET.ReconnectionDelay=<MILLIS_TO_WAIT_BEFORE_RECONNECTION_ATTEMPT>
 log4j.appender.MASTER_LOGGER_SOCKET.layout=org.apache.log4j.PatternLayout
 log4j.appender.MASTER_LOGGER_SOCKET.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 
