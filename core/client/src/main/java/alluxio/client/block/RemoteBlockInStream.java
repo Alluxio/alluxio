@@ -15,6 +15,7 @@ import alluxio.client.RemoteBlockReader;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -24,7 +25,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -89,7 +89,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @param options the input stream options
    * @return the {@link RemoteBlockInStream} created
    */
-  public static RemoteBlockInStream createWithBlockLocked(FileSystemContext context,
+  public static RemoteBlockInStream createWithLockedBlock(FileSystemContext context,
       BlockWorkerClient client, long blockId, long blockSize, long lockId,
       InStreamOptions options) {
     return new RemoteBlockInStream(context, client, blockId, blockSize, lockId, options);
@@ -114,12 +114,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
 
     mCloser = Closer.create();
     mCloser.register(mBlockWorkerClient);
-    mCloser.register(new Closeable() {
-      @Override
-      public void close() throws IOException {
-        mBlockWorkerClient.unlockBlock(mBlockId);
-      }
-    });
+    mCloser.register(new LockBlockResource(mBlockWorkerClient, mBlockId));
   }
 
   @Override
@@ -139,8 +134,8 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
         mBlockWorkerClient.accessBlock(mBlockId);
         Metrics.BLOCKS_READ_REMOTE.inc();
       }
-    } catch (Throwable e) {
-      mCloser.rethrow(e);
+    } catch (Throwable e) {  // must catch Throwable
+      mCloser.rethrow(e);  // IOException will be thrown as-is
     } finally {
       mClosed = true;
       // The block is unlocked by this.

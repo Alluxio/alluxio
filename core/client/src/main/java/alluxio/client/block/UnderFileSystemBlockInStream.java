@@ -16,16 +16,18 @@ import alluxio.client.UnderFileSystemBlockReader;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -71,43 +73,36 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
    * @throws IOException if it fails to create {@link UnderFileSystemBlockInStream}
    */
   public static BufferedBlockInStream create(FileSystemContext context, String ufsPath,
-      final long blockId, long blockSize, long blockStart, WorkerNetAddress workerNetAddress,
+      long blockId, long blockSize, long blockStart, WorkerNetAddress workerNetAddress,
       InStreamOptions options) throws IOException {
     Closer closer = Closer.create();
     try {
-      final BlockWorkerClient blockWorkerClient =
+      BlockWorkerClient blockWorkerClient =
           closer.register(context.createBlockWorkerClient(workerNetAddress));
       LockBlockOptions lockBlockOptions =
           LockBlockOptions.defaults().setUfsPath(ufsPath).setOffset(blockStart)
               .setBlockSize(blockSize).setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency());
       LockBlockResult result = blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions);
-      closer.register(new Closeable() {
-        @Override
-        public void close() throws IOException {
-          blockWorkerClient.unlockBlock(blockId);
-        }
-      });
+      closer.register(new LockBlockResource(blockWorkerClient, blockId));
       if (LockBlockResult.isBlockCachedInAlluxio(result)) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
             .equals(NetworkAddressUtils.getLocalHostName());
         if (local) {
+          LocalFileBlockReader reader =
+              closer.register(new LocalFileBlockReader(result.getBlockPath()));
           return LocalBlockInStream
-              .createWithBlockLocked(blockWorkerClient, blockId, blockSize, result.getBlockPath(),
-                  options);
+              .createWithLockedBlock(blockWorkerClient, blockId, blockSize, reader, options);
         } else {
           return RemoteBlockInStream
-              .createWithBlockLocked(context, blockWorkerClient, blockId, blockSize,
+              .createWithLockedBlock(context, blockWorkerClient, blockId, blockSize,
                   result.getLockId(), options);
         }
       }
       return new UnderFileSystemBlockInStream(context, blockId, blockSize, blockWorkerClient,
           options);
-    } catch (AlluxioException e) {
-      closer.close();
-      throw new IOException(e);
-    } catch (IOException e) {
-      closer.close();
-      throw e;
+    } catch (AlluxioException | IOException e) {
+      CommonUtils.closeCloserIgnoreException(closer);
+      throw CommonUtils.castToIOException(e);
     }
   }
 
@@ -128,12 +123,7 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
     mCloser = Closer.create();
     mBlockWorkerClient = blockWorkerClient;
     mCloser.register(blockWorkerClient);
-    mCloser.register(new Closeable() {
-      @Override
-      public void close() throws IOException {
-        mBlockWorkerClient.unlockBlock(mBlockId);
-      }
-    });
+    mCloser.register(new LockBlockResource(mBlockWorkerClient, mBlockId));
     mNoCache = !options.getAlluxioStorageType().isStore();
     mLocal = blockWorkerClient.getDataServerAddress().getHostName()
         .equals(NetworkAddressUtils.getLocalHostName());

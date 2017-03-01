@@ -43,7 +43,7 @@ public interface UnderFileSystemBlockReader extends Closeable {
   }
 
   /**
-   * Reads a block from UFS with a offset and length.
+   * Reads a block from UFS with an offset and length.
    *
    * @param address the {@link InetSocketAddress} of the data server
    * @param blockId the id of the block trying to read
