@@ -308,7 +308,9 @@ public enum PropertyKey {
       "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
   USER_UFS_FILE_READ_LOCATION_POLICY(Name.USER_UFS_FILE_READ_LOCATION_POLICY,
       "alluxio.client.file.policy.LocalFirstPolicy"),
-  USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT(Name.USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT,
+  USER_UFS_FILE_READ_DETERMINISTIC_HASH_POLICY_NUM_SHARDS(
+      Name.USER_UFS_FILE_READ_DETERMINISTIC_HASH_POLICY_NUM_SHARDS, 1),
+  USER_UFS_BLOCK_READ_CONCURRENCY_MAX(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX,
       Integer.MAX_VALUE),
   USER_UFS_BLOCK_OPEN_TIMEOUT_MS(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000),
   USER_LOCAL_READER_PACKET_SIZE_BYTES(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES, "8MB"),
@@ -768,8 +770,10 @@ public enum PropertyKey {
         "alluxio.user.ufs.file.writer.class";
     public static final String USER_UFS_FILE_READ_LOCATION_POLICY =
         "alluxio.user.ufs.file.read.location.policy";
-    public static final String USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT =
-        "alluxio.user.ufs.block.max.read.concurrency.default";
+    public static final String USER_UFS_FILE_READ_DETERMINISTIC_HASH_POLICY_NUM_SHARDS =
+        "alluxio.user.ufs.file.read.deterministic.hash.policy.num.shards";
+    public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
+        "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.user.ufs.block.open.timeout.ms";
 
