@@ -100,14 +100,7 @@ It is often beneficial to log to both the local and remote machines. You can ach
 associating multiple appenders to your logger, taking the master log as an example:
 
 ```
-log4j.rootLogger=INFO, ${alluxio.logger.type}_SOCKET, ${alluxio.logger.type}_FILE
-
-log4j.appender.MASTER_LOGGER_SOCKET=org.apache.log4j.net.SocketAppender
-log4j.appender.MASTER_LOGGER_SOCKET.Port=<PORT>
-log4j.appender.MASTER_LOGGER_SOCKET.RemoteHost=<HOSTNAME_OF_LOG_SERVER>
-log4j.appender.MASTER_LOGGER_SOCKET.ReconnectionDelay=<MILLIS_TO_WAIT_BEFORE_RECONNECTION_ATTEMPT>
-log4j.appender.MASTER_LOGGER_SOCKET.layout=org.apache.log4j.PatternLayout
-log4j.appender.MASTER_LOGGER_SOCKET.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
+log4j.rootLogger=INFO, ${alluxio.logger.type}_FILE, ${alluxio.logger.type}_SOCKET
 
 log4j.appender.MASTER_LOGGER_FILE=org.apache.log4j.RollingFileAppender
 log4j.appender.MASTER_LOGGER_FILE.File=${alluxio.logs.dir}/master_file.log
@@ -115,6 +108,13 @@ log4j.appender.MASTER_LOGGER_FILE.MaxFileSize=10MB
 log4j.appender.MASTER_LOGGER_FILE.MaxBackupIndex=100
 log4j.appender.MASTER_LOGGER_FILE.layout=org.apache.log4j.PatternLayout
 log4j.appender.MASTER_LOGGER_FILE.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
+
+log4j.appender.MASTER_LOGGER_SOCKET=org.apache.log4j.net.SocketAppender
+log4j.appender.MASTER_LOGGER_SOCKET.Port=<PORT>
+log4j.appender.MASTER_LOGGER_SOCKET.RemoteHost=<HOSTNAME_OF_LOG_SERVER>
+log4j.appender.MASTER_LOGGER_SOCKET.ReconnectionDelay=<MILLIS_TO_WAIT_BEFORE_RECONNECTION_ATTEMPT>
+log4j.appender.MASTER_LOGGER_SOCKET.layout=org.apache.log4j.PatternLayout
+log4j.appender.MASTER_LOGGER_SOCKET.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```
 
 This is an example of using remote logging with Alluxio, users are encouraged to explore the various
