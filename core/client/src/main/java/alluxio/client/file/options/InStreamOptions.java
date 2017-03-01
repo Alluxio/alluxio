@@ -18,6 +18,7 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.BlockLocationPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.client.file.policy.options.BlockLocationPolicyCreateOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Objects;
@@ -62,8 +63,12 @@ public final class InStreamOptions {
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
-    mUfsReadLocationPolicy = BlockLocationPolicy.Factory
-        .create(Configuration.get(PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY));
+    BlockLocationPolicyCreateOptions blockLocationPolicyCreateOptions =
+        BlockLocationPolicyCreateOptions.defaults().setLocationPolicyClassName(
+            Configuration.get(PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY))
+            .setDeterministicHashPolicyNumShards(Configuration
+                .getInt(PropertyKey.USER_UFS_FILE_READ_DETERMINISTIC_HASH_POLICY_NUM_SHARDS));
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
     mCachePartiallyReadBlock =
         Configuration.getBoolean(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
     mSeekBufferSizeBytes = Configuration.getBytes(PropertyKey.USER_FILE_SEEK_BUFFER_SIZE_BYTES);

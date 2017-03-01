@@ -308,6 +308,8 @@ public enum PropertyKey {
       "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
   USER_UFS_FILE_READ_LOCATION_POLICY(Name.USER_UFS_FILE_READ_LOCATION_POLICY,
       "alluxio.client.file.policy.LocalFirstPolicy"),
+  USER_UFS_FILE_READ_DETERMINISTIC_HASH_POLICY_NUM_SHARDS(
+      Name.USER_UFS_FILE_READ_DETERMINISTIC_HASH_POLICY_NUM_SHARDS, 1),
   USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT(Name.USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT,
       Integer.MAX_VALUE),
   USER_UFS_BLOCK_OPEN_TIMEOUT_MS(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000),
@@ -768,6 +770,8 @@ public enum PropertyKey {
         "alluxio.user.ufs.file.writer.class";
     public static final String USER_UFS_FILE_READ_LOCATION_POLICY =
         "alluxio.user.ufs.file.read.location.policy";
+    public static final String USER_UFS_FILE_READ_DETERMINISTIC_HASH_POLICY_NUM_SHARDS =
+        "alluxio.user.ufs.file.read.deterministic.hash.policy.num.shards";
     public static final String USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT =
         "alluxio.user.ufs.block.max.read.concurrency.default";
     public static final String USER_UFS_BLOCK_OPEN_TIMEOUT_MS =

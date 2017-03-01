@@ -31,6 +31,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.BlockLocationPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.client.file.policy.options.BlockLocationPolicyGetWorkerOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -370,8 +371,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 >>>>>>> Client side changes to use UFSBlockStore
     if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
       try {
-        WorkerNetAddress address = mUfsReadLocationPolicy
-            .getWorkerForBlock(mBlockStore.getWorkerInfoList(), blockId, length);
+        WorkerNetAddress address = mUfsReadLocationPolicy.getWorkerForBlock(
+            BlockLocationPolicyGetWorkerOptions.defaults()
+                .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
+                .setBlockSize(length));
         return StreamFactory
             .createUfsBlockInStream(mContext, path, blockId, length, blockStart, address,
                 mInStreamOptions);

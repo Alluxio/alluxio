@@ -17,6 +17,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.BlockLocationPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.client.file.policy.options.BlockLocationPolicyCreateOptions;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -62,8 +63,12 @@ public final class OpenFileOptions {
       throw Throwables.propagate(e);
     }
 
-    mUfsReadLocationPolicy = BlockLocationPolicy.Factory
-        .create(Configuration.get(PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY));
+    BlockLocationPolicyCreateOptions blockLocationPolicyCreateOptions =
+        BlockLocationPolicyCreateOptions.defaults().setLocationPolicyClassName(
+            Configuration.get(PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY))
+            .setDeterministicHashPolicyNumShards(Configuration
+                .getInt(PropertyKey.USER_UFS_FILE_READ_DETERMINISTIC_HASH_POLICY_NUM_SHARDS));
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
     mMaxUfsReadConcurrency =
         Configuration.getInt(PropertyKey.USER_UFS_BLOCK_MAX_READ_CONCURRENCY_DEFAULT);
   }

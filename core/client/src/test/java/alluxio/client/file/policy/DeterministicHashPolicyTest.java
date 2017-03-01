@@ -13,6 +13,8 @@ package alluxio.client.file.policy;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.policy.options.BlockLocationPolicyCreateOptions;
+import alluxio.client.file.policy.options.BlockLocationPolicyGetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
@@ -47,42 +49,54 @@ public final class DeterministicHashPolicyTest {
 
   @Test
   public void getWorkerDeterministically() {
-    DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory
-        .create("alluxio.client.file.policy.DeterministicHashPolicy");
-    String host = policy.getWorkerForBlock(mWorkerInfos, 1, 2 * (long) Constants.GB).getHost();
+    DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
+        BlockLocationPolicyCreateOptions.defaults()
+            .setLocationPolicyClassName("alluxio.client.file.policy.DeterministicHashPolicy"));
+    String host = policy.getWorkerForBlock(
+        BlockLocationPolicyGetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+            .setBlockId(1).setBlockSize(2 * (long) Constants.GB)).getHost();
     for (int i = 0; i < 10; i++) {
-      DeterministicHashPolicy p = (DeterministicHashPolicy) BlockLocationPolicy.Factory
-          .create("alluxio.client.file.policy.DeterministicHashPolicy");
+      DeterministicHashPolicy p = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
+          BlockLocationPolicyCreateOptions.defaults()
+              .setLocationPolicyClassName("alluxio.client.file.policy.DeterministicHashPolicy"));
       // For the same block, always return the same worker.
-      Assert.assertEquals(host,
-          p.getWorkerForBlock(mWorkerInfos, 1, 2 * (long) Constants.GB).getHost());
-      Assert.assertEquals(host,
-          p.getWorkerForBlock(mWorkerInfos, 1, 2 * (long) Constants.GB).getHost());
+      Assert.assertEquals(host, p.getWorkerForBlock(
+          BlockLocationPolicyGetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+              .setBlockId(1).setBlockSize(2 * (long) Constants.GB)).getHost());
+      Assert.assertEquals(host, p.getWorkerForBlock(
+          BlockLocationPolicyGetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+              .setBlockId(1).setBlockSize(2 * (long) Constants.GB)).getHost());
     }
   }
 
   @Test
   public void getWorkerEnoughCapacity() {
-    DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory
-        .create("alluxio.client.file.policy.DeterministicHashPolicy");
+    DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
+        BlockLocationPolicyCreateOptions.defaults()
+            .setLocationPolicyClassName("alluxio.client.file.policy.DeterministicHashPolicy"));
     for (long blockId = 0; blockId < 100; blockId++) {
       // worker1 does not have enough capacity. It should never be picked.
-      Assert.assertNotEquals("worker1",
-          policy.getWorkerForBlock(mWorkerInfos, blockId, 2 * (long) Constants.GB).getHost());
+      Assert.assertNotEquals("worker1", policy.getWorkerForBlock(
+          BlockLocationPolicyGetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+              .setBlockId(blockId).setBlockSize(2 * (long) Constants.GB)).getHost());
     }
   }
 
   @Test
   public void getWorkerMultipleShards() {
-    DeterministicHashPolicy policy2 = (DeterministicHashPolicy) BlockLocationPolicy.Factory
-        .create("alluxio.client.file.policy.DeterministicHashPolicy@2");
+    DeterministicHashPolicy policy2 = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
+        BlockLocationPolicyCreateOptions.defaults()
+            .setLocationPolicyClassName("alluxio.client.file.policy.DeterministicHashPolicy")
+            .setDeterministicHashPolicyNumShards(2));
     Set<String> addresses1 = new HashSet<>();
     Set<String> addresses2 = new HashSet<>();
     for (int i = 0; i < 100; i++) {
-      addresses1
-          .add(policy2.getWorkerForBlock(mWorkerInfos, 1, 2 * (long) Constants.GB).getHost());
-      addresses2
-          .add(policy2.getWorkerForBlock(mWorkerInfos, 1, 2 * (long) Constants.GB).getHost());
+      addresses1.add(policy2.getWorkerForBlock(
+          BlockLocationPolicyGetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+              .setBlockId(1).setBlockSize(2 * (long) Constants.GB)).getHost());
+      addresses2.add(policy2.getWorkerForBlock(
+          BlockLocationPolicyGetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+              .setBlockId(1).setBlockSize(2 * (long) Constants.GB)).getHost());
     }
     // With sufficient traffic, 2 (= #shards) workers should be picked to serve the block.
     Assert.assertEquals(2, addresses1.size());
