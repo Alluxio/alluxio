@@ -12,11 +12,10 @@
 package alluxio.client.file.policy;
 
 import alluxio.annotation.PublicApi;
-import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.policy.options.BlockLocationPolicyCreateOptions;
+import alluxio.client.file.policy.options.BlockLocationPolicyGetWorkerOptions;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
-
-import com.google.common.base.Preconditions;
 
 /**
  * <p>
@@ -43,25 +42,14 @@ public interface BlockLocationPolicy {
     /**
      * Factory for creating {@link BlockLocationPolicy}.
      *
-     * @param policyClassNameWithShard the block location policy class name. Optionally, it can also
-     *        contains the number of shards that a block's traffic can be sharded. For example:
-     *        alluxio.client.file.policy.DeterministicHashPolicy,
-     *        alluxio.client.file.policy.DeterministicHashPolicy@5,
-     *        alluxio.client.file.policy.LocalFirstPolicy.
-     *        Note that DeterministicHashPolicy is the only policy that accepts a sharding factor
-     *        that is greater than 1.
+     * @param options the block location policy creation options
      * @return a new instance of {@link BlockLocationPolicy}
      */
-    public static BlockLocationPolicy create(String policyClassNameWithShard) {
-      String[] parts = policyClassNameWithShard.split("@");
-      Preconditions.checkArgument(parts.length <= 2 && parts.length >= 1,
-          "%s is a illegal block location policy name.", policyClassNameWithShard);
-      Integer numShards = 1;
-      if (parts.length == 2) {
-        numShards = Integer.valueOf(parts[1]);
-      }
+    public static BlockLocationPolicy create(BlockLocationPolicyCreateOptions options) {
+      int numShards = options.getDeterministicHashPolicyNumShards();
       try {
-        Class<BlockLocationPolicy> clazz = (Class<BlockLocationPolicy>) Class.forName(parts[0]);
+        Class<BlockLocationPolicy> clazz =
+            (Class<BlockLocationPolicy>) Class.forName(options.getLocationPolicyClassName());
         if (numShards > 1) {
           return CommonUtils
               .createNewClassInstance(clazz, new Class[] {Integer.class}, new Object[] {numShards});
@@ -77,11 +65,8 @@ public interface BlockLocationPolicy {
   /**
    * Gets the worker's network address for serving operations requested for the block.
    *
-   * @param workerInfoList the info of the active workers
-   * @param blockId the block ID
-   * @param blockSizeBytes the size of the block in bytes
+   * @param options the options to get a block worker network address for a block
    * @return the address of the worker to write to, null if no worker can be selected
    */
-  WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList, long blockId,
-      long blockSizeBytes);
+  WorkerNetAddress getWorkerForBlock(BlockLocationPolicyGetWorkerOptions options);
 }

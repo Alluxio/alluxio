@@ -12,6 +12,7 @@
 package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.policy.options.BlockLocationPolicyGetWorkerOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -60,9 +61,8 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
   }
 
   @Override
-  public WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList, long blockId,
-      long blockSizeBytes) {
-    return getWorkerForNextBlock(workerInfoList, blockSizeBytes);
+  public WorkerNetAddress getWorkerForBlock(BlockLocationPolicyGetWorkerOptions options) {
+    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 
   @Override

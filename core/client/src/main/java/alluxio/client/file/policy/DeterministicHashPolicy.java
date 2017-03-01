@@ -12,6 +12,7 @@
 package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.policy.options.BlockLocationPolicyGetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
@@ -59,10 +60,9 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   }
 
   @Override
-  public WorkerNetAddress getWorkerForBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockId, long blockSizeBytes) {
+  public WorkerNetAddress getWorkerForBlock(BlockLocationPolicyGetWorkerOptions options) {
     if (!mInitialized) {
-      mWorkerInfoList = Lists.newArrayList(workerInfoList);
+      mWorkerInfoList = Lists.newArrayList(options.getBlockWorkerInfos());
       Collections.sort(mWorkerInfoList, new Comparator<BlockWorkerInfo>() {
         @Override
         public int compare(BlockWorkerInfo o1, BlockWorkerInfo o2) {
@@ -76,18 +76,18 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
     // than those in mWorkerInfoList. We assume that the worker information is more likely to
     // change than the worker network address.
     HashMap<WorkerNetAddress, BlockWorkerInfo> blockWorkerInfoMap = new HashMap<>();
-    for (BlockWorkerInfo workerInfo : workerInfoList) {
+    for (BlockWorkerInfo workerInfo : options.getBlockWorkerInfos()) {
       blockWorkerInfoMap.put(workerInfo.getNetAddress(), workerInfo);
     }
 
     List<WorkerNetAddress> workers = new ArrayList<>();
     // Try the next one if the worker mapped from the blockId doesn't work until all the workers
     // are examined.
-    int index = (int) (blockId % (long) mWorkerInfoList.size());
+    int index = (int) (options.getBlockId() % (long) mWorkerInfoList.size());
     for (BlockWorkerInfo blockWorkerInfoUnused : mWorkerInfoList) {
       WorkerNetAddress candidate = mWorkerInfoList.get(index).getNetAddress();
       BlockWorkerInfo workerInfo = blockWorkerInfoMap.get(candidate);
-      if (workerInfo != null && workerInfo.getCapacityBytes() >= blockSizeBytes) {
+      if (workerInfo != null && workerInfo.getCapacityBytes() >= options.getBlockSize()) {
         workers.add(candidate);
         if (workers.size() >= mShards) {
           break;
