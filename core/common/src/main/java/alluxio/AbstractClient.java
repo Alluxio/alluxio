@@ -313,7 +313,7 @@ public abstract class AbstractClient implements Client {
    *         been called before calling this method or during the retry
    * @throws ConnectionFailedException if network connection failed
    */
-  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws IOException,
+  protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException,
       ConnectionFailedException {
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);

@@ -76,7 +76,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
-  public FileInfo getFileInfo(final long fileId) throws AlluxioException, IOException {
+  public synchronized FileInfo getFileInfo(final long fileId) throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<FileInfo>() {
       @Override
       public FileInfo call() throws TException {
@@ -90,7 +90,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public Set<Long> getPinList() throws ConnectionFailedException, IOException {
+  public synchronized Set<Long> getPinList() throws ConnectionFailedException, IOException {
     return retryRPC(new RpcCallable<Set<Long>>() {
       @Override
       public Set<Long> call() throws TException {
@@ -108,7 +108,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @throws IOException if file persistence fails
    * @throws AlluxioException if an error occurs on Alluxio master
    */
-  public FileSystemCommand heartbeat(final long workerId,
+  public synchronized FileSystemCommand heartbeat(final long workerId,
       final List<Long> persistedFiles) throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<FileSystemCommand>() {
       @Override
