@@ -37,11 +37,10 @@ public final class RpcUtils {
     try {
       return callable.call();
     } catch (AlluxioException e) {
-      logger.warn("Exception calling: {}, Error={}", callable, e.getMessage());
-      logger.debug("Exception calling: {}", callable, e);
+      logger.debug("{}, Error={}", callable, e.getMessage());
       throw e.toThrift();
     } catch (Exception e) {
-      logger.error("Exception calling: {}", callable, e);
+      logger.error("{}", callable, e);
       throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
@@ -61,15 +60,14 @@ public final class RpcUtils {
     try {
       return callable.call();
     } catch (AlluxioException e) {
-      logger.warn("Exception calling: {}, Error={}", callable, e.getMessage());
-      logger.debug("Exception calling: {}", callable, e);
+      logger.debug("{}, Error={}", callable, e.getMessage());
       throw e.toThrift();
     } catch (IOException e) {
-      logger.warn("Exception calling: {}, Error={}", callable, e.getMessage());
-      logger.debug("Exception calling: {}", callable, e);
+      logger.warn("{}, Error={}", callable, e.getMessage());
+      logger.debug("{}", callable, e);
       throw new ThriftIOException(e.getMessage());
     } catch (Exception e) {
-      logger.error("Exception calling: {}", callable, e);
+      logger.error("{}", callable, e);
       throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
