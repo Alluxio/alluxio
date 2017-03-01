@@ -91,7 +91,7 @@ public final class RpcUtils {
       T ret = call(logger, callable);
       logger.debug("Exit (OK): {}", callable);
       return ret;
-    } catch (Exception e) {
+    } catch (AlluxioTException e) {
       logger.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
       throw e;
     }
@@ -117,7 +117,7 @@ public final class RpcUtils {
       T ret = call(logger, callable);
       logger.debug("Exit (OK): {}", callable);
       return ret;
-    } catch (Exception e) {
+    } catch (AlluxioTException | ThriftIOException e) {
       logger.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
       throw e;
     }
