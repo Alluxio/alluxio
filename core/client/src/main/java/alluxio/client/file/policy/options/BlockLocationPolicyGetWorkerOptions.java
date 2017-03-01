@@ -13,16 +13,19 @@ package alluxio.client.file.policy.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.policy.BlockLocationPolicy;
 
 import com.google.common.base.Objects;
 
+import java.util.List;
+
 /**
  * Method options for
- * {@link alluxio.client.file.policy.BlockLocationPolicy#getWorkerForBlock(Iterable, long, long)}.
+ * {@link BlockLocationPolicy#getWorker(BlockLocationPolicyGetWorkerOptions)}.
  */
 @PublicApi
 public final class BlockLocationPolicyGetWorkerOptions {
-  private Iterable<BlockWorkerInfo> mBlockWorkerInfos;
+  private List<BlockWorkerInfo> mBlockWorkerInfos;
   private long mBlockId;
   private long mBlockSize;
 
@@ -64,7 +67,7 @@ public final class BlockLocationPolicyGetWorkerOptions {
    * @return the updated options
    */
   public BlockLocationPolicyGetWorkerOptions setBlockWorkerInfos(
-      Iterable<BlockWorkerInfo> blockWorkerInfos) {
+      List<BlockWorkerInfo> blockWorkerInfos) {
     mBlockWorkerInfos = blockWorkerInfos;
     return this;
   }
@@ -109,9 +112,9 @@ public final class BlockLocationPolicyGetWorkerOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("blockWorkerInfos", mBlockWorkerInfos)
         .add("blockId", mBlockId)
         .add("blockSize", mBlockSize)
+        .add("blockWorkerInfos", mBlockWorkerInfos)
         .toString();
   }
 }

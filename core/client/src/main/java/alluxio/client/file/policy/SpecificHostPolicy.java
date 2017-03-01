@@ -50,7 +50,7 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockL
   }
 
   @Override
-  public WorkerNetAddress getWorkerForBlock(BlockLocationPolicyGetWorkerOptions options) {
+  public WorkerNetAddress getWorker(BlockLocationPolicyGetWorkerOptions options) {
     return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 

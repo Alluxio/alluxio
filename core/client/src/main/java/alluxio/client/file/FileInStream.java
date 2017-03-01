@@ -371,7 +371,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 >>>>>>> Client side changes to use UFSBlockStore
     if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
       try {
-        WorkerNetAddress address = mUfsReadLocationPolicy.getWorkerForBlock(
+        WorkerNetAddress address = mUfsReadLocationPolicy.getWorker(
             BlockLocationPolicyGetWorkerOptions.defaults()
                 .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
                 .setBlockSize(length));

@@ -39,8 +39,6 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   private static final int DEFAULT_NUM_SHARDS = 1;
   private final int mShards;
   private final Random mRandom = new Random();
-  private List<BlockWorkerInfo> mWorkerInfoList;
-  private boolean mInitialized = false;
 
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
@@ -60,21 +58,15 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   }
 
   @Override
-  public WorkerNetAddress getWorkerForBlock(BlockLocationPolicyGetWorkerOptions options) {
-    if (!mInitialized) {
-      mWorkerInfoList = Lists.newArrayList(options.getBlockWorkerInfos());
-      Collections.sort(mWorkerInfoList, new Comparator<BlockWorkerInfo>() {
-        @Override
-        public int compare(BlockWorkerInfo o1, BlockWorkerInfo o2) {
-          return o1.getNetAddress().toString().compareToIgnoreCase(o2.getNetAddress().toString());
-        }
-      });
-      mInitialized = true;
-    }
+  public WorkerNetAddress getWorker(BlockLocationPolicyGetWorkerOptions options) {
+    List<BlockWorkerInfo> workerInfos = Lists.newArrayList(options.getBlockWorkerInfos());
+    Collections.sort(workerInfos, new Comparator<BlockWorkerInfo>() {
+      @Override
+      public int compare(BlockWorkerInfo o1, BlockWorkerInfo o2) {
+        return o1.getNetAddress().toString().compareToIgnoreCase(o2.getNetAddress().toString());
+      }
+    });
 
-    // The worker information (e.g. capacity) in the blockWorkerInfoMap can be more up-to-date
-    // than those in mWorkerInfoList. We assume that the worker information is more likely to
-    // change than the worker network address.
     HashMap<WorkerNetAddress, BlockWorkerInfo> blockWorkerInfoMap = new HashMap<>();
     for (BlockWorkerInfo workerInfo : options.getBlockWorkerInfos()) {
       blockWorkerInfoMap.put(workerInfo.getNetAddress(), workerInfo);
@@ -83,9 +75,9 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
     List<WorkerNetAddress> workers = new ArrayList<>();
     // Try the next one if the worker mapped from the blockId doesn't work until all the workers
     // are examined.
-    int index = (int) (options.getBlockId() % (long) mWorkerInfoList.size());
-    for (BlockWorkerInfo blockWorkerInfoUnused : mWorkerInfoList) {
-      WorkerNetAddress candidate = mWorkerInfoList.get(index).getNetAddress();
+    int index = (int) (options.getBlockId() % (long) workerInfos.size());
+    for (BlockWorkerInfo blockWorkerInfoUnused : workerInfos) {
+      WorkerNetAddress candidate = workerInfos.get(index).getNetAddress();
       BlockWorkerInfo workerInfo = blockWorkerInfoMap.get(candidate);
       if (workerInfo != null && workerInfo.getCapacityBytes() >= options.getBlockSize()) {
         workers.add(candidate);
@@ -93,7 +85,7 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
           break;
         }
       }
-      index = (index + 1) % mWorkerInfoList.size();
+      index = (index + 1) % workerInfos.size();
     }
     return workers.isEmpty() ? null : workers.get(mRandom.nextInt(workers.size()));
   }
@@ -107,22 +99,16 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
       return false;
     }
     DeterministicHashPolicy that = (DeterministicHashPolicy) o;
-    return Objects.equal(mWorkerInfoList, that.mWorkerInfoList)
-        && Objects.equal(mInitialized, that.mInitialized)
-        && Objects.equal(mShards, that.mShards);
+    return Objects.equal(mShards, that.mShards);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mWorkerInfoList, mInitialized, mShards);
+    return Objects.hashCode(mShards);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-        .add("workerInfoList", mWorkerInfoList)
-        .add("initialized", mInitialized)
-        .add("shards", mShards)
-        .toString();
+    return Objects.toStringHelper(this).add("shards", mShards).toString();
   }
 }
