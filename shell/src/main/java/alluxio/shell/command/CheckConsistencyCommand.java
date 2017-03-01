@@ -17,9 +17,7 @@ import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.wire.LoadMetadataType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -99,6 +97,7 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
             .setRecursive(true);
         System.out.println("repairing path: " + uri);
         mFileSystem.delete(uri, deleteOptions);
+        mFileSystem.exists(uri);
         System.out.println(uri + "repaired");
         System.out.println();
       }
