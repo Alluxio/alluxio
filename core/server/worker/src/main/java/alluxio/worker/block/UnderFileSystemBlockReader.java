@@ -39,8 +39,8 @@ import java.nio.channels.ReadableByteChannel;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class provides read access to a block data file stored in the UFS. It also caches the data
- * to a local block if it tries to read the whole block.
+ * This class implements a {@link BlockReader} to read a block directly from UFS, and optionally
+ * cache the block to Alluxio worker if the whole block it read.
  */
 @NotThreadSafe
 public final class UnderFileSystemBlockReader implements BlockReader {
@@ -49,13 +49,20 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
+  /** The file buffer size used to allocate memory from Alluxio storage. */
   private final long mFileBufferSize;
+  /** The block metadata for the UFS block. */
   private final UnderFileSystemBlockMeta mBlockMeta;
+  /** If set, do not cache the block. */
   private final boolean mNoCache;
+  /** The Alluxio block store. It is used to interact with Alluxio. */
   private final BlockStore mAlluxioBlockStore;
 
+  /** The input stream to read from UFS. */
   private InputStream mUnderFileSystemInputStream;
+  /** The block writer to write the block to Alluxio. */
   private BlockWriter mBlockWriter;
+  /** If set, the reader is closed and should not be used afterwards. */
   private boolean mClosed;
 
   /** The position of mUnderFileSystemInputStream (if not null) is blockStart + mPos. */
@@ -103,7 +110,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   }
 
   /**
-   * Initializes the reader.
+   * Initializes the reader. This is only called in the factory method.
    *
    * @param offset the position within the block to start the read
    * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
@@ -207,7 +214,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   }
 
   /**
-   * This closes the block reader. After this, this block reader should not be used again.
+   * Closes the block reader. After this, this block reader should not be used again.
    * This is recommended to be called after the client finishes reading the block. It is usually
    * triggered when the client unlocks the block.
    *
@@ -276,7 +283,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   }
 
   /**
-   * Updates the block writer given an offset to read. The offset is beyond the current
+   * Updates the block writer given an offset to read. If the offset is beyond the current
    * position of the block writer, the block writer will be aborted.
    *
    * @param offset the read offset

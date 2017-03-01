@@ -32,12 +32,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
- * This class manages the virtual blocks in the UFS for delegated UFS read/write.
+ * This class manages the virtual blocks in the UFS for delegated UFS reads/writes.
  *
  * The usage pattern:
  *  acquireAccess(blockMeta, maxConcurrency)
  *  cleanup(sessionId, blockId)
  *  releaseAccess(sessionId, blockId)
+ *
+ * If the client is lost before releasing or cleaning up the session, the session cleaner will
+ * clean the data.
  */
 public final class UnderFileSystemBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockStore.class);
