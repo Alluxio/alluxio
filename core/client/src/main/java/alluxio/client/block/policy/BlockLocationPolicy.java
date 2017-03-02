@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.policy;
+package alluxio.client.block.policy;
 
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.policy.options.BlockLocationPolicyCreateOptions;
-import alluxio.client.file.policy.options.BlockLocationPolicyGetWorkerOptions;
+import alluxio.client.block.policy.options.CreateOptions;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -45,7 +45,7 @@ public interface BlockLocationPolicy {
      * @param options the block location policy creation options
      * @return a new instance of {@link BlockLocationPolicy}
      */
-    public static BlockLocationPolicy create(BlockLocationPolicyCreateOptions options) {
+    public static BlockLocationPolicy create(CreateOptions options) {
       int numShards = options.getDeterministicHashPolicyNumShards();
       try {
         Class<BlockLocationPolicy> clazz =
@@ -68,5 +68,5 @@ public interface BlockLocationPolicy {
    * @param options the options to get a block worker network address for a block
    * @return the address of the worker to write to, null if no worker can be selected
    */
-  WorkerNetAddress getWorker(BlockLocationPolicyGetWorkerOptions options);
+  WorkerNetAddress getWorker(GetWorkerOptions options);
 }

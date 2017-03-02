@@ -18,8 +18,8 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
-import alluxio.client.file.policy.BlockLocationPolicy;
-import alluxio.client.file.policy.DeterministicHashPolicy;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.DeterministicHashPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 

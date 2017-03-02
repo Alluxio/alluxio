@@ -9,31 +9,31 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.policy.options;
+package alluxio.client.block.policy.options;
 
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
 
 /**
- * Method options for creating a {@link BlockLocationPolicyCreateOptions}.
+ * Method options for creating a {@link CreateOptions}.
  */
 @PublicApi
-public final class BlockLocationPolicyCreateOptions {
+public final class CreateOptions {
   private String mLocationPolicyClassName;
   private int mDeterministicHashPolicyNumShards;
 
   /**
-   * @return the default {@link BlockLocationPolicyCreateOptions}
+   * @return the default {@link CreateOptions}
    */
-  public static BlockLocationPolicyCreateOptions defaults() {
-    return new BlockLocationPolicyCreateOptions();
+  public static CreateOptions defaults() {
+    return new CreateOptions();
   }
 
   /**
    * Creates a new instance with defaults.
    */
-  private BlockLocationPolicyCreateOptions() {
+  private CreateOptions() {
     mDeterministicHashPolicyNumShards = 1;
   }
 
@@ -46,7 +46,7 @@ public final class BlockLocationPolicyCreateOptions {
 
   /**
    * @return the number of shards to use if the policy is
-   *         {@link alluxio.client.file.policy.DeterministicHashPolicy}.
+   *         {@link alluxio.client.block.policy.DeterministicHashPolicy}.
    */
   public int getDeterministicHashPolicyNumShards() {
     return mDeterministicHashPolicyNumShards;
@@ -56,17 +56,17 @@ public final class BlockLocationPolicyCreateOptions {
    * @param name the location policy class name
    * @return the updated options object
    */
-  public BlockLocationPolicyCreateOptions setLocationPolicyClassName(String name) {
+  public CreateOptions setLocationPolicyClassName(String name) {
     mLocationPolicyClassName = name;
     return this;
   }
 
   /**
    * @param shards the number of shards to use if the policy is
-   *        {@link alluxio.client.file.policy.DeterministicHashPolicy}.
+   *        {@link alluxio.client.block.policy.DeterministicHashPolicy}.
    * @return the updated options object
    */
-  public BlockLocationPolicyCreateOptions setDeterministicHashPolicyNumShards(int shards) {
+  public CreateOptions setDeterministicHashPolicyNumShards(int shards) {
     mDeterministicHashPolicyNumShards = shards;
     return this;
   }
@@ -76,10 +76,10 @@ public final class BlockLocationPolicyCreateOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof BlockLocationPolicyCreateOptions)) {
+    if (!(o instanceof CreateOptions)) {
       return false;
     }
-    BlockLocationPolicyCreateOptions that = (BlockLocationPolicyCreateOptions) o;
+    CreateOptions that = (CreateOptions) o;
     return Objects.equal(mLocationPolicyClassName, that.mLocationPolicyClassName)
         && Objects.equal(mDeterministicHashPolicyNumShards, that.mDeterministicHashPolicyNumShards);
   }

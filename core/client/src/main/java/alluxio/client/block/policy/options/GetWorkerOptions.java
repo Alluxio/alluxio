@@ -9,11 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.policy.options;
+package alluxio.client.block.policy.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.policy.BlockLocationPolicy;
 
 import com.google.common.base.Objects;
 
@@ -21,25 +20,25 @@ import java.util.List;
 
 /**
  * Method options for
- * {@link BlockLocationPolicy#getWorker(BlockLocationPolicyGetWorkerOptions)}.
+ * {@link alluxio.client.block.policy.BlockLocationPolicy#getWorker(GetWorkerOptions)}.
  */
 @PublicApi
-public final class BlockLocationPolicyGetWorkerOptions {
+public final class GetWorkerOptions {
   private List<BlockWorkerInfo> mBlockWorkerInfos;
   private long mBlockId;
   private long mBlockSize;
 
   /**
-   * @return the default {@link BlockLocationPolicyGetWorkerOptions}
+   * @return the default {@link GetWorkerOptions}
    */
-  public static BlockLocationPolicyGetWorkerOptions defaults() {
-    return new BlockLocationPolicyGetWorkerOptions();
+  public static GetWorkerOptions defaults() {
+    return new GetWorkerOptions();
   }
 
   /**
    * Creates a new instance with defaults.
    */
-  private BlockLocationPolicyGetWorkerOptions() {}
+  private GetWorkerOptions() {}
 
   /**
    * @return the list of block worker infos
@@ -66,7 +65,7 @@ public final class BlockLocationPolicyGetWorkerOptions {
    * @param blockWorkerInfos the block worker infos
    * @return the updated options
    */
-  public BlockLocationPolicyGetWorkerOptions setBlockWorkerInfos(
+  public GetWorkerOptions setBlockWorkerInfos(
       List<BlockWorkerInfo> blockWorkerInfos) {
     mBlockWorkerInfos = blockWorkerInfos;
     return this;
@@ -76,7 +75,7 @@ public final class BlockLocationPolicyGetWorkerOptions {
    * @param blockId the block ID to set
    * @return the updated options
    */
-  public BlockLocationPolicyGetWorkerOptions setBlockId(long blockId) {
+  public GetWorkerOptions setBlockId(long blockId) {
     mBlockId = blockId;
     return this;
   }
@@ -85,7 +84,7 @@ public final class BlockLocationPolicyGetWorkerOptions {
    * @param blockSize the block size
    * @return the updated options
    */
-  public BlockLocationPolicyGetWorkerOptions setBlockSize(long blockSize) {
+  public GetWorkerOptions setBlockSize(long blockSize) {
     mBlockSize = blockSize;
     return this;
   }
@@ -95,10 +94,10 @@ public final class BlockLocationPolicyGetWorkerOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof BlockLocationPolicyGetWorkerOptions)) {
+    if (!(o instanceof GetWorkerOptions)) {
       return false;
     }
-    BlockLocationPolicyGetWorkerOptions that = (BlockLocationPolicyGetWorkerOptions) o;
+    GetWorkerOptions that = (GetWorkerOptions) o;
     return Objects.equal(mBlockWorkerInfos, that.mBlockWorkerInfos)
         && Objects.equal(mBlockId, that.mBlockId)
         && Objects.equal(mBlockSize, that.getBlockSize());
