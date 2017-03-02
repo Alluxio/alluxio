@@ -32,11 +32,11 @@ import java.util.Set;
 public final class DeterministicHashPolicyTest {
   private static final int PORT = 1;
 
-  private List<BlockWorkerInfo> mWorkerInfos;
+  private final List<BlockWorkerInfo> mWorkerInfos = new ArrayList<>();
 
   @Before
   public void before() {
-    mWorkerInfos = new ArrayList<>();
+    mWorkerInfos.clear();
     mWorkerInfos.add(new BlockWorkerInfo(
         new WorkerNetAddress().setHost("worker1").setRpcPort(PORT).setDataPort(PORT)
             .setWebPort(PORT), Constants.GB, 0));

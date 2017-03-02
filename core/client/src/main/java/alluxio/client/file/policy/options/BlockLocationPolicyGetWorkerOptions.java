@@ -17,13 +17,15 @@ import alluxio.client.file.policy.BlockLocationPolicy;
 
 import com.google.common.base.Objects;
 
+import java.util.List;
+
 /**
  * Method options for
  * {@link BlockLocationPolicy#getWorker(BlockLocationPolicyGetWorkerOptions)}.
  */
 @PublicApi
 public final class BlockLocationPolicyGetWorkerOptions {
-  private Iterable<BlockWorkerInfo> mBlockWorkerInfos;
+  private List<BlockWorkerInfo> mBlockWorkerInfos;
   private long mBlockId;
   private long mBlockSize;
 
@@ -65,7 +67,7 @@ public final class BlockLocationPolicyGetWorkerOptions {
    * @return the updated options
    */
   public BlockLocationPolicyGetWorkerOptions setBlockWorkerInfos(
-      Iterable<BlockWorkerInfo> blockWorkerInfos) {
+      List<BlockWorkerInfo> blockWorkerInfos) {
     mBlockWorkerInfos = blockWorkerInfos;
     return this;
   }
