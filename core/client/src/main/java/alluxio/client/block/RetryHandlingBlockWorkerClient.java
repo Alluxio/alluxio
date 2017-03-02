@@ -13,15 +13,20 @@ package alluxio.client.block;
 
 import alluxio.AbstractThriftClient;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.client.block.options.LockBlockOptions;
+import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.retry.TimeoutRetry;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.ThriftIOException;
@@ -164,6 +169,7 @@ public final class RetryHandlingBlockWorkerClient
         @Override
         public void run() {
           mHeartbeat.cancel(true);
+          mHeartbeat = null;
           NUM_ACTIVE_SESSIONS.decrementAndGet();
         }
       });
@@ -222,16 +228,37 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
-  public LockBlockResult lockBlock(final long blockId) throws IOException, AlluxioException {
-    return retryRPC(
-        new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService
-            .Client>() {
+  public LockBlockResource lockBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException {
+    LockBlockResult result = retryRPC(
+        new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService.Client>() {
           @Override
           public LockBlockResult call(BlockWorkerClientService.Client client)
               throws AlluxioTException, TException {
-            return ThriftUtils.fromThrift(client.lockBlock(blockId, getSessionId()));
+            return ThriftUtils
+                .fromThrift(client.lockBlock(blockId, getSessionId(), options.toThrift()));
           }
         });
+    return new LockBlockResource(this, result, blockId);
+  }
+
+  @Override
+  public LockBlockResource lockUfsBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException {
+    int retryInterval = Constants.SECOND_MS;
+    RetryPolicy retryPolicy = new TimeoutRetry(Configuration
+        .getLong(PropertyKey.USER_UFS_BLOCK_OPEN_TIMEOUT_MS), retryInterval);
+    UfsBlockAccessTokenUnavailableException exception;
+    do {
+      try {
+        return lockBlock(blockId, options);
+      } catch (UfsBlockAccessTokenUnavailableException e) {
+        LOG.debug("Failed to acquire a UFS read token because of contention for block {} with "
+            + "LockBlockOptions {}", blockId, options);
+        exception = e;
+      }
+    } while (retryPolicy.attemptRetry());
+    throw exception;
   }
 
   @Override
