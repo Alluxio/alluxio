@@ -55,6 +55,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * @return the {@link LocalBlockInStream} instance
    * @throws IOException if I/O error occurs
    */
+  // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static LocalBlockInStream create(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
       throws IOException {
@@ -84,6 +85,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * @param options the instream options
    * @return the {@link LocalBlockInStream} instance
    */
+  // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static LocalBlockInStream createWithLockedBlock(BlockWorkerClient client, long blockId,
       long blockSize, LocalFileBlockReader reader, Closer closer, InStreamOptions options) {
     return new LocalBlockInStream(client, blockId, blockSize, reader, closer, options);

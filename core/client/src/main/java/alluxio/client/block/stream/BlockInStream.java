@@ -69,6 +69,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
+  // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createLocalBlockInStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
       throws IOException {
@@ -100,6 +101,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
+  // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createRemoteBlockInStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
     throws IOException {
@@ -143,6 +145,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
+  // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
       long blockId, long blockSize, long blockStart,
       WorkerNetAddress workerNetAddress, InStreamOptions options) throws IOException {
@@ -157,7 +160,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       LockBlockResult lockBlockResult =
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
       PacketInStream inStream;
-      if (LockBlockResult.isBlockCachedInAlluxio(lockBlockResult)) {
+      if (lockBlockResult.blockCachedInAlluxio()) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
             .equals(NetworkAddressUtils.getLocalHostName());
         if (local) {

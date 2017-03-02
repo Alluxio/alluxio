@@ -89,7 +89,7 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
               .setBlockSize(blockSize).setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency());
       LockBlockResult result =
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
-      if (LockBlockResult.isBlockCachedInAlluxio(result)) {
+      if (result.blockCachedInAlluxio()) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
             .equals(NetworkAddressUtils.getLocalHostName());
         if (local) {
