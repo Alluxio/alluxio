@@ -306,10 +306,10 @@ public enum PropertyKey {
   // Deprecated. It will be removed in 2.0.0.
   USER_UFS_FILE_WRITER_CLASS(Name.USER_UFS_FILE_WRITER_CLASS,
       "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
-  USER_UFS_FILE_READ_LOCATION_POLICY(Name.USER_UFS_FILE_READ_LOCATION_POLICY,
+  USER_UFS_BLOCK_READ_LOCATION_POLICY(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY,
       "alluxio.client.file.policy.LocalFirstPolicy"),
-  USER_UFS_FILE_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS(
-      Name.USER_UFS_FILE_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS, 1),
+  USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS(
+      Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS, 1),
   USER_UFS_BLOCK_READ_CONCURRENCY_MAX(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX,
       Integer.MAX_VALUE),
   USER_UFS_BLOCK_OPEN_TIMEOUT_MS(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000),
@@ -319,7 +319,7 @@ public enum PropertyKey {
   USER_RPC_RETRY_BASE_SLEEP_MS(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50),
   USER_RPC_RETRY_MAX_SLEEP_MS(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 5000),
   USER_RPC_RETRY_MAX_NUM_RETRY(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20),
-  USER_FILE_PASSIVE_CACHE_ENABLED(Name.USER_FILE_PASSIVE_CACHE_ENABLED, false),
+  USER_FILE_PASSIVE_CACHE_ENABLED(Name.USER_FILE_PASSIVE_CACHE_ENABLED, true),
 
   //
   // FUSE integration related properties
@@ -769,10 +769,10 @@ public enum PropertyKey {
         "alluxio.user.ufs.file.reader.class";
     public static final String USER_UFS_FILE_WRITER_CLASS =
         "alluxio.user.ufs.file.writer.class";
-    public static final String USER_UFS_FILE_READ_LOCATION_POLICY =
-        "alluxio.user.ufs.file.read.location.policy";
-    public static final String USER_UFS_FILE_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
-        "alluxio.user.ufs.file.read.location.policy.deterministic.hash.shards";
+    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY =
+        "alluxio.user.ufs.block.read.location.policy";
+    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
+        "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
