@@ -126,10 +126,10 @@ public final class LockBlockOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("ufsPath", mUfsPath)
-        .add("offset", mOffset)
         .add("blockSize", mBlockSize)
-        .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency).toString();
+        .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
+        .add("offset", mOffset)
+        .add("ufsPath", mUfsPath).toString();
   }
 
   /**
