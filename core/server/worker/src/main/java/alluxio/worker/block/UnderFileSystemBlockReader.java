@@ -15,8 +15,12 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.PreconditionMessage;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.network.NetworkAddressUtils;
@@ -40,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class implements a {@link BlockReader} to read a block directly from UFS, and optionally
- * cache the block to Alluxio worker if the whole block it read.
+ * cache the block to the Alluxio worker if the whole block it read.
  */
 @NotThreadSafe
 public final class UnderFileSystemBlockReader implements BlockReader {
@@ -67,8 +71,6 @@ public final class UnderFileSystemBlockReader implements BlockReader {
 
   /** The position of mUnderFileSystemInputStream (if not null) is blockStart + mPos. */
   private long mInStreamPos;
-  /** The position of mBlockWriter if not null is mPos. */
-  private long mBlockWriterPos;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockReader} and initializes it with a reading
@@ -76,7 +78,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    *
    * @param blockMeta the block meta
    * @param offset the position within the block to start the read
-   * @param noCache do not cache the block
+   * @param noCache do not cache the block if set
    * @param alluxioBlockStore the Alluxio block store
    * @return the block reader
    * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
@@ -105,7 +107,6 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     mAlluxioBlockStore = alluxioBlockStore;
     mNoCache = noCache;
     mInStreamPos = -1;
-    mBlockWriterPos = -1;
     mBlockMeta.setBlockReader(this);
   }
 
@@ -165,15 +166,14 @@ public final class UnderFileSystemBlockReader implements BlockReader {
 
     // We should always read the number of bytes as expected since the UFS file length (hence block
     // size) should be always accurate.
-    Preconditions.checkState(bytesRead == bytesToRead,
-        "Not enough bytes have been read [bytesRead: {}, bytesToRead: {}] from the UFS file: {}.",
-        bytesRead, bytesToRead, mBlockMeta.getUnderFileSystemPath());
-    if (mBlockWriter != null && mBlockWriterPos < mInStreamPos) {
-      Preconditions.checkState(mBlockWriterPos >= offset);
-      ByteBuffer buffer = ByteBuffer
-          .wrap(data, (int) (mBlockWriterPos - offset), (int) (mInStreamPos - mBlockWriterPos));
+    Preconditions
+        .checkState(bytesRead == bytesToRead, PreconditionMessage.NOT_ENOUGH_BYTES_READ.toString(),
+            bytesRead, bytesToRead, mBlockMeta.getUnderFileSystemPath());
+    if (mBlockWriter != null && mBlockWriter.getPosition() < mInStreamPos) {
+      Preconditions.checkState(mBlockWriter.getPosition() >= offset);
+      ByteBuffer buffer = ByteBuffer.wrap(data, (int) (mBlockWriter.getPosition() - offset),
+          (int) (mInStreamPos - mBlockWriter.getPosition()));
       mBlockWriter.append(buffer.duplicate());
-      mBlockWriterPos = mInStreamPos;
     }
     return ByteBuffer.wrap(data, 0, bytesRead);
   }
@@ -191,10 +191,18 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     if (mUnderFileSystemInputStream == null) {
       return -1;
     }
-    int bytesRead = 0;
-    ByteBuf bufCopy = buf.duplicate();
-    bufCopy.readerIndex(bufCopy.writerIndex());
-    bytesRead = buf.writeBytes(mUnderFileSystemInputStream, buf.writableBytes());
+    if (mBlockMeta.getBlockSize() <= mInStreamPos) {
+      return -1;
+    }
+   // Make a copy of the state to keep track of what we have read in this transferTo call.
+    ByteBuf bufCopy = null;
+    if (mBlockWriter != null) {
+      bufCopy = buf.duplicate();
+      bufCopy.readerIndex(bufCopy.writerIndex());
+    }
+    int bytesToRead =
+        (int) Math.min((long) buf.writableBytes(), mBlockMeta.getBlockSize() - mInStreamPos);
+    int bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
 
     if (bytesRead <= 0) {
       return bytesRead;
@@ -202,19 +210,18 @@ public final class UnderFileSystemBlockReader implements BlockReader {
 
     mInStreamPos += bytesRead;
 
-    bufCopy.writerIndex(buf.writerIndex());
     if (mBlockWriter != null) {
+      bufCopy.writerIndex(buf.writerIndex());
       while (bufCopy.readableBytes() > 0) {
         mBlockWriter.transferFrom(bufCopy);
       }
-      mBlockWriterPos += bytesRead;
     }
 
     return bytesRead;
   }
 
   /**
-   * Closes the block reader. After this, this block reader should not be used again.
+   * Closes the block reader. After this, this block reader should not be used anymore.
    * This is recommended to be called after the client finishes reading the block. It is usually
    * triggered when the client unlocks the block.
    *
@@ -230,6 +237,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       // This aborts the block if the block is not fully read.
       updateBlockWriter(mBlockMeta.getBlockSize());
 
+      // We need to check whether the block is cached before closing the block writer.
       boolean isBlockCached = isBlockCached();
       Closer closer = Closer.create();
       if (mBlockWriter != null) {
@@ -257,7 +265,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @return true if the whole block is read and cached to the temporary block location
    */
   private boolean isBlockCached() {
-    return mBlockWriter != null && mBlockWriterPos == mBlockMeta.getBlockSize();
+    return mBlockWriter != null && mBlockWriter.getPosition() == mBlockMeta.getBlockSize();
   }
 
   /**
@@ -287,15 +295,13 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * position of the block writer, the block writer will be aborted.
    *
    * @param offset the read offset
-   * @throws IOException any I/O errors occur while updating the input stream
    */
   private void updateBlockWriter(long offset) {
     try {
-      if (mBlockWriter != null && offset > mBlockWriterPos) {
+      if (mBlockWriter != null && offset > mBlockWriter.getPosition()) {
         mBlockWriter.close();
         mBlockWriter = null;
         mAlluxioBlockStore.abortBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
-        mBlockWriterPos = -1;
       }
       if (mBlockWriter == null && offset == 0 && !mNoCache) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
@@ -303,10 +309,10 @@ public final class UnderFileSystemBlockReader implements BlockReader {
             .createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(), loc, mFileBufferSize)
             .getPath();
         mBlockWriter = new LocalFileBlockWriter(blockPath);
-        mBlockWriterPos = 0;
       }
-    } catch (Exception e) {
-      // This can happen when there are concurrent UFS readers.
+    } catch (IOException | BlockAlreadyExistsException | BlockDoesNotExistException |
+        InvalidWorkerStateException | WorkerOutOfSpaceException e) {
+      // This can happen when there are concurrent UFS readers who are all trying to cache to block.
       LOG.debug(
           "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]",
           mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e);
