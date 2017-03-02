@@ -72,7 +72,7 @@ java -cp <PATH_TO_LOG4J_JAR> org.apache.log4j.net.SimpleSocketServer <PORT> <PAT
 
 The server is now ready to log any incoming SocketAppender traffic. You can validate this by looking
 in the logs directory, the first two lines in the log files should indicate the server was started
-succcessfully.
+successfully.
 
 Since this will be a long running process, it is worth considering using a separate service to
 ensure the server is up. If the server is unavailable, Alluxio processes will not be affected but
