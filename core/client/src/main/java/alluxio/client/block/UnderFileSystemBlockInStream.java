@@ -55,10 +55,16 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
   private UnderFileSystemBlockReader mReader;
 
   /**
-   * Creates an instance of {@link UnderFileSystemBlockInStream}. It keeps polling the worker
-   * until the block is cached to Alluxio or it successfully acquires a UFS read token. If
-   * the block is cached to Alluxio, it returns an {@link BufferedBlockInStream} that reads from
-   * Alluxio.
+   * Creates an instance of {@link UnderFileSystemBlockInStream}.
+   * This method keeps polling the block worker until the block is cached to Alluxio or
+   * it successfully acquires a UFS read token with a timeout.
+   * (1) If the block is cached to Alluxio after polling, it returns {@link BufferedBlockInStream}
+   *     to read the block from Alluxio storage.
+   * (2) If a UFS read token is acquired after polling, it returns
+   *     {@link UnderFileSystemBlockInStream} to read the block from an Alluxio worker that reads
+   *     the block from UFS.
+   * (3) If the polling times out, an {@link IOException} with cause
+   *     {@link alluxio.exception.UfsBlockAccessTokenUnavailableException} is thrown.
    *
    * @param context the file system context
    * @param ufsPath the UFS path
