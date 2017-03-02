@@ -17,6 +17,8 @@ import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.block.BufferedBlockInStream;
+import alluxio.client.block.UnderFileSystemBlockInStream;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -122,8 +124,16 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
   }
 
   /**
-   * Creates an instance of {@link BlockInStream} that reads a block from an Alluxio worker that
-   * indirectly reads from UFS.
+   * Creates an instance of {@link BlockInStream}.
+   *
+   * This method keeps polling the block worker until the block is cached to Alluxio or
+   * it successfully acquires a UFS read token with a timeout.
+   * (1) If the block is cached to Alluxio after polling, it returns {@link BlockInStream}
+   *     to read the block from Alluxio storage.
+   * (2) If a UFS read token is acquired after polling, it returns {@link BlockInStream}
+   *     to read the block from an Alluxio worker that reads the block from UFS.
+   * (3) If the polling times out, an {@link IOException} with cause
+   *     {@link alluxio.exception.UfsBlockAccessTokenUnavailableException} is thrown.
    *
    * @param context the file system context
    * @param ufsPath the UFS path
