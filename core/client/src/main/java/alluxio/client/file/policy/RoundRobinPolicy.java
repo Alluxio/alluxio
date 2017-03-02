@@ -12,13 +12,15 @@
 package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.policy.options.BlockLocationPolicyGetWorkerOptions;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -32,6 +34,8 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
   private List<BlockWorkerInfo> mWorkerInfoList;
   private int mIndex;
   private boolean mInitialized = false;
+  /** This caches the {@link WorkerNetAddress} for the block IDs.*/
+  private final HashMap<Long, WorkerNetAddress> mBlockLocationCache = new HashMap<>();
 
   /**
    * Constructs a new {@link RoundRobinPolicy}.
@@ -71,8 +75,14 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
   }
 
   @Override
-  public WorkerNetAddress getWorker(BlockLocationPolicyGetWorkerOptions options) {
-    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+    WorkerNetAddress address = mBlockLocationCache.get(options.getBlockId());
+    if (address != null) {
+      return address;
+    }
+    address = getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
+    mBlockLocationCache.put(options.getBlockId(), address);
+    return address;
   }
 
   /**
