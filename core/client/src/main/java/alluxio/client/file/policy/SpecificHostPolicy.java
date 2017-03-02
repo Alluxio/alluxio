@@ -25,6 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Always returns a worker with the specified hostname. Returns null if no active worker on that
  * hostname found.
  */
+// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
 public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private final String mHostname;

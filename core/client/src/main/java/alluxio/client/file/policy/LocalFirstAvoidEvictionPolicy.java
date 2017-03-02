@@ -33,6 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES is used to reserve some space of the worker
  * to store the block, for the values mCapacityBytes minus mUsedBytes is not the available bytes.
  */
+// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
 public final class LocalFirstAvoidEvictionPolicy
     implements FileWriteLocationPolicy, BlockLocationPolicy {

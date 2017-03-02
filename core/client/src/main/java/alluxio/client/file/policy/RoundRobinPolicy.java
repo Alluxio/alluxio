@@ -29,6 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers
  * that do not have enough space. The policy returns null if no worker can be found.
  */
+// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @NotThreadSafe
 public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private List<BlockWorkerInfo> mWorkerInfoList;

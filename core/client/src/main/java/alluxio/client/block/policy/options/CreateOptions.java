@@ -16,7 +16,7 @@ import alluxio.annotation.PublicApi;
 import com.google.common.base.Objects;
 
 /**
- * Method options for creating a {@link CreateOptions}.
+ * Method options for creating a {@link alluxio.client.block.policy.BlockLocationPolicy}.
  */
 @PublicApi
 public final class CreateOptions {
