@@ -14,7 +14,6 @@ package alluxio.client.block;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -60,19 +59,17 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
       throws IOException {
     Closer closer = Closer.create();
-    BlockWorkerClient client;
-    LockBlockResult result;
-    LocalFileBlockReader reader;
     try {
-      client = closer.register(context.createBlockWorkerClient(workerNetAddress));
-      result = client.lockBlock(blockId, LockBlockOptions.defaults());
-      closer.register(new LockBlockResource(client, blockId));
-      reader = new LocalFileBlockReader(result.getBlockPath());
+      BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
+      LockBlockResult result =
+          closer.register(client.lockBlock(blockId, LockBlockOptions.defaults())).getResult();
+      LocalFileBlockReader reader =
+          closer.register(new LocalFileBlockReader(result.getBlockPath()));
+      return new LocalBlockInStream(client, blockId, blockSize, reader, closer, options);
     } catch (AlluxioException | IOException e) {
-      CommonUtils.closeCloserIgnoreException(closer);
+      CommonUtils.closeQuitely(closer);
       throw CommonUtils.castToIOException(e);
     }
-    return new LocalBlockInStream(client, blockId, blockSize, reader, options);
   }
 
   /**
@@ -83,12 +80,13 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * @param blockSize the size of the block
    * @param reader the local block file reader, the {@link LocalBlockInStream} created should
    *        close this reader
+   * @param closer the closer registered with closable resources open so far
    * @param options the instream options
    * @return the {@link LocalBlockInStream} instance
    */
   public static LocalBlockInStream createWithLockedBlock(BlockWorkerClient client, long blockId,
-      long blockSize, LocalFileBlockReader reader, InStreamOptions options) {
-    return new LocalBlockInStream(client, blockId, blockSize, reader, options);
+      long blockSize, LocalFileBlockReader reader, Closer closer, InStreamOptions options) {
+    return new LocalBlockInStream(client, blockId, blockSize, reader, closer, options);
   }
 
   /**
@@ -98,18 +96,15 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * @param blockId the block id
    * @param blockSize the size of the block
    * @param reader the local block file reader which should be closed by this class
+   * @param closer the closer registered with closable resources open so far
    * @param options the instream options
    */
   private LocalBlockInStream(BlockWorkerClient client, long blockId,
-      long blockSize, LocalFileBlockReader reader, InStreamOptions options) {
+      long blockSize, LocalFileBlockReader reader, Closer closer, InStreamOptions options) {
     super(blockId, blockSize);
     mBlockWorkerClient = client;
     mReader = reader;
-
-    mCloser = Closer.create();
-    mCloser.register(client);
-    mCloser.register(new LockBlockResource(mBlockWorkerClient, mBlockId));
-    mCloser.register(reader);
+    mCloser = closer;
   }
 
   @Override

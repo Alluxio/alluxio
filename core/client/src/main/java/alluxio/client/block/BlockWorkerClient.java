@@ -12,9 +12,9 @@
 package alluxio.client.block;
 
 import alluxio.client.block.options.LockBlockOptions;
+import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.retry.RetryPolicy;
-import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.Closeable;
@@ -102,7 +102,7 @@ public interface BlockWorkerClient extends Closeable {
    * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
-  LockBlockResult lockBlock(final long blockId, final LockBlockOptions options)
+  LockBlockResource lockBlock(final long blockId, final LockBlockOptions options)
       throws IOException, AlluxioException;
 
   /**
@@ -116,7 +116,7 @@ public interface BlockWorkerClient extends Closeable {
    * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
-  LockBlockResult lockUfsBlock(final long blockId, final LockBlockOptions options)
+  LockBlockResource lockUfsBlock(final long blockId, final LockBlockOptions options)
       throws IOException, AlluxioException;
 
   /**

@@ -64,9 +64,9 @@ public final class InStreamOptions {
     }
     CreateOptions blockLocationPolicyCreateOptions = CreateOptions.defaults()
         .setLocationPolicyClassName(
-            Configuration.get(PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY))
+            Configuration.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
         .setDeterministicHashPolicyNumShards(Configuration
-            .getInt(PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS));
+            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS));
     mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
     mCachePartiallyReadBlock =
         Configuration.getBoolean(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);

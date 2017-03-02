@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.block.options.LockBlockOptions;
+import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
@@ -25,10 +26,10 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.retry.TimeoutRetry;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.ThriftIOException;
-import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
@@ -227,9 +228,9 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
-  public LockBlockResult lockBlock(final long blockId, final LockBlockOptions options)
+  public LockBlockResource lockBlock(final long blockId, final LockBlockOptions options)
       throws IOException, AlluxioException {
-    return retryRPC(
+    LockBlockResult result = retryRPC(
         new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService.Client>() {
           @Override
           public LockBlockResult call(BlockWorkerClientService.Client client)
@@ -238,26 +239,26 @@ public final class RetryHandlingBlockWorkerClient
                 .fromThrift(client.lockBlock(blockId, getSessionId(), options.toThrift()));
           }
         });
+    return new LockBlockResource(this, result, blockId);
   }
 
   @Override
-  public LockBlockResult lockUfsBlock(final long blockId, final LockBlockOptions options)
+  public LockBlockResource lockUfsBlock(final long blockId, final LockBlockOptions options)
       throws IOException, AlluxioException {
-    long retryInterval = Constants.SECOND_MS;
-    long timeout = System.currentTimeMillis() + Configuration
-        .getLong(PropertyKey.USER_UFS_BLOCK_OPEN_TIMEOUT_MS);
-    while (true) {
+    int retryInterval = Constants.SECOND_MS;
+    RetryPolicy retryPolicy = new TimeoutRetry(Configuration
+        .getLong(PropertyKey.USER_UFS_BLOCK_OPEN_TIMEOUT_MS), retryInterval);
+    UfsBlockAccessTokenUnavailableException exception;
+    do {
       try {
         return lockBlock(blockId, options);
       } catch (UfsBlockAccessTokenUnavailableException e) {
-        if (System.currentTimeMillis() >= timeout) {
-          throw e;
-        }
         LOG.debug("Failed to acquire a UFS read token because of contention for block {} with "
             + "LockBlockOptions {}", blockId, options);
-        CommonUtils.sleepMs(retryInterval);
+        exception = e;
       }
-    }
+    } while (retryPolicy.attemptRetry());
+    throw exception;
   }
 
   @Override

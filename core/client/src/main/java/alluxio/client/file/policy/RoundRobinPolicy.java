@@ -111,12 +111,13 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
     RoundRobinPolicy that = (RoundRobinPolicy) o;
     return Objects.equal(mWorkerInfoList, that.mWorkerInfoList)
         && Objects.equal(mIndex, that.mIndex)
-        && Objects.equal(mInitialized, that.mInitialized);
+        && Objects.equal(mInitialized, that.mInitialized)
+        && Objects.equal(mBlockLocationCache, that.mBlockLocationCache);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mWorkerInfoList, mIndex, mInitialized);
+    return Objects.hashCode(mWorkerInfoList, mIndex, mInitialized, mBlockLocationCache);
   }
 
   @Override
@@ -125,6 +126,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
         .add("workerInfoList", mWorkerInfoList)
         .add("index", mIndex)
         .add("initialized", mInitialized)
+        .add("blockLocationCache", mBlockLocationCache)
         .toString();
   }
 }

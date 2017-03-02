@@ -12,26 +12,41 @@
 package alluxio.client.resource;
 
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.wire.LockBlockResult;
 
 import java.io.Closeable;
 import java.io.IOException;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * A resource that unlocks the block when it is closed.
  */
-public class LockBlockResource implements Closeable {
+@NotThreadSafe
+public final class LockBlockResource implements Closeable {
   private final BlockWorkerClient mClient;
+  private final LockBlockResult mResult;
   private final long mBlockId;
+  private boolean mClosed;
 
   /**
    * Creates a new instance of {@link LockBlockResource} using the given lock.
    *
    * @param client the block worker client
+   * @param result the lock block result
    * @param blockId the block ID
    */
-  public LockBlockResource(BlockWorkerClient client, long blockId) {
+  public LockBlockResource(BlockWorkerClient client, LockBlockResult result, long blockId) {
     mClient = client;
+    mResult = result;
     mBlockId = blockId;
+  }
+
+  /**
+   * @return the lock block result
+   */
+  public LockBlockResult getResult() {
+    return mResult;
   }
 
   /**
@@ -39,6 +54,11 @@ public class LockBlockResource implements Closeable {
    */
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+
+    mClosed = true;
     mClient.unlockBlock(mBlockId);
   }
 }

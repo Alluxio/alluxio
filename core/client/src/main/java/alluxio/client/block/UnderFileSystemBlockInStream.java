@@ -16,7 +16,6 @@ import alluxio.client.UnderFileSystemBlockReader;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -82,8 +81,8 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
       LockBlockOptions lockBlockOptions =
           LockBlockOptions.defaults().setUfsPath(ufsPath).setOffset(blockStart)
               .setBlockSize(blockSize).setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency());
-      LockBlockResult result = blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions);
-      closer.register(new LockBlockResource(blockWorkerClient, blockId));
+      LockBlockResult result =
+          closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
       if (LockBlockResult.isBlockCachedInAlluxio(result)) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
             .equals(NetworkAddressUtils.getLocalHostName());
@@ -91,17 +90,18 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
           LocalFileBlockReader reader =
               closer.register(new LocalFileBlockReader(result.getBlockPath()));
           return LocalBlockInStream
-              .createWithLockedBlock(blockWorkerClient, blockId, blockSize, reader, options);
+              .createWithLockedBlock(blockWorkerClient, blockId, blockSize, reader, closer,
+                  options);
         } else {
           return RemoteBlockInStream
               .createWithLockedBlock(context, blockWorkerClient, blockId, blockSize,
-                  result.getLockId(), options);
+                  result.getLockId(), closer, options);
         }
       }
       return new UnderFileSystemBlockInStream(context, blockId, blockSize, blockWorkerClient,
-          options);
+          closer, options);
     } catch (AlluxioException | IOException e) {
-      CommonUtils.closeCloserIgnoreException(closer);
+      CommonUtils.closeQuitely(closer);
       throw CommonUtils.castToIOException(e);
     }
   }
@@ -113,17 +113,16 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
    * @param blockId the block ID
    * @param blockSize the block size
    * @param blockWorkerClient the block worker client
+   * @param closer the closer registered with closable resources open so far
    * @param options the instream options
    */
   private UnderFileSystemBlockInStream(FileSystemContext context, long blockId, long blockSize,
-      BlockWorkerClient blockWorkerClient, InStreamOptions options) {
+      BlockWorkerClient blockWorkerClient, Closer closer, InStreamOptions options) {
     super(blockId, blockSize);
 
     mContext = context;
-    mCloser = Closer.create();
     mBlockWorkerClient = blockWorkerClient;
-    mCloser.register(blockWorkerClient);
-    mCloser.register(new LockBlockResource(mBlockWorkerClient, mBlockId));
+    mCloser = closer;
     mNoCache = !options.getAlluxioStorageType().isStore();
     mLocal = blockWorkerClient.getDataServerAddress().getHostName()
         .equals(NetworkAddressUtils.getLocalHostName());

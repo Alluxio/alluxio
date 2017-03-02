@@ -64,19 +64,17 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
       throws IOException {
     Closer closer = Closer.create();
-    BlockWorkerClient client;
-    LockBlockResult result;
     try {
-      client = closer.register(context.createBlockWorkerClient(workerNetAddress));
-      result = client.lockBlock(blockId, LockBlockOptions.defaults());
+      BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
+      LockBlockResult result =
+          closer.register(client.lockBlock(blockId, LockBlockOptions.defaults())).getResult();
+      return new RemoteBlockInStream(context, client, blockId, blockSize, result.getLockId(),
+          closer, options);
     } catch (AlluxioException | IOException e) {
-      CommonUtils.closeCloserIgnoreException(closer);
+      CommonUtils.closeQuitely(closer);
       throw CommonUtils.castToIOException(e);
     }
-
-    return new RemoteBlockInStream(context, client, blockId, blockSize, result.getLockId(),
-        options);
-  }
+ }
 
   /**
    * Creates a new remote block input stream with the blocked being locked beforehand.
@@ -86,13 +84,14 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @param blockId the block ID
    * @param blockSize the block size
    * @param lockId the lock ID
+   * @param closer the closer registered with closable resources open so far
    * @param options the input stream options
    * @return the {@link RemoteBlockInStream} created
    */
   public static RemoteBlockInStream createWithLockedBlock(FileSystemContext context,
-      BlockWorkerClient client, long blockId, long blockSize, long lockId,
+      BlockWorkerClient client, long blockId, long blockSize, long lockId, Closer closer,
       InStreamOptions options) {
-    return new RemoteBlockInStream(context, client, blockId, blockSize, lockId, options);
+    return new RemoteBlockInStream(context, client, blockId, blockSize, lockId, closer, options);
   }
 
   /**
@@ -103,18 +102,16 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @param blockId the block ID
    * @param blockSize the block size
    * @param lockId the lock ID
+   * @param closer the closer registered with closable resources open so far
    * @param options the input stream options
    */
   private RemoteBlockInStream(FileSystemContext context, BlockWorkerClient client, long blockId,
-      long blockSize, long lockId, InStreamOptions options) {
+      long blockSize, long lockId, Closer closer, InStreamOptions options) {
     super(blockId, blockSize);
     mContext = context;
     mBlockWorkerClient = client;
     mLockId = lockId;
-
-    mCloser = Closer.create();
-    mCloser.register(mBlockWorkerClient);
-    mCloser.register(new LockBlockResource(mBlockWorkerClient, mBlockId));
+    mCloser = closer;
   }
 
   @Override
