@@ -17,8 +17,6 @@ import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerClient;
-import alluxio.client.block.BufferedBlockInStream;
-import alluxio.client.block.UnderFileSystemBlockInStream;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
