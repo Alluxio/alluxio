@@ -15,7 +15,6 @@ import alluxio.client.RemoteBlockReader;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -74,7 +73,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       CommonUtils.closeQuitely(closer);
       throw CommonUtils.castToIOException(e);
     }
- }
+  }
 
   /**
    * Creates a new remote block input stream with the blocked being locked beforehand.
