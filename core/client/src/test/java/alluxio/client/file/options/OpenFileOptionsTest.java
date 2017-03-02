@@ -48,12 +48,12 @@ public class OpenFileOptionsTest {
 
     OpenFileOptions options = OpenFileOptions.defaults();
     options.setReadType(readType);
-    options.setLocationPolicy(policy);
+    options.setCacheLocationPolicy(policy);
     options.setMaxUfsReadConcurrency(5);
     options.setUfsReadLocationPolicy((BlockLocationPolicy) policy);
 
     Assert.assertEquals(readType, options.getReadType());
-    Assert.assertEquals(policy, options.getLocationPolicy());
+    Assert.assertEquals(policy, options.getCacheLocationPolicy());
     Assert.assertEquals(5, options.getMaxUfsReadConcurrency());
     Assert.assertEquals(policy, options.getUfsReadLocationPolicy());
   }
@@ -67,7 +67,7 @@ public class OpenFileOptionsTest {
     InStreamOptions inStreamOptions = options.toInStreamOptions();
     Assert.assertEquals(options.getReadType().getAlluxioStorageType(),
         inStreamOptions.getAlluxioStorageType());
-    Assert.assertEquals(options.getLocationPolicy(), inStreamOptions.getLocationPolicy());
+    Assert.assertEquals(options.getCacheLocationPolicy(), inStreamOptions.getCacheLocationPolicy());
     Assert.assertEquals(options.getUfsReadLocationPolicy(),
         inStreamOptions.getUfsReadLocationPolicy());
     Assert.assertEquals(options.getMaxUfsReadConcurrency(),

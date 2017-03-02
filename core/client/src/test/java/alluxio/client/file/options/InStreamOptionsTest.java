@@ -59,7 +59,7 @@ public class InStreamOptionsTest {
     options.setMaxUfsReadConcurrency(5);
 
     Assert.assertEquals(options.getAlluxioStorageType(), readType.getAlluxioStorageType());
-    Assert.assertEquals(policy, options.getLocationPolicy());
+    Assert.assertEquals(policy, options.getCacheLocationPolicy());
     Assert.assertTrue(options.isCachePartiallyReadBlock());
     Assert.assertEquals(Constants.MB, options.getSeekBufferSizeBytes());
     Assert.assertEquals(blockLocationPolicy, options.getUfsReadLocationPolicy());

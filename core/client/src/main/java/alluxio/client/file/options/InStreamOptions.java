@@ -32,7 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class InStreamOptions {
-  private FileWriteLocationPolicy mLocationPolicy;
+  private FileWriteLocationPolicy mCacheLocationPolicy;
   private ReadType mReadType;
   /** Cache incomplete blocks if Alluxio is configured to store blocks in Alluxio storage. */
   private boolean mCachePartiallyReadBlock;
@@ -56,7 +56,7 @@ public final class InStreamOptions {
   private InStreamOptions() {
     mReadType = Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
     try {
-      mLocationPolicy = CommonUtils.createNewClassInstance(
+      mCacheLocationPolicy = CommonUtils.createNewClassInstance(
           Configuration.<FileWriteLocationPolicy>getClass(
               PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
@@ -77,9 +77,18 @@ public final class InStreamOptions {
 
   /**
    * @return the location policy to use when storing data to Alluxio
+   * @deprecated since version 1.5 and will be removed in version 2.0
    */
+  @Deprecated
   public FileWriteLocationPolicy getLocationPolicy() {
-    return mLocationPolicy;
+    return mCacheLocationPolicy;
+  }
+
+  /**
+   * @return the location policy to use when storing data to Alluxio
+   */
+  public FileWriteLocationPolicy getCacheLocationPolicy() {
+    return mCacheLocationPolicy;
   }
 
   /**
@@ -106,9 +115,19 @@ public final class InStreamOptions {
   /**
    * @param policy the location policy to use when storing data to Alluxio
    * @return the updated options object
+   * @deprecated since version 1.5 and will be removed in version 2.0
    */
   public InStreamOptions setLocationPolicy(FileWriteLocationPolicy policy) {
-    mLocationPolicy = policy;
+    mCacheLocationPolicy = policy;
+    return this;
+  }
+
+  /**
+   * @param policy the location policy to use when storing data to Alluxio
+   * @return the updated options object
+   */
+  public InStreamOptions setCacheLocationPolicy(FileWriteLocationPolicy policy) {
+    mCacheLocationPolicy = policy;
     return this;
   }
 
@@ -189,7 +208,7 @@ public final class InStreamOptions {
       return false;
     }
     InStreamOptions that = (InStreamOptions) o;
-    return Objects.equal(mLocationPolicy, that.mLocationPolicy)
+    return Objects.equal(mCacheLocationPolicy, that.mCacheLocationPolicy)
         && Objects.equal(mReadType, that.mReadType)
         && Objects.equal(mCachePartiallyReadBlock, that.mCachePartiallyReadBlock)
         && Objects.equal(mSeekBufferSizeBytes, that.mSeekBufferSizeBytes)
@@ -201,7 +220,7 @@ public final class InStreamOptions {
   public int hashCode() {
     return Objects
         .hashCode(
-            mLocationPolicy,
+            mCacheLocationPolicy,
             mReadType,
             mCachePartiallyReadBlock,
             mSeekBufferSizeBytes,
@@ -211,7 +230,7 @@ public final class InStreamOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("locationPolicy", mLocationPolicy)
+    return Objects.toStringHelper(this).add("locationPolicy", mCacheLocationPolicy)
         .add("readType", mReadType).add("cachePartiallyReadBlock", mCachePartiallyReadBlock)
         .add("seekBufferSize", mSeekBufferSizeBytes)
         .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)

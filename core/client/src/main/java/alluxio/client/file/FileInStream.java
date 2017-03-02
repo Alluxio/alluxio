@@ -146,9 +146,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
     mClosed = false;
-    mCacheLocationPolicy = options.getLocationPolicy();
+    mCacheLocationPolicy = options.getCacheLocationPolicy();
     if (mShouldCache) {
-      Preconditions.checkNotNull(options.getLocationPolicy(),
+      Preconditions.checkNotNull(options.getCacheLocationPolicy(),
           PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     }
     mUfsReadLocationPolicy = Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
