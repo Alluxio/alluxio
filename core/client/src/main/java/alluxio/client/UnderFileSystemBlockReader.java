@@ -54,6 +54,7 @@ public interface UnderFileSystemBlockReader extends Closeable {
    * @return a byte buffer containing the remote data block
    * @throws IOException if the remote server is not reachable or responds with failures
    */
+  // TODO(peis): Use options idiom (ALLUXIO-2579).
   ByteBuffer read(InetSocketAddress address, long blockId, long offset, long length,
       long sessionId, boolean noCache) throws IOException;
 }

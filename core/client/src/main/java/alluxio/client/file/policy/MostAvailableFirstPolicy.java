@@ -24,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A policy that returns the worker with the most available bytes. The policy returns null if no
  * worker is qualified.
  */
+// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
 public final class MostAvailableFirstPolicy
     implements FileWriteLocationPolicy, BlockLocationPolicy {

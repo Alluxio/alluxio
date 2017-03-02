@@ -59,6 +59,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @return the {@link RemoteBlockInStream} created
    * @throws IOException if the block is not available on the remote worker
    */
+  // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static RemoteBlockInStream create(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
       throws IOException {
@@ -87,6 +88,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @param options the input stream options
    * @return the {@link RemoteBlockInStream} created
    */
+  // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static RemoteBlockInStream createWithLockedBlock(FileSystemContext context,
       BlockWorkerClient client, long blockId, long blockSize, long lockId, Closer closer,
       InStreamOptions options) {

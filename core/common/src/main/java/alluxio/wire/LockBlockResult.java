@@ -77,6 +77,17 @@ public final class LockBlockResult implements Serializable {
   }
 
   /**
+   * Checks whether the block is cached in Alluxio.
+   *
+   * This method is ignored by Jackson as its method name does not start with "is" or "get".
+   *
+   * @return true if the block is in cached in Alluxio
+   */
+  public boolean blockCachedInAlluxio() {
+    return getLockId() >= 0;
+  }
+
+  /**
    * @return thrift representation of the lock block operation result
    */
   protected alluxio.thrift.LockBlockResult toThrift() {
@@ -104,13 +115,5 @@ public final class LockBlockResult implements Serializable {
   public String toString() {
     return Objects.toStringHelper(this).add("lockId", mLockId).add("blockPath", mBlockPath)
         .toString();
-  }
-
-  /**
-   * @param result the lock block result
-   * @return true if the block is in cached in Alluxio
-   */
-  public static boolean isBlockCachedInAlluxio(LockBlockResult result) {
-    return result.getLockId() >= 0;
   }
 }
