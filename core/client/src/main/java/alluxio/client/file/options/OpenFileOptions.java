@@ -15,9 +15,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ReadType;
-import alluxio.client.file.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.client.file.policy.options.BlockLocationPolicyCreateOptions;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -63,11 +63,11 @@ public final class OpenFileOptions {
       throw Throwables.propagate(e);
     }
 
-    BlockLocationPolicyCreateOptions blockLocationPolicyCreateOptions =
-        BlockLocationPolicyCreateOptions.defaults().setLocationPolicyClassName(
-            Configuration.get(PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY))
-            .setDeterministicHashPolicyNumShards(Configuration
-                .getInt(PropertyKey.USER_UFS_FILE_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS));
+    CreateOptions blockLocationPolicyCreateOptions = CreateOptions.defaults()
+        .setLocationPolicyClassName(
+            Configuration.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
+        .setDeterministicHashPolicyNumShards(Configuration
+            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS));
     mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
     mMaxUfsReadConcurrency =
         Configuration.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX);
@@ -157,7 +157,7 @@ public final class OpenFileOptions {
    */
   public OpenFileOptions setUfsReadLocationPolicyClass(String className) {
     mUfsReadLocationPolicy = BlockLocationPolicy.Factory
-        .create(BlockLocationPolicyCreateOptions.defaults().setLocationPolicyClassName(className));
+        .create(CreateOptions.defaults().setLocationPolicyClassName(className));
     return this;
   }
 
@@ -212,8 +212,8 @@ public final class OpenFileOptions {
   public String toString() {
     return Objects.toStringHelper(this)
         .add("locationPolicy", mLocationPolicy)
-        .add("readType", mReadType)
         .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
+        .add("readType", mReadType)
         .add("ufsReadLocationPolicy", mUfsReadLocationPolicy)
         .toString();
   }

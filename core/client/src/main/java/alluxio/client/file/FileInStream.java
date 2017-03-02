@@ -26,11 +26,11 @@ import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.StreamFactory;
 import alluxio.client.block.UnderStoreBlockInStream;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.BlockLocationPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.client.file.policy.options.BlockLocationPolicyGetWorkerOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -353,7 +353,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
       try {
         WorkerNetAddress address = mUfsReadLocationPolicy.getWorker(
-            BlockLocationPolicyGetWorkerOptions.defaults()
+            GetWorkerOptions.defaults()
                 .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
                 .setBlockSize(length));
         return StreamFactory
