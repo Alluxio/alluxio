@@ -87,6 +87,19 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <artifactSet>
+                <includes>
+                  <include>net.java.dev.jets3t</include>
+                </includes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>net.java.dev.jets3t:jets3t</artifact>
+                  <includes>
+                    <include>org/jets3t/**</include>
+                  </includes>
+                </filter>
+              </filters>
               <relocations>
                 <relocation>
                   <pattern>org.jets3t</pattern>
