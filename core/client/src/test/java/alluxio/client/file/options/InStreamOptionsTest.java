@@ -38,7 +38,6 @@ public class InStreamOptionsTest {
     InStreamOptions options = InStreamOptions.defaults();
     Assert.assertEquals(AlluxioStorageType.PROMOTE, options.getAlluxioStorageType());
     Assert.assertEquals(Constants.MB, options.getSeekBufferSizeBytes());
-
   }
 
   /**

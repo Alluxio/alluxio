@@ -77,7 +77,8 @@ public final class InStreamOptions {
 
   /**
    * @return the location policy to use when storing data to Alluxio
-   * @deprecated since version 1.5 and will be removed in version 2.0
+   * @deprecated since version 1.5 and will be removed in version 2.0. Use
+   *             {@link InStreamOptions#getCacheLocationPolicy()}.
    */
   @Deprecated
   public FileWriteLocationPolicy getLocationPolicy() {
@@ -115,7 +116,8 @@ public final class InStreamOptions {
   /**
    * @param policy the location policy to use when storing data to Alluxio
    * @return the updated options object
-   * @deprecated since version 1.5 and will be removed in version 2.0
+   * @deprecated since version 1.5 and will be removed in version 2.0. Use
+   *             {@link InStreamOptions#setCacheLocationPolicy(FileWriteLocationPolicy)}.
    */
   @Deprecated
   public InStreamOptions setLocationPolicy(FileWriteLocationPolicy policy) {
@@ -231,7 +233,7 @@ public final class InStreamOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("locationPolicy", mCacheLocationPolicy)
+    return Objects.toStringHelper(this).add("cacheLocationPolicy", mCacheLocationPolicy)
         .add("readType", mReadType).add("cachePartiallyReadBlock", mCachePartiallyReadBlock)
         .add("seekBufferSize", mSeekBufferSizeBytes)
         .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
