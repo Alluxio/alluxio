@@ -117,6 +117,7 @@ public final class InStreamOptions {
    * @return the updated options object
    * @deprecated since version 1.5 and will be removed in version 2.0
    */
+  @Deprecated
   public InStreamOptions setLocationPolicy(FileWriteLocationPolicy policy) {
     mCacheLocationPolicy = policy;
     return this;
