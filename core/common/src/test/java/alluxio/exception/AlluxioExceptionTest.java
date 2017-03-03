@@ -19,9 +19,15 @@ import org.junit.Test;
 public class AlluxioExceptionTest {
 
   @Test
-  public void unexpectedException() {
-    AlluxioTException tException = new AlluxioTException("testType", "testMessage", "testClass");
-    AlluxioException exception = AlluxioException.fromThrift(tException);
-    Assert.assertTrue(exception instanceof UnexpectedAlluxioException);
+  public void unknownException() {
+    try {
+      final String testMessage = "testMessage";
+      AlluxioTException tException = new AlluxioTException("testType", testMessage, "testClass");
+      AlluxioException exception = AlluxioException.fromThrift(tException);
+      Assert.assertEquals(testMessage, exception.getMessage());
+    } catch (Exception e) {
+      // this should never happen
+      Assert.fail("unexpected exception" + e.getMessage());
+    }
   }
 }
