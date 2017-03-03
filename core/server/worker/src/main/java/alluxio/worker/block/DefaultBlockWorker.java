@@ -354,6 +354,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
+  public long lockBlockNoException(long sessionId, long blockId) {
+    return mBlockStore.lockBlockNoException(sessionId, blockId);
+  }
+
+  @Override
   public void moveBlock(long sessionId, long blockId, String tierAlias)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {

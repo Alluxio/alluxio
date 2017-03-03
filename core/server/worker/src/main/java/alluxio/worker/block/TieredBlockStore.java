@@ -72,7 +72,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * and guarded by {@link TieredBlockStore#mMetadataLock}. This is also a read/write lock and
  * coordinates different threads (clients) when accessing the shared data structure for metadata.
  * </li>
- * <li>Method {@link #createBlockMeta} does not acquire the block lock, because it only creates a
+ * <li>Method {@link #createBlock} does not acquire the block lock, because it only creates a
  * temp block which is only visible to its writer before committed (thus no concurrent access).</li>
  * <li>Eviction is done in {@link #freeSpaceInternal} and it is on the basis of best effort. For
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
@@ -144,6 +144,21 @@ public final class TieredBlockStore implements BlockStore {
 
     mLockManager.unlockBlock(lockId);
     throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
+  }
+
+  @Override
+  public long lockBlockNoException(long sessionId, long blockId) {
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    boolean hasBlock;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      hasBlock = mMetaManager.hasBlockMeta(blockId);
+    }
+    if (hasBlock) {
+      return lockId;
+    }
+
+    mLockManager.unlockBlockNoException(lockId);
+    return BlockLockManager.INVALID_LOCK_ID;
   }
 
   @Override
@@ -807,6 +822,7 @@ public final class TieredBlockStore implements BlockStore {
    * @param blockPath the block path to create
    * @throws IOException if the file cannot be created in the tiered storage folder
    */
+  // TODO(peis): Consider using domain socket to avoid setting the permission to 777.
   private void createBlockFile(String blockPath) throws IOException {
     FileUtils.createBlockPath(blockPath);
     FileUtils.createFile(blockPath);
