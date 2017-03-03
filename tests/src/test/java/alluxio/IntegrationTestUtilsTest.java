@@ -21,108 +21,152 @@ import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.underfs.swift.SwiftUnderFileSystem;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests for {@link IntegrationTestUtils}.
  */
 public class IntegrationTestUtilsTest {
-  @Test
-  public void gcs() {
-    UnderFileSystem underFileSystem = Mockito.mock(GCSUnderFileSystem.class);
-    Mockito.when(underFileSystem.getUnderFSType()).thenCallRealMethod();
+  /**
+   * A callable which validates the type of an under file system. Should be used only in test as
+   * part of {@link UfsTypeCheckPair}.
+   */
+  interface UfsTypeCheckCallable {
+    boolean call(UnderFileSystem ufs);
+  }
 
-    Assert.assertTrue(IntegrationTestUtils.isGcs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isHdfs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isLocal(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isOss(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isS3(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isSwift(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isObjectStorage(underFileSystem));
+  /**
+   * A pair consisting of a list of {@link UnderFileSystem}s which are the same type. Being the
+   * same type is defined by all passing the {@link UfsTypeCheckCallable} associated with the pair.
+   */
+  private final class UfsTypeCheckPair {
+    private List<UnderFileSystem> mUfses;
+    private UfsTypeCheckCallable mCallable;
+
+    private UfsTypeCheckPair(List<UnderFileSystem> ufses, UfsTypeCheckCallable callable) {
+      mUfses = ufses;
+      mCallable = callable;
+    }
+
+    /**
+     * @return the list of {@link UnderFileSystem}s in this pair
+     */
+    public List<UnderFileSystem> getUfs() {
+      return mUfses;
+    }
+
+    /**
+     * Checks if each element in the argument list satisfies the {@link UfsTypeCheckCallable}.
+     * @param ufses list of {@link UnderFileSystem}s to check
+     * @return true if all elements pass, false otherwise
+     */
+    public boolean checkUfs(List<UnderFileSystem> ufses) {
+      for (UnderFileSystem ufs : ufses) {
+        if (!mCallable.call(ufs)) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+
+  private List<UfsTypeCheckPair> mPairs;
+  private List<UnderFileSystem> mObjectStores;
+
+  @Before
+  public void before() {
+    // For each UFS type, create a pair, add the pair to the object stores if necessary
+    mPairs = new ArrayList<>();
+    mObjectStores = new ArrayList<>();
+
+    // GCS
+    UnderFileSystem gcs = Mockito.mock(GCSUnderFileSystem.class);
+    Mockito.when(gcs.getUnderFSType()).thenCallRealMethod();
+    mPairs.add(new UfsTypeCheckPair(Collections.singletonList(gcs), new UfsTypeCheckCallable() {
+      @Override
+      public boolean call(UnderFileSystem ufs) {
+        return IntegrationTestUtils.isGcs(ufs);
+      }
+    }));
+    mObjectStores.add(gcs);
+
+    // HDFS
+    UnderFileSystem hdfs = Mockito.mock(HdfsUnderFileSystem.class);
+    Mockito.when(hdfs.getUnderFSType()).thenCallRealMethod();
+    mPairs.add(new UfsTypeCheckPair(Collections.singletonList(hdfs), new UfsTypeCheckCallable() {
+      @Override
+      public boolean call(UnderFileSystem ufs) {
+        return IntegrationTestUtils.isHdfs(ufs);
+      }
+    }));
+
+    // Local
+    UnderFileSystem local = Mockito.mock(LocalUnderFileSystem.class);
+    Mockito.when(local.getUnderFSType()).thenCallRealMethod();
+    mPairs.add(new UfsTypeCheckPair(Collections.singletonList(local), new UfsTypeCheckCallable() {
+      @Override
+      public boolean call(UnderFileSystem ufs) {
+        return IntegrationTestUtils.isLocal(ufs);
+      }
+    }));
+
+    // OSS
+    UnderFileSystem oss = Mockito.mock(OSSUnderFileSystem.class);
+    Mockito.when(oss.getUnderFSType()).thenCallRealMethod();
+    mPairs.add(new UfsTypeCheckPair(Collections.singletonList(oss), new UfsTypeCheckCallable() {
+      @Override
+      public boolean call(UnderFileSystem ufs) {
+        return IntegrationTestUtils.isOss(ufs);
+      }
+    }));
+    mObjectStores.add(oss);
+
+    // S3
+    UnderFileSystem s3 = Mockito.mock(S3UnderFileSystem.class);
+    Mockito.when(s3.getUnderFSType()).thenCallRealMethod();
+    UnderFileSystem s3a = Mockito.mock(S3AUnderFileSystem.class);
+    Mockito.when(s3a.getUnderFSType()).thenCallRealMethod();
+    mPairs.add(new UfsTypeCheckPair(Arrays.asList(s3, s3a), new UfsTypeCheckCallable() {
+      @Override
+      public boolean call(UnderFileSystem ufs) {
+        return IntegrationTestUtils.isS3(ufs);
+      }
+    }));
+    mObjectStores.add(s3);
+    mObjectStores.add(s3a);
+
+    // Swift
+    UnderFileSystem swift = Mockito.mock(SwiftUnderFileSystem.class);
+    Mockito.when(swift.getUnderFSType()).thenCallRealMethod();
+    mPairs.add(new UfsTypeCheckPair(Collections.singletonList(swift), new UfsTypeCheckCallable() {
+      @Override
+      public boolean call(UnderFileSystem ufs) {
+        return IntegrationTestUtils.isSwift(ufs);
+      }
+    }));
+    mObjectStores.add(swift);
   }
 
   @Test
-  public void hdfs() {
-    UnderFileSystem underFileSystem = Mockito.mock(HdfsUnderFileSystem.class);
-    Mockito.when(underFileSystem.getUnderFSType()).thenCallRealMethod();
-
-    Assert.assertFalse(IntegrationTestUtils.isGcs(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isHdfs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isLocal(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isOss(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isS3(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isSwift(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isObjectStorage(underFileSystem));
+  public void typeCheck() {
+    for (UfsTypeCheckPair ufs : mPairs) {
+      for (UfsTypeCheckPair callable : mPairs) {
+        Assert.assertEquals(callable.checkUfs(ufs.getUfs()), ufs.equals(callable));
+      }
+    }
   }
 
   @Test
-  public void local() {
-    UnderFileSystem underFileSystem = Mockito.mock(LocalUnderFileSystem.class);
-    Mockito.when(underFileSystem.getUnderFSType()).thenCallRealMethod();
-
-    Assert.assertFalse(IntegrationTestUtils.isGcs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isHdfs(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isLocal(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isOss(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isS3(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isSwift(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isObjectStorage(underFileSystem));
-  }
-
-  @Test
-  public void oss() {
-    UnderFileSystem underFileSystem = Mockito.mock(OSSUnderFileSystem.class);
-    Mockito.when(underFileSystem.getUnderFSType()).thenCallRealMethod();
-
-    Assert.assertFalse(IntegrationTestUtils.isGcs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isHdfs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isLocal(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isOss(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isS3(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isSwift(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isObjectStorage(underFileSystem));
-  }
-
-  @Test
-  public void s3() {
-    UnderFileSystem underFileSystem = Mockito.mock(S3UnderFileSystem.class);
-    Mockito.when(underFileSystem.getUnderFSType()).thenCallRealMethod();
-
-    Assert.assertFalse(IntegrationTestUtils.isGcs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isHdfs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isLocal(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isOss(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isS3(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isSwift(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isObjectStorage(underFileSystem));
-  }
-
-  @Test
-  public void s3a() {
-    UnderFileSystem underFileSystem = Mockito.mock(S3AUnderFileSystem.class);
-    Mockito.when(underFileSystem.getUnderFSType()).thenCallRealMethod();
-
-    Assert.assertFalse(IntegrationTestUtils.isGcs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isHdfs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isLocal(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isOss(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isS3(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isSwift(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isObjectStorage(underFileSystem));
-  }
-
-  @Test
-  public void swift() {
-    UnderFileSystem underFileSystem = Mockito.mock(SwiftUnderFileSystem.class);
-    Mockito.when(underFileSystem.getUnderFSType()).thenCallRealMethod();
-
-    Assert.assertFalse(IntegrationTestUtils.isGcs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isHdfs(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isLocal(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isOss(underFileSystem));
-    Assert.assertFalse(IntegrationTestUtils.isS3(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isSwift(underFileSystem));
-    Assert.assertTrue(IntegrationTestUtils.isObjectStorage(underFileSystem));
+  public void objectStoreCheck() {
+    for (UnderFileSystem objectStore : mObjectStores) {
+      Assert.assertTrue(IntegrationTestUtils.isObjectStorage(objectStore));
+    }
   }
 }
