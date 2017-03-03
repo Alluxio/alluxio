@@ -21,7 +21,7 @@ import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.underfs.swift.SwiftUnderFileSystem;
 
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -46,7 +46,7 @@ public class IntegrationTestUtilsTest {
    * A pair consisting of a list of {@link UnderFileSystem}s which are the same type. Being the
    * same type is defined by all passing the {@link UfsTypeCheckCallable} associated with the pair.
    */
-  private final class UfsTypeCheckPair {
+  private final static class UfsTypeCheckPair {
     private List<UnderFileSystem> mUfses;
     private UfsTypeCheckCallable mCallable;
 
@@ -77,30 +77,30 @@ public class IntegrationTestUtilsTest {
     }
   }
 
-  private List<UfsTypeCheckPair> mPairs;
-  private List<UnderFileSystem> mObjectStores;
+  private static List<UfsTypeCheckPair> sPairs;
+  private static List<UnderFileSystem> sObjectStores;
 
-  @Before
-  public void before() {
+  @BeforeClass
+  public static void beforeClass() {
     // For each UFS type, create a pair, add the pair to the object stores if necessary
-    mPairs = new ArrayList<>();
-    mObjectStores = new ArrayList<>();
+    sPairs = new ArrayList<>();
+    sObjectStores = new ArrayList<>();
 
     // GCS
     UnderFileSystem gcs = Mockito.mock(GCSUnderFileSystem.class);
     Mockito.when(gcs.getUnderFSType()).thenCallRealMethod();
-    mPairs.add(new UfsTypeCheckPair(Collections.singletonList(gcs), new UfsTypeCheckCallable() {
+    sPairs.add(new UfsTypeCheckPair(Collections.singletonList(gcs), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
         return IntegrationTestUtils.isGcs(ufs);
       }
     }));
-    mObjectStores.add(gcs);
+    sObjectStores.add(gcs);
 
     // HDFS
     UnderFileSystem hdfs = Mockito.mock(HdfsUnderFileSystem.class);
     Mockito.when(hdfs.getUnderFSType()).thenCallRealMethod();
-    mPairs.add(new UfsTypeCheckPair(Collections.singletonList(hdfs), new UfsTypeCheckCallable() {
+    sPairs.add(new UfsTypeCheckPair(Collections.singletonList(hdfs), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
         return IntegrationTestUtils.isHdfs(ufs);
@@ -110,7 +110,7 @@ public class IntegrationTestUtilsTest {
     // Local
     UnderFileSystem local = Mockito.mock(LocalUnderFileSystem.class);
     Mockito.when(local.getUnderFSType()).thenCallRealMethod();
-    mPairs.add(new UfsTypeCheckPair(Collections.singletonList(local), new UfsTypeCheckCallable() {
+    sPairs.add(new UfsTypeCheckPair(Collections.singletonList(local), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
         return IntegrationTestUtils.isLocal(ufs);
@@ -120,44 +120,44 @@ public class IntegrationTestUtilsTest {
     // OSS
     UnderFileSystem oss = Mockito.mock(OSSUnderFileSystem.class);
     Mockito.when(oss.getUnderFSType()).thenCallRealMethod();
-    mPairs.add(new UfsTypeCheckPair(Collections.singletonList(oss), new UfsTypeCheckCallable() {
+    sPairs.add(new UfsTypeCheckPair(Collections.singletonList(oss), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
         return IntegrationTestUtils.isOss(ufs);
       }
     }));
-    mObjectStores.add(oss);
+    sObjectStores.add(oss);
 
     // S3
     UnderFileSystem s3 = Mockito.mock(S3UnderFileSystem.class);
     Mockito.when(s3.getUnderFSType()).thenCallRealMethod();
     UnderFileSystem s3a = Mockito.mock(S3AUnderFileSystem.class);
     Mockito.when(s3a.getUnderFSType()).thenCallRealMethod();
-    mPairs.add(new UfsTypeCheckPair(Arrays.asList(s3, s3a), new UfsTypeCheckCallable() {
+    sPairs.add(new UfsTypeCheckPair(Arrays.asList(s3, s3a), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
         return IntegrationTestUtils.isS3(ufs);
       }
     }));
-    mObjectStores.add(s3);
-    mObjectStores.add(s3a);
+    sObjectStores.add(s3);
+    sObjectStores.add(s3a);
 
     // Swift
     UnderFileSystem swift = Mockito.mock(SwiftUnderFileSystem.class);
     Mockito.when(swift.getUnderFSType()).thenCallRealMethod();
-    mPairs.add(new UfsTypeCheckPair(Collections.singletonList(swift), new UfsTypeCheckCallable() {
+    sPairs.add(new UfsTypeCheckPair(Collections.singletonList(swift), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
         return IntegrationTestUtils.isSwift(ufs);
       }
     }));
-    mObjectStores.add(swift);
+    sObjectStores.add(swift);
   }
 
   @Test
   public void typeCheck() {
-    for (UfsTypeCheckPair ufs : mPairs) {
-      for (UfsTypeCheckPair callable : mPairs) {
+    for (UfsTypeCheckPair ufs : sPairs) {
+      for (UfsTypeCheckPair callable : sPairs) {
         Assert.assertEquals(callable.checkUfs(ufs.getUfses()), ufs.equals(callable));
       }
     }
@@ -165,7 +165,7 @@ public class IntegrationTestUtilsTest {
 
   @Test
   public void objectStoreCheck() {
-    for (UnderFileSystem objectStore : mObjectStores) {
+    for (UnderFileSystem objectStore : sObjectStores) {
       Assert.assertTrue(IntegrationTestUtils.isObjectStorage(objectStore));
     }
   }
