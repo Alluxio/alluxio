@@ -89,10 +89,8 @@ public final class BlockLockManagerTest {
   @Test
   public void unlockNonExistingLock() throws Exception {
     long badLockId = 1;
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
     // Unlock a non-existing lockId, expect to see IOException
-    Assert.assertTrue(mLockManager.unlockBlockNoException(badLockId));
+    Assert.assertFalse(mLockManager.unlockBlockNoException(badLockId));
   }
 
   /**
