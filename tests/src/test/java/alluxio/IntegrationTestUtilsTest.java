@@ -58,7 +58,7 @@ public class IntegrationTestUtilsTest {
     /**
      * @return the list of {@link UnderFileSystem}s in this pair
      */
-    public List<UnderFileSystem> getUfs() {
+    public List<UnderFileSystem> getUfses() {
       return mUfses;
     }
 
@@ -158,7 +158,7 @@ public class IntegrationTestUtilsTest {
   public void typeCheck() {
     for (UfsTypeCheckPair ufs : mPairs) {
       for (UfsTypeCheckPair callable : mPairs) {
-        Assert.assertEquals(callable.checkUfs(ufs.getUfs()), ufs.equals(callable));
+        Assert.assertEquals(callable.checkUfs(ufs.getUfses()), ufs.equals(callable));
       }
     }
   }
