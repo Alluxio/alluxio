@@ -14,6 +14,7 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
+import alluxio.IntegrationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
@@ -24,11 +25,10 @@ import alluxio.security.authorization.Mode;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.hdfs.HdfsUnderFileSystem;
-import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 /**
@@ -149,10 +149,9 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
   public void persistWithAncestorPermission() throws Exception {
     String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
-    if (!(ufs instanceof LocalUnderFileSystem) && !(ufs instanceof HdfsUnderFileSystem)) {
-      // Skip non-local and non-HDFS UFSs.
-      return;
-    }
+    // Skip non-local and non-HDFS UFSs.
+    Assume.assumeTrue(IntegrationTestUtils.isLocal(ufs) || IntegrationTestUtils.isHdfs(ufs));
+
     AlluxioURI testFile = new AlluxioURI("/grand/parent/file");
     AlluxioURI grandParent = new AlluxioURI("/grand");
     Mode grandParentMode = new Mode((short) 0777);
