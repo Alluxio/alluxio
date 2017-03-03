@@ -20,14 +20,9 @@ public class AlluxioExceptionTest {
 
   @Test
   public void unknownException() {
-    try {
-      final String testMessage = "testMessage";
-      AlluxioTException tException = new AlluxioTException("testType", testMessage, "testClass");
-      AlluxioException exception = AlluxioException.fromThrift(tException);
-      Assert.assertEquals(testMessage, exception.getMessage());
-    } catch (Exception e) {
-      // this should never happen
-      Assert.fail("unexpected exception" + e.getMessage());
-    }
+    final String testMessage = "testMessage";
+    AlluxioTException tException = new AlluxioTException("testType", testMessage, "testClass");
+    AlluxioException exception = AlluxioException.fromThrift(tException);
+    Assert.assertEquals(testMessage, exception.getMessage());
   }
 }

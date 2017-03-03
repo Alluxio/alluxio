@@ -85,14 +85,14 @@ public class AlluxioException extends Exception {
       } catch (ClassNotFoundException ee) {
         // this can happen when the client is talking to a newer version of a server that
         // introduced an exception that the client does not recognize
-        throwClass = UnexpectedAlluxioException.class;
+        return new AlluxioException(e.getMessage());
       }
     } else {
       // server version 1.0.x
       throwClass = AlluxioExceptionType.getAlluxioExceptionClass(e.getType());
-    }
-    if (throwClass == null) {
-      throwClass = AlluxioException.class;
+      if (throwClass == null) {
+        return new AlluxioException(e.getMessage());
+      }
     }
     try {
       return throwClass.getConstructor(String.class).newInstance(e.getMessage());
