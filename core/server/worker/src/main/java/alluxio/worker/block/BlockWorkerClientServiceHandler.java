@@ -154,27 +154,26 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
     return RpcUtils.callAndLog(LOG, new RpcCallable<LockBlockResult>() {
       @Override
       public LockBlockResult call() throws AlluxioException {
-        long lockId = -1;
-        try {
-          lockId = mWorker.lockBlock(sessionId, blockId);
+        if (!options.isSetUfsPath() || options.getUfsPath().isEmpty()) {
+          long lockId = mWorker.lockBlock(sessionId, blockId);
           return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
-        } catch (BlockDoesNotExistException e) {
-          if (options.isSetUfsPath() && !options.getUfsPath().isEmpty()) {
-            // When the block does not exist in Alluxio but exists in UFS, try to open the UFS
-            // block.
-            mWorker
-                .openUfsBlock(new UnderFileSystemBlockMeta.ConstMeta(sessionId, blockId, options),
-                    options.getMaxUfsReadConcurrency());
-            return new LockBlockResult(lockId, "");
-          } else {
-            throw e;
-          }
         }
+
+        long lockId = mWorker.lockBlockNoException(sessionId, blockId);
+        if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+          return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
+        }
+        // When the block does not exist in Alluxio but exists in UFS, try to open the UFS
+        // block.
+        mWorker.openUfsBlock(new UnderFileSystemBlockMeta.ConstMeta(sessionId, blockId, options),
+            options.getMaxUfsReadConcurrency());
+        return new LockBlockResult(lockId, "");
       }
 
       @Override
       public String toString() {
-        return String.format("LockBlock: sessionId=%s, blockId=%s", sessionId, blockId);
+        return String
+            .format("LockBlock: sessionId=%s, blockId=%s, options=%s", sessionId, blockId, options);
       }
     });
   }
