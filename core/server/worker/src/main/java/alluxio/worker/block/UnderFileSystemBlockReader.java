@@ -65,11 +65,15 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   /** The input stream to read from UFS. */
   private InputStream mUnderFileSystemInputStream;
   /** The block writer to write the block to Alluxio. */
-  private BlockWriter mBlockWriter;
+  private LocalFileBlockWriter mBlockWriter;
   /** If set, the reader is closed and should not be used afterwards. */
   private boolean mClosed;
 
-  /** The position of mUnderFileSystemInputStream (if not null) is blockStart + mPos. */
+  /**
+   * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
+   * When mUnderFileSystemInputStream is not set, this is set to -1 (an invalid state) to indicate
+   * that the input stream is not initialized.
+   */
   private long mInStreamPos;
 
   /**
@@ -143,8 +147,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkState(!mClosed);
-    updateBlockWriter(offset);
     updateUnderFileSystemInputStream(offset);
+    updateBlockWriter(offset);
 
     long bytesToRead = Math.min(length, mBlockMeta.getBlockSize() - offset);
     if (bytesToRead <= 0) {
