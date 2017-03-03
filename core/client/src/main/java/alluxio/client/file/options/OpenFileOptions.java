@@ -21,7 +21,6 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
@@ -35,7 +34,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public final class OpenFileOptions {
   private FileWriteLocationPolicy mCacheLocationPolicy;
   private ReadType mReadType;
