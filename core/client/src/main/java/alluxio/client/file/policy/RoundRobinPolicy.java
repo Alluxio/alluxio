@@ -12,12 +12,15 @@
 package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -26,11 +29,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers
  * that do not have enough space. The policy returns null if no worker can be found.
  */
+// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @NotThreadSafe
-public final class RoundRobinPolicy implements FileWriteLocationPolicy {
+public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private List<BlockWorkerInfo> mWorkerInfoList;
   private int mIndex;
   private boolean mInitialized = false;
+  /** This caches the {@link WorkerNetAddress} for the block IDs.*/
+  private final HashMap<Long, WorkerNetAddress> mBlockLocationCache = new HashMap<>();
 
   /**
    * Constructs a new {@link RoundRobinPolicy}.
@@ -69,6 +75,17 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
     return null;
   }
 
+  @Override
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+    WorkerNetAddress address = mBlockLocationCache.get(options.getBlockId());
+    if (address != null) {
+      return address;
+    }
+    address = getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
+    mBlockLocationCache.put(options.getBlockId(), address);
+    return address;
+  }
+
   /**
    * @param workerInfoList the list of worker info
    * @param address the address to look for
@@ -95,12 +112,13 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
     RoundRobinPolicy that = (RoundRobinPolicy) o;
     return Objects.equal(mWorkerInfoList, that.mWorkerInfoList)
         && Objects.equal(mIndex, that.mIndex)
-        && Objects.equal(mInitialized, that.mInitialized);
+        && Objects.equal(mInitialized, that.mInitialized)
+        && Objects.equal(mBlockLocationCache, that.mBlockLocationCache);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mWorkerInfoList, mIndex, mInitialized);
+    return Objects.hashCode(mWorkerInfoList, mIndex, mInitialized, mBlockLocationCache);
   }
 
   @Override
@@ -109,6 +127,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
         .add("workerInfoList", mWorkerInfoList)
         .add("index", mIndex)
         .add("initialized", mInitialized)
+        .add("blockLocationCache", mBlockLocationCache)
         .toString();
   }
 }
