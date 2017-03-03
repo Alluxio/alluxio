@@ -25,6 +25,7 @@ import java.nio.channels.WritableByteChannel;
  */
 public final class MockBlockWriter implements BlockWriter {
   private final ByteArrayOutputStream mOutputStream;
+  private long mPosition;
 
   /**
    * Constructs a mock block writer which will remember all bytes written to it.
@@ -36,6 +37,7 @@ public final class MockBlockWriter implements BlockWriter {
   @Override
   public void close() throws IOException {
     mOutputStream.close();
+    mPosition = -1;
   }
 
   @Override
@@ -43,12 +45,13 @@ public final class MockBlockWriter implements BlockWriter {
     byte[] bytes = new byte[inputBuf.remaining()];
     inputBuf.get(bytes);
     mOutputStream.write(bytes);
+    mPosition += bytes.length;
     return bytes.length;
   }
 
   @Override
-  public int transferFrom(ByteBuf buf) throws IOException {
-    return buf.readBytes(getChannel(), buf.readableBytes());
+  public void transferFrom(ByteBuf buf) throws IOException {
+    mPosition += buf.readBytes(getChannel(), buf.readableBytes());
   }
 
   @Override
@@ -85,6 +88,11 @@ public final class MockBlockWriter implements BlockWriter {
         mChannel.close();
       }
     };
+  }
+
+  @Override
+  public long getPosition() {
+    return mPosition;
   }
 
   /**

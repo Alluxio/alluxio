@@ -54,12 +54,11 @@ public final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
      * @throws Exception if it fails to create the object
      */
     public UfsBlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
-      mBlockReader = mWorker
-          .readUfsBlock(request.getSessionId(), request.getId(), request.getOffset(),
-              request.getNoCache());
       mId = request.getId();
       mStart = request.getOffset();
       mEnd = mStart + request.getLength();
+      mBlockReader =
+          mWorker.readUfsBlock(request.getSessionId(), mId, mStart, request.getNoCache());
       // Note that we do not need to seek to offset since the block worker is created at the offset.
     }
 

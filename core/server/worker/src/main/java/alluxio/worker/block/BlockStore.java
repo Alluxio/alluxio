@@ -35,10 +35,21 @@ interface BlockStore {
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
-   * @return the lock id if the lock is acquired successfully
+   * @return the lock id (non-negative) if the lock is acquired successfully
    * @throws BlockDoesNotExistException if block id can not be found, for example, evicted already
    */
   long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+
+  /**
+   * Locks an existing block and guards subsequent reads on this block. If the lock fails, return
+   * {@link BlockLockManager#INVALID_LOCK_ID}.
+   *
+   * @param sessionId the id of the session to lock this block
+   * @param blockId the id of the block to lock
+   * @return the lock id (non-negative) that uniquely identifies the lock obtained or
+   *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
+   */
+  long lockBlockNoException(long sessionId, long blockId);
 
   /**
    * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock(long, long)}.

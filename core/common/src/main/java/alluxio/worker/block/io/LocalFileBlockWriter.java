@@ -35,6 +35,8 @@ public final class LocalFileBlockWriter implements BlockWriter {
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
   private final Closer mCloser = Closer.create();
+  private long mPosition;
+  private boolean mClosed;
 
   /**
    * Constructs a Block writer given the file path of the block.
@@ -55,17 +57,30 @@ public final class LocalFileBlockWriter implements BlockWriter {
 
   @Override
   public long append(ByteBuffer inputBuf) throws IOException {
-    return write(mLocalFileChannel.size(), inputBuf.duplicate());
+    long bytesWritten = write(mLocalFileChannel.size(), inputBuf.duplicate());
+    mPosition += bytesWritten;
+    return bytesWritten;
   }
 
   @Override
-  public int transferFrom(ByteBuf buf) throws IOException {
-    return buf.readBytes(mLocalFileChannel, buf.readableBytes());
+  public void transferFrom(ByteBuf buf) throws IOException {
+    mPosition += buf.readBytes(mLocalFileChannel, buf.readableBytes());
+  }
+
+  @Override
+  public long getPosition() {
+    return mPosition;
   }
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
+
     mCloser.close();
+    mPosition = -1;
   }
 
   /**

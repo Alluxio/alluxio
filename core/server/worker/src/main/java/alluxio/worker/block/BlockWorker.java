@@ -228,6 +228,17 @@ public interface BlockWorker extends Worker {
   long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
+   * Obtains a read lock the block without throwing an exception. If the lock fails, return
+   * {@link BlockLockManager#INVALID_LOCK_ID}.
+   *
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to be locked
+   * @return the lock id that uniquely identifies the lock obtained or
+   *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
+   */
+  long lockBlockNoException(long sessionId, long blockId);
+
+  /**
    * Moves a block from its current location to a target location, currently only tier level moves
    * are supported. Throws an {@link IllegalArgumentException} if the tierAlias is out of range of
    * tiered storage.
