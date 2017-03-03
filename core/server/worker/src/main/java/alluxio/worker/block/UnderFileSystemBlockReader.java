@@ -310,8 +310,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
             .getPath();
         mBlockWriter = new LocalFileBlockWriter(blockPath);
       }
-    } catch (IOException | BlockAlreadyExistsException | BlockDoesNotExistException |
-        InvalidWorkerStateException | WorkerOutOfSpaceException e) {
+    } catch (IOException | BlockAlreadyExistsException | BlockDoesNotExistException
+        | InvalidWorkerStateException | WorkerOutOfSpaceException e) {
       // This can happen when there are concurrent UFS readers who are all trying to cache to block.
       LOG.debug(
           "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]",

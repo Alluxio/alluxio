@@ -199,7 +199,8 @@ public final class BlockLockManagerTest {
     setMaxLocks(1);
     BlockLockManager manager = new BlockLockManager();
     long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.WRITE);
-    Assert.assertTrue(manager.unlockBlockNoException(lockId1)); // Without this line the next lock would hang.
+    Assert.assertTrue(
+        manager.unlockBlockNoException(lockId1)); // Without this line the next lock would hang.
     manager.lockBlock(TEST_SESSION_ID, 2, BlockLockType.WRITE);
   }
 
