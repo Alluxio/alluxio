@@ -215,7 +215,8 @@ public class DataServerIntegrationTest {
   private ByteBuffer readRemotely(RemoteBlockReader client, BlockInfo block, int length)
       throws IOException, AlluxioException {
     long lockId =
-        mBlockWorkerClient.lockBlock(block.getBlockId(), LockBlockOptions.defaults()).getLockId();
+        mBlockWorkerClient.lockBlock(block.getBlockId(), LockBlockOptions.defaults()).getResult()
+            .getLockId();
     try {
       return client.readRemoteBlock(
           new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getHost(),
@@ -293,7 +294,8 @@ public class DataServerIntegrationTest {
   private DataServerMessage request(final BlockInfo block, final long offset, final long length)
       throws IOException, AlluxioException {
     long lockId =
-        mBlockWorkerClient.lockBlock(block.getBlockId(), LockBlockOptions.defaults()).getLockId();
+        mBlockWorkerClient.lockBlock(block.getBlockId(), LockBlockOptions.defaults()).getResult()
+            .getLockId();
 
     SocketChannel socketChannel = null;
 

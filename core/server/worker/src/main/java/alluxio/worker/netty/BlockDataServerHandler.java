@@ -142,7 +142,8 @@ final class BlockDataServerHandler {
         Metrics.BYTES_READ_UFS.inc(buffer.getLength());
       }
       RPCBlockReadResponse resp =
-          new RPCBlockReadResponse(blockId, offset, len, buffer, RPCResponse.Status.SUCCESS);
+          new RPCBlockReadResponse(blockId, offset, data.remaining(), buffer,
+              RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
       if (buffer != null) {
         future.addListener(new ReleasableResourceChannelListener(buffer));
