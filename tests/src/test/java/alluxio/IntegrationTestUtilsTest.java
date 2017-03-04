@@ -46,7 +46,7 @@ public class IntegrationTestUtilsTest {
    * A pair consisting of a list of {@link UnderFileSystem}s which are the same type. Being the
    * same type is defined by all passing the {@link UfsTypeCheckCallable} associated with the pair.
    */
-  private final static class UfsTypeCheckPair {
+  private static final class UfsTypeCheckPair {
     private List<UnderFileSystem> mUfses;
     private UfsTypeCheckCallable mCallable;
 
