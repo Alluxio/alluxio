@@ -65,7 +65,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   /**
-   * Constructor for {@link BaseFileSystem}.
+   * Constructs a new base file system.
    *
    * @param context file system context
    */
