@@ -20,12 +20,11 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.hdfs.HdfsUnderFileSystem;
-import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,10 +46,9 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
 
   @Test
   public void syncPersistPermission() throws Exception {
-    if (!(mUfs instanceof LocalUnderFileSystem) && !(mUfs instanceof HdfsUnderFileSystem)) {
-      // Skip non-local and non-HDFS UFSs.
-      return;
-    }
+    // Skip non-local and non-HDFS UFSs.
+    Assume.assumeTrue(IntegrationTestUtils.isLocal(mUfs) || IntegrationTestUtils.isHdfs(mUfs));
+
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath,
         CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
@@ -73,10 +71,9 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
 
   @Test
   public void asyncPersistPermission() throws Exception {
-    if (!(mUfs instanceof LocalUnderFileSystem) && !(mUfs instanceof HdfsUnderFileSystem)) {
-      // Skip non-local and non-HDFS UFSs.
-      return;
-    }
+    // Skip non-local and non-HDFS UFSs.
+    Assume.assumeTrue(IntegrationTestUtils.isLocal(mUfs) || IntegrationTestUtils.isHdfs(mUfs));
+
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath,
         CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH));
@@ -105,10 +102,9 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
 
   @Test
   public void asyncPersistEmptyFilePermission() throws Exception {
-    if (!(mUfs instanceof LocalUnderFileSystem) && !(mUfs instanceof HdfsUnderFileSystem)) {
-      // Skip non-local and non-HDFS UFSs.
-      return;
-    }
+    // Skip non-local and non-HDFS UFSs.
+    Assume.assumeTrue(IntegrationTestUtils.isLocal(mUfs) || IntegrationTestUtils.isHdfs(mUfs));
+
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createFile(filePath, CreateFileOptions.defaults()
         .setWriteType(WriteType.ASYNC_THROUGH)).close();

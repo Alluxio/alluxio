@@ -21,6 +21,7 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
@@ -32,6 +33,7 @@ import alluxio.thrift.CheckConsistencyTOptions;
 import alluxio.thrift.CompleteFileTOptions;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.thrift.CreateFileTOptions;
+import alluxio.thrift.DeleteTOptions;
 import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
@@ -339,12 +341,20 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public void remove(final String path, final boolean recursive)
+  public void remove(final String path, final boolean recursive, final DeleteTOptions options)
       throws AlluxioTException, ThriftIOException {
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
-        mFileSystemMaster.delete(new AlluxioURI(path), recursive);
+        if (options == null) {
+          // For Alluxio client v1.4 or earlier.
+          // NOTE, we try to be conservative here so early Alluxio clients will not be able to
+          // delete files in Alluxio only.
+          mFileSystemMaster.delete(new AlluxioURI(path),
+              DeleteOptions.defaults().setRecursive(recursive));
+        } else {
+          mFileSystemMaster.delete(new AlluxioURI(path), new DeleteOptions(options));
+        }
         return null;
       }
 
