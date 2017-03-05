@@ -41,7 +41,7 @@ public interface BlockWriter extends Closeable {
   GatheringByteChannel getChannel();
 
   /**
-   * Transfers buf.writableBytes() bytes to the this block writer from the given buf.
+   * Transfers buf.readableBytes() bytes to the this block writer from the given buf.
    *
    * @param buf the byte buffer to hold the data
    * @throws IOException if any I/O errors occur
