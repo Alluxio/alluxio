@@ -604,7 +604,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         return createUnderStoreBlockInStream(blockStart, getBlockSize(blockStart),
             mStatus.getUfsPath());
       } catch (IOException e2) {
-        LOG.debug("Failed to read from UFS after failing to read from Alluxio: {}", e2);
+        LOG.debug("Failed to read from UFS after failing to read from Alluxio", e2);
         // UFS read failed; throw the original exception
         throw e;
       }
