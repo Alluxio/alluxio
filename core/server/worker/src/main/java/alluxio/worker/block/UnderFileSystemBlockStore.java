@@ -224,8 +224,10 @@ public final class UnderFileSystemBlockStore {
     } finally {
       mLock.unlock();
     }
-    return UnderFileSystemBlockReader
-        .create(blockInfo.getMeta(), offset, noCache, mAlluxioBlockStore);
+    BlockReader reader =
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mAlluxioBlockStore);
+    blockInfo.setBlockReader(reader);
+    return reader;
   }
 
   /**
