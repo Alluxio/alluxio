@@ -16,8 +16,6 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
 
@@ -32,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class InStreamOptions {
-  private FileWriteLocationPolicy mCacheLocationPolicy;
+  private FileWriteLocationPolicy mLocationPolicy;
   private ReadType mReadType;
   /** Cache incomplete blocks if Alluxio is configured to store blocks in Alluxio storage. */
   private boolean mCachePartiallyReadBlock;
@@ -41,10 +39,6 @@ public final class InStreamOptions {
    * is enabled.
    */
   private long mSeekBufferSizeBytes;
-  /** The maximum UFS read concurrency for one block on one Alluxio worker. */
-  private int mMaxUfsReadConcurrency;
-  /** The location policy to determine the worker location to serve UFS block reads. */
-  private BlockLocationPolicy mUfsReadLocationPolicy;
 
   /**
    * @return the default {@link InStreamOptions}
@@ -56,40 +50,23 @@ public final class InStreamOptions {
   private InStreamOptions() {
     mReadType = Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
     try {
-      mCacheLocationPolicy = CommonUtils.createNewClassInstance(
+      mLocationPolicy = CommonUtils.createNewClassInstance(
           Configuration.<FileWriteLocationPolicy>getClass(
               PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
-    CreateOptions blockLocationPolicyCreateOptions = CreateOptions.defaults()
-        .setLocationPolicyClassName(
-            Configuration.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
-        .setDeterministicHashPolicyNumShards(Configuration
-            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS));
-    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
     mCachePartiallyReadBlock =
         Configuration.getBoolean(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
-    mSeekBufferSizeBytes = Configuration.getBytes(PropertyKey.USER_FILE_SEEK_BUFFER_SIZE_BYTES);
-    mMaxUfsReadConcurrency =
-        Configuration.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX);
+    mSeekBufferSizeBytes =
+        Configuration.getBytes(PropertyKey.USER_FILE_SEEK_BUFFER_SIZE_BYTES);
   }
 
   /**
    * @return the location policy to use when storing data to Alluxio
-   * @deprecated since version 1.5 and will be removed in version 2.0. Use
-   *             {@link InStreamOptions#getCacheLocationPolicy()}.
    */
-  @Deprecated
   public FileWriteLocationPolicy getLocationPolicy() {
-    return mCacheLocationPolicy;
-  }
-
-  /**
-   * @return the location policy to use when storing data to Alluxio
-   */
-  public FileWriteLocationPolicy getCacheLocationPolicy() {
-    return mCacheLocationPolicy;
+    return mLocationPolicy;
   }
 
   /**
@@ -100,37 +77,11 @@ public final class InStreamOptions {
   }
 
   /**
-   * @return the maximum UFS read concurrency
-   */
-  public int getMaxUfsReadConcurrency() {
-    return mMaxUfsReadConcurrency;
-  }
-
-  /**
-   * @return the UFS read location policy
-   */
-  public BlockLocationPolicy getUfsReadLocationPolicy() {
-    return mUfsReadLocationPolicy;
-  }
-
-  /**
    * @param policy the location policy to use when storing data to Alluxio
    * @return the updated options object
-   * @deprecated since version 1.5 and will be removed in version 2.0. Use
-   *             {@link InStreamOptions#setCacheLocationPolicy(FileWriteLocationPolicy)}.
    */
-  @Deprecated
   public InStreamOptions setLocationPolicy(FileWriteLocationPolicy policy) {
-    mCacheLocationPolicy = policy;
-    return this;
-  }
-
-  /**
-   * @param policy the location policy to use when storing data to Alluxio
-   * @return the updated options object
-   */
-  public InStreamOptions setCacheLocationPolicy(FileWriteLocationPolicy policy) {
-    mCacheLocationPolicy = policy;
+    mLocationPolicy = policy;
     return this;
   }
 
@@ -143,15 +94,6 @@ public final class InStreamOptions {
    */
   public InStreamOptions setReadType(ReadType readType) {
     mReadType = readType;
-    return this;
-  }
-
-  /**
-   * @param maxUfsReadConcurrency the maximum UFS read concurrency
-   * @return the updated options object
-   */
-  public InStreamOptions setMaxUfsReadConcurrency(int maxUfsReadConcurrency) {
-    mMaxUfsReadConcurrency = maxUfsReadConcurrency;
     return this;
   }
 
@@ -182,23 +124,11 @@ public final class InStreamOptions {
 
   /**
    * Sets {@link #mSeekBufferSizeBytes}.
-   *
    * @param bufferSizeBytes the seek buffer size
    * @return the updated options object
    */
   public InStreamOptions setSeekBufferSizeBytes(long bufferSizeBytes) {
     mSeekBufferSizeBytes = bufferSizeBytes;
-    return this;
-  }
-
-  /**
-   * Sets the UFS read location policy.
-   *
-   * @param policy the UFS read location policy
-   * @return the updated options object
-   */
-  public InStreamOptions setUfsReadLocationPolicy(BlockLocationPolicy policy) {
-    mUfsReadLocationPolicy = policy;
     return this;
   }
 
@@ -211,32 +141,26 @@ public final class InStreamOptions {
       return false;
     }
     InStreamOptions that = (InStreamOptions) o;
-    return Objects.equal(mCacheLocationPolicy, that.mCacheLocationPolicy)
+    return Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mReadType, that.mReadType)
         && Objects.equal(mCachePartiallyReadBlock, that.mCachePartiallyReadBlock)
-        && Objects.equal(mSeekBufferSizeBytes, that.mSeekBufferSizeBytes)
-        && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency)
-        && Objects.equal(mUfsReadLocationPolicy, that.mUfsReadLocationPolicy);
+        && Objects.equal(mSeekBufferSizeBytes, that.mSeekBufferSizeBytes);
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hashCode(
-            mCacheLocationPolicy,
+            mLocationPolicy,
             mReadType,
             mCachePartiallyReadBlock,
-            mSeekBufferSizeBytes,
-            mMaxUfsReadConcurrency,
-            mUfsReadLocationPolicy);
+            mSeekBufferSizeBytes);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("cacheLocationPolicy", mCacheLocationPolicy)
+    return Objects.toStringHelper(this).add("locationPolicy", mLocationPolicy)
         .add("readType", mReadType).add("cachePartiallyReadBlock", mCachePartiallyReadBlock)
-        .add("seekBufferSize", mSeekBufferSizeBytes)
-        .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
-        .add("ufsReadLocationPolicy", mUfsReadLocationPolicy).toString();
+        .add("seekBufferSize", mSeekBufferSizeBytes).toString();
   }
 }

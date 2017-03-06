@@ -14,12 +14,10 @@ package alluxio.client.block;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
-import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.PreconditionMessage;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.resource.DummyCloseableResource;
@@ -151,10 +149,8 @@ public final class AlluxioBlockStoreTest {
 
     File mTestFile = mTestFolder.newFile("testFile");
     // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
-    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID, LockBlockOptions.defaults())).thenReturn(
-        new LockBlockResource(mBlockWorkerClient,
-            new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()),
-            BLOCK_ID));
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
     InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
     if (Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED)) {
@@ -176,10 +172,8 @@ public final class AlluxioBlockStoreTest {
 
     File mTestFile = mTestFolder.newFile("testFile");
     // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
-    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID, LockBlockOptions.defaults())).thenReturn(
-        new LockBlockResource(mBlockWorkerClient,
-            new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()),
-            BLOCK_ID));
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
     InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
     if (Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED)) {
