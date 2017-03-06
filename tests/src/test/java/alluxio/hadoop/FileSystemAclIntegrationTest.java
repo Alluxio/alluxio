@@ -12,7 +12,6 @@
 package alluxio.hadoop;
 
 import alluxio.Constants;
-import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
@@ -20,6 +19,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;
@@ -140,7 +140,7 @@ public final class FileSystemAclIntegrationTest {
     FileStatus fs = sTFS.getFileStatus(fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
-    if (IntegrationTestUtils.isHdfs(sUfs) && HadoopClientTestUtils.isHadoop1x()) {
+    if (UnderFileSystemUtils.isHdfs(sUfs) && HadoopClientTestUtils.isHadoop1x()) {
       // If the UFS is hadoop 1.0, the org.apache.hadoop.fs.FileSystem.create uses default
       // permission option 0777.
       Assert.assertEquals((short) 0777, fs.getPermission().toShort());
@@ -161,7 +161,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void changeNonexistentOwnerForLocal() throws Exception {
     // Skip non-local UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs));
 
     Path fileA = new Path("/chownfileA-local");
     final String nonexistentOwner = "nonexistent-user1";
@@ -194,7 +194,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void changeNonexistentGroupForLocal() throws Exception {
     // Skip non-local UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs));
 
     Path fileB = new Path("/chownfileB-local");
     final String nonexistentOwner = "nonexistent-user1";
@@ -227,7 +227,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void changeNonexistentOwnerAndGroupForLocal() throws Exception {
     // Skip non-local UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs));
 
     Path fileC = new Path("/chownfileC-local");
     final String nonexistentOwner = "nonexistent-user1";
@@ -258,7 +258,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void changeNonexistentOwnerForHdfs() throws Exception {
     // Skip non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isHdfs(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isHdfs(sUfs));
 
     Path fileA = new Path("/chownfileA-hdfs");
     final String testOwner = "test-user1";
@@ -293,7 +293,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void changeNonexistentGroupForHdfs() throws Exception {
     // Skip non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isHdfs(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isHdfs(sUfs));
 
     Path fileB = new Path("/chownfileB-hdfs");
     final String testOwner = "test-user1";
@@ -326,7 +326,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void changeNonexistentOwnerAndGroupForHdfs() throws Exception {
     // Skip non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isHdfs(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isHdfs(sUfs));
 
     Path fileC = new Path("/chownfileC-hdfs");
     final String testOwner = "test-user1";
@@ -379,7 +379,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void directoryPermissionForUfs() throws IOException {
     // Skip non-local and non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(sUfs) || IntegrationTestUtils.isHdfs(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs) || UnderFileSystemUtils.isHdfs(sUfs));
 
     Path dir = new Path("/root/dir/");
     sTFS.mkdirs(dir);
@@ -410,7 +410,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void parentDirectoryPermissionForUfs() throws IOException {
     // Skip non-local and non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(sUfs) || IntegrationTestUtils.isHdfs(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs) || UnderFileSystemUtils.isHdfs(sUfs));
 
     Path fileA = new Path("/root/dirA/fileA");
     Path dirA = fileA.getParent();
@@ -439,8 +439,8 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void loadFileMetadataMode() throws Exception {
     // Skip non-local and non-HDFS-2 UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(sUfs)
-        || (IntegrationTestUtils.isHdfs(sUfs) && HadoopClientTestUtils.isHadoop2x()));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs)
+        || (UnderFileSystemUtils.isHdfs(sUfs) && HadoopClientTestUtils.isHadoop2x()));
 
     List<Integer> permissionValues =
         Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
@@ -465,7 +465,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void loadDirMetadataMode() throws Exception {
     // Skip non-local and non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(sUfs) || IntegrationTestUtils.isHdfs(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs) || UnderFileSystemUtils.isHdfs(sUfs));
 
     List<Integer> permissionValues =
         Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
@@ -487,7 +487,7 @@ public final class FileSystemAclIntegrationTest {
 
   @Test
   public void s3GetPermission() throws Exception {
-    Assume.assumeTrue(IntegrationTestUtils.isS3(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isS3(sUfs));
 
     alluxio.Configuration.set(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "");
     Path fileA = new Path("/objectfileA");
@@ -503,7 +503,7 @@ public final class FileSystemAclIntegrationTest {
 
   @Test
   public void gcsGetPermission() throws Exception {
-    Assume.assumeTrue(IntegrationTestUtils.isGcs(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isGcs(sUfs));
 
     alluxio.Configuration.set(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, "");
     Path fileA = new Path("/objectfileA");
@@ -520,7 +520,7 @@ public final class FileSystemAclIntegrationTest {
 
   @Test
   public void swiftGetPermission() throws Exception {
-    Assume.assumeTrue(IntegrationTestUtils.isSwift(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isSwift(sUfs));
 
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
@@ -533,7 +533,7 @@ public final class FileSystemAclIntegrationTest {
 
   @Test
   public void ossGetPermission() throws Exception {
-    Assume.assumeTrue(IntegrationTestUtils.isOss(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isOss(sUfs));
 
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
@@ -549,7 +549,7 @@ public final class FileSystemAclIntegrationTest {
 
   @Test
   public void objectStoreSetOwner() throws Exception {
-    Assume.assumeTrue(IntegrationTestUtils.isObjectStorage(sUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(sUfs));
 
     Path fileA = new Path("/objectfileA");
     final String newOwner = "new-user1";
