@@ -43,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class implements a {@link BlockReader} to read a block directly from UFS, and optionally
- * cache the block to the Alluxio worker if the whole block it read.
+ * cache the block to the Alluxio worker if the whole block it is read.
  */
 @NotThreadSafe
 public final class UnderFileSystemBlockReader implements BlockReader {
@@ -52,8 +52,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
-  /** The file buffer size used to allocate memory from Alluxio storage. */
-  private final long mFileBufferSize;
+  /** The initial size of the block allocated in Alluxio storage when the block is cached. */
+  private final long mInitialBlockSize;
   /** The block metadata for the UFS block. */
   private final UnderFileSystemBlockMeta mBlockMeta;
   /** If set, do not cache the block. */
@@ -105,12 +105,11 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean noCache,
       BlockStore alluxioBlockStore) {
-    mFileBufferSize = Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
+    mInitialBlockSize = Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     mAlluxioBlockStore = alluxioBlockStore;
     mNoCache = noCache;
     mInStreamPos = -1;
-    mBlockMeta.setBlockReader(this);
   }
 
   /**
@@ -309,8 +308,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       if (mBlockWriter == null && offset == 0 && !mNoCache) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
         String blockPath = mAlluxioBlockStore
-            .createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(), loc, mFileBufferSize)
-            .getPath();
+            .createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(), loc,
+                mInitialBlockSize).getPath();
         mBlockWriter = new LocalFileBlockWriter(blockPath);
       }
     } catch (IOException | BlockAlreadyExistsException | BlockDoesNotExistException
