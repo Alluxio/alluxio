@@ -102,5 +102,33 @@ public final class UnderFileSystemUtils {
         || ufsAddress.startsWith(Constants.HEADER_OSS);
   }
 
+  public static boolean isGcs(UnderFileSystem ufs) {
+    return "gcs".equals(ufs.getUnderFSType());
+  }
+
+  public static boolean isLocal(UnderFileSystem ufs) {
+    return "local".equals(ufs.getUnderFSType());
+  }
+
+  public static boolean isHdfs(UnderFileSystem ufs) {
+    return "hdfs".equals(ufs.getUnderFSType());
+  }
+
+  public static boolean isObjectStorage(UnderFileSystem ufs) {
+    return isGcs(ufs) || isOss(ufs) || isS3(ufs) || isSwift(ufs);
+  }
+
+  public static boolean isOss(UnderFileSystem ufs) {
+    return "oss".equals(ufs.getUnderFSType());
+  }
+
+  public static boolean isS3(UnderFileSystem ufs) {
+    return "s3".equals(ufs.getUnderFSType()) || "s3a".equals(ufs.getUnderFSType());
+  }
+
+  public static boolean isSwift(UnderFileSystem ufs) {
+    return "swift".equals(ufs.getUnderFSType());
+  }
+
   private UnderFileSystemUtils() {} // prevent instantiation
 }
