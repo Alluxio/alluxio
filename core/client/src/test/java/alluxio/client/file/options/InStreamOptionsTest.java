@@ -18,8 +18,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.DeterministicHashPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 
@@ -47,22 +45,17 @@ public class InStreamOptionsTest {
   public void fields() {
     ReadType readType = ReadType.NO_CACHE;
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
-    BlockLocationPolicy blockLocationPolicy = new DeterministicHashPolicy();
 
     InStreamOptions options = InStreamOptions.defaults();
     options.setReadType(readType);
     options.setLocationPolicy(policy);
     options.setCachePartiallyReadBlock(true);
     options.setSeekBufferSizeBytes(Constants.MB);
-    options.setUfsReadLocationPolicy(blockLocationPolicy);
-    options.setMaxUfsReadConcurrency(5);
 
     Assert.assertEquals(options.getAlluxioStorageType(), readType.getAlluxioStorageType());
-    Assert.assertEquals(policy, options.getCacheLocationPolicy());
+    Assert.assertEquals(policy, options.getLocationPolicy());
     Assert.assertTrue(options.isCachePartiallyReadBlock());
     Assert.assertEquals(Constants.MB, options.getSeekBufferSizeBytes());
-    Assert.assertEquals(blockLocationPolicy, options.getUfsReadLocationPolicy());
-    Assert.assertEquals(5, options.getMaxUfsReadConcurrency());
   }
 
   /**

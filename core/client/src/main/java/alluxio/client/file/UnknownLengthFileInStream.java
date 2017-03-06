@@ -12,7 +12,10 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
+import alluxio.client.block.BlockInStream;
+import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
@@ -97,6 +100,13 @@ public final class UnknownLengthFileInStream extends FileInStream {
   protected long getBlockSizeAllocation(long pos) {
     // TODO(gpang): need a better way to handle unknown block size allocation
     return ALLOCATION_BLOCK_SIZE;
+  }
+
+  @Override
+  protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
+      throws IOException {
+    return new UnderStoreBlockInStream(mContext, blockStart, Constants.UNKNOWN_SIZE, length,
+        getUnderStoreStreamFactory(path, mContext));
   }
 
   @Override
