@@ -16,6 +16,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.google.common.base.Objects;
@@ -47,8 +48,8 @@ public final class UnderFileSystemBlockStore {
 
   private final ReentrantLock mLock = new ReentrantLock();
   @GuardedBy("mLock")
-  /** Maps from the {@link Key} to the {@link UnderFileSystemBlockMeta}. */
-  private final Map<Key, UnderFileSystemBlockMeta> mBlocks = new HashMap<>();
+  /** Maps from the {@link Key} to the {@link BlockInfo}. */
+  private final Map<Key, BlockInfo> mBlocks = new HashMap<>();
   @GuardedBy("mLock")
   /** Maps from the session ID to the block IDs. */
   private final Map<Long, Set<Long>> mSessionIdToBlockIds = new HashMap<>();
@@ -103,7 +104,7 @@ public final class UnderFileSystemBlockStore {
       }
       sessionIds.add(sessionId);
 
-      mBlocks.put(key, blockMeta);
+      mBlocks.put(key, new BlockInfo(blockMeta));
 
       Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);
       if (blockIds == null) {
@@ -129,18 +130,18 @@ public final class UnderFileSystemBlockStore {
    * @throws IOException if it fails to clean up
    */
   public boolean cleanup(long sessionId, long blockId) throws IOException {
-    UnderFileSystemBlockMeta blockMeta;
+    BlockInfo blockInfo;
     mLock.lock();
     try {
-      blockMeta = mBlocks.get(new Key(sessionId, blockId));
-      if (blockMeta == null) {
+      blockInfo = mBlocks.get(new Key(sessionId, blockId));
+      if (blockInfo == null) {
         return false;
       }
     } finally {
       mLock.unlock();
     }
-    blockMeta.closeReaderOrWriter();
-    return blockMeta.getCommitPending();
+    blockInfo.closeReaderOrWriter();
+    return blockInfo.getMeta().getCommitPending();
   }
 
   /**
@@ -213,17 +214,20 @@ public final class UnderFileSystemBlockStore {
    */
   public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
       boolean noCache) throws BlockDoesNotExistException, IOException {
-    final UnderFileSystemBlockMeta blockMeta;
+    final BlockInfo blockInfo;
     mLock.lock();
     try {
-      blockMeta = getBlockMeta(sessionId, blockId);
-      if (blockMeta.getBlockReader() != null) {
-        return blockMeta.getBlockReader();
+      blockInfo = getBlockInfo(sessionId, blockId);
+      if (blockInfo.getBlockReader() != null) {
+        return blockInfo.getBlockReader();
       }
     } finally {
       mLock.unlock();
     }
-    return UnderFileSystemBlockReader.create(blockMeta, offset, noCache, mAlluxioBlockStore);
+    BlockReader reader =
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mAlluxioBlockStore);
+    blockInfo.setBlockReader(reader);
+    return reader;
   }
 
   /**
@@ -235,11 +239,11 @@ public final class UnderFileSystemBlockStore {
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
-  private UnderFileSystemBlockMeta getBlockMeta(long sessionId, long blockId)
+  private BlockInfo getBlockInfo(long sessionId, long blockId)
       throws BlockDoesNotExistException {
     Key key = new Key(sessionId, blockId);
-    UnderFileSystemBlockMeta blockMeta = mBlocks.get(key);
-    if (blockMeta == null) {
+    BlockInfo blockInfo = mBlocks.get(key);
+    if (blockInfo == null) {
       try {
         throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,
             blockId, sessionId);
@@ -248,7 +252,7 @@ public final class UnderFileSystemBlockStore {
         throw e;
       }
     }
-    return blockMeta;
+    return blockInfo;
   }
 
   private static class Key {
@@ -302,6 +306,75 @@ public final class UnderFileSystemBlockStore {
     public String toString() {
       return Objects.toStringHelper(this).add("blockId", mBlockId).add("sessionId", mSessionId)
           .toString();
+    }
+  }
+
+  private static class BlockInfo {
+    private final UnderFileSystemBlockMeta mMeta;
+    private BlockReader mBlockReader;
+    private BlockWriter mBlockWriter;
+
+    /**
+     * Creates an instance of {@link BlockInfo}.
+     *
+     * @param meta the UFS block meta
+     */
+    public BlockInfo(UnderFileSystemBlockMeta meta) {
+      mMeta = meta;
+    }
+
+    /**
+     * @return the UFS block meta
+     */
+    public UnderFileSystemBlockMeta getMeta() {
+      return mMeta;
+    }
+
+    /**
+     * @return the cached the block reader if it is not closed
+     */
+    public BlockReader getBlockReader() {
+      if (mBlockReader != null && mBlockReader.isClosed()) {
+        mBlockReader = null;
+      }
+      return mBlockReader;
+    }
+
+    /**
+     * @param blockReader the block reader to be set
+     */
+    public void setBlockReader(BlockReader blockReader) {
+      mBlockReader = blockReader;
+    }
+
+    /**
+     * @return the block writer
+     */
+    public BlockWriter getBlockWriter() {
+      return mBlockWriter;
+    }
+
+    /**
+     * @param blockWriter the block writer to be set
+     */
+    public void setBlockWriter(BlockWriter blockWriter) {
+      mBlockWriter = blockWriter;
+    }
+
+    /**
+     * Closes the block reader or writer.
+     *
+     * @throws IOException if it fails to close block reader or writer
+     */
+    public void closeReaderOrWriter() throws IOException {
+      if (mBlockReader != null) {
+        mBlockReader.close();
+        mBlockReader = null;
+      }
+      if (mBlockWriter != null) {
+        mBlockWriter.close();
+        mBlockWriter = null;
+      }
     }
   }
 }
