@@ -14,7 +14,6 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.IntegrationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
@@ -25,6 +24,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
@@ -150,7 +150,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
     // Skip non-local and non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(ufs) || IntegrationTestUtils.isHdfs(ufs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(ufs) || UnderFileSystemUtils.isHdfs(ufs));
 
     AlluxioURI testFile = new AlluxioURI("/grand/parent/file");
     AlluxioURI grandParent = new AlluxioURI("/grand");

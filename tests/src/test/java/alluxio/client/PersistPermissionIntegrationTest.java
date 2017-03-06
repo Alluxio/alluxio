@@ -21,6 +21,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
@@ -47,7 +48,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   @Test
   public void syncPersistPermission() throws Exception {
     // Skip non-local and non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(mUfs) || IntegrationTestUtils.isHdfs(mUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath,
@@ -72,7 +73,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   @Test
   public void asyncPersistPermission() throws Exception {
     // Skip non-local and non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(mUfs) || IntegrationTestUtils.isHdfs(mUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath,
@@ -103,7 +104,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   @Test
   public void asyncPersistEmptyFilePermission() throws Exception {
     // Skip non-local and non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(mUfs) || IntegrationTestUtils.isHdfs(mUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createFile(filePath, CreateFileOptions.defaults()
