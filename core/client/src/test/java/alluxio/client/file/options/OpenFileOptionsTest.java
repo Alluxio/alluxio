@@ -15,7 +15,9 @@ import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 
 import org.junit.Assert;
@@ -32,6 +34,8 @@ public class OpenFileOptionsTest {
   public void defaults() {
     OpenFileOptions options = OpenFileOptions.defaults();
     Assert.assertEquals(mDefaultReadType, options.getReadType());
+    Assert.assertEquals(Integer.MAX_VALUE, options.getMaxUfsReadConcurrency());
+    Assert.assertTrue(options.getUfsReadLocationPolicy() instanceof LocalFirstPolicy);
   }
 
   /**
@@ -44,10 +48,14 @@ public class OpenFileOptionsTest {
 
     OpenFileOptions options = OpenFileOptions.defaults();
     options.setReadType(readType);
-    options.setLocationPolicy(policy);
+    options.setCacheLocationPolicy(policy);
+    options.setMaxUfsReadConcurrency(5);
+    options.setUfsReadLocationPolicy((BlockLocationPolicy) policy);
 
     Assert.assertEquals(readType, options.getReadType());
-    Assert.assertEquals(policy, options.getLocationPolicy());
+    Assert.assertEquals(policy, options.getCacheLocationPolicy());
+    Assert.assertEquals(5, options.getMaxUfsReadConcurrency());
+    Assert.assertEquals(policy, options.getUfsReadLocationPolicy());
   }
 
   /**
@@ -59,7 +67,11 @@ public class OpenFileOptionsTest {
     InStreamOptions inStreamOptions = options.toInStreamOptions();
     Assert.assertEquals(options.getReadType().getAlluxioStorageType(),
         inStreamOptions.getAlluxioStorageType());
-    Assert.assertEquals(options.getLocationPolicy(), inStreamOptions.getLocationPolicy());
+    Assert.assertEquals(options.getCacheLocationPolicy(), inStreamOptions.getCacheLocationPolicy());
+    Assert.assertEquals(options.getUfsReadLocationPolicy(),
+        inStreamOptions.getUfsReadLocationPolicy());
+    Assert.assertEquals(options.getMaxUfsReadConcurrency(),
+        inStreamOptions.getMaxUfsReadConcurrency());
   }
 
   @Test
