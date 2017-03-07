@@ -74,6 +74,11 @@ public class AllocatorTestBase {
     resetManagerView();
   }
 
+  /**
+   * Resets the manager view configured by the parameters in this base class.
+   *
+   * @throws Exception when error happens during creating temporary folder
+   */
   protected void resetManagerView() throws Exception {
     String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupConfWithMultiTier(alluxioHome, TIER_LEVEL, TIER_ALIAS,
@@ -84,6 +89,12 @@ public class AllocatorTestBase {
   /**
    * Given an allocator with the location and blockSize, we assert whether the block can be
    * allocated.
+   *
+   * @param allocator the allocation manager of Alluxio managed data
+   * @param location the location in block store
+   * @param blockSize the size of block in bytes
+   * @param avail the block should be successfully allocated or not
+   * @throws IOException if an IO error happens
    */
   protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
       long blockSize, boolean avail) throws IOException {
@@ -102,11 +113,16 @@ public class AllocatorTestBase {
   }
 
   /**
-   * Given an allocator with the location and blockSize,
-   * we assert the allocator should be able to
-   * 1. @param avail: the block should be successfully allocated or not
-   * 2. @param tierAlias: the block should be allocated at this tier
-   * 3. @param dirIndex : the block should be allocated at this dir
+   * Given an allocator with the location, blockSize, tierAlias and dirIndex,
+   * we assert whether the block can be allocated.
+   *
+   * @param allocator the allocation manager of Alluxio managed data
+   * @param location the location in block store
+   * @param blockSize the size of block in bytes
+   * @param avail the block should be successfully allocated or not
+   * @param tierAlias the block should be allocated at this tier
+   * @param dirIndex  the block should be allocated at this dir
+   * @throws Exception when fail to create this block
    */
   protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
       int blockSize, boolean avail, String tierAlias, int dirIndex) throws Exception {
@@ -134,6 +150,9 @@ public class AllocatorTestBase {
     }
   }
 
+  /**
+   * @return the block metadata managerView
+   */
   protected BlockMetadataManagerView getManagerView() {
     return new BlockMetadataManagerView(mManager, new HashSet<Long>(), new HashSet<Long>());
   }
