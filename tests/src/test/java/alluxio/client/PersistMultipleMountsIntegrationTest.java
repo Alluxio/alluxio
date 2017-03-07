@@ -13,7 +13,6 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.IntegrationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
@@ -21,6 +20,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
+import alluxio.util.UnderFileSystemUtils;
 
 import org.junit.Assert;
 import org.junit.Assume;
@@ -60,7 +60,7 @@ public final class PersistMultipleMountsIntegrationTest
   @Test
   public void syncMultipleMountsDefaultPersist() throws Exception {
     // Skip non-local and non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(mUfs) || IntegrationTestUtils.isHdfs(mUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     String path = PathUtils.uniqPath();
     AlluxioURI filePath = new AlluxioURI(path);
@@ -81,7 +81,7 @@ public final class PersistMultipleMountsIntegrationTest
   @Test
   public void syncMultipleMountsMountedPersist() throws Exception {
     // Skip non-local and non-HDFS UFSs.
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(mUfs) || IntegrationTestUtils.isHdfs(mUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     String path = PathUtils.uniqPath();
     AlluxioURI filePath = new AlluxioURI(MOUNT_PATH + path);
