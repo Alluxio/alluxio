@@ -42,6 +42,7 @@ public interface BlockWriter extends Closeable {
 
   /**
    * Transfers buf.readableBytes() bytes to the this block writer from the given buf.
+   * This is only called in the netty data server.
    *
    * @param buf the byte buffer to hold the data
    * @throws IOException if any I/O errors occur

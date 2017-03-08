@@ -70,8 +70,9 @@ public final class UnderFileSystemBlockReader implements BlockReader {
 
   /**
    * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
-   * When mUnderFileSystemInputStream is not set, this is set to -1 (an invalid state) to indicate
-   * that the input stream is not initialized.
+   * When mUnderFileSystemInputStream is not set, this is set to -1 (an invalid state) when
+   * mUnderFileSystemInputStream is null. Check mUnderFileSystemInputStream directly to see whether
+   * that is valid instead of relying on this invalid state of the position to be safe.
    */
   private long mInStreamPos;
 
@@ -150,19 +151,17 @@ public final class UnderFileSystemBlockReader implements BlockReader {
 
     long bytesToRead = Math.min(length, mBlockMeta.getBlockSize() - offset);
     if (bytesToRead <= 0) {
-      return null;
+      return ByteBuffer.allocate(0);
     }
     byte[] data = new byte[(int) bytesToRead];
     int bytesRead = 0;
-    if (mUnderFileSystemInputStream != null) {
-      while (bytesRead < bytesToRead) {
-        int read =
-            mUnderFileSystemInputStream.read(data, bytesRead, (int) (bytesToRead - bytesRead));
-        if (read == -1) {
-          break;
-        }
-        bytesRead += read;
+    Preconditions.checkNotNull(mUnderFileSystemInputStream);
+    while (bytesRead < bytesToRead) {
+      int read = mUnderFileSystemInputStream.read(data, bytesRead, (int) (bytesToRead - bytesRead));
+      if (read == -1) {
+        break;
       }
+      bytesRead += read;
     }
     mInStreamPos += bytesRead;
 
@@ -242,12 +241,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       // We need to check whether the block is cached before closing the block writer.
       boolean isBlockCached = isBlockCached();
       Closer closer = Closer.create();
-      if (mBlockWriter != null) {
-        closer.register(mBlockWriter);
-      }
-      if (mUnderFileSystemInputStream != null) {
-        closer.register(mUnderFileSystemInputStream);
-      }
+      closer.register(mBlockWriter);
+      closer.register(mUnderFileSystemInputStream);
       closer.close();
 
       if (isBlockCached) {
@@ -273,12 +268,11 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   /**
    * Updates the UFS input stream given an offset to read.
    *
-   * @param offset the read offset
+   * @param offset the read offset within the block
    * @throws IOException any I/O errors occur while updating the input stream
    */
   private void updateUnderFileSystemInputStream(long offset) throws IOException {
-    if ((mUnderFileSystemInputStream != null) && (offset >= mBlockMeta.getBlockSize()
-        || offset != mInStreamPos)) {
+    if ((mUnderFileSystemInputStream != null) && offset != mInStreamPos) {
       mUnderFileSystemInputStream.close();
       mUnderFileSystemInputStream = null;
       mInStreamPos = -1;

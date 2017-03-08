@@ -19,11 +19,15 @@ import alluxio.thrift.LockBlockTOptions;
 public final class UnderFileSystemBlockMeta {
   private final ConstMeta mConstMeta;
 
-  /** The set of session IDs to be committed. */
-  private boolean mCommitPending;
+  /**
+   * The set of session IDs to be committed. This does not have to be volatile in the current code
+   * because the reader/writer are from the same thread. But just set it to volatile to be
+   * future-proof.
+   */
+  private volatile boolean mCommitPending;
 
   /**
-   * The constant metadata of this UFS block.
+   * The constant metadata of this UFS block. It does not provide any mutable functionality.
    */
   public static final class ConstMeta {
     public final long mSessionId;

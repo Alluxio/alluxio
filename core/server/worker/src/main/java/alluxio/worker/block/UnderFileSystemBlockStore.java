@@ -46,6 +46,14 @@ import javax.annotation.concurrent.GuardedBy;
 public final class UnderFileSystemBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockStore.class);
 
+  /**
+   * This lock protects mBlocks, mSessionIdToBlockIds and mBlockIdToSessionIds. For any read/write
+   * operations to these maps, the lock needs to be acquired. But once you get the block
+   * information from the map (e.g. mBlocks), the lock does not need to be acquired. For example,
+   * the block reader/writer within the BlockInfo can be updated without acquiring this lock.
+   * This is based on the assumption that one session won't open multiple readers/writers on the
+   * same block. If the client do that, the client can see failures but the worker won't crash.
+   */
   private final ReentrantLock mLock = new ReentrantLock();
   @GuardedBy("mLock")
   /** Maps from the {@link Key} to the {@link BlockInfo}. */
@@ -71,8 +79,7 @@ public final class UnderFileSystemBlockStore {
 
   /**
    * Acquires access for a UFS block given a {@link UnderFileSystemBlockMeta} and the limit on
-   * the maximum
-   * concurrency on the block.
+   * the maximum concurrency on the block.
    *
    * @param blockMetaConst the constant block meta
    * @param maxConcurrency the maximum concurrency
@@ -80,6 +87,7 @@ public final class UnderFileSystemBlockStore {
    * @throws UfsBlockAccessTokenUnavailableException if there are too many concurrent sessions
    *         accessing the block
    */
+  // TODO(peis): Avoid throwing UfsBlockAccessTokenUnavailableException by returning a status.
   public void acquireAccess(UnderFileSystemBlockMeta.ConstMeta blockMetaConst, int maxConcurrency)
       throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
     UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(blockMetaConst);
@@ -311,6 +319,10 @@ public final class UnderFileSystemBlockStore {
 
   private static class BlockInfo {
     private final UnderFileSystemBlockMeta mMeta;
+
+    // A correct client implementation should never access the following reader/writer
+    // concurrently. But just to avoid crashing the server thread with runtime exception when
+    // the client is mis-behaving, we access them with locks acquired.
     private BlockReader mBlockReader;
     private BlockWriter mBlockWriter;
 
@@ -333,7 +345,7 @@ public final class UnderFileSystemBlockStore {
     /**
      * @return the cached the block reader if it is not closed
      */
-    public BlockReader getBlockReader() {
+    public synchronized BlockReader getBlockReader() {
       if (mBlockReader != null && mBlockReader.isClosed()) {
         mBlockReader = null;
       }
@@ -343,21 +355,21 @@ public final class UnderFileSystemBlockStore {
     /**
      * @param blockReader the block reader to be set
      */
-    public void setBlockReader(BlockReader blockReader) {
+    public synchronized void setBlockReader(BlockReader blockReader) {
       mBlockReader = blockReader;
     }
 
     /**
      * @return the block writer
      */
-    public BlockWriter getBlockWriter() {
+    public synchronized BlockWriter getBlockWriter() {
       return mBlockWriter;
     }
 
     /**
      * @param blockWriter the block writer to be set
      */
-    public void setBlockWriter(BlockWriter blockWriter) {
+    public synchronized void setBlockWriter(BlockWriter blockWriter) {
       mBlockWriter = blockWriter;
     }
 
@@ -366,7 +378,7 @@ public final class UnderFileSystemBlockStore {
      *
      * @throws IOException if it fails to close block reader or writer
      */
-    public void closeReaderOrWriter() throws IOException {
+    public synchronized void closeReaderOrWriter() throws IOException {
       if (mBlockReader != null) {
         mBlockReader.close();
         mBlockReader = null;
