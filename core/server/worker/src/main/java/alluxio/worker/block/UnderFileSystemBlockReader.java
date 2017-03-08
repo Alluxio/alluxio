@@ -58,8 +58,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   private final UnderFileSystemBlockMeta mBlockMeta;
   /** If set, do not cache the block. */
   private final boolean mNoCache;
-  /** The Alluxio block store. It is used to interact with Alluxio. */
-  private final BlockStore mAlluxioBlockStore;
+  /** The Local block store. It is used to interact with Alluxio. */
+  private final BlockStore mLocalBlockStore;
 
   /** The input stream to read from UFS. */
   private InputStream mUnderFileSystemInputStream;
@@ -83,16 +83,16 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param blockMeta the block meta
    * @param offset the position within the block to start the read
    * @param noCache do not cache the block if set
-   * @param alluxioBlockStore the Alluxio block store
+   * @param localBlockStore the Local block store
    * @return the block reader
    * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
    * @throws IOException if an I/O related error occur
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
-      boolean noCache, BlockStore alluxioBlockStore)
+      boolean noCache, BlockStore localBlockStore)
       throws BlockDoesNotExistException, IOException {
     UnderFileSystemBlockReader ufsBlockReader =
-        new UnderFileSystemBlockReader(blockMeta, noCache, alluxioBlockStore);
+        new UnderFileSystemBlockReader(blockMeta, noCache, localBlockStore);
     ufsBlockReader.init(offset);
     return ufsBlockReader;
   }
@@ -102,13 +102,13 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    *
    * @param blockMeta the block meta
    * @param noCache do not cache the block
-   * @param alluxioBlockStore the Alluxio block store
+   * @param localBlockStore the Local block store
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean noCache,
-      BlockStore alluxioBlockStore) {
+      BlockStore localBlockStore) {
     mInitialBlockSize = Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
-    mAlluxioBlockStore = alluxioBlockStore;
+    mLocalBlockStore = localBlockStore;
     mNoCache = noCache;
     mInStreamPos = -1;
   }
@@ -301,11 +301,11 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       if (mBlockWriter != null && offset > mBlockWriter.getPosition()) {
         mBlockWriter.close();
         mBlockWriter = null;
-        mAlluxioBlockStore.abortBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
+        mLocalBlockStore.abortBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
       }
       if (mBlockWriter == null && offset == 0 && !mNoCache) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
-        String blockPath = mAlluxioBlockStore
+        String blockPath = mLocalBlockStore
             .createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(), loc,
                 mInitialBlockSize).getPath();
         mBlockWriter = new LocalFileBlockWriter(blockPath);

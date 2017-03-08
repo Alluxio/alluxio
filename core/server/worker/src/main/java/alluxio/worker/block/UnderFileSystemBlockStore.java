@@ -66,16 +66,16 @@ public final class UnderFileSystemBlockStore {
   /** Maps from the block ID to the session IDs. */
   private final Map<Long, Set<Long>> mBlockIdToSessionIds = new HashMap<>();
 
-  /** The Alluxio block store. */
-  private final BlockStore mAlluxioBlockStore;
+  /** The Local block store. */
+  private final BlockStore mLocalBlockStore;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockStore}.
    *
-   * @param alluxioBlockStore the Alluxio block store
+   * @param localBlockStore the local block store
    */
-  public UnderFileSystemBlockStore(BlockStore alluxioBlockStore) {
-    mAlluxioBlockStore = alluxioBlockStore;
+  public UnderFileSystemBlockStore(BlockStore localBlockStore) {
+    mLocalBlockStore = localBlockStore;
   }
 
   /**
@@ -127,14 +127,14 @@ public final class UnderFileSystemBlockStore {
 
   /**
    * Cleans up the block reader or writer and checks whether it is necessary to commit the block
-   * to Alluxio block store.
+   * to Local block store.
    *
    * During UFS block read, this is triggered when the block is unlocked.
    * During UFS block write, this is triggered when the UFS block is committed.
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @return true if block is to be committed into Alluxio block store
+   * @return true if block is to be committed into Local block store
    * @throws IOException if it fails to clean up
    */
   public boolean cleanup(long sessionId, long blockId) throws IOException {
@@ -197,8 +197,8 @@ public final class UnderFileSystemBlockStore {
     for (Long blockId : blockIds) {
       try {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
-        // in Alluxio block store because they will be cleanup by the session cleaner in the
-        // Alluxio block store.
+        // in Local block store because they will be cleanup by the session cleaner in the
+        // Local block store.
         cleanup(sessionId, blockId);
         releaseAccess(sessionId, blockId);
       } catch (Exception e) {
@@ -233,7 +233,7 @@ public final class UnderFileSystemBlockStore {
       mLock.unlock();
     }
     BlockReader reader =
-        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mAlluxioBlockStore);
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore);
     blockInfo.setBlockReader(reader);
     return reader;
   }

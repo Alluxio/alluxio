@@ -52,7 +52,7 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.UNDERFS_ADDRESS, mFolder.getRoot());
+    Configuration.set(PropertyKey.UNDERFS_ADDRESS, mFolder.getRoot().getAbsolutePath());
 
     String testFilePath = mFolder.newFile().getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE * 2);
