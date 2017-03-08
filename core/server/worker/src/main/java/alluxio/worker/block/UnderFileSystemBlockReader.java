@@ -24,7 +24,6 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
@@ -42,11 +41,11 @@ import java.nio.channels.ReadableByteChannel;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class implements a {@link BlockReader} to read a block directly from UFS, and optionally
- * cache the block to the Alluxio worker if the whole block it is read.
+ * This class implements a {@link BlockReaderWithCache} to read a block directly from UFS, and
+ * optionally cache the block to the Alluxio worker if the whole block it is read.
  */
 @NotThreadSafe
-public final class UnderFileSystemBlockReader implements BlockReader {
+public final class UnderFileSystemBlockReader implements BlockReaderWithCache {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockReader.class);
 
   /** An object storing the mapping of tier aliases to ordinals. */
@@ -65,8 +64,13 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   private InputStream mUnderFileSystemInputStream;
   /** The block writer to write the block to Alluxio. */
   private LocalFileBlockWriter mBlockWriter;
-  /** If set, the reader is closed and should not be used afterwards. */
+  /**
+   * If set, the reader is closed and should not be used afterwards except isCommitPending
+   * method.
+   */
   private boolean mClosed;
+  /** If set, this block is pending to be committed to Alluxio. */
+  private boolean mCommitPending;
 
   /**
    * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
@@ -250,11 +254,16 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       closer.close();
 
       if (isBlockCached) {
-        mBlockMeta.setCommitPending(true);
+        mCommitPending = true;
       }
     } finally {
       mClosed = true;
     }
+  }
+
+  @Override
+  public boolean isCommitPending() {
+    return mCommitPending;
   }
 
   @Override

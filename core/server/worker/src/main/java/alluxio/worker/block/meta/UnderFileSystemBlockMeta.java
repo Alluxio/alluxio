@@ -14,7 +14,7 @@ package alluxio.worker.block.meta;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 /**
- * This class represents the metadata of a block that is in UFS.
+ * This class represents the metadata of a block that is in UFS. This class is immutable.
  */
 public final class UnderFileSystemBlockMeta {
   private final long mSessionId;
@@ -24,13 +24,6 @@ public final class UnderFileSystemBlockMeta {
   private final long mOffset;
   /** The block size in bytes. */
   private final long mBlockSize;
-
-  /**
-   * The set of session IDs to be committed. This does not have to be volatile in the current code
-   * because the reader/writer are from the same thread. But just set it to volatile to be
-   * future-proof.
-   */
-  private volatile boolean mCommitPending;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockMeta}.
@@ -81,19 +74,4 @@ public final class UnderFileSystemBlockMeta {
   public long getBlockSize() {
     return mBlockSize;
   }
-
-  /**
-   * @return true if the block is pending to be committed in the Alluxio block store
-   */
-  public boolean getCommitPending() {
-    return mCommitPending;
-  }
-
-  /**
-   * @param commitPending set to true if the block is pending to be committed
-   */
-  public void setCommitPending(boolean commitPending) {
-    mCommitPending = commitPending;
-  }
-
 }

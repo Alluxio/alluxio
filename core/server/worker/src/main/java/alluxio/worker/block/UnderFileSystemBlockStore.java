@@ -148,8 +148,7 @@ public final class UnderFileSystemBlockStore {
     } finally {
       mLock.unlock();
     }
-    blockInfo.closeReaderOrWriter();
-    return blockInfo.getMeta().getCommitPending();
+    return blockInfo.closeReaderOrWriter();
   }
 
   /**
@@ -232,7 +231,7 @@ public final class UnderFileSystemBlockStore {
     } finally {
       mLock.unlock();
     }
-    BlockReader reader =
+    BlockReaderWithCache reader =
         UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore);
     blockInfo.setBlockReader(reader);
     return reader;
@@ -323,7 +322,7 @@ public final class UnderFileSystemBlockStore {
     // A correct client implementation should never access the following reader/writer
     // concurrently. But just to avoid crashing the server thread with runtime exception when
     // the client is mis-behaving, we access them with locks acquired.
-    private BlockReader mBlockReader;
+    private BlockReaderWithCache mBlockReader;
     private BlockWriter mBlockWriter;
 
     /**
@@ -355,7 +354,7 @@ public final class UnderFileSystemBlockStore {
     /**
      * @param blockReader the block reader to be set
      */
-    public synchronized void setBlockReader(BlockReader blockReader) {
+    public synchronized void setBlockReader(BlockReaderWithCache blockReader) {
       mBlockReader = blockReader;
     }
 
@@ -376,17 +375,21 @@ public final class UnderFileSystemBlockStore {
     /**
      * Closes the block reader or writer.
      *
+     * @return true if the block is pending to be committed
      * @throws IOException if it fails to close block reader or writer
      */
-    public synchronized void closeReaderOrWriter() throws IOException {
+    public synchronized boolean closeReaderOrWriter() throws IOException {
+      boolean commitPending = false;
       if (mBlockReader != null) {
         mBlockReader.close();
+        commitPending = mBlockReader.isCommitPending();
         mBlockReader = null;
       }
       if (mBlockWriter != null) {
         mBlockWriter.close();
         mBlockWriter = null;
       }
+      return commitPending;
     }
   }
 }
