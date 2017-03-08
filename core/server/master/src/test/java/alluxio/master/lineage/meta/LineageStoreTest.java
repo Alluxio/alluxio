@@ -102,7 +102,7 @@ public final class LineageStoreTest {
 
     JournalOutputStream outputStream = Mockito.mock(JournalOutputStream.class);
     mLineageStore.streamToJournalCheckpoint(outputStream);
-    Mockito.verify(outputStream).writeEntry(mLineageStore.getLineage(l1).toJournalEntry());
-    Mockito.verify(outputStream).writeEntry(mLineageStore.getLineage(l2).toJournalEntry());
+    Mockito.verify(outputStream).write(mLineageStore.getLineage(l1).toJournalEntry());
+    Mockito.verify(outputStream).write(mLineageStore.getLineage(l2).toJournalEntry());
   }
 }

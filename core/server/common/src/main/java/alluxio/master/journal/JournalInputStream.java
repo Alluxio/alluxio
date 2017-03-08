@@ -20,11 +20,12 @@ import java.io.IOException;
  */
 public interface JournalInputStream {
   /**
-   * @return the next {@link JournalEntry} in the stream, null if the are no more entries in the
-   *         stream
+   * Reads the next journal entry.
+   *
+   * @return the next {@link JournalEntry} in the stream, or null if the are no more entries
    * @throws IOException if a non-Alluxio related exception occurs
    */
-  JournalEntry getNextEntry() throws IOException;
+  JournalEntry read() throws IOException;
 
   /**
    * Closes the stream.

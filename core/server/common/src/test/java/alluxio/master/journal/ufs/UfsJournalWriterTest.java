@@ -56,7 +56,7 @@ public class UfsJournalWriterTest {
   @Before
   public void before() throws Exception {
     File journalFolder = mFolder.newFolder();
-    mJournal = new ReadWriteUfsJournal(new URI(journalFolder.getAbsolutePath()));
+    mJournal = new UfsReadWriteJournal(new URI(journalFolder.getAbsolutePath()));
   }
 
   @Test
@@ -70,7 +70,7 @@ public class UfsJournalWriterTest {
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
         mJournal.getCurrentLog(), mJournal.getJournalFormatter(), mockJournalWriter);
-    entryOutStream.writeEntry(JournalEntry.newBuilder().build());
+    entryOutStream.write(JournalEntry.newBuilder().build());
     doThrow(new IOException("flush failed")).when(mockOutStream).flush();
     try {
       entryOutStream.flush();
@@ -78,10 +78,10 @@ public class UfsJournalWriterTest {
     } catch (IOException ignored) {
       // expected
     }
-    // Undo the earlier mocking so that the writeEntry doesn't fail.
+    // Undo the earlier mocking so that the write doesn't fail.
     doNothing().when(mockOutStream).flush();
     // The rotation happens the next time an entry is written.
-    entryOutStream.writeEntry(JournalEntry.newBuilder().build());
+    entryOutStream.write(JournalEntry.newBuilder().build());
     verify(mockJournalWriter).completeCurrentLog();
   }
 
@@ -96,7 +96,7 @@ public class UfsJournalWriterTest {
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
         mJournal.getCurrentLog(), mJournal.getJournalFormatter(), mockJournalWriter);
-    entryOutStream.writeEntry(JournalEntry.newBuilder().build());
+    entryOutStream.write(JournalEntry.newBuilder().build());
     doThrow(new IOException("sync failed")).when(mockOutStream).sync();
     try {
       entryOutStream.flush();
@@ -104,10 +104,10 @@ public class UfsJournalWriterTest {
     } catch (IOException ignored) {
       // expected
     }
-    // Undo the earlier mocking so that the writeEntry doesn't fail.
+    // Undo the earlier mocking so that the write doesn't fail.
     doNothing().when(mockOutStream).sync();
     // The rotation happens the next time an entry is written.
-    entryOutStream.writeEntry(JournalEntry.newBuilder().build());
+    entryOutStream.write(JournalEntry.newBuilder().build());
     verify(mockJournalWriter).completeCurrentLog();
   }
 
@@ -126,15 +126,15 @@ public class UfsJournalWriterTest {
     doThrow(new IOException("write failed")).when(mockOutStream).write(any(byte[].class), anyInt(),
         anyInt());
     try {
-      entryOutStream.writeEntry(JournalEntry.newBuilder().setSequenceNumber(10).build());
+      entryOutStream.write(JournalEntry.newBuilder().setSequenceNumber(10).build());
       Assert.fail("Should have thrown an exception");
     } catch (IOException ignored) {
       // expected
     }
-    // Undo the earlier mocking so that the writeEntry doesn't fail.
+    // Undo the earlier mocking so that the write doesn't fail.
     doNothing().when(mockOutStream).write(any(byte[].class), anyInt(), anyInt());
     // The rotation happens the next time an entry is written.
-    entryOutStream.writeEntry(JournalEntry.newBuilder().build());
+    entryOutStream.write(JournalEntry.newBuilder().build());
 
     verify(mockJournalWriter).completeCurrentLog();
   }

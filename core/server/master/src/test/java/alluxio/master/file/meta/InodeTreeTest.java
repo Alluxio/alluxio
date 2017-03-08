@@ -662,7 +662,7 @@ public final class InodeTreeTest {
     JournalOutputStream mockOutputStream = Mockito.mock(JournalOutputStream.class);
     root.streamToJournalCheckpoint(mockOutputStream);
     for (Inode<?> node : journaled) {
-      Mockito.verify(mockOutputStream).writeEntry(node.toJournalEntry());
+      Mockito.verify(mockOutputStream).write(node.toJournalEntry());
     }
     Mockito.verifyNoMoreInteractions(mockOutputStream);
   }

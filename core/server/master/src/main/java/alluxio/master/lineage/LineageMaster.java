@@ -150,7 +150,7 @@ public final class LineageMaster extends AbstractMaster {
   public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
       throws IOException {
     mLineageStore.streamToJournalCheckpoint(outputStream);
-    outputStream.writeEntry(mLineageIdGenerator.toJournalEntry());
+    outputStream.write(mLineageIdGenerator.toJournalEntry());
   }
 
   /**

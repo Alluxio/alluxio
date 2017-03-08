@@ -19,11 +19,11 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalTailer;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalTailer;
 import alluxio.master.journal.JournalTailerThread;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
@@ -89,7 +89,7 @@ public abstract class AbstractMaster implements Master {
   public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
     JournalEntry entry;
     try {
-      while ((entry = inputStream.getNextEntry()) != null) {
+      while ((entry = inputStream.read()) != null) {
         processJournalEntry(entry);
       }
     } finally {
@@ -149,7 +149,7 @@ public abstract class AbstractMaster implements Master {
       } else {
         // This master has not successfully processed any of the journal, so create a fresh tailer
         // to process the entire journal.
-        catchupTailer = new JournalTailer(this, mJournal);
+        catchupTailer = JournalTailer.Factory.create(this, mJournal);
         if (catchupTailer.checkpointExists()) {
           LOG.info("{}: process entire journal before becoming leader master.", getName());
           catchupTailer.processJournalCheckpoint(true);

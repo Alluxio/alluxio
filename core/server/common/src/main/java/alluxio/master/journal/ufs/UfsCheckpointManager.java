@@ -11,7 +11,6 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.master.journal.CheckpointManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 
@@ -25,7 +24,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
- * Implementation of {@link CheckpointManager} based on UFS.
+ * Manages the checkpoint for a journal. The {@link #update(URI)} method will update the
+ * journal's checkpoint to the specified location, and {@link #recover()} will recover from any
+ * failures that may occur during {@link #update(URI)}.
  *
  * The checkpoint updating process goes
  * <pre>
@@ -37,7 +38,7 @@ import java.net.URISyntaxException;
  * 6. Delete checkpoint.data.backup
  * </pre>
  */
-public final class UfsCheckpointManager implements CheckpointManager {
+public final class UfsCheckpointManager {
   private static final Logger LOG = LoggerFactory.getLogger(UfsCheckpointManager.class);
 
   /** The UFS where the journal is being written to. */
@@ -88,7 +89,9 @@ public final class UfsCheckpointManager implements CheckpointManager {
     mWriter = writer;
   }
 
-  @Override
+  /**
+   * Recovers the checkpoint in case the master crashed while updating it.
+   */
   public void recover() {
     try {
       boolean checkpointExists = mUfs.isFile(mCheckpoint.toString());
@@ -119,8 +122,12 @@ public final class UfsCheckpointManager implements CheckpointManager {
     }
   }
 
-  @Override
-  public void update(URI newCheckpointPath) {
+  /**
+   * Updates the checkpoint to the specified URI.
+   *
+   * @param location the location of the new checkpoint
+   */
+  public void update(URI location) {
     try {
       if (mUfs.isFile(mCheckpoint.toString())) {
         UnderFileSystemUtils.deleteFileIfExists(mTempBackupCheckpoint.toString());
@@ -131,8 +138,8 @@ public final class UfsCheckpointManager implements CheckpointManager {
         mUfs.renameFile(mTempBackupCheckpoint.toString(), mBackupCheckpoint.toString());
         LOG.info("Backed up the checkpoint file to {}", mBackupCheckpoint.toString());
       }
-      mUfs.renameFile(newCheckpointPath.getPath(), mCheckpoint.toString());
-      LOG.info("Renamed the checkpoint file from {} to {}", newCheckpointPath,
+      mUfs.renameFile(location.getPath(), mCheckpoint.toString());
+      LOG.info("Renamed the checkpoint file from {} to {}", location,
           mCheckpoint.toString());
 
       // The checkpoint already reflects the information in the completed logs.

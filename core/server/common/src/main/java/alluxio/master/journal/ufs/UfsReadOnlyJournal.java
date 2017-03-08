@@ -11,29 +11,29 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.ReadOnlyJournal;
 
 import java.net.URI;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Implementation of {@link ReadWriteJournal} based on UFS.
+ * Implementation of {@link ReadOnlyJournal} based on UFS.
  */
 @ThreadSafe
-public class ReadWriteUfsJournal extends ReadOnlyUfsJournal implements ReadWriteJournal {
+public class UfsReadOnlyJournal extends UfsJournal implements ReadOnlyJournal {
   /**
    * @param location the location for the journal
    */
-  public ReadWriteUfsJournal(URI location) {
+  public UfsReadOnlyJournal(URI location) {
     super(location);
   }
 
   /**
-   * @return the {@link UfsJournalWriter} for this journal
+   * @return the {@link UfsJournalReader} for this journal
    */
-  public JournalWriter getNewWriter() {
-    return new UfsJournalWriter(this);
+  public JournalReader getNewReader() {
+    return new UfsJournalReader(this);
   }
 }

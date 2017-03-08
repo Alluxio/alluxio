@@ -131,18 +131,18 @@ public final class KeyValueMaster extends AbstractMaster {
     for (Map.Entry<Long, List<PartitionInfo>> entry : mCompleteStoreToPartitions.entrySet()) {
       long fileId = entry.getKey();
       List<PartitionInfo> partitions = entry.getValue();
-      outputStream.writeEntry(newCreateStoreEntry(fileId));
+      outputStream.write(newCreateStoreEntry(fileId));
       for (PartitionInfo info : partitions) {
-        outputStream.writeEntry(newCompletePartitionEntry(fileId, info));
+        outputStream.write(newCompletePartitionEntry(fileId, info));
       }
-      outputStream.writeEntry(newCompleteStoreEntry(fileId));
+      outputStream.write(newCompleteStoreEntry(fileId));
     }
     for (Map.Entry<Long, List<PartitionInfo>> entry : mIncompleteStoreToPartitions.entrySet()) {
       long fileId = entry.getKey();
       List<PartitionInfo> partitions = entry.getValue();
-      outputStream.writeEntry(newCreateStoreEntry(fileId));
+      outputStream.write(newCreateStoreEntry(fileId));
       for (PartitionInfo info : partitions) {
-        outputStream.writeEntry(newCompletePartitionEntry(fileId, info));
+        outputStream.write(newCompletePartitionEntry(fileId, info));
       }
     }
   }

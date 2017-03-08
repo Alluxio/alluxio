@@ -12,11 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.master.Master;
-import alluxio.proto.journal.Journal.JournalEntry;
-
-import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import alluxio.master.journal.ufs.UfsJournalTailer;
 
 import java.io.IOException;
 
@@ -27,52 +23,41 @@ import javax.annotation.concurrent.NotThreadSafe;
  * process all existing completed logs.
  */
 @NotThreadSafe
-public final class JournalTailer {
-  private static final Logger LOG = LoggerFactory.getLogger(JournalTailer.class);
-
-  /** The master to apply all the journal entries to. */
-  private final Master mMaster;
-  /** The journal reader to read journal entries. */
-  private final JournalReader mReader;
-  /** This keeps track of the latest sequence number seen in the journal entries. */
-  private long mLatestSequenceNumber = 0;
+public interface JournalTailer {
 
   /**
-   * Creates a new instance of {@link JournalTailer}.
-   *
-   * @param master the master to apply the journal entries to
-   * @param journal the journal to tail
+   * Factory for {@link JournalTailer}.
    */
-  public JournalTailer(Master master, Journal journal) {
-    mMaster = Preconditions.checkNotNull(master);
-    mReader = ((ReadOnlyJournal) journal).getNewReader();
+  class Factory {
+
+    private Factory() {} // prevent instantiation
+
+    /**
+     * Creates a new instance of {@link JournalTailer}.
+     *
+     * @param master a master
+     * @param journal a journal
+     * @return a new {@link JournalTailer} instnace
+     */
+    public static JournalTailer create(Master master, Journal journal) {
+      return new UfsJournalTailer(master, journal);
+    }
   }
 
   /**
    * @return true if this tailer is valid, false otherwise
    */
-  public boolean isValid() {
-    return mReader.isValid();
-  }
+  boolean isValid();
 
   /**
    * @return true if the checkpoint exists
    */
-  public boolean checkpointExists() {
-    try {
-      mReader.getCheckpointLastModifiedTimeMs();
-      return true;
-    } catch (IOException e) {
-      return false;
-    }
-  }
+  boolean checkpointExists();
 
   /**
    * @return the sequence number of the latest entry in the journal read so far
    */
-  public long getLatestSequenceNumber() {
-    return mLatestSequenceNumber;
-  }
+  long getLatestSequenceNumber();
 
   /**
    * Loads and (optionally) processes the journal checkpoint.
@@ -81,21 +66,7 @@ public final class JournalTailer {
    *        open the checkpoint.
    * @throws IOException if an I/O error occurs
    */
-  public void processJournalCheckpoint(boolean applyToMaster) throws IOException {
-    // Load the checkpoint.
-    LOG.info("{}: Loading checkpoint.", mMaster.getName());
-    // The checkpoint stream must be retrieved before retrieving any log streams, because the
-    // journal reader verifies that the checkpoint was read before the log streams.
-    JournalInputStream is = mReader.getCheckpointInputStream();
-
-    if (applyToMaster) {
-      // Only apply the checkpoint to the master, if specified.
-      mMaster.processJournalCheckpoint(is);
-    }
-    // update the latest sequence number seen.
-    mLatestSequenceNumber = is.getLatestSequenceNumber();
-    is.close();
-  }
+  void processJournalCheckpoint(boolean applyToMaster) throws IOException;
 
   /**
    * Processes all the completed journal logs. This method will return when it processes the last
@@ -106,27 +77,5 @@ public final class JournalTailer {
    * @return the number of logs processed
    * @throws IOException if an I/O error occurs
    */
-  public int processNextJournalLogs() throws IOException {
-    int numFilesProcessed = 0;
-    while (mReader.isValid()) {
-      // Process the new completed log, if it exists.
-      JournalInputStream inputStream = mReader.getNextInputStream();
-      if (inputStream != null) {
-        LOG.info("{}: Processing a completed log.", mMaster.getName());
-        JournalEntry entry;
-        while ((entry = inputStream.getNextEntry()) != null) {
-          mMaster.processJournalEntry(entry);
-          // update the latest sequence number seen.
-          mLatestSequenceNumber = inputStream.getLatestSequenceNumber();
-        }
-        inputStream.close();
-        numFilesProcessed++;
-        LOG.info("{}: Finished processing the log.", mMaster.getName());
-      } else {
-        return numFilesProcessed;
-      }
-    }
-    LOG.info("{}: The checkpoint is out of date and must be reloaded.", mMaster.getName());
-    return numFilesProcessed;
-  }
+  int processNextJournalLogs() throws IOException;
 }

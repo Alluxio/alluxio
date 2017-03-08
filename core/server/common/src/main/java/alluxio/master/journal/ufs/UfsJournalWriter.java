@@ -130,7 +130,7 @@ public final class UfsJournalWriter implements JournalWriter {
       mEntryOutputStream = new EntryOutputStream(mUfs, mJournal.getCurrentLog(),
           mJournal.getJournalFormatter(), this);
     }
-    mEntryOutputStream.writeEntry(entry);
+    mEntryOutputStream.write(entry);
   }
 
   @Override
@@ -230,7 +230,7 @@ public final class UfsJournalWriter implements JournalWriter {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    public synchronized void writeEntry(JournalEntry entry) throws IOException {
+    public synchronized void write(JournalEntry entry) throws IOException {
       if (mIsClosed) {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
@@ -340,7 +340,7 @@ public final class UfsJournalWriter implements JournalWriter {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    public synchronized void writeEntry(JournalEntry entry) throws IOException {
+    public synchronized void write(JournalEntry entry) throws IOException {
       if (mIsClosed) {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }

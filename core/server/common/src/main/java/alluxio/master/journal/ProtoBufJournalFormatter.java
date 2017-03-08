@@ -50,7 +50,7 @@ public final class ProtoBufJournalFormatter implements JournalFormatter {
       private long mLatestSequenceNumber;
 
       @Override
-      public JournalEntry getNextEntry() throws IOException {
+      public JournalEntry read() throws IOException {
         int firstByte = inputStream.read();
         if (firstByte == -1) {
           return null;

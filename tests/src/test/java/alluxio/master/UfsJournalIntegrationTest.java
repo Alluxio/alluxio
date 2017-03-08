@@ -32,7 +32,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.master.journal.ufs.ReadWriteUfsJournal;
+import alluxio.master.journal.ufs.UfsReadWriteJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -102,7 +102,7 @@ public class UfsJournalIntegrationTest {
 
   private void deleteFsMasterJournalLogs() throws Exception {
     String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
-    UfsJournal journal = new ReadWriteUfsJournal(
+    UfsJournal journal = new UfsReadWriteJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
     UnderFileSystem.Factory.get(journalFolder).deleteFile(journal.getCurrentLog().toString());
   }
@@ -134,7 +134,7 @@ public class UfsJournalIntegrationTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
     try {
       String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
-      ReadWriteUfsJournal journal = new ReadWriteUfsJournal(
+      UfsReadWriteJournal journal = new UfsReadWriteJournal(
           new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
       JournalWriter writer = journal.getNewWriter();
       writer.getCheckpointOutputStream(0).close();
@@ -200,7 +200,7 @@ public class UfsJournalIntegrationTest {
 
     String journalFolder = PathUtils.concatPath(mLocalAlluxioCluster.getMaster().getJournalFolder(),
         Constants.FILE_SYSTEM_MASTER_NAME);
-    UfsJournal journal = new ReadWriteUfsJournal(new URI(journalFolder));
+    UfsJournal journal = new UfsReadWriteJournal(new URI(journalFolder));
     URI completedLocation = journal.getCompletedLocation();
     Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation.toString())
         .listStatus(completedLocation.toString()).length > 1);

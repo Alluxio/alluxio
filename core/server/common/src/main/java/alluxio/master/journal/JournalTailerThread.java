@@ -107,7 +107,7 @@ public final class JournalTailerThread extends Thread {
 
         // Load the checkpoint file.
         LOG.info("{}: Waiting to load the checkpoint file.", mMaster.getName());
-        mJournalTailer = new JournalTailer(mMaster, mJournal);
+        mJournalTailer = JournalTailer.Factory.create(mMaster, mJournal);
         while (!mJournalTailer.checkpointExists()) {
           CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           if (mInitiateShutdown) {

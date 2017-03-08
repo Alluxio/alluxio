@@ -11,8 +11,8 @@
 
 package alluxio.master.journal;
 
-import alluxio.master.journal.ufs.ReadOnlyUfsJournal;
-import alluxio.master.journal.ufs.ReadWriteUfsJournal;
+import alluxio.master.journal.ufs.UfsReadOnlyJournal;
+import alluxio.master.journal.ufs.UfsReadWriteJournal;
 import alluxio.util.URIUtils;
 
 import java.net.URI;
@@ -49,14 +49,14 @@ public interface JournalFactory {
     @Override
     public Journal create(String name) {
       try {
-        return new ReadWriteUfsJournal(URIUtils.appendPath(mBaseLocation, name));
+        return new UfsReadWriteJournal(URIUtils.appendPath(mBaseLocation, name));
       } catch (URISyntaxException e) {
         throw new RuntimeException(e);
       }
     }
 
     public static Journal create(URI location) {
-      return new ReadWriteUfsJournal(location);
+      return new UfsReadWriteJournal(location);
     }
   }
 
@@ -81,14 +81,14 @@ public interface JournalFactory {
     @Override
     public Journal create(String name) {
       try {
-        return new ReadOnlyUfsJournal(URIUtils.appendPath(mBaseLocation, name));
+        return new UfsReadOnlyJournal(URIUtils.appendPath(mBaseLocation, name));
       } catch (URISyntaxException e) {
         throw new RuntimeException(e);
       }
     }
 
     public static Journal create(URI location) {
-      return new ReadOnlyUfsJournal(location);
+      return new UfsReadOnlyJournal(location);
     }
   }
 }
