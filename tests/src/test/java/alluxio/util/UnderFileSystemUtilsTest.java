@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.util;
 
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.gcs.GCSUnderFileSystem;
@@ -31,9 +31,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Tests for {@link IntegrationTestUtils}.
+ * Tests for {@link UnderFileSystemUtils}.
  */
-public class IntegrationTestUtilsTest {
+public class UnderFileSystemUtilsTest {
   /**
    * A callable which validates the type of an under file system. Should be used only in test as
    * part of {@link UfsTypeCheckPair}.
@@ -92,7 +92,7 @@ public class IntegrationTestUtilsTest {
     sPairs.add(new UfsTypeCheckPair(Collections.singletonList(gcs), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
-        return IntegrationTestUtils.isGcs(ufs);
+        return UnderFileSystemUtils.isGcs(ufs);
       }
     }));
     sObjectStores.add(gcs);
@@ -103,7 +103,7 @@ public class IntegrationTestUtilsTest {
     sPairs.add(new UfsTypeCheckPair(Collections.singletonList(hdfs), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
-        return IntegrationTestUtils.isHdfs(ufs);
+        return UnderFileSystemUtils.isHdfs(ufs);
       }
     }));
 
@@ -113,7 +113,7 @@ public class IntegrationTestUtilsTest {
     sPairs.add(new UfsTypeCheckPair(Collections.singletonList(local), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
-        return IntegrationTestUtils.isLocal(ufs);
+        return UnderFileSystemUtils.isLocal(ufs);
       }
     }));
 
@@ -123,7 +123,7 @@ public class IntegrationTestUtilsTest {
     sPairs.add(new UfsTypeCheckPair(Collections.singletonList(oss), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
-        return IntegrationTestUtils.isOss(ufs);
+        return UnderFileSystemUtils.isOss(ufs);
       }
     }));
     sObjectStores.add(oss);
@@ -136,7 +136,7 @@ public class IntegrationTestUtilsTest {
     sPairs.add(new UfsTypeCheckPair(Arrays.asList(s3, s3a), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
-        return IntegrationTestUtils.isS3(ufs);
+        return UnderFileSystemUtils.isS3(ufs);
       }
     }));
     sObjectStores.add(s3);
@@ -148,7 +148,7 @@ public class IntegrationTestUtilsTest {
     sPairs.add(new UfsTypeCheckPair(Collections.singletonList(swift), new UfsTypeCheckCallable() {
       @Override
       public boolean call(UnderFileSystem ufs) {
-        return IntegrationTestUtils.isSwift(ufs);
+        return UnderFileSystemUtils.isSwift(ufs);
       }
     }));
     sObjectStores.add(swift);
@@ -166,7 +166,7 @@ public class IntegrationTestUtilsTest {
   @Test
   public void objectStoreCheck() {
     for (UnderFileSystem objectStore : sObjectStores) {
-      Assert.assertTrue(IntegrationTestUtils.isObjectStorage(objectStore));
+      Assert.assertTrue(UnderFileSystemUtils.isObjectStorage(objectStore));
     }
   }
 }

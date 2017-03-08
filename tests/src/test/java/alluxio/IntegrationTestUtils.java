@@ -14,7 +14,6 @@ package alluxio;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
@@ -31,34 +30,6 @@ import java.util.List;
  * Util methods for writing integration tests.
  */
 public final class IntegrationTestUtils {
-  public static boolean isGcs(UnderFileSystem ufs) {
-    return "gcs".equals(ufs.getUnderFSType());
-  }
-
-  public static boolean isLocal(UnderFileSystem ufs) {
-    return "local".equals(ufs.getUnderFSType());
-  }
-
-  public static boolean isHdfs(UnderFileSystem ufs) {
-    return "hdfs".equals(ufs.getUnderFSType());
-  }
-
-  public static boolean isObjectStorage(UnderFileSystem ufs) {
-    return isGcs(ufs) || isOss(ufs) || isS3(ufs) || isSwift(ufs);
-  }
-
-  public static boolean isOss(UnderFileSystem ufs) {
-    return "oss".equals(ufs.getUnderFSType());
-  }
-
-  public static boolean isS3(UnderFileSystem ufs) {
-    return "s3".equals(ufs.getUnderFSType()) || "s3a".equals(ufs.getUnderFSType());
-  }
-
-  public static boolean isSwift(UnderFileSystem ufs) {
-    return "swift".equals(ufs.getUnderFSType());
-  }
-
   /**
    * Convenience method for calling
    * {@link #waitForPersist(LocalAlluxioClusterResource, AlluxioURI, int)} with a default timeout.

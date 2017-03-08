@@ -14,7 +14,6 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.Seekable;
@@ -31,6 +30,7 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
 
@@ -105,7 +105,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @Test
   public void createNoParent() throws IOException {
     // Run the test only for local UFS. Other UFSs succeed if no parents are present
-    Assume.assumeTrue(IntegrationTestUtils.isLocal(mUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs));
 
     mThrown.expect(IOException.class);
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
@@ -147,7 +147,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     byte[] buf = new byte[0];
     int bytesRead = mUfs.open(testFile).read(buf);
     // TODO(adit): Consider making the return value uniform across UFSs
-    if (IntegrationTestUtils.isHdfs(mUfs)) {
+    if (UnderFileSystemUtils.isHdfs(mUfs)) {
       Assert.assertTrue(bytesRead == -1);
     } else {
       Assert.assertTrue(bytesRead == 0);
@@ -588,7 +588,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @Test
   public void objectCommonPrefixesIsDirectory() throws IOException {
     // Only run test for an object store
-    Assume.assumeTrue(IntegrationTestUtils.isObjectStorage(mUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
 
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
@@ -609,7 +609,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @Test
   public void objectCommonPrefixesListStatusNonRecursive() throws IOException {
     // Only run test for an object store
-    Assume.assumeTrue(IntegrationTestUtils.isObjectStorage(mUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
 
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
@@ -649,7 +649,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @Test
   public void objectCommonPrefixesListStatusRecursive() throws IOException {
     // Only run test for an object store
-    Assume.assumeTrue(IntegrationTestUtils.isObjectStorage(mUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
 
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
@@ -703,7 +703,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @Test
   public void objectLoadMetadata() throws Exception {
     // Only run test for an object store
-    Assume.assumeTrue(IntegrationTestUtils.isObjectStorage(mUfs));
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
 
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
