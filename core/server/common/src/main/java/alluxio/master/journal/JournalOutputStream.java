@@ -17,7 +17,7 @@ import java.io.IOException;
 
 /**
  * This output stream writes {@link JournalEntry} objects to the journal. This output stream can
- * write to both the journal checkpoint file, or the journal log files.
+ * write to both the journal checkpoint and the journal logs.
  */
 public interface JournalOutputStream {
   /**

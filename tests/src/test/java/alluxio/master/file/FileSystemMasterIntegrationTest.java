@@ -158,7 +158,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
-  private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
+  private FileSystemMaster createFileSystemMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 

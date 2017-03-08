@@ -11,38 +11,40 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.AlluxioURI;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFormatter;
+import alluxio.util.URIUtils;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class encapsulates the journal for a master. The journal is made up of 2 components:
+ * Implementation of {@link Journal} based on UFS.
+ *
+ * The journal is made up of 2 components:
  * - The checkpoint: the full state of the master
  * - The entries: incremental entries to apply to the checkpoint.
  *
  * To construct the full state of the master, all the entries must be applied to the checkpoint in
  * order. The entry file most recently being written to is in the base journal folder, where the
- * completed entry files are in the "completed/" sub-directory.
+ * completed entry files are in the "completed" folder.
  */
 @ThreadSafe
 public abstract class UfsJournal implements Journal {
-  /** The log number for the first completed log file. */
+  /** The log number for the first completed log. */
   protected static final long FIRST_COMPLETED_LOG_NUMBER = 1L;
-  /** The directory for completed log files, relative to the base journal directory. */
-  private static final String COMPLETED_DIRECTORY = "completed/";
+  /** The folder for completed logs. */
+  private static final String COMPLETED_LOCATION = "completed";
   /** The file extension for the current log file. */
   private static final String CURRENT_LOG_EXTENSION = ".out";
-  /** The filename of the checkpoint file. */
+  /** The file name of the checkpoint file. */
   private static final String CHECKPOINT_FILENAME = "checkpoint.data";
-  /** The base of the entry log filenames, without the file extension. */
+  /** The base of the entry log file names, without the file extension. */
   private static final String ENTRY_LOG_FILENAME_BASE = "log";
-  /** The directory where this journal is stored. */
-  private final String mDirectory;
+  /** The location where this journal is stored. */
+  private final URI mLocation;
   /** The formatter for this journal. */
   private final JournalFormatter mJournalFormatter;
 
@@ -51,54 +53,61 @@ public abstract class UfsJournal implements Journal {
    *
    * @param location the location for this journal
    */
-  public UfsJournal(URL location) {
-    String directory = location.getPath();
-    if (!directory.endsWith(AlluxioURI.SEPARATOR)) {
-      // Ensure directory format.
-      directory += AlluxioURI.SEPARATOR;
-    }
-    mDirectory = directory;
+  public UfsJournal(URI location) {
+    System.out.println(location);
+    mLocation = location;
     mJournalFormatter = JournalFormatter.Factory.create();
   }
 
   @Override
-  public URL getLocation() {
+  public URI getLocation() {
+    return mLocation;
+  }
+
+  /**
+   * @return the location of the completed logs
+   */
+  public URI getCompletedLocation() {
     try {
-      return new URL(mDirectory);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e.getMessage());
+      return URIUtils.appendPath(mLocation, COMPLETED_LOCATION);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
     }
   }
 
   /**
-   * @return the directory for where the completed log files are stored
+   * @return the location of the journal checkpoint
    */
-  public String getCompletedDirectory() {
-    return mDirectory + COMPLETED_DIRECTORY;
+  protected URI getCheckpoint() {
+    try {
+      return URIUtils.appendPath(mLocation, CHECKPOINT_FILENAME);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
-   * @return the absolute path for the journal checkpoint file
+   * @return the location of the current log
    */
-  protected String getCheckpointFilePath() {
-    return mDirectory + CHECKPOINT_FILENAME;
+  public URI getCurrentLog() {
+    try {
+      return URIUtils.appendPath(mLocation, ENTRY_LOG_FILENAME_BASE + CURRENT_LOG_EXTENSION);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
-   * @return the absolute path for the current log file
-   */
-  public String getCurrentLogFilePath() {
-    return mDirectory + ENTRY_LOG_FILENAME_BASE + CURRENT_LOG_EXTENSION;
-  }
-
-  /**
-   * Returns the completed log filename for a particular log number.
-   *
    * @param logNumber the log number to get the path for
-   * @return The absolute path of the completed log for a given log number
+   * @return the location of the completed log for a particular log number
    */
-  protected String getCompletedLogFilePath(long logNumber) {
-    return getCompletedDirectory() + String.format("%s.%020d", ENTRY_LOG_FILENAME_BASE, logNumber);
+  protected URI getCompletedLog(long logNumber) {
+    try {
+      return URIUtils.appendPath(getCompletedLocation(),
+          String.format("%s.%020d", ENTRY_LOG_FILENAME_BASE, logNumber));
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

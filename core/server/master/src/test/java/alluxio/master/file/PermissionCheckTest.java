@@ -61,7 +61,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -172,7 +172,7 @@ public final class PermissionCheckTest {
     LoginUserTestUtils.resetLoginUser(TEST_USER_ADMIN.getUser());
 
     JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(new URL(mTestFolder.newFolder().getAbsolutePath()));
+        new JournalFactory.ReadWrite(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mBlockMaster = new BlockMaster(journalFactory);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
     mBlockMaster.start(true);

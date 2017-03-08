@@ -11,8 +11,13 @@
 
 package alluxio.master.journal;
 
-import java.net.URL;
+import java.net.URI;
 
+/**
+ * Interface for managing the checkpoint for a journal. The {@link #update(URI)} method will
+ * update the journal's checkpoint to the specified location, and
+ * {@link #recover()} will recover from any failures that may occur during {@link #update(URI)}.
+ */
 public interface CheckpointManager {
 
   /**
@@ -21,9 +26,9 @@ public interface CheckpointManager {
   void recover();
 
   /**
-   * Updates the checkpoint to the specified URL.
+   * Updates the checkpoint to the specified URI.
    *
-   * @param newCheckpoint the URL to the new checkpoint
+   * @param location the location of the new checkpoint
    */
-  void update(URL newCheckpoint);
+  void update(URI location);
 }

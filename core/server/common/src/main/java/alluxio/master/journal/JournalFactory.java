@@ -13,13 +13,13 @@ package alluxio.master.journal;
 
 import alluxio.master.journal.ufs.ReadOnlyUfsJournal;
 import alluxio.master.journal.ufs.ReadWriteUfsJournal;
-import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.util.URIUtils;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
- * Interface for factories which create {@link UfsJournal}s.
+ * Interface for factories which create {@link Journal}s.
  */
 public interface JournalFactory {
   /**
@@ -32,7 +32,7 @@ public interface JournalFactory {
    * A factory which creates read-write journals.
    */
   final class ReadWrite implements JournalFactory {
-    private final URL mBaseLocation;
+    private final URI mBaseLocation;
 
     /**
      * Creates a journal factory with the specified base location. When journals are
@@ -42,16 +42,16 @@ public interface JournalFactory {
      *
      * @param baseLocation the base location for journals created by this factory
      */
-    public ReadWrite(URL baseLocation) {
+    public ReadWrite(URI baseLocation) {
       mBaseLocation = baseLocation;
     }
 
     @Override
-    public UfsJournal get(String name) {
+    public Journal get(String name) {
       try {
-        return new ReadWriteUfsJournal(new URL(mBaseLocation, name));
-      } catch (MalformedURLException e) {
-        throw new RuntimeException(e.getMessage());
+        return new ReadWriteUfsJournal(URIUtils.appendPath(mBaseLocation, name));
+      } catch (URISyntaxException e) {
+        throw new RuntimeException(e);
       }
     }
   }
@@ -60,26 +60,26 @@ public interface JournalFactory {
    * A factory which creates read-only journals.
    */
   final class ReadOnly implements JournalFactory {
-    private final URL mBaseLocation;
+    private final URI mBaseLocation;
 
     /**
      * Creates a journal factory with the specified base location. When journals are
      * created, their names are appended to the base path.
      *
-     * Journals created by this factory only support reads.
+     * Journals created by this factory only support reading.
      *
      * @param baseLocation the base location for journals created by this factory
      */
-    public ReadOnly(URL baseLocation) {
+    public ReadOnly(URI baseLocation) {
       mBaseLocation = baseLocation;
     }
 
     @Override
-    public UfsJournal get(String name) {
+    public Journal get(String name) {
       try {
-        return new ReadOnlyUfsJournal(new URL(mBaseLocation, name));
-      } catch (MalformedURLException e) {
-        throw new RuntimeException(e.getMessage());
+        return new ReadOnlyUfsJournal(URIUtils.appendPath(mBaseLocation, name));
+      } catch (URISyntaxException e) {
+        throw new RuntimeException(e);
       }
     }
   }

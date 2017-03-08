@@ -127,7 +127,7 @@ public class UfsJournalShutdownIntegrationTest {
     }
   }
 
-  private FileSystemMaster createFsMasterFromJournal() throws IOException {
+  private FileSystemMaster createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 

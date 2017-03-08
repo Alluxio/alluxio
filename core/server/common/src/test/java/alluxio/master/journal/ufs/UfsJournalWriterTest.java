@@ -39,6 +39,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 
 /**
@@ -56,7 +57,7 @@ public class UfsJournalWriterTest {
   @Before
   public void before() throws Exception {
     File journalFolder = mFolder.newFolder();
-    mJournal = new ReadWriteUfsJournal(new URL(journalFolder.getAbsolutePath()));
+    mJournal = new ReadWriteUfsJournal(new URI(journalFolder.getAbsolutePath()));
   }
 
   @Test
@@ -65,11 +66,11 @@ public class UfsJournalWriterTest {
     UfsJournalWriter mockJournalWriter = PowerMockito.mock(UfsJournalWriter.class);
     OutputStream mockOutStream = mock(OutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
-    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
+    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLog().toString()),
         any(CreateOptions.class));
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
-        mJournal.getCurrentLogFilePath(), mJournal.getJournalFormatter(), mockJournalWriter);
+        mJournal.getCurrentLog(), mJournal.getJournalFormatter(), mockJournalWriter);
     entryOutStream.writeEntry(JournalEntry.newBuilder().build());
     doThrow(new IOException("flush failed")).when(mockOutStream).flush();
     try {
@@ -91,11 +92,11 @@ public class UfsJournalWriterTest {
     UfsJournalWriter mockJournalWriter = PowerMockito.mock(UfsJournalWriter.class);
     FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
-    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
+    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLog().toString()),
         any(CreateOptions.class));
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
-        mJournal.getCurrentLogFilePath(), mJournal.getJournalFormatter(), mockJournalWriter);
+        mJournal.getCurrentLog(), mJournal.getJournalFormatter(), mockJournalWriter);
     entryOutStream.writeEntry(JournalEntry.newBuilder().build());
     doThrow(new IOException("sync failed")).when(mockOutStream).sync();
     try {
@@ -118,11 +119,11 @@ public class UfsJournalWriterTest {
     UfsJournalWriter mockJournalWriter = PowerMockito.mock(UfsJournalWriter.class);
     FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
-    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
+    doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLog().toString()),
         any(CreateOptions.class));
 
     EntryOutputStream entryOutStream = new EntryOutputStream(mockUfs,
-        mJournal.getCurrentLogFilePath(), mJournal.getJournalFormatter(), mockJournalWriter);
+        mJournal.getCurrentLog(), mJournal.getJournalFormatter(), mockJournalWriter);
     doThrow(new IOException("write failed")).when(mockOutStream).write(any(byte[].class), anyInt(),
         anyInt());
     try {

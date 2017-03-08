@@ -33,8 +33,6 @@ public final class JournalTailer {
 
   /** The master to apply all the journal entries to. */
   private final Master mMaster;
-  /** The journal to tail. */
-  private final Journal mJournal;
   /** The journal reader to read journal entries. */
   private final JournalReader mReader;
   /** This keeps track of the latest sequence number seen in the journal entries. */
@@ -48,8 +46,7 @@ public final class JournalTailer {
    */
   public JournalTailer(Master master, Journal journal) {
     mMaster = Preconditions.checkNotNull(master);
-    mJournal = Preconditions.checkNotNull(journal);
-    mReader = ((ReadOnlyUfsJournal) mJournal).getNewReader();
+    mReader = ((ReadOnlyUfsJournal) journal).getNewReader();
   }
 
   /**

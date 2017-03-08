@@ -20,8 +20,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * 1. First, the checkpoint must be read.
  *
- * 2. Afterwards, completed entries are read in order. Only completed logs are read, so the last log
- * currently being written is not read until it is marked as complete.
+ * 2. Afterwards, logs are read in order they were created. Only completed logs are read, so the
+ * last log currently being written is not read until it is marked as complete.
  */
 @NotThreadSafe
 public interface JournalReader {
@@ -38,21 +38,21 @@ public interface JournalReader {
    * Gets the {@link JournalInputStream} for the journal checkpoint. This must be called before
    * calling {@link #getNextInputStream()}.
    *
-   * @return the {@link JournalInputStream} for the journal checkpoint file
-   * @throws IOException if the checkpoint file cannot be read, or was already read
+   * @return the {@link JournalInputStream} for the journal checkpoint
+   * @throws IOException if the checkpoint cannot be read, or was already read
    */
   JournalInputStream getCheckpointInputStream() throws IOException;
 
   /**
-   * @return the input stream for the next completed log file. Will return null if the next
-   *         completed log file does not exist yet.
+   * @return the input stream for the next completed log. Will return null if the next
+   *         completed log does not exist yet.
    * @throws IOException if the reader is no longer valid or when trying to get an input stream
    *                     before a checkpoint was read
    */
   JournalInputStream getNextInputStream() throws IOException;
 
   /**
-   * @return the last modified time of the checkpoint file in ms
+   * @return the last modified time of the checkpoint in ms
    * @throws IOException if the checkpoint does not exist
    */
   long getCheckpointLastModifiedTimeMs() throws IOException;

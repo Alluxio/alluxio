@@ -22,21 +22,18 @@ import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
 
-import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 
 public class MasterTestUtils {
 
   /**
    * Creates a new {@link FileSystemMaster} from journal.
    *
-   * @return a new FileSystemMaster
-   * @throws IOException
+   * @return a new {@link FileSystemMaster}
    */
-  public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
-      throws IOException {
+  public static FileSystemMaster createLeaderFileSystemMasterFromJournal() throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(new URL(masterJournal));
+    JournalFactory journalFactory = new JournalFactory.ReadWrite(new URI(masterJournal));
     BlockMaster blockMaster = new BlockMaster(journalFactory);
     FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, journalFactory);
     blockMaster.start(true);
@@ -47,13 +44,11 @@ public class MasterTestUtils {
   /**
    * Creates a new standby {@link FileSystemMaster} from journal.
    *
-   * @return a new FileSystemMaster
-   * @throws IOException
+   * @return a new {@link FileSystemMaster}
    */
-  public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
-      throws IOException {
+  public static FileSystemMaster createStandbyFileSystemMasterFromJournal() throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(new URL(masterJournal));
+    JournalFactory journalFactory = new JournalFactory.ReadWrite(new URI(masterJournal));
     BlockMaster blockMaster = new BlockMaster(journalFactory);
     FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, journalFactory);
     blockMaster.start(false);

@@ -16,8 +16,7 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import java.io.IOException;
 
 /**
- * This input stream retrieves {@link JournalEntry} from journal checkpoint files and journal log
- * files.
+ * This input stream retrieves {@link JournalEntry} from journal checkpoints and journal logs.
  */
 public interface JournalInputStream {
   /**

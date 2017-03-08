@@ -21,12 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
- * A class which manages the checkpoint for a journal. The {@link #update(URL)} method will
- * update the journal's checkpoint file to a specified checkpoint, and
- * {@link #recover()} will recover from any failures that may occur during {@link #update(URL)}.
+ * Implementation of {@link CheckpointManager} based on UFS.
  *
  * The checkpoint updating process goes
  * <pre>
@@ -44,25 +43,26 @@ public final class UfsCheckpointManager implements CheckpointManager {
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
   /**
-   * Absolute path to the checkpoint file. This is where the latest checkpoint is stored. During
-   * normal operation (when not writing a new checkpoint file), this is the only checkpoint file
-   * that exists. If this file exists and there is no {@link #mTempBackupCheckpointPath}, it plus
-   * all completed logs, plus the active log, should represent the full state of the master.
+   * The checkpoint location. This is where the latest checkpoint is stored. During
+   * normal operation (when not writing a new checkpoint), this is the only checkpoint
+   * that exists. If the location exists and there is no {@link #mTempBackupCheckpoint}, it plus
+   * all completed logs, plus the current log, should represent the full state of the master.
    */
-  private final String mCheckpointPath;
+  private final URI mCheckpoint;
   /**
-   * Absolute path to the backup checkpoint file. The latest checkpoint is saved here while renaming
-   * the temporary checkpoint so that we can recover in case the rename fails. If this file and
-   * {@link #mCheckpointPath} both exist, {@link #mCheckpointPath} is the most up to date checkpoint
-   * and {@link #mBackupCheckpointPath} should be deleted.
+   * The backup checkpoint location. The latest checkpoint is saved here while renaming
+   * the temporary checkpoint so that we can recover in case the rename fails. If this location and
+   * {@link #mCheckpoint} both exist, {@link #mCheckpoint} is the most up to date checkpoint
+   * and the backup checkpoint should be deleted.
    */
-  private final String mBackupCheckpointPath;
+  private final URI mBackupCheckpoint;
   /**
-   * Absolute path to the temporary backup checkpoint file. This path is used as an intermediate
-   * rename step when backing up {@link #mCheckpointPath} to {@link #mBackupCheckpointPath}. As long
-   * as this file exists, it supercedes mCheckpointPath as the most up to date checkpoint file.
+   * The temporary backup checkpoint location. This location is used as an intermediate
+   * rename step when backing up {@link #mCheckpoint} to {@link #mBackupCheckpoint}. As long
+   * as this location exists, it supersedes {@link #mCheckpoint} as the most up to date
+   * checkpoint file.
    */
-  private final String mTempBackupCheckpointPath;
+  private final URI mTempBackupCheckpoint;
   /**
    * A journal writer through which this checkpoint manager can delete completed logs when the
    * checkpoint is updated.
@@ -73,41 +73,45 @@ public final class UfsCheckpointManager implements CheckpointManager {
    * Creates a new instance of {@link UfsCheckpointManager}.
    *
    * @param ufs the under file system holding the journal
-   * @param checkpointPath the path to the checkpoint file
+   * @param checkpoint the location of the checkpoint
    * @param writer a journal writer which can be used to delete completed logs
    */
-  public UfsCheckpointManager(UnderFileSystem ufs, String checkpointPath, UfsJournalWriter writer) {
+  public UfsCheckpointManager(UnderFileSystem ufs, URI checkpoint, UfsJournalWriter writer) {
     mUfs = ufs;
-    mCheckpointPath = checkpointPath;
-    mBackupCheckpointPath = mCheckpointPath + ".backup";
-    mTempBackupCheckpointPath = mBackupCheckpointPath + ".tmp";
+    mCheckpoint = checkpoint;
+    try {
+      mBackupCheckpoint = new URI(mCheckpoint + ".backup");
+      mTempBackupCheckpoint = new URI(mBackupCheckpoint + ".tmp");
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
     mWriter = writer;
   }
 
   @Override
   public void recover() {
     try {
-      boolean checkpointExists = mUfs.isFile(mCheckpointPath);
-      boolean backupCheckpointExists = mUfs.isFile(mBackupCheckpointPath);
-      boolean tempBackupCheckpointExists = mUfs.isFile(mTempBackupCheckpointPath);
-      Preconditions.checkState(
-          !(checkpointExists && backupCheckpointExists && tempBackupCheckpointExists),
-          "checkpoint, temp backup checkpoint, and backup checkpoint should never all exist ");
+      boolean checkpointExists = mUfs.isFile(mCheckpoint.toString());
+      boolean backupCheckpointExists = mUfs.isFile(mBackupCheckpoint.toString());
+      boolean tempBackupCheckpointExists = mUfs.isFile(mTempBackupCheckpoint.toString());
+      Preconditions
+          .checkState(!(checkpointExists && backupCheckpointExists && tempBackupCheckpointExists),
+              "checkpoint, temp backup checkpoint, and backup checkpoint should never all exist ");
       if (tempBackupCheckpointExists) {
         // If mCheckpointPath also exists, step 2 must have implemented rename as copy + delete, and
         // failed during the delete.
-        UnderFileSystemUtils.deleteFileIfExists(mCheckpointPath);
-        mUfs.renameFile(mTempBackupCheckpointPath, mCheckpointPath);
+        UnderFileSystemUtils.deleteFileIfExists(mCheckpoint.toString());
+        mUfs.renameFile(mTempBackupCheckpoint.toString(), mCheckpoint.toString());
       }
       if (backupCheckpointExists) {
         // We must have crashed after step 3
         if (checkpointExists) {
           // We crashed after step 4, so we can finish steps 5 and 6.
           mWriter.deleteCompletedLogs();
-          mUfs.deleteFile(mBackupCheckpointPath);
+          mUfs.deleteFile(mBackupCheckpoint.toString());
         } else {
           // We crashed before step 4, so we roll back to the backup checkpoint.
-          mUfs.renameFile(mBackupCheckpointPath, mCheckpointPath);
+          mUfs.renameFile(mBackupCheckpoint.toString(), mCheckpoint.toString());
         }
       }
     } catch (IOException e) {
@@ -116,23 +120,24 @@ public final class UfsCheckpointManager implements CheckpointManager {
   }
 
   @Override
-  public void update(URL newCheckpointPath) {
+  public void update(URI newCheckpointPath) {
     try {
-      if (mUfs.isFile(mCheckpointPath)) {
-        UnderFileSystemUtils.deleteFileIfExists(mTempBackupCheckpointPath);
-        UnderFileSystemUtils.deleteFileIfExists(mBackupCheckpointPath);
+      if (mUfs.isFile(mCheckpoint.toString())) {
+        UnderFileSystemUtils.deleteFileIfExists(mTempBackupCheckpoint.toString());
+        UnderFileSystemUtils.deleteFileIfExists(mBackupCheckpoint.toString());
         // Rename in two steps so that we never have identical mCheckpointPath and
         // mBackupCheckpointPath. This is a concern since UFS may implement rename as copy + delete.
-        mUfs.renameFile(mCheckpointPath, mTempBackupCheckpointPath);
-        mUfs.renameFile(mTempBackupCheckpointPath, mBackupCheckpointPath);
-        LOG.info("Backed up the checkpoint file to {}", mBackupCheckpointPath);
+        mUfs.renameFile(mCheckpoint.toString(), mTempBackupCheckpoint.toString());
+        mUfs.renameFile(mTempBackupCheckpoint.toString(), mBackupCheckpoint.toString());
+        LOG.info("Backed up the checkpoint file to {}", mBackupCheckpoint.toString());
       }
-      mUfs.renameFile(newCheckpointPath.getPath(), mCheckpointPath);
-      LOG.info("Renamed the checkpoint file from {} to {}", newCheckpointPath, mCheckpointPath);
+      mUfs.renameFile(newCheckpointPath.getPath(), mCheckpoint.toString());
+      LOG.info("Renamed the checkpoint file from {} to {}", newCheckpointPath,
+          mCheckpoint.toString());
 
       // The checkpoint already reflects the information in the completed logs.
       mWriter.deleteCompletedLogs();
-      UnderFileSystemUtils.deleteFileIfExists(mBackupCheckpointPath);
+      UnderFileSystemUtils.deleteFileIfExists(mBackupCheckpoint.toString());
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }

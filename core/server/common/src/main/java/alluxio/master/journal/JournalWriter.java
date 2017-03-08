@@ -18,14 +18,13 @@ import java.io.IOException;
 /**
  * This class manages all the writes to the journal. Journal writes happen in two phases:
  *
- * 1. First the checkpoint file is written. The checkpoint file contains entries reflecting the
+ * 1. First the checkpoint is written. The checkpoint contains entries reflecting the
  * state of the master with all of the completed logs applied.
  *
- * 2. Afterwards, entries are appended to log files. The checkpoint file must be written before the
- * log files.
+ * 2. Afterwards, entries are appended to log. The checkpoint must be written before the logs.
  *
- * The latest state can be reconstructed by reading the checkpoint file, and applying all the
- * completed logs and then the remaining log in progress.
+ * The latest state can be reconstructed by reading the checkpoint, and applying all the
+ * completed logs and finally the current log.
  */
 public interface JournalWriter {
 
@@ -77,7 +76,7 @@ public interface JournalWriter {
   void close() throws IOException;
 
   /**
-   * Recovers the checkpoint file in case the master crashed while updating it previously.
+   * Recovers the checkpoint in case the master crashed while updating it previously.
    */
   void recover();
 
@@ -89,8 +88,8 @@ public interface JournalWriter {
   void deleteCompletedLogs() throws IOException;
 
   /**
-   * Moves the current log file to the completed folder, marking it as complete. If successful, the
-   * current log file will no longer exist. The current log must already be closed before this call.
+   * Marks the current log as completed. If successful, the current log will no longer exist. The
+   * current log must be closed before this call.
    *
    * @throws IOException if an I/O error occurs
    */

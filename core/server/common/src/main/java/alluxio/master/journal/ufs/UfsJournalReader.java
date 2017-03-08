@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -33,8 +34,8 @@ public class UfsJournalReader implements JournalReader {
   private final UfsJournal mJournal;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
-  /** Absolute path for the journal checkpoint file. */
-  private final String mCheckpointPath;
+  /** Absolute path for the journal checkpoint. */
+  private final URI mCheckpoint;
 
   /** true if the checkpoint has already been read. */
   private boolean mCheckpointRead = false;
@@ -53,7 +54,7 @@ public class UfsJournalReader implements JournalReader {
   UfsJournalReader(UfsJournal journal) {
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = UnderFileSystem.Factory.get(mJournal.getLocation().getPath());
-    mCheckpointPath = mJournal.getCheckpointFilePath();
+    mCheckpoint = mJournal.getCheckpoint();
   }
 
   @Override
@@ -68,9 +69,9 @@ public class UfsJournalReader implements JournalReader {
     }
     mCheckpointOpenedTime = getCheckpointLastModifiedTimeMs();
 
-    LOG.info("Opening journal checkpoint file: {}", mCheckpointPath);
+    LOG.info("Opening journal checkpoint file: {}", mCheckpoint);
     JournalInputStream jis =
-        mJournal.getJournalFormatter().deserialize(mUfs.open(mCheckpointPath));
+        mJournal.getJournalFormatter().deserialize(mUfs.open(mCheckpoint.toString()));
 
     mCheckpointRead = true;
     return jis;
@@ -84,15 +85,15 @@ public class UfsJournalReader implements JournalReader {
     if (getCheckpointLastModifiedTimeMs() != mCheckpointOpenedTime) {
       throw new IOException("Checkpoint file has been updated. This reader is no longer valid.");
     }
-    String currentLogPath = mJournal.getCompletedLogFilePath(mCurrentLogNumber);
-    if (!mUfs.isFile(currentLogPath)) {
-      LOG.debug("Journal log file: {} does not exist yet.", currentLogPath);
+    URI currentLog = mJournal.getCompletedLog(mCurrentLogNumber);
+    if (!mUfs.isFile(currentLog.toString())) {
+      LOG.debug("Journal log file: {} does not exist yet.", currentLog);
       return null;
     }
     // Open input stream from the current log file.
-    LOG.info("Opening journal log file: {}", currentLogPath);
+    LOG.info("Opening journal log file: {}", currentLog);
     JournalInputStream jis =
-        mJournal.getJournalFormatter().deserialize(mUfs.open(currentLogPath));
+        mJournal.getJournalFormatter().deserialize(mUfs.open(currentLog.toString()));
 
     // Increment the log file number.
     mCurrentLogNumber++;
@@ -101,10 +102,10 @@ public class UfsJournalReader implements JournalReader {
 
   @Override
   public long getCheckpointLastModifiedTimeMs() throws IOException {
-    if (!mUfs.isFile(mCheckpointPath)) {
-      throw new IOException("Checkpoint file " + mCheckpointPath + " does not exist.");
+    if (!mUfs.isFile(mCheckpoint.toString())) {
+      throw new IOException("Checkpoint file " + mCheckpoint + " does not exist.");
     }
-    mCheckpointLastModifiedTime = mUfs.getModificationTimeMs(mCheckpointPath);
+    mCheckpointLastModifiedTime = mUfs.getModificationTimeMs(mCheckpoint.toString());
     return mCheckpointLastModifiedTime;
   }
 }

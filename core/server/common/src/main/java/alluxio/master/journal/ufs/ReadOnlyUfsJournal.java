@@ -14,19 +14,19 @@ package alluxio.master.journal.ufs;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.ReadOnlyJournal;
 
-import java.net.URL;
+import java.net.URI;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The read-only journal. It prevents access to a {@link UfsJournalWriter}.
+ * Implementation of {@link ReadOnlyJournal} based on UFS.
  */
 @ThreadSafe
 public class ReadOnlyUfsJournal extends UfsJournal implements ReadOnlyJournal {
   /**
    * @param location the location for the journal
    */
-  public ReadOnlyUfsJournal(URL location) {
+  public ReadOnlyUfsJournal(URI location) {
     super(location);
   }
 

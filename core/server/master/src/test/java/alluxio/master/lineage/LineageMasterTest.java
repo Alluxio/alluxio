@@ -41,7 +41,7 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -69,7 +69,7 @@ public final class LineageMasterTest {
   @Before
   public void before() throws Exception {
     JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(new URL(mTestFolder.newFolder().getAbsolutePath()));
+        new JournalFactory.ReadWrite(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);

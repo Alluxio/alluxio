@@ -51,8 +51,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -151,7 +151,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
   }
 
-  protected URL getJournalLocation() {
+  protected URI getJournalLocation() {
     String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
       journalDirectory += AlluxioURI.SEPARATOR;
@@ -163,9 +163,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       throw new RuntimeException(e.getMessage());
     }
     try {
-      return new URL(journalDirectory);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e.getMessage());
+      // TODO(jiri): fix this
+      return new URI(journalDirectory);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
     }
   }
 

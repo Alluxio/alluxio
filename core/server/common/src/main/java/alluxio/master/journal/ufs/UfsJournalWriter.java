@@ -30,7 +30,8 @@ import org.slf4j.LoggerFactory;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -42,15 +43,15 @@ public final class UfsJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalWriter.class);
 
   private final UfsJournal mJournal;
-  /** Absolute path to the directory storing all of the journal data. */
-  private final String mJournalDirectory;
-  /** Absolute path to the directory storing all completed logs. */
-  private final String mCompletedDirectory;
+  /** Location storing all of the journal data. */
+  private final URI mJournalLocation;
+  /** Location storing all completed logs. */
+  private final URI mCompletedLocation;
   /**
-   * Absolute path to the temporary checkpoint file. This is where a new checkpoint file is fully
-   * written before being renamed to the actual checkpoint.
+   * Location to the temporary checkpoint. This is where a new checkpoint file is fully
+   * written before being moved to the actual checkpoint location.
    */
-  private final String mTempCheckpointPath;
+  private final URI mTempCheckpoint;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
 
@@ -75,11 +76,15 @@ public final class UfsJournalWriter implements JournalWriter {
    */
   UfsJournalWriter(UfsJournal journal) {
     mJournal = Preconditions.checkNotNull(journal);
-    mJournalDirectory = mJournal.getLocation().getPath();
-    mCompletedDirectory = mJournal.getCompletedDirectory();
-    mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
-    mUfs = UnderFileSystem.Factory.get(mJournalDirectory);
-    mCheckpointManager = new UfsCheckpointManager(mUfs, mJournal.getCheckpointFilePath(), this);
+    mJournalLocation = mJournal.getLocation();
+    mCompletedLocation = mJournal.getCompletedLocation();
+    try {
+      mTempCheckpoint = new URI(mJournal.getCheckpoint() + ".tmp");
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+    mUfs = UnderFileSystem.Factory.get(mJournalLocation.toString());
+    mCheckpointManager = new UfsCheckpointManager(mUfs, mJournal.getCheckpoint(), this);
   }
 
   @Override
@@ -87,11 +92,11 @@ public final class UfsJournalWriter implements JournalWriter {
     LOG.info("Marking all logs as complete.");
     // Loop over all complete logs starting from the beginning, to determine the next log number.
     mNextCompleteLogNumber = UfsJournal.FIRST_COMPLETED_LOG_NUMBER;
-    String logFilename = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
-    while (mUfs.isFile(logFilename)) {
+    URI log = mJournal.getCompletedLog(mNextCompleteLogNumber);
+    while (mUfs.isFile(log.toString())) {
       mNextCompleteLogNumber++;
       // generate the next completed log filename in the sequence.
-      logFilename = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
+      log = mJournal.getCompletedLog(mNextCompleteLogNumber);
     }
     completeCurrentLog();
   }
@@ -101,17 +106,17 @@ public final class UfsJournalWriter implements JournalWriter {
       throws IOException {
     if (mCheckpointOutputStream == null) {
       mCheckpointManager.recover();
-      LOG.info("Creating tmp checkpoint file: {}", mTempCheckpointPath);
-      if (!mUfs.isDirectory(mJournalDirectory)) {
-        LOG.info("Creating journal folder: {}", mJournalDirectory);
-        mUfs.mkdirs(mJournalDirectory);
+      LOG.info("Creating tmp checkpoint file: {}", mTempCheckpoint);
+      if (!mUfs.isDirectory(mJournalLocation.toString())) {
+        LOG.info("Creating journal folder: {}", mJournalLocation);
+        mUfs.mkdirs(mJournalLocation.toString());
       }
       mNextEntrySequenceNumber = latestSequenceNumber + 1;
       LOG.info("Latest journal sequence number: {} Next journal sequence number: {}",
           latestSequenceNumber, mNextEntrySequenceNumber);
-      UnderFileSystemUtils.deleteFileIfExists(mTempCheckpointPath);
-      mCheckpointOutputStream =
-          new CheckpointOutputStream(new DataOutputStream(mUfs.create(mTempCheckpointPath)));
+      UnderFileSystemUtils.deleteFileIfExists(mTempCheckpoint.toString());
+      mCheckpointOutputStream = new CheckpointOutputStream(
+          new DataOutputStream(mUfs.create(mTempCheckpoint.toString())));
     }
     return mCheckpointOutputStream;
   }
@@ -122,7 +127,7 @@ public final class UfsJournalWriter implements JournalWriter {
       throw new IOException("The checkpoint must be written and closed before writing entries.");
     }
     if (mEntryOutputStream == null) {
-      mEntryOutputStream = new EntryOutputStream(mUfs, mJournal.getCurrentLogFilePath(),
+      mEntryOutputStream = new EntryOutputStream(mUfs, mJournal.getCurrentLog(),
           mJournal.getJournalFormatter(), this);
     }
     mEntryOutputStream.writeEntry(entry);
@@ -166,13 +171,13 @@ public final class UfsJournalWriter implements JournalWriter {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the end.
     long logNumber = UfsJournal.FIRST_COMPLETED_LOG_NUMBER;
-    while (mUfs.isFile(mJournal.getCompletedLogFilePath(logNumber))) {
+    while (mUfs.isFile(mJournal.getCompletedLog(logNumber).toString())) {
       logNumber++;
     }
     for (long i = logNumber - 1; i >= 0; i--) {
-      String logFilename = mJournal.getCompletedLogFilePath(i);
-      LOG.info("Deleting completed log: {}", logFilename);
-      mUfs.deleteFile(logFilename);
+      URI log = mJournal.getCompletedLog(i);
+      LOG.info("Deleting completed log: {}", log);
+      mUfs.deleteFile(log.toString());
     }
     LOG.info("Finished deleting all completed log files.");
 
@@ -182,18 +187,18 @@ public final class UfsJournalWriter implements JournalWriter {
 
   @Override
   public synchronized void completeCurrentLog() throws IOException {
-    String currentLog = mJournal.getCurrentLogFilePath();
-    if (!mUfs.isFile(currentLog)) {
+    URI currentLog = mJournal.getCurrentLog();
+    if (!mUfs.isFile(currentLog.toString())) {
       // All logs are already complete, so nothing to do.
       return;
     }
 
-    if (!mUfs.isDirectory(mCompletedDirectory)) {
-      mUfs.mkdirs(mCompletedDirectory);
+    if (!mUfs.isDirectory(mCompletedLocation.toString())) {
+      mUfs.mkdirs(mCompletedLocation.toString());
     }
 
-    String completedLog = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
-    mUfs.renameFile(currentLog, completedLog);
+    URI completedLog = mJournal.getCompletedLog(mNextCompleteLogNumber);
+    mUfs.renameFile(currentLog.toString(), completedLog.toString());
     LOG.info("Completed current log: {} to completed log: {}", currentLog, completedLog);
 
     mNextCompleteLogNumber++;
@@ -253,9 +258,9 @@ public final class UfsJournalWriter implements JournalWriter {
       mOutputStream.flush();
       mOutputStream.close();
 
-      LOG.info("Successfully created tmp checkpoint file: {}", mTempCheckpointPath);
+      LOG.info("Successfully created tmp checkpoint file: {}", mTempCheckpoint);
 
-      mCheckpointManager.update(new URL(mTempCheckpointPath));
+      mCheckpointManager.update(mTempCheckpoint);
 
       // Consider the current log to be complete.
       completeCurrentLog();
@@ -290,7 +295,7 @@ public final class UfsJournalWriter implements JournalWriter {
   @ThreadSafe
   protected static class EntryOutputStream implements JournalOutputStream {
     private final UnderFileSystem mUfs;
-    private final String mCurrentLogPath;
+    private final URI mCurrentLog;
     private final JournalFormatter mJournalFormatter;
     private final UfsJournalWriter mJournalWriter;
     private final long mMaxLogSize;
@@ -308,22 +313,22 @@ public final class UfsJournalWriter implements JournalWriter {
 
     /**
      * @param ufs the under storage holding the journal
-     * @param logPath the path to write the log to
+     * @param log the location to write the log to
      * @param journalFormatter the journal formatter to use when writing journal entries
      * @param journalWriter the journal writer to use to get journal entry sequence numbers and
      *        complete the log when it needs to be rotated
      * @throws IOException if the ufs can't create an outstream to logPath
      */
-    public EntryOutputStream(UnderFileSystem ufs, String logPath, JournalFormatter journalFormatter,
+    public EntryOutputStream(UnderFileSystem ufs, URI log, JournalFormatter journalFormatter,
         UfsJournalWriter journalWriter) throws IOException {
       mUfs = ufs;
-      mCurrentLogPath = logPath;
+      mCurrentLog = log;
       mJournalFormatter = journalFormatter;
       mJournalWriter = journalWriter;
       mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
-      mRawOutputStream = mUfs.create(mCurrentLogPath,
+      mRawOutputStream = mUfs.create(mCurrentLog.toString(),
           CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
-      LOG.info("Opened current log file: {}", mCurrentLogPath);
+      LOG.info("Opened current log file: {}", mCurrentLog);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
 
@@ -407,9 +412,9 @@ public final class UfsJournalWriter implements JournalWriter {
     private void rotateLog() throws IOException {
       mDataOutputStream.close();
       mJournalWriter.completeCurrentLog();
-      mRawOutputStream = mUfs.create(mCurrentLogPath,
+      mRawOutputStream = mUfs.create(mCurrentLog.toString(),
           CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
-      LOG.info("Opened current log file: {}", mCurrentLogPath);
+      LOG.info("Opened current log file: {}", mCurrentLog);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
   }

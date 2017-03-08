@@ -11,24 +11,18 @@
 
 package alluxio.master.journal;
 
-import java.net.URL;
+import java.net.URI;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class encapsulates the journal for a master. The journal is made up of 2 components:
- * - The checkpoint: the full state of the master
- * - The entries: incremental entries to apply to the checkpoint.
- *
- * To construct the full state of the master, all the entries must be applied to the checkpoint in
- * order. The entry file most recently being written to is in the base journal folder, where the
- * completed entry files are in the "completed/" sub-directory.
+ * This class represents a journal.
  */
 @ThreadSafe
 public interface Journal {
 
   /**
-   * @return the location for this journal
+   * @return the journal location
    */
-  URL getLocation();
+  URI getLocation();
 }
