@@ -75,7 +75,7 @@ public final class UnderFileSystemBlockReader implements BlockReaderWithCache {
   /**
    * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
    * When mUnderFileSystemInputStream is not set, this is set to -1 (an invalid state) when
-   * mUnderFileSystemInputStream is null. Check mUnderFileSystemInputStream directly to see whether
+   * mUnderFileSystemInputStream is null. Check mUnderFileSystemInputStream before accessing this.
    * that is valid instead of relying on this invalid state of the position to be safe.
    */
   private long mInStreamPos;
