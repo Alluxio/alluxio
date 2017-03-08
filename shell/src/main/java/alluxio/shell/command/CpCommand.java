@@ -115,7 +115,8 @@ public final class CpCommand extends AbstractShellCommand {
         copy(srcPath, dstPath, cl.hasOption("R"));
       }
     } else {
-      System.out.println("Scheme must be file or alluxio and only support one file scheme.");
+      System.out.println("Schemes must be either file or alluxio, "
+          + "and at most one file scheme is allowed.");
     }
   }
 
@@ -331,7 +332,7 @@ public final class CpCommand extends AbstractShellCommand {
   }
 
   /**
-   * Create a directory in the Alluxio filesystem space. It will not throw any exception if the
+   * Creates a directory in the Alluxio filesystem space. It will not throw any exception if the
    * destination directory already exists.
    *
    * @param dstPath the {@link AlluxioURI} of the destination directory which will be created
