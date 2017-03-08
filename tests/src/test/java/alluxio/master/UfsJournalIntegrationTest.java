@@ -680,7 +680,7 @@ public class UfsJournalIntegrationTest {
     // The fullly qualified class name of this group mapping service. This is needed to configure
     // the alluxio cluster
     public static final String FULL_CLASS_NAME =
-        "alluxio.master.JournalIntegrationTest$FakeUserGroupsMapping";
+        "alluxio.master.UfsJournalIntegrationTest$FakeUserGroupsMapping";
 
     private HashMap<String, String> mUserGroups = new HashMap<>();
 
