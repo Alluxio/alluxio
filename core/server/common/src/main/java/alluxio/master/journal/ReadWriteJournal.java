@@ -11,8 +11,6 @@
 
 package alluxio.master.journal;
 
-import alluxio.master.journal.ufs.UfsJournalWriter;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -21,7 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface ReadWriteJournal extends ReadOnlyJournal {
   /**
-   * @return the {@link UfsJournalWriter} for this journal
+   * @return the {@link JournalWriter} for this journal
    */
   JournalWriter getNewWriter();
 }
