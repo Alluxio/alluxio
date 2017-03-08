@@ -46,6 +46,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -157,7 +158,7 @@ public final class PermissionCheckerTest {
 
     // setup an InodeTree
     JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(sTestFolder.newFolder().getAbsolutePath());
+        new JournalFactory.ReadWrite(new URL(sTestFolder.newFolder().getAbsolutePath()));
 
     BlockMaster blockMaster = new BlockMaster(journalFactory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);

@@ -43,6 +43,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -79,7 +80,7 @@ public final class InodeTreeTest {
   @Before
   public void before() throws Exception {
     JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
+        new JournalFactory.ReadWrite(new URL(mTestFolder.newFolder().getAbsolutePath()));
 
     BlockMaster blockMaster = new BlockMaster(journalFactory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);

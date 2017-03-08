@@ -9,19 +9,31 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.journal.ufs;
 
-import alluxio.master.journal.ufs.UfsJournalWriter;
+import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.ReadOnlyJournal;
+
+import java.net.URL;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The read-write journal. This allows both reads and writes to the journal.
+ * The read-only journal. It prevents access to a {@link UfsJournalWriter}.
  */
 @ThreadSafe
-public interface ReadWriteJournal extends ReadOnlyJournal {
+public class ReadOnlyUfsJournal extends UfsJournal implements ReadOnlyJournal {
   /**
-   * @return the {@link UfsJournalWriter} for this journal
+   * @param location the location for the journal
    */
-  JournalWriter getNewWriter();
+  public ReadOnlyUfsJournal(URL location) {
+    super(location);
+  }
+
+  /**
+   * @return the {@link UfsJournalReader} for this journal
+   */
+  public JournalReader getNewReader() {
+    return new UfsJournalReader(this);
+  }
 }

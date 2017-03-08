@@ -23,6 +23,7 @@ import alluxio.util.WaitForOptions;
 import com.google.common.base.Function;
 
 import java.io.IOException;
+import java.net.URL;
 
 public class MasterTestUtils {
 
@@ -35,7 +36,7 @@ public class MasterTestUtils {
   public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(masterJournal);
+    JournalFactory journalFactory = new JournalFactory.ReadWrite(new URL(masterJournal));
     BlockMaster blockMaster = new BlockMaster(journalFactory);
     FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, journalFactory);
     blockMaster.start(true);
@@ -52,7 +53,7 @@ public class MasterTestUtils {
   public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(masterJournal);
+    JournalFactory journalFactory = new JournalFactory.ReadWrite(new URL(masterJournal));
     BlockMaster blockMaster = new BlockMaster(journalFactory);
     FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, journalFactory);
     blockMaster.start(false);

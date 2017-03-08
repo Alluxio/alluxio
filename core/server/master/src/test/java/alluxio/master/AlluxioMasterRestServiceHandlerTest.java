@@ -52,6 +52,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -109,7 +110,7 @@ public class AlluxioMasterRestServiceHandlerTest {
     mMaster = mock(AlluxioMasterService.class);
     mContext = mock(ServletContext.class);
     JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
+        new JournalFactory.ReadWrite(new URL(mTestFolder.newFolder().getAbsolutePath()));
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));

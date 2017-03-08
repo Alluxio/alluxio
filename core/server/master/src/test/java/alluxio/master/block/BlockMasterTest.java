@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,7 @@ public class BlockMasterTest {
   @Before
   public void before() throws Exception {
     JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
+        new JournalFactory.ReadWrite(new URL(mTestFolder.newFolder().getAbsolutePath()));
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));

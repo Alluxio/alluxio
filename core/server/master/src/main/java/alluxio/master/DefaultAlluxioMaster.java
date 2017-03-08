@@ -51,6 +51,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -143,13 +145,13 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
       // Create the journals.
-      createMasters(new JournalFactory.ReadWrite(getJournalDirectory()));
+      createMasters(new JournalFactory.ReadWrite(getJournalLocation()));
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
   }
 
-  protected String getJournalDirectory() {
+  protected URL getJournalLocation() {
     String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
       journalDirectory += AlluxioURI.SEPARATOR;
@@ -158,9 +160,13 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       Preconditions.checkState(isJournalFormatted(journalDirectory),
           "Alluxio master was not formatted! The journal folder is %s", journalDirectory);
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e.getMessage());
     }
-    return journalDirectory;
+    try {
+      return new URL(journalDirectory);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e.getMessage());
+    }
   }
 
   /**

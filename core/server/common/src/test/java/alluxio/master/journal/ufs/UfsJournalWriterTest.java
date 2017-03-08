@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.journal.ufs;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import alluxio.master.journal.JournalWriter.EntryOutputStream;
+import alluxio.master.journal.ufs.UfsJournalWriter.EntryOutputStream;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -39,29 +39,30 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 
 /**
- * Unit tests for {@link JournalWriter}.
+ * Unit tests for {@link UfsJournalWriter}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(JournalWriter.class)
-public class JournalWriterTest {
+@PrepareForTest(UfsJournalWriter.class)
+public class UfsJournalWriterTest {
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  private Journal mJournal;
+  private UfsJournal mJournal;
 
   @Before
   public void before() throws Exception {
     File journalFolder = mFolder.newFolder();
-    mJournal = new ReadWriteJournal(journalFolder.getAbsolutePath());
+    mJournal = new ReadWriteUfsJournal(new URL(journalFolder.getAbsolutePath()));
   }
 
   @Test
   public void rotateLogOnFlushIOException() throws Exception {
     // Setup so that we can trigger an IOException when flush is called on the underlying stream.
-    JournalWriter mockJournalWriter = PowerMockito.mock(JournalWriter.class);
+    UfsJournalWriter mockJournalWriter = PowerMockito.mock(UfsJournalWriter.class);
     OutputStream mockOutStream = mock(OutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
     doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
@@ -87,7 +88,7 @@ public class JournalWriterTest {
   @Test
   public void rotateLogOnSyncException() throws Exception {
     // Setup so that we can trigger an IOException when sync is called on the underlying stream.
-    JournalWriter mockJournalWriter = PowerMockito.mock(JournalWriter.class);
+    UfsJournalWriter mockJournalWriter = PowerMockito.mock(UfsJournalWriter.class);
     FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
     doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),
@@ -114,7 +115,7 @@ public class JournalWriterTest {
   public void rotateLogOnWriteException() throws Exception {
     // Setup so that we can trigger an IOException when a write is performed on the underlying
     // stream.
-    JournalWriter mockJournalWriter = PowerMockito.mock(JournalWriter.class);
+    UfsJournalWriter mockJournalWriter = PowerMockito.mock(UfsJournalWriter.class);
     FSDataOutputStream mockOutStream = mock(FSDataOutputStream.class);
     UnderFileSystem mockUfs = mock(UnderFileSystem.class);
     doReturn(mockOutStream).when(mockUfs).create(eq(mJournal.getCurrentLogFilePath()),

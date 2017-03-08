@@ -81,8 +81,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * @param fileSystemMaster handler to a {@link FileSystemMaster} to use for filesystem operations
    * @param journal a {@link Journal} to write journal entries to
    */
-  public KeyValueMaster(FileSystemMaster fileSystemMaster,
-      Journal journal) {
+  public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
     mFileSystemMaster = fileSystemMaster;

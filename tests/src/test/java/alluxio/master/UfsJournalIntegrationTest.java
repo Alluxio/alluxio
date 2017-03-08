@@ -33,9 +33,10 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
-import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalWriter;
+import alluxio.master.journal.ufs.ReadWriteUfsJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -58,6 +59,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +68,7 @@ import java.util.Map;
  * Test master journal, including checkpoint and entry log. Most tests will test entry log first,
  * followed by the checkpoint.
  */
-public class JournalIntegrationTest {
+public class UfsJournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
@@ -104,8 +106,8 @@ public class JournalIntegrationTest {
 
   private void deleteFsMasterJournalLogs() throws IOException {
     String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
-    Journal journal = new ReadWriteJournal(
-        PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
+    UfsJournal journal = new ReadWriteUfsJournal(
+        new URL(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
     UnderFileSystem.Factory.get(journalFolder).deleteFile(journal.getCurrentLogFilePath());
   }
 
@@ -137,14 +139,14 @@ public class JournalIntegrationTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
     try {
       String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
-      ReadWriteJournal journal = new ReadWriteJournal(
-          PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
+      ReadWriteUfsJournal journal = new ReadWriteUfsJournal(
+          new URL(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
       JournalWriter writer = journal.getNewWriter();
       writer.getCheckpointOutputStream(0).close();
       // Flush multiple times, without writing to the log.
-      writer.flushEntryStream();
-      writer.flushEntryStream();
-      writer.flushEntryStream();
+      writer.flush();
+      writer.flush();
+      writer.flush();
       UnderFileStatus[] paths = UnderFileSystem.Factory.get(journalFolder)
           .listStatus(journal.getCompletedDirectory());
       // Make sure no new empty files were created.
@@ -204,7 +206,7 @@ public class JournalIntegrationTest {
 
     String journalFolder = PathUtils.concatPath(mLocalAlluxioCluster.getMaster().getJournalFolder(),
         Constants.FILE_SYSTEM_MASTER_NAME);
-    Journal journal = new ReadWriteJournal(journalFolder);
+    UfsJournal journal = new ReadWriteUfsJournal(new URL(journalFolder));
     String completedPath = journal.getCompletedDirectory();
     Assert.assertTrue(
         UnderFileSystem.Factory.get(completedPath).listStatus(completedPath).length > 1);

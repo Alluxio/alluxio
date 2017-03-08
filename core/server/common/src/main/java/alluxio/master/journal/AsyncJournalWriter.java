@@ -125,7 +125,7 @@ public final class AsyncJournalWriter {
             // No more entries in the queue. Break out of the infinite for-loop.
             break;
           }
-          mJournalWriter.writeEntry(entry);
+          mJournalWriter.write(entry);
           // Remove the head entry, after the entry was successfully written.
           mQueue.poll();
           writeCounter = mWriteCounter.incrementAndGet();
@@ -139,7 +139,7 @@ public final class AsyncJournalWriter {
           }
         }
       }
-      mJournalWriter.flushEntryStream();
+      mJournalWriter.flush();
       mFlushCounter.set(writeCounter);
     } finally {
       mFlushLock.unlock();

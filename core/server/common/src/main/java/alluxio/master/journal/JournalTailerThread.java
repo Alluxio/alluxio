@@ -122,7 +122,7 @@ public final class JournalTailerThread extends Thread {
 
         // Continually process completed log files.
         while (mJournalTailer.isValid()) {
-          if (mJournalTailer.processNextJournalLogFiles() > 0) {
+          if (mJournalTailer.processNextJournalLogs() > 0) {
             // Reset the shutdown timer.
             waitForShutdownStart = -1;
           } else {

@@ -71,6 +71,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -1562,7 +1563,7 @@ public final class FileSystemMasterTest {
   }
 
   private void startServices() throws Exception {
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(mJournalFolder);
+    JournalFactory journalFactory = new JournalFactory.ReadWrite(new URL(mJournalFolder));
     mBlockMaster = new BlockMaster(journalFactory);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));

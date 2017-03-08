@@ -11,24 +11,18 @@
 
 package alluxio.master.journal;
 
+import alluxio.master.journal.ufs.UfsJournalReader;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The read-only journal. It prevents access to a {@link JournalWriter}.
  */
 @ThreadSafe
-public class ReadOnlyJournal extends Journal {
-  /**
-   * @param directory the base directory for the journal
-   */
-  public ReadOnlyJournal(String directory) {
-    super(directory);
-  }
+public interface ReadOnlyJournal extends Journal {
 
   /**
-   * @return the {@link JournalReader} for this journal
+   * @return the {@link UfsJournalReader} for this journal
    */
-  public JournalReader getNewReader() {
-    return new JournalReader(this);
-  }
+  JournalReader getNewReader();
 }

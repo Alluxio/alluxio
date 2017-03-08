@@ -11,45 +11,48 @@
 
 package alluxio.master.journal;
 
-import alluxio.util.io.PathUtils;
+import alluxio.master.journal.ufs.ReadOnlyUfsJournal;
+import alluxio.master.journal.ufs.ReadWriteUfsJournal;
+import alluxio.master.journal.ufs.UfsJournal;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
- * Interface for factories which create {@link Journal}s.
+ * Interface for factories which create {@link UfsJournal}s.
  */
 public interface JournalFactory {
   /**
-   * @param directory the directory for the journal
-   * @return a journal based on the given directory
+   * @param name the name for the journal
+   * @return a journal based on the given name
    */
-  Journal get(String directory);
+  Journal get(String name);
 
   /**
    * A factory which creates read-write journals.
    */
   final class ReadWrite implements JournalFactory {
-    private final String mBaseDirectory;
+    private final URL mBaseLocation;
 
     /**
-     * Creates a journal factory with the specified directory as the root. When journals are
-     * created, their paths are appended to the base path, e.g.
-     *
-     *<pre>
-     * baseDirectory
-     *   journalDirectory1
-     *   journalDirectory2
-     *</pre>
+     * Creates a journal factory with the specified base location. When journals are
+     * created, their names are appended to the base path.
      *
      * Journals created by this factory support both reading and writing.
      *
-     * @param baseDirectory the base directory for journals created by this factory
+     * @param baseLocation the base location for journals created by this factory
      */
-    public ReadWrite(String baseDirectory) {
-      mBaseDirectory = baseDirectory;
+    public ReadWrite(URL baseLocation) {
+      mBaseLocation = baseLocation;
     }
 
     @Override
-    public Journal get(String directory) {
-      return new ReadWriteJournal(PathUtils.concatPath(mBaseDirectory, directory));
+    public UfsJournal get(String name) {
+      try {
+        return new ReadWriteUfsJournal(new URL(mBaseLocation, name));
+      } catch (MalformedURLException e) {
+        throw new RuntimeException(e.getMessage());
+      }
     }
   }
 
@@ -57,29 +60,27 @@ public interface JournalFactory {
    * A factory which creates read-only journals.
    */
   final class ReadOnly implements JournalFactory {
-    private final String mBaseDirectory;
+    private final URL mBaseLocation;
 
     /**
-     * Creates a journal factory with the specified directory as the root. When journals are
-     * created, their paths are appended to the base path, e.g.
-     *
-     *<pre>
-     * baseDirectory
-     *   journalDirectory1
-     *   journalDirectory2
-     *</pre>
+     * Creates a journal factory with the specified base location. When journals are
+     * created, their names are appended to the base path.
      *
      * Journals created by this factory only support reads.
      *
-     * @param baseDirectory the base directory for journals created by this factory
+     * @param baseLocation the base location for journals created by this factory
      */
-    public ReadOnly(String baseDirectory) {
-      mBaseDirectory = baseDirectory;
+    public ReadOnly(URL baseLocation) {
+      mBaseLocation = baseLocation;
     }
 
     @Override
-    public Journal get(String directory) {
-      return new ReadOnlyJournal(PathUtils.concatPath(mBaseDirectory, directory));
+    public UfsJournal get(String name) {
+      try {
+        return new ReadOnlyUfsJournal(new URL(mBaseLocation, name));
+      } catch (MalformedURLException e) {
+        throw new RuntimeException(e.getMessage());
+      }
     }
   }
 }

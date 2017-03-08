@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.master.Master;
+import alluxio.master.journal.ufs.ReadOnlyUfsJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;
@@ -23,8 +24,8 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class tails the journal for a master. It will process the journal checkpoint file, and then
- * process all existing completed log files.
+ * This class tails the journal for a master. It will process the journal checkpoint, and then
+ * process all existing completed logs.
  */
 @NotThreadSafe
 public final class JournalTailer {
@@ -48,7 +49,7 @@ public final class JournalTailer {
   public JournalTailer(Master master, Journal journal) {
     mMaster = Preconditions.checkNotNull(master);
     mJournal = Preconditions.checkNotNull(journal);
-    mReader = ((ReadOnlyJournal) mJournal).getNewReader();
+    mReader = ((ReadOnlyUfsJournal) mJournal).getNewReader();
   }
 
   /**
@@ -78,18 +79,17 @@ public final class JournalTailer {
   }
 
   /**
-   * Loads and (optionally) processes the journal checkpoint file.
+   * Loads and (optionally) processes the journal checkpoint.
    *
    * @param applyToMaster if true, apply all the checkpoint events to the master. Otherwise, simply
-   *        open the checkpoint file.
+   *        open the checkpoint.
    * @throws IOException if an I/O error occurs
    */
   public void processJournalCheckpoint(boolean applyToMaster) throws IOException {
-    // Load the checkpoint file.
-    LOG.info("{}: Loading checkpoint file: {}", mMaster.getName(),
-        mJournal.getCheckpointFilePath());
-    // The checkpoint stream must be retrieved before retrieving any log file streams, because the
-    // journal reader verifies that the checkpoint was read before the log files.
+    // Load the checkpoint.
+    LOG.info("{}: Loading checkpoint.", mMaster.getName());
+    // The checkpoint stream must be retrieved before retrieving any log streams, because the
+    // journal reader verifies that the checkpoint was read before the log streams.
     JournalInputStream is = mReader.getCheckpointInputStream();
 
     if (applyToMaster) {
@@ -102,21 +102,21 @@ public final class JournalTailer {
   }
 
   /**
-   * Processes all the next completed journal log files. This method will return when the next
-   * complete file is not found.
+   * Processes all the completed journal logs. This method will return when it processes the last
+   * completed log.
    *
    * {@link #processJournalCheckpoint(boolean)} must have been called previously.
    *
-   * @return the number of completed log files processed
+   * @return the number of logs processed
    * @throws IOException if an I/O error occurs
    */
-  public int processNextJournalLogFiles() throws IOException {
+  public int processNextJournalLogs() throws IOException {
     int numFilesProcessed = 0;
     while (mReader.isValid()) {
-      // Process the new completed log file, if it exists.
+      // Process the new completed log, if it exists.
       JournalInputStream inputStream = mReader.getNextInputStream();
       if (inputStream != null) {
-        LOG.info("{}: Processing a completed log file.", mMaster.getName());
+        LOG.info("{}: Processing a completed log.", mMaster.getName());
         JournalEntry entry;
         while ((entry = inputStream.getNextEntry()) != null) {
           mMaster.processJournalEntry(entry);
@@ -125,13 +125,12 @@ public final class JournalTailer {
         }
         inputStream.close();
         numFilesProcessed++;
-        LOG.info("{}: Finished processing the log file.", mMaster.getName());
+        LOG.info("{}: Finished processing the log.", mMaster.getName());
       } else {
         return numFilesProcessed;
       }
     }
-    LOG.info("{}: The checkpoint is out of date. Must reload checkpoint file.",
-        mMaster.getName(), mJournal.getCheckpointFilePath());
+    LOG.info("{}: The checkpoint is out of date and must be reloaded.", mMaster.getName());
     return numFilesProcessed;
   }
 }
