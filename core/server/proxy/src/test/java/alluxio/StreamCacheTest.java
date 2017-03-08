@@ -50,58 +50,64 @@ public class StreamCacheTest {
 
     // Concurrent put.
     final AtomicInteger isId = new AtomicInteger(0);
-    Thread putIs = new Thread(new Runnable() {
+    Runnable putIs = new Runnable() {
       @Override
       public void run() {
         isId.set(streamCache.put(is));
       }
-    });
+    };
     final AtomicInteger osId = new AtomicInteger(0);
-    Thread putOs = new Thread(new Runnable() {
+    Runnable putOs = new Runnable() {
       @Override
       public void run() {
         osId.set(streamCache.put(os));
       }
-    });
-    putIs.start();
-    putOs.start();
-    putIs.join();
-    putOs.join();
+    };
+    Thread putIsThread = new Thread(putIs);
+    Thread putOsThread = new Thread(putOs);
+    putIsThread.start();
+    putOsThread.start();
+    putIsThread.join();
+    putOsThread.join();
     Assert.assertSame(is, streamCache.getInStream(isId.get()));
     Assert.assertSame(os, streamCache.getOutStream(osId.get()));
 
     // Concurrent get.
-    Thread getIs = new Thread(new Runnable() {
+    Runnable getIs = new Runnable() {
       @Override
       public void run() {
         Assert.assertSame(is, streamCache.getInStream(isId.get()));
       }
-    });
-    Thread getOs = new Thread(new Runnable() {
+    };
+    Runnable getOs = new Runnable() {
       @Override
       public void run() {
         Assert.assertSame(os, streamCache.getOutStream(osId.get()));
       }
-    });
-    getIs.start();
-    getOs.start();
-    getIs.join();
-    getOs.join();
+    };
+    Thread getIsThread = new Thread(getIs);
+    Thread getOsThread = new Thread(getOs);
+    getIsThread.start();
+    getOsThread.start();
+    getIsThread.join();
+    getOsThread.join();
 
     // Concurrent get, put, and invalidate.
     final Integer oldIsId = isId.get();
-    Thread invalidateIs = new Thread(new Runnable() {
+    Thread invalidateIsThread = new Thread(new Runnable() {
       @Override
       public void run() {
         Assert.assertSame(is, streamCache.invalidate(oldIsId));
       }
     });
-    putIs.start();
-    invalidateIs.start();
-    getOs.start();
-    putIs.join();
-    invalidateIs.join();
-    getOs.join();
+    invalidateIsThread.start();
+    putIsThread = new Thread(putIs);
+    putIsThread.start();
+    getOsThread = new Thread(getOs);
+    getOsThread.start();
+    invalidateIsThread.join();
+    putIsThread.join();
+    getOsThread.join();
     Assert.assertNull(streamCache.getInStream(oldIsId));
     Assert.assertSame(is, streamCache.getInStream(isId.get()));
     Assert.assertSame(os, streamCache.getOutStream(osId.get()));
