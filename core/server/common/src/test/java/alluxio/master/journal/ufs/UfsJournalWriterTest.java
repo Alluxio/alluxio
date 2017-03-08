@@ -40,7 +40,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
-import java.net.URL;
 
 /**
  * Unit tests for {@link UfsJournalWriter}.

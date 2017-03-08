@@ -54,7 +54,6 @@ public abstract class UfsJournal implements Journal {
    * @param location the location for this journal
    */
   public UfsJournal(URI location) {
-    System.out.println(location);
     mLocation = location;
     mJournalFormatter = JournalFormatter.Factory.create();
   }
