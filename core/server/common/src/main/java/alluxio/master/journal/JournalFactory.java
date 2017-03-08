@@ -23,10 +23,10 @@ import java.net.URISyntaxException;
  */
 public interface JournalFactory {
   /**
-   * @param name the name for the journal
+   * @param name the journal name
    * @return a journal based on the given name
    */
-  Journal get(String name);
+  Journal create(String name);
 
   /**
    * A factory which creates read-write journals.
@@ -47,12 +47,16 @@ public interface JournalFactory {
     }
 
     @Override
-    public Journal get(String name) {
+    public Journal create(String name) {
       try {
         return new ReadWriteUfsJournal(URIUtils.appendPath(mBaseLocation, name));
       } catch (URISyntaxException e) {
         throw new RuntimeException(e);
       }
+    }
+
+    public static Journal create(URI location) {
+      return new ReadWriteUfsJournal(location);
     }
   }
 
@@ -75,12 +79,16 @@ public interface JournalFactory {
     }
 
     @Override
-    public Journal get(String name) {
+    public Journal create(String name) {
       try {
         return new ReadOnlyUfsJournal(URIUtils.appendPath(mBaseLocation, name));
       } catch (URISyntaxException e) {
         throw new RuntimeException(e);
       }
+    }
+
+    public static Journal create(URI location) {
+      return new ReadOnlyUfsJournal(location);
     }
   }
 }

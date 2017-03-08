@@ -291,7 +291,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.get(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
+    super(journalFactory.create(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
     mBlockMaster = blockMaster;
 

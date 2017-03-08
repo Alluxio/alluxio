@@ -18,13 +18,13 @@ import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalTailer;
 import alluxio.master.journal.JournalTailerThread;
-import alluxio.master.journal.ufs.ReadWriteUfsJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -213,7 +213,7 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public void transitionToLeader() {
-    mJournal = new ReadWriteUfsJournal(mJournal.getLocation());
+    mJournal = JournalFactory.ReadWrite.create(mJournal.getLocation());
   }
 
   /**

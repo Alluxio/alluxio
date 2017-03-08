@@ -41,10 +41,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Test master journal for cluster terminating. Assert that test can replay the editlog and
- * reproduce the correct state. Test both the single master(alluxio) and multi masters(alluxio-ft).
+ * Test master journal for cluster terminating. Assert that test can replay the log and reproduce
+ * the correct state. Test both the single master (alluxio) and multi masters (alluxio-ft).
  */
-public class UfsJournalShutdownIntegrationTest {
+public class JournalShutdownIntegrationTest {
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
 
