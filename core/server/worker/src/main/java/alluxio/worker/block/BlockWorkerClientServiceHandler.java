@@ -27,7 +27,7 @@ import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.LockBlockResult;
 import alluxio.thrift.LockBlockTOptions;
 import alluxio.thrift.ThriftIOException;
-import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
+import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,8 +165,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
         }
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS
         // block.
-        mWorker.openUfsBlock(new UnderFileSystemBlockMeta.ConstMeta(sessionId, blockId, options),
-            options.getMaxUfsReadConcurrency());
+        mWorker.openUfsBlock(sessionId, blockId, new OpenUfsBlockOptions(options));
         return new LockBlockResult(lockId, "");
       }
 

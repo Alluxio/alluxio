@@ -18,6 +18,7 @@ import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
+import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
@@ -65,34 +66,33 @@ public final class UnderFileSystemBlockStore {
   /** Maps from the block ID to the session IDs. */
   private final Map<Long, Set<Long>> mBlockIdToSessionIds = new HashMap<>();
 
-  /** The Alluxio block store. */
-  private final BlockStore mAlluxioBlockStore;
+  /** The Local block store. */
+  private final BlockStore mLocalBlockStore;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockStore}.
    *
-   * @param alluxioBlockStore the Alluxio block store
+   * @param localBlockStore the local block store
    */
-  public UnderFileSystemBlockStore(BlockStore alluxioBlockStore) {
-    mAlluxioBlockStore = alluxioBlockStore;
+  public UnderFileSystemBlockStore(BlockStore localBlockStore) {
+    mLocalBlockStore = localBlockStore;
   }
 
   /**
    * Acquires access for a UFS block given a {@link UnderFileSystemBlockMeta} and the limit on
    * the maximum concurrency on the block.
    *
-   * @param blockMetaConst the constant block meta
-   * @param maxConcurrency the maximum concurrency
+   * @param sessionId the session ID
+   * @param blockId maximum concurrency
+   * @param options the options
    * @throws BlockAlreadyExistsException if the block already exists for a session ID
    * @throws UfsBlockAccessTokenUnavailableException if there are too many concurrent sessions
    *         accessing the block
    */
   // TODO(peis): Avoid throwing UfsBlockAccessTokenUnavailableException by returning a status.
-  public void acquireAccess(UnderFileSystemBlockMeta.ConstMeta blockMetaConst, int maxConcurrency)
+  public void acquireAccess(long sessionId, long blockId, OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
-    UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(blockMetaConst);
-    long sessionId = blockMeta.getSessionId();
-    long blockId = blockMeta.getBlockId();
+    UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(sessionId, blockId, options);
     mLock.lock();
     try {
       Key key = new Key(sessionId, blockId);
@@ -101,7 +101,7 @@ public final class UnderFileSystemBlockStore {
             blockId, blockMeta.getUnderFileSystemPath(), sessionId);
       }
       Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
-      if (sessionIds != null && sessionIds.size() >= maxConcurrency) {
+      if (sessionIds != null && sessionIds.size() >= options.getMaxUfsReadConcurrency()) {
         throw new UfsBlockAccessTokenUnavailableException(
             ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE, sessionIds.size(), blockId,
             blockMeta.getUnderFileSystemPath());
@@ -127,14 +127,14 @@ public final class UnderFileSystemBlockStore {
 
   /**
    * Cleans up the block reader or writer and checks whether it is necessary to commit the block
-   * to Alluxio block store.
+   * to Local block store.
    *
    * During UFS block read, this is triggered when the block is unlocked.
    * During UFS block write, this is triggered when the UFS block is committed.
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @return true if block is to be committed into Alluxio block store
+   * @return true if block is to be committed into Local block store
    * @throws IOException if it fails to clean up
    */
   public boolean cleanup(long sessionId, long blockId) throws IOException {
@@ -148,8 +148,7 @@ public final class UnderFileSystemBlockStore {
     } finally {
       mLock.unlock();
     }
-    blockInfo.closeReaderOrWriter();
-    return blockInfo.getMeta().getCommitPending();
+    return blockInfo.closeReaderOrWriter();
   }
 
   /**
@@ -197,8 +196,8 @@ public final class UnderFileSystemBlockStore {
     for (Long blockId : blockIds) {
       try {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
-        // in Alluxio block store because they will be cleanup by the session cleaner in the
-        // Alluxio block store.
+        // in Local block store because they will be cleanup by the session cleaner in the
+        // Local block store.
         cleanup(sessionId, blockId);
         releaseAccess(sessionId, blockId);
       } catch (Exception e) {
@@ -232,8 +231,8 @@ public final class UnderFileSystemBlockStore {
     } finally {
       mLock.unlock();
     }
-    BlockReader reader =
-        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mAlluxioBlockStore);
+    BlockReaderWithCache reader =
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore);
     blockInfo.setBlockReader(reader);
     return reader;
   }
@@ -323,7 +322,7 @@ public final class UnderFileSystemBlockStore {
     // A correct client implementation should never access the following reader/writer
     // concurrently. But just to avoid crashing the server thread with runtime exception when
     // the client is mis-behaving, we access them with locks acquired.
-    private BlockReader mBlockReader;
+    private BlockReaderWithCache mBlockReader;
     private BlockWriter mBlockWriter;
 
     /**
@@ -355,7 +354,7 @@ public final class UnderFileSystemBlockStore {
     /**
      * @param blockReader the block reader to be set
      */
-    public synchronized void setBlockReader(BlockReader blockReader) {
+    public synchronized void setBlockReader(BlockReaderWithCache blockReader) {
       mBlockReader = blockReader;
     }
 
@@ -376,17 +375,21 @@ public final class UnderFileSystemBlockStore {
     /**
      * Closes the block reader or writer.
      *
+     * @return true if the block is pending to be committed
      * @throws IOException if it fails to close block reader or writer
      */
-    public synchronized void closeReaderOrWriter() throws IOException {
+    public synchronized boolean closeReaderOrWriter() throws IOException {
+      boolean commitPending = false;
       if (mBlockReader != null) {
         mBlockReader.close();
+        commitPending = mBlockReader.isCommitPending();
         mBlockReader = null;
       }
       if (mBlockWriter != null) {
         mBlockWriter.close();
         mBlockWriter = null;
       }
+      return commitPending;
     }
   }
 }

@@ -22,7 +22,7 @@ import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
+import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import java.io.IOException;
 import java.util.Set;
@@ -373,16 +373,17 @@ public interface BlockWorker extends Worker {
   FileInfo getFileInfo(long fileId) throws IOException;
 
   /**
-   * Opens a block.
+   * Opens a UFS block.
    *
-   * @param ufsBlockMetaConst the UFS block constant meta data
-   * @param maxUfsReadConcurrency the maximum UFS block read concurrency
+   * @param sessionId the session ID
+   * @param blockId the block ID
+   * @param options the options
    * @throws BlockAlreadyExistsException if the UFS block already exists in the
-   *         {@link UfsBlockStore}
+   *         {@link UnderFileSystemBlockStore}
    * @throws UfsBlockAccessTokenUnavailableException if there are too many clients accessing the
    *         UFS block
    */
-  void openUfsBlock(UnderFileSystemBlockMeta.ConstMeta ufsBlockMetaConst, int maxUfsReadConcurrency)
+  void openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException;
 
   /**

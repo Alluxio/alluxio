@@ -11,105 +11,67 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.thrift.LockBlockTOptions;
+import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 /**
- * This class represents the metadata of a block that is in UFS.
+ * This class represents the metadata of a block that is in UFS. This class is immutable.
  */
 public final class UnderFileSystemBlockMeta {
-  private final ConstMeta mConstMeta;
+  private final long mSessionId;
+  private final long mBlockId;
+  private final String mUnderFileSystemPath;
+  /** The offset in bytes of the first byte of the block in its corresponding UFS file. */
+  private final long mOffset;
+  /** The block size in bytes. */
+  private final long mBlockSize;
 
   /**
-   * The set of session IDs to be committed. This does not have to be volatile in the current code
-   * because the reader/writer are from the same thread. But just set it to volatile to be
-   * future-proof.
-   */
-  private volatile boolean mCommitPending;
-
-  /**
-   * The constant metadata of this UFS block. It does not provide any mutable functionality.
-   */
-  public static final class ConstMeta {
-    public final long mSessionId;
-    public final long mBlockId;
-    public final String mUnderFileSystemPath;
-    /** The offset in bytes of the first byte of the block in its corresponding UFS file. */
-    public final long mOffset;
-    /** The block size in bytes. */
-    public final long mBlockSize;
-
-    /**
-     * Creates {@link UnderFileSystemBlockMeta.ConstMeta} from a {@link LockBlockTOptions}.
-     *
-     * @param sessionId the session ID
-     * @param blockId the block ID
-     * @param options the thrift lock options
-     */
-    public ConstMeta(long sessionId, long blockId, LockBlockTOptions options) {
-      mSessionId = sessionId;
-      mBlockId = blockId;
-      mUnderFileSystemPath = options.getUfsPath();
-      mOffset = options.getOffset();
-      mBlockSize = options.getBlockSize();
-    }
-  }
-
-  /**
-   * Creates a {@link UnderFileSystemBlockMeta}.
+   * Creates an instance of {@link UnderFileSystemBlockMeta}.
    *
-   * @param meta the constant metadata of this UFS block
+   * @param sessionId the session ID
+   * @param blockId the block ID
+   * @param options the {@link OpenUfsBlockOptions}
    */
-  public UnderFileSystemBlockMeta(ConstMeta meta) {
-    mConstMeta = meta;
+  public UnderFileSystemBlockMeta(long sessionId, long blockId, OpenUfsBlockOptions options) {
+    mSessionId = sessionId;
+    mBlockId = blockId;
+    mUnderFileSystemPath = options.getUnderFileSystemPath();
+    mOffset = options.getOffset();
+    mBlockSize = options.getBlockSize();
   }
 
   /**
    * @return the session ID
    */
   public long getSessionId() {
-    return mConstMeta.mSessionId;
+    return mSessionId;
   }
 
   /**
    * @return the block ID
    */
   public long getBlockId() {
-    return mConstMeta.mBlockId;
+    return mBlockId;
   }
 
   /**
    * @return the UFS path
    */
   public String getUnderFileSystemPath() {
-    return mConstMeta.mUnderFileSystemPath;
+    return mUnderFileSystemPath;
   }
 
   /**
    * @return the offset of the block in the UFS file
    */
   public long getOffset() {
-    return mConstMeta.mOffset;
+    return mOffset;
   }
 
   /**
    * @return the block size in bytes
    */
   public long getBlockSize() {
-    return mConstMeta.mBlockSize;
+    return mBlockSize;
   }
-
-  /**
-   * @return true if the block is pending to be committed in the Alluxio block store
-   */
-  public boolean getCommitPending() {
-    return mCommitPending;
-  }
-
-  /**
-   * @param commitPending set to true if the block is pending to be committed
-   */
-  public void setCommitPending(boolean commitPending) {
-    mCommitPending = commitPending;
-  }
-
 }
