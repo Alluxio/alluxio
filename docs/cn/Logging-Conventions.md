@@ -19,7 +19,7 @@ Alluxio使用如下的日志级别：
 * 错误级别日志表示无法恢复的系统级问题。
 * 错误级别日志总是伴随着堆栈跟踪信息。
 
-告警级别日志
+警告级别日志
 
 * 警告级别日志表示用户预期行为和Alluxio实际行为之间的逻辑不匹配。
 * 警告级别日志伴有异常消息。
@@ -101,4 +101,4 @@ log4j.appender.MASTER_LOGGER_SOCKET.layout=org.apache.log4j.PatternLayout
 log4j.appender.MASTER_LOGGER_SOCKET.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```
 
-这是Alluxio使用远程日志的一个例子，鼓励用户探索各种由Log4J或第三方提供的appender和配置选项，从而创建最适合实际用例的日志记录解决方案。
+这是Alluxio使用远程日志的一个例子。Alluxio鼓励用户探索各种由Log4J或第三方提供的appender和配置选项，从而创建最适合实际用例的日志记录解决方案。
