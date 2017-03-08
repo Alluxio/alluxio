@@ -18,6 +18,7 @@ import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
+import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
@@ -81,18 +82,17 @@ public final class UnderFileSystemBlockStore {
    * Acquires access for a UFS block given a {@link UnderFileSystemBlockMeta} and the limit on
    * the maximum concurrency on the block.
    *
-   * @param blockMetaConst the constant block meta
-   * @param maxConcurrency the maximum concurrency
+   * @param sessionId the session ID
+   * @param blockId maximum concurrency
+   * @param options the options
    * @throws BlockAlreadyExistsException if the block already exists for a session ID
    * @throws UfsBlockAccessTokenUnavailableException if there are too many concurrent sessions
    *         accessing the block
    */
   // TODO(peis): Avoid throwing UfsBlockAccessTokenUnavailableException by returning a status.
-  public void acquireAccess(UnderFileSystemBlockMeta.ConstMeta blockMetaConst, int maxConcurrency)
+  public void acquireAccess(long sessionId, long blockId, OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
-    UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(blockMetaConst);
-    long sessionId = blockMeta.getSessionId();
-    long blockId = blockMeta.getBlockId();
+    UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(sessionId, blockId, options);
     mLock.lock();
     try {
       Key key = new Key(sessionId, blockId);
@@ -101,7 +101,7 @@ public final class UnderFileSystemBlockStore {
             blockId, blockMeta.getUnderFileSystemPath(), sessionId);
       }
       Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
-      if (sessionIds != null && sessionIds.size() >= maxConcurrency) {
+      if (sessionIds != null && sessionIds.size() >= options.getMaxUfsReadConcurrency()) {
         throw new UfsBlockAccessTokenUnavailableException(
             ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE, sessionIds.size(), blockId,
             blockMeta.getUnderFileSystemPath());

@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.thrift.LockBlockTOptions;
-import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
+import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,7 +27,7 @@ public final class UnderFileSystemBlockStoreTest {
   private static final long BLOCK_ID = 2;
 
   private BlockStore mAlluxioBlockStore;
-  private LockBlockTOptions mLockBlockTOptions;
+  private OpenUfsBlockOptions mOpenUfsBlockOptions;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -41,22 +41,18 @@ public final class UnderFileSystemBlockStoreTest {
     options.setBlockSize(TEST_BLOCK_SIZE);
     options.setOffset(TEST_BLOCK_SIZE);
     options.setUfsPath(mFolder.newFile().getAbsolutePath());
-    mLockBlockTOptions = options;
+    mOpenUfsBlockOptions = new OpenUfsBlockOptions(options);
   }
 
   @Test
   public void acquireAccess() throws Exception {
     UnderFileSystemBlockStore blockStore = new UnderFileSystemBlockStore(mAlluxioBlockStore);
     for (int i = 0; i < 5; i++) {
-      UnderFileSystemBlockMeta.ConstMeta constMeta =
-          new UnderFileSystemBlockMeta.ConstMeta(i + 1, BLOCK_ID, mLockBlockTOptions);
-      blockStore.acquireAccess(constMeta, 5);
+      blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions);
     }
 
     try {
-      UnderFileSystemBlockMeta.ConstMeta constMeta =
-          new UnderFileSystemBlockMeta.ConstMeta(6, BLOCK_ID, mLockBlockTOptions);
-      blockStore.acquireAccess(constMeta, 5);
+      blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions);
       Assert.fail();
     } catch (UfsBlockAccessTokenUnavailableException e) {
       // expected
@@ -67,14 +63,10 @@ public final class UnderFileSystemBlockStoreTest {
   public void releaseAccess() throws Exception {
     UnderFileSystemBlockStore blockStore = new UnderFileSystemBlockStore(mAlluxioBlockStore);
     for (int i = 0; i < 5; i++) {
-      UnderFileSystemBlockMeta.ConstMeta constMeta =
-          new UnderFileSystemBlockMeta.ConstMeta(i + 1, BLOCK_ID, mLockBlockTOptions);
-      blockStore.acquireAccess(constMeta, 5);
-      blockStore.releaseAccess(constMeta.mSessionId, constMeta.mBlockId);
+      blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions);
+      blockStore.releaseAccess(i + 1, BLOCK_ID);
     }
 
-    UnderFileSystemBlockMeta.ConstMeta constMeta =
-        new UnderFileSystemBlockMeta.ConstMeta(6, BLOCK_ID, mLockBlockTOptions);
-    blockStore.acquireAccess(constMeta, 5);
+    blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions);
   }
 }

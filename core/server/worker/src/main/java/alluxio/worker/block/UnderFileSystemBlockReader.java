@@ -241,8 +241,12 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       // We need to check whether the block is cached before closing the block writer.
       boolean isBlockCached = isBlockCached();
       Closer closer = Closer.create();
-      closer.register(mBlockWriter);
-      closer.register(mUnderFileSystemInputStream);
+      if (mBlockWriter != null) {
+        closer.register(mBlockWriter);
+      }
+      if (mUnderFileSystemInputStream != null) {
+        closer.register(mUnderFileSystemInputStream);
+      }
       closer.close();
 
       if (isBlockCached) {

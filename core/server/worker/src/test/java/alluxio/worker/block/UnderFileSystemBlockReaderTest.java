@@ -17,6 +17,7 @@ import alluxio.thrift.LockBlockTOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
+import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -70,8 +71,8 @@ public final class UnderFileSystemBlockReaderTest {
     options.setOffset(TEST_BLOCK_SIZE);
     options.setUfsPath(testFilePath);
 
-    mUnderFileSystemBlockMeta = new UnderFileSystemBlockMeta(
-        new UnderFileSystemBlockMeta.ConstMeta(SESSION_ID, BLOCK_ID, options));
+    mUnderFileSystemBlockMeta =
+        new UnderFileSystemBlockMeta(SESSION_ID, BLOCK_ID, new OpenUfsBlockOptions(options));
   }
 
   @After
