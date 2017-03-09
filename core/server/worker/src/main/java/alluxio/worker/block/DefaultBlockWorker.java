@@ -441,9 +441,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
-      throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
-    mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
+  public boolean openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
+      throws BlockAlreadyExistsException {
+    return mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
   }
 
   @Override

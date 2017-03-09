@@ -379,13 +379,12 @@ public interface BlockWorker extends Worker {
    * @param sessionId the session ID
    * @param blockId the block ID
    * @param options the options
+   * @return whether the UFS block is successfully opened
    * @throws BlockAlreadyExistsException if the UFS block already exists in the
    *         {@link UnderFileSystemBlockStore}
-   * @throws UfsBlockAccessTokenUnavailableException if there are too many clients accessing the
-   *         UFS block
    */
-  void openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
-      throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException;
+  boolean openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
+      throws BlockAlreadyExistsException;
 
   /**
    * Closes a UFS block for a client session. It also commits the block to Alluxio block store

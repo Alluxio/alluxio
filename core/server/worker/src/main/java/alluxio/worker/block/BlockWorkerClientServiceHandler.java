@@ -20,7 +20,6 @@ import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
@@ -168,12 +167,12 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
         }
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS
         // block.
-        try {
-          mWorker.openUfsBlock(sessionId, blockId, new OpenUfsBlockOptions(options));
+        if (mWorker.openUfsBlock(sessionId, blockId, new OpenUfsBlockOptions(options))) {
           lockId = BlockLockIdUtil.UFS_BLOCK_LOCK_ID;
-        } catch (UfsBlockAccessTokenUnavailableException e) {
+        } else {
           lockId = BlockLockIdUtil.UFS_BLOCK_READ_TOKEN_UNAVAILABLE;
         }
+
         return new LockBlockResult(lockId, "");
       }
 

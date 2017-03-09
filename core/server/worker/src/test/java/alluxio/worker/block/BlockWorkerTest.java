@@ -121,14 +121,9 @@ public class BlockWorkerTest {
 
     long sessionId = 1;
     for (; sessionId < 11; sessionId++) {
-      mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions);
+      Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
     }
-    try {
-      mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions);
-      Assert.fail();
-    } catch (UfsBlockAccessTokenUnavailableException e) {
-      // expected.
-    }
+    Assert.assertFalse(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
   }
 
   @Test
@@ -141,10 +136,10 @@ public class BlockWorkerTest {
 
     long sessionId = 1;
     for (; sessionId < 11; sessionId++) {
-      mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions);
+      Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
       mBlockWorker.closeUfsBlock(sessionId, blockId);
     }
-    mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions);
+    Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
   }
 
   /**
