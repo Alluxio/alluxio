@@ -21,7 +21,6 @@ import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import com.google.common.base.Objects;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,13 +47,18 @@ import javax.annotation.concurrent.GuardedBy;
 public final class UnderFileSystemBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockStore.class);
 
-  /** Maps from the {@link Key} to the {@link BlockInfo}. */
-  private final ConcurrentHashMapV8<Key, BlockInfo> mBlocks = new ConcurrentHashMapV8<>();
   /**
-   * This lock protects mSessionIdToBlockIds and mBlockIdToSessionIds. For any read/write
-   * operations to these maps, the lock needs to be acquired.
+   * This lock protects mBlocks, mSessionIdToBlockIds and mBlockIdToSessionIds. For any read/write
+   * operations to these maps, the lock needs to be acquired. But once you get the block
+   * information from the map (e.g. mBlocks), the lock does not need to be acquired. For example,
+   * the block reader/writer within the BlockInfo can be updated without acquiring this lock.
+   * This is based on the assumption that one session won't open multiple readers/writers on the
+   * same block. If the client do that, the client can see failures but the worker won't crash.
    */
   private final ReentrantLock mLock = new ReentrantLock();
+  @GuardedBy("mLock")
+  /** Maps from the {@link Key} to the {@link BlockInfo}. */
+  private final Map<Key, BlockInfo> mBlocks = new HashMap<>();
   @GuardedBy("mLock")
   /** Maps from the session ID to the block IDs. */
   private final Map<Long, Set<Long>> mSessionIdToBlockIds = new HashMap<>();
@@ -91,6 +95,11 @@ public final class UnderFileSystemBlockStore {
     UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(sessionId, blockId, options);
     mLock.lock();
     try {
+      Key key = new Key(sessionId, blockId);
+      if (mBlocks.containsKey(key)) {
+        throw new BlockAlreadyExistsException(ExceptionMessage.UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION,
+            blockId, blockMeta.getUnderFileSystemPath(), sessionId);
+      }
       Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
       if (sessionIds != null && sessionIds.size() >= options.getMaxUfsReadConcurrency()) {
         throw new UfsBlockAccessTokenUnavailableException(
@@ -103,6 +112,8 @@ public final class UnderFileSystemBlockStore {
       }
       sessionIds.add(sessionId);
 
+      mBlocks.put(key, new BlockInfo(blockMeta));
+
       Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);
       if (blockIds == null) {
         blockIds = new HashSet<>();
@@ -111,10 +122,6 @@ public final class UnderFileSystemBlockStore {
       blockIds.add(blockId);
     } finally {
       mLock.unlock();
-    }
-    if (mBlocks.putIfAbsent(new Key(sessionId, blockId), new BlockInfo(blockMeta)) != null) {
-      throw new BlockAlreadyExistsException(ExceptionMessage.UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION,
-          blockId, blockMeta.getUnderFileSystemPath(), sessionId);
     }
   }
 
@@ -131,9 +138,15 @@ public final class UnderFileSystemBlockStore {
    * @throws IOException if it fails to clean up
    */
   public boolean cleanup(long sessionId, long blockId) throws IOException {
-    BlockInfo blockInfo = mBlocks.get(new Key(sessionId, blockId));
-    if (blockInfo == null) {
-      return false;
+    BlockInfo blockInfo;
+    mLock.lock();
+    try {
+      blockInfo = mBlocks.get(new Key(sessionId, blockId));
+      if (blockInfo == null) {
+        return false;
+      }
+    } finally {
+      mLock.unlock();
     }
     return blockInfo.closeReaderOrWriter();
   }
@@ -148,6 +161,8 @@ public final class UnderFileSystemBlockStore {
   public void releaseAccess(long sessionId, long blockId) {
     mLock.lock();
     try {
+      Key key = new Key(sessionId, blockId);
+      mBlocks.remove(key);
       Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);
       if (blockIds != null) {
         blockIds.remove(blockId);
@@ -159,7 +174,6 @@ public final class UnderFileSystemBlockStore {
     } finally {
       mLock.unlock();
     }
-    mBlocks.remove(new Key(sessionId, blockId));
   }
 
   /**
@@ -207,9 +221,15 @@ public final class UnderFileSystemBlockStore {
    */
   public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
       boolean noCache) throws BlockDoesNotExistException, IOException {
-    BlockInfo blockInfo = getBlockInfo(sessionId, blockId);
-    if (blockInfo.getBlockReader() != null) {
-      return blockInfo.getBlockReader();
+    final BlockInfo blockInfo;
+    mLock.lock();
+    try {
+      blockInfo = getBlockInfo(sessionId, blockId);
+      if (blockInfo.getBlockReader() != null) {
+        return blockInfo.getBlockReader();
+      }
+    } finally {
+      mLock.unlock();
     }
     BlockReaderWithCache reader =
         UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore);
@@ -228,7 +248,8 @@ public final class UnderFileSystemBlockStore {
    */
   private BlockInfo getBlockInfo(long sessionId, long blockId)
       throws BlockDoesNotExistException {
-    BlockInfo blockInfo = mBlocks.get(new Key(sessionId, blockId));
+    Key key = new Key(sessionId, blockId);
+    BlockInfo blockInfo = mBlocks.get(key);
     if (blockInfo == null) {
       try {
         throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,
