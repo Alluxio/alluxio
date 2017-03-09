@@ -227,8 +227,9 @@ public final class UnderFileSystemBlockStore {
     mLock.lock();
     try {
       blockInfo = getBlockInfo(sessionId, blockId);
-      if (blockInfo.getBlockReader() != null) {
-        return blockInfo.getBlockReader();
+      BlockReader blockReader = blockInfo.getBlockReader();
+      if (blockReader != null) {
+        return blockReader;
       }
     } finally {
       mLock.unlock();
@@ -248,18 +249,12 @@ public final class UnderFileSystemBlockStore {
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
-  private BlockInfo getBlockInfo(long sessionId, long blockId)
-      throws BlockDoesNotExistException {
+  private BlockInfo getBlockInfo(long sessionId, long blockId) throws BlockDoesNotExistException {
     Key key = new Key(sessionId, blockId);
     BlockInfo blockInfo = mBlocks.get(key);
     if (blockInfo == null) {
-      try {
-        throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,
-            blockId, sessionId);
-      } catch (Throwable e) {
-        LOG.error("UFS Block does not exist.", e);
-        throw e;
-      }
+      throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,
+          blockId, sessionId);
     }
     return blockInfo;
   }
