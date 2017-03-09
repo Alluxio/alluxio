@@ -42,12 +42,12 @@ interface BlockStore {
 
   /**
    * Locks an existing block and guards subsequent reads on this block. If the lock fails, return
-   * {@link BlockLockManager#INVALID_LOCK_ID}.
+   * {@link BlockLockIdUtil#INVALID_LOCK_ID}.
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
    * @return the lock id (non-negative) that uniquely identifies the lock obtained or
-   *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
+   *         {@link BlockLockIdUtil#INVALID_LOCK_ID} if it failed to lock
    */
   long lockBlockNoException(long sessionId, long blockId);
 
