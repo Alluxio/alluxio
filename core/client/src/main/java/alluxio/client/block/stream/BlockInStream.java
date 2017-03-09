@@ -28,7 +28,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import java.io.FilterInputStream;

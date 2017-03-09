@@ -46,4 +46,6 @@ public final class BlockLockIdUtil {
   public static boolean isAlluxioBlockLockId(long lockId) {
     return lockId >= 0;
   }
+
+  private BlockLockIdUtil() {}  // prevent instantiation
 }
