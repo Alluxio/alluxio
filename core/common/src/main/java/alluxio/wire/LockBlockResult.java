@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.worker.block.BlockLockIdUtil;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -84,7 +86,7 @@ public final class LockBlockResult implements Serializable {
    * @return true if the block is in cached in Alluxio
    */
   public boolean blockCachedInAlluxio() {
-    return getLockId() >= 0;
+    return BlockLockIdUtil.isAlluxioBlockLockId(getLockId());
   }
 
   /**

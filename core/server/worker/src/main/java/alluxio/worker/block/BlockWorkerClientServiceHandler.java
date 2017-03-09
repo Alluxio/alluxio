@@ -20,6 +20,7 @@ import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
@@ -29,6 +30,7 @@ import alluxio.thrift.LockBlockTOptions;
 import alluxio.thrift.ThriftIOException;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,16 +158,22 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
       public LockBlockResult call() throws AlluxioException {
         if (!options.isSetUfsPath() || options.getUfsPath().isEmpty()) {
           long lockId = mWorker.lockBlock(sessionId, blockId);
+          Preconditions.checkState(BlockLockIdUtil.isAlluxioBlockLockId(lockId));
           return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
         }
 
         long lockId = mWorker.lockBlockNoException(sessionId, blockId);
-        if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+        if (BlockLockIdUtil.isAlluxioBlockLockId(lockId)) {
           return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
         }
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS
         // block.
-        mWorker.openUfsBlock(sessionId, blockId, new OpenUfsBlockOptions(options));
+        try {
+          mWorker.openUfsBlock(sessionId, blockId, new OpenUfsBlockOptions(options));
+          lockId = BlockLockIdUtil.UFS_BLOCK_LOCK_ID;
+        } catch (UfsBlockAccessTokenUnavailableException e) {
+          lockId = BlockLockIdUtil.UFS_BLOCK_READ_TOKEN_UNAVAILABLE;
+        }
         return new LockBlockResult(lockId, "");
       }
 

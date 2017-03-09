@@ -35,6 +35,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.BlockLockIdUtil;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -248,17 +249,15 @@ public final class RetryHandlingBlockWorkerClient
     int retryInterval = Constants.SECOND_MS;
     RetryPolicy retryPolicy = new TimeoutRetry(Configuration
         .getLong(PropertyKey.USER_UFS_BLOCK_OPEN_TIMEOUT_MS), retryInterval);
-    UfsBlockAccessTokenUnavailableException exception;
     do {
-      try {
-        return lockBlock(blockId, options);
-      } catch (UfsBlockAccessTokenUnavailableException e) {
+      LockBlockResource resource = lockBlock(blockId, options);
+      if (BlockLockIdUtil.isUfsBlockReadTokenUnavailable(resource.getResult().getLockId())) {
         LOG.debug("Failed to acquire a UFS read token because of contention for block {} with "
             + "LockBlockOptions {}", blockId, options);
-        exception = e;
       }
     } while (retryPolicy.attemptRetry());
-    throw exception;
+    throw new UfsBlockAccessTokenUnavailableException(
+        ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE, blockId, options.getUfsPath());
   }
 
   @Override

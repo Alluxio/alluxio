@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
@@ -81,21 +80,17 @@ public final class UnderFileSystemBlockStore {
    * @param sessionId the session ID
    * @param blockId maximum concurrency
    * @param options the options
+   * @return whether an access token is acquired
    * @throws BlockAlreadyExistsException if the block already exists for a session ID
-   * @throws UfsBlockAccessTokenUnavailableException if there are too many concurrent sessions
-   *         accessing the block
    */
-  // TODO(peis): Avoid throwing UfsBlockAccessTokenUnavailableException by returning a status.
-  public void acquireAccess(long sessionId, long blockId, OpenUfsBlockOptions options)
-      throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
+  public boolean acquireAccess(long sessionId, long blockId, OpenUfsBlockOptions options)
+      throws BlockAlreadyExistsException {
     UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(sessionId, blockId, options);
     mLock.lock();
     try {
       Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
       if (sessionIds != null && sessionIds.size() >= options.getMaxUfsReadConcurrency()) {
-        throw new UfsBlockAccessTokenUnavailableException(
-            ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE, sessionIds.size(), blockId,
-            blockMeta.getUnderFileSystemPath());
+        return false;
       }
       if (sessionIds == null) {
         sessionIds = new HashSet<>();
@@ -116,6 +111,7 @@ public final class UnderFileSystemBlockStore {
       throw new BlockAlreadyExistsException(ExceptionMessage.UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION,
           blockId, blockMeta.getUnderFileSystemPath(), sessionId);
     }
+    return true;
   }
 
   /**

@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.thrift.LockBlockTOptions;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
 
@@ -48,25 +47,20 @@ public final class UnderFileSystemBlockStoreTest {
   public void acquireAccess() throws Exception {
     UnderFileSystemBlockStore blockStore = new UnderFileSystemBlockStore(mAlluxioBlockStore);
     for (int i = 0; i < 5; i++) {
-      blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions);
+      Assert.assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
     }
 
-    try {
-      blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions);
-      Assert.fail();
-    } catch (UfsBlockAccessTokenUnavailableException e) {
-      // expected
-    }
+    Assert.assertFalse(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
   }
 
   @Test
   public void releaseAccess() throws Exception {
     UnderFileSystemBlockStore blockStore = new UnderFileSystemBlockStore(mAlluxioBlockStore);
     for (int i = 0; i < 5; i++) {
-      blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions);
+      Assert.assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
       blockStore.releaseAccess(i + 1, BLOCK_ID);
     }
 
-    blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions);
+    Assert.assertTrue(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
   }
 }
