@@ -18,6 +18,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface ReadWriteJournal extends ReadOnlyJournal {
+
   /**
    * @return the {@link JournalWriter} for this journal
    */

@@ -11,6 +11,7 @@
 
 package alluxio.master.journal;
 
+import java.io.IOException;
 import java.net.URI;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -22,7 +23,20 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface Journal {
 
   /**
+   * Formats the journal.
+   *
+   * @return whether the format operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   */
+  boolean format() throws IOException;
+
+  /**
    * @return the journal location
    */
   URI getLocation();
+
+  /**
+   * @return whether the journal has been formatted
+   */
+  boolean isFormatted() throws IOException;
 }

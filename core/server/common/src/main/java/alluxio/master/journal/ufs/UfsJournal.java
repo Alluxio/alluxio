@@ -11,10 +11,22 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFormatter;
+import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.URIUtils;
+import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.PathUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -33,6 +45,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class UfsJournal implements Journal {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsJournal.class);
+
   /** The log number for the first completed log. */
   protected static final long FIRST_COMPLETED_LOG_NUMBER = 1L;
   /** The folder for completed logs. */
@@ -56,6 +70,46 @@ public abstract class UfsJournal implements Journal {
   public UfsJournal(URI location) {
     mLocation = location;
     mJournalFormatter = JournalFormatter.Factory.create();
+  }
+
+  @Override
+  public boolean format() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation.toString());
+    if (ufs.isDirectory(mLocation.toString())) {
+      for (UnderFileStatus p : ufs.listStatus(mLocation.toString())) {
+        URI childPath;
+        try {
+          childPath = URIUtils.appendPath(mLocation, p.getName());
+        } catch (URISyntaxException e) {
+          throw new RuntimeException(e.getMessage());
+        }
+        boolean failedToDelete;
+        if (p.isDirectory()) {
+          failedToDelete = !ufs.deleteDirectory(childPath.toString(),
+              DeleteOptions.defaults().setRecursive(true));
+        } else {
+          failedToDelete = !ufs.deleteFile(childPath.toString());
+        }
+        if (failedToDelete) {
+          LOG.info("Failed to delete {}", childPath);
+          return false;
+        }
+      }
+    } else if (!ufs.mkdirs(mLocation.toString())) {
+      LOG.info("Failed to create {}", mLocation);
+      return false;
+    }
+
+    // Create a breadcrumb that indicates that the journal folder has been formatted.
+    try {
+      UnderFileSystemUtils.touch(URIUtils.appendPath(mLocation,
+          Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
+          .toString());
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e.getMessage());
+    }
+
+    return true;
   }
 
   @Override
@@ -114,5 +168,22 @@ public abstract class UfsJournal implements Journal {
    */
   protected JournalFormatter getJournalFormatter() {
     return mJournalFormatter;
+  }
+
+  @Override
+  public boolean isFormatted() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation.toString());
+    UnderFileStatus[] files = ufs.listStatus(mLocation.toString());
+    if (files == null) {
+      return false;
+    }
+    // Search for the format file.
+    String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
+    for (UnderFileStatus file : files) {
+      if (file.getName().startsWith(formatFilePrefix)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

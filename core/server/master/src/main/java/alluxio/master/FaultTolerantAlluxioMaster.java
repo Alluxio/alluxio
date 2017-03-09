@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.LeaderSelectorClient;
 import alluxio.PropertyKey;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -25,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -54,6 +56,14 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
       String zkLeaderPath = Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
       mLeaderSelectorClient =
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
+
+      // Check that the journal folder has been formatted.
+      URI location = getJournalLocation();
+      Journal journal = JournalFactory.ReadWrite.create(location);
+      if (!journal.isFormatted()) {
+        throw new RuntimeException(
+            String.format("Alluxio master folder %s has not been formatted!", location));
+      }
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
@@ -100,7 +110,6 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
           // When transitioning from master to standby, recreate the masters with a read-only
           // journal.
           createMasters(new JournalFactory.ReadOnly(getJournalLocation()));
-
           startMasters(false);
           started = true;
         }

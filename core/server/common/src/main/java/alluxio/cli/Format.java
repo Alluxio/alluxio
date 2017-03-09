@@ -17,6 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
+import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.ReadWriteJournal;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -27,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -92,24 +96,22 @@ public final class Format {
    */
   public static void format(String mode) throws IOException {
     if ("MASTER".equalsIgnoreCase(mode)) {
-      String masterJournal =
-          Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-      if (!formatFolder("JOURNAL_FOLDER", masterJournal)) {
+      String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+      JournalFactory factory;
+      try {
+        factory = new JournalFactory.ReadWrite(new URI(masterJournal));
+      } catch (URISyntaxException e) {
+        throw new IOException(e.getMessage());
+      }
+      if (!factory.create("").format()) {
         throw new RuntimeException("Failed to format root journal folder");
       }
-
       for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
-        String folderName = masterServiceName + "_JOURNAL_FOLDER";
-        if (!formatFolder(folderName,
-            PathUtils.concatPath(masterJournal, masterServiceName))) {
-          throw new RuntimeException(String.format("Failed to format %s", folderName));
+        if (!factory.create(masterServiceName).format()) {
+          throw new RuntimeException(
+              String.format("Failed to format %s journal folder", masterServiceName));
         }
       }
-
-      // A journal folder is thought to be formatted only when a file with the specific name is
-      // present under the folder.
-      UnderFileSystemUtils.touch(PathUtils
-          .concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis()));
     } else if ("WORKER".equalsIgnoreCase(mode)) {
       String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
       int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
