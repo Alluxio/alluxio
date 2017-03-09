@@ -331,7 +331,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Creates and returns a {@link InputStream} for the UFS.
+   *  Creates and returns a {@link InputStream} for the UFS.
    *
    * @param blockStart the offset to start the block from
    * @param length the length of the block
