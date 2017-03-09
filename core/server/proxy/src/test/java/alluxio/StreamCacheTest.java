@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class StreamCacheTest {
   @Test
@@ -47,70 +48,127 @@ public class StreamCacheTest {
     final StreamCache streamCache = new StreamCache(Constants.HOUR_MS);
     final FileInStream is = Mockito.mock(FileInStream.class);
     final FileOutStream os = Mockito.mock(FileOutStream.class);
+    final int numThreads = 100;
 
     // Concurrent put.
-    final AtomicInteger isId = new AtomicInteger(0);
-    Runnable putIs = new Runnable() {
+    final AtomicIntegerArray isIDs = new AtomicIntegerArray(numThreads);
+    final AtomicInteger isIDsIndex = new AtomicInteger();
+    final AtomicIntegerArray osIDs = new AtomicIntegerArray(numThreads);
+    final AtomicInteger osIDsIndex = new AtomicInteger();
+    Runnable put = new Runnable() {
       @Override
       public void run() {
-        isId.set(streamCache.put(is));
+        int id = streamCache.put(is);
+        int index = isIDsIndex.getAndIncrement();
+        isIDs.set(index, id);
+        id = streamCache.put(os);
+        index = osIDsIndex.getAndIncrement();
+        osIDs.set(index, id);
       }
     };
-    final AtomicInteger osId = new AtomicInteger(0);
-    Runnable putOs = new Runnable() {
-      @Override
-      public void run() {
-        osId.set(streamCache.put(os));
-      }
-    };
-    Thread putIsThread = new Thread(putIs);
-    Thread putOsThread = new Thread(putOs);
-    putIsThread.start();
-    putOsThread.start();
-    putIsThread.join();
-    putOsThread.join();
-    Assert.assertSame(is, streamCache.getInStream(isId.get()));
-    Assert.assertSame(os, streamCache.getOutStream(osId.get()));
+    Thread[] threads = new Thread[numThreads];
+    for (int i = 0; i < numThreads; i++) {
+      Thread thread = new Thread(put);
+      threads[i] = thread;
+      thread.start();
+    }
+    for (Thread thread : threads) {
+      thread.join();
+    }
+    Assert.assertEquals(numThreads, isIDsIndex.get());
+    Assert.assertEquals(numThreads, osIDsIndex.get());
+    for (int i = 0; i < numThreads; i++) {
+      Assert.assertSame(is, streamCache.getInStream(isIDs.get(i)));
+      Assert.assertSame(os, streamCache.getOutStream(osIDs.get(i)));
+    }
+    Assert.assertEquals(2 * numThreads, streamCache.size());
 
     // Concurrent get.
-    Runnable getIs = new Runnable() {
+    class Get implements Runnable {
+      private int mThreadIndex;
+
+      Get(int threadIndex) {
+        mThreadIndex = threadIndex;
+      }
+
       @Override
       public void run() {
-        Assert.assertSame(is, streamCache.getInStream(isId.get()));
+        Assert.assertSame(is, streamCache.getInStream(isIDs.get(mThreadIndex)));
+        Assert.assertSame(os, streamCache.getOutStream(osIDs.get(mThreadIndex)));
       }
-    };
-    Runnable getOs = new Runnable() {
-      @Override
-      public void run() {
-        Assert.assertSame(os, streamCache.getOutStream(osId.get()));
-      }
-    };
-    Thread getIsThread = new Thread(getIs);
-    Thread getOsThread = new Thread(getOs);
-    getIsThread.start();
-    getOsThread.start();
-    getIsThread.join();
-    getOsThread.join();
+    }
+    for (int i = 0; i < numThreads; i++) {
+      threads[i] = new Thread(new Get(i));
+    }
+    for (Thread thread : threads) {
+      thread.start();
+    }
+    for (Thread thread : threads) {
+      thread.join();
+    }
+    for (int i = 0; i < numThreads; i++) {
+      Assert.assertSame(is, streamCache.getInStream(isIDs.get(i)));
+      Assert.assertSame(os, streamCache.getOutStream(osIDs.get(i)));
+    }
+    Assert.assertEquals(2 * numThreads, streamCache.size());
 
     // Concurrent get, put, and invalidate.
-    final Integer oldIsId = isId.get();
-    Thread invalidateIsThread = new Thread(new Runnable() {
+    class GetPutInvalidate implements Runnable {
+      private int mThreadIndex;
+
+      GetPutInvalidate(int threadIndex) {
+        mThreadIndex = threadIndex;
+      }
+
       @Override
       public void run() {
-        Assert.assertSame(is, streamCache.invalidate(oldIsId));
+        Assert.assertSame(is, streamCache.getInStream(isIDs.get(mThreadIndex)));
+        Assert.assertSame(os, streamCache.getOutStream(osIDs.get(mThreadIndex)));
+        int isId = streamCache.put(is);
+        int osId = streamCache.put(os);
+        Assert.assertSame(is, streamCache.invalidate(isIDs.get(mThreadIndex)));
+        Assert.assertSame(os, streamCache.invalidate(osIDs.get(mThreadIndex)));
+        Assert.assertSame(is, streamCache.invalidate(isId));
+        Assert.assertSame(os, streamCache.invalidate(osId));
       }
-    });
-    invalidateIsThread.start();
-    putIsThread = new Thread(putIs);
-    putIsThread.start();
-    getOsThread = new Thread(getOs);
-    getOsThread.start();
-    invalidateIsThread.join();
-    putIsThread.join();
-    getOsThread.join();
-    Assert.assertNull(streamCache.getInStream(oldIsId));
-    Assert.assertSame(is, streamCache.getInStream(isId.get()));
-    Assert.assertSame(os, streamCache.getOutStream(osId.get()));
+    }
+    for (int i = 0; i < numThreads; i++) {
+      threads[i] = new Thread(new GetPutInvalidate(i));
+    }
+    for (Thread thread : threads) {
+      thread.start();
+    }
+    for (Thread thread : threads) {
+      thread.join();
+    }
+    for (int i = 0; i < numThreads; i++) {
+      Assert.assertNull(streamCache.getInStream(isIDs.get(i)));
+      Assert.assertNull(streamCache.getOutStream(osIDs.get(i)));
+    }
+    Assert.assertEquals(0, streamCache.size());
+
+    // Concurrent put, get, and invalidate.
+    Runnable putGetInvalidate = new Runnable() {
+      @Override
+      public void run() {
+        int isId = streamCache.put(is);
+        int osId = streamCache.put(os);
+        Assert.assertSame(is, streamCache.getInStream(isId));
+        Assert.assertSame(os, streamCache.getOutStream(osId));
+        Assert.assertSame(is, streamCache.invalidate(isId));
+        Assert.assertSame(os, streamCache.invalidate(osId));
+      }
+    };
+    for (int i = 0; i < numThreads; i++) {
+      threads[i] = new Thread(putGetInvalidate);
+    }
+    for (Thread thread : threads) {
+      thread.start();
+    }
+    for (Thread thread : threads) {
+      thread.join();
+    }
+    Assert.assertEquals(0, streamCache.size());
   }
 
   @Test

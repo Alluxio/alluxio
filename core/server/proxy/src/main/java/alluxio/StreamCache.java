@@ -119,4 +119,11 @@ public final class StreamCache {
     }
     return null;
   }
+
+  /**
+   * @return size of the cache
+   */
+  public long size() {
+    return mInStreamCache.size() + mOutStreamCache.size();
+  }
 }
