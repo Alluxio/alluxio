@@ -21,7 +21,6 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -40,7 +39,6 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 

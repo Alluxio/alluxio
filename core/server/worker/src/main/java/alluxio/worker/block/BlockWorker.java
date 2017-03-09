@@ -228,12 +228,12 @@ public interface BlockWorker extends Worker {
 
   /**
    * Obtains a read lock the block without throwing an exception. If the lock fails, return
-   * {@link BlockLockIdUtil#INVALID_LOCK_ID}.
+   * {@link BlockLockIdUtils#INVALID_LOCK_ID}.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be locked
    * @return the lock id that uniquely identifies the lock obtained or
-   *         {@link BlockLockIdUtil#INVALID_LOCK_ID} if it failed to lock
+   *         {@link BlockLockIdUtils#INVALID_LOCK_ID} if it failed to lock
    */
   long lockBlockNoException(long sessionId, long blockId);
 

@@ -157,20 +157,20 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
       public LockBlockResult call() throws AlluxioException {
         if (!options.isSetUfsPath() || options.getUfsPath().isEmpty()) {
           long lockId = mWorker.lockBlock(sessionId, blockId);
-          Preconditions.checkState(BlockLockIdUtil.isAlluxioBlockLockId(lockId));
+          Preconditions.checkState(BlockLockIdUtils.isAlluxioBlockLockId(lockId));
           return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
         }
 
         long lockId = mWorker.lockBlockNoException(sessionId, blockId);
-        if (BlockLockIdUtil.isAlluxioBlockLockId(lockId)) {
+        if (BlockLockIdUtils.isAlluxioBlockLockId(lockId)) {
           return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
         }
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS
         // block.
         if (mWorker.openUfsBlock(sessionId, blockId, new OpenUfsBlockOptions(options))) {
-          lockId = BlockLockIdUtil.UFS_BLOCK_LOCK_ID;
+          lockId = BlockLockIdUtils.UFS_BLOCK_LOCK_ID;
         } else {
-          lockId = BlockLockIdUtil.UFS_BLOCK_READ_TOKEN_UNAVAILABLE;
+          lockId = BlockLockIdUtils.UFS_BLOCK_READ_TOKEN_UNAVAILABLE;
         }
 
         return new LockBlockResult(lockId, "");
