@@ -41,6 +41,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
+import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
@@ -100,7 +101,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private BlockStore mBlockStore;
   private WorkerNetAddress mAddress;
 
-  private UnderFileSystemBlockStore mUnderFileSystemBlockStore;
+  /** The under file system block store. */
+  private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
 
   /**
    * The worker ID for this worker. This is initialized in {@link #init(WorkerNetAddress)} and may
@@ -440,10 +442,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void openUfsBlock(UnderFileSystemBlockMeta.ConstMeta ufsBlockMetaConst,
-      int maxConcurrency)
-      throws BlockAlreadyExistsException, UfsBlockAccessTokenUnavailableException {
-    mUnderFileSystemBlockStore.acquireAccess(ufsBlockMetaConst, maxConcurrency);
+  public boolean openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
+      throws BlockAlreadyExistsException {
+    return mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
   }
 
   @Override

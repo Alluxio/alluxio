@@ -158,7 +158,7 @@ public final class TieredBlockStore implements BlockStore {
     }
 
     mLockManager.unlockBlockNoException(lockId);
-    return BlockLockManager.INVALID_LOCK_ID;
+    return BlockLockIdUtil.INVALID_LOCK_ID;
   }
 
   @Override
@@ -823,7 +823,7 @@ public final class TieredBlockStore implements BlockStore {
    * @throws IOException if the file cannot be created in the tiered storage folder
    */
   // TODO(peis): Consider using domain socket to avoid setting the permission to 777.
-  private void createBlockFile(String blockPath) throws IOException {
+  private static void createBlockFile(String blockPath) throws IOException {
     FileUtils.createBlockPath(blockPath);
     FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
