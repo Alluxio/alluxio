@@ -33,6 +33,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
+import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import org.junit.After;
@@ -113,35 +114,32 @@ public class BlockWorkerTest {
   @Test
   public void openUnderFileSystemBlock() throws Exception {
     long blockId = mRandom.nextLong();
-    for (int i = 0; i < 10; i++) {
-      long sessionId = i + 1;
-      UnderFileSystemBlockMeta.ConstMeta meta =
-          new UnderFileSystemBlockMeta.ConstMeta(sessionId, blockId, new LockBlockTOptions());
-      mBlockWorker.openUfsBlock(meta, 10);
+    LockBlockTOptions lockBlockTOptions = new LockBlockTOptions();
+    lockBlockTOptions.setMaxUfsReadConcurrency(10);
+    lockBlockTOptions.setUfsPath("/a");
+    OpenUfsBlockOptions openUfsBlockOptions = new OpenUfsBlockOptions(new LockBlockTOptions());
+
+    long sessionId = 1;
+    for (; sessionId < 11; sessionId++) {
+      Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
     }
-    UnderFileSystemBlockMeta.ConstMeta meta =
-        new UnderFileSystemBlockMeta.ConstMeta(12, blockId, new LockBlockTOptions());
-    try {
-      mBlockWorker.openUfsBlock(meta, 10);
-      Assert.fail();
-    } catch (UfsBlockAccessTokenUnavailableException e) {
-      // expected.
-    }
+    Assert.assertFalse(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
   }
 
   @Test
   public void closeUnderFileSystemBlock() throws Exception {
     long blockId = mRandom.nextLong();
-    for (int i = 0; i < 10; i++) {
-      long sessionId = i + 1;
-      UnderFileSystemBlockMeta.ConstMeta meta =
-          new UnderFileSystemBlockMeta.ConstMeta(sessionId, blockId, new LockBlockTOptions());
-      mBlockWorker.openUfsBlock(meta, 10);
+    LockBlockTOptions lockBlockTOptions = new LockBlockTOptions();
+    lockBlockTOptions.setMaxUfsReadConcurrency(10);
+    lockBlockTOptions.setUfsPath("/a");
+    OpenUfsBlockOptions openUfsBlockOptions = new OpenUfsBlockOptions(new LockBlockTOptions());
+
+    long sessionId = 1;
+    for (; sessionId < 11; sessionId++) {
+      Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
       mBlockWorker.closeUfsBlock(sessionId, blockId);
     }
-    UnderFileSystemBlockMeta.ConstMeta meta =
-        new UnderFileSystemBlockMeta.ConstMeta(12, blockId, new LockBlockTOptions());
-    mBlockWorker.openUfsBlock(meta, 10);
+    Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
   }
 
   /**
