@@ -101,7 +101,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private BlockStore mBlockStore;
   private WorkerNetAddress mAddress;
 
-  private UnderFileSystemBlockStore mUnderFileSystemBlockStore;
+  /** The under file system block store. */
+  private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
 
   /**
    * The worker ID for this worker. This is initialized in {@link #init(WorkerNetAddress)} and may
