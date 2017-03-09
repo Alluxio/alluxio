@@ -97,6 +97,7 @@ public class StreamCacheTest {
         Assert.assertSame(os, streamCache.getOutStream(osIDs.get(mThreadIndex)));
       }
     }
+
     for (int i = 0; i < numThreads; i++) {
       threads[i] = new Thread(new Get(i));
     }
@@ -132,6 +133,7 @@ public class StreamCacheTest {
         Assert.assertSame(os, streamCache.invalidate(osId));
       }
     }
+
     for (int i = 0; i < numThreads; i++) {
       threads[i] = new Thread(new GetPutInvalidate(i));
     }
