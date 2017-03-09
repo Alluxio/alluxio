@@ -181,4 +181,20 @@ public class StreamCacheTest {
     Mockito.verify(is).close();
     Mockito.verify(os).close();
   }
+
+  @Test
+  public void size() throws Exception {
+    StreamCache streamCache = new StreamCache(Constants.HOUR_MS);
+    FileInStream is = Mockito.mock(FileInStream.class);
+    FileOutStream os = Mockito.mock(FileOutStream.class);
+    Assert.assertEquals(0, streamCache.size());
+    int isId = streamCache.put(is);
+    Assert.assertEquals(1, streamCache.size());
+    int osId = streamCache.put(os);
+    Assert.assertEquals(2, streamCache.size());
+    streamCache.invalidate(isId);
+    Assert.assertEquals(1, streamCache.size());
+    streamCache.invalidate(osId);
+    Assert.assertEquals(0, streamCache.size());
+  }
 }
