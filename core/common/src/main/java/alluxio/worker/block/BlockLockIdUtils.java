@@ -14,7 +14,7 @@ package alluxio.worker.block;
 /**
  * Utils related to block lock ID.
  */
-public final class BlockLockIdUtil {
+public final class BlockLockIdUtils {
   /** The lock ID that indicates that a UFS block access token is acquired. */
   public static final long UFS_BLOCK_LOCK_ID = -1;
   /** The lock ID that indicates that a UFS block access token is not acquired. */
@@ -25,7 +25,7 @@ public final class BlockLockIdUtil {
 
   /**
    * @param lockId the lock ID
-   * @return true if the lock ID is {@link BlockLockIdUtil#UFS_BLOCK_LOCK_ID}
+   * @return true if the lock ID is {@link BlockLockIdUtils#UFS_BLOCK_LOCK_ID}
    */
   public static boolean isUfsBlockLockId(long lockId) {
     return lockId == UFS_BLOCK_LOCK_ID;
@@ -33,10 +33,10 @@ public final class BlockLockIdUtil {
 
   /**
    * @param lockId the lock ID
-   * @return true if the lock ID is {@link BlockLockIdUtil#UFS_BLOCK_READ_TOKEN_UNAVAILABLE}
+   * @return true if the lock ID is {@link BlockLockIdUtils#UFS_BLOCK_READ_TOKEN_UNAVAILABLE}
    */
   public static boolean isUfsBlockReadTokenUnavailable(long lockId) {
-    return lockId ==  UFS_BLOCK_READ_TOKEN_UNAVAILABLE;
+    return lockId == UFS_BLOCK_READ_TOKEN_UNAVAILABLE;
   }
 
   /**
@@ -47,5 +47,5 @@ public final class BlockLockIdUtil {
     return lockId >= 0;
   }
 
-  private BlockLockIdUtil() {}  // prevent instantiation
+  private BlockLockIdUtils() {}  // prevent instantiation
 }

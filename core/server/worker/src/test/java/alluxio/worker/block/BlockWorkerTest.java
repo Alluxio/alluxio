@@ -25,14 +25,12 @@ import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -117,7 +115,7 @@ public class BlockWorkerTest {
     LockBlockTOptions lockBlockTOptions = new LockBlockTOptions();
     lockBlockTOptions.setMaxUfsReadConcurrency(10);
     lockBlockTOptions.setUfsPath("/a");
-    OpenUfsBlockOptions openUfsBlockOptions = new OpenUfsBlockOptions(new LockBlockTOptions());
+    OpenUfsBlockOptions openUfsBlockOptions = new OpenUfsBlockOptions(lockBlockTOptions);
 
     long sessionId = 1;
     for (; sessionId < 11; sessionId++) {
@@ -132,7 +130,7 @@ public class BlockWorkerTest {
     LockBlockTOptions lockBlockTOptions = new LockBlockTOptions();
     lockBlockTOptions.setMaxUfsReadConcurrency(10);
     lockBlockTOptions.setUfsPath("/a");
-    OpenUfsBlockOptions openUfsBlockOptions = new OpenUfsBlockOptions(new LockBlockTOptions());
+    OpenUfsBlockOptions openUfsBlockOptions = new OpenUfsBlockOptions(lockBlockTOptions);
 
     long sessionId = 1;
     for (; sessionId < 11; sessionId++) {
