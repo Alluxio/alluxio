@@ -36,7 +36,7 @@ public final class UnderFileSystemBlockStoreTest {
     mAlluxioBlockStore = Mockito.mock(BlockStore.class);
 
     LockBlockTOptions options = new LockBlockTOptions();
-    options.setMaxUfsReadConcurrency(10);
+    options.setMaxUfsReadConcurrency(5);
     options.setBlockSize(TEST_BLOCK_SIZE);
     options.setOffset(TEST_BLOCK_SIZE);
     options.setUfsPath(mFolder.newFile().getAbsolutePath());
