@@ -90,7 +90,6 @@ public final class UnderFileSystemBlockReaderTest {
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE, buffer));
 
     mReader.close();
-    Assert.assertTrue(mReader.isCommitPending());
   }
 
   @Test
@@ -103,7 +102,6 @@ public final class UnderFileSystemBlockReaderTest {
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE - 1, buffer));
 
     mReader.close();
-    Assert.assertFalse(mReader.isCommitPending());
   }
 
   @Test
@@ -116,7 +114,6 @@ public final class UnderFileSystemBlockReaderTest {
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE + 2, (int) TEST_BLOCK_SIZE - 2, buffer));
 
     mReader.close();
-    Assert.assertFalse(mReader.isCommitPending());
   }
 
   @Test
@@ -136,7 +133,6 @@ public final class UnderFileSystemBlockReaderTest {
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE + 3, (int) TEST_BLOCK_SIZE - 3, buffer));
 
     mReader.close();
-    Assert.assertTrue(mReader.isCommitPending());
   }
 
   @Test
@@ -147,7 +143,6 @@ public final class UnderFileSystemBlockReaderTest {
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE, buffer));
     mReader.close();
-    Assert.assertFalse(mReader.isCommitPending());
   }
 
   @Test
@@ -163,7 +158,6 @@ public final class UnderFileSystemBlockReaderTest {
           .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE,
               buf.nioBuffer()));
       mReader.close();
-      Assert.assertTrue(mReader.isCommitPending());
     } finally {
       buf.release();
     }
@@ -182,7 +176,6 @@ public final class UnderFileSystemBlockReaderTest {
           .equalIncreasingByteBuffer((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE / 2,
               buf.nioBuffer()));
       mReader.close();
-      Assert.assertFalse(mReader.isCommitPending());
     } finally {
       buf.release();
     }

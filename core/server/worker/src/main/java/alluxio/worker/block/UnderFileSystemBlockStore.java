@@ -37,7 +37,7 @@ import javax.annotation.concurrent.GuardedBy;
  *
  * The usage pattern:
  *  acquireAccess(blockMeta, maxConcurrency)
- *  cleanup(sessionId, blockId)
+ *  closeReaderOrWriter(sessionId, blockId)
  *  releaseAccess(sessionId, blockId)
  *
  * If the client is lost before releasing or cleaning up the session, the session cleaner will
@@ -79,7 +79,8 @@ public final class UnderFileSystemBlockStore {
 
   /**
    * Acquires access for a UFS block given a {@link UnderFileSystemBlockMeta} and the limit on
-   * the maximum concurrency on the block.
+   * the maximum concurrency on the block. If the number of concurrent readers on this UFS block
+   * exceeds a threshold, the token is not granted and this method returns false.
    *
    * @param sessionId the session ID
    * @param blockId maximum concurrency
@@ -122,7 +123,7 @@ public final class UnderFileSystemBlockStore {
   }
 
   /**
-   * Cleans up the block reader or writer and checks whether it is necessary to commit the block
+   * Closes the block reader or writer and checks whether it is necessary to commit the block
    * to Local block store.
    *
    * During UFS block read, this is triggered when the block is unlocked.
@@ -130,10 +131,9 @@ public final class UnderFileSystemBlockStore {
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @return true if block is to be committed into Local block store
    * @throws IOException if it fails to clean up
    */
-  public boolean cleanup(long sessionId, long blockId) throws IOException {
+  public void closeReaderOrWriter(long sessionId, long blockId) throws IOException {
     BlockInfo blockInfo;
     mLock.lock();
     try {
@@ -141,12 +141,12 @@ public final class UnderFileSystemBlockStore {
       if (blockInfo == null) {
         LOG.warn("Key (block ID: {}, session ID {}) is not found when cleaning up the UFS block.",
             blockId, sessionId);
-        return false;
+        return;
       }
     } finally {
       mLock.unlock();
     }
-    return blockInfo.closeReaderOrWriter();
+    blockInfo.closeReaderOrWriter();
   }
 
   /**
@@ -200,7 +200,7 @@ public final class UnderFileSystemBlockStore {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
         // in Local block store because they will be cleanup by the session cleaner in the
         // Local block store.
-        cleanup(sessionId, blockId);
+        closeReaderOrWriter(sessionId, blockId);
         releaseAccess(sessionId, blockId);
       } catch (Exception e) {
         LOG.warn("Failed to cleanup UFS block {}, session {}.", blockId, sessionId);
@@ -227,13 +227,14 @@ public final class UnderFileSystemBlockStore {
     mLock.lock();
     try {
       blockInfo = getBlockInfo(sessionId, blockId);
-      if (blockInfo.getBlockReader() != null) {
-        return blockInfo.getBlockReader();
+      BlockReader blockReader = blockInfo.getBlockReader();
+      if (blockReader != null) {
+        return blockReader;
       }
     } finally {
       mLock.unlock();
     }
-    BlockReaderWithCache reader =
+    BlockReader reader =
         UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore);
     blockInfo.setBlockReader(reader);
     return reader;
@@ -312,13 +313,20 @@ public final class UnderFileSystemBlockStore {
     }
   }
 
+  /**
+   * This class is to wrap block reader/writer and the block meta into one class. The block
+   * reader/writer is not part of the {@link UnderFileSystemBlockMeta} because
+   * 1. UnderFileSystemBlockMeta only keeps immutable information.
+   * 2. We do not want a cyclic dependency between {@link UnderFileSystemBlockReader} and
+   *    {@link UnderFileSystemBlockMeta}.
+   */
   private static class BlockInfo {
     private final UnderFileSystemBlockMeta mMeta;
 
     // A correct client implementation should never access the following reader/writer
     // concurrently. But just to avoid crashing the server thread with runtime exception when
     // the client is mis-behaving, we access them with locks acquired.
-    private BlockReaderWithCache mBlockReader;
+    private BlockReader mBlockReader;
     private BlockWriter mBlockWriter;
 
     /**
@@ -350,7 +358,7 @@ public final class UnderFileSystemBlockStore {
     /**
      * @param blockReader the block reader to be set
      */
-    public synchronized void setBlockReader(BlockReaderWithCache blockReader) {
+    public synchronized void setBlockReader(BlockReader blockReader) {
       mBlockReader = blockReader;
     }
 
@@ -371,21 +379,17 @@ public final class UnderFileSystemBlockStore {
     /**
      * Closes the block reader or writer.
      *
-     * @return true if the block is pending to be committed
      * @throws IOException if it fails to close block reader or writer
      */
-    public synchronized boolean closeReaderOrWriter() throws IOException {
-      boolean commitPending = false;
+    public synchronized void closeReaderOrWriter() throws IOException {
       if (mBlockReader != null) {
         mBlockReader.close();
-        commitPending = mBlockReader.isCommitPending();
         mBlockReader = null;
       }
       if (mBlockWriter != null) {
         mBlockWriter.close();
         mBlockWriter = null;
       }
-      return commitPending;
     }
   }
 }
