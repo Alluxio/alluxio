@@ -120,7 +120,8 @@ public final class LockBlockResult implements Serializable {
   protected LockBlockResult(alluxio.thrift.LockBlockResult lockBlockResult) {
     mLockId = lockBlockResult.getLockId();
     mBlockPath = lockBlockResult.getBlockPath();
-    mLockBlockStatus = LockBlockStatus.fromThrift(lockBlockResult.getLockBlockStatus());
+    mLockBlockStatus = LockBlockStatus
+        .fromThrift(Preconditions.checkNotNull(lockBlockResult.getLockBlockStatus()));
   }
 
   /**
@@ -135,6 +136,13 @@ public final class LockBlockResult implements Serializable {
    */
   public String getBlockPath() {
     return mBlockPath;
+  }
+
+  /**
+   * @return the lock block status
+   */
+  public LockBlockStatus getLockBlockStatus() {
+    return mLockBlockStatus;
   }
 
   /**
@@ -156,11 +164,13 @@ public final class LockBlockResult implements Serializable {
     return this;
   }
 
- /**
-   * @return the lock block status
+  /**
+   * @param status the lock block status
+   * @return the lock block operation result
    */
-  public LockBlockStatus getLockBlockStatus() {
-    return mLockBlockStatus;
+  public LockBlockResult setLockBlockStatus(LockBlockStatus status) {
+    mLockBlockStatus = Preconditions.checkNotNull(status);
+    return  this;
   }
 
   /**
