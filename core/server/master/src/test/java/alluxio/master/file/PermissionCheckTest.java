@@ -35,7 +35,7 @@ import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.Journal;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -171,10 +171,10 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
     LoginUserTestUtils.resetLoginUser(TEST_USER_ADMIN.getUser());
 
-    JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mBlockMaster = new BlockMaster(journalFactory);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
+    Journal.Factory factory =
+        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()), true);
+    mBlockMaster = new BlockMaster(factory);
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, factory);
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
 

@@ -17,14 +17,13 @@ import alluxio.PropertyKey;
 import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalTailer;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalTailerThread;
+import alluxio.master.journal.MutableJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -104,8 +103,8 @@ public abstract class AbstractMaster implements Master {
     mIsLeader = isLeader;
     LOG.info("{}: Starting {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
-      Preconditions.checkState(mJournal instanceof ReadWriteJournal);
-      mJournalWriter = ((ReadWriteJournal) mJournal).getNewWriter();
+      Preconditions.checkState(mJournal instanceof MutableJournal);
+      mJournalWriter = ((MutableJournal) mJournal).getWriter();
 
       /**
        * The sequence for dealing with the journal before starting as the leader:
@@ -213,7 +212,7 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public void transitionToLeader() {
-    mJournal = JournalFactory.ReadWrite.create(mJournal.getLocation());
+    mJournal = Journal.Factory.create(mJournal.getLocation(), true);
   }
 
   /**

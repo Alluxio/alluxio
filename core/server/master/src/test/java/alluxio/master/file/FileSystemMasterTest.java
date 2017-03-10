@@ -40,7 +40,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.Journal;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.thrift.Command;
@@ -1563,11 +1563,11 @@ public final class FileSystemMasterTest {
   }
 
   private void startServices() throws Exception {
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(new URI(mJournalFolder));
-    mBlockMaster = new BlockMaster(journalFactory);
+    Journal.Factory factory = new Journal.Factory(new URI(mJournalFolder), true);
+    mBlockMaster = new BlockMaster(factory);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory,
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, factory,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
 
     mBlockMaster.start(true);

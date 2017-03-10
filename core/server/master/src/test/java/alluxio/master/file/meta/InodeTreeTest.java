@@ -25,7 +25,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -79,10 +79,10 @@ public final class InodeTreeTest {
    */
   @Before
   public void before() throws Exception {
-    JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(new URI(mTestFolder.newFolder().getAbsolutePath()));
+    Journal.Factory factory =
+        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()), true);
 
-    BlockMaster blockMaster = new BlockMaster(journalFactory);
+    BlockMaster blockMaster = new BlockMaster(factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);

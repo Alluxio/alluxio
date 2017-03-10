@@ -56,7 +56,7 @@ public class UfsJournalWriterTest {
   @Before
   public void before() throws Exception {
     File journalFolder = mFolder.newFolder();
-    mJournal = new UfsReadWriteJournal(new URI(journalFolder.getAbsolutePath()));
+    mJournal = new UfsMutableJournal(new URI(journalFolder.getAbsolutePath()));
   }
 
   @Test

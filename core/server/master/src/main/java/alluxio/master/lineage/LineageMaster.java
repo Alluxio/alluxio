@@ -32,7 +32,7 @@ import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
 import alluxio.master.lineage.checkpoint.CheckpointSchedulingExecutor;
@@ -83,7 +83,7 @@ public final class LineageMaster extends AbstractMaster {
    * @param fileSystemMaster the file system master
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory) {
+  public LineageMaster(FileSystemMaster fileSystemMaster, Journal.Factory journalFactory) {
     this(fileSystemMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
@@ -96,7 +96,7 @@ public final class LineageMaster extends AbstractMaster {
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
+  public LineageMaster(FileSystemMaster fileSystemMaster, Journal.Factory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
         executorServiceFactory);

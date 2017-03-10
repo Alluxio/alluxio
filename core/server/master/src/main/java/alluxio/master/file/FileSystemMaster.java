@@ -65,7 +65,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.AddMountPointEntry;
@@ -276,7 +276,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param blockMaster the {@link BlockMaster} to use
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory) {
+  public FileSystemMaster(BlockMaster blockMaster, Journal.Factory journalFactory) {
     this(blockMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
   }
@@ -289,7 +289,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory,
+  public FileSystemMaster(BlockMaster blockMaster, Journal.Factory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
         executorServiceFactory);

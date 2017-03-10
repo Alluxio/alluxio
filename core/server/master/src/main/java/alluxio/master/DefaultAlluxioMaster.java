@@ -20,13 +20,12 @@ import alluxio.ServerUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.MutableJournal;
 import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
-import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.LineageUtils;
@@ -145,15 +144,15 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
-      // Check that the journal folder has been formatted.
+      // Check that the journal has been formatted.
       URI location = getJournalLocation();
-      Journal journal = JournalFactory.ReadWrite.create(location);
+      Journal journal = MutableJournal.Factory.create(location);
       if (!journal.isFormatted()) {
         throw new RuntimeException(
             String.format("Alluxio master folder %s has not been formatted!", location));
       }
-      // Create the masters
-      createMasters(new JournalFactory.ReadWrite(location));
+      // Create the masters.
+      createMasters(new Journal.Factory(location, true));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -174,7 +173,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   /**
    * @param journalFactory the factory to use for creating journals
    */
-  protected void createMasters(JournalFactory journalFactory) {
+  protected void createMasters(MutableJournal.Factory journalFactory) {
     mBlockMaster = new BlockMaster(journalFactory);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
     if (LineageUtils.isLineageEnabled()) {

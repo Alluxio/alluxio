@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.LeaderSelectorClient;
 import alluxio.PropertyKey;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -57,9 +56,9 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
       mLeaderSelectorClient =
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
 
-      // Check that the journal folder has been formatted.
+      // Check that the journal has been formatted.
       URI location = getJournalLocation();
-      Journal journal = JournalFactory.ReadWrite.create(location);
+      Journal journal = Journal.Factory.create(location);
       if (!journal.isFormatted()) {
         throw new RuntimeException(
             String.format("Alluxio master folder %s has not been formatted!", location));
@@ -109,7 +108,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
 
           // When transitioning from master to standby, recreate the masters with a read-only
           // journal.
-          createMasters(new JournalFactory.ReadOnly(getJournalLocation()));
+          createMasters(new Journal.Factory(getJournalLocation()));
           startMasters(false);
           started = true;
         }

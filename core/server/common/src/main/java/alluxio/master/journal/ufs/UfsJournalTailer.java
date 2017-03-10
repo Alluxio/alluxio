@@ -16,7 +16,6 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalTailer;
-import alluxio.master.journal.ReadOnlyJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;
@@ -49,7 +48,7 @@ public final class UfsJournalTailer implements JournalTailer {
    */
   public UfsJournalTailer(Master master, Journal journal) {
     mMaster = Preconditions.checkNotNull(master);
-    mReader = ((ReadOnlyJournal) journal).getNewReader();
+    mReader = journal.getReader();
   }
 
   @Override

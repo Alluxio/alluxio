@@ -12,16 +12,15 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFormatter;
+import alluxio.master.journal.JournalReader;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.URIUtils;
 import alluxio.util.UnderFileSystemUtils;
-import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +32,7 @@ import java.net.URISyntaxException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Implementation of {@link Journal} based on UFS.
+ * Implementation of UFS-based journal.
  *
  * The journal is made up of 2 components:
  * - The checkpoint: the full state of the master
@@ -44,7 +43,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * completed entry files are in the "completed" folder.
  */
 @ThreadSafe
-public abstract class UfsJournal implements Journal {
+public class UfsJournal implements Journal {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournal.class);
 
   /** The log number for the first completed log. */
@@ -112,11 +111,6 @@ public abstract class UfsJournal implements Journal {
     return true;
   }
 
-  @Override
-  public URI getLocation() {
-    return mLocation;
-  }
-
   /**
    * @return the location of the completed logs
    */
@@ -168,6 +162,16 @@ public abstract class UfsJournal implements Journal {
    */
   protected JournalFormatter getJournalFormatter() {
     return mJournalFormatter;
+  }
+
+  @Override
+  public URI getLocation() {
+    return mLocation;
+  }
+
+  @Override
+  public JournalReader getReader() {
+    return new UfsJournalReader(this);
   }
 
   @Override

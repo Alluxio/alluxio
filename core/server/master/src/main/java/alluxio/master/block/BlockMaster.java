@@ -31,7 +31,7 @@ import alluxio.master.AbstractMaster;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
@@ -163,7 +163,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    *
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public BlockMaster(JournalFactory journalFactory) {
+  public BlockMaster(Journal.Factory journalFactory) {
     this(journalFactory, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
@@ -176,7 +176,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public BlockMaster(JournalFactory journalFactory, Clock clock,
+  public BlockMaster(Journal.Factory journalFactory, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
     Metrics.registerGauges(this);

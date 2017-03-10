@@ -11,8 +11,8 @@
 
 package alluxio.master.journal;
 
-import alluxio.util.proto.ProtoUtils;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.proto.ProtoUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

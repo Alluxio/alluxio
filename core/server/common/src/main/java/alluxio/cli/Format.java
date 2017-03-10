@@ -12,17 +12,14 @@
 package alluxio.cli;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
-import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.Journal;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -97,12 +94,13 @@ public final class Format {
   public static void format(String mode) throws IOException {
     if ("MASTER".equalsIgnoreCase(mode)) {
       String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-      JournalFactory factory;
+      Journal.Factory factory;
       try {
-        factory = new JournalFactory.ReadWrite(new URI(masterJournal));
+        factory = new Journal.Factory(new URI(masterJournal));
       } catch (URISyntaxException e) {
         throw new IOException(e.getMessage());
       }
+      // This is a small hack to format the root journal folder.
       if (!factory.create("").format()) {
         throw new RuntimeException("Failed to format root journal folder");
       }

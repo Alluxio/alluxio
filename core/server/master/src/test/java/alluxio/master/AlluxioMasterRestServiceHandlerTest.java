@@ -28,7 +28,7 @@ import alluxio.RuntimeConstants;
 import alluxio.clock.ManualClock;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.Journal;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -109,14 +109,13 @@ public class AlluxioMasterRestServiceHandlerTest {
   public void before() throws Exception {
     mMaster = mock(AlluxioMasterService.class);
     mContext = mock(ServletContext.class);
-    JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(new URI(mTestFolder.newFolder().getAbsolutePath()));
+    Journal.Factory factory =
+        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()), true);
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster =
-        new BlockMaster(journalFactory, mClock,
-            ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mBlockMaster = new BlockMaster(factory, mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mBlockMaster.start(true);
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
     when(mContext.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(

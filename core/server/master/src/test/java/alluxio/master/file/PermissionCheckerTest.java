@@ -27,7 +27,7 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.Journal;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -157,10 +157,10 @@ public final class PermissionCheckerTest {
             .setGroup(TEST_USER_1.getGroup()).setMode(TEST_NORMAL_MODE).setRecursive(true);
 
     // setup an InodeTree
-    JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(new URI(sTestFolder.newFolder().getAbsolutePath()));
+    Journal.Factory factory =
+        new Journal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()), true);
 
-    BlockMaster blockMaster = new BlockMaster(journalFactory);
+    BlockMaster blockMaster = new BlockMaster(factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     sTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
