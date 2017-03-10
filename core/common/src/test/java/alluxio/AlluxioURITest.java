@@ -28,10 +28,10 @@ public class AlluxioURITest {
   private static final boolean WINDOWS = OSUtils.isWindows();
 
   /**
-   * Tests the {@link AlluxioURI#AlluxioURI(String)} constructor for basic paths.
+   * Tests the {@link AlluxioURI#AlluxioURI(String)} constructor for basic Alluxio paths.
    */
   @Test
-  public void basicTest1() {
+  public void basicAlluxioUri() {
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/xy z/a b c");
     Assert.assertEquals("localhost:19998", uri.getAuthority());
     Assert.assertEquals(2, uri.getDepth());
@@ -53,10 +53,10 @@ public class AlluxioURITest {
   }
 
   /**
-   * Tests the {@link AlluxioURI#AlluxioURI(String)} constructor for basic paths.
+   * Tests the {@link AlluxioURI#AlluxioURI(String)} constructor for basic HDFS paths.
    */
   @Test
-  public void basicTest2() {
+  public void basicHdfsUri() {
     AlluxioURI uri = new AlluxioURI("hdfs://localhost/xy z/a b c");
     Assert.assertEquals("localhost", uri.getAuthority());
     Assert.assertEquals(2, uri.getDepth());
@@ -75,6 +75,29 @@ public class AlluxioURITest {
     Assert.assertEquals("hdfs://localhost/xy z/a b c/d", uri.join(new AlluxioURI("/d"))
         .toString());
     Assert.assertEquals("hdfs://localhost/xy z/a b c", uri.toString());
+  }
+
+  @Test
+  public void basicTwoPartUri() {
+    AlluxioURI uri = new AlluxioURI("scheme:part2://localhost:8000/xy z/a b c");
+    Assert.assertEquals(uri, new AlluxioURI("scheme:part2//localhost:8000/xy z/a b c"));
+    Assert.assertEquals("scheme:part2", uri.getScheme());
+    Assert.assertEquals("localhost:8000", uri.getAuthority());
+    Assert.assertEquals("localhost", uri.getHost());
+    Assert.assertEquals(8000, uri.getPort());
+    Assert.assertEquals(2, uri.getDepth());
+    Assert.assertEquals("a b c", uri.getName());
+    Assert.assertEquals("scheme:part2://localhost:8000/xy z", uri.getParent().toString());
+    Assert.assertEquals("scheme:part2://localhost:8000/", uri.getParent().getParent().toString());
+    Assert.assertEquals("/xy z/a b c", uri.getPath());
+    Assert.assertTrue(uri.hasAuthority());
+    Assert.assertTrue(uri.hasScheme());
+    Assert.assertTrue(uri.isAbsolute());
+    Assert.assertTrue(uri.isPathAbsolute());
+    Assert.assertEquals("scheme:part2://localhost:8000/xy z/a b c/d", uri.join("/d").toString());
+    Assert.assertEquals("scheme:part2://localhost:8000/xy z/a b c/d", uri.join(new AlluxioURI("/d"))
+        .toString());
+    Assert.assertEquals("scheme:part2://localhost:8000/xy z/a b c", uri.toString());
   }
 
   /**

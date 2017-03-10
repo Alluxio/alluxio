@@ -1,4 +1,4 @@
-alluxio.conf.directory:
+alluxio.conf.dir:
   包含Alluxio配置文件的目录。
 alluxio.debug:
   设置为true后即可启用debug模式，会记录更多日志，且在Web UI中会显示更多信息。

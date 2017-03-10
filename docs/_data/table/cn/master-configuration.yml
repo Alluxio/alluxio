@@ -33,7 +33,7 @@ alluxio.master.lineage.recompute.log.path:
 alluxio.master.port:
   Alluxio master的运行端口。
 alluxio.master.retry:
-  client尝试与master相连的最大重试次数。
+  "client尝试与master相连的最大重试次数。（注意：该配置项目前不推荐使用，建议使用`alluxio.user.rpc.retry.max.num.retry`替代该项）"
 alluxio.master.startup.consistency.check.enabled:
   当Alluxio启动时是否检查与底层存储系统的一致性，在该检查过程中，Alluxio会进入只读模式。该检查默认开启。
 alluxio.master.ttl.checker.interval.ms:

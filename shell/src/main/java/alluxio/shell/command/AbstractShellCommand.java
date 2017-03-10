@@ -75,6 +75,13 @@ public abstract class AbstractShellCommand implements ShellCommand {
                   .hasArg(false)
                   .desc("list all pinned files")
                   .build();
+  protected static final Option FIX_INCONSISTENT_FILES =
+      Option.builder("r")
+          .required(false)
+          .hasArg(false)
+          .desc("repair inconsistent files")
+          .build();
+
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;
   }

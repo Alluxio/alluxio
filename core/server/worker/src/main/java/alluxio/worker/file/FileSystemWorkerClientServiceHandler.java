@@ -27,6 +27,8 @@ import alluxio.worker.file.options.CompleteUfsFileOptions;
 import alluxio.worker.file.options.CreateUfsFileOptions;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,6 +42,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class FileSystemWorkerClientServiceHandler
     implements FileSystemWorkerClientService.Iface {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(FileSystemWorkerClientServiceHandler.class);
 
   /** File System Worker that carries out most of the operations. */
   private final FileSystemWorker mWorker;
@@ -69,12 +73,18 @@ public final class FileSystemWorkerClientServiceHandler
    */
   @Override
   public void cancelUfsFile(final long sessionId, final long tempUfsFileId,
-      CancelUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    RpcUtils.call(new RpcUtils.RpcCallableThrowsIOException<Void>() {
+      final CancelUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
+    RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
         mWorker.cancelUfsFile(sessionId, tempUfsFileId);
         return null;
+      }
+
+      @Override
+      public String toString() {
+        return String.format("CancelUfsFile: sessionId=%s, tempUfsFileId=%s, options=%s",
+            sessionId, tempUfsFileId, options);
       }
     });
   }
@@ -90,12 +100,18 @@ public final class FileSystemWorkerClientServiceHandler
    */
   @Override
   public void closeUfsFile(final long sessionId, final long tempUfsFileId,
-      CloseUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    RpcUtils.call(new RpcUtils.RpcCallableThrowsIOException<Void>() {
+      final CloseUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
+    RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
         mWorker.closeUfsFile(sessionId, tempUfsFileId);
         return null;
+      }
+
+      @Override
+      public String toString() {
+        return String.format("CloseUfsFile: sessionId=%s, tempUfsFileId=%s, options=%s",
+            sessionId, tempUfsFileId, options);
       }
     });
   }
@@ -113,11 +129,17 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public long completeUfsFile(final long sessionId, final long tempUfsFileId,
       final CompleteUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    return RpcUtils.call(new RpcUtils.RpcCallableThrowsIOException<Long>() {
+    return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
         return mWorker
             .completeUfsFile(sessionId, tempUfsFileId, new CompleteUfsFileOptions(options));
+      }
+
+      @Override
+      public String toString() {
+        return String.format("CompleteUfsFile: sessionId=%s, tempUfsFileId=%s, options=%s",
+            sessionId, tempUfsFileId, options);
       }
     });
   }
@@ -136,11 +158,17 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public long createUfsFile(final long sessionId, final String ufsUri,
       final CreateUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    return RpcUtils.call(new RpcUtils.RpcCallableThrowsIOException<Long>() {
+    return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
         return mWorker
             .createUfsFile(sessionId, new AlluxioURI(ufsUri), new CreateUfsFileOptions(options));
+      }
+
+      @Override
+      public String toString() {
+        return String.format("CreateUfsFile: sessionId=%s, ufsUri=%s, options=%s", sessionId,
+            ufsUri, options);
       }
     });
   }
@@ -158,10 +186,16 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public long openUfsFile(final long sessionId, final String ufsUri,
       final OpenUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    return RpcUtils.call(new RpcUtils.RpcCallableThrowsIOException<Long>() {
+    return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
         return mWorker.openUfsFile(sessionId, new AlluxioURI(ufsUri));
+      }
+
+      @Override
+      public String toString() {
+        return String.format("OpenUfsFile: sessionId=%s, ufsUri=%s, options=%s", sessionId, ufsUri,
+            options);
       }
     });
   }
@@ -176,7 +210,7 @@ public final class FileSystemWorkerClientServiceHandler
   @Override
   public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
       throws AlluxioTException {
-    RpcUtils.call(new RpcUtils.RpcCallable<Void>() {
+    RpcUtils.call(LOG, new RpcUtils.RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioException {
         mWorker.sessionHeartbeat(sessionId);

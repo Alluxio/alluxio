@@ -46,7 +46,8 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(binfan): move logic outside and make this a simple wrapper.
 @ThreadSafe
 public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(KeyValueWorkerClientServiceHandler.class);
 
   /** BlockWorker handler for access block info. */
   private final BlockWorker mBlockWorker;
@@ -75,7 +76,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   @Override
   public ByteBuffer get(final long blockId, final ByteBuffer key)
       throws AlluxioTException, ThriftIOException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<ByteBuffer>() {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ByteBuffer>() {
       @Override
       public ByteBuffer call() throws AlluxioException, IOException {
         ByteBuffer value = getInternal(blockId, key);
@@ -131,7 +132,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   @Override
   public List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key, final int numKeys)
       throws AlluxioTException, ThriftIOException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<List<ByteBuffer>>() {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<List<ByteBuffer>>() {
       @Override
       public List<ByteBuffer> call() throws AlluxioException, IOException {
         final long sessionId = Sessions.KEYVALUE_SESSION_ID;
@@ -166,7 +167,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   // TODO(cc): Try to remove the duplicated try-catch logic in other methods like getNextKeys.
   @Override
   public int getSize(final long blockId) throws AlluxioTException, ThriftIOException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<Integer>() {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<Integer>() {
       @Override
       public Integer call() throws AlluxioException, IOException {
         final long sessionId = Sessions.KEYVALUE_SESSION_ID;

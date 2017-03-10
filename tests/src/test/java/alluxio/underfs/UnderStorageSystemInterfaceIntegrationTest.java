@@ -24,19 +24,19 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.underfs.hdfs.HdfsUnderFileSystem;
-import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -105,13 +105,12 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   @Test
   public void createNoParent() throws IOException {
     // Run the test only for local UFS. Other UFSs succeed if no parents are present
-    if (mUfs instanceof LocalUnderFileSystem) {
-      mThrown.expect(IOException.class);
-      String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
-      OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(false));
-      o.close();
-      Assert.assertFalse(mUfs.exists(testFile));
-    }
+    Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs));
+
+    mThrown.expect(IOException.class);
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
+    OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(false));
+    o.close();
   }
 
   /**
@@ -148,7 +147,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     byte[] buf = new byte[0];
     int bytesRead = mUfs.open(testFile).read(buf);
     // TODO(adit): Consider making the return value uniform across UFSs
-    if (mUfs instanceof HdfsUnderFileSystem) {
+    if (UnderFileSystemUtils.isHdfs(mUfs)) {
       Assert.assertTrue(bytesRead == -1);
     } else {
       Assert.assertTrue(bytesRead == 0);
@@ -588,10 +587,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    */
   @Test
   public void objectCommonPrefixesIsDirectory() throws IOException {
-    if (!(mUfs instanceof ObjectUnderFileSystem)) {
-      // Only run test for an object store
-      return;
-    }
+    // Only run test for an object store
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
+
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
 
@@ -610,10 +608,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    */
   @Test
   public void objectCommonPrefixesListStatusNonRecursive() throws IOException {
-    if (!(mUfs instanceof ObjectUnderFileSystem)) {
-      // Only run test for an object store
-      return;
-    }
+    // Only run test for an object store
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
+
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
 
@@ -651,10 +648,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    */
   @Test
   public void objectCommonPrefixesListStatusRecursive() throws IOException {
-    if (!(mUfs instanceof ObjectUnderFileSystem)) {
-      // Only run test for an object store
-      return;
-    }
+    // Only run test for an object store
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
+
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
 
@@ -706,10 +702,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    */
   @Test
   public void objectLoadMetadata() throws Exception {
-    if (!(mUfs instanceof ObjectUnderFileSystem)) {
-      // Only run test for an object store
-      return;
-    }
+    // Only run test for an object store
+    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
+
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
     String baseDirectoryName = config.getBaseDirectoryPath()
@@ -827,21 +822,35 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     return new LargeDirectoryConfig(topLevelDirectory, children);
   }
 
-  // Test configuration for pagination tests
+  /**
+   * Test configuration for pagination tests.
+   */
   private class LargeDirectoryConfig {
     private String mTopLevelDirectory;
     // Children for top level directory
     private String[] mChildren;
 
+    /**
+     * Constructs {@link LargeDirectoryConfig} for pagination tests.
+     *
+     * @param topLevelDirectory the top level directory of the directory tree for pagination tests
+     * @param children the children files of the directory tree for pagination tests
+     */
     LargeDirectoryConfig(String topLevelDirectory, String[] children) {
       mTopLevelDirectory = topLevelDirectory;
       mChildren = children;
     }
 
+    /**
+     * @return the top level directory of the directory tree for pagination tests
+     */
     public String getTopLevelDirectory() {
       return mTopLevelDirectory;
     }
 
+    /**
+     * @return the children files of the directory tree for pagination tests
+     */
     public String[] getChildren() {
       return mChildren;
     }
@@ -899,12 +908,21 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     return new ObjectStorePreConfig(baseDirectoryPath, childrenFiles, subDirectories);
   }
 
-  // Test configuration for pre-populating an object store
+  /**
+   * Test configuration for pre-populating an object store.
+   */
   private class ObjectStorePreConfig {
     private String mBaseDirectoryPath;
     private String[] mSubDirectoryNames;
     private String[] mFileNames;
 
+    /**
+     * Constructs {@link ObjectStorePreConfig} for pre-population an object store.
+     *
+     * @param baseDirectoryKey the base directory key for pre-populating of an object store
+     * @param childrenFiles the children files for pre-populating an object store
+     * @param subDirectories the sub-directories for pre-populating an object store
+     */
     ObjectStorePreConfig(String baseDirectoryKey, String[] childrenFiles,
         String[] subDirectories) {
       mBaseDirectoryPath = baseDirectoryKey;
@@ -912,14 +930,23 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       mSubDirectoryNames = subDirectories;
     }
 
+    /**
+     * @return base directory path for pre-populating an object store
+     */
     public String getBaseDirectoryPath() {
       return mBaseDirectoryPath;
     }
 
+    /**
+     * @return filenames for pre-populating an object store
+     */
     public String[] getFileNames() {
       return mFileNames;
     }
 
+    /**
+     * @return names of sub-directories for pre-populating an object store
+     */
     public String[] getSubDirectoryNames() {
       return mSubDirectoryNames;
     }

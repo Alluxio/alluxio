@@ -32,14 +32,13 @@ import java.io.IOException;
  * @param <C> the Alluxio service type
  */
 public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractThriftClient.class);
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  private static final int BASE_SLEEP_MS =
+  protected static final int BASE_SLEEP_MS =
       Configuration.getInt(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
-  private static final int MAX_SLEEP_MS =
+  protected static final int MAX_SLEEP_MS =
       Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
-  private static final int RPC_MAX_NUM_RETRY =
+  protected static final int RPC_MAX_NUM_RETRY =
       Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
 
   /**
@@ -100,7 +99,7 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
    *         side IOException occurred.
    */
   protected <V> V retryRPC(RpcCallable<V, C> rpc) throws IOException {
-    TException exception = null;
+    TException exception;
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     do {
@@ -118,14 +117,13 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
         }
         exception = new TException(ae);
       } catch (TException e) {
-        LOG.error(e.getMessage(), e);
+        LOG.warn(e.getMessage());
         closeClient(client);
         exception = e;
       } finally {
         releaseClient(client);
       }
     } while (retryPolicy.attemptRetry());
-
     LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
     Preconditions.checkNotNull(exception);
     throw new IOException(exception);

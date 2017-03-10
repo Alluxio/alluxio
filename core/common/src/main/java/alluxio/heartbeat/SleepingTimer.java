@@ -11,7 +11,6 @@
 
 package alluxio.heartbeat;
 
-import alluxio.Constants;
 import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
 import alluxio.time.Sleeper;
@@ -41,7 +40,7 @@ public final class SleepingTimer implements HeartbeatTimer {
    * @param intervalMs the heartbeat interval
    */
   public SleepingTimer(String threadName, long intervalMs) {
-    this(threadName, intervalMs, LoggerFactory.getLogger(Constants.LOGGER_TYPE),
+    this(threadName, intervalMs, LoggerFactory.getLogger(SleepingTimer.class),
         new SystemClock(), new ThreadSleeper());
   }
 

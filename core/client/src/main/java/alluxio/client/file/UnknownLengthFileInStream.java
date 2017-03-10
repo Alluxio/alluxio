@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class UnknownLengthFileInStream extends FileInStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(UnknownLengthFileInStream.class);
   /**
    * Since the file length is unknown, the actual length of the block is also unknown. Simply
    * using the maximum block size does not work well for allocation, since the maximum block size

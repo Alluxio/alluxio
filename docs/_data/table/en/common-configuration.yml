@@ -1,4 +1,4 @@
-alluxio.conf.directory:
+alluxio.conf.dir:
   The directory containing files used to configure Alluxio.
 alluxio.debug:
   Set to true to enable debug mode which has additional logging and info in the Web UI.

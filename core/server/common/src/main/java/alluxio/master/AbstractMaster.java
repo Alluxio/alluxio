@@ -46,7 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public abstract class AbstractMaster implements Master {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractMaster.class);
 
   public static final long INVALID_FLUSH_COUNTER = -1;
   private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
@@ -163,8 +163,10 @@ public abstract class AbstractMaster implements Master {
       // completed logs).
       JournalOutputStream checkpointStream =
           mJournalWriter.getCheckpointOutputStream(latestSequenceNumber);
+      LOG.info("{}: start writing checkpoint.", getName());
       streamToJournalCheckpoint(checkpointStream);
       checkpointStream.close();
+      LOG.info("{}: done with writing checkpoint.", getName());
 
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
     } else {
@@ -241,6 +243,12 @@ public abstract class AbstractMaster implements Master {
     }
   }
 
+  /**
+   * Appends a {@link JournalEntry} for writing to the journal.
+   *
+   * @param entry the {@link JournalEntry}
+   * @param journalContext the journal context
+   */
   protected void appendJournalEntry(JournalEntry entry, JournalContext journalContext) {
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
     journalContext.setFlushCounter(mAsyncJournalWriter.appendEntry(entry));

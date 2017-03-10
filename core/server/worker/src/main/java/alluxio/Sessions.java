@@ -27,14 +27,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class Sessions {
+  private static final Logger LOG = LoggerFactory.getLogger(Sessions.class);
+
   public static final int DATASERVER_SESSION_ID = -1;
   public static final int CHECKPOINT_SESSION_ID = -2;
   public static final int MIGRATE_DATA_SESSION_ID = -3;
   public static final int MASTER_COMMAND_SESSION_ID = -4;
   public static final int ACCESS_BLOCK_SESSION_ID = -5;
   public static final int KEYVALUE_SESSION_ID = -6;
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Map from SessionId to {@link alluxio.SessionInfo} object. */
   private final Map<Long, SessionInfo> mSessions;

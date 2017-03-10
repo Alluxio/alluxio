@@ -310,10 +310,20 @@ public abstract class AbstractJournalFormatterTest {
     mIs.close();
   }
 
+  /**
+   * Serializes a {@link JournalEntry} and writes to a temporary file.
+   *
+   * @param entry the {@link JournalEntry} to be serialized
+   */
   protected void write(JournalEntry entry) throws IOException {
     mFormatter.serialize(entry, mOs);
   }
 
+  /**
+   * De-serializes a {@link JournalEntry} from file.
+   *
+   * @return the {@link JournalEntry} de-serialized
+   */
   protected JournalEntry read() throws IOException {
     JournalInputStream jis = mFormatter.deserialize(mIs);
     JournalEntry entry = jis.getNextEntry();
@@ -321,10 +331,21 @@ public abstract class AbstractJournalFormatterTest {
     return entry;
   }
 
+  /**
+   * Asserts that the two {@link JournalEntry} is equal.
+   *
+   * @param entry1 the first {@link JournalEntry}
+   * @param entry2 the second {@link JournalEntry}
+   */
   protected void assertSameEntry(JournalEntry entry1, JournalEntry entry2) {
     Assert.assertEquals(entry1, entry2);
   }
 
+  /**
+   * Tests serialization and deserialization for a {@link JournalEntry}.
+   *
+   * @param entry the {@link JournalEntry} to be tested
+   */
   protected void entryTest(JournalEntry entry) throws IOException {
     write(entry);
     JournalEntry readEntry = read();

@@ -18,7 +18,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.ServerUtils;
-import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
+import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
@@ -49,7 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class AbstractLocalAlluxioCluster {
-  protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractLocalAlluxioCluster.class);
 
   private static final Random RANDOM_GENERATOR = new Random();
   private static final int DEFAULT_BLOCK_SIZE_BYTES = Constants.KB;
@@ -233,7 +233,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
-    Configuration.set(PropertyKey.MASTER_RETRY, "3");
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "3");
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
@@ -364,7 +364,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * Resets the client pools to the original state.
    */
   protected void resetClientPools() {
-    RetryHandlingBlockWorkerClientTestUtils.reset();
+    BlockWorkerClientTestUtils.reset();
     FileSystemWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }
