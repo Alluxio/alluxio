@@ -53,7 +53,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 
-import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,8 +102,9 @@ public final class LineageMaster extends AbstractMaster {
         executorServiceFactory);
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
-    mFileSystemMaster = registry.new Value<>(Constants.LINEAGE_MASTER_NAME, LineageMaster.class);
-    registry.put(Constants.LINEAGE_MASTER_NAME, this);
+    mFileSystemMaster =
+        registry.new Value<>(Constants.FILE_SYSTEM_MASTER_NAME, FileSystemMaster.class);
+    registry.put(getName(), this);
   }
 
   @Override

@@ -19,7 +19,6 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.lineage.LineageMaster;
 
 import java.net.InetSocketAddress;
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 

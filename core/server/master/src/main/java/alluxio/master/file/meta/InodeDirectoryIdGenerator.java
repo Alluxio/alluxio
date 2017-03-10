@@ -14,7 +14,6 @@ package alluxio.master.file.meta;
 import alluxio.Constants;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockId;
-import alluxio.master.block.BlockMaster;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
@@ -39,7 +38,8 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
    * @param registry the master registry
    */
   public InodeDirectoryIdGenerator(MasterRegistry registry) {
-    mContainerIdGenerator = registry.new Value<>(Constants.BLOCK_MASTER_NAME, BlockMaster.class);
+    mContainerIdGenerator =
+        registry.new Value<>(Constants.BLOCK_MASTER_NAME, ContainerIdGenerable.class);
   }
 
   synchronized long getNewDirectoryId() {

@@ -25,7 +25,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.MasterRegistry;
-import alluxio.master.block.BlockMaster;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -118,8 +117,8 @@ public class InodeTree implements JournalCheckpointStreamable {
    * inode directories: Each directory id will be a unique block id, in order to avoid any collision
    * with file ids.
    */
-  private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
   private final MasterRegistry.Value<ContainerIdGenerable> mContainerIdGenerator;
+  private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
 
   /**
    * This is only used for adding inodes from the journal, to prevent repeated lookups of the same
@@ -134,7 +133,8 @@ public class InodeTree implements JournalCheckpointStreamable {
    */
   public InodeTree(MasterRegistry registry, InodeDirectoryIdGenerator directoryIdGenerator,
       MountTable mountTable) {
-    mContainerIdGenerator = registry.new Value<>(Constants.BLOCK_MASTER_NAME, BlockMaster.class);
+    mContainerIdGenerator =
+        registry.new Value<>(Constants.BLOCK_MASTER_NAME, ContainerIdGenerable.class);
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
   }

@@ -81,6 +81,7 @@ public final class KeyValueMaster extends AbstractMaster {
         registry.new Value<>(Constants.FILE_SYSTEM_MASTER_NAME, FileSystemMaster.class);
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();
+    registry.put(getName(), this);
   }
 
   @Override
@@ -237,9 +238,10 @@ public final class KeyValueMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, AccessControlException {
     try {
       // Create this dir
-      mFileSystemMaster.get().createDirectory(path, CreateDirectoryOptions.defaults().setRecursive(true));
+      mFileSystemMaster.get()
+          .createDirectory(path, CreateDirectoryOptions.defaults().setRecursive(true));
     } catch (IOException e) {
-      // TODO(binfan): Investigate why {@link getFileSystemMaster().createDirectory} throws IOException
+      // TODO(binfan): Investigate why {@link FileSystemMaster#createDirectory} throws IOException
       throw new InvalidPathException(
           String.format("Failed to createStore: can not create path %s", path), e);
     } catch (FileDoesNotExistException e) {

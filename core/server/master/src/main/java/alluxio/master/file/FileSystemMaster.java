@@ -306,7 +306,7 @@ public final class FileSystemMaster extends AbstractMaster {
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
 
-    registry.put(Constants.FILE_SYSTEM_MASTER_NAME, this);
+    registry.put(getName(), this);
     Metrics.registerGauges(this);
   }
 
@@ -2162,7 +2162,8 @@ public final class FileSystemMaster extends AbstractMaster {
             journalSetAttribute(tempInodePath, opTimeMs, setAttributeOptions, journalContext);
           }
           // Remove corresponding blocks from workers.
-          mBlockMaster.get().removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
+          mBlockMaster.get()
+              .removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
         }
       }
     }
