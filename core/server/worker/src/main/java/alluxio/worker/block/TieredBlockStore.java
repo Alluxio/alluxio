@@ -72,7 +72,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * and guarded by {@link TieredBlockStore#mMetadataLock}. This is also a read/write lock and
  * coordinates different threads (clients) when accessing the shared data structure for metadata.
  * </li>
- * <li>Method {@link #createBlockMeta} does not acquire the block lock, because it only creates a
+ * <li>Method {@link #createBlock} does not acquire the block lock, because it only creates a
  * temp block which is only visible to its writer before committed (thus no concurrent access).</li>
  * <li>Eviction is done in {@link #freeSpaceInternal} and it is on the basis of best effort. For
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
@@ -141,8 +141,24 @@ public final class TieredBlockStore implements BlockStore {
     if (hasBlock) {
       return lockId;
     }
+
     mLockManager.unlockBlock(lockId);
     throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
+  }
+
+  @Override
+  public long lockBlockNoException(long sessionId, long blockId) {
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    boolean hasBlock;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      hasBlock = mMetaManager.hasBlockMeta(blockId);
+    }
+    if (hasBlock) {
+      return lockId;
+    }
+
+    mLockManager.unlockBlockNoException(lockId);
+    return BlockLockIdUtils.INVALID_LOCK_ID;
   }
 
   @Override
@@ -151,8 +167,8 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    mLockManager.unlockBlock(sessionId, blockId);
+  public boolean unlockBlock(long sessionId, long blockId) {
+    return mLockManager.unlockBlock(sessionId, blockId);
   }
 
   @Override
@@ -178,13 +194,14 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
+  public TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize)
           throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i++) {
       TempBlockMeta tempBlockMeta =
           createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
       if (tempBlockMeta != null) {
+        createBlockFile(tempBlockMeta.getPath());
         return tempBlockMeta;
       }
       if (i < MAX_RETRIES) {
@@ -214,6 +231,13 @@ public final class TieredBlockStore implements BlockStore {
     mLockManager.validateLock(sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.getBlockMeta(blockId);
+    }
+  }
+
+  @Override
+  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      return mMetaManager.getTempBlockMetaOrNull(blockId);
     }
   }
 
@@ -794,6 +818,23 @@ public final class TieredBlockStore implements BlockStore {
     } finally {
       mLockManager.unlockBlock(lockId);
     }
+  }
+
+  /**
+   * Creates a file to represent a block denoted by the given block path. This file will be owned
+   * by the Alluxio worker but have 777 permissions so processes under users different from the
+   * user that launched the Alluxio worker can read and write to the file. The tiered storage
+   * directory has the sticky bit so only the worker user can delete or rename files it creates.
+   *
+   * @param blockPath the block path to create
+   * @throws IOException if the file cannot be created in the tiered storage folder
+   */
+  // TODO(peis): Consider using domain socket to avoid setting the permission to 777.
+  private static void createBlockFile(String blockPath) throws IOException {
+    FileUtils.createBlockPath(blockPath);
+    FileUtils.createFile(blockPath);
+    FileUtils.changeLocalFileToFullPermission(blockPath);
+    LOG.debug("Created new file block, block path: {}", blockPath);
   }
 
   /**
