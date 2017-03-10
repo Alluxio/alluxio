@@ -26,6 +26,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.SecurityUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -235,6 +236,15 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     } else {
       return null;
     }
+  }
+
+  @Override
+  public boolean mkdirs(String path) throws IOException {
+    MkdirsOptions options = MkdirsOptions.defaults();
+    options.setOwner(SecurityUtils.getOwnerFromLoginModule());
+    options.setGroup(SecurityUtils.getGroupFromLoginModule());
+
+    return mkdirs(path, options);
   }
 
   @Override
