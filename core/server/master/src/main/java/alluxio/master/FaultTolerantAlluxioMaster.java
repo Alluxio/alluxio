@@ -41,7 +41,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
   /**
    * Creates a {@link FaultTolerantAlluxioMaster}.
    */
-  public FaultTolerantAlluxioMaster() {
+  protected FaultTolerantAlluxioMaster() {
     Preconditions.checkArgument(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
 
     // Set up zookeeper specific functionality.
@@ -76,7 +76,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
       if (mLeaderSelectorClient.isLeader()) {
         stopServing();
         stopMasters();
-        // Transitioning from standby to master, replace read-only journal with writable journal.
+        // Transitioning from standby to leader, replace read-only journal with writable journal.
         for (Master master : mRegistry.getMasters()) {
           master.transitionToLeader();
         }
@@ -90,7 +90,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
           stopServing();
           stopMasters();
 
-          // When transitioning from master to standby, recreate the masters with a read-only
+          // When transitioning from leader to standby, recreate the masters with a read-only
           // journal.
           createMasters(new JournalFactory.ReadOnly(getJournalDirectory()));
 

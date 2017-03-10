@@ -81,7 +81,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */
-  protected final MasterRegistry mRegistry;
+  protected MasterRegistry mRegistry;
 
   /** The web ui server. */
   private WebServer mWebServer = null;
@@ -129,8 +129,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
-      // Create the journals.
-      mRegistry = new MasterRegistry();
+      // Create the masters.
       createMasters(new JournalFactory.ReadWrite(getJournalDirectory()));
     } catch (Exception e) {
       throw Throwables.propagate(e);
@@ -155,6 +154,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
    * @param journalFactory the factory to use for creating journals
    */
   protected void createMasters(JournalFactory journalFactory) {
+    mRegistry = new MasterRegistry();
     for (MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
       factory.create(mRegistry, journalFactory);
     }
