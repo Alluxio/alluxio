@@ -123,6 +123,15 @@ interface BlockStore {
       throws BlockDoesNotExistException, InvalidWorkerStateException;
 
   /**
+   * Gets the temp metadata of a specific block from local storage.
+   *
+   * @param sessionId the id of the session to get this file
+   * @param blockId the id of the block
+   * @return metadata of the block or null if the temp block does not exist
+   */
+  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
+
+  /**
    * Commits a temporary block to the local store. After commit, the block will be available in this
    * block store for all clients to access. Since a temp block is "private" to the writer, this
    * method requires no previously acquired lock.

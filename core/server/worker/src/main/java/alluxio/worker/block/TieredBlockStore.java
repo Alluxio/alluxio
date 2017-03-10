@@ -235,6 +235,13 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
+  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      return mMetaManager.getTempBlockMetaOrNull(blockId);
+    }
+  }
+
+  @Override
   public void commitBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
       InvalidWorkerStateException, BlockDoesNotExistException, IOException {
     BlockStoreLocation loc = commitBlockInternal(sessionId, blockId);
