@@ -584,15 +584,14 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    * @throws IOException if an error occurs when invoking the operation on the underlying storage
    */
   private <T> T call(UfsCallable<T> callable) throws IOException {
-    T ret;
     LOG.debug("Enter: {}", callable);
     try {
-      ret = callable.call();
+      T ret = callable.call();
+      LOG.debug("Exit (OK): {}", callable);
+      return ret;
     } catch (IOException e) {
       LOG.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
       throw e;
     }
-    LOG.debug("Exit (OK): {}", callable);
-    return ret;
   }
 }

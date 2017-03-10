@@ -9,23 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.master.file.options;
 
-import alluxio.annotation.PublicApi;
 import alluxio.thrift.DeleteTOptions;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for deleting a file.
+ * Method options for deleting a file or a directory.
  */
-@PublicApi
 @NotThreadSafe
-@JsonInclude(Include.NON_EMPTY)
 public final class DeleteOptions {
   private boolean mRecursive;
   private boolean mAlluxioOnly;
@@ -35,6 +30,14 @@ public final class DeleteOptions {
    */
   public static DeleteOptions defaults() {
     return new DeleteOptions();
+  }
+
+  /**
+   * @param options the {@link DeleteTOptions} to use
+   */
+  public DeleteOptions(DeleteTOptions options) {
+    mRecursive = options.isRecursive();
+    mAlluxioOnly = options.isAlluxioOnly();
   }
 
   private DeleteOptions() {
@@ -99,18 +102,8 @@ public final class DeleteOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("recursive", mRecursive)
-        .add("alluxioOnly", mAlluxioOnly)
-        .toString();
-  }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public DeleteTOptions toThrift() {
-    DeleteTOptions options = new DeleteTOptions();
-    options.setRecursive(mRecursive);
-    options.setAlluxioOnly(mAlluxioOnly);
-    return options;
+         .add("recursive", mRecursive)
+         .add("alluxioOnly", mAlluxioOnly)
+         .toString();
   }
 }
