@@ -23,7 +23,9 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
@@ -41,11 +43,11 @@ import java.nio.channels.ReadableByteChannel;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class implements a {@link BlockReaderWithCache} to read a block directly from UFS, and
+ * This class implements a {@link BlockReader} to read a block directly from UFS, and
  * optionally cache the block to the Alluxio worker if the whole block it is read.
  */
 @NotThreadSafe
-public final class UnderFileSystemBlockReader implements BlockReaderWithCache {
+public final class UnderFileSystemBlockReader implements  BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockReader.class);
 
   /** An object storing the mapping of tier aliases to ordinals. */
@@ -64,13 +66,8 @@ public final class UnderFileSystemBlockReader implements BlockReaderWithCache {
   private InputStream mUnderFileSystemInputStream;
   /** The block writer to write the block to Alluxio. */
   private LocalFileBlockWriter mBlockWriter;
-  /**
-   * If set, the reader is closed and should not be used afterwards except isCommitPending
-   * method.
-   */
+  /** If set, the reader is closed and should not be used afterwards. */
   private boolean mClosed;
-  /** If set, this block is pending to be committed to Alluxio. */
-  private boolean mCommitPending;
 
   /**
    * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
@@ -242,8 +239,6 @@ public final class UnderFileSystemBlockReader implements BlockReaderWithCache {
       // This aborts the block if the block is not fully read.
       updateBlockWriter(mBlockMeta.getBlockSize());
 
-      // We need to check whether the block is cached before closing the block writer.
-      boolean isBlockCached = isBlockCached();
       Closer closer = Closer.create();
       if (mBlockWriter != null) {
         closer.register(mBlockWriter);
@@ -252,30 +247,14 @@ public final class UnderFileSystemBlockReader implements BlockReaderWithCache {
         closer.register(mUnderFileSystemInputStream);
       }
       closer.close();
-
-      if (isBlockCached) {
-        mCommitPending = true;
-      }
     } finally {
       mClosed = true;
     }
   }
 
   @Override
-  public boolean isCommitPending() {
-    return mCommitPending;
-  }
-
-  @Override
   public boolean isClosed() {
     return mClosed;
-  }
-
-  /**
-   * @return true if the whole block is read and cached to the temporary block location
-   */
-  private boolean isBlockCached() {
-    return mBlockWriter != null && mBlockWriter.getPosition() == mBlockMeta.getBlockSize();
   }
 
   /**
@@ -305,13 +284,22 @@ public final class UnderFileSystemBlockReader implements BlockReaderWithCache {
    *
    * @param offset the read offset
    */
-  private void updateBlockWriter(long offset) {
+  private void updateBlockWriter(long offset) throws IOException {
     try {
       if (mBlockWriter != null && offset > mBlockWriter.getPosition()) {
         mBlockWriter.close();
         mBlockWriter = null;
         mLocalBlockStore.abortBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
       }
+    } catch (BlockDoesNotExistException e) {
+      // This can only happen when the session is expired.
+      LOG.warn("Block {} does not exist when being aborted.", mBlockMeta.getBlockId());
+    } catch (BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
+      // We cannot skip the exception here because we need to make sure that the user of this
+      // reader does not commit the block if it fails to abort the block.
+      throw CommonUtils.castToIOException(e);
+    }
+    try {
       if (mBlockWriter == null && offset == 0 && !mNoCache) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
         String blockPath = mLocalBlockStore
@@ -319,8 +307,7 @@ public final class UnderFileSystemBlockReader implements BlockReaderWithCache {
                 mInitialBlockSize).getPath();
         mBlockWriter = new LocalFileBlockWriter(blockPath);
       }
-    } catch (IOException | BlockAlreadyExistsException | BlockDoesNotExistException
-        | InvalidWorkerStateException | WorkerOutOfSpaceException e) {
+    } catch (IOException | BlockAlreadyExistsException | WorkerOutOfSpaceException e) {
       // This can happen when there are concurrent UFS readers who are all trying to cache to block.
       LOG.debug(
           "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]",

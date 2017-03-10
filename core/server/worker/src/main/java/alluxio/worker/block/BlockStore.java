@@ -122,6 +122,8 @@ interface BlockStore {
   BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException;
 
+  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
+
   /**
    * Commits a temporary block to the local store. After commit, the block will be available in this
    * block store for all clients to access. Since a temp block is "private" to the writer, this

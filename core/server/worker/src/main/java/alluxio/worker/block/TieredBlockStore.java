@@ -178,8 +178,7 @@ public final class TieredBlockStore implements BlockStore {
     // block lock here since no sharing
     // TODO(bin): Handle the case where multiple writers compete for the same block.
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-      return new LocalFileBlockWriter(tempBlockMeta.getPath());
+      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId); return new LocalFileBlockWriter(tempBlockMeta.getPath());
     }
   }
 
@@ -231,6 +230,13 @@ public final class TieredBlockStore implements BlockStore {
     mLockManager.validateLock(sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.getBlockMeta(blockId);
+    }
+  }
+
+  @Override
+  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      return mMetaManager.getTempBlockMetaOrNull(blockId);
     }
   }
 

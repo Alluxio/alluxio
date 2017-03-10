@@ -130,10 +130,9 @@ public final class UnderFileSystemBlockStore {
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @return true if block is to be committed into Local block store
    * @throws IOException if it fails to clean up
    */
-  public boolean cleanup(long sessionId, long blockId) throws IOException {
+  public void closeReaderOrWriter(long sessionId, long blockId) throws IOException {
     BlockInfo blockInfo;
     mLock.lock();
     try {
@@ -141,12 +140,12 @@ public final class UnderFileSystemBlockStore {
       if (blockInfo == null) {
         LOG.warn("Key (block ID: {}, session ID {}) is not found when cleaning up the UFS block.",
             blockId, sessionId);
-        return false;
+        return;
       }
     } finally {
       mLock.unlock();
     }
-    return blockInfo.closeReaderOrWriter();
+    blockInfo.closeReaderOrWriter();
   }
 
   /**
@@ -200,7 +199,7 @@ public final class UnderFileSystemBlockStore {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
         // in Local block store because they will be cleanup by the session cleaner in the
         // Local block store.
-        cleanup(sessionId, blockId);
+        closeReaderOrWriter(sessionId, blockId);
         releaseAccess(sessionId, blockId);
       } catch (Exception e) {
         LOG.warn("Failed to cleanup UFS block {}, session {}.", blockId, sessionId);
@@ -234,7 +233,7 @@ public final class UnderFileSystemBlockStore {
     } finally {
       mLock.unlock();
     }
-    BlockReaderWithCache reader =
+    BlockReader reader =
         UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore);
     blockInfo.setBlockReader(reader);
     return reader;
@@ -319,7 +318,7 @@ public final class UnderFileSystemBlockStore {
     // A correct client implementation should never access the following reader/writer
     // concurrently. But just to avoid crashing the server thread with runtime exception when
     // the client is mis-behaving, we access them with locks acquired.
-    private BlockReaderWithCache mBlockReader;
+    private BlockReader mBlockReader;
     private BlockWriter mBlockWriter;
 
     /**
@@ -351,7 +350,7 @@ public final class UnderFileSystemBlockStore {
     /**
      * @param blockReader the block reader to be set
      */
-    public synchronized void setBlockReader(BlockReaderWithCache blockReader) {
+    public synchronized void setBlockReader(BlockReader blockReader) {
       mBlockReader = blockReader;
     }
 
@@ -372,21 +371,17 @@ public final class UnderFileSystemBlockStore {
     /**
      * Closes the block reader or writer.
      *
-     * @return true if the block is pending to be committed
      * @throws IOException if it fails to close block reader or writer
      */
-    public synchronized boolean closeReaderOrWriter() throws IOException {
-      boolean commitPending = false;
+    public synchronized void closeReaderOrWriter() throws IOException {
       if (mBlockReader != null) {
         mBlockReader.close();
-        commitPending = mBlockReader.isCommitPending();
         mBlockReader = null;
       }
       if (mBlockWriter != null) {
         mBlockWriter.close();
         mBlockWriter = null;
       }
-      return commitPending;
     }
   }
 }
