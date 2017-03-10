@@ -46,10 +46,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(BlockLockManager.class);
 
+  /** Invalid lock ID. */
+  public static final long INVALID_LOCK_ID = -1;
+
   /** The unique id of each lock. */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
 
-  /** A pool of read write locks. */
+ /** A pool of read write locks. */
   private final ResourcePool<ClientRWLock> mLockPool = new ResourcePool<ClientRWLock>(
       Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
     @Override

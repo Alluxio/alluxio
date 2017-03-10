@@ -27,6 +27,85 @@ public final class LockBlockResult implements Serializable {
 
   private long mLockId;
   private String mBlockPath = "";
+  private LockBlockStatus mLockBlockStatus;
+
+  /**
+   * The status indicates the type of the lock acquired.
+   */
+  public enum LockBlockStatus {
+    /**
+     * A lock acquired for an Alluxio block.
+     */
+    ALLUXIO_BLOCK_LOCKED(1),
+    /**
+     * A lock acquired for a UFS block.
+     */
+    UFS_TOKEN_ACQUIRED(2),
+    /**
+     * Not lock acquired because the block is not in Alluxio and the UFS block is busy.
+     */
+    UFS_TOKEN_NOT_ACQUIRED(3),
+    ;
+
+    private final int mValue;
+
+    LockBlockStatus(int value) {
+      mValue = value;
+    }
+
+    /**
+     * @return the lock status value
+     */
+    public int getValue() {
+      return mValue;
+    }
+
+    /**
+     * @return true if the block is in Alluxio
+     */
+    public boolean blockInAlluxio() {
+      return mValue == ALLUXIO_BLOCK_LOCKED.mValue;
+    }
+
+    /**
+     * @return true if a UFS block token is acquired
+     */
+    public boolean ufsTokenAcquired() {
+      return mValue == UFS_TOKEN_ACQUIRED.mValue;
+    }
+
+    /**
+     * @return true if a UFS token is not available
+     */
+    public boolean ufsTokenNotAcquired() {
+      return mValue == UFS_TOKEN_NOT_ACQUIRED.mValue;
+    }
+
+    /**
+     * @return the thrift version of the lock status
+     */
+    public alluxio.thrift.LockBlockStatus toThrift() {
+      return alluxio.thrift.LockBlockStatus.findByValue(mValue);
+    }
+
+    /**
+     * @param status the lock block status in thrift
+     * @return the lock block status
+     */
+    public static LockBlockStatus fromThrift(alluxio.thrift.LockBlockStatus status) {
+      switch (status) {
+        case ALLUXIO_BLOCK_LOCKED:
+          return LockBlockStatus.ALLUXIO_BLOCK_LOCKED;
+        case UFS_TOKEN_ACQUIRED:
+          return LockBlockStatus.UFS_TOKEN_ACQUIRED;
+        case UFS_TOKEN_NOT_ACQUIRED:
+          return LockBlockStatus.UFS_TOKEN_NOT_ACQUIRED;
+        default:
+          // Should never happen.
+          throw new IllegalStateException("Unexpected lock block status.");
+      }
+    }
+  }
 
   /**
    * Creates a new instance of {@link LockBlockResult}.
@@ -41,6 +120,7 @@ public final class LockBlockResult implements Serializable {
   protected LockBlockResult(alluxio.thrift.LockBlockResult lockBlockResult) {
     mLockId = lockBlockResult.getLockId();
     mBlockPath = lockBlockResult.getBlockPath();
+    mLockBlockStatus = LockBlockStatus.fromThrift(lockBlockResult.getLockBlockStatus());
   }
 
   /**
@@ -76,22 +156,18 @@ public final class LockBlockResult implements Serializable {
     return this;
   }
 
-  /**
-   * Checks whether the block is cached in Alluxio.
-   *
-   * This method is ignored by Jackson as its method name does not start with "is" or "get".
-   *
-   * @return true if the block is in cached in Alluxio
+ /**
+   * @return the lock block status
    */
-  public boolean blockCachedInAlluxio() {
-    return getLockId() >= 0;
+  public LockBlockStatus getLockBlockStatus() {
+    return mLockBlockStatus;
   }
 
   /**
    * @return thrift representation of the lock block operation result
    */
   protected alluxio.thrift.LockBlockResult toThrift() {
-    return new alluxio.thrift.LockBlockResult(mLockId, mBlockPath);
+    return new alluxio.thrift.LockBlockResult(mLockId, mBlockPath, mLockBlockStatus.toThrift());
   }
 
   @Override
@@ -103,17 +179,18 @@ public final class LockBlockResult implements Serializable {
       return false;
     }
     LockBlockResult that = (LockBlockResult) o;
-    return mLockId == that.mLockId && mBlockPath.equals(that.mBlockPath);
+    return Objects.equal(mLockId, that.mLockId) && Objects.equal(mBlockPath, that.mBlockPath)
+        && Objects.equal(mLockBlockStatus, that.mLockBlockStatus);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLockId, mBlockPath);
+    return Objects.hashCode(mLockId, mBlockPath, mLockBlockStatus);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("lockId", mLockId).add("blockPath", mBlockPath)
-        .toString();
+    return Objects.toStringHelper(this).add("blockPath", mBlockPath)
+        .add("lockBlockStatus", mLockBlockStatus).add("lockId", mLockId).toString();
   }
 }
