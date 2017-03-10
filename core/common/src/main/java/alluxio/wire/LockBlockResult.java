@@ -85,13 +85,24 @@ public final class LockBlockResult implements Serializable {
      * @return the thrift version of the lock status
      */
     public alluxio.thrift.LockBlockStatus toThrift() {
-      switch (mValue) {
-        case 1 : return alluxio.thrift.LockBlockStatus.ALLUXIO_BLOCK_LOCKED;
-        case 2 : return alluxio.thrift.LockBlockStatus.UFS_TOKEN_ACQUIRED;
-        case 3 : return alluxio.thrift.LockBlockStatus.UFS_TOKEN_NOT_ACQUIRED;
+      return alluxio.thrift.LockBlockStatus.findByValue(mValue);
+    }
+
+    /**
+     * @param status the lock block status in thrift
+     * @return the lock block status
+     */
+    public static LockBlockStatus fromThrift(alluxio.thrift.LockBlockStatus status) {
+      switch (status) {
+        case ALLUXIO_BLOCK_LOCKED:
+          return LockBlockStatus.ALLUXIO_BLOCK_LOCKED;
+        case UFS_TOKEN_ACQUIRED:
+          return LockBlockStatus.UFS_TOKEN_ACQUIRED;
+        case UFS_TOKEN_NOT_ACQUIRED:
+          return LockBlockStatus.UFS_TOKEN_NOT_ACQUIRED;
         default:
-          throw new IllegalStateException(
-              String.format("%s is not a valid lock block status.", mValue));
+          // Should never happen.
+          throw new IllegalStateException("Unexpected lock block status.");
       }
     }
   }
@@ -109,6 +120,7 @@ public final class LockBlockResult implements Serializable {
   protected LockBlockResult(alluxio.thrift.LockBlockResult lockBlockResult) {
     mLockId = lockBlockResult.getLockId();
     mBlockPath = lockBlockResult.getBlockPath();
+    mLockBlockStatus = LockBlockStatus.fromThrift(lockBlockResult.getLockBlockStatus());
   }
 
   /**
@@ -167,8 +179,8 @@ public final class LockBlockResult implements Serializable {
       return false;
     }
     LockBlockResult that = (LockBlockResult) o;
-    return Objects.equal(mLockId, that.mLockId) && Objects.equal(mBlockPath, that.mBlockPath) &&
-        Objects.equal(mLockBlockStatus, that.mLockBlockStatus);
+    return Objects.equal(mLockId, that.mLockId) && Objects.equal(mBlockPath, that.mBlockPath)
+        && Objects.equal(mLockBlockStatus, that.mLockBlockStatus);
   }
 
   @Override
