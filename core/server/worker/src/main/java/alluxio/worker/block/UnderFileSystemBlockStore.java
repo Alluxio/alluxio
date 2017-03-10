@@ -36,7 +36,7 @@ import javax.annotation.concurrent.GuardedBy;
  * This class manages the virtual blocks in the UFS for delegated UFS reads/writes.
  *
  * The usage pattern:
- *  acquireAccess(blockMeta, maxConcurrency)
+ *  acquireAccess(sessionId, blockId, options)
  *  closeReaderOrWriter(sessionId, blockId)
  *  releaseAccess(sessionId, blockId)
  *
