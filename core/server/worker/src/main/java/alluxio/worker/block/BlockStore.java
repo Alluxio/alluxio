@@ -122,6 +122,13 @@ interface BlockStore {
   BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException;
 
+  /**
+   * Gets the temp metadata of a specific block from local storage.
+   *
+   * @param sessionId the id of the session to get this file
+   * @param blockId the id of the block
+   * @return metadata of the block or null if the temp block does not exist
+   */
   TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
 
   /**

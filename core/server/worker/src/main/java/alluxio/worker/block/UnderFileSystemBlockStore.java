@@ -37,7 +37,7 @@ import javax.annotation.concurrent.GuardedBy;
  *
  * The usage pattern:
  *  acquireAccess(blockMeta, maxConcurrency)
- *  cleanup(sessionId, blockId)
+ *  closeReaderOrWriter(sessionId, blockId)
  *  releaseAccess(sessionId, blockId)
  *
  * If the client is lost before releasing or cleaning up the session, the session cleaner will
@@ -79,7 +79,8 @@ public final class UnderFileSystemBlockStore {
 
   /**
    * Acquires access for a UFS block given a {@link UnderFileSystemBlockMeta} and the limit on
-   * the maximum concurrency on the block.
+   * the maximum concurrency on the block. If the number of concurrent readers on this UFS block
+   * exceeds a threshold, the token is not granted and this method returns false.
    *
    * @param sessionId the session ID
    * @param blockId maximum concurrency
@@ -122,7 +123,7 @@ public final class UnderFileSystemBlockStore {
   }
 
   /**
-   * Cleans up the block reader or writer and checks whether it is necessary to commit the block
+   * Closes the block reader or writer and checks whether it is necessary to commit the block
    * to Local block store.
    *
    * During UFS block read, this is triggered when the block is unlocked.
@@ -312,6 +313,13 @@ public final class UnderFileSystemBlockStore {
     }
   }
 
+  /**
+   * This class is to wrap block reader/writer and the block meta into one class. The block
+   * reader/writer is not part of the {@link UnderFileSystemBlockMeta} because
+   * 1. UnderFileSystemBlockMeta only keeps immutable information.
+   * 2. We do not want a cyclic dependency between {@link UnderFileSystemBlockReader} and
+   *    {@link UnderFileSystemBlockMeta}.
+   */
   private static class BlockInfo {
     private final UnderFileSystemBlockMeta mMeta;
 

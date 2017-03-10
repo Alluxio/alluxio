@@ -47,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * optionally cache the block to the Alluxio worker if the whole block it is read.
  */
 @NotThreadSafe
-public final class UnderFileSystemBlockReader implements  BlockReader {
+public final class UnderFileSystemBlockReader implements BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockReader.class);
 
   /** An object storing the mapping of tier aliases to ordinals. */
