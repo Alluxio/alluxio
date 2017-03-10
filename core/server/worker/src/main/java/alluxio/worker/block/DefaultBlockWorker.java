@@ -447,10 +447,16 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public void closeUfsBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException {
-    if (mUnderFileSystemBlockStore.cleanup(sessionId, blockId)) {
-      commitBlock(sessionId, blockId);
+      throws BlockAlreadyExistsException, InvalidWorkerStateException, IOException,
+      WorkerOutOfSpaceException {
+    mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
+    if (mBlockStore.getTempBlockMeta(sessionId, blockId) != null) {
+      try {
+        commitBlock(sessionId, blockId);
+      } catch (BlockDoesNotExistException e) {
+        // This can only happen if the session is expired. Ignore this exception if that happens.
+        LOG.warn("Block {} does not exist while being committed.", blockId);
+      }
     }
     mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
   }
