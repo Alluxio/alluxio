@@ -10,8 +10,11 @@ struct LockBlockResult {
 }
 
 enum LockBlockStatus {
+   /** The Alluxio block is acquired. */
    ALLUXIO_BLOCK_LOCKED = 1,
+   /** The block is not in Alluxio but a UFS access token is acquired for this block. */
    UFS_TOKEN_ACQUIRED = 2,
+   /** The block is not in Alluxio and a UFS access token is not acquired. */
    UFS_TOKEN_NOT_ACQUIRED = 3,
 }
 

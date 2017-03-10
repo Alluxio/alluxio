@@ -40,14 +40,14 @@ import alluxio.master.block.BlockId;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
@@ -342,33 +342,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /**
    * Creates and returns a {@link InputStream} for the UFS.
    *
+   * @param blockId the block ID
    * @param blockStart the offset to start the block from
    * @param length the length of the block
    * @param path the UFS path
    * @return the {@link InputStream} for the UFS
    * @throws IOException if the stream cannot be created
    */
-<<<<<<< 3ba2d538518be8baded818f84ad84b890e0e8e3e
-  protected InputStream createUnderStoreBlockInStream(long blockStart, long length, String path)
-      throws IOException {
-    return new UnderStoreBlockInStream(mContext, blockStart, length, mBlockSize,
-        getUnderStoreStreamFactory(path, mContext));
-  }
-
-  /**
-   * Creates a new instance of {@link UnderStoreStreamFactory}.
-   *
-   * @param path the ufs path to create streams to
-   * @param context file system context
-   * @return the instance of {@link UnderStoreStreamFactory}
-   * @throws IOException if an IO exception occurs
-   */
-  protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path, FileSystemContext
-      context) throws IOException {
-=======
   protected InputStream createUnderStoreBlockInStream(long blockId, long blockStart, long length,
       String path) throws IOException {
->>>>>>> Client side changes to use UFSBlockStore
     if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
       try {
         WorkerNetAddress address = mUfsReadLocationPolicy.getWorker(

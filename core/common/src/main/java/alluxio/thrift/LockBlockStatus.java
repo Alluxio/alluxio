@@ -12,8 +12,17 @@ import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
 public enum LockBlockStatus implements org.apache.thrift.TEnum {
+  /**
+   * The Alluxio block is acquired.
+   */
   ALLUXIO_BLOCK_LOCKED(1),
+  /**
+   * The block is not in Alluxio but a UFS access token is acquired for this block.
+   */
   UFS_TOKEN_ACQUIRED(2),
+  /**
+   * The block is not in Alluxio and a UFS access token is not acquired.
+   */
   UFS_TOKEN_NOT_ACQUIRED(3);
 
   private final int value;
