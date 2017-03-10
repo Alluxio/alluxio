@@ -46,7 +46,7 @@ public final class URIUtils {
    */
   public static URI appendPath(URI base, String path) throws URISyntaxException {
     return new URI(base.getScheme(), base.getHost(), PathUtils.concatPath(base.getPath(), path),
-        null);
+        base.getFragment());
   }
 
   /**
