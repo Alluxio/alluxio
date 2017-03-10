@@ -40,6 +40,7 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
 
   private static final org.apache.thrift.protocol.TField LOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("lockId", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField BLOCK_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("blockPath", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField LOCK_STATUS_FIELD_DESC = new org.apache.thrift.protocol.TField("lockStatus", org.apache.thrift.protocol.TType.I32, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -49,11 +50,13 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
 
   private long lockId; // required
   private String blockPath; // required
+  private LockStatus lockStatus; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     LOCK_ID((short)1, "lockId"),
-    BLOCK_PATH((short)2, "blockPath");
+    BLOCK_PATH((short)2, "blockPath"),
+    LOCK_STATUS((short)3, "lockStatus");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -72,6 +75,8 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
           return LOCK_ID;
         case 2: // BLOCK_PATH
           return BLOCK_PATH;
+        case 3: // LOCK_STATUS
+          return LOCK_STATUS;
         default:
           return null;
       }
@@ -121,6 +126,8 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.BLOCK_PATH, new org.apache.thrift.meta_data.FieldMetaData("blockPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.LOCK_STATUS, new org.apache.thrift.meta_data.FieldMetaData("lockStatus", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.ENUM        , "LockStatus")));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(LockBlockResult.class, metaDataMap);
   }
@@ -130,12 +137,14 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
 
   public LockBlockResult(
     long lockId,
-    String blockPath)
+    String blockPath,
+    LockStatus lockStatus)
   {
     this();
     this.lockId = lockId;
     setLockIdIsSet(true);
     this.blockPath = blockPath;
+    this.lockStatus = lockStatus;
   }
 
   /**
@@ -146,6 +155,9 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
     this.lockId = other.lockId;
     if (other.isSetBlockPath()) {
       this.blockPath = other.blockPath;
+    }
+    if (other.isSetLockStatus()) {
+      this.lockStatus = other.lockStatus;
     }
   }
 
@@ -158,6 +170,7 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
     setLockIdIsSet(false);
     this.lockId = 0;
     this.blockPath = null;
+    this.lockStatus = null;
   }
 
   public long getLockId() {
@@ -207,6 +220,30 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
     }
   }
 
+  public LockStatus getLockStatus() {
+    return this.lockStatus;
+  }
+
+  public LockBlockResult setLockStatus(LockStatus lockStatus) {
+    this.lockStatus = lockStatus;
+    return this;
+  }
+
+  public void unsetLockStatus() {
+    this.lockStatus = null;
+  }
+
+  /** Returns true if field lockStatus is set (has been assigned a value) and false otherwise */
+  public boolean isSetLockStatus() {
+    return this.lockStatus != null;
+  }
+
+  public void setLockStatusIsSet(boolean value) {
+    if (!value) {
+      this.lockStatus = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case LOCK_ID:
@@ -225,6 +262,14 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
       }
       break;
 
+    case LOCK_STATUS:
+      if (value == null) {
+        unsetLockStatus();
+      } else {
+        setLockStatus((LockStatus)value);
+      }
+      break;
+
     }
   }
 
@@ -235,6 +280,9 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
 
     case BLOCK_PATH:
       return getBlockPath();
+
+    case LOCK_STATUS:
+      return getLockStatus();
 
     }
     throw new IllegalStateException();
@@ -251,6 +299,8 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
       return isSetLockId();
     case BLOCK_PATH:
       return isSetBlockPath();
+    case LOCK_STATUS:
+      return isSetLockStatus();
     }
     throw new IllegalStateException();
   }
@@ -286,6 +336,15 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
         return false;
     }
 
+    boolean this_present_lockStatus = true && this.isSetLockStatus();
+    boolean that_present_lockStatus = true && that.isSetLockStatus();
+    if (this_present_lockStatus || that_present_lockStatus) {
+      if (!(this_present_lockStatus && that_present_lockStatus))
+        return false;
+      if (!this.lockStatus.equals(that.lockStatus))
+        return false;
+    }
+
     return true;
   }
 
@@ -302,6 +361,11 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
     list.add(present_blockPath);
     if (present_blockPath)
       list.add(blockPath);
+
+    boolean present_lockStatus = true && (isSetLockStatus());
+    list.add(present_lockStatus);
+    if (present_lockStatus)
+      list.add(lockStatus.getValue());
 
     return list.hashCode();
   }
@@ -330,6 +394,16 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
     }
     if (isSetBlockPath()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockPath, other.blockPath);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetLockStatus()).compareTo(other.isSetLockStatus());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetLockStatus()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lockStatus, other.lockStatus);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -363,6 +437,14 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
       sb.append("null");
     } else {
       sb.append(this.blockPath);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("lockStatus:");
+    if (this.lockStatus == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.lockStatus);
     }
     first = false;
     sb.append(")");
@@ -426,6 +508,14 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 3: // LOCK_STATUS
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.lockStatus = alluxio.thrift.LockStatus.findByValue(iprot.readI32());
+              struct.setLockStatusIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -447,6 +537,11 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
       if (struct.blockPath != null) {
         oprot.writeFieldBegin(BLOCK_PATH_FIELD_DESC);
         oprot.writeString(struct.blockPath);
+        oprot.writeFieldEnd();
+      }
+      if (struct.lockStatus != null) {
+        oprot.writeFieldBegin(LOCK_STATUS_FIELD_DESC);
+        oprot.writeI32(struct.lockStatus.getValue());
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -473,19 +568,25 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
       if (struct.isSetBlockPath()) {
         optionals.set(1);
       }
-      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetLockStatus()) {
+        optionals.set(2);
+      }
+      oprot.writeBitSet(optionals, 3);
       if (struct.isSetLockId()) {
         oprot.writeI64(struct.lockId);
       }
       if (struct.isSetBlockPath()) {
         oprot.writeString(struct.blockPath);
       }
+      if (struct.isSetLockStatus()) {
+        oprot.writeI32(struct.lockStatus.getValue());
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, LockBlockResult struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
+      BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
         struct.lockId = iprot.readI64();
         struct.setLockIdIsSet(true);
@@ -493,6 +594,10 @@ public class LockBlockResult implements org.apache.thrift.TBase<LockBlockResult,
       if (incoming.get(1)) {
         struct.blockPath = iprot.readString();
         struct.setBlockPathIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.lockStatus = alluxio.thrift.LockStatus.findByValue(iprot.readI32());
+        struct.setLockStatusIsSet(true);
       }
     }
   }
