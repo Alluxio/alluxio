@@ -11,14 +11,14 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum LockStatus implements org.apache.thrift.TEnum {
-  ALLUXIO_BLOCK_LOCKED(0),
-  UFS_TOKEN_ACQUIRED(1),
-  UFS_TOKEN_NOT_ACQUIRED(2);
+public enum LockBlockStatus implements org.apache.thrift.TEnum {
+  ALLUXIO_BLOCK_LOCKED(1),
+  UFS_TOKEN_ACQUIRED(2),
+  UFS_TOKEN_NOT_ACQUIRED(3);
 
   private final int value;
 
-  private LockStatus(int value) {
+  private LockBlockStatus(int value) {
     this.value = value;
   }
 
@@ -33,13 +33,13 @@ public enum LockStatus implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static LockStatus findByValue(int value) { 
+  public static LockBlockStatus findByValue(int value) { 
     switch (value) {
-      case 0:
-        return ALLUXIO_BLOCK_LOCKED;
       case 1:
-        return UFS_TOKEN_ACQUIRED;
+        return ALLUXIO_BLOCK_LOCKED;
       case 2:
+        return UFS_TOKEN_ACQUIRED;
+      case 3:
         return UFS_TOKEN_NOT_ACQUIRED;
       default:
         return null;

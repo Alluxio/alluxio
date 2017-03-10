@@ -28,6 +28,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import java.io.FilterInputStream;
@@ -160,7 +161,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       LockBlockResult lockBlockResult =
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
       PacketInStream inStream;
-      if (lockBlockResult.blockCachedInAlluxio()) {
+      if (lockBlockResult.getLockBlockStatus().blockInAlluxio()) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
             .equals(NetworkAddressUtils.getLocalHostName());
         if (local) {
@@ -174,6 +175,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
         }
         blockWorkerClient.accessBlock(blockId);
       } else {
+        Preconditions.checkState(lockBlockResult.getLockBlockStatus().ufsTokenAcquired());
         inStream = closer.register(PacketInStream
             .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
                 lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,

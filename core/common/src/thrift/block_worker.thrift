@@ -6,13 +6,13 @@ include "exception.thrift"
 struct LockBlockResult {
   1: i64 lockId
   2: string blockPath
-  3: LockStatus lockStatus
+  3: LockBlockStatus lockBlockStatus
 }
 
-enum LockStatus {
-   ALLUXIO_BLOCK_LOCKED = 0,
-   UFS_TOKEN_ACQUIRED = 1,
-   UFS_TOKEN_NOT_ACQUIRED = 2,
+enum LockBlockStatus {
+   ALLUXIO_BLOCK_LOCKED = 1,
+   UFS_TOKEN_ACQUIRED = 2,
+   UFS_TOKEN_NOT_ACQUIRED = 3,
 }
 
 struct LockBlockTOptions {
