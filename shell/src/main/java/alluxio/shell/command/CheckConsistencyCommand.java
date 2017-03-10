@@ -14,12 +14,16 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CheckConsistencyOptions;
+import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,6 +44,11 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
   }
 
   @Override
+  protected Options getOptions() {
+    return new Options().addOption(FIX_INCONSISTENT_FILES);
+  }
+
+  @Override
   public String getCommandName() {
     return "checkConsistency";
   }
@@ -48,28 +57,63 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI root = new AlluxioURI(args[0]);
+    checkConsistency(root, cl.hasOption("r"));
+  }
+
+  private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
+      AlluxioException, IOException {
     CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
-    List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(root, options);
+    List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(path, options);
     if (inconsistentUris.isEmpty()) {
-      System.out.println(root + " is consistent with the under storage system.");
-    } else {
+      System.out.println(path + " is consistent with the under storage system.");
+      return;
+    }
+    if (!repairConsistency) {
       Collections.sort(inconsistentUris);
       System.out.println("The following files are inconsistent:");
       for (AlluxioURI uri : inconsistentUris) {
         System.out.println(uri);
+      }
+    } else {
+      Collections.sort(inconsistentUris);
+      System.out.println(path + " has: " + inconsistentUris.size() + " inconsistent files.");
+      List<AlluxioURI> inconsistentDirs = new ArrayList<AlluxioURI>();
+      for (int i = 0; i < inconsistentUris.size(); i++) {
+        AlluxioURI inconsistentUri = inconsistentUris.get(i);
+        URIStatus status = mFileSystem.getStatus(inconsistentUri);
+        if (status.isFolder()) {
+          inconsistentDirs.add(inconsistentUri);
+          continue;
+        }
+        System.out.println("repairing path: " + inconsistentUri);
+        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
+        mFileSystem.delete(inconsistentUri, deleteOptions);
+        mFileSystem.exists(inconsistentUri);
+        System.out.println(inconsistentUri + " repaired");
+        System.out.println();
+      }
+      for (AlluxioURI uri : inconsistentDirs) {
+        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true)
+            .setRecursive(true);
+        System.out.println("repairing path: " + uri);
+        mFileSystem.delete(uri, deleteOptions);
+        mFileSystem.exists(uri);
+        System.out.println(uri + "repaired");
+        System.out.println();
       }
     }
   }
 
   @Override
   public String getUsage() {
-    return "checkConsistency <Alluxio path>";
+    return "checkConsistency [-r] <Alluxio path>";
   }
 
   @Override
   public String getDescription() {
     return "Checks the consistency of a persisted file or directory in Alluxio. Any files or "
         + "directories which only exist in Alluxio or do not match the metadata of files in the "
-        + "under storage will be returned. An administrator should then reconcile the differences.";
+        + "under storage will be returned. An administrator should then reconcile the differences."
+        + "Specify -r to repair the inconsistent files.";
   }
 }

@@ -9,10 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.master.file.options;
 
 import alluxio.CommonTestUtils;
-import alluxio.thrift.DeleteTOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,16 +19,16 @@ import org.junit.Test;
 import java.util.Random;
 
 /**
- * Tests for the {@link DeleteOptions} class.
+ * Unit tests for {@link DeleteOptions}.
  */
 public class DeleteOptionsTest {
+
   /**
-   * Tests that building a {@link DeleteOptions} with the defaults works.
+   * Tests the {@link CreateFileOptions#defaults()} method.
    */
   @Test
-  public void defaults() {
+  public void defaults() throws Exception {
     DeleteOptions options = DeleteOptions.defaults();
-
     Assert.assertFalse(options.isRecursive());
     Assert.assertFalse(options.isAlluxioOnly());
   }
@@ -38,7 +37,7 @@ public class DeleteOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fields() {
+  public void fields() throws Exception {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
     boolean alluxioOnly = random.nextBoolean();
@@ -46,19 +45,9 @@ public class DeleteOptionsTest {
 
     options.setRecursive(recursive);
     options.setAlluxioOnly(alluxioOnly);
+
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(alluxioOnly, options.isAlluxioOnly());
-  }
-
-  /**
-   * Tests conversion to thrift representation.
-   */
-  @Test
-  public void toThrift() {
-    DeleteOptions options = DeleteOptions.defaults();
-    DeleteTOptions thriftOptions = options.toThrift();
-    Assert.assertFalse(thriftOptions.isRecursive());
-    Assert.assertFalse(thriftOptions.isAlluxioOnly());
   }
 
   @Test

@@ -63,7 +63,13 @@ For example, when trying out a new computation job, `cat` can be used as a quick
 
 The `checkConsistency` command compares Alluxio and under storage metadata for a given path. If the path is a directory, the entire subtree will be compared. The command returns a message listing each inconsistent file or directory. The system administrator should reconcile the differences of these files at their discretion. To avoid metadata inconsistencies between Alluxio and under storages, design your systems to modify files and directories through the Alluxio and avoid directly modifying state in the underlying storage.
 
-> NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates to files or directories in the subtree cannot be completed until this command completes.
+If the `-r` option is used, the checkConsistency command will repair all inconsistent files and directories
+under the given path. If an inconsistent file or directory exists only in under storage, its metadata will
+be added to Alluxio. If an inconsistent file exists in Alluxio and its data is fully present in Alluxio, its metadata
+will be loaded to Alluxio again.
+
+NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates
+to files or directories in the subtree cannot be completed until this command completes.
 
 For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
 
