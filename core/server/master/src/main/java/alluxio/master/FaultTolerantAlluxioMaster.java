@@ -76,17 +76,10 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
       if (mLeaderSelectorClient.isLeader()) {
         stopServing();
         stopMasters();
-
         // Transitioning from standby to master, replace read-only journal with writable journal.
-        mBlockMaster.transitionToLeader();
-        mFileSystemMaster.transitionToLeader();
-        if (mLineageMaster != null) {
-          mLineageMaster.transitionToLeader();
-        }
-        for (Master master : mAdditionalMasters) {
+        for (Master master : mRegistry.getMasters()) {
           master.transitionToLeader();
         }
-
         startMasters(true);
         started = true;
         startServing("(gained leadership)", "(lost leadership)");

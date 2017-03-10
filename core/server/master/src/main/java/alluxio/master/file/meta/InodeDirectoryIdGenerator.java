@@ -11,13 +11,14 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Constants;
+import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockId;
+import alluxio.master.block.BlockMaster;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-
-import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,17 +29,17 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
-  private final ContainerIdGenerable mContainerIdGenerator;
+  private final MasterRegistry.Value<ContainerIdGenerable> mContainerIdGenerator;
 
   private boolean mInitialized = false;
   private long mContainerId;
   private long mSequenceNumber;
 
   /**
-   * @param containerIdGenerator the container id generator to use
+   * @param registry the master registry
    */
-  public InodeDirectoryIdGenerator(ContainerIdGenerable containerIdGenerator) {
-    mContainerIdGenerator = Preconditions.checkNotNull(containerIdGenerator);
+  public InodeDirectoryIdGenerator(MasterRegistry registry) {
+    mContainerIdGenerator = registry.new Value<>(Constants.BLOCK_MASTER_NAME, BlockMaster.class);
   }
 
   synchronized long getNewDirectoryId() {
@@ -46,7 +47,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
     long directoryId = BlockId.createBlockId(mContainerId, mSequenceNumber);
     if (mSequenceNumber == BlockId.getMaxSequenceNumber()) {
       // No more ids in this container. Get a new container for the next id.
-      mContainerId = mContainerIdGenerator.getNewContainerId();
+      mContainerId = mContainerIdGenerator.get().getNewContainerId();
       mSequenceNumber = 0;
     } else {
       mSequenceNumber++;
@@ -79,7 +80,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
 
   private void initialize() {
     if (!mInitialized) {
-      mContainerId = mContainerIdGenerator.getNewContainerId();
+      mContainerId = mContainerIdGenerator.get().getNewContainerId();
       mSequenceNumber = 0;
       mInitialized = true;
     }

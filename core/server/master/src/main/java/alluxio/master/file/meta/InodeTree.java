@@ -24,6 +24,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.master.MasterRegistry;
+import alluxio.master.block.BlockMaster;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -103,6 +105,7 @@ public class InodeTree implements JournalCheckpointStreamable {
 
   /** Use UniqueFieldIndex directly for ID index rather than using IndexedSet. */
   private final FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<>(ID_INDEX);
+
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
 
@@ -115,8 +118,8 @@ public class InodeTree implements JournalCheckpointStreamable {
    * inode directories: Each directory id will be a unique block id, in order to avoid any collision
    * with file ids.
    */
-  private final ContainerIdGenerable mContainerIdGenerator;
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
+  private final MasterRegistry.Value<ContainerIdGenerable> mContainerIdGenerator;
 
   /**
    * This is only used for adding inodes from the journal, to prevent repeated lookups of the same
@@ -125,13 +128,13 @@ public class InodeTree implements JournalCheckpointStreamable {
   private InodeDirectory mCachedInode;
 
   /**
-   * @param containerIdGenerator the container id generator to use to get new container ids
+   * @param registry the master registry
    * @param directoryIdGenerator the directory id generator to use to get new directory ids
    * @param mountTable the mount table to manage the file system mount points
    */
-  public InodeTree(ContainerIdGenerable containerIdGenerator,
-      InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable) {
-    mContainerIdGenerator = containerIdGenerator;
+  public InodeTree(MasterRegistry registry, InodeDirectoryIdGenerator directoryIdGenerator,
+      MountTable mountTable) {
+    mContainerIdGenerator = registry.new Value<>(Constants.BLOCK_MASTER_NAME, BlockMaster.class);
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
   }
@@ -612,7 +615,7 @@ public class InodeTree implements JournalCheckpointStreamable {
         lastInode.setPinned(currentInodeDirectory.isPinned());
       } else if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
-        lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
+        lastInode = InodeFile.create(mContainerIdGenerator.get().getNewContainerId(),
             currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
         // Lock the created inode before subsequent operations, and add it to the lock group.
         lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
@@ -911,7 +914,7 @@ public class InodeTree implements JournalCheckpointStreamable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRoot, mInodes, mPinnedInodeFileIds, mContainerIdGenerator,
+    return Objects.hashCode(mRoot, mInodes, mPinnedInodeFileIds, mContainerIdGenerator.get(),
         mDirectoryIdGenerator, mCachedInode);
   }
 
@@ -927,7 +930,7 @@ public class InodeTree implements JournalCheckpointStreamable {
     return Objects.equal(mRoot, that.mRoot)
         && Objects.equal(mInodes, that.mInodes)
         && Objects.equal(mPinnedInodeFileIds, that.mPinnedInodeFileIds)
-        && Objects.equal(mContainerIdGenerator, that.mContainerIdGenerator)
+        && Objects.equal(mContainerIdGenerator.get(), that.mContainerIdGenerator.get())
         && Objects.equal(mDirectoryIdGenerator, that.mDirectoryIdGenerator)
         && Objects.equal(mCachedInode, that.mCachedInode);
   }

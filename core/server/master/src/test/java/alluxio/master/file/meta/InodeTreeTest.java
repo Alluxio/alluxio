@@ -21,6 +21,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -78,13 +79,14 @@ public final class InodeTreeTest {
    */
   @Before
   public void before() throws Exception {
+    MasterRegistry registry = new MasterRegistry();
     JournalFactory journalFactory =
         new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
 
-    BlockMaster blockMaster = new BlockMaster(journalFactory);
-    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
+    BlockMaster blockMaster = new BlockMaster(registry, journalFactory);
+    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(registry);
     MountTable mountTable = new MountTable();
-    mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
+    mTree = new InodeTree(registry, directoryIdGenerator, mountTable);
 
     blockMaster.start(true);
 

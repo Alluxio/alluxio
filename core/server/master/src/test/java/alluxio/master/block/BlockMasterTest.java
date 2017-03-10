@@ -16,6 +16,7 @@ import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.MasterRegistry;
 import alluxio.master.journal.JournalFactory;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
@@ -77,12 +78,13 @@ public class BlockMasterTest {
    */
   @Before
   public void before() throws Exception {
+    MasterRegistry registry = new MasterRegistry();
     JournalFactory journalFactory =
         new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mMaster = new BlockMaster(journalFactory, mClock,
+    mMaster = new BlockMaster(registry, journalFactory, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mMaster.start(true);
   }

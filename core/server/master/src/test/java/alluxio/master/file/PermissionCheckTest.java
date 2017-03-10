@@ -20,6 +20,7 @@ import alluxio.SetAndRestoreConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -170,10 +171,11 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
     LoginUserTestUtils.resetLoginUser(TEST_USER_ADMIN.getUser());
 
+    MasterRegistry registry = new MasterRegistry();
     JournalFactory journalFactory =
         new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
-    mBlockMaster = new BlockMaster(journalFactory);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
+    mBlockMaster = new BlockMaster(registry, journalFactory);
+    mFileSystemMaster = new FileSystemMaster(registry, journalFactory);
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
 

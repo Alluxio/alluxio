@@ -28,6 +28,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
+import alluxio.master.MasterRegistry;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
@@ -161,24 +162,27 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
+   * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public BlockMaster(JournalFactory journalFactory) {
-    this(journalFactory, new SystemClock(), ExecutorServiceFactories
+  public BlockMaster(MasterRegistry registry, JournalFactory journalFactory) {
+    this(registry, journalFactory, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
+   * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public BlockMaster(JournalFactory journalFactory, Clock clock,
+  public BlockMaster(MasterRegistry registry, JournalFactory journalFactory, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.get(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
+    registry.put(Constants.BLOCK_MASTER_NAME, this);
     Metrics.registerGauges(this);
   }
 

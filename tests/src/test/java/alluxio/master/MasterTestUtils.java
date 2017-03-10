@@ -35,9 +35,10 @@ public class MasterTestUtils {
   public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    MasterRegistry registry = new MasterRegistry();
     JournalFactory journalFactory = new JournalFactory.ReadWrite(masterJournal);
-    BlockMaster blockMaster = new BlockMaster(journalFactory);
-    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, journalFactory);
+    BlockMaster blockMaster = new BlockMaster(registry, journalFactory);
+    FileSystemMaster fsMaster = new FileSystemMaster(registry, journalFactory);
     blockMaster.start(true);
     fsMaster.start(true);
     return fsMaster;
@@ -52,9 +53,10 @@ public class MasterTestUtils {
   public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    MasterRegistry registry = new MasterRegistry();
     JournalFactory journalFactory = new JournalFactory.ReadWrite(masterJournal);
-    BlockMaster blockMaster = new BlockMaster(journalFactory);
-    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, journalFactory);
+    BlockMaster blockMaster = new BlockMaster(registry, journalFactory);
+    FileSystemMaster fsMaster = new FileSystemMaster(registry, journalFactory);
     blockMaster.start(false);
     fsMaster.start(false);
     return fsMaster;
