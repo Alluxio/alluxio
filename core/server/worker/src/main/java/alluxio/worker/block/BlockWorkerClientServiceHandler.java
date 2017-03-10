@@ -25,11 +25,11 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.LockBlockResult;
+import alluxio.thrift.LockBlockStatus;
 import alluxio.thrift.LockBlockTOptions;
 import alluxio.thrift.ThriftIOException;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,23 +157,25 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
       public LockBlockResult call() throws AlluxioException {
         if (!options.isSetUfsPath() || options.getUfsPath().isEmpty()) {
           long lockId = mWorker.lockBlock(sessionId, blockId);
-          Preconditions.checkState(BlockLockIdUtils.isAlluxioBlockLockId(lockId));
-          return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
+          return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId),
+              LockBlockStatus.ALLUXIO_BLOCK_LOCKED);
         }
 
         long lockId = mWorker.lockBlockNoException(sessionId, blockId);
-        if (BlockLockIdUtils.isAlluxioBlockLockId(lockId)) {
-          return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
+        if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+          return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId),
+              LockBlockStatus.ALLUXIO_BLOCK_LOCKED);
         }
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS
         // block.
+        LockBlockStatus status;
         if (mWorker.openUfsBlock(sessionId, blockId, new OpenUfsBlockOptions(options))) {
-          lockId = BlockLockIdUtils.UFS_BLOCK_LOCK_ID;
+          status = LockBlockStatus.UFS_TOKEN_ACQUIRED;
         } else {
-          lockId = BlockLockIdUtils.UFS_BLOCK_READ_TOKEN_UNAVAILABLE;
+          status = LockBlockStatus.UFS_TOKEN_NOT_ACQUIRED;
         }
 
-        return new LockBlockResult(lockId, "");
+        return new LockBlockResult(lockId, "", status);
       }
 
       @Override

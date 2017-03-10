@@ -248,17 +248,17 @@ public final class RetryHandlingBlockWorkerClient
     int retryInterval = Constants.SECOND_MS;
     RetryPolicy retryPolicy = new TimeoutRetry(Configuration
         .getLong(PropertyKey.USER_UFS_BLOCK_OPEN_TIMEOUT_MS), retryInterval);
-    UfsBlockAccessTokenUnavailableException exception;
     do {
-      try {
-        return lockBlock(blockId, options);
-      } catch (UfsBlockAccessTokenUnavailableException e) {
+      LockBlockResource resource = lockBlock(blockId, options);
+      if (resource.getResult().getLockBlockStatus().ufsTokenNotAcquired()) {
         LOG.debug("Failed to acquire a UFS read token because of contention for block {} with "
             + "LockBlockOptions {}", blockId, options);
-        exception = e;
+      } else {
+        return resource;
       }
     } while (retryPolicy.attemptRetry());
-    throw exception;
+    throw new UfsBlockAccessTokenUnavailableException(
+        ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE, blockId, options.getUfsPath());
   }
 
   @Override

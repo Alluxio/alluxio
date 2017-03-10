@@ -25,6 +25,7 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import java.io.IOException;
@@ -89,7 +90,7 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
               .setBlockSize(blockSize).setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency());
       LockBlockResult result =
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
-      if (result.blockCachedInAlluxio()) {
+      if (result.getLockBlockStatus().blockInAlluxio()) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
             .equals(NetworkAddressUtils.getLocalHostName());
         if (local) {
@@ -104,6 +105,7 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
                   result.getLockId(), closer, options);
         }
       }
+      Preconditions.checkState(result.getLockBlockStatus().ufsTokenAcquired());
       return new UnderFileSystemBlockInStream(context, blockId, blockSize, blockWorkerClient,
           closer, options);
     } catch (AlluxioException | IOException e) {

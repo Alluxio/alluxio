@@ -158,7 +158,7 @@ public final class TieredBlockStore implements BlockStore {
     }
 
     mLockManager.unlockBlockNoException(lockId);
-    return BlockLockIdUtils.INVALID_LOCK_ID;
+    return BlockLockManager.INVALID_LOCK_ID;
   }
 
   @Override
