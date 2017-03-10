@@ -77,23 +77,30 @@ public class AlluxioException extends Exception {
    * @return the native Alluxio exception
    */
   public static AlluxioException fromThrift(AlluxioTException e) {
-    try {
-      Class<? extends AlluxioException> throwClass;
-      if (e.isSetClassName()) {
-        // server version 1.1.0 or newer
+    Class<? extends AlluxioException> throwClass;
+    if (e.isSetClassName()) {
+      // server version 1.1.0 or newer
+      try {
         throwClass = (Class<? extends AlluxioException>) Class.forName(e.getClassName());
-      } else {
-        // server version 1.0.x
-        throwClass = AlluxioExceptionType.getAlluxioExceptionClass(e.getType());
+      } catch (ClassNotFoundException ee) {
+        // this can happen when the client is talking to a newer version of a server that
+        // introduced an exception that the client does not recognize
+        return new AlluxioException(e.getMessage());
       }
+    } else {
+      // server version 1.0.x
+      throwClass = AlluxioExceptionType.getAlluxioExceptionClass(e.getType());
       if (throwClass == null) {
-        throwClass = AlluxioException.class;
+        return new AlluxioException(e.getMessage());
       }
+    }
+    try {
       return throwClass.getConstructor(String.class).newInstance(e.getMessage());
-    } catch (ReflectiveOperationException reflectException) {
-      String errorMessage = "Could not instantiate " + e.getType() + " with a String-only "
-          + "constructor: " + reflectException.getMessage();
-      throw new IllegalStateException(errorMessage, reflectException);
+    } catch (ReflectiveOperationException ee) {
+      String errorMessage = String
+          .format("Could not instantiate %s with a String-only constructor: %s", e.getType(),
+              ee.getMessage());
+      throw new IllegalStateException(errorMessage, ee);
     }
   }
 

@@ -103,7 +103,7 @@ leverage the Scala shell, as discussed in this
 ### Coding Style
 
 -   Please follow the style of the existing codebase. Specifically, we use
-    [Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html),
+    [Google Java style](https://google.github.io/styleguide/javaguide.html),
     with the following changes or deviations:
     -  Maximum line length of **100** characters.
     -  Third-party imports are grouped together to make IDE formatting much simpler.

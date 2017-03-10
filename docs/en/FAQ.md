@@ -23,7 +23,7 @@ priority: 2
    Yes, Once Alluxio is installed, the UI is available at `http://master_ip:19999`
 
 4. If I add new nodes to the cluster, will Alluxio re-balance / move the cached blocks to the newly
-added nodes in order to balance disk space utilization between the nodes?
+added nodes in order to balance memory space utilization between the nodes?
 
    No, Currently re-balancing of data blocks in not available.
 
