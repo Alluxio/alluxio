@@ -548,9 +548,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (mCurrentBlockInStream instanceof RemoteBlockInStream) {
         InetSocketAddress address = ((RemoteBlockInStream) mCurrentBlockInStream).location();
         BlockWorkerInfo remoteWorker = null;
-        for (BlockWorkerInfo worker: workers) {
-          if (worker.getNetAddress().getHost().equals(address.getHostString()) &&
-              worker.getNetAddress().getDataPort() == address.getPort()) {
+        for (BlockWorkerInfo worker : workers) {
+          if (worker.getNetAddress().getHost().equals(address.getHostString())
+              && worker.getNetAddress().getDataPort() == address.getPort()) {
             remoteWorker = worker;
           }
         }
