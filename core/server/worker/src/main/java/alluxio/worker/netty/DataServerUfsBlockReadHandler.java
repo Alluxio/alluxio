@@ -102,6 +102,7 @@ public final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
   @Override
   protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws IOException {
     BlockReader blockReader = ((UfsBlockReadRequestInternal) mRequest).mBlockReader;
+    // This buf is released by netty.
     ByteBuf buf = channel.alloc().buffer(len, len);
     try {
       while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
