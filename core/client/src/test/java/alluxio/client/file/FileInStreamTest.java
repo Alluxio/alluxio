@@ -49,6 +49,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -102,6 +103,8 @@ public class FileInStreamTest {
     for (int i = 0; i < NUM_STREAMS; i++) {
       blockIds.add((long) i);
       mCacheStreams.add(new TestBufferedBlockOutStream(i, getBlockLength(i), mContext));
+      Mockito.when(mBlockStore.getWorkerInfoList())
+          .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
       Mockito
           .when(mBlockStore.getInStream(Mockito.eq((long) i), Mockito.any(InStreamOptions.class)))
           .thenAnswer(new Answer<BufferedBlockInStream>() {
