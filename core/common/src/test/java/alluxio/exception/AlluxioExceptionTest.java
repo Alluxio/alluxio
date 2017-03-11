@@ -9,14 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.exception;
 
-/**
- * Project constants from compilation time by maven.
- */
-public final class ProjectConstants {
-  /* Project version, specified in maven property. **/
-  public static final String VERSION = "${project.version}";
+import alluxio.thrift.AlluxioTException;
 
-  private ProjectConstants() {} // prevent instantiation
+import org.junit.Assert;
+import org.junit.Test;
+
+public class AlluxioExceptionTest {
+
+  @Test
+  public void unknownException() {
+    final String testMessage = "testMessage";
+    AlluxioTException tException = new AlluxioTException("testType", testMessage, "testClass");
+    AlluxioException exception = AlluxioException.fromThrift(tException);
+    Assert.assertEquals(testMessage, exception.getMessage());
+  }
 }
