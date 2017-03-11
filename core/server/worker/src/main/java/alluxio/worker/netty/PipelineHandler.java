@@ -60,6 +60,7 @@ final class PipelineHandler extends ChannelInitializer<SocketChannel> {
     pipeline.addLast("dataServerBlockWriteHandler",
         new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR,
             mWorker.getBlockWorker()));
+    // DataServerFileReadHandler is deprecated. It is here for backward compatibility.
     pipeline.addLast("dataServerFileReadHandler",
         new DataServerUFSFileReadHandler(NettyExecutors.UFS_BLOCK_READER_EXECUTOR,
             mWorker.getFileSystemWorker()));

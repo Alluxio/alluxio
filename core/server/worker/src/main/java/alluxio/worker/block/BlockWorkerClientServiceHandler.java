@@ -175,7 +175,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
           status = LockBlockStatus.UFS_TOKEN_NOT_ACQUIRED;
         }
 
-        return new LockBlockResult(lockId, "", status);
+        return new LockBlockResult(lockId, null, status);
       }
 
       @Override
