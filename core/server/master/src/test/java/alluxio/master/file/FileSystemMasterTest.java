@@ -34,6 +34,7 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
@@ -151,13 +152,13 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method.
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method.
    */
   @Test
   public void deleteFile() throws Exception {
     // cannot delete root
     try {
-      mFileSystemMaster.delete(ROOT_URI, true);
+      mFileSystemMaster.delete(ROOT_URI, DeleteOptions.defaults().setRecursive(true));
       Assert.fail("Should not have been able to delete the root");
     } catch (InvalidPathException e) {
       Assert.assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.getMessage());
@@ -165,7 +166,7 @@ public final class FileSystemMasterTest {
 
     // delete the file
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.delete(NESTED_FILE_URI, false);
+    mFileSystemMaster.delete(NESTED_FILE_URI, DeleteOptions.defaults().setRecursive(false));
 
     mThrown.expect(BlockInfoException.class);
     mBlockMaster.getBlockInfo(blockId);
@@ -180,18 +181,37 @@ public final class FileSystemMasterTest {
 
     // verify the file is deleted
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    mFileSystemMaster.listStatus(uri,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+    mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1/file1"),
+        DeleteOptions.defaults().setAlluxioOnly(true));
+
+    // ufs file still exists
+    Assert.assertTrue(Files.exists(Paths.get(ufsMount.join("dir1").join("file1").getPath())));
+    // verify the file is deleted
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1/file1")));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method with a non-empty
-   * directory.
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method with a
+   * non-empty directory.
    */
   @Test
   public void deleteNonemptyDirectory() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
     String dirName = mFileSystemMaster.getFileInfo(NESTED_URI).getName();
     try {
-      mFileSystemMaster.delete(NESTED_URI, false);
+      mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(false));
       Assert.fail("Deleting a non-empty directory without setting recursive should fail");
     } catch (DirectoryNotEmptyException e) {
       String expectedMessage =
@@ -200,20 +220,38 @@ public final class FileSystemMasterTest {
     }
 
     // Now delete with recursive set to true
-    mFileSystemMaster.delete(NESTED_URI, true);
+    mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method for a directory.
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
+   * a directory.
    */
   @Test
   public void deleteDir() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
     // delete the dir
-    mFileSystemMaster.delete(NESTED_URI, true);
+    mFileSystemMaster.delete(NESTED_URI, DeleteOptions.defaults().setRecursive(true));
 
     // verify the dir is deleted
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));
+
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    // load the dir1 to alluxio
+    mFileSystemMaster.listStatus(new AlluxioURI("/mnt/local"),
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+    mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1"),
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true));
+    // ufs directory still exists
+    Assert.assertTrue(Files.exists(Paths.get(ufsMount.join("dir1").getPath())));
+    // verify the directory is deleted
+    Files.delete(Paths.get(ufsMount.join("dir1").getPath()));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1")));
   }
 
   /**

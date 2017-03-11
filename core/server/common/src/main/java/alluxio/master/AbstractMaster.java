@@ -163,8 +163,10 @@ public abstract class AbstractMaster implements Master {
       // completed logs).
       JournalOutputStream checkpointStream =
           mJournalWriter.getCheckpointOutputStream(latestSequenceNumber);
+      LOG.info("{}: start writing checkpoint.", getName());
       streamToJournalCheckpoint(checkpointStream);
       checkpointStream.close();
+      LOG.info("{}: done with writing checkpoint.", getName());
 
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
     } else {
@@ -241,6 +243,12 @@ public abstract class AbstractMaster implements Master {
     }
   }
 
+  /**
+   * Appends a {@link JournalEntry} for writing to the journal.
+   *
+   * @param entry the {@link JournalEntry}
+   * @param journalContext the journal context
+   */
   protected void appendJournalEntry(JournalEntry entry, JournalContext journalContext) {
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
     journalContext.setFlushCounter(mAsyncJournalWriter.appendEntry(entry));

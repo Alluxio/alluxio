@@ -38,14 +38,14 @@ import alluxio.master.block.BlockId;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
@@ -345,6 +345,14 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         getUnderStoreStreamFactory(path, mContext));
   }
 
+  /**
+   * Creates a new instance of {@link UnderStoreStreamFactory}.
+   *
+   * @param path the ufs path to create streams to
+   * @param context file system context
+   * @return the instance of {@link UnderStoreStreamFactory}
+   * @throws IOException if an IO exception occurs
+   */
   protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path, FileSystemContext
       context) throws IOException {
     if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
@@ -600,8 +608,14 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         throw e;
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
-      return createUnderStoreBlockInStream(blockStart, getBlockSize(blockStart),
-          mStatus.getUfsPath());
+      try {
+        return createUnderStoreBlockInStream(blockStart, getBlockSize(blockStart),
+            mStatus.getUfsPath());
+      } catch (IOException e2) {
+        LOG.debug("Failed to read from UFS after failing to read from Alluxio", e2);
+        // UFS read failed; throw the original exception
+        throw e;
+      }
     }
   }
 

@@ -64,6 +64,11 @@ public class BaseFileSystem implements FileSystem {
     return new BaseFileSystem(context);
   }
 
+  /**
+   * Constructs a new base file system.
+   *
+   * @param context file system context
+   */
   protected BaseFileSystem(FileSystemContext context) {
     mFileSystemContext = context;
   }
